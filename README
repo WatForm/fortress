@@ -1,0 +1,8 @@
++ This the version of Fortress that was used for FM'16 paper.
+
++ To build, run "gradle build"
+
++ To learn about the APT, the following two files are great place to start:
+    + src/main/java/fortress/formats/tptp/FOF2Fortress.java
+    + src/main/java/fortress/Main.java
+
