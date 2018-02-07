@@ -1,4 +1,5 @@
-+ This the version of Fortress that was used for FM'16 paper.
++ This the newest version of Fortress. 2018-01-17 Nancy Day
+    + It started from code in the fm-fortress repo by Amirhossein Vakili
 
 + To build, run "gradle build"
 

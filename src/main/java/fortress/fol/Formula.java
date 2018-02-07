@@ -112,8 +112,9 @@ public abstract class Formula implements Comparable<Formula>{
         if (FOL.isTrue(t))
             return true_;
 
-        if (FOL.isNot(t))
+        if (FOL.isNot(t)) {
             return new Not(fromTerm(FOL.brkNot(t)));
+        }
 
         if (FOL.isAnd(t)){
             SortedSet<Formula> body = new TreeSet<>();
@@ -168,7 +169,6 @@ public abstract class Formula implements Comparable<Formula>{
                     vars.add(v);
             return new Exists(vars, fromTerm(p.right));
         }
-
         return new Atomic(t);
     }
 
