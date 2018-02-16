@@ -39,6 +39,8 @@ import java.util.*;
 /**
  * Created by Amirhossein Vakili.
  */
+
+ // Visits a parse tree and constructs a theory
 public class FOF2Fortress extends FOFTPTPBaseVisitor {
 
     public Theory result;

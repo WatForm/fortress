@@ -32,15 +32,16 @@ import java.util.function.Predicate;
 
 import static fortress.util.Errors.failIf;
 
+// Provides standard list operations, such as forall and fold
 public final class ListOps {
     
     private ListOps(){}
-    
+
     public static <T> T hd(List<T> l){
         failIf(l.size() == 0);
         return l.get(0);
     }
-    
+
     public static <T> List<T> tl(List<T> l){
         failIf(l.size() == 0);
         return l.subList(1, l.size());
@@ -51,35 +52,35 @@ public final class ListOps {
             if(! pred.test(t)) return false;
         return true;
     }
-    
+
     public static <T> boolean exists(Predicate<? super T> pred, List<T> l){
         for(T t: l)
             if(pred.test(t))
                 return true;
         return false;
     }
-    
+
     public static <A, B> A foldLeft(Function<? super A, Function<? super B, ? extends A>> f, A a, List<B> l){
         A result = a;
         for(B b: l)
-            result = f.apply(result).apply(b);        
+            result = f.apply(result).apply(b);
         return result;
-        
+
     }
 
     public static <A, B> B foldRight(Function<? super A, Function<? super B, ? extends B>> f, List<A> l, B b){
         B result = b;
         for(int i = l.size() - 1 ; i != -1; --i)
-            result = f.apply(l.get(i)).apply(result);       
+            result = f.apply(l.get(i)).apply(result);
         return result;
-        
+
     }
-    
+
     public static <T extends Comparable<? super T>> int compareList(List<T> l1, List<T> l2){
-        int minSize = l1.size() <= l2.size() ? l1.size() : l2.size();        
+        int minSize = l1.size() <= l2.size() ? l1.size() : l2.size();
         for(int i = 0; i != minSize; i++)
             if (l1.get(i).compareTo(l2.get(i)) != 0)
-                return l1.get(i).compareTo(l2.get(i));        
+                return l1.get(i).compareTo(l2.get(i));
         return l1.size() - l2.size();
     }
 
@@ -88,5 +89,5 @@ public final class ListOps {
             l1.add(e);
         else l2.add(e);
     }
-    
+
 }

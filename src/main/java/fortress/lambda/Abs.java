@@ -37,6 +37,8 @@ import static fortress.util.Errors.failIf;
 /**
  * Created by amirhossein on 14/01/16.
  */
+
+ // Lambda calculus term for a function abstraction
 public final class Abs extends Term {
 
     private Var arg;

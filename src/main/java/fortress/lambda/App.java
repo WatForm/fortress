@@ -43,6 +43,8 @@ import static fortress.util.Errors.failIf;
 /**
  * Created by amirhossein on 14/01/16.
  */
+
+ // Lambda calculus term for application of a function to an argument
 public final class App extends Term {
 
     private Term fun;

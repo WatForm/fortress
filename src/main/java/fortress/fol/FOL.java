@@ -43,6 +43,8 @@ import static fortress.util.Errors.failIf;
 /**
  * Created by amirhossein on 14/01/16.
  */
+ // Contains functions to check and convert between formulas
+ // and typed lambda calculus terms
 public final class FOL {
 
     public static Com bool = fortress.lambda.Type.BOOL;
