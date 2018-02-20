@@ -6,7 +6,14 @@ The original implementation is due to Amirhossein Vakili in 2016, with testing,
 ocumentation, and hopefully some modification by Joseph Poremba in Winter 2018.
 
 ## Building
-Run `gradle build`
+Run `gradle build`.
+
+## Running Unit Tests
+Run `gradle test`. Running `gradle build` will also run the unit tests.
+
+Gradle may not rerun tests that already passed since the last change. To force it to rerun the tests, run `gradle cleanTest test`.
+
+Note: There is another repository, fortress-tests, which runs tests on files (e.g. TPTP files).
 
 ## Implementation Notes
 input -> `ANTLRInputStream` -> `FOFTPTPLexer` -> `CommonTokenStream`
