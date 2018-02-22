@@ -777,6 +777,7 @@ public class UIFSolver {
         return isSat > 0;
     }
 
+    // Generates an SMT-LIB file
     public void generate(boolean symmetry, boolean generateModel, String name, int size){
         Timer timer = new Timer();
         if (verbosity <= 0)

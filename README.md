@@ -5,8 +5,14 @@ This is a modified version of the Fortress library originally described in the p
 The original implementation is due to Amirhossein Vakili in 2016, with testing,
 ocumentation, and hopefully some modification by Joseph Poremba in Winter 2018.
 
+## Requirements
+* Gradle must be installed in order to build fortress
+* Z3's command line interface must be installed in order to run fortress (for now at least, we plan to refactor to use the Z3 Java bindings in the future). I recommend you don't use version 4.4.1 or lower, due to memory bugs ([such as this](https://github.com/Z3Prover/z3/issues/631)) that have come up. As of now, 4.4.1 is the version that is installed when using `apt-get` on Ubuntu, so beware.
+
 ## Building
 Run `gradle build`.
+
+It is recommended you enable the Gradle Daemon to speed up subsequent builds.
 
 ## Running Unit Tests
 Run `gradle test`. Running `gradle build` will also run the unit tests.
@@ -14,6 +20,14 @@ Run `gradle test`. Running `gradle build` will also run the unit tests.
 Gradle may not rerun tests that already passed since the last change. To force it to rerun the tests, run `gradle cleanTest test`.
 
 Note: There is another repository, fortress-tests, which runs tests on files (e.g. TPTP files).
+
+## Plan
+1. Set up tests, which will also help to better understand fortress
+2. Documentation
+3. Add abstraction layers so changes can be made without breaking the interface
+4. Streamline the implementation by removing higher order logic layer
+5. Hunt for optimizations
+
 
 ## Implementation Notes
 input -> `ANTLRInputStream` -> `FOFTPTPLexer` -> `CommonTokenStream`
