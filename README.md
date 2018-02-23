@@ -6,13 +6,17 @@ The original implementation is due to Amirhossein Vakili in 2016, with testing,
 ocumentation, and hopefully some modification by Joseph Poremba in Winter 2018.
 
 ## Requirements
-* Gradle must be installed in order to build fortress
-* Z3's command line interface must be installed in order to run fortress (for now at least, we plan to refactor to use the Z3 Java bindings in the future). I recommend you don't use version 4.4.1 or lower, due to memory bugs ([such as this](https://github.com/Z3Prover/z3/issues/631)) that have come up. As of now, 4.4.1 is the version that is installed when using `apt-get` on Ubuntu, so beware.
+Gradle must be installed in order to build fortress. It is recommended you enable the Gradle Daemon to speed up building times.
+
+Z3's command line interface must be installed in order to run fortress (for now at least, we plan to refactor to use the Z3 Java bindings in the future).  
+It is highly recommended you use an up to date version of Z3 (4.6.0+), as memory bugs are known to appear in older versions ([a similar bug to this one appeared during one fortress test](https://github.com/Z3Prover/z3/issues/631)).  
+Note that at time of writing, Z3 4.4.1 is the version that is installed when using `apt-get` on Ubuntu. It is recommended to use the precompiled binaries distributed instead ([available here](https://github.com/Z3Prover/z3/releases)).
 
 ## Building
-Run `gradle build`.
+Run `gradle assemble`, or `gradle build` if you also want to run unit tests.
 
-It is recommended you enable the Gradle Daemon to speed up subsequent builds.
+## Packaging
+Run `gradle distZip`, which will create a zip file in the `build/distributions` directory. This zip file will contain both the fortress jar and any runtime dependencies, such as ANTLR.
 
 ## Running Unit Tests
 Run `gradle test`. Running `gradle build` will also run the unit tests.
@@ -21,8 +25,12 @@ Gradle may not rerun tests that already passed since the last change. To force i
 
 Note: There is another repository, fortress-tests, which runs tests on files (e.g. TPTP files).
 
-## Plan
-1. Set up tests, which will also help to better understand fortress
+## Building Documentation
+Run `gradle javadoc`.
+The documentation can then be viewed in `build/docs/javadoc/index.html`.
+
+## Plan for improvements
+1. Set up tests and restructure repository, which will also help to better understand fortress
 2. Documentation
 3. Add abstraction layers so changes can be made without breaking the interface
 4. Streamline the implementation by removing higher order logic layer

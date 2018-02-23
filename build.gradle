@@ -1,4 +1,5 @@
 apply plugin: 'java'
+apply plugin: 'distribution'
 
 repositories{
     mavenCentral()
@@ -12,5 +13,16 @@ dependencies {
 test {
     testLogging {
         events "passed", "skipped", "failed"
+    }
+}
+
+// Zip up both the main fortress jar and any runtime dependencies
+// Note that these are kept as separate jars in the zip file, not one fat jar
+distributions {
+    main {
+        contents {
+            from configurations.runtime
+            from jar
+        }
     }
 }
