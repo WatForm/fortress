@@ -13,21 +13,39 @@ It is highly recommended you use an up to date version of Z3 (4.6.0+), as memory
 Note that at time of writing, Z3 4.4.1 is the version that is installed when using `apt-get` on Ubuntu. It is recommended to use the precompiled binaries distributed instead ([available here](https://github.com/Z3Prover/z3/releases)).
 
 ## Building
-Run `gradle assemble`, or `gradle build` if you also want to run unit tests.
+#### Complete Build
+Run `gradle build` to completely build fortress.
+This includes:  
+* Compilation
+* Packaging zip and tar files for distribution
+* Static analyzer (FindBugs)
+* Unit Tests (JUnit)
+* Coverage analyzer (Jacoco)
+* Documentation (Javadoc)
 
-## Packaging
-Run `gradle distZip`, which will create a zip file in the `build/distributions` directory. This zip file will contain both the fortress jar and any runtime dependencies, such as ANTLR.
+#### Compilation
+Run `gradle compileJava`.
 
-## Running Unit Tests
-Run `gradle test`. Running `gradle build` will also run the unit tests.
-You can see an HTML version of the test results at `build/reports/tests/index.html`.  
-After running tests, `gradle jacoco` will generate a coverage report in `build/reports/jacoco/test/html/index.html`.
+#### Packaging
+Run `gradle distZip` or `gradle distTar`.
+This will create a zip or tar file respectively in the `build/distributions` directory.
+`gradle assemble` will do both.
+The archive will contain both the fortress jar and any runtime dependencies, such as ANTLR.
 
-Gradle may not rerun tests that already passed since the last change. To force it to rerun the tests, run `gradle cleanTest test`.
+#### Static Analysis (FindBugs)
+Run `gradle check`.
+A report will be available in `build/reports/findbugs/main.html` and `build/reports/findbugs/test.html`.
+
+#### Unit Tests and Coverage
+Run `gradle test`.
+An HTML version of the test results will be avaiable at `build/reports/tests/index.html`.  
+`gradle jacoco` will generate a coverage report in `build/reports/jacoco/test/html/index.html`.
+
+Note: Gradle may not rerun tests that have already passed since the last change. To force it to rerun the tests, run `gradle cleanTest test`.
 
 Note: There is another repository, fortress-tests, which runs tests on files (e.g. TPTP files).
 
-## Building Documentation
+#### Building Documentation
 Run `gradle javadoc`.
 The documentation can then be viewed in `build/docs/javadoc/index.html`.
 

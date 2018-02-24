@@ -1,6 +1,7 @@
 apply plugin: 'java'
 apply plugin: 'distribution'
-apply plugin: "jacoco"
+apply plugin: 'jacoco'
+apply plugin: 'findbugs'
 
 repositories{
     mavenCentral()
@@ -35,3 +36,18 @@ jacocoTestReport {
     }
 }
 
+jacocoTestReport.dependsOn test
+build.dependsOn jacocoTestReport
+build.dependsOn javadoc
+
+tasks.withType(FindBugs) {
+    reports {
+        xml.enabled false
+        html.enabled true
+    }
+}
+
+// Don't prevent the build from continuing, but still report errors
+findbugs {
+    ignoreFailures true
+}
