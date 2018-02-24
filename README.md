@@ -20,6 +20,8 @@ Run `gradle distZip`, which will create a zip file in the `build/distributions` 
 
 ## Running Unit Tests
 Run `gradle test`. Running `gradle build` will also run the unit tests.
+You can see an HTML version of the test results at `build/reports/tests/index.html`.  
+After running tests, `gradle jacoco` will generate a coverage report in `build/reports/jacoco/test/html/index.html`.
 
 Gradle may not rerun tests that already passed since the last change. To force it to rerun the tests, run `gradle cleanTest test`.
 

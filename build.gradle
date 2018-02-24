@@ -1,5 +1,6 @@
 apply plugin: 'java'
 apply plugin: 'distribution'
+apply plugin: "jacoco"
 
 repositories{
     mavenCentral()
@@ -26,3 +27,11 @@ distributions {
         }
     }
 }
+
+jacocoTestReport {
+    reports {
+        xml.enabled false
+        csv.enabled false
+    }
+}
+
