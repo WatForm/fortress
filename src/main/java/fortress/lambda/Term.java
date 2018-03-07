@@ -49,6 +49,15 @@ import java.util.stream.Collectors;
 /**
  * Created by Amirhossein Vakili.
  */
+
+ /*
+ Typed lambda calculus terms
+ term ::=
+    | Var (variable)
+    | Con (constant)
+    | App (application)
+    | Abs (abstraction)
+ */
 public abstract class Term implements Comparable<Term>{
 
     PTerm ty;

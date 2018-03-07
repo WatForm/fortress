@@ -32,6 +32,8 @@ import java.util.Map;
 /**
  * Created by Amirhossein Vakili.
  */
+
+ // String constants for common types and operations
 public final class Constants {
 
     private Constants(){}

@@ -39,6 +39,8 @@ import static fortress.util.Errors.failIf;
 /**
  * Created by amirhossein on 14/01/16.
  */
+
+ // Lambda calculus term for typed constant
 public final class Con extends Term {
 
     private String name;

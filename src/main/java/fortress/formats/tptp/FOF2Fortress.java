@@ -39,6 +39,8 @@ import java.util.*;
 /**
  * Created by Amirhossein Vakili.
  */
+
+ // Visits a parse tree and constructs a theory
 public class FOF2Fortress extends FOFTPTPBaseVisitor {
 
     public Theory result;
@@ -56,6 +58,8 @@ public class FOF2Fortress extends FOFTPTPBaseVisitor {
         vars = new TreeSet<>();
     }
 
+    // Add formulas as axioms to theory, or if the formula is a conjecture,
+    // add its negation as an axiom
     @Override
     public Object visitFof_annotated(FOFTPTPParser.Fof_annotatedContext ctx) {
         vars.clear();

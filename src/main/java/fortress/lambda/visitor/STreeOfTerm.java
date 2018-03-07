@@ -34,6 +34,8 @@ import java.util.List;
 /**
  * Created by Amirhossein Vakili.
  */
+
+ // Visitor to construct an STree representation of a term
 public class STreeOfTerm implements TermVisitor<STree> {
 
     private STreeOfTerm(){}
