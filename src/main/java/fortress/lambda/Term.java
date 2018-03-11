@@ -54,7 +54,7 @@ import java.util.stream.Collectors;
  Typed lambda calculus terms
  term ::=
     | Var (variable)
-    | Con (constant)
+    | Const (constant)
     | App (application)
     | Abs (abstraction)
  */
@@ -62,7 +62,7 @@ public abstract class Term implements Comparable<Term>{
 
     PTerm ty;
 
-    public static Con EQ = new Con(Constants.EQ_Str, mkFnTy(_a, _a, BOOL));
+    public static Const EQ = new Const(Constants.EQ_Str, mkFnTy(_a, _a, BOOL));
 
     public static App mkEq(Term t1, Term t2){
         return new App(new App(EQ, t1), t2);
@@ -95,10 +95,10 @@ public abstract class Term implements Comparable<Term>{
         System.out.println(this + " : " + ty);
     }
 
-    protected abstract void constantsH(Set<Con> acc);
+    protected abstract void constantsH(Set<Const> acc);
 
-    public Set<Con> constantSet(){
-        Set<Con> result = new HashSet<>();
+    public Set<Const> constantSet(){
+        Set<Const> result = new HashSet<>();
         this.constantsH(result);
         return result;
     }
@@ -162,23 +162,23 @@ public abstract class Term implements Comparable<Term>{
         return new ComExpr(brkApp().stream().map(Term::toSMTLIB).collect(Collectors.toList()));
     }
 
-    public boolean isUnary(Con c){
+    public boolean isUnary(Const c){
         if (!isApp())
             return false;
         final App temp = (App) this;
         return temp.getFun().equals(c);
     }
 
-    public static App mkUnary(Con c, Term t){
+    public static App mkUnary(Const c, Term t){
         return new App(c, t);
     }
 
-    public Term brkUnary(Con c){
+    public Term brkUnary(Const c){
         failIf(!isUnary(c));
         return ((App) this).getArg();
     }
 
-    public boolean isBinary(Con c){
+    public boolean isBinary(Const c){
         if (!isApp())
             return false;
         final App temp = (App) this;
@@ -187,11 +187,11 @@ public abstract class Term implements Comparable<Term>{
         return temp.getFun().equals(c);
     }
 
-    public static App mkBinary(Con c, Term t1, Term t2){
+    public static App mkBinary(Const c, Term t1, Term t2){
         return new App(new App(c, t1), t2);
     }
 
-    public Pair<Term, Term> brkBinary(Con c){
+    public Pair<Term, Term> brkBinary(Const c){
         failIf(!isBinary(c));
         App temp = (App) this;
         return new Pair<>(((App) temp.getFun()).getArg(), temp.getArg());

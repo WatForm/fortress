@@ -48,7 +48,7 @@ public class STreeOfTerm implements TermVisitor<STree> {
     }
 
     @Override
-    public STree visitCon(Con t) {
+    public STree visitCon(Const t) {
         return new STree(t.getName());
     }
 

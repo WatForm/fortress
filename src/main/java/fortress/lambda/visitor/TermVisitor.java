@@ -28,7 +28,7 @@ package fortress.lambda.visitor;
 
 import fortress.lambda.Abs;
 import fortress.lambda.App;
-import fortress.lambda.Con;
+import fortress.lambda.Const;
 import fortress.lambda.Var;
 
 /**
@@ -36,7 +36,7 @@ import fortress.lambda.Var;
  */
 public interface TermVisitor<T> {
     T visitVar(Var t);
-    T visitCon(Con t);
+    T visitCon(Const t);
     T visitApp(App t);
     T visitAbs(Abs t);
 }

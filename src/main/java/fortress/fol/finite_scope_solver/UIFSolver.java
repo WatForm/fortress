@@ -29,7 +29,7 @@ package fortress.fol.finite_scope_solver;
 import fortress.fol.*;
 import fortress.fol.pterm.PTerm;
 import fortress.fol.visitor.FormulaFlattenTerm;
-import fortress.lambda.Con;
+import fortress.lambda.Const;
 import fortress.lambda.Term;
 import fortress.lambda.Type;
 import fortress.lambda.Var;
@@ -54,9 +54,9 @@ import static fortress.util.Errors.failIf;
 public class UIFSolver {
 
     private Theory theory;
-    private Map<PTerm, List<Con>> universe;
+    private Map<PTerm, List<Const>> universe;
     private int universeSize;
-    private Map<Term, Con> model;
+    private Map<Term, Const> model;
 
     private List<SExpr> declarationList;
     private Set<SExpr> simpleGroundedFormulaList;
@@ -66,7 +66,7 @@ public class UIFSolver {
     private Map<String, Integer> maxIDs;
     private Map<Term, Formula> learnedLiterals;
     private List<Set<Term>> pairwiseDistinct;
-    private List<Con> helperConstants;
+    private List<Const> helperConstants;
     private List<Formula> FOLFormulas;
 
     // -1 means unsat, 0 means unknown, 1 means sat
@@ -108,11 +108,11 @@ public class UIFSolver {
     }
     */
 
-    public Map<PTerm, List<Con>> getUniverse(){
+    public Map<PTerm, List<Const>> getUniverse(){
         return universe;
     }
 
-    public Map<Term, Con> getModel(){
+    public Map<Term, Const> getModel(){
         failIf(isSat <= 0);
         return model;
     }
@@ -183,7 +183,7 @@ public class UIFSolver {
             else
                 debug = Formula.fromTerm(a.distinctVar("v")).nnf().simplify().prenex();
             final int currentIndex = maxIDs.get("_skolem");
-            Pair<Formula, List<Con>> p = debug.skolemize(currentIndex);
+            Pair<Formula, List<Const>> p = debug.skolemize(currentIndex);
             maxIDs.put("_skolem", currentIndex + p.right.size());
             helperConstants.addAll(p.right);
             debug = p.left.simplify();
@@ -197,7 +197,7 @@ public class UIFSolver {
         return new ComExpr(new StrExpr("assert"), s);
     }
 
-    private void setUniverse(Map<PTerm, List<Con>> universe){
+    private void setUniverse(Map<PTerm, List<Const>> universe){
         // normalize
         normalizer();
         this.universe = universe;
@@ -208,13 +208,13 @@ public class UIFSolver {
         pairwiseDistinct = new LinkedList<>();
         if (verbosity > 0)
             System.out.println("Adding distinct constraints:");
-        for (Map.Entry<PTerm, List<Con>> e: universe.entrySet()) {
+        for (Map.Entry<PTerm, List<Const>> e: universe.entrySet()) {
             final int len = e.getValue().size();
             Set<Term> distinct = new TreeSet<>();
             List<SExpr> smtDistinct = new LinkedList<>();
             smtDistinct.add(new StrExpr("distinct"));
             universeSize += len;
-            for (Con c: e.getValue()) {
+            for (Const c: e.getValue()) {
                 declarationList.add(new ComExpr(new StrExpr("declare-fun"),
                         new StrExpr(c.getName()),
                         new ComExpr(),
@@ -243,7 +243,7 @@ public class UIFSolver {
             System.out.println("Adding distinct constraints:");
         for (Map.Entry<PTerm, Integer> e: boundSizes.entrySet()){
             universeSize += e.getValue();
-            List<Con> l = new ArrayList<>(e.getValue());
+            List<Const> l = new ArrayList<>(e.getValue());
             Set<Term> distinct = new TreeSet<>();
             List<SExpr> smtDistinct =  new LinkedList<>();
             smtDistinct.add(new StrExpr("distinct"));
@@ -252,7 +252,7 @@ public class UIFSolver {
                 final int currentIndex = maxIDs.get(typeName);
                 String name = "_" + typeName + Integer.toString(currentIndex);
                 maxIDs.put(typeName, currentIndex + 1);
-                Con c = FOL.mkFun(name, e.getKey());
+                Const c = FOL.mkFun(name, e.getKey());
                 declarationList.add(new ComExpr(new StrExpr("declare-fun"),
                         new StrExpr(name),
                         new ComExpr(),
@@ -274,7 +274,7 @@ public class UIFSolver {
     }
 
     private void translateConstants(){
-        for (Con c: theory.constantSet){
+        for (Const c: theory.constantSet){
             Pair<List<PTerm>, PTerm> p = Type.brkFnTys(c.getType());
             List<SExpr> temp = new ArrayList<>(p.left.size());
             for (PTerm pt: p.left)
@@ -284,7 +284,7 @@ public class UIFSolver {
                     new ComExpr(temp),
                     new StrExpr(p.right.toString())));
         }
-        for (Con c: helperConstants){
+        for (Const c: helperConstants){
             Pair<List<PTerm>, PTerm> p = Type.brkFnTys(c.getType());
             List<SExpr> temp = new ArrayList<>(p.left.size());
             for (PTerm pt: p.left)
@@ -305,8 +305,8 @@ public class UIFSolver {
         if (symmetry){
             List<PTerm> vertex = new LinkedList<>();
             vertex.addAll(universe.keySet());
-            Graph<PTerm, Con> graph = new Graph<>(vertex);
-            for (Con c: theory.constantSet){
+            Graph<PTerm, Const> graph = new Graph<>(vertex);
+            for (Const c: theory.constantSet){
                 Pair<List<PTerm>, PTerm> p = Type.brkFnTys(c.getType());
                 Pair<String, Integer> pt = new Pair<>(p.right.toString(), 0);
                 if (theory.isInBase(pt))
@@ -316,15 +316,15 @@ public class UIFSolver {
                         graph.addEdge(v1, p.right, c);
                     }
             }
-            for (Con c: helperConstants){
+            for (Const c: helperConstants){
                 Pair<List<PTerm>, PTerm> p = Type.brkFnTys(c.getType());
                 for (PTerm v1: p.left)
                     if (!v1.equals(p.right))
                         graph.addEdge(v1, p.right, c);
             }
             graph.uniquePaths();
-            Function<PTerm, Comparator<Con>> mkComparator = (p) -> {
-                Comparator<Con> sortConstants = (c1, c2) -> {
+            Function<PTerm, Comparator<Const>> mkComparator = (p) -> {
+                Comparator<Const> sortConstants = (c1, c2) -> {
                     boolean f1 = graph.isOnCycle(c1);
                     boolean f2 = graph.isOnCycle(c2);
                     if (f1 && f2)
@@ -353,17 +353,17 @@ public class UIFSolver {
                 };
                 return sortConstants;
             };
-            for (Map.Entry<PTerm, List<Con>> e: universe.entrySet()){
+            for (Map.Entry<PTerm, List<Const>> e: universe.entrySet()){
                 final int len = e.getValue().size();
-                SortedSet<Con> sc = new TreeSet<>(mkComparator.apply(e.getKey()));
-                for (Con c: theory.constantSet)
+                SortedSet<Const> sc = new TreeSet<>(mkComparator.apply(e.getKey()));
+                for (Const c: theory.constantSet)
                     if (Type.isOutputType(c, e.getKey()))
                         sc.add(c);
-                for (Con c: helperConstants)
+                for (Const c: helperConstants)
                     if (Type.isOutputType(c, e.getKey()))
                         sc.add(c);
                 int include = 1;
-                for (Con c: sc){
+                for (Const c: sc){
                     if (graph.isOnCycle(c))
                         include = len;
                     Pair<List<PTerm>, PTerm> p = Type.brkFnTys(c.getType());
@@ -411,7 +411,7 @@ public class UIFSolver {
                                 System.out.println("Applying diagonal XLNH:");
                             final int jlen =universe.get(p.right).size();
                             while (j < jlen){
-                                Con temp = universe.get(p.right).get(j);
+                                Const temp = universe.get(p.right).get(j);
                                 for (i = 0; i != bounds.length; i++)
                                     args.set(i, typeList[i].equals(p.right)? temp : universe.get(typeList[i]).get(0));
                                 Term ft = FOL.apply(c, args);
@@ -476,17 +476,17 @@ public class UIFSolver {
             return;
         }
         else {
-            List<Con> constants = new LinkedList<>();
+            List<Const> constants = new LinkedList<>();
             constants.addAll(theory.constantSet);
             constants.addAll(helperConstants);
-            for (Con c: constants){
+            for (Const c: constants){
                 //System.out.println(c);
                 Pair<List<PTerm>, PTerm> p = Type.brkFnTys(c.getType());
                 if (p.left.isEmpty()){
                     if (theory.constantSet.contains(c))
                         getModelDeclarationList.add(new StrExpr(c.getName()));
                     SortedSet<Formula> orArg = new TreeSet<>();
-                    for (Con cv: universe.get(p.right))
+                    for (Const cv: universe.get(p.right))
                         if (c.compareTo(cv) > 0)
                             orArg.add(new Atomic(FOL.mkEq(c, cv)));
                         else
@@ -514,7 +514,7 @@ public class UIFSolver {
                             getModelDeclarationList.add(ft.toSMTLIB());
                         }
                         SortedSet<Formula> orArg = new TreeSet<>();
-                        for (Con cv: universe.get(p.right))
+                        for (Const cv: universe.get(p.right))
                             if (ft.compareTo(c) > 0)
                                 orArg.add(new Atomic(FOL.mkEq(ft, cv)));
                             else
@@ -669,19 +669,19 @@ public class UIFSolver {
                 System.out.println("Theory is consistent.");
                 if (generateModel) {
                     System.out.println("Here is a satisfying model:");
-                    Map<String, Con> constantValue = new HashMap<>(universeSize * 2);
+                    Map<String, Const> constantValue = new HashMap<>(universeSize * 2);
                     model = new TreeMap<>();
-                    Map<String, Con> domainConst = new TreeMap<>();
-                    for (Map.Entry<PTerm, List<Con>> e : universe.entrySet()) {
+                    Map<String, Const> domainConst = new TreeMap<>();
+                    for (Map.Entry<PTerm, List<Const>> e : universe.entrySet()) {
                         System.out.println(e.getKey() + " = " + e.getValue());
-                        for (Con c: e.getValue())
+                        for (Const c: e.getValue())
                             domainConst.put(c.getName(), c);
                     }
                     //System.out.println(domainConst);
                     for (int i = 0; i != universeSize; i++) {
                         String line = br.readLine();
                         StringTokenizer stline = new StringTokenizer(line, " ()");
-                        Con c = domainConst.get(stline.nextToken());
+                        Const c = domainConst.get(stline.nextToken());
                         constantValue.put(stline.nextToken(), c);
                     }
                     //System.out.println(constantValue);
@@ -690,7 +690,7 @@ public class UIFSolver {
                     for (int i = universeSize; i != getModelDeclarationList.size(); i++) {
                         String line = br.readLine();
                         StringTokenizer st = new StringTokenizer(line, " ()");
-                        Con fun = (Con) theory.getTermByName(st.nextToken()).get();
+                        Const fun = (Const) theory.getTermByName(st.nextToken()).get();
                         List<Term> funArg = new LinkedList<>();
                         String last;
                         do {
@@ -699,7 +699,7 @@ public class UIFSolver {
                             if (ot != null)
                                 funArg.add(ot);
                         } while (st.hasMoreTokens());
-                        Con value = constantValue.get(last);
+                        Const value = constantValue.get(last);
                         if (funArg.isEmpty()) {
                             System.out.println(fun + " = " + value);
                             model.put(fun, value);
