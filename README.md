@@ -18,7 +18,7 @@ Run `gradle build` to completely build fortress.
 This includes:  
 * Compilation
 * Packaging zip and tar files for distribution
-* Static analyzer (FindBugs)
+* Static analyzer (PMD)
 * Unit Tests (JUnit)
 * Coverage analyzer (Jacoco)
 * Documentation (Javadoc)
@@ -32,9 +32,9 @@ This will create a zip or tar file respectively in the `build/distributions` dir
 `gradle assemble` will do both.
 The archive will contain both the fortress jar and any runtime dependencies, such as ANTLR.
 
-#### Static Analysis (FindBugs)
+#### Static Analysis (PMD)
 Run `gradle check`.
-A report will be available in `build/reports/findbugs/main.html` and `build/reports/findbugs/test.html`.
+A report will be available in `build/reports/pmd/main.html` and `build/reports/findbugs/test.html`.
 
 #### Unit Tests and Coverage
 Run `gradle test`.
@@ -50,12 +50,13 @@ Run `gradle javadoc`.
 The documentation can then be viewed in `build/docs/javadoc/index.html`.
 
 ## Plan for improvements
-1. Set up tests and restructure repository, which will also help to better understand fortress
-2. Documentation
-3. Add abstraction layers so changes can be made without breaking the interface
-4. Streamline the implementation by removing higher order logic layer
-5. Hunt for optimizations
-
+* Set up tests and restructure repository, which will also help to better understand fortress
+* Documentation
+* Add abstraction layers so changes can be made without breaking the interface
+* Decide the interface to publish for Fortress and whether the parser should be separate from the rest of Fortress, as it really just uses fortress as opposed to being part of the core
+* Streamline the implementation by removing higher order logic layer
+* Hunt for optimizations
+* Switch from using Z3 on the commmand line to the Java API for Z3
 
 ## Implementation Notes
 input -> `ANTLRInputStream` -> `FOFTPTPLexer` -> `CommonTokenStream`
