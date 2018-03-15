@@ -30,7 +30,7 @@ import fortress.Constants;
 import fortress.fol.*;
 import fortress.fol.pterm.Com;
 import fortress.fol.pterm.PTerm;
-import fortress.lambda.Con;
+import fortress.lambda.Const;
 import fortress.lambda.Term;
 import fortress.lambda.Var;
 
@@ -46,7 +46,7 @@ public class Skolem implements FormulaVisitor<Formula> {
     private int acc;
     private List<Term> argumentList;
     private List<PTerm> typeList;
-    public List<Con> skolemFunList;
+    public List<Const> skolemFunList;
 
     public Skolem(int acc){
         this.acc = acc;
@@ -121,7 +121,7 @@ public class Skolem implements FormulaVisitor<Formula> {
             PTerm type = v.getType();
             for (int i = typeList.size() - 1; i >= 0; i--)
                 type = new Com(Constants.FN_Str, new ArrayList<>(Arrays.asList(typeList.get(i), type)));
-            Con skolem = new Con("skolem" + Integer.toString(acc++), type);
+            Const skolem = new Const("skolem" + Integer.toString(acc++), type);
             skolemFunList.add(skolem);
             Term tt = argumentList.isEmpty()? skolem : FOL.apply(skolem, argumentList);
             temp = temp.substitute(v, tt);

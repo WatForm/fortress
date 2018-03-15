@@ -29,7 +29,7 @@ package fortress.theory;
 import fortress.Constants;
 import fortress.fol.Arith;
 import fortress.fol.FOL;
-import fortress.lambda.Con;
+import fortress.lambda.Const;
 import fortress.lambda.Term;
 import fortress.lambda.Type;
 import fortress.lambda.Var;
@@ -45,7 +45,7 @@ public class Theory {
     public final String name;
     private final Optional<Theory> base;
     public Set<Pair<String, Integer>> functorSet;
-    public Set<Con> constantSet;
+    public Set<Const> constantSet;
     public Map<String, Definition> defSet;
     public List<String> defSetOrder;
     public Set<Term> axiomSet;
@@ -121,7 +121,7 @@ public class Theory {
         String result = "THEORY " + name + ":\r\n";
         result = result + tab + "Functors:\r\n" + tab + tab + functorSet.toString() + "\r\n";
         result = result + tab + "Constants:\r\n";
-        for (Con c: constantSet)
+        for (Const c: constantSet)
             result = result + tab + tab + c.toString() + " : " + c.getType().toString() + "\r\n";
         result = result + tab + "Definitions:\r\n";
         for (String defName: defSetOrder)
@@ -133,7 +133,7 @@ public class Theory {
     }
 
     public Optional<Term> getTermByName(String name){
-        for (Con c: constantSet)
+        for (Const c: constantSet)
             if (c.getName().equals(name))
                 return Optional.of(c);
         if (defSet.containsKey(name))
@@ -201,7 +201,7 @@ public class Theory {
         return true;
     }
 
-    public boolean isInBase(Con c){
+    public boolean isInBase(Const c){
         if (c.getName().matches("[0-9]+"))
             return true;
         if (!base.isPresent())
@@ -211,7 +211,7 @@ public class Theory {
         return base.get().isInBase(c);
     }
 
-    public boolean addCon(Con c){
+    public boolean addCon(Const c){
         // some checks need to be done.
         if (isInBase(c))
             return false;
@@ -237,7 +237,7 @@ public class Theory {
         Definition temp = new Definition(name, body, args);
         defSet.put(name, temp);
         defSetOrder.add(name);
-        for (Con c: body.constantSet())
+        for (Const c: body.constantSet())
             addCon(c);
         for (Pair<String, Integer> si: body.typeFunctorSet())
             addFunctor(si.left, si.right);
@@ -261,7 +261,7 @@ public class Theory {
         if (isAxiomInBase(t))
             return false;
         axiomSet.add(t);
-        for (Con c: t.constantSet())
+        for (Const c: t.constantSet())
             addCon(c);
         for (Pair<String, Integer> si: t.typeFunctorSet())
             addFunctor(si.left, si.right);

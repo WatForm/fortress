@@ -29,7 +29,7 @@ package fortress.fol;
 import fortress.Constants;
 import fortress.fol.pterm.Com;
 import fortress.lambda.App;
-import fortress.lambda.Con;
+import fortress.lambda.Const;
 import fortress.lambda.Term;
 
 import fortress.util.Pair;
@@ -43,16 +43,16 @@ public final class Arith {
 
     public static final Com int_ = FOL.mkSort(Constants.INTEGER_Str);
 
-    public static Con numeral(int n){
-        return new Con(Integer.toString(n), int_);
+    public static Const numeral(int n){
+        return new Const(Integer.toString(n), int_);
     }
 
-    public static final Con zero = numeral(0);
+    public static final Const zero = numeral(0);
 
-    public static final Con one = numeral(1);
+    public static final Const one = numeral(1);
 
     // abs
-    public static final Con abs = FOL.mkFun(Constants.ABS_Str, int_, int_);
+    public static final Const abs = FOL.mkFun(Constants.ABS_Str, int_, int_);
 
     public static boolean isAbs(Term t){
         return t.isUnary(abs);
@@ -67,7 +67,7 @@ public final class Arith {
     }
 
     // add
-    public static final Con add = FOL.mkFun(Constants.ADD_Str, int_, int_, int_);
+    public static final Const add = FOL.mkFun(Constants.ADD_Str, int_, int_, int_);
 
     public static boolean isAdd(Term t){
         return t.isBinary(add);
@@ -82,7 +82,7 @@ public final class Arith {
     }
 
     // sub
-    public static final Con sub = FOL.mkFun(Constants.SUB_Str, int_, int_, int_);
+    public static final Const sub = FOL.mkFun(Constants.SUB_Str, int_, int_, int_);
 
     public static boolean isSub(Term t){
         return t.isBinary(sub);
@@ -97,7 +97,7 @@ public final class Arith {
     }
 
     // mul
-    public static final Con mul = FOL.mkFun(Constants.MUL_Str, int_, int_, int_);
+    public static final Const mul = FOL.mkFun(Constants.MUL_Str, int_, int_, int_);
 
     public static boolean isMul(Term t){
         return t.isBinary(mul);
@@ -112,7 +112,7 @@ public final class Arith {
     }
 
     // div
-    public static final Con div = FOL.mkFun(Constants.DIV_Str, int_, int_, int_);
+    public static final Const div = FOL.mkFun(Constants.DIV_Str, int_, int_, int_);
 
     public static boolean isDiv(Term t){
         return t.isBinary(div);
@@ -127,7 +127,7 @@ public final class Arith {
     }
 
     // mod
-    public static final Con mod = FOL.mkFun(Constants.MOD_Str, int_, int_, int_);
+    public static final Const mod = FOL.mkFun(Constants.MOD_Str, int_, int_, int_);
 
     public static boolean isMod(Term t){
         return t.isBinary(mod);
@@ -142,7 +142,7 @@ public final class Arith {
     }
 
     // less
-    public static final Con less = FOL.mkFun(Constants.LESS_Str, int_, int_, FOL.bool);
+    public static final Const less = FOL.mkFun(Constants.LESS_Str, int_, int_, FOL.bool);
 
     public static boolean isLess(Term t){
         return t.isBinary(less);
@@ -157,7 +157,7 @@ public final class Arith {
     }
 
     // greater
-    public static final Con greater = FOL.mkFun(Constants.GREATER_Str, int_, int_, FOL.bool);
+    public static final Const greater = FOL.mkFun(Constants.GREATER_Str, int_, int_, FOL.bool);
 
     public static boolean isGreater(Term t){
         return t.isBinary(greater);
@@ -172,7 +172,7 @@ public final class Arith {
     }
 
     // lessEq
-    public static final Con lessEq = FOL.mkFun(Constants.LESS_OR_EQ_Str, int_, int_, FOL.bool);
+    public static final Const lessEq = FOL.mkFun(Constants.LESS_OR_EQ_Str, int_, int_, FOL.bool);
 
     public static boolean isLessEq(Term t){
         return t.isBinary(lessEq);
@@ -187,7 +187,7 @@ public final class Arith {
     }
 
     // greaterEq
-    public static final Con greaterEq = FOL.mkFun(Constants.GREATER_OR_EQ_Str, int_, int_, FOL.bool);
+    public static final Const greaterEq = FOL.mkFun(Constants.GREATER_OR_EQ_Str, int_, int_, FOL.bool);
 
     public static boolean isGreaterEq(Term t){
         return t.isBinary(greaterEq);

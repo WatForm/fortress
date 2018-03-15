@@ -29,7 +29,7 @@ package fortress.fol;
 import fortress.Constants;
 import fortress.fol.pterm.PTerm;
 import fortress.fol.visitor.FormulaVisitor;
-import fortress.lambda.Con;
+import fortress.lambda.Const;
 import fortress.lambda.Term;
 import fortress.lambda.Var;
 import fortress.formats.smt.smtlib.ComExpr;
@@ -201,7 +201,7 @@ public class Not extends Formula {
     }
 
     @Override
-    Pair<Formula, Integer> skolemizeH(int acc, List<Term> argumentList, List<PTerm> typeList, List<Con> skolemFunList) {
+    Pair<Formula, Integer> skolemizeH(int acc, List<Term> argumentList, List<PTerm> typeList, List<Const> skolemFunList) {
         return new Pair<>(this, acc);
     }
 

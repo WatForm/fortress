@@ -30,7 +30,7 @@ import fortress.Constants;
 import fortress.fol.pterm.Com;
 import fortress.fol.pterm.PTerm;
 import fortress.fol.visitor.FormulaVisitor;
-import fortress.lambda.Con;
+import fortress.lambda.Const;
 import fortress.lambda.Term;
 import fortress.lambda.Var;
 import fortress.formats.smt.smtlib.ComExpr;
@@ -220,14 +220,14 @@ public class Exists extends Formula {
     }
 
     @Override
-    Pair<Formula, Integer> skolemizeH(int acc, List<Term> argumentList, List<PTerm> typeList, List<Con> skolemFunList) {
+    Pair<Formula, Integer> skolemizeH(int acc, List<Term> argumentList, List<PTerm> typeList, List<Const> skolemFunList) {
         Formula temp = body;
         int j = acc;
         for(Var v: vars){
             PTerm type = v.getType();
             for (int i = typeList.size() - 1; i >= 0; i--)
                 type = new Com(Constants.FN_Str, new ArrayList<>(Arrays.asList(typeList.get(i), type)));
-            Con skolem = new Con("_skolem" + Integer.toString(j++), type);
+            Const skolem = new Const("_skolem" + Integer.toString(j++), type);
             skolemFunList.add(skolem);
             Term tt = argumentList.isEmpty()? skolem : FOL.apply(skolem, argumentList);
             temp = temp.substitute(v, tt);

@@ -28,7 +28,7 @@ package fortress.formats.tptp;
 
 import fortress.fol.FOL;
 import fortress.fol.pterm.PTerm;
-import fortress.lambda.Con;
+import fortress.lambda.Const;
 import fortress.lambda.Term;
 import fortress.lambda.Var;
 import fortress.theory.Theory;
@@ -161,7 +161,7 @@ public class FOF2Fortress extends FOFTPTPBaseVisitor {
         if (vars.contains(name))
             return new Var(name, univ);
         //funSym.put(name, 0);
-        return new Con(name, univ);
+        return new Const(name, univ);
     }
 
     @Override

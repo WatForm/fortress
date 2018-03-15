@@ -148,7 +148,7 @@ public final class App extends Term {
     @Override
     public int compareTo(Term o) {
         failIf(o == null);
-        if (o.getClass() == Var.class || o.getClass() == Con.class)
+        if (o.getClass() == Var.class || o.getClass() == Const.class)
             return 1;
         if (getClass() != o.getClass())
             return -1;
@@ -173,7 +173,7 @@ public final class App extends Term {
     }
 
     @Override
-    protected void constantsH(Set<Con> acc){
+    protected void constantsH(Set<Const> acc){
         fun.constantsH(acc);
         arg.constantsH(acc);
         return;

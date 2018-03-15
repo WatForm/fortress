@@ -1,7 +1,7 @@
 apply plugin: 'java'
 apply plugin: 'distribution'
 apply plugin: 'jacoco'
-apply plugin: 'findbugs'
+apply plugin: 'pmd'
 
 repositories{
     mavenCentral()
@@ -40,14 +40,18 @@ jacocoTestReport.dependsOn test
 build.dependsOn jacocoTestReport
 build.dependsOn javadoc
 
-tasks.withType(FindBugs) {
+tasks.withType(Pmd) {
     reports {
         xml.enabled false
         html.enabled true
     }
 }
 
-// Don't prevent the build from continuing, but still report errors
-findbugs {
-    ignoreFailures true
+pmd {
+    toolVersion = '6.1.0'
+    ignoreFailures true // Don't prevent the build from continuing, but still report errors
+    pmdTest.enabled false
+    ruleSets = [
+        'pmd/custom.xml'
+    ]
 }

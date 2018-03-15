@@ -28,7 +28,7 @@ package fortress.fol;
 
 import fortress.fol.pterm.PTerm;
 import fortress.fol.visitor.FormulaVisitor;
-import fortress.lambda.Con;
+import fortress.lambda.Const;
 import fortress.lambda.Term;
 import fortress.lambda.Var;
 import fortress.formats.smt.smtlib.SExpr;
@@ -191,12 +191,12 @@ public abstract class Formula implements Comparable<Formula>{
 
     public abstract Formula simplify();
 
-    abstract Pair<Formula, Integer> skolemizeH(int acc, List<Term> argumentList, List<PTerm> typeList, List<Con> skolemFunList);
+    abstract Pair<Formula, Integer> skolemizeH(int acc, List<Term> argumentList, List<PTerm> typeList, List<Const> skolemFunList);
 
-    public Pair<Formula, List<Con>> skolemize(int acc){
+    public Pair<Formula, List<Const>> skolemize(int acc){
         List<Term> argumentList = new ArrayList<>();
         List<PTerm> typeList = new ArrayList<>();
-        List<Con> skolemFunList = new ArrayList<>();
+        List<Const> skolemFunList = new ArrayList<>();
         Formula f = skolemizeH(acc, argumentList, typeList, skolemFunList).left;
         return new Pair<>(f, skolemFunList);
     }
