@@ -9,7 +9,7 @@ ocumentation, and hopefully some modification by Joseph Poremba in Winter 2018.
 Gradle must be installed in order to build fortress. It is recommended you enable the Gradle Daemon to speed up building times.
 
 Z3's command line interface must be installed in order to run fortress (for now at least, we plan to refactor to use the Z3 Java bindings in the future).  
-It is highly recommended you use an up to date version of Z3 (4.6.0+), as memory bugs are known to appear in older versions ([a similar bug to this one appeared during one fortress test](https://github.com/Z3Prover/z3/issues/631)).  
+It is highly recommended you use an up to date version of Z3 (4.6.0+), as memory bugs are known to appear in older versions ([a similar bug to this one appeared during one Fortress test](https://github.com/Z3Prover/z3/issues/631)).
 Note that at time of writing, Z3 4.4.1 is the version that is installed when using `apt-get` on Ubuntu. It is recommended to use the precompiled binaries distributed instead ([available here](https://github.com/Z3Prover/z3/releases)).
 
 ## Building
@@ -53,6 +53,7 @@ The documentation can then be viewed in `build/docs/javadoc/index.html`.
 * Set up tests and restructure repository, which will also help to better understand fortress
 * Documentation
 * Add abstraction layers so changes can be made without breaking the interface
+* Seperate out parser from core Fortress, maybe as a separate repository
 * Decide the interface to publish for Fortress and whether the parser should be separate from the rest of Fortress, as it really just uses fortress as opposed to being part of the core
 * Streamline the implementation by removing higher order logic layer
 * Hunt for optimizations

@@ -41,6 +41,8 @@ import java.util.*;
  */
 
  // Visits a parse tree and constructs a theory
+ // Only visits untyped FOL formulas; generates a typed theory
+ // with a single type _UNIV
 public class FOF2Fortress extends FOFTPTPBaseVisitor {
 
     public Theory result;
