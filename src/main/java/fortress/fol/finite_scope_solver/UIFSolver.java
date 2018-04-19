@@ -407,8 +407,9 @@ public class UIFSolver {
                         if (flag){
                             //take care of diagonal;
                             int j = 0;
-                            if (verbosity > 0)
-                                System.out.println("Applying diagonal XLNH:");
+                            if (verbosity > 0) {
+                                // System.out.println("Applying diagonal XLNH:");
+                            }
                             final int jlen =universe.get(p.right).size();
                             while (j < jlen){
                                 Const temp = universe.get(p.right).get(j);
@@ -609,19 +610,22 @@ public class UIFSolver {
         //translateSorts();
         translateConstants();
         translateDefinitions();
-        if (verbosity > 0 && !is_quantifier_free)
-            System.out.println("Generating range constraints:");
-        if (!is_quantifier_free)
+        if (verbosity > 0 && !is_quantifier_free) {
+            // System.out.println("Generating range constraints:");
+        }
+        if (!is_quantifier_free) {
             generateRangeConstraints(symmetry);
-        if (verbosity > 0 && !is_quantifier_free)
-            System.out.println("Grounding:");
+        }
+        if (verbosity > 0 && !is_quantifier_free) {
+            // System.out.println("Grounding:");
+        }
         expandQuantifiers();
     }
 
     private void runSolver(boolean generateModel){
         try {
             File tempScript = File.createTempFile("tmp-smtlib-fortress", ".smt");
-            System.out.println("Creating the SMT-LIB2 file:");
+            // System.out.println("Creating the SMT-LIB2 file:");
             tempScript.deleteOnExit();
             BufferedWriter bw = new BufferedWriter(new FileWriter(tempScript));
             for (SExpr s: declarationList) {
@@ -638,9 +642,10 @@ public class UIFSolver {
             }
             bw.write("(check-sat)");
             if (generateModel){
-                System.out.println("Adding get-value:");
+                // System.out.println("Adding get-value:");
                 bw.newLine();
-                bw.write(new ComExpr(new StrExpr("get-value"), new ComExpr(getModelDeclarationList)).toString());
+                // bw.write(new ComExpr(new StrExpr("get-value"), new ComExpr(getModelDeclarationList)).toString());
+                bw.write("(get-model)");
             }
             bw.close();
 
@@ -651,65 +656,78 @@ public class UIFSolver {
             String command = "z3 ";
             String commandArgs = "-smt2 ";
             String call = command + commandArgs ;
-            System.out.println("Running SMT solver with the following command:");
-            System.out.println(call);
+            // System.out.println("Running SMT solver with the following command:");
+            // System.out.println(call);
             Process p = Runtime.getRuntime().exec(call + tempScript.getAbsolutePath());
             BufferedReader br = new BufferedReader(new InputStreamReader(p.getInputStream()));
-            System.out.println("Running SMT solver...");
+            // System.out.println("Running SMT solver...");
             //System.out.println(br);
             String firstLine = br.readLine();
-            System.out.println("*********************");
+            // System.out.println("*********************");
             //System.out.println(firstLine);
             if (firstLine.equals("sat"))
                 isSat = 1;
             else isSat = -1;
+            /* TODO should handle case where output says neither sat nor unsat
+             This shouldn't happen but it's good to be robust */
             if (isSat < 0)
-                System.out.println("Theory is not consistent with respect to the provided bounds.");
+                System.out.println("unsat");
             else {
-                System.out.println("Theory is consistent.");
+                // System.out.println("Theory is consistent.");
+                System.out.println("sat");
                 if (generateModel) {
-                    System.out.println("Here is a satisfying model:");
-                    Map<String, Const> constantValue = new HashMap<>(universeSize * 2);
-                    model = new TreeMap<>();
-                    Map<String, Const> domainConst = new TreeMap<>();
-                    for (Map.Entry<PTerm, List<Const>> e : universe.entrySet()) {
-                        System.out.println(e.getKey() + " = " + e.getValue());
-                        for (Const c: e.getValue())
-                            domainConst.put(c.getName(), c);
-                    }
-                    //System.out.println(domainConst);
-                    for (int i = 0; i != universeSize; i++) {
-                        String line = br.readLine();
-                        StringTokenizer stline = new StringTokenizer(line, " ()");
-                        Const c = domainConst.get(stline.nextToken());
-                        constantValue.put(stline.nextToken(), c);
-                    }
-                    //System.out.println(constantValue);
-                    //System.out.println(universeSize);
-                    //System.out.println(getModelDeclarationList.size());
-                    for (int i = universeSize; i != getModelDeclarationList.size(); i++) {
-                        String line = br.readLine();
-                        StringTokenizer st = new StringTokenizer(line, " ()");
-                        Const fun = (Const) theory.getTermByName(st.nextToken()).get();
-                        List<Term> funArg = new LinkedList<>();
-                        String last;
-                        do {
-                            last = st.nextToken();
-                            Term ot = domainConst.getOrDefault(last, null);
-                            if (ot != null)
-                                funArg.add(ot);
-                        } while (st.hasMoreTokens());
-                        Const value = constantValue.get(last);
-                        if (funArg.isEmpty()) {
-                            System.out.println(fun + " = " + value);
-                            model.put(fun, value);
-                        } else {
-                            Term tempp = FOL.apply(fun, funArg);
-                            System.out.println(tempp + " = " + value);
-                            model.put(tempp, value);
-                        }
+                    String line = br.readLine();
+                    while (null != line) {
+                        System.out.println(line);
+                        line = br.readLine();
                     }
                 }
+                // if (generateModel) {
+                //     // System.out.println("Here is a satisfying model:");
+                //     Map<String, Const> constantValue = new HashMap<>(universeSize * 2);
+                //     model = new TreeMap<>();
+                //     Map<String, Const> domainConst = new TreeMap<>();
+                //     for (Map.Entry<PTerm, List<Const>> e : universe.entrySet()) {
+                //         System.out.println(e.getKey() + " = " + e.getValue());
+                //         for (Const c: e.getValue())
+                //             domainConst.put(c.getName(), c);
+                //     }
+                //     //System.out.println(domainConst);
+                //     for (int i = 0; i != universeSize; i++) {
+                //         String line = br.readLine();
+                //         System.out.println("line: " + line);
+                //         StringTokenizer stline = new StringTokenizer(line, " ()");
+                //         Const c = domainConst.get(stline.nextToken());
+                //         constantValue.put(stline.nextToken(), c);
+                //     }
+                //     //System.out.println(constantValue);
+                //     //System.out.println(universeSize);
+                //     //System.out.println(getModelDeclarationList.size());
+                //     for (int i = universeSize; i != getModelDeclarationList.size(); i++) {
+                //         String line = br.readLine();
+                //         
+                //         System.out.println("line: " + line);
+                //         StringTokenizer st = new StringTokenizer(line, " ()");
+                //         Const fun = (Const) theory.getTermByName(st.nextToken()).get();
+                //         List<Term> funArg = new LinkedList<>();
+                //         String last;
+                //         do {
+                //             last = st.nextToken();
+                //             Term ot = domainConst.getOrDefault(last, null);
+                //             if (ot != null)
+                //                 funArg.add(ot);
+                //         } while (st.hasMoreTokens());
+                //         Const value = constantValue.get(last);
+                //         if (funArg.isEmpty()) {
+                //             System.out.println(fun + " = " + value);
+                //             model.put(fun, value);
+                //         } else {
+                //             Term tempp = FOL.apply(fun, funArg);
+                //             System.out.println(tempp + " = " + value);
+                //             model.put(tempp, value);
+                //         }
+                //     }
+                // }
             }
             p.waitFor();
             p.destroy();
@@ -721,10 +739,10 @@ public class UIFSolver {
 
     }
 
-    private void generateSMTLIB(String caseStudy, int size, boolean generateModel){
+    private void generateSMTLIB(String filePrefix, int size, boolean generateModel){
         try {
-            File script = new File(caseStudy + "-" + Integer.toString(size) + ".smt");
-            System.out.println("Creating the SMT-LIB2 file:");
+            File script = new File(filePrefix + "-" + Integer.toString(size) + ".smt");
+            // System.out.println("Creating the SMT-LIB2 file:");
             BufferedWriter bw = new BufferedWriter(new FileWriter(script));
             for (SExpr s: declarationList) {
                 bw.write(s.toString());
@@ -740,7 +758,7 @@ public class UIFSolver {
             }
             bw.write("(check-sat)");
             if (generateModel){
-                System.out.println("Adding get-value:");
+                // System.out.println("Adding get-value:");
                 bw.newLine();
                 bw.write(new ComExpr(new StrExpr("get-value"), new ComExpr(getModelDeclarationList)).toString());
             }
@@ -759,26 +777,35 @@ public class UIFSolver {
     }
 
     public boolean checkSat(boolean symmetry, boolean generateModel){
+        String timeReport1 = "";
+        String timeReport2 = "";
         Timer timer = new Timer();
         if (verbosity <= 0)
             timer = null;
         ground(symmetry);
-        if (verbosity > 0)
+        if (verbosity > 0) {
             timer.stop();
+            timeReport1 = timer.getReport();
+        }
         if (isSat < 0) {
-            System.out.println("Trivially unsat.");
+            // System.out.println("Trivially unsat.");
+            System.out.println("unsat (trivially)");
             return false;
         }
         if (verbosity > 0)
             timer.set();
         runSolver(generateModel);
-        if (verbosity > 0)
+        if (verbosity > 0) {
             timer.stop();
+            timeReport2 = timer.getReport();
+            System.out.println(timeReport1);
+            System.out.println(timeReport2);
+        }
         return isSat > 0;
     }
 
     // Generates an SMT-LIB file
-    public void generate(boolean symmetry, boolean generateModel, String name, int size){
+    public void generate(boolean symmetry, boolean generateModel, String filePrefix, int size){
         Timer timer = new Timer();
         if (verbosity <= 0)
             timer = null;
@@ -786,12 +813,12 @@ public class UIFSolver {
         if (verbosity > 0)
             timer.stop();
         if (isSat < 0) {
-            System.out.println("Trivially unsat.");
+            System.out.println("unsat (trivially)");
             return;
         }
         if (verbosity > 0)
             timer.set();
-        generateSMTLIB(name, size, generateModel);
+        generateSMTLIB(filePrefix, size, generateModel);
         if (verbosity > 0)
             timer.stop();
     }
