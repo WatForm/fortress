@@ -113,6 +113,7 @@ public abstract class Term implements Comparable<Term>{
 
     protected abstract void fvH(Set<Var> acc);
 
+    // Free variables
     public Set<Var> fv(){
         Set<Var> result = new HashSet<>();
         this.fvH(result);
