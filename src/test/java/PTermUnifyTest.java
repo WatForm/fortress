@@ -50,10 +50,16 @@ public class PTermUnifyTest {
 
     @Test
     public void unifyFunction() {
-        assertEquals(eqs, new ArrayList<>());
         eqs.add(new Pair(funAB, funCD));
         sigma = PTerm.unify(eqs);
         assertEquals(funAB.substitute(sigma), funCD.substitute(sigma));
+    }
+
+    @Test
+    public void unifyFunctionPairwise() {
+        eqs.add(new Pair(funAB, funBA));
+        sigma = PTerm.unify(eqs);
+        assertEquals(funAB.substitute(sigma), funBA.substitute(sigma));
     }
 
     @Test
