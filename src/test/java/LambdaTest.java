@@ -38,5 +38,12 @@ public class LambdaTest {
         expect.add(z);
         expect.add(y);
         assertEquals(expect, t3.fv());
+        
+        Term t4 = new App(x, new Const("c", typeA));
+        expect = new HashSet<Var>();
+        expect.add(x);
+        assertEquals(expect, t4.fv());
     }
+    
+    
 }

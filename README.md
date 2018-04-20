@@ -67,7 +67,7 @@ It visits the nodes of the parse tree, which represent first order logic connect
 At each node, it largely delegates to the `FOL` class (e.g. `FOL.mkForall`, `FOL.mkAnd`).
 
 Rather than construct a first order logic formula directly, the `FOL` class constructs
-each of these first order logic formulas by encoding it in the typed lambda calclus (the `Term` hierarchy).
+each of these first order logic formulas by encoding it in the typed lambda calculus (the `Term` hierarchy).
 `FOL` also contains static methods that accept a term and decide if it describes a
 particular first order logic formula (e.g. `FOL.isNot`, `FOL.isEq`).
 
@@ -78,6 +78,4 @@ as a base, and adds the generated `Term` as an axiom.
 
 
 The `Formula` class has a static `fromTerm` method which takes a typed lambda calculus `Term`
-and produces an explicit first order logic formula, uisng the `Formula` hierarchy.
-
-
+and produces an explicit first order logic formula, using the `Formula` hierarchy.

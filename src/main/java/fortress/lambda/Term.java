@@ -111,6 +111,7 @@ public abstract class Term implements Comparable<Term>{
         return result;
     }
 
+    // Helper for free variables
     protected abstract void fvH(Set<Var> acc);
 
     // Free variables
