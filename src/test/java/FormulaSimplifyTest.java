@@ -125,6 +125,15 @@ public class FormulaSimplifyTest {
     }
 
     @Test
+    public void simplifyOrLawExcludedMiddle() {
+        Formula p = Formula.fromTerm(FOL.mkProp("p"));
+        Formula tru = Formula.fromTerm(FOL.true_);
+        Formula f = new Or(p, new Not(p));
+        assertThat(f, not(tru));
+        assertEquals(tru, f.simplify());
+    }
+
+    @Test
     public void simplifyAndFlatten() {
         Formula p = Formula.fromTerm(FOL.mkProp("p"));
         Formula q = Formula.fromTerm(FOL.mkProp("q"));
@@ -211,15 +220,95 @@ public class FormulaSimplifyTest {
     }
 
     @Test
-    @Ignore ("Test not implemented")
-    public void simplifyImpTrueFalse() {
-        
+    public void simplifyAndContradiction() {
+        Formula p = Formula.fromTerm(FOL.mkProp("p"));
+        Formula fls = Formula.fromTerm(FOL.false_);
+        Formula f = new And(p, new Not(p));
+        assertThat(f, not(fls));
+        assertEquals(fls, f.simplify());
     }
 
     @Test
-    @Ignore ("Test not implemented")
+    public void simplifyImpTrueFalse() {
+        Formula p = Formula.fromTerm(FOL.mkProp("p"));
+        Formula tru = Formula.fromTerm(FOL.true_);
+        Formula fls = Formula.fromTerm(FOL.false_);
+
+        Formula f1 = new Imp(fls, p);
+        assertThat(f1, not(tru));
+        assertEquals(tru, f1.simplify());
+
+        Formula f2 = new Imp(p, tru);
+        assertThat(f2, not(tru));
+        assertEquals(tru, f2.simplify());
+
+        Formula f3 = new Imp(tru, p);
+        assertThat(f3, not(p));
+        assertEquals(p, f3.simplify());
+
+        Formula f4 = new Imp(p, fls);
+        assertThat(f4, not(new Not(p)));
+        assertEquals(new Not(p), f4.simplify());
+    }
+
+    @Test
+    public void simplifyImpSelf() {
+        Formula p = Formula.fromTerm(FOL.mkProp("p"));
+        Formula tru = Formula.fromTerm(FOL.true_);
+        Formula f = new Imp(p, p);
+        assertThat(p, not(tru));
+        assertEquals(tru, f.simplify());
+    }
+
+    @Test
+    public void simplifyImpNotSelf() {
+        // p implies (not p)
+        // If (not p) is true, then anything, including p, implies (not p)
+        // If p implies (not p), this is a proof by contradiction for (not p)
+        // So p implies (not p) is equivalent to (not p)
+        Formula p = Formula.fromTerm(FOL.mkProp("p"));
+        Formula f = new Imp(p, new Not(p));
+        assertThat(f, not(new Not(p)));
+        assertEquals(new Not(p), f.simplify());
+    }
+
+    @Test
     public void simplifyIffTrueFalse() {
-        
+        Formula p = Formula.fromTerm(FOL.mkProp("p"));
+        Formula tru = Formula.fromTerm(FOL.true_);
+        Formula fls = Formula.fromTerm(FOL.false_);
+
+        Formula f1 = new Iff(tru, p);
+        Formula f2 = new Iff(p, tru);
+        assertThat(f1, not(p));
+        assertThat(f2, not(p));
+        assertEquals(p, f1.simplify());
+        assertEquals(p, f2.simplify());
+
+        Formula f3 = new Iff(p, fls);
+        Formula f4 = new Iff(fls, p);
+        assertThat(f3, not(new Not(p)));
+        assertThat(f4, not(new Not(p)));
+        assertEquals(new Not(p), f3.simplify());
+        assertEquals(new Not(p), f4.simplify());
+    }
+
+    @Test
+    public void simplifyIffSelf() {
+        Formula p = Formula.fromTerm(FOL.mkProp("p"));
+        Formula tru = Formula.fromTerm(FOL.true_);
+        Formula f = new Iff(p, p);
+        assertThat(f, not(tru));
+        assertEquals(tru, f.simplify());
+    }
+
+    @Test
+    public void simplifyIffNotSelf() {
+        Formula p = Formula.fromTerm(FOL.mkProp("p"));
+        Formula fls = Formula.fromTerm(FOL.false_);
+        Formula f = new Iff(p, new Not(p));
+        assertThat(f, not(fls));
+        assertEquals(fls, f.simplify());
     }
 
     @Test
