@@ -1,5 +1,6 @@
 import static org.junit.Assert.assertEquals;
 import org.junit.Test;
+import org.junit.Ignore;
 
 import fortress.lambda.*;
 import fortress.fol.pterm.*;
@@ -12,7 +13,19 @@ import java.util.Arrays.*;
 public class FormulaNNFTest {
 
     @Test
-    public void implication() {
+    @Ignore ("Test not implemented")
+    public void nnfTrue() {
+        
+    }
+
+    @Test
+    @Ignore ("Test not implemented")
+    public void nnfFalse() {
+        
+    }
+
+    @Test
+    public void nnfImp() {
         Term t = FOL.mkImp(
             FOL.mkProp("p"),
             FOL.mkProp("q")
@@ -28,7 +41,7 @@ public class FormulaNNFTest {
     }
 
     @Test
-    public void biimplication() {
+    public void nnfIff() {
         Term t = FOL.mkIff(
             FOL.mkProp("p"),
             FOL.mkProp("q")
@@ -44,7 +57,7 @@ public class FormulaNNFTest {
     }
 
     @Test
-    public void notAnd() {
+    public void nnfNotAnd() {
         Term t = FOL.mkNot(
             FOL.mkAnd(
                 FOL.mkProp("p"),
@@ -62,7 +75,7 @@ public class FormulaNNFTest {
     }
     
     @Test
-    public void notOr() {
+    public void nnfNotOr() {
         Term t = FOL.mkNot(
             FOL.mkOr(
                 FOL.mkProp("p"),
@@ -80,7 +93,7 @@ public class FormulaNNFTest {
     }
 
     @Test
-    public void notNot() {
+    public void nnfNotNot() {
         Term t = FOL.mkNot(FOL.mkNot(FOL.mkProp("p")));
         Formula f = Formula.fromTerm(t);
         Formula expected = Formula.fromTerm(FOL.mkProp("p"));
@@ -88,7 +101,7 @@ public class FormulaNNFTest {
     }
 
     @Test
-    public void notExists() {
+    public void nnfNotExists() {
         PVar a = new PVar("a");
         Const p = FOL.mkFun("p", a, Type.BOOL); 
         Var x = new Var("x", a);
@@ -109,7 +122,7 @@ public class FormulaNNFTest {
     }
 
     @Test
-    public void notForall() {
+    public void nnfNotForall() {
         PVar a = new PVar("a");
         Const p = FOL.mkFun("p", a, Type.BOOL);
         Var x = new Var("x", a);
@@ -130,7 +143,7 @@ public class FormulaNNFTest {
     }
     
     @Test
-    public void notImplication() {
+    public void nnfNotImp() {
         Term t = FOL.mkNot(
             FOL.mkImp(
                 FOL.mkProp("p"),
@@ -148,7 +161,7 @@ public class FormulaNNFTest {
     }
 
     @Test
-    public void notBiimplication() {
+    public void nnfNotIff() {
         Term t = FOL.mkNot(
             FOL.mkIff(
                 FOL.mkProp("p"),
@@ -166,7 +179,7 @@ public class FormulaNNFTest {
     }
 
     @Test
-    public void nested() {
+    public void nnfComplex1() {
         PVar a = new PVar("a");
         Term p = FOL.mkProp("p");
         Term q = FOL.mkProp("q");
@@ -241,8 +254,8 @@ public class FormulaNNFTest {
     }
     
     @Test
-    public void nested2() {
-        // Modification of "nested" test, which failed due to a bug
+    public void nnfComplex2() {
+        // Modification of "complex" test, which failed due to a bug
         // about creating formulas with quantifiers
         PVar a = new PVar("a");
         Term p = FOL.mkProp("p");

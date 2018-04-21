@@ -52,6 +52,13 @@ public class Or extends Formula {
         failIf(body == null);
         this.body = body;
     }
+    
+    public Or(Formula... formulas) {
+        failIf(formulas.length < 2);
+        SortedSet<Formula> body = new TreeSet<Formula>();
+        Collections.addAll(body, formulas);
+        this.body = body;
+    }
 
     public SortedSet<Formula> getBody(){
         return body;
