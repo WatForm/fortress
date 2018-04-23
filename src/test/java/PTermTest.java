@@ -1,5 +1,6 @@
 import static org.junit.Assert.assertEquals;
 import org.junit.Test;
+import org.junit.Before;
 
 import fortress.lambda.*;
 import fortress.fol.pterm.*;
@@ -9,46 +10,54 @@ import java.util.*;
 import java.util.Arrays.*;
 
 public class PTermTest {
-    
-    @Test
-    public void vars() {
-       PVar a = new PVar("A");
-       PVar b = new PVar("B");
-       PVar c = new PVar("C");
 
-       Set<PVar> expected = new HashSet<>();
-       expected.add(a);
-       assertEquals(expected, a.vars());
-       
-       PTerm funType = new Com(Constants.FN_Str, Arrays.asList(a, b));
-       expected = new HashSet<>();
-       expected.add(a);
-       expected.add(b);
-       assertEquals(expected, funType.vars());
-       
-       PTerm pairType = new Com(Constants.PAIR_Str, Arrays.asList(c, funType));
-       expected = new HashSet<>();
-       expected.add(a);
-       expected.add(b);
-       expected.add(c);
-       assertEquals(expected, pairType.vars());
+    Set<PVar> expected;
+    PVar a = new PVar("A");
+    PVar b = new PVar("B");
+    PVar c = new PVar("C");
+    PVar d = new PVar("D");
 
+    @Before
+    public void setup() {
+        expected = new HashSet<>();
     }
     
-    @Test public void substitution() {
-        PVar a = new PVar("A");
-        PVar b = new PVar("B");
-        PVar c = new PVar("C");
-        PVar d = new PVar("D");
-        
+    @Test
+    public void varsSingleType() {
+       expected.add(a);
+       assertEquals(expected, a.vars());
+   }
+
+    @Test
+    public void varsArrowType() {
+        PTerm funType = new Com(Constants.FN_Str, Arrays.asList(a, b));
+        expected.add(a);
+        expected.add(b);
+        assertEquals(expected, funType.vars());
+    }
+
+    
+    @Test
+    public void varsPairType() {
+        PTerm funType = new Com(Constants.FN_Str, Arrays.asList(a, b));
+        PTerm pairType = new Com(Constants.PAIR_Str, Arrays.asList(c, funType));
+        expected = new HashSet<>();
+        expected.add(a);
+        expected.add(b);
+        expected.add(c);
+        assertEquals(expected, pairType.vars());
+    }
+    
+    @Test
+    public void substitution() {
         PTerm funType1 = new Com(Constants.FN_Str, Arrays.asList(a, b));
         PTerm pairType = new Com(Constants.PAIR_Str, Arrays.asList(b, funType1));
-        
+
         PTerm funType2 = new Com(Constants.FN_Str, Arrays.asList(a, c));
-        
+
         PTerm funTypeR = new Com(Constants.FN_Str, Arrays.asList(a, funType2));
         PTerm pairTypeR = new Com(Constants.PAIR_Str, Arrays.asList(funType2, funTypeR));
-        
+
         assertEquals(pairTypeR, pairType.substitute(b, funType2));
         assertEquals(pairType, pairType.substitute(d, funType2));
     }
