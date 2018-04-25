@@ -36,7 +36,9 @@ import static fortress.util.Errors.failIf;
 import static fortress.util.ListOps.compareList;
 import static fortress.util.ListOps.exists;
 
-
+/**
+* Builds a compound data type, represented as a functor (e.g. arrow, pair) applied to argument types.
+*/
 public final class Com extends PTerm {
     
     private String functor;

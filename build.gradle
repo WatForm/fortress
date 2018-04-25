@@ -13,6 +13,7 @@ dependencies {
 }
 
 test {
+    ignoreFailures true // Don't stop build when unit test fails
     testLogging {
         events "passed", "skipped", "failed"
     }

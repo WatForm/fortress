@@ -103,6 +103,9 @@ public abstract class Formula implements Comparable<Formula>{
 
     public abstract SExpr toSMTLIB();
 
+    /**
+    * Converts a lambda calculus Term into the FOL Formula that it encodes.
+    */
     public static Formula fromTerm(Term t){
         failIf(!t.getType().equals(FOL.bool));
 

@@ -35,6 +35,9 @@ import static fortress.util.Errors.failIf;
 
 
 
+/**
+* PTerm represents a Type, for example Int or Int -&gt;g Bool.
+*/
 public abstract class PTerm implements Comparable<PTerm>{
     
     public abstract boolean isPVar();
@@ -54,14 +57,28 @@ public abstract class PTerm implements Comparable<PTerm>{
     
     public abstract <T> T accept(PTermVisitor<T> v);
 
+    /**
+    * Replace a type variable with another type.
+    * @param v      The type variable to replace.
+    * @param t      The type with which to replace the variable.
+    * @return       A new type with the variable substituted with the other type.
+    */
     public abstract PTerm substitute(PVar v, PTerm t);
 
+    /**
+    * Replace several type varaibles with other types.
+    * @param sub    A map from type variables to types indicating substiutions.
+    * @return       A new type with the substiutions applied.
+    */
     public abstract PTerm substitute(Map<PVar, PTerm> sub);
 
     public abstract  Map<PVar, PTerm> unify(PTerm other);
     
     protected abstract void varsHelper(Set<PVar> acc);
     
+    /**
+    * Collects all type variables contained within the type.
+    */
     public Set<PVar> vars(){
         Set<PVar> result = new HashSet<>();
         this.varsHelper(result);
@@ -128,6 +145,11 @@ public abstract class PTerm implements Comparable<PTerm>{
         return;
     }
 
+    /**
+    * Compute a substitution that unifies (makes true) a list of type equations.
+    * @param eqs    A list of equations (represented as pairs).
+    * @return       A substitution that unifies each of the given equations.
+    */
     public static Map<PVar, PTerm> unify(List<Pair<PTerm, PTerm>> eqs){
         Map<PVar, PTerm> sub = new HashMap<>();
         Set<Pair<PVar, PVar>> tc = new HashSet<>();
