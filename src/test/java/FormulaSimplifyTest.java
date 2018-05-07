@@ -312,27 +312,63 @@ public class FormulaSimplifyTest {
     }
 
     @Test
-    @Ignore ("Test not implemented")
     public void simplifyForallFlatten() {
-        
+        PVar a = new PVar("a");
+        Term p = FOL.mkProp("p");
+        Term q = FOL.mkProp("q");
+        Var x = new Var("x", a);
+        Var y = new Var("y", a);
+        Const h = FOL.mkFun("h", a, a, Type.BOOL);
+        Formula app = new Atomic(FOL.apply(h, x, y));
+        SortedSet<Var> vars = new TreeSet<>();
+        vars.add(y);
+        Formula inner = new Forall(vars, app);
+        vars = new TreeSet<>();
+        vars.add(x);
+        Formula f = new Forall(vars, inner);
+        vars = new TreeSet<>();
+        vars.add(x);
+        vars.add(y);
+        Formula expected = new Forall(vars, app);
+        assertThat(f, not(expected));
+        assertEquals(expected, f.simplify());
     }
 
     @Test
-    @Ignore ("Test not implemented")
+    @Ignore ("Test not implemented; need to double check")
     public void simplifyForallTrueFalse() {
-        
+        // Forall x . true === true
+        // Forall x . false === false
     }
 
     @Test
-    @Ignore ("Test not implemented")
     public void simplifyExistsFlatten() {
-        
+        PVar a = new PVar("a");
+        Term p = FOL.mkProp("p");
+        Term q = FOL.mkProp("q");
+        Var x = new Var("x", a);
+        Var y = new Var("y", a);
+        Const h = FOL.mkFun("h", a, a, Type.BOOL);
+        Formula app = new Atomic(FOL.apply(h, x, y));
+        SortedSet<Var> vars = new TreeSet<>();
+        vars.add(y);
+        Formula inner = new Exists(vars, app);
+        vars = new TreeSet<>();
+        vars.add(x);
+        Formula f = new Exists(vars, inner);
+        vars = new TreeSet<>();
+        vars.add(x);
+        vars.add(y);
+        Formula expected = new Exists(vars, app);
+        assertThat(f, not(expected));
+        assertEquals(expected, f.simplify());
     }
 
     @Test
-    @Ignore ("Test not implemented")
+    @Ignore ("Test not implemented; need to double check")
     public void simplifyExistsTrueFalse() {
-        
+        // Exists x . true === true
+        // Exists x . false === false
     }
 
     @Test

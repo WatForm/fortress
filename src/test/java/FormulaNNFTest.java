@@ -13,15 +13,21 @@ import java.util.Arrays.*;
 public class FormulaNNFTest {
 
     @Test
-    @Ignore ("Test not implemented")
+    @Ignore ("Test not implemented; need to double check")
     public void nnfTrue() {
-        
+        Formula tru = Formula.fromTerm(FOL.true_);
+        Formula fls = Formula.fromTerm(FOL.false_);
+        assertEquals(tru, tru.nnf());
+        assertEquals(new Not(tru), new Not(tru.nnf()));
     }
 
     @Test
-    @Ignore ("Test not implemented")
+    @Ignore ("Test not implemented; need to double check")
     public void nnfFalse() {
-        
+        Formula tru = Formula.fromTerm(FOL.true_);
+        Formula fls = Formula.fromTerm(FOL.false_);
+        assertEquals(fls, fls.nnf());
+        assertEquals(new Not(fls), new Not(fls.nnf()));
     }
 
     @Test
