@@ -247,21 +247,21 @@ public class Or extends Formula {
         return new Pair<>(new Or(temp), i);
     }
 
-    @Override
-    public Formula prenex() {
-        SortedSet<Var> forallVar = new TreeSet<>();
-        SortedSet<Var> existsVar = new TreeSet<>();
-        SortedSet<Formula> temp = new TreeSet<>();
-//        Map<PTerm, Var> sub = new HashMap<>();
-        Map<PTerm, Integer> maxType = new HashMap<>();
+	@Override
+	public Formula prenex() {
+		SortedSet<Var> forallVar = new TreeSet<>();
+		SortedSet<Var> existsVar = new TreeSet<>();
+		SortedSet<Formula> temp = new TreeSet<>();
+		// Map<PTerm, Var> sub = new HashMap<>();
+		Map<PTerm, Integer> maxType = new HashMap<>();
 		Map<PTerm, Var[]> maxVars = new HashMap<>();
-        for (Formula f: body){
-            Formula ff = f.prenex();
-            if (ff.isExists()){
-            	Exists fe = (Exists) ff;
+		for (Formula f : body) {
+			Formula ff = f.prenex();
+			if (ff.isExists()) {
+				Exists fe = (Exists) ff;
 				Map<PTerm, Integer> typeCounter = new HashMap<>();
 				Map<PTerm, Set<Var>> varHolder = new HashMap<>();
-				for (Var v: fe.getVars()) {
+				for (Var v : fe.getVars()) {
 					if (typeCounter.containsKey(v.getType())) {
 						int container = typeCounter.get(v.getType());
 						container++;
@@ -282,7 +282,7 @@ public class Or extends Formula {
 						varHolder.put(v.getType(), tempVarHolder);
 					}
 				}
-				for (Entry<PTerm, Integer> entry: typeCounter.entrySet()) {
+				for (Entry<PTerm, Integer> entry : typeCounter.entrySet()) {
 					if (maxType.containsKey(entry.getKey())) {
 						if (maxType.get(entry.getKey()) < entry.getValue()) {
 							maxType.remove(entry.getKey());
@@ -291,7 +291,7 @@ public class Or extends Formula {
 							Set<Var> x = varHolder.get(entry.getKey());
 							Object[] z = x.toArray();
 							Var[] y = new Var[z.length];
-							for (int i = 0; i < z.length; i++) 
+							for (int i = 0; i < z.length; i++)
 								y[i] = (Var) z[i];
 							maxVars.put(entry.getKey(), y);
 						}
@@ -300,7 +300,7 @@ public class Or extends Formula {
 						Set<Var> x = varHolder.get(entry.getKey());
 						Object[] z = x.toArray();
 						Var[] y = new Var[z.length];
-						for (int i = 0; i < z.length; i++) 
+						for (int i = 0; i < z.length; i++)
 							y[i] = (Var) z[i];
 						maxVars.put(entry.getKey(), y);
 					}
@@ -310,11 +310,11 @@ public class Or extends Formula {
 		for (Formula f : body) {
 			Map<PTerm, Integer> varCount = new HashMap<>();
 			Formula ff = f.prenex();
-//			check = false;
+			// check = false;
 			if (ff.isExists()) {
 				Exists fe = (Exists) ff;
 				Formula e = fe.getBody();
-				for (Var v: fe.getVars()) {
+				for (Var v : fe.getVars()) {
 					Var substitute;
 					if (varCount.containsKey(v.getType())) {
 						substitute = maxVars.get(v.getType())[varCount.get(v.getType())];
@@ -326,40 +326,40 @@ public class Or extends Formula {
 						varCount.put(v.getType(), 1);
 					}
 					e = e.substitute(v, substitute);
-					forallVar.add(substitute);
+					existsVar.add(substitute);
 				}
-//            	Exists fe = (Exists) ff;
-//                Formula e = fe.getBody();
-//                for (Var v: fe.getVars())
-//                    if (sub.containsKey(v.getType())){
-//                        e = e.substitute(v, sub.get(v.getType()));
-//                    } else{
-//                        sub.put(v.getType(), v);
-//                        existsVar.add(v);
-//                    }
-                temp.add(e);
-                
-            } else {
-                if (ff.isForall()){
-                	forallVar.addAll(((Forall) ff).getVars());
-                    temp.add(((Forall) ff).getBody());
-                } else
-                    temp.add(ff);
-            }
-        }
-        if (forallVar.isEmpty() && existsVar.isEmpty())
-            return this;
-        Formula f = (new Or(temp)).prenex();
-        if (f.isForall()) {
-            forallVar.addAll(((Forall) f).getVars());
-            f = ((Forall) f).getBody();
-        }
-        if (!forallVar.isEmpty())
-            f = new Forall(forallVar, f);
-        if (!existsVar.isEmpty())
-            f = new Exists(existsVar, f);
-        return f;
-    }
+				// Exists fe = (Exists) ff;
+				// Formula e = fe.getBody();
+				// for (Var v: fe.getVars())
+				// if (sub.containsKey(v.getType())){
+				// e = e.substitute(v, sub.get(v.getType()));
+				// } else{
+				// sub.put(v.getType(), v);
+				// existsVar.add(v);
+				// }
+				temp.add(e);
+
+			} else {
+				if (ff.isForall()) {
+					forallVar.addAll(((Forall) ff).getVars());
+					temp.add(((Forall) ff).getBody());
+				} else
+					temp.add(ff);
+			}
+		}
+		if (forallVar.isEmpty() && existsVar.isEmpty())
+			return this;
+		Formula f = (new Or(temp)).prenex();
+		if (f.isForall()) {
+			forallVar.addAll(((Forall) f).getVars());
+			f = ((Forall) f).getBody();
+		}
+		if (!forallVar.isEmpty())
+			f = new Forall(forallVar, f);
+		if (!existsVar.isEmpty())
+			f = new Exists(existsVar, f);
+		return f;
+	}
 
     @Override
     public Formula simplifyEQ(Map<Term, Formula> literlas, List<Set<Term>> pairwiseDistinct){
