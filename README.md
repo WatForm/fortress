@@ -50,14 +50,13 @@ Run `gradle javadoc`.
 The documentation can then be viewed in `build/docs/javadoc/index.html`.
 
 ## Plan for improvements
-* Set up tests and restructure repository, which will also help to better understand fortress
-* Documentation
-* Add abstraction layers so changes can be made without breaking the interface
-* Seperate out parser from core Fortress, maybe as a separate repository
-* Decide the interface to publish for Fortress and whether the parser should be separate from the rest of Fortress, as it really just uses fortress as opposed to being part of the core
-* Streamline the implementation by removing higher order logic layer
-* Hunt for optimizations
-* Switch from using Z3 on the commmand line to the Java API for Z3
+1. Make any superficial tweaks to the output interface that needed to automate file level tests for efficiency and correctness
+2. Add some unit tests and documentation. Some unit tests should fail because of the bug
+3. Make Java class interface tweaks; test them for efficiency to make sure I didn't slow anything down. This includes separating out the parser, adding abstraction layers, etc.
+4. Allow Fortress to call Z3 through it's Java interface rather than the command line (but still allow the command line if wanted). This will probably require a change to the build system too since we need the Z3 Java library
+5. Apply the bug fix, make sure unit tests pass; assess the damage to efficiency
+6. Remove the lambda calculus layer; perform unit tests and efficiency tests
+7. Search for other optimizations
 
 ## Implementation Notes
 input -> `ANTLRInputStream` -> `FOFTPTPLexer` -> `CommonTokenStream`
@@ -68,7 +67,7 @@ It visits the nodes of the parse tree, which represent first order logic connect
 At each node, it largely delegates to the `FOL` class (e.g. `FOL.mkForall`, `FOL.mkAnd`).
 
 Rather than construct a first order logic formula directly, the `FOL` class constructs
-each of these first order logic formulas by encoding it in the typed lambda calclus (the `Term` hierarchy).
+each of these first order logic formulas by encoding it in the typed lambda calculus (the `Term` hierarchy).
 `FOL` also contains static methods that accept a term and decide if it describes a
 particular first order logic formula (e.g. `FOL.isNot`, `FOL.isEq`).
 
@@ -79,6 +78,4 @@ as a base, and adds the generated `Term` as an axiom.
 
 
 The `Formula` class has a static `fromTerm` method which takes a typed lambda calculus `Term`
-and produces an explicit first order logic formula, uisng the `Formula` hierarchy.
-
-
+and produces an explicit first order logic formula, using the `Formula` hierarchy.
