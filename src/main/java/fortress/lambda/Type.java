@@ -68,6 +68,7 @@ public final class Type{
         return mkCom(name);
     }
 
+    // Generates a (curried) arrow type
     public static Com mkFnTy(PTerm... args){
         failIf(args.length < 2);
         PTerm result = args[args.length - 1];

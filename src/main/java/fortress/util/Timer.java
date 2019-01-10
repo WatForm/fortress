@@ -33,6 +33,7 @@ public class Timer {
 
     private long day, hour, minute, second, hsec;
     private long start;
+    private String report;
 
     public Timer(){
         start = System.nanoTime();
@@ -54,7 +55,7 @@ public class Timer {
         hour = length % 60;
         length /= 60;
         day = length;
-        String report = "";
+        report = "";
         if (day != 0)
             report = report + Long.toString(day) + "d ";
         if (hour != 0)
@@ -62,6 +63,9 @@ public class Timer {
         if (minute != 0)
             report = report + Long.toString(minute) + "m ";
         report = report + Long.toString(second) + "." + Long.toString(hsec) + "s";
-        System.out.println("Time elapsed: " + report);
+    }
+
+    public String getReport() {
+        return report;
     }
 }

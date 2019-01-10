@@ -85,6 +85,7 @@ public class  Graph<V, E extends Comparable<? super E>> {
         }
     }
 
+    // TODO possible optimization
     public List<E> shortestPath(V v1, V v2){
         Iterator<List<E>> it = edge[vertex.indexOf(v1)][vertex.indexOf(v2)].iterator();
         if (!it.hasNext())

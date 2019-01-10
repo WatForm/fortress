@@ -39,11 +39,13 @@ import static fortress.util.Errors.failIf;
 /**
  * Created by amirhossein on 14/01/16.
  */
-public final class Con extends Term {
+
+ // Lambda calculus term for typed constant
+public final class Const extends Term {
 
     private String name;
 
-    public Con(String name, PTerm ty){
+    public Const(String name, PTerm ty){
         failIf(name == null);
         failIf(ty == null);
         this.name = name;
@@ -87,7 +89,7 @@ public final class Con extends Term {
             return false;
         if (getClass() != obj.getClass())
             return false;
-        Con other = (Con) obj;
+        Const other = (Const) obj;
         if (!name.equals(other.name))
             return false;
         return ty.equals(other.ty);
@@ -100,7 +102,7 @@ public final class Con extends Term {
             return 1;
         if (getClass() != o.getClass())
             return -1;
-        Con other = (Con) o;
+        Const other = (Const) o;
         if (name.compareTo(other.name) != 0)
             return name.compareTo(other.name);
         return ty.compareTo(other.ty);
@@ -121,7 +123,7 @@ public final class Con extends Term {
     }
 
     @Override
-    protected void constantsH(Set<Con> acc){
+    protected void constantsH(Set<Const> acc){
         acc.add(this);
         return;
     }

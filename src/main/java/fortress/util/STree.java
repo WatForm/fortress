@@ -29,6 +29,8 @@ package fortress.util;
 /**
  * Created by Amirhossein Vakili.
  */
+
+// Class to create s-trees using string data
 public class STree implements Comparable<STree>{
 
     private String data;

@@ -28,7 +28,7 @@ package fortress.formats.tptp;
 
 import fortress.fol.FOL;
 import fortress.fol.pterm.PTerm;
-import fortress.lambda.Con;
+import fortress.lambda.Const;
 import fortress.lambda.Term;
 import fortress.lambda.Var;
 import fortress.theory.Theory;
@@ -39,6 +39,10 @@ import java.util.*;
 /**
  * Created by Amirhossein Vakili.
  */
+
+ // Visits a parse tree and constructs a theory
+ // Only visits untyped FOL formulas; generates a typed theory
+ // with a single type _UNIV
 public class FOF2Fortress extends FOFTPTPBaseVisitor {
 
     public Theory result;
@@ -56,6 +60,8 @@ public class FOF2Fortress extends FOFTPTPBaseVisitor {
         vars = new TreeSet<>();
     }
 
+    // Add formulas as axioms to theory, or if the formula is a conjecture,
+    // add its negation as an axiom
     @Override
     public Object visitFof_annotated(FOFTPTPParser.Fof_annotatedContext ctx) {
         vars.clear();
@@ -157,7 +163,7 @@ public class FOF2Fortress extends FOFTPTPBaseVisitor {
         if (vars.contains(name))
             return new Var(name, univ);
         //funSym.put(name, 0);
-        return new Con(name, univ);
+        return new Const(name, univ);
     }
 
     @Override

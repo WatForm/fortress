@@ -43,6 +43,8 @@ import static fortress.util.Errors.failIf;
 /**
  * Created by amirhossein on 14/01/16.
  */
+ // Contains functions to check and convert between formulas
+ // and typed lambda calculus terms
 public final class FOL {
 
     public static Com bool = fortress.lambda.Type.BOOL;
@@ -53,25 +55,25 @@ public final class FOL {
         return new Com(name, new ArrayList<>());
     }
 
-    public static Con mkProp(String name){
-        return new Con(name, bool);
+    public static Const mkProp(String name){
+        return new Const(name, bool);
     }
 
     public static Var mkVar(String name, PTerm ty){
         return new Var(name, ty);
     }
 
-    public static Con mkFun(String name, PTerm... tyList){
+    public static Const mkFun(String name, PTerm... tyList){
         if (tyList.length == 1)
-            return new Con(name, tyList[0]);
-        return new Con(name, Type.mkFnTy(tyList));
+            return new Const(name, tyList[0]);
+        return new Const(name, Type.mkFnTy(tyList));
     }
 
     public static App apply(Term... args){
         return App.mkApp(args);
     }
 
-    public static App apply(Con f, List<Term> args){
+    public static App apply(Const f, List<Term> args){
         return App.mkApp(f, args);
     }
 
@@ -97,19 +99,19 @@ public final class FOL {
         return t.brkEq();
     }
 
-    public static Con false_ = mkProp(Constants.FALSE_Str);
+    public static Const false_ = mkProp(Constants.FALSE_Str);
 
     public static boolean isFalse(Term t){
         return t.equals(false_);
     }
 
-    public static Con true_ = mkProp(Constants.TRUE_Str);
+    public static Const true_ = mkProp(Constants.TRUE_Str);
 
     public static boolean isTrue(Term t){
         return t.equals(true_);
     }
 
-    public static Con not = mkFun(Constants.NOT_Str, Type.mkFnTy(bool, bool));
+    public static Const not = mkFun(Constants.NOT_Str, Type.mkFnTy(bool, bool));
 
     public static boolean isNot(Term t){
         return t.isApp() && ((App) t).getFun().equals(not);
@@ -129,7 +131,7 @@ public final class FOL {
 
     // AND
 
-    public static Con and = mkFun(Constants.AND_Str, bool3);
+    public static Const and = mkFun(Constants.AND_Str, bool3);
 
     public static boolean isAnd(Term t){
         if (!t.isApp())
@@ -175,7 +177,7 @@ public final class FOL {
 
     // OR
 
-    public static Con or = mkFun(Constants.OR_Str, bool3);
+    public static Const or = mkFun(Constants.OR_Str, bool3);
 
     public static boolean isOr(Term t){
         if (!t.isApp())
@@ -221,7 +223,7 @@ public final class FOL {
 
     // IMP
 
-    public static Con imp = mkFun(Constants.IMP_Str, bool3);
+    public static Const imp = mkFun(Constants.IMP_Str, bool3);
 
     public static boolean isImp(Term t){
         if (!t.isApp())
@@ -243,7 +245,7 @@ public final class FOL {
 
     // IFF
 
-    public static Con iff = mkFun(Constants.IFF_Str, bool3);
+    public static Const iff = mkFun(Constants.IFF_Str, bool3);
 
     public static boolean isIff(Term t){
         if (!t.isApp())
@@ -265,7 +267,7 @@ public final class FOL {
 
     // FORALL
 
-    public static Con forall = mkFun(Constants.FORALL_Str, Type.mkFnTy(Type.mkFnTy(Type._a, bool), bool));
+    public static Const forall = mkFun(Constants.FORALL_Str, Type.mkFnTy(Type.mkFnTy(Type._a, bool), bool));
 
     public static boolean isForall(Term t){
         return t.isApp() && ((App) t).getFun().equals(forall);
@@ -302,7 +304,7 @@ public final class FOL {
 
     // EXISTS
 
-    public static Con exists = mkFun(Constants.EXISTS_Str, Type.mkFnTy(Type.mkFnTy(Type._a, bool), bool));
+    public static Const exists = mkFun(Constants.EXISTS_Str, Type.mkFnTy(Type.mkFnTy(Type._a, bool), bool));
 
     public static boolean isExists(Term t){
         return t.isApp() && ((App) t).getFun().equals(exists);

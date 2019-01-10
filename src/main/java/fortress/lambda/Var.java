@@ -39,6 +39,8 @@ import static fortress.util.Errors.failIf;
 /**
  * Created by amirhossein on 14/01/16.
  */
+
+ // Lambda calculus term for typed variable
 public final class Var extends Term {
 
     private String name;
@@ -119,7 +121,7 @@ public final class Var extends Term {
     }
 
     @Override
-    protected void constantsH(Set<Con> acc){
+    protected void constantsH(Set<Const> acc){
         return;
     }
 

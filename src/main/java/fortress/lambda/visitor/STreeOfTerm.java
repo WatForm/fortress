@@ -34,6 +34,8 @@ import java.util.List;
 /**
  * Created by Amirhossein Vakili.
  */
+
+ // Visitor to construct an STree representation of a term
 public class STreeOfTerm implements TermVisitor<STree> {
 
     private STreeOfTerm(){}
@@ -46,7 +48,7 @@ public class STreeOfTerm implements TermVisitor<STree> {
     }
 
     @Override
-    public STree visitCon(Con t) {
+    public STree visitCon(Const t) {
         return new STree(t.getName());
     }
 

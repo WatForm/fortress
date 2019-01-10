@@ -29,7 +29,7 @@ package fortress.lambda.visitor;
 import fortress.fol.pterm.visitor.MaxIDPTerm;
 import fortress.lambda.Abs;
 import fortress.lambda.App;
-import fortress.lambda.Con;
+import fortress.lambda.Const;
 import fortress.lambda.Var;
 
 /**
@@ -55,7 +55,7 @@ public class MaxIDTerm implements TermVisitor<Integer> {
     }
 
     @Override
-    public Integer visitCon(Con t) {
+    public Integer visitCon(Const t) {
         int result = t.getType().accept(new MaxIDPTerm(id));
         if (t.getName().matches(id + "[0-9]*")){
             String n = t.getName().substring(id.length());

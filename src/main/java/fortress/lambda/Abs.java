@@ -37,6 +37,8 @@ import static fortress.util.Errors.failIf;
 /**
  * Created by amirhossein on 14/01/16.
  */
+
+ // Lambda calculus term for a function abstraction
 public final class Abs extends Term {
 
     private Var arg;
@@ -150,7 +152,7 @@ public final class Abs extends Term {
     }
 
     @Override
-    protected void constantsH(Set<Con> acc){
+    protected void constantsH(Set<Const> acc){
         fun.constantsH(acc);
         return;
     }
