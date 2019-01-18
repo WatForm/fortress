@@ -10,7 +10,7 @@ import static fortress.tfol.FuncDecl.*;
 import java.util.List;
 import java.util.ArrayList;
 
-public class termJavaEqualityTest {
+public class TermJavaEqualityTest {
     
     // TODO do we want p & r is equal to r & p?
     // What about forall x y . P(x), forall y x . P(x)?
