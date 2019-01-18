@@ -7,6 +7,8 @@ public abstract class Type {
         return new TypeConst(name);
     }
     
+    public static Type Bool = mkTypeConst("Bool");
+    
     @Override
     public boolean equals(Object other) {
         // Template method design

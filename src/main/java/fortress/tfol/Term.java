@@ -8,7 +8,7 @@ public abstract class Term {
     // Published interface 
     // Term subclasses are not published
     
-    public static Term mkVar(String name, Type type) {
+    public static Var mkVar(String name, Type type) {
         return new Var(name, type);
     }
     
@@ -51,13 +51,30 @@ public abstract class Term {
     public static Term mkApp(FuncDecl f, List<Term> arguments) {
         return new App(f, arguments);
     }
+    public static Term mkApp(FuncDecl f, Term... arguments) {
+        List<Term> args = new ArrayList<>();
+        for(Term arg : arguments) {
+            args.add(arg);
+        }
+        return mkApp(f, args);
+    }
     
     public static Term mkForall(List<Var> vars, Term body) {
         return new Forall(vars, body);
     }
+    public static Term mkForall(Var x, Term body) {
+        List<Var> vars = new ArrayList<>();
+        vars.add(x);
+        return mkForall(vars, body);
+    }
     
     public static Term mkExists(List<Var> vars, Term body) {
         return new Exists(vars, body);
+    }
+    public static Term mkExists(Var x, Term body) {
+        List<Var> vars = new ArrayList<>();
+        vars.add(x);
+        return mkExists(vars, body);
     }
     
     @Override

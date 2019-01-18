@@ -4,11 +4,12 @@ import java.util.List;
 import java.util.ArrayList;
 import fortress.util.Errors;
 
-class Var extends Term {
+public class Var extends Term {
     private String name;
     private Type type;
     
     protected Var(String name, Type type) {
+        Errors.failIf(name.length() < 1);
         this.name = name;
         this.type = type;
     }

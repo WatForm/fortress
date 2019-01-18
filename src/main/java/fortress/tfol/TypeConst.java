@@ -8,6 +8,7 @@ class TypeConst extends Type {
     private String name;
     
     protected TypeConst(String name) {
+        Errors.failIf(name.length() < 1);
         this.name = name;
     }
     

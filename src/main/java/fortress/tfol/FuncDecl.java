@@ -1,6 +1,7 @@
 package fortress.tfol;
 
 import java.util.List;
+import java.util.ArrayList;
 import fortress.util.Errors;
 
 public class FuncDecl {
@@ -8,7 +9,21 @@ public class FuncDecl {
     private List<Type> argTypes;
     private Type resultType;
     
-    public FuncDecl(String name, List<Type> argTypes, Type resultType) {
+    public static FuncDecl mkFuncDecl(String name, List<Type> argTypes, Type resultType) {
+        return new FuncDecl(name, argTypes, resultType);
+    }
+    
+    public static FuncDecl mkFuncDecl(String name, Type... types) {
+        Errors.failIf(types.length < 1);
+        List<Type> argTypes = new ArrayList<>();
+        Type resultType = types[types.length - 1];
+        for(int i = 0; i < types.length - 1; i++) {
+            argTypes.add(types[i]);
+        }
+        return mkFuncDecl(name, argTypes, resultType);
+    }
+    
+    private FuncDecl(String name, List<Type> argTypes, Type resultType) {
         Errors.failIf(name.length() < 1);
         //TODO what about nullary functions?
         //I don't think these should fail here, but when used in App they are replaced
