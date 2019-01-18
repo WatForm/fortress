@@ -21,4 +21,31 @@ public class FuncDecl {
     public int arity() {
         return argTypes.size();
     }
+    
+    @Override
+    public boolean equals(Object other) {
+        if(this == other) {
+            return true;
+        }
+        if(null == other) {
+            return false;
+        }
+        if(this.getClass() != other.getClass()) {
+            return false;
+        }
+        FuncDecl o = (FuncDecl) other;
+        return this.name.equals(o.name)
+            && this.argTypes.equals(o.argTypes)
+            && this.resultType.equals(o.resultType);
+    }
+    
+    @Override
+    public int hashCode() {
+        int prime = 31;
+        int result = 1;
+        result = result * prime + name.hashCode();
+        result = result * prime + argTypes.hashCode();
+        result = result * prime + resultType.hashCode();
+        return result;
+    }
 }

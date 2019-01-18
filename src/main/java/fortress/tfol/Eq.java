@@ -1,11 +1,7 @@
 package fortress.tfol;
 
-class Eq extends Term {
-    private Term left;
-    private Term right;
-
+class Eq extends BinOp {
     protected Eq(Term left, Term right) {
-        this.left = left;
-        this.right = right;
+        super(left, right);
     }
 }
