@@ -13,6 +13,8 @@ public class FuncDecl {
         //TODO what about nullary functions?
         //I don't think these should fail here, but when used in App they are replaced
         
+        // TODO may not need need type in FuncDecl depending on how we do typechecking
+        
         this.name = name;
         this.argTypes = argTypes;
         this.resultType = resultType;
