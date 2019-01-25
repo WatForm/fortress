@@ -20,5 +20,10 @@ class Bottom extends Term {
     protected List<Integer> innerHashNumbers() {
         // TODO this implementaton might not be ideal
         return new ArrayList<Integer>();
-    } 
+    }
+    
+    @Override
+    protected <T> T accept(TermVisitor<T> visitor) {
+        return visitor.visitBottom(this);
+    }
 }

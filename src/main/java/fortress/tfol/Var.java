@@ -30,4 +30,8 @@ public class Var extends Term {
         return numbers;
     }
     
+    @Override
+    protected <T> T accept(TermVisitor<T> visitor) {
+        return visitor.visitVar(this);
+    }
 }

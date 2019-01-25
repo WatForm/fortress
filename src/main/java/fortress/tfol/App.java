@@ -28,4 +28,9 @@ class App extends Term {
         numbers.add(arguments.hashCode());
         return numbers;
     }
+    
+    @Override
+    protected <T> T accept(TermVisitor<T> visitor) {
+        return visitor.visitApp(this);
+    }
 }

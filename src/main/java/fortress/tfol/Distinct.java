@@ -25,4 +25,9 @@ class Distinct extends Term {
         numbers.add(vars.hashCode());
         return numbers;
     }
+    
+    @Override
+    protected <T> T accept(TermVisitor<T> visitor) {
+        return visitor.visitDistinct(this);
+    }
 }

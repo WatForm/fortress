@@ -129,4 +129,5 @@ public abstract class Term {
     // TODO consider making this an int[] instead for efficiency
     protected abstract List<Integer> innerHashNumbers();
 
+    protected abstract <T> T accept(TermVisitor<T> visitor);
 }

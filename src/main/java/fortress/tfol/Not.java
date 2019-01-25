@@ -23,4 +23,9 @@ class Not extends Term {
         numbers.add(body.hashCode());
         return numbers;
     }
+    
+    @Override
+    protected <T> T accept(TermVisitor<T> visitor) {
+        return visitor.visitNot(this);
+    }
 }
