@@ -27,6 +27,7 @@ public class TermJavaEqualityTest {
     Var a3 = mkVar("a3", A);
     Var x = mkVar("x", A);
     Var y = mkVar("y", A);
+    Var z = mkVar("z", A);
     
     Term p = mkVar("p", Bool);
     Term q = mkVar("q", Bool);
@@ -47,6 +48,13 @@ public class TermJavaEqualityTest {
         assertEquals(p1, p2);
         assertNotEquals(p1, p3);
         assertNotEquals(p1, p4);
+    }
+    
+    @Test
+    public void TopBottom() {
+        assertEquals(Term.mkTop(), Term.mkTop());
+        assertEquals(Term.mkBottom(), Term.mkBottom());
+        assertNotEquals(Term.mkTop(), Term.mkBottom());
     }
 
     @Test
@@ -106,5 +114,14 @@ public class TermJavaEqualityTest {
         assertNotEquals(mkExists(x, mkApp(P, x)), mkExists(y, mkApp(P, x)));
         assertNotEquals(mkExists(x, mkApp(P, x)), mkExists(x, mkApp(Q, x)));
         assertNotEquals(mkExists(x, mkApp(P, x)), mkExists(y, mkApp(P, y)));
+    }
+    
+    @Test
+    public void Distinct() {
+        List<Var> varList = new ArrayList<>();
+        varList.add(x);
+        varList.add(y);
+        assertEquals(mkDistinct(x, y), mkDistinct(varList));
+        assertNotEquals(mkDistinct(x, y), mkDistinct(x, z));
     }
 }

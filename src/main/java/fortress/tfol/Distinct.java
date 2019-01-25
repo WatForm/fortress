@@ -4,29 +4,25 @@ import java.util.List;
 import java.util.ArrayList;
 import fortress.util.Errors;
 
-abstract class Quantifier extends Term {
-    protected List<Var> vars;
-    protected Term body;
+class Distinct extends Term {
+    List<Var> vars;
     
-    protected Quantifier(List<Var> vars, Term body) {
+    protected Distinct(List<Var> vars) {
+        // TODO does z3 care if distinct has only one variable?
         Errors.failIf(vars.size() < 1);
         this.vars = vars;
-        this.body = body;
     }
     
     @Override
     protected boolean innerEquals(Object other) {
         Errors.failIf(this.getClass() != other.getClass());
-        Quantifier o = (Quantifier) other;
-        return this.vars.equals(o.vars)
-            && this.body.equals(o.body);
+        return this.vars.equals( ((Distinct)other).vars );
     }
     
     @Override
     protected List<Integer> innerHashNumbers() {
-        List<Integer> numbers = new ArrayList<Integer>();
+        List<Integer> numbers = new ArrayList<>();
         numbers.add(vars.hashCode());
-        numbers.add(body.hashCode());
         return numbers;
     }
 }

@@ -7,6 +7,13 @@ public abstract class Term {
     
     // Published interface 
     // Term subclasses are not published
+    public static Term mkTop() {
+        return new Top();
+    }
+    
+    public static Term mkBottom() {
+        return new Bottom();
+    }
     
     public static Var mkVar(String name, Type type) {
         return new Var(name, type);
@@ -77,6 +84,17 @@ public abstract class Term {
         return mkExists(vars, body);
     }
     
+    public static Term mkDistinct(List<Var> vars) {
+        return new Distinct(vars);
+    }
+    public static Term mkDistinct(Var... vars) {
+        List<Var> variables = new ArrayList<>();
+        for(Var var : vars) {
+            variables.add(var);
+        }
+        return mkDistinct(variables);
+    }
+    
     @Override
     public boolean equals(Object other) {
         // Template method design
@@ -108,6 +126,7 @@ public abstract class Term {
     }
     
     // List of numbers to be included when computing the hashCode
+    // TODO consider making this an int[] instead for efficiency
     protected abstract List<Integer> innerHashNumbers();
 
 }
