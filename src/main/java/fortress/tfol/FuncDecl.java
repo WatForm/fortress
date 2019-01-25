@@ -39,6 +39,10 @@ public class FuncDecl {
         return argTypes.size();
     }
     
+    public String getName() {
+        return name;
+    }
+    
     @Override
     public boolean equals(Object other) {
         if(this == other) {

@@ -14,6 +14,14 @@ abstract class Quantifier extends Term {
         this.body = body;
     }
     
+    protected List<Var> getVars() {
+        return vars;
+    }
+    
+    protected Term getBody() {
+        return body;
+    }
+    
     @Override
     protected boolean innerEquals(Object other) {
         Errors.failIf(this.getClass() != other.getClass());

@@ -13,6 +13,14 @@ abstract class BinOp extends Term {
         this.right = right;
     }
     
+    protected Term getLeft() {
+        return left;
+    }
+    
+    protected Term getRight() {
+        return right;
+    }
+    
     @Override
     protected boolean innerEquals(Object other) {
         Errors.failIf(this.getClass() != other.getClass());

@@ -13,6 +13,11 @@ class TypeConst extends Type {
     }
     
     @Override
+    public String toString() {
+        return name;
+    }
+    
+    @Override
     protected boolean innerEquals(Object other) {
         Errors.failIf(this.getClass() != other.getClass());
         return this.name.equals( ((TypeConst)other).name );

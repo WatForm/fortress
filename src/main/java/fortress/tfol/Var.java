@@ -14,6 +14,14 @@ public class Var extends Term {
         this.type = type;
     }
     
+    protected String getName() {
+        return name;
+    }
+    
+    protected Type getType() {
+        return type;
+    }
+    
     @Override
     protected boolean innerEquals(Object other) {
        Errors.failIf(this.getClass() != other.getClass());

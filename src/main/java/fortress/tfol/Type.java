@@ -2,12 +2,22 @@ package fortress.tfol;
 
 import java.util.List;
 
+// TODO Does type need subclasses?
+// While I do think the constructor should be protected in case we
+// change implementation, I never
+// see a need for any kinds of types other than TypeConst for our purposes
+// If I do change it, need to decide whether to change classes that use type.toString()
+// to just get the name
+
 public abstract class Type {
     public static Type mkTypeConst(String name) {
         return new TypeConst(name);
     }
     
     public static Type Bool = mkTypeConst("Bool");
+    
+    @Override
+    public abstract String toString();
     
     @Override
     public boolean equals(Object other) {

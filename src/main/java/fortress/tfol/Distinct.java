@@ -4,6 +4,10 @@ import java.util.List;
 import java.util.ArrayList;
 import fortress.util.Errors;
 
+// TODO does Z3 allow distinct to have arbitrary terms in distinct?
+// If so, could create a ListOp class that is a parent of AndOrList
+// and Distinct
+
 class Distinct extends Term {
     List<Var> vars;
     
@@ -11,6 +15,10 @@ class Distinct extends Term {
         // TODO does z3 care if distinct has only one variable?
         Errors.failIf(vars.size() < 1);
         this.vars = vars;
+    }
+    
+    protected List<Var> getVars() {
+        return vars;
     }
     
     @Override

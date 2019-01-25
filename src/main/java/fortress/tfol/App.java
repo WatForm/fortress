@@ -14,6 +14,14 @@ class App extends Term {
         this.arguments = arguments;
     }
     
+    protected FuncDecl getFuncDecl() {
+        return function;
+    }
+    
+    protected List<Term> getArguments() {
+        return arguments;
+    }
+    
     @Override
     protected boolean innerEquals(Object other) {
         Errors.failIf(this.getClass() != other.getClass());
