@@ -43,6 +43,14 @@ public class FuncDecl {
         return name;
     }
     
+    public List<Type> getArgTypes() {
+        return argTypes;
+    }
+    
+    public Type getResultType() {
+        return resultType;
+    }
+    
     @Override
     public boolean equals(Object other) {
         if(this == other) {
