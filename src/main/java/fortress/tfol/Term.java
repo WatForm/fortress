@@ -2,11 +2,25 @@ package fortress.tfol;
 
 import java.util.List;
 import java.util.ArrayList;
+import java.util.Optional;
+import java.util.Set;
 
 public abstract class Term {
     
     // Published interface 
     // Term subclasses are not published
+    
+    public static Optional<Type> typeCheck(Term term, Set<Type> types,
+        Set<Var> constants, Set<FuncDecl> functionDeclarations) {
+        TypeCheckVisitor typeChecker = new TypeCheckVisitor(types, constants, functionDeclarations);
+        return typeChecker.visit(term);
+    }
+    
+    public static Set<Var> freeVariables(Term term) {
+        FreeVariablesVisitor freeVarsCollector = new FreeVariablesVisitor();
+        return freeVarsCollector.visit(term);
+    }
+    
     public static Term mkTop() {
         return new Top();
     }
@@ -130,4 +144,10 @@ public abstract class Term {
     protected abstract List<Integer> innerHashNumbers();
 
     protected abstract <T> T accept(TermVisitor<T> visitor);
+    
+    // For testing only
+    @Override
+    public String toString() {
+        return new SmtExprVisitor().visit(this).toString();
+    }
 }

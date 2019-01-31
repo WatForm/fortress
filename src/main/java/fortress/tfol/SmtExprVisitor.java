@@ -4,7 +4,7 @@ import fortress.formats.smt.smtlib.*;
 import java.util.List;
 import java.util.ArrayList;
 
-class TermToSmtSexpr implements TermVisitor<SExpr> {
+class SmtExprVisitor implements TermVisitor<SExpr> {
     
     // TODO there is room for duplication removal
     

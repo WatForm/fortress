@@ -79,9 +79,10 @@ public class ModelFinderTest {
         Errors.failIf(null == modelFinder);
         Errors.failIf(null == simpleSatTheory);
         ModelFinder.Result satTheoryResult = modelFinder.findModel(simpleSatTheory, 1000);
-        assertEquals(satTheoryResult, ModelFinder.Result.SAT);
+        assertEquals(ModelFinder.Result.SAT, satTheoryResult);
          
         ModelFinder.Result unsatTheoryResult = modelFinder.findModel(simpleUnsatTheory, 1000);
-        assertEquals(unsatTheoryResult, ModelFinder.Result.UNSAT);
+        assertEquals(ModelFinder.Result.UNSAT, unsatTheoryResult);
     }
+    
 }

@@ -32,8 +32,10 @@ public class Z3CommandLine implements SolverStrategy {
             ModelFinder.Result result;
             if (firstLine.equals("sat")) {
                 result = ModelFinder.Result.SAT;
-            } else {
+            } else if (firstLine.equals("unsat")){
                 result = ModelFinder.Result.UNSAT;
+            } else {
+                result = ModelFinder.Result.ERROR;
             }
             process.waitFor();
             process.destroy();
@@ -119,7 +121,7 @@ public class Z3CommandLine implements SolverStrategy {
     }
     
     private static List<SExpr> generateAssertions(Theory theory) {
-        TermToSmtSexpr toSmtExpr = new TermToSmtSexpr();
+        SmtExprVisitor toSmtExpr = new SmtExprVisitor();
         return theory.getAxioms().stream().map(
             axiom ->
                 new ComExpr(
