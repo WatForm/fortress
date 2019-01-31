@@ -35,7 +35,7 @@ public class FuncDecl {
         this.resultType = resultType;
     }
     
-    public int arity() {
+    public int getArity() {
         return argTypes.size();
     }
     
