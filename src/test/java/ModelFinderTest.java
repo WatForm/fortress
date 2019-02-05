@@ -29,12 +29,12 @@ public class ModelFinderTest {
         simpleSatTheory = new Theory();
         simpleUnsatTheory = new Theory();
         
-        p = Term.mkVar("p", Type.Bool);
+        p = Term.mkVar("p");
         
-        simpleSatTheory.addConstant(p);
+        simpleSatTheory.addConstant(p.of(Type.Bool));
         simpleSatTheory.addAxiom(mkAnd(p, p));
         
-        simpleUnsatTheory.addConstant(p);
+        simpleUnsatTheory.addConstant(p.of(Type.Bool));
         simpleUnsatTheory.addAxiom(mkAnd(p, mkNot(p)));
         
         modelFinder = new ModelFinder(

@@ -11,33 +11,45 @@ public class Theories {
     // Should be satisfiable only for infinite domains, or empty domains
     // public static Theory lessThanInfinite = makeLessThanInfinite();
     
-    static Type groupType = Type.mkTypeConst("G");
-    static Var identityElem = Term.mkVar("e", groupType);
-    static FuncDecl groupOp = FuncDecl.mkFuncDecl("f", groupType, groupType, groupType);
     
-    public static Theory makeGroupTheory() {
+    
+    
+    
+    
+    // Group theory axioms
+    
+    static Type G = Type.mkTypeConst("G"); // group type
+    static Var e = Term.mkVar("e"); // identity element
+    static FuncDecl f = FuncDecl.mkFuncDecl("f", G, G, G); // group operation
+    
+    public static Theory groupTheory = constructGroupTheory();
+    public static Theory nonAbelianGroupTheory = constructNonAbelianGroupTheory();
+    
+    private static Theory constructGroupTheory() {
         Theory groupTheory = new Theory();
         
-        groupTheory.addType(groupType);
-        groupTheory.addConstant(identityElem);
-        groupTheory.addFunctionSymbol(groupOp);
+        groupTheory.addType(G);
+        groupTheory.addConstant(e.of(G));
+        groupTheory.addFunctionDeclaration(f);
         
-        Var x = Term.mkVar("x", groupType);
-        Var y = Term.mkVar("y", groupType);
-        Var z = Term.mkVar("z", groupType);
+        Var x = Term.mkVar("x");
+        Var y = Term.mkVar("y");
+        Var z = Term.mkVar("z");
         
-        Term associativeAxiom = Term.mkForall(List.of(x, y, z),
+        Term associativeAxiom = Term.mkForall(List.of(x.of(G), y.of(G), z.of(G)),
             Term.mkEq(
-                Term.mkApp(groupOp, Term.mkApp(groupOp, x, y), z),
-                Term.mkApp(groupOp, x, Term.mkApp(groupOp, y, z))));
-        Term identityAxiom = Term.mkForall(x,
+                Term.mkApp("f", Term.mkApp("f", x, y), z),
+                Term.mkApp("f", x, Term.mkApp("f", y, z))));
+        
+        Term identityAxiom = Term.mkForall(x.of(G),
             Term.mkAnd(
-                Term.mkEq(Term.mkApp(groupOp, x, identityElem), x),
-                Term.mkEq(Term.mkApp(groupOp, identityElem, x), x)));
-        Term inverseAxiom = Term.mkForall(x, Term.mkExists(y, 
+                Term.mkEq(Term.mkApp("f", x, e), x),
+                Term.mkEq(Term.mkApp("f", e, x), x)));
+        
+        Term inverseAxiom = Term.mkForall(x.of(G), Term.mkExists(y.of(G), 
             Term.mkAnd(
-                Term.mkEq(Term.mkApp(groupOp, x, y), identityElem),
-                Term.mkEq(Term.mkApp(groupOp, y, x), identityElem))));
+                Term.mkEq(Term.mkApp("f", x, y), e),
+                Term.mkEq(Term.mkApp("f", y, x), e))));
                 
         groupTheory.addAxiom(associativeAxiom);
         groupTheory.addAxiom(identityAxiom);
@@ -46,16 +58,13 @@ public class Theories {
         return groupTheory;
     }
     
-    public static Theory makeNonAbelianGroupTheory() {
-        Theory theory = makeGroupTheory();
-        
-        Var x = Term.mkVar("x", groupType);
-        Var y = Term.mkVar("y", groupType);
-        Term abelianAssertion = Term.mkForall(List.of(x, y),
+    public static Theory constructNonAbelianGroupTheory() {
+        Var x = Term.mkVar("x");
+        Var y = Term.mkVar("y");
+        Term abelianAssertion = Term.mkForall(List.of(x.of(G), y.of(G)),
             Term.mkEq(
-                Term.mkApp(groupOp, x, y),
-                Term.mkApp(groupOp, y, x)));
-        theory.addAxiom(Term.mkNot(abelianAssertion));
-        return theory;
+                Term.mkApp("f", x, y),
+                Term.mkApp("f", y, x)));
+        return groupTheory.withAxiom(Term.mkNot(abelianAssertion));
     }
 }

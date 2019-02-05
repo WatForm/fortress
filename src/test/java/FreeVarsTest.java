@@ -20,17 +20,15 @@ public class FreeVarsTest {
     
     Type A = Type.mkTypeConst("A");
     Type B = Type.mkTypeConst("B");
-    FuncDecl p = FuncDecl.mkFuncDecl("p", A, Type.Bool);
-    FuncDecl q = FuncDecl.mkFuncDecl("q", B, Type. Bool);
-    Var x = Term.mkVar("x", A);
-    Var y = Term.mkVar("y", B);
-    Var z = Term.mkVar("z", Type.Bool);
+    Var x = Term.mkVar("x");
+    Var y = Term.mkVar("y");
+    Var z = Term.mkVar("z");
     Term t = Term.mkAnd(
-        Term.mkApp(p, x),
+        Term.mkApp("p", x),
         Term.mkNot(
             Term.mkIff(
-                Term.mkApp(q, y),
-                Term.mkApp(p, x)
+                Term.mkApp("q", y),
+                Term.mkApp("p", x)
             )
         )
     );
@@ -42,7 +40,7 @@ public class FreeVarsTest {
     
     @Test
     public void quantifiedTerm() {
-        Term t2 = Term.mkForall(List.of(x, y), Term.mkImp(t, z));
+        Term t2 = Term.mkForall(List.of(x.of(A), y.of(B)), Term.mkImp(t, z));
         assertEquals(Set.of(z), Term.freeVariables(t2));
     }
 }

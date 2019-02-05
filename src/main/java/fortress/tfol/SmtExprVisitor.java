@@ -89,10 +89,10 @@ class SmtExprVisitor implements TermVisitor<SExpr> {
     }
     
     @Override
-    public SExpr visitApp(App term) {
+    public SExpr visitApp(App app) {
         List<SExpr> expressions = new ArrayList<>();
-        expressions.add(new StrExpr(term.getFuncDecl().getName()));
-        for(Term arg : term.getArguments()) {
+        expressions.add(new StrExpr(app.getFunctionName()));
+        for(Term arg : app.getArguments()) {
             expressions.add(visit(arg));
         }
         return new ComExpr(expressions);
@@ -101,7 +101,7 @@ class SmtExprVisitor implements TermVisitor<SExpr> {
     @Override
     public SExpr visitExists(Exists term) {
         List<SExpr> variableExpressions = new ArrayList<>();
-        for(Var v : term.getVars()) {
+        for(AnnotatedVar v : term.getVars()) {
             variableExpressions.add(
                 new ComExpr(
                     new StrExpr(v.getName()),
@@ -119,7 +119,7 @@ class SmtExprVisitor implements TermVisitor<SExpr> {
     @Override
     public SExpr visitForall(Forall term) {
         List<SExpr> variableExpressions = new ArrayList<>();
-        for(Var v : term.getVars()) {
+        for(AnnotatedVar v : term.getVars()) {
             variableExpressions.add(
                 new ComExpr(
                     new StrExpr(v.getName()),

@@ -2,9 +2,11 @@ package fortress.tfol;
 
 import fortress.util.Timer;
 import fortress.util.Errors;
+import java.util.List;
+import java.util.ArrayList;
 
 public class ModelFinder {
-    private TheoryTransformer theoryTransformer;
+    private List<TheoryTransformer> theoryTransformers;
     private SolverStrategy solverStrategy;
     private Timer transformationTimer;
     private Timer solverTimer;
@@ -14,7 +16,15 @@ public class ModelFinder {
     }
     
     public ModelFinder(TheoryTransformer theoryTransformer, SolverStrategy solverStrategy) {
-        this.theoryTransformer = theoryTransformer;
+        this.theoryTransformers = new ArrayList<>();
+        this.theoryTransformers.add(theoryTransformer);
+        this.solverStrategy = solverStrategy;
+        this.transformationTimer = new Timer();
+        this.solverTimer = new Timer();
+    }
+    
+    public ModelFinder(List<TheoryTransformer> theoryTransformers, SolverStrategy solverStrategy) {
+        this.theoryTransformers = theoryTransformers;
         this.solverStrategy = solverStrategy;
         this.transformationTimer = new Timer();
         this.solverTimer = new Timer();
@@ -25,7 +35,9 @@ public class ModelFinder {
         // TODO verify theory has no free variables that are not constants 
         
         transformationTimer.set();
-        theoryTransformer.transformTheory(theory);
+        for(TheoryTransformer theoryTransformer : theoryTransformers) {
+            theory = theoryTransformer.transform(theory);
+        }
         transformationTimer.stop();
         
         solverTimer.set();

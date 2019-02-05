@@ -9,8 +9,8 @@ import fortress.tfol.*;
 import java.util.List;
 import java.util.ArrayList;
 import java.io.IOException;
-import java.util.Set;
-import java.util.HashSet;
+import cyclops.data.ImmutableSet;
+import cyclops.data.HashSet;
 
 public class TptpParserTest {
     
@@ -41,7 +41,7 @@ public class TptpParserTest {
     + "   )).";
 
     @Test
-    // @Ignore ("Test not implemented; need to double check")
+    // TODO need to test function declarations, etc are as expected
     public void abelian() throws IOException {
         ANTLRInputStream input = new ANTLRInputStream(abelianInput);
         FOFTPTPLexer lexer = new FOFTPTPLexer(input);
@@ -53,39 +53,31 @@ public class TptpParserTest {
         Theory theory = converter.getTheory();
         
         Type universeType = converter.getUniverseType();
-        Var A = Term.mkVar("A", universeType);
-        Var B = Term.mkVar("B", universeType);
-        Var C = Term.mkVar("C", universeType);
-        Var e = Term.mkVar("e", universeType);
+        Var A = Term.mkVar("A");
+        Var B = Term.mkVar("B");
+        Var C = Term.mkVar("C");
+        Var e = Term.mkVar("e");
         FuncDecl f = FuncDecl.mkFuncDecl("f", universeType, universeType, universeType);
         
-        List<Var> assocVars = new ArrayList<>();
-        assocVars.add(A);
-        assocVars.add(B);
-        assocVars.add(C);
-        Term associative = Term.mkForall(assocVars,
+        Term associative = Term.mkForall(List.of(A.of(universeType), B.of(universeType), C.of(universeType)),
             Term.mkEq(
-                Term.mkApp(f, Term.mkApp(f, A, B), C),
-                Term.mkApp(f, A, Term.mkApp(f, B, C))));
-        Term identity = Term.mkForall(A,
-            Term.mkAnd(
-                Term.mkEq(Term.mkApp(f, A, e), A),
-                Term.mkEq(Term.mkApp(f, e, A), A)));
-        Term inverse = Term.mkForall(A, Term.mkExists(B, 
-            Term.mkAnd(
-                Term.mkEq(Term.mkApp(f, A, B), e),
-                Term.mkEq(Term.mkApp(f, B, A), e))));
-        List<Var> notAbelianVars = new ArrayList<>();
-        notAbelianVars.add(A);
-        notAbelianVars.add(B);
-        Term notAbelian = Term.mkNot(Term.mkForall(notAbelianVars,
-            Term.mkEq(Term.mkApp(f, A, B), Term.mkApp(f, B, A))));
+                Term.mkApp("f", Term.mkApp("f", A, B), C),
+                Term.mkApp("f", A, Term.mkApp("f", B, C))));
         
-        Set<Term> expectedTerms = new HashSet<>();
-        expectedTerms.add(associative);
-        expectedTerms.add(identity);
-        expectedTerms.add(inverse);
-        expectedTerms.add(notAbelian);
+        Term identity = Term.mkForall(A.of(universeType),
+            Term.mkAnd(
+                Term.mkEq(Term.mkApp("f", A, e), A),
+                Term.mkEq(Term.mkApp("f", e, A), A)));
+        
+        Term inverse = Term.mkForall(A.of(universeType), Term.mkExists(B.of(universeType), 
+            Term.mkAnd(
+                Term.mkEq(Term.mkApp("f", A, B), e),
+                Term.mkEq(Term.mkApp("f", B, A), e))));
+        
+        Term notAbelian = Term.mkNot(Term.mkForall(List.of(A.of(universeType), B.of(universeType)),
+            Term.mkEq(Term.mkApp("f", A, B), Term.mkApp("f", B, A))));
+        
+        ImmutableSet<Term> expectedTerms = HashSet.of(associative, identity, inverse, notAbelian);
         assertEquals(expectedTerms, theory.getAxioms());
     }
 }

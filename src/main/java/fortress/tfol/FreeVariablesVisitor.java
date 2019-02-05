@@ -74,7 +74,7 @@ class FreeVariablesVisitor implements TermVisitor<Set<Var>> {
     
     private Set<Var> visitQuantifier(Quantifier term) {
         Set<Var> bodyFreeVars = visit(term.getBody());
-        bodyFreeVars.removeAll(term.getVars());
+        bodyFreeVars.removeAll(term.getVars().stream().map(av -> av.getVar()).collect(Collectors.toList()));
         return bodyFreeVars;
     }
     

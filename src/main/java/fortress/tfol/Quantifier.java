@@ -5,16 +5,16 @@ import java.util.ArrayList;
 import fortress.util.Errors;
 
 abstract class Quantifier extends Term {
-    protected List<Var> vars;
+    protected List<AnnotatedVar> vars;
     protected Term body;
     
-    protected Quantifier(List<Var> vars, Term body) {
+    protected Quantifier(List<AnnotatedVar> vars, Term body) {
         Errors.failIf(vars.size() < 1);
         this.vars = vars;
         this.body = body;
     }
     
-    protected List<Var> getVars() {
+    protected List<AnnotatedVar> getVars() {
         return vars;
     }
     

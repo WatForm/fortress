@@ -3,7 +3,7 @@ package fortress.tfol;
 import java.util.List;
 
 class Exists extends Quantifier {
-    protected Exists(List<Var> vars, Term body) {
+    protected Exists(List<AnnotatedVar> vars, Term body) {
         super(vars, body);
     }
     

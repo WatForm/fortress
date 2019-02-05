@@ -6,16 +6,16 @@ import fortress.util.Errors;
 
 //Function application f(x_1, ..., x_n)
 class App extends Term {
-    private FuncDecl function;
+    private String functionName;
     private List<Term> arguments;
 
-    protected App(FuncDecl function, List<Term> arguments) {
-        this.function = function;
+    protected App(String functionName, List<Term> arguments) {
+        this.functionName = functionName;
         this.arguments = arguments;
     }
     
-    protected FuncDecl getFuncDecl() {
-        return function;
+    protected String getFunctionName() {
+        return functionName;
     }
     
     protected List<Term> getArguments() {
@@ -25,14 +25,14 @@ class App extends Term {
     @Override
     protected boolean innerEquals(Object other) {
         Errors.failIf(this.getClass() != other.getClass());
-        return this.function.equals( ((App)other).function )
+        return this.functionName.equals( ((App)other).functionName )
             && this.arguments.equals( ((App)other).arguments );
     }
     
     @Override
     protected List<Integer> innerHashNumbers() {
         List<Integer> numbers = new ArrayList<>();
-        numbers.add(function.hashCode());
+        numbers.add(functionName.hashCode());
         numbers.add(arguments.hashCode());
         return numbers;
     }

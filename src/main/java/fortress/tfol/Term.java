@@ -11,7 +11,7 @@ public abstract class Term {
     // Term subclasses are not published
     
     public static Optional<Type> typeCheck(Term term, Set<Type> types,
-        Set<Var> constants, Set<FuncDecl> functionDeclarations) {
+        Set<AnnotatedVar> constants, Set<FuncDecl> functionDeclarations) {
         TypeCheckVisitor typeChecker = new TypeCheckVisitor(types, constants, functionDeclarations);
         return typeChecker.visit(term);
     }
@@ -29,9 +29,13 @@ public abstract class Term {
         return new Bottom();
     }
     
-    public static Var mkVar(String name, Type type) {
-        return new Var(name, type);
+    public static Var mkVar(String name) {
+        return new Var(name);
     }
+    
+    // NOTE: There is no mkAnnotatedVar because we do not want people to think
+    // that AnnotatedVar is a Term
+    // To create an annotated var, use Term.mkVar("x").of(type)
     
     public static Term mkAnd(List<Term> arguments) {
         return new AndList(arguments);
@@ -69,31 +73,31 @@ public abstract class Term {
         return new Eq(t1, t2);
     }
     
-    public static Term mkApp(FuncDecl f, List<Term> arguments) {
-        return new App(f, arguments);
+    public static Term mkApp(String functionName, List<Term> arguments) {
+        return new App(functionName, arguments);
     }
-    public static Term mkApp(FuncDecl f, Term... arguments) {
+    public static Term mkApp(String functionName, Term... arguments) {
         List<Term> args = new ArrayList<>();
         for(Term arg : arguments) {
             args.add(arg);
         }
-        return mkApp(f, args);
+        return mkApp(functionName, args);
     }
     
-    public static Term mkForall(List<Var> vars, Term body) {
+    public static Term mkForall(List<AnnotatedVar> vars, Term body) {
         return new Forall(vars, body);
     }
-    public static Term mkForall(Var x, Term body) {
-        List<Var> vars = new ArrayList<>();
+    public static Term mkForall(AnnotatedVar x, Term body) {
+        List<AnnotatedVar> vars = new ArrayList<>();
         vars.add(x);
         return mkForall(vars, body);
     }
     
-    public static Term mkExists(List<Var> vars, Term body) {
+    public static Term mkExists(List<AnnotatedVar> vars, Term body) {
         return new Exists(vars, body);
     }
-    public static Term mkExists(Var x, Term body) {
-        List<Var> vars = new ArrayList<>();
+    public static Term mkExists(AnnotatedVar x, Term body) {
+        List<AnnotatedVar> vars = new ArrayList<>();
         vars.add(x);
         return mkExists(vars, body);
     }

@@ -51,10 +51,10 @@ public class TptpToFortress extends FOFTPTPBaseVisitor {
 
     @Override
     public Object visitForall(FOFTPTPParser.ForallContext ctx) {
-        List<Var> variables = new ArrayList<>();
+        List<AnnotatedVar> variables = new ArrayList<>();
         for(TerminalNode variableNode: ctx.ID()) {
             String name = variableNode.getText();
-            variables.add(Term.mkVar(name, universeType));
+            variables.add(Term.mkVar(name).of(universeType));
         }
         Term body = (Term) visit(ctx.fof_formula());
         return Term.mkForall(variables, body);
@@ -62,10 +62,10 @@ public class TptpToFortress extends FOFTPTPBaseVisitor {
 
     @Override
     public Object visitExists(FOFTPTPParser.ExistsContext ctx) {
-        List<Var> variables = new ArrayList<>();
+        List<AnnotatedVar> variables = new ArrayList<>();
         for (TerminalNode variableNode: ctx.ID()) {
             String name = variableNode.getText();
-            variables.add(Term.mkVar(name, universeType));
+            variables.add(Term.mkVar(name).of(universeType));
         }
         Term body = (Term) visit(ctx.fof_formula());
         return Term.mkExists(variables, body);
@@ -115,24 +115,24 @@ public class TptpToFortress extends FOFTPTPBaseVisitor {
 
     @Override
     public Object visitProp(FOFTPTPParser.PropContext ctx) {
+        // TODO need to remember this is a bool
         String name = ctx.ID().getText();
-        return Term.mkVar(name, Type.Bool);
+        return Term.mkVar(name);
     }
 
     @Override
     public Object visitPred(FOFTPTPParser.PredContext ctx) {
+        // TODO need to remember types
         String name = ctx.ID().getText();
         int numArgs = ctx.term().size();
-        
-        List<Type> argTypes = new ArrayList<>();
+
         List<Term> arguments = new ArrayList();
         for(int i = 0; i < numArgs; i++) {
-            argTypes.add(universeType);
             Term ti = (Term) visit(ctx.term(i));
             arguments.add(ti);
         }
-        FuncDecl p = FuncDecl.mkFuncDecl(name, argTypes, Type.Bool);
-        return Term.mkApp(p, arguments);
+        
+        return Term.mkApp(name, arguments);
     }
 
     @Override
@@ -143,22 +143,21 @@ public class TptpToFortress extends FOFTPTPBaseVisitor {
     @Override
     public Object visitConVar(FOFTPTPParser.ConVarContext ctx) {
         String name = ctx.ID().getText();
-        return Term.mkVar(name, universeType);
+        return Term.mkVar(name);
     }
 
     @Override
     public Object visitApply(FOFTPTPParser.ApplyContext ctx) {
+        // TODO need to remember types
         String name = ctx.ID().getText();
         int numArgs = ctx.term().size();
         
-        List<Type> argTypes = new ArrayList<>();
         List<Term> arguments = new ArrayList<>();
         for(int i = 0; i < numArgs; i++) {
-            argTypes.add(universeType);
             Term ti = (Term) visit(ctx.term(i));
             arguments.add(ti);
         }
-        FuncDecl f = FuncDecl.mkFuncDecl(name, argTypes, universeType);
-        return Term.mkApp(f, arguments);
+        
+        return Term.mkApp(name, arguments);
     }
 }

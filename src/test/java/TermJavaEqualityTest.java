@@ -22,19 +22,16 @@ public class TermJavaEqualityTest {
     // thoroughly but the implementation is straighforward
 
     Type A = mkTypeConst("A");
-    Var a1 = mkVar("a1", A);
-    Var a2 = mkVar("a2", A);
-    Var a3 = mkVar("a3", A);
-    Var x = mkVar("x", A);
-    Var y = mkVar("y", A);
-    Var z = mkVar("z", A);
+    Var a1 = mkVar("a1");
+    Var a2 = mkVar("a2");
+    Var a3 = mkVar("a3");
+    Var x = mkVar("x");
+    Var y = mkVar("y");
+    Var z = mkVar("z");
     
-    Term p = mkVar("p", Bool);
-    Term q = mkVar("q", Bool);
-    Term r = mkVar("r", Bool);
-    
-    FuncDecl P = mkFuncDecl("P", A, Bool);
-    FuncDecl Q = mkFuncDecl("Q", A, Bool);
+    Term p = mkVar("p");
+    Term q = mkVar("q");
+    Term r = mkVar("r");
     
     @Test
     public void FuncDeclaration() {
@@ -91,29 +88,31 @@ public class TermJavaEqualityTest {
     public void App() {
         List<Term> a1List = new ArrayList<>();
         a1List.add(a1);
-        assertEquals(mkApp(P, a1), mkApp(P, a1List));
-        assertNotEquals(mkApp(P, a1), mkApp(P, a2));
-        assertNotEquals(mkApp(P, a1), mkApp(Q, a1));
+        assertEquals(mkApp("P", a1), mkApp("P", a1List));
+        assertNotEquals(mkApp("P", a1), mkApp("P", a2));
+        assertNotEquals(mkApp("P", a1), mkApp("Q", a1));
     }
     
     @Test
     public void Forall() {
-        List<Var> xList = new ArrayList<>();
-        xList.add(x);
-        assertEquals(mkForall(x, mkApp(P, x)), mkForall(xList, mkApp(P, x)));
-        assertNotEquals(mkForall(x, mkApp(P, x)), mkForall(y, mkApp(P, x)));
-        assertNotEquals(mkForall(x, mkApp(P, x)), mkForall(x, mkApp(Q, x)));
-        assertNotEquals(mkForall(x, mkApp(P, x)), mkForall(y, mkApp(P, y)));
+        List<AnnotatedVar> xList = new ArrayList<>();
+        xList.add(x.of(A));
+        assertEquals(mkForall(x.of(A), mkApp("P", x)), mkForall(xList, mkApp("P", x)));
+        assertNotEquals(mkForall(x.of(A), mkApp("P", x)), mkForall(y.of(A), mkApp("P", x)));
+        assertNotEquals(mkForall(x.of(A), mkApp("P", x)), mkForall(x.of(A), mkApp("Q", x)));
+        assertNotEquals(mkForall(x.of(A), mkApp("P", x)), mkForall(y.of(A), mkApp("P", y)));
+        assertNotEquals(mkForall(x.of(Bool), mkApp("P", x)), mkForall(x.of(A), mkApp("P", x)));
     }
     
     @Test
     public void Exists() {
-        List<Var> xList = new ArrayList<>();
-        xList.add(x);
-        assertEquals(mkExists(x, mkApp(P, x)), mkExists(xList, mkApp(P, x)));
-        assertNotEquals(mkExists(x, mkApp(P, x)), mkExists(y, mkApp(P, x)));
-        assertNotEquals(mkExists(x, mkApp(P, x)), mkExists(x, mkApp(Q, x)));
-        assertNotEquals(mkExists(x, mkApp(P, x)), mkExists(y, mkApp(P, y)));
+        List<AnnotatedVar> xList = new ArrayList<>();
+        xList.add(x.of(A));
+        assertEquals(mkExists(x.of(A), mkApp("P", x)), mkExists(xList, mkApp("P", x)));
+        assertNotEquals(mkExists(x.of(A), mkApp("P", x)), mkExists(y.of(A), mkApp("P", x)));
+        assertNotEquals(mkExists(x.of(A), mkApp("P", x)), mkExists(x.of(A), mkApp("Q", x)));
+        assertNotEquals(mkExists(x.of(A), mkApp("P", x)), mkExists(y.of(A), mkApp("P", y)));
+        assertNotEquals(mkExists(x.of(Bool), mkApp("P", x)), mkExists(x.of(A), mkApp("P", x)));
     }
     
     @Test

@@ -1,5 +1,7 @@
 package fortress.tfol;
 
 interface TheoryTransformer {
-    public void transformTheory(Theory theory);
+    // Takes in a theory and returns a new theory
+    // Guaranteed to not mutate the given theory object
+    public Theory transform(Theory theory);
 }

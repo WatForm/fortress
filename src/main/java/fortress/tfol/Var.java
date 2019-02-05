@@ -6,35 +6,36 @@ import fortress.util.Errors;
 
 public class Var extends Term {
     private String name;
-    private Type type;
     
-    protected Var(String name, Type type) {
+    protected Var(String name) {
         Errors.failIf(name.length() < 1);
         this.name = name;
-        this.type = type;
     }
     
     protected String getName() {
         return name;
     }
     
-    protected Type getType() {
-        return type;
+    public AnnotatedVar annotate(Type term) {
+        return new AnnotatedVar(this, term);
+    }
+    
+    // Shorthand for annotate(Type term)
+    public AnnotatedVar of(Type type) {
+        return annotate(type);
     }
     
     @Override
     protected boolean innerEquals(Object other) {
        Errors.failIf(this.getClass() != other.getClass());
        Var o = (Var) other;
-       return this.name.equals(o.name)
-           && this.type.equals(o.type);
+       return this.name.equals(o.name);
     }
     
     @Override
     protected List<Integer> innerHashNumbers() {
         List<Integer> numbers = new ArrayList<>();
         numbers.add(name.hashCode());
-        numbers.add(type.hashCode());
         return numbers;
     }
     

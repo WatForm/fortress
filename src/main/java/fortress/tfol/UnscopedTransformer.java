@@ -6,7 +6,7 @@ public class UnscopedTransformer implements TheoryTransformer {
     }
     
     @Override
-    public void transformTheory(Theory theory) {
-        // Empty, do nothing
+    public Theory transform(Theory theory) {
+        return theory;
     }
 }

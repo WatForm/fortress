@@ -15,13 +15,13 @@ import java.util.stream.Collectors;
 class TypeCheckVisitor implements TermVisitor<Optional<Type>> {
     
     Set<Type> types;
-    Set<Var> constants;
+    Set<AnnotatedVar> constants;
     Set<FuncDecl> functionDeclarations;
-    LinkedList<Var> context;
+    LinkedList<AnnotatedVar> context;
     
     // Free variables are allowed but it checks they are consistently typed
     // and do not clash with function declarations etc
-    public TypeCheckVisitor(Set<Type> types, Set<Var> constants, Set<FuncDecl> functionDeclarations) {
+    public TypeCheckVisitor(Set<Type> types, Set<AnnotatedVar> constants, Set<FuncDecl> functionDeclarations) {
         this.types = types;
         this.constants = constants;
         this.functionDeclarations = functionDeclarations;
@@ -50,23 +50,19 @@ class TypeCheckVisitor implements TermVisitor<Optional<Type>> {
         // Check if it is in the Context
         // Note that the context is used as a stack, so we just need to iterate
         // from front to back and not have to worry about shadowed variables.
-        // e.g. in (forall v: A, forall v : B, p(v : A)), the context will look like
-        // List[v: B, v: A], and the term will fail to typecheck
-        for(Var v : context) {
+        // e.g. in (forall v: A, forall v : B, p(v)), the context will look like
+        // List[v: B, v: A], and the term will fail to typecheck if p : A -> Bool
+        for(AnnotatedVar v : context) {
             if(v.getName().equals(variable.getName())) {
-                // Check type mapping is the same as variable is annotated
-                if(v.getType().equals(variable.getType())) {
-                    return Optional.of(variable.getType());
-                } else {
-                    return Optional.empty();
-                }
+                return Optional.of(v.getType());
             }
         }
-        // Check if is in the declared Constants
-        if(constants.contains(variable)) {
-            return Optional.of(variable.getType());
-        }
-        return Optional.empty();
+        
+        // Finally check if is in the declared Constants
+        return constants.stream()
+            .filter(c -> c.getVar().equals(variable))
+            .findFirst()
+            .map(c -> c.getType());
     }
     
     @Override
@@ -137,37 +133,38 @@ class TypeCheckVisitor implements TermVisitor<Optional<Type>> {
         }
     }
     
-    @Override
-    public Optional<Type> visitApp(App app) {
-        FuncDecl funcDecl = app.getFuncDecl();
-        List<Term> arguments = app.getArguments();
-        
-        // Check function declaration is in allowed function declarations
-        if(!functionDeclarations.contains(funcDecl)) {
-            return Optional.empty();
-        }
-        
-        // Check argument types match function declaration
+    private boolean functionTypeMatches(FuncDecl funcDecl, List<Term> arguments) {
         List<Optional<Type>> expected = funcDecl.getArgTypes().stream().map(
             type -> Optional.of(type)
         ).collect(Collectors.toList());
+        
         List<Optional<Type>> actual = arguments.stream().map(
             term -> visit(term)
         ).collect(Collectors.toList());
-        if(expected.equals(actual)) {
-            return Optional.of(funcDecl.getResultType());
-        } else {
-            return Optional.empty();
-        }
+        
+        return expected.equals(actual);
+    }
+    
+    @Override
+    public Optional<Type> visitApp(App app) {
+        String funcName = app.getFunctionName();
+        List<Term> arguments = app.getArguments();
+        
+        return functionDeclarations.stream()
+            .filter(fdecl -> fdecl.getName().equals(funcName)) // Check function symbol is in declared functions
+            .findFirst()
+            .filter(fdecl -> functionTypeMatches(fdecl, arguments)) // Check argument types match function declaration
+            .map(fdecl -> fdecl.getResultType()); // If all true, its type is the declaration's result type
     }
     
     Optional<Type> visitQuantifier(Quantifier term) {
-        List<Var> variables = term.getVars();
+        List<AnnotatedVar> variables = term.getVars();
+        
         // Must put variables on context stack in this order
         // e.g. (forall v: A v: B, p(v)), the context should be
         // List[v: B, v: A]
-        for(Var v : variables) {
-            context.addFirst(v);
+        for(AnnotatedVar av : variables) {
+            context.addFirst(av);
         }
         
         if(typesAsBool(term.getBody())) {

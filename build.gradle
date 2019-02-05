@@ -9,6 +9,9 @@ repositories{
 
 dependencies {
     compile group: 'org.antlr', name: 'antlr4-runtime', version: '4.5.3'
+    compile group: 'com.oath.cyclops', name: 'cyclops', version: '10.1.0'
+    compile files('z3/com.microsoft.z3.jar')
+    runtime files('libz3java.dylib')
     testCompile 'junit:junit:4.12'
 }
 
@@ -46,6 +49,11 @@ tasks.withType(Pmd) {
         xml.enabled false
         html.enabled true
     }
+}
+
+tasks.withType(Test) {
+    // Allow junit test runtime to find libz3java.dylib
+    systemProperty "java.library.path", "z3/"
 }
 
 pmd {

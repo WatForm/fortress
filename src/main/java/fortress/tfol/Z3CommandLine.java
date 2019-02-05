@@ -93,7 +93,7 @@ public class Z3CommandLine implements SolverStrategy {
     
     private static List<SExpr> generateFunctionDeclarations(Theory theory) {
         List<SExpr> declarations = new ArrayList<>();
-        for(FuncDecl funcDecl: theory.getFunctionSymbols()) {
+        for(FuncDecl funcDecl: theory.getFunctionDeclarations()) {
             List<SExpr> argTypeExprs = funcDecl.getArgTypes().stream().map(
                 type -> new StrExpr(type.toString())
             ).collect(Collectors.toList());
