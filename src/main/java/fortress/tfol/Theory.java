@@ -113,6 +113,37 @@ public class Theory {
         return scopes;
     }
     
+    @Override
+    public boolean equals(Object other) {
+        if(this == other) {
+            return true;
+        }
+        if(null == other) {
+            return false;
+        }
+        if(this.getClass() != other.getClass()) {
+            return false;
+        }
+        Theory o = (Theory) other;
+        return this.axioms.equals(o.axioms)
+            && this.constants.equals(o.constants)
+            && this.functionDeclarations.equals(o.functionDeclarations)
+            && this.types.equals(o.types)
+            && this.scopes.equals(o.scopes);
+    }
+    
+    @Override
+    public int hashCode() {
+        int prime = 31;
+        int result = 1;
+        result = result * prime + axioms.hashCode();
+        result = result * prime + constants.hashCode();
+        result = result * prime + functionDeclarations.hashCode();
+        result = result * prime + types.hashCode();
+        result = result * prime + scopes.hashCode();
+        return result;
+    }
+    
     //Testing only
     @Override
     public String toString() {

@@ -13,16 +13,18 @@ import fortress.util.Errors;
 
 public class AbelianModelTest {
     
-    // @Test
-    // public void foobar() {
-    //     Z3TestDummy dummy = new Z3TestDummy();
-    // }
-    // 
-    // @Test
-    // public void foobar2() {
-    //     String[] array = {};
-    //     JavaExample.foobartest(array);
-    // }
+    // Just test z3 Java API can be properly called and used
+    
+    @Test
+    public void foobar() {
+        Z3TestDummy dummy = new Z3TestDummy();
+    }
+    
+    @Test
+    public void foobar2() {
+        String[] array = {};
+        JavaExample.foobartest(array);
+    }
     
     // @Test
     // public void foo() {
