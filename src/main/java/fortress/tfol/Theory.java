@@ -20,9 +20,8 @@ public class Theory {
         this.axioms = HashSet.empty();
         this.constants = HashSet.empty();
         this.functionDeclarations = HashSet.empty();
-        this.types = HashSet.empty();
+        this.types = HashSet.of(Type.Bool);
         this.scopes = HashMap.empty();
-        types.add(Type.Bool);
     }
     
     private Theory(ImmutableSet<Term> axioms,
@@ -33,49 +32,48 @@ public class Theory {
             this.axioms = axioms;
             this.constants = constants;
             this.functionDeclarations = functionDeclarations;
-            this.types = types;
+            this.types = types.plus(Type.Bool);
             this.scopes = scopes;
-            types.add(Type.Bool);
         }
     
     // Mutates this theory object
     public void addAxiom(Term formula) {
-        axioms = axioms.add(formula);
+        axioms = axioms.plus(formula);
     }
     // Returns a new theory object without modifying the previous
     public Theory withAxiom(Term formula) {
-        return new Theory(axioms.add(formula), constants, functionDeclarations, types, scopes);
+        return new Theory(axioms.plus(formula), constants, functionDeclarations, types, scopes);
     }
     
     // Mutates this theory object
     public void addType(Type type) {
-        types = types.add(type);
+        types = types.plus(type);
     }
     // Returns a new theory object without modifying the previous
     public Theory withType(Type type) {
-        return new Theory(axioms, constants, functionDeclarations, types.add(type), scopes);
+        return new Theory(axioms, constants, functionDeclarations, types.plus(type), scopes);
     }
-    
-    // TODO consistency checking:
-    // Should verify constants/functions are given types from type set
-    // Should verify constants/functions have unique names
     
     // Mutates this theory object
     public void addConstant(AnnotatedVar constant) {
-        constants = constants.add(constant);
+        assertConstIsConsistent(constant);
+        constants = constants.plus(constant);
     }
     // Returns a new theory object without modifying the previous
     public Theory withConstant(AnnotatedVar constant) {
-        return new Theory(axioms, constants.add(constant), functionDeclarations, types, scopes);
+        assertConstIsConsistent(constant);
+        return new Theory(axioms, constants.plus(constant), functionDeclarations, types, scopes);
     }
     
     // Mutates this theory object
     public void addFunctionDeclaration(FuncDecl f) {
-        functionDeclarations = functionDeclarations.add(f);
+        assertFuncDeclIsConsistent(f);
+        functionDeclarations = functionDeclarations.plus(f);
     }
     // Returns a new theory object without modifying the previous
     public Theory withFunctionDeclaration(FuncDecl f) {
-        return new Theory(axioms, constants, functionDeclarations.add(f), types, scopes);
+        assertFuncDeclIsConsistent(f);
+        return new Theory(axioms, constants, functionDeclarations.plus(f), types, scopes);
     }
     
     // Mutates this theory object
@@ -111,6 +109,33 @@ public class Theory {
     
     public ImmutableMap<Type, Integer> getScopes() {
         return scopes;
+    }
+    
+    private boolean consistent(AnnotatedVar const1, AnnotatedVar const2) {
+        return const1.getName() != const2.getName()
+            || const1.equals(const2);
+    }
+    
+    private boolean consistent(FuncDecl f1, FuncDecl f2) {
+        return f1.getName() != f2.getName()
+            || f1.equals(f2);
+    }
+    
+    private boolean consistent(FuncDecl f, AnnotatedVar c) {
+        return f.getName() != c.getName();
+    }
+    
+    private void assertConstIsConsistent(AnnotatedVar c) {
+        Errors.failIf(!types.contains(c.getType())); // type exists in theory
+        Errors.failIf(!constants.stream().allMatch(otherConst -> consistent(c, otherConst))); // doesn't conflict with other constants
+        Errors.failIf(!functionDeclarations.stream().allMatch(f -> consistent(f, c))); // doesn't conflict with function names
+    }
+    
+    private void assertFuncDeclIsConsistent(FuncDecl f) {
+        Errors.failIf(!f.getArgTypes().stream().allMatch(types::contains)); // arg types exist in theory
+        Errors.failIf(!types.contains(f.getResultType())); // result type exists in theory
+        Errors.failIf(!constants.stream().allMatch(c -> consistent(f, c))); // doesn't conflict with constants
+        Errors.failIf(!functionDeclarations.stream().allMatch(otherFun -> consistent(f, otherFun))); // doesn't conflict with other function declarations
     }
     
     @Override
