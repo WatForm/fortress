@@ -41,7 +41,6 @@ public class TptpParserTest {
     + "   )).";
 
     @Test
-    // TODO need to test function declarations, etc are as expected
     public void abelian() throws IOException {
         ANTLRInputStream input = new ANTLRInputStream(abelianInput);
         FOFTPTPLexer lexer = new FOFTPTPLexer(input);
