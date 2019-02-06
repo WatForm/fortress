@@ -8,7 +8,7 @@ repositories{
 }
 
 dependencies {
-    compile group: 'org.antlr', name: 'antlr4-runtime', version: '4.5.3'
+    compile group: 'org.antlr', name: 'antlr4-runtime', version: '4.7.2'
     compile group: 'com.oath.cyclops', name: 'cyclops', version: '10.1.0'
     compile files('z3/com.microsoft.z3.jar')
     runtime files('libz3java.dylib')
