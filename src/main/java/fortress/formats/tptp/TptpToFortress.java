@@ -196,7 +196,6 @@ public class TptpToFortress extends FOFTPTPBaseVisitor {
 
     @Override
     public Object visitApply(FOFTPTPParser.ApplyContext ctx) {
-        // TODO need to remember types
         String name = ctx.ID().getText();
         int numArgs = ctx.term().size();
         

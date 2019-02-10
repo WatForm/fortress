@@ -41,5 +41,7 @@ public abstract class SExpr implements Comparable<SExpr>{
 
     @Override
     public abstract int hashCode();
+    
+    public abstract <T> T accept(SExprVisitor<T> visitor);
 
 }

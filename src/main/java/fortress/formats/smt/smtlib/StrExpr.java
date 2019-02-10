@@ -75,5 +75,10 @@ public class StrExpr extends SExpr {
     public int hashCode() {
         return value.hashCode();
     }
+    
+    @Override
+    public <T> T accept(SExprVisitor<T> visitor) {
+        return visitor.visitStrExpr(this);
+    }
 
 }

@@ -126,5 +126,10 @@ public class ComExpr extends SExpr {
             result = prime * result + body[i].hashCode();
         return result;
     }
+    
+    @Override
+    public <T> T accept(SExprVisitor<T> visitor) {
+        return visitor.visitComExpr(this);
+    }
 
 }
