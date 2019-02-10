@@ -1,9 +1,11 @@
-package fortress.tfol;
+package fortress.modelfind;
 
 import fortress.util.Timer;
 import fortress.util.Errors;
 import java.util.List;
 import java.util.ArrayList;
+
+import fortress.tfol.*;
 
 public class ModelFinder {
     private List<TheoryTransformer> theoryTransformers;

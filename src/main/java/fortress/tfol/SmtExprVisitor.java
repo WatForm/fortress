@@ -4,7 +4,7 @@ import fortress.sexpr.SExpr;
 import java.util.List;
 import java.util.ArrayList;
 
-class SmtExprVisitor implements TermVisitor<SExpr> {
+public class SmtExprVisitor implements TermVisitor<SExpr> {
     
     // TODO there is room for duplication removal
     

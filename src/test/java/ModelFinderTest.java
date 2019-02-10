@@ -6,6 +6,7 @@ import org.junit.BeforeClass;
 import org.junit.Ignore;
 
 import fortress.tfol.*;
+import fortress.modelfind.*;
 import static fortress.tfol.Term.*;
 import static fortress.tfol.Type.*;
 import static fortress.tfol.FuncDecl.*;

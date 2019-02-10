@@ -1,9 +1,11 @@
-package fortress.tfol;
+package fortress.modelfind;
 
 import java.util.stream.Collectors;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Map;
+
+import fortress.tfol.*;
 
 public abstract class RangeFormulaTransformer implements TheoryTransformer {
     public void NaiveScopeTransformer() {

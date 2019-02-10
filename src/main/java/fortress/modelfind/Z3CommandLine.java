@@ -1,4 +1,4 @@
-package fortress.tfol;
+package fortress.modelfind;
 
 import java.util.List;
 import java.util.ArrayList;
@@ -8,6 +8,7 @@ import fortress.sexpr.SExpr;
 import java.util.stream.Collectors;
 import java.io.*;
 import fortress.util.Errors;
+import fortress.tfol.*;
 
 public class Z3CommandLine implements SolverStrategy {
     public Z3CommandLine() {

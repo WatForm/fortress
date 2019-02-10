@@ -6,6 +6,7 @@ import org.junit.BeforeClass;
 import org.junit.Ignore;
 
 import fortress.tfol.*;
+import fortress.modelfind.*;
 import java.util.List;
 import java.util.ArrayList;
 import java.io.*;

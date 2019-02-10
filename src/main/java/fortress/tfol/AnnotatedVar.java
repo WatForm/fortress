@@ -10,7 +10,7 @@ public class AnnotatedVar {
         this.type = type;
     }
     
-    protected Type getType() {
+    public Type getType() {
         return type;
     }
     
@@ -18,7 +18,7 @@ public class AnnotatedVar {
         return variable;
     }
     
-    protected String getName() {
+    public String getName() {
         return variable.getName();
     }
     

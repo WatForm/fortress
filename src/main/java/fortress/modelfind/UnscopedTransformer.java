@@ -1,4 +1,6 @@
-package fortress.tfol;
+package fortress.modelfind;
+
+import fortress.tfol.*;
 
 public class UnscopedTransformer implements TheoryTransformer {
     public void UnscopedTransformer() {

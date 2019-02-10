@@ -7,6 +7,8 @@ import cyclops.data.ImmutableMap;
 import cyclops.data.HashSet;
 import cyclops.data.HashMap;
 
+import fortress.modelfind.*;
+
 public class Theory {
     private ImmutableSet<Term> axioms;
     private ImmutableSet<AnnotatedVar> constants;
