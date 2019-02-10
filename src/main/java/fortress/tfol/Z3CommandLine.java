@@ -4,7 +4,7 @@ import java.util.List;
 import java.util.ArrayList;
 import java.util.Set;
 import java.util.HashSet;
-import fortress.sexpr.*;
+import fortress.sexpr.SExpr;
 import java.util.stream.Collectors;
 import java.io.*;
 import fortress.util.Errors;
@@ -83,9 +83,9 @@ public class Z3CommandLine implements SolverStrategy {
             type -> !sortsDoNotDeclare.contains(type)
         ).map(
             type ->
-                new ComExpr(
-                    new StrExpr("declare-sort"),
-                    new StrExpr(type.toString())
+                SExpr.mkList(
+                    SExpr.mkAtom("declare-sort"),
+                    SExpr.mkAtom(type.toString())
                 )
         ).collect(Collectors.toList());
     }
@@ -95,14 +95,14 @@ public class Z3CommandLine implements SolverStrategy {
         List<SExpr> declarations = new ArrayList<>();
         for(FuncDecl funcDecl: theory.getFunctionDeclarations()) {
             List<SExpr> argTypeExprs = funcDecl.getArgTypes().stream().map(
-                type -> new StrExpr(type.toString())
+                type -> SExpr.mkAtom(type.toString())
             ).collect(Collectors.toList());
             declarations.add(
-                new ComExpr(
-                    new StrExpr("declare-fun"), // Declare as function
-                    new StrExpr(funcDecl.getName()), // Function name
-                    new ComExpr(argTypeExprs), // Argument types
-                    new StrExpr(funcDecl.getResultType().toString()) // Result type
+                SExpr.mkList(
+                    SExpr.mkAtom("declare-fun"), // Declare as function
+                    SExpr.mkAtom(funcDecl.getName()), // Function name
+                    SExpr.mkList(argTypeExprs), // Argument types
+                    SExpr.mkAtom(funcDecl.getResultType().toString()) // Result type
                 )
             );
         }
@@ -112,10 +112,10 @@ public class Z3CommandLine implements SolverStrategy {
     private static List<SExpr> generateConstantDeclarations(Theory theory) {
         return theory.getConstants().stream().map(
             constant ->
-                new ComExpr(
-                    new StrExpr("declare-const"),
-                    new StrExpr(constant.getName()),
-                    new StrExpr(constant.getType().toString())
+                SExpr.mkList(
+                    SExpr.mkAtom("declare-const"),
+                    SExpr.mkAtom(constant.getName()),
+                    SExpr.mkAtom(constant.getType().toString())
                 )
         ).collect(Collectors.toList());
     }
@@ -124,8 +124,8 @@ public class Z3CommandLine implements SolverStrategy {
         SmtExprVisitor toSmtExpr = new SmtExprVisitor();
         return theory.getAxioms().stream().map(
             axiom ->
-                new ComExpr(
-                    new StrExpr("assert"),
+                SExpr.mkList(
+                    SExpr.mkAtom("assert"),
                     toSmtExpr.visit(axiom)
                 )
         ).collect(Collectors.toList());

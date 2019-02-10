@@ -5,7 +5,8 @@ import org.junit.Ignore;
 import org.antlr.v4.runtime.*;
 import org.antlr.v4.runtime.tree.ParseTree;
 import fortress.formats.*;
-import fortress.sexpr.*;
+import static fortress.sexpr.SExpr.*;
+import fortress.sexpr.SExpr;
 import java.util.List;
 import java.util.ArrayList;
 import java.io.IOException;
@@ -40,11 +41,11 @@ public class SExprParserTest {
         List<SExpr> exprs = (List<SExpr>) converter.visit(tree);
         
         List<SExpr> expected = new ArrayList();
-        expected.add(new StrExpr("e1"));
-        expected.add(new ComExpr(new StrExpr("e2")));
-        expected.add(new ComExpr(new StrExpr("e3"), new StrExpr("e4")));
-        expected.add(new ComExpr(new StrExpr("e5"), new ComExpr(new StrExpr("e6")), new StrExpr("e7")));
-        expected.add(new ComExpr(new ComExpr(List.of(new StrExpr("e8"), new StrExpr("e9"))), new ComExpr(new ArrayList())));
+        expected.add(mkAtom("e1"));
+        expected.add(mkList(mkAtom("e2")));
+        expected.add(mkList(mkAtom("e3"), mkAtom("e4")));
+        expected.add(mkList(mkAtom("e5"), mkList(mkAtom("e6")), mkAtom("e7")));
+        expected.add(mkList(mkList(List.of(mkAtom("e8"), mkAtom("e9"))), mkList(new ArrayList())));
         
         assertEquals(expected, exprs);
     }

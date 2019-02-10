@@ -2,7 +2,7 @@ package fortress.formats;
 
 import java.util.List;
 import java.util.ArrayList;
-import fortress.sexpr.*;
+import fortress.sexpr.SExpr;
 
 public class SExprGenerator extends SimpleSExprBaseVisitor {
     
@@ -17,7 +17,7 @@ public class SExprGenerator extends SimpleSExprBaseVisitor {
     
     @Override
     public SExpr visitAtom(SimpleSExprParser.AtomContext ctx) {
-        return new StrExpr(ctx.ID().getText());
+        return SExpr.mkAtom(ctx.ID().getText());
     }
     
     @Override
@@ -26,6 +26,6 @@ public class SExprGenerator extends SimpleSExprBaseVisitor {
         for(SimpleSExprParser.S_exprContext exprCtx : ctx.s_expr()) {
             exprs.add((SExpr) visit(exprCtx));
         }
-        return new ComExpr(exprs);
+        return SExpr.mkList(exprs);
     }
 }
