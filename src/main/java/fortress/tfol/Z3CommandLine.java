@@ -4,7 +4,7 @@ import java.util.List;
 import java.util.ArrayList;
 import java.util.Set;
 import java.util.HashSet;
-import fortress.formats.smt.smtlib.*;
+import fortress.sexpr.*;
 import java.util.stream.Collectors;
 import java.io.*;
 import fortress.util.Errors;

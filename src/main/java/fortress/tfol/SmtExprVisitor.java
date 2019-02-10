@@ -1,6 +1,6 @@
 package fortress.tfol;
 
-import fortress.formats.smt.smtlib.*;
+import fortress.sexpr.*;
 import java.util.List;
 import java.util.ArrayList;
 

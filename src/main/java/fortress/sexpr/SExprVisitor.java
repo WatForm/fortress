@@ -1,4 +1,4 @@
-package fortress.formats.smt.smtlib;
+package fortress.sexpr;
 
 public interface SExprVisitor<T> {
     default public T visit(SExpr expr) {

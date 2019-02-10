@@ -24,30 +24,58 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package fortress.formats.smt.smtlib;
+package fortress.sexpr;
+
+
+import java.util.Arrays;
+import java.util.List;
 
 import static fortress.util.Errors.failIf;
 
 /**
  * Created by amirhossein on 17/01/16.
  */
-public class StrExpr extends SExpr {
+public class ComExpr extends SExpr {
 
-    private String value;
+    private SExpr[] body;
+    private int len;
 
-    public StrExpr(String value){
-        failIf(value == null);
-        this.value = value;
+    public ComExpr(List<SExpr> body){
+        failIf(body == null);
+        len = Math.max(body.size() - 1, 0) + 2;
+        this.body = new SExpr[body.size()];
+        int i = 0;
+        for (SExpr s: body) {
+            failIf(s == null);
+            len += s.length();
+            this.body[i++] = s;
+        }
+    }
+
+    public ComExpr(SExpr...body){
+        ComExpr temp = new ComExpr(Arrays.asList(body));
+        this.body = temp.body;
+        this.len = temp.len;
     }
 
     @Override
     public int length(){
-        return value.length();
+        return len;
     }
 
     @Override
     public String toString() {
-        return value;
+        if (len == 2)
+            return "()";
+        StringBuilder sb = new StringBuilder(len);
+        sb.append('(');
+        sb.append(body[0].toString());
+        for (int i = 1; i != body.length; i++) {
+            sb.append(' ');
+            sb.append(body[i].toString());
+        }
+        sb.append(')');
+        return sb.toString();
     }
 
     @Override
@@ -58,7 +86,15 @@ public class StrExpr extends SExpr {
             return true;
         if (getClass() != o.getClass())
             return false;
-        return value.equals(((StrExpr) o).value);
+        ComExpr other = (ComExpr) o;
+        int minLength = Math.min(body.length, other.body.length);
+        for (int i = 0; i != minLength; i++){
+            if (!body[i].equals(other.body[i]))
+                return false;
+        }
+        if (minLength != body.length || minLength != other.body.length)
+            return false;
+        return true;
     }
 
     @Override
@@ -67,18 +103,33 @@ public class StrExpr extends SExpr {
         if (o == this)
             return 0;
         if (getClass() != o.getClass())
+            return 1;
+        ComExpr other = (ComExpr) o;
+        int minLength = Math.min(body.length, other.body.length);
+        for (int i = 0; i != minLength; i++){
+            int test = body[i].compareTo(other.body[i]);
+            if (test != 0)
+                return test;
+        }
+        if (minLength != other.body.length)
+            return 1;
+        if (minLength != body.length)
             return -1;
-        return value.compareTo(((StrExpr) o).value);
+        return 0;
     }
 
     @Override
     public int hashCode() {
-        return value.hashCode();
+        final int prime = 37;
+        int result = 1;
+        for (int i = 0; i != body.length; i++)
+            result = prime * result + body[i].hashCode();
+        return result;
     }
     
     @Override
     public <T> T accept(SExprVisitor<T> visitor) {
-        return visitor.visitStrExpr(this);
+        return visitor.visitComExpr(this);
     }
 
 }

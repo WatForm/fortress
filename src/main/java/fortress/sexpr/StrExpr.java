@@ -24,24 +24,61 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package fortress.formats.smt.smtlib;
+package fortress.sexpr;
+
+import static fortress.util.Errors.failIf;
 
 /**
  * Created by amirhossein on 17/01/16.
  */
-public abstract class SExpr implements Comparable<SExpr>{
+public class StrExpr extends SExpr {
 
-    public abstract int length();
+    private String value;
+
+    public StrExpr(String value){
+        failIf(value == null);
+        this.value = value;
+    }
 
     @Override
-    public abstract String toString();
+    public int length(){
+        return value.length();
+    }
 
     @Override
-    public abstract boolean equals(Object o);
+    public String toString() {
+        return value;
+    }
 
     @Override
-    public abstract int hashCode();
+    public boolean equals(Object o) {
+        if (o == null)
+            return false;
+        if (o == this)
+            return true;
+        if (getClass() != o.getClass())
+            return false;
+        return value.equals(((StrExpr) o).value);
+    }
+
+    @Override
+    public int compareTo(SExpr o) {
+        failIf(o == null);
+        if (o == this)
+            return 0;
+        if (getClass() != o.getClass())
+            return -1;
+        return value.compareTo(((StrExpr) o).value);
+    }
+
+    @Override
+    public int hashCode() {
+        return value.hashCode();
+    }
     
-    public abstract <T> T accept(SExprVisitor<T> visitor);
+    @Override
+    public <T> T accept(SExprVisitor<T> visitor) {
+        return visitor.visitStrExpr(this);
+    }
 
 }

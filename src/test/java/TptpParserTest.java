@@ -4,7 +4,7 @@ import org.junit.Ignore;
 
 import org.antlr.v4.runtime.*;
 import org.antlr.v4.runtime.tree.ParseTree;
-import fortress.formats.tptp.*;
+import fortress.formats.*;
 import fortress.tfol.*;
 import java.util.List;
 import java.util.ArrayList;

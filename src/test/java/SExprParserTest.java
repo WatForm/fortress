@@ -4,7 +4,8 @@ import org.junit.Ignore;
 
 import org.antlr.v4.runtime.*;
 import org.antlr.v4.runtime.tree.ParseTree;
-import fortress.formats.smt.smtlib.*;
+import fortress.formats.*;
+import fortress.sexpr.*;
 import java.util.List;
 import java.util.ArrayList;
 import java.io.IOException;

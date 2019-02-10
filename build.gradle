@@ -2,12 +2,14 @@ apply plugin: 'java'
 apply plugin: 'distribution'
 apply plugin: 'jacoco'
 apply plugin: 'pmd'
+apply plugin: 'antlr'
 
 repositories{
     mavenCentral()
 }
 
 dependencies {
+    antlr "org.antlr:antlr4:4.7.2"
     compile group: 'org.antlr', name: 'antlr4-runtime', version: '4.7.2'
     compile group: 'com.oath.cyclops', name: 'cyclops', version: '10.1.0'
     compile files('z3/com.microsoft.z3.jar')
@@ -64,3 +66,18 @@ pmd {
         'pmd/custom.xml'
     ]
 }
+
+// ANTRL
+generateGrammarSource {
+    maxHeapSize = "64m"
+    arguments += ["-visitor", "-long-messages"]
+    arguments += ['-package', 'fortress.formats']
+    outputDirectory = new File("build/generated-src/antlr/main/fortress/formats".toString())
+}
+
+sourceSets {
+    generated {
+        java.srcDir 'build/generated-src/antlr/main/'
+    }
+}
+compileJava.source sourceSets.generated.java, sourceSets.main.java
