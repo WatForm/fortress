@@ -117,10 +117,10 @@ public class TermJavaEqualityTest {
     
     @Test
     public void Distinct() {
-        List<Var> varList = new ArrayList<>();
-        varList.add(x);
-        varList.add(y);
-        assertEquals(mkDistinct(x, y), mkDistinct(varList));
+        List<Term> termList = new ArrayList<>();
+        termList.add(x);
+        termList.add(y);
+        assertEquals(mkDistinct(x, y), mkDistinct(termList));
         assertNotEquals(mkDistinct(x, y), mkDistinct(x, z));
     }
 }

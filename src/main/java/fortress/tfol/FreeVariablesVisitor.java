@@ -49,7 +49,7 @@ class FreeVariablesVisitor implements TermVisitor<Set<Var>> {
     
     @Override
     public Set<Var> visitDistinct(Distinct term) {
-        return combineFreeVarsOfList(term.getVars());
+        return combineFreeVarsOfList(term.getArguments());
     }
     
     @Override

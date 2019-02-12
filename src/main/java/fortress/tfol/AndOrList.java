@@ -1,30 +1,13 @@
 package fortress.tfol;
 
 import java.util.List;
-import java.util.ArrayList;
-import fortress.util.Errors;
 
-abstract class AndOrList extends Term {
-    protected List<Term> arguments;
+// Exists as a separate subtype of ListOp since And/Or have additional commonalities
+// not shared by distinct (e.g. arguments must typecheck as Bool)
+abstract class AndOrList extends ListOp {
     
     protected AndOrList(List<Term> arguments){
-        this.arguments = arguments;
+        super(arguments);
     }
     
-    protected List<Term> getArguments() {
-        return arguments;
-    }
-    
-    @Override
-    protected boolean innerEquals(Object other) {
-        Errors.failIf(this.getClass() != other.getClass());
-        return this.arguments.equals( ((AndOrList) other).arguments );
-    }
-    
-    @Override
-    protected List<Integer> innerHashNumbers() {
-        List<Integer> numbers = new ArrayList<>();
-        numbers.add(arguments.hashCode());
-        return numbers;
-    }
 }

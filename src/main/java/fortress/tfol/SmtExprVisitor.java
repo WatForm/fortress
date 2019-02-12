@@ -55,8 +55,8 @@ public class SmtExprVisitor implements TermVisitor<SExpr> {
     public SExpr visitDistinct(Distinct term) {
         List<SExpr> expressions = new ArrayList<>();
         expressions.add(SExpr.mkAtom("distinct"));
-        for(Var v : term.getVars()) {
-            expressions.add(visit(v));
+        for(Term t : term.getArguments()) {
+            expressions.add(visit(t));
         }
         return SExpr.mkList(expressions);
     }

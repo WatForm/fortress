@@ -103,11 +103,11 @@ class TypeCheckVisitor implements TermVisitor<Optional<Type>> {
     
     @Override
     public Optional<Type> visitDistinct(Distinct term) {
-        List<Var> variables = term.getVars();
-        List<Optional<Type>> varTypes = variables.stream().map(v -> visit(v)).collect(Collectors.toList());
-        boolean allSameType = varTypes.stream().allMatch(varTypes.get(0)::equals);
+        List<Term> arguments = term.getArguments();
+        List<Optional<Type>> types = arguments.stream().map(v -> visit(v)).collect(Collectors.toList());
+        boolean allSameType = types.stream().allMatch(types.get(0)::equals);
         // Check first one is well typed and they all have the same type
-        if(allSameType && varTypes.get(0).isPresent()) {
+        if(allSameType && types.get(0).isPresent()) {
             return Optional.of(Type.Bool);
         } else {
             return Optional.empty();

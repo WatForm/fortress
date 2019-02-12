@@ -102,15 +102,15 @@ public abstract class Term {
         return mkExists(vars, body);
     }
     
-    public static Term mkDistinct(List<Var> vars) {
-        return new Distinct(vars);
+    public static Term mkDistinct(List<Term> arguments) {
+        return new Distinct(arguments);
     }
-    public static Term mkDistinct(Var... vars) {
-        List<Var> variables = new ArrayList<>();
-        for(Var var : vars) {
-            variables.add(var);
+    public static Term mkDistinct(Term... args) {
+        List<Term> arguments = new ArrayList<>();
+        for(Term arg : args) {
+            arguments.add(arg);
         }
-        return mkDistinct(variables);
+        return mkDistinct(arguments);
     }
     
     @Override
