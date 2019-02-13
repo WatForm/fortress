@@ -17,7 +17,7 @@ public class SmtLibParserTest {
     @Test
     public void sample1() throws IOException {
         ClassLoader classLoader = getClass().getClassLoader();
-        File file = new File(classLoader.getResource("sample.smt").getFile());
+        File file = new File(classLoader.getResource("sample1.smt").getFile());
         FileInputStream fileStream = new FileInputStream(file);
         ANTLRInputStream input = new ANTLRInputStream(fileStream);
         SmtLibSubsetLexer lexer = new SmtLibSubsetLexer(input);
