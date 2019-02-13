@@ -10,6 +10,12 @@ public abstract class Term {
     // Published interface 
     // Term subclasses are not published
     
+    // TODO sepearate out this precondition into a function
+    // TODO should typecheck also check consistency? Efficiency concerns for Theory
+    // Precondition: types, constants, and function declarations must together
+    // be consistent
+    //      - no different functions or constants of the same name)
+    //      - constants, functions must use types that exist in the types set
     public static Optional<Type> typeCheck(Term term, Set<Type> types,
         Set<AnnotatedVar> constants, Set<FuncDecl> functionDeclarations) {
         TypeCheckVisitor typeChecker = new TypeCheckVisitor(types, constants, functionDeclarations);

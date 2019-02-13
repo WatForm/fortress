@@ -25,7 +25,6 @@ class TypeCheckVisitor implements TermVisitor<Optional<Type>> {
         this.types = types;
         this.constants = constants;
         this.functionDeclarations = functionDeclarations;
-        
         this.context = new LinkedList<>();
     }
     
