@@ -177,9 +177,9 @@ public class TypeCheckTest {
         Term arg2 = y;
         Term arg3 = Term.mkApp("f", Term.mkApp("g", Term.mkApp("f", x)));
         Term distinct = Term.mkDistinct(arg1, arg2, arg3);
-        Term eq1 = Term.mkOr(arg1, arg2);
-        Term eq2 = Term.mkOr(arg1, arg3);
-        Term eq3 = Term.mkOr(arg2, arg3);
+        Term eq1 = Term.mkEq(arg1, arg2);
+        Term eq2 = Term.mkEq(arg1, arg3);
+        Term eq3 = Term.mkEq(arg2, arg3);
         assertEquals(Optional.of(Type.Bool), Term.typeCheck(distinct, types, constants, decls));
         assertEquals(Optional.of(Type.Bool), Term.typeCheck(eq1, types, constants, decls));
         assertEquals(Optional.of(Type.Bool), Term.typeCheck(eq2, types, constants, decls));
@@ -195,8 +195,8 @@ public class TypeCheckTest {
         Term arg2 = y;
         Term arg3 = Term.mkApp("g", Term.mkApp("f", x));
         Term distinct = Term.mkDistinct(arg1, arg2, arg3);
-        Term eq1 = Term.mkOr(arg1, arg3);
-        Term eq2 = Term.mkOr(arg2, arg3);
+        Term eq1 = Term.mkEq(arg1, arg3);
+        Term eq2 = Term.mkEq(arg2, arg3);
         assertEquals(Optional.empty(), Term.typeCheck(distinct, types, constants, decls));
         assertEquals(Optional.empty(), Term.typeCheck(eq1, types, constants, decls));
         assertEquals(Optional.empty(), Term.typeCheck(eq2, types, constants, decls));
