@@ -34,5 +34,11 @@ public final class Errors {
         if(condition)
             throw new AssertionError();
     }
+    
+    public static void failIf(Boolean condition, String msg) {
+        if(condition) {
+            throw new AssertionError(msg);
+        }
+    }
 
 }

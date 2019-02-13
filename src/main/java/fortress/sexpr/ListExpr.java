@@ -12,6 +12,10 @@ public class ListExpr extends SExpr {
         this.subexpressions = subexpressions;
     }
     
+    public List<SExpr> getSubexpressions() {
+        return subexpressions;
+    }
+    
     @Override
     public <T> T match(Function<Atom, T> ifAtom, Function<ListExpr, T> ifList) {
         return ifList.apply(this);

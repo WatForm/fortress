@@ -9,8 +9,6 @@ import fortress.tfol.*;
 import java.util.List;
 import java.util.ArrayList;
 import java.io.IOException;
-import cyclops.data.ImmutableSet;
-import cyclops.data.HashSet;
 
 public class TptpParserTest {
     
