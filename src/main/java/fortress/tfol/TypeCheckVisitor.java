@@ -51,6 +51,7 @@ class TypeCheckVisitor implements TermVisitor<Optional<Type>> {
         // from front to back and not have to worry about shadowed variables.
         // e.g. in (forall v: A, forall v : B, p(v)), the context will look like
         // List[v: B, v: A], and the term will fail to typecheck if p : A -> Bool
+        // since the use of v will have type B
         for(AnnotatedVar v : context) {
             if(v.getName().equals(variable.getName())) {
                 return Optional.of(v.getType());
@@ -167,8 +168,10 @@ class TypeCheckVisitor implements TermVisitor<Optional<Type>> {
         }
         
         if(typesAsBool(term.getBody())) {
+            context.removeFirst(); // Pop the context stack
             return Optional.of(Type.Bool);
         } else {
+            context.removeFirst(); // Pop the context stack
             return Optional.empty();
         }
     }

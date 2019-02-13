@@ -317,4 +317,16 @@ public class TypeCheckTest {
         
         assertEquals(Optional.of(Type.Bool), Term.typeCheck(t, types, constants, decls));
     }
+    
+    
+    // TODO need more tests of this style
+    @Test
+    public void badName() {
+        Set<Type> types = Set.of(A);
+        Set<AnnotatedVar> constants = Set.of();
+        Set<FuncDecl> decls = Set.of(p);
+        Var xp = Term.mkVar("p"); // name clashes with function name
+        Term t = Term.mkForall(xp.of(Type.Bool), xp);
+        assertEquals(Optional.empty(), Term.typeCheck(t, types, constants, decls));
+    }
 }
