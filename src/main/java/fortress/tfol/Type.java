@@ -16,6 +16,8 @@ public abstract class Type {
     
     public static Type Bool = mkTypeConst("Bool");
     
+    // TODO should have getName() rather than just toString() for consistency
+    
     @Override
     public abstract String toString();
     

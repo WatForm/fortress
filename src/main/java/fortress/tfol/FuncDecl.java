@@ -6,6 +6,7 @@ import fortress.util.Errors;
 
 public class FuncDecl {
     private String name;
+    // TODO should these fields be renamed to domain, and codomain/range?
     private List<Type> argTypes;
     private Type resultType;
     
