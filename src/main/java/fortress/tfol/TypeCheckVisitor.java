@@ -166,12 +166,15 @@ class TypeCheckVisitor implements TermVisitor<Optional<Type>> {
         for(AnnotatedVar av : variables) {
             context.addFirst(av);
         }
+        boolean correct = typesAsBool(term.getBody());
         
-        if(typesAsBool(term.getBody())) {
-            context.removeFirst(); // Pop the context stack
+        // Pop context stack
+        for(AnnotatedVar av : variables) {
+            context.removeFirst();
+        }
+        if(correct) {
             return Optional.of(Type.Bool);
         } else {
-            context.removeFirst(); // Pop the context stack
             return Optional.empty();
         }
     }
