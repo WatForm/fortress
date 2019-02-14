@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.ArrayList;
 import java.util.Optional;
 import java.util.Set;
+import fortress.util.Errors;
 
 public abstract class Term {
     
@@ -44,22 +45,28 @@ public abstract class Term {
     // To create an annotated var, use Term.mkVar("x").of(type)
     
     public static Term mkAnd(List<Term> arguments) {
+        Errors.failIf(arguments.size() < 2);
         return new AndList(arguments);
     }
-    public static Term mkAnd(Term t1, Term t2) {
+    public static Term mkAnd(Term... args) {
+        Errors.failIf(args.length < 2);
         List<Term> arguments = new ArrayList<>();
-        arguments.add(t1);
-        arguments.add(t2);
+        for(Term arg : args) {
+            arguments.add(arg);
+        }
         return mkAnd(arguments);
     }
     
     public static Term mkOr(List<Term> arguments) {
+        Errors.failIf(arguments.size() < 2);
         return new OrList(arguments);
     }
-    public static Term mkOr(Term t1, Term t2) {
+    public static Term mkOr(Term... args) {
+        Errors.failIf(args.length < 2);
         List<Term> arguments = new ArrayList<>();
-        arguments.add(t1);
-        arguments.add(t2);
+        for(Term arg : args) {
+            arguments.add(arg);
+        }
         return mkOr(arguments);
     }
     

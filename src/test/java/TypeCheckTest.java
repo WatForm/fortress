@@ -318,6 +318,21 @@ public class TypeCheckTest {
         assertEquals(Optional.of(Type.Bool), Term.typeCheck(t, types, constants, decls));
     }
     
+    @Test // TODO bug
+    public void halfQuantifiedMultiple() {
+        Set<Type> types = Set.of(A);
+        Set<AnnotatedVar> constants = Set.of();
+        Set<FuncDecl> decls = Set.of(p);
+        
+        // x is a free variable in the second and argument -- should fail typechecking
+        Term t = Term.mkAnd(
+            Term.mkForall(List.of(x.of(A), y.of(A)), Term.mkApp("p", x)),
+            Term.mkApp("p", x)
+        );
+        
+        assertEquals(Optional.empty(), Term.typeCheck(t, types, constants, decls));
+    }
+    
     
     // TODO need more tests of this style
     @Test
