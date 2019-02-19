@@ -8,7 +8,7 @@ import java.lang.RuntimeException;
 import java.util.stream.Collectors;
 import java.util.Optional;
 
-abstract public class TheoryToZ3Java implements TermVisitor<Expr>{
+public class TheoryToZ3Java implements TermVisitor<Expr>{
     private Theory theory;
     private Context context;
     
@@ -26,6 +26,10 @@ abstract public class TheoryToZ3Java implements TermVisitor<Expr>{
         this.theory = theory;
         this.context = new Context(config);
         this.typeContext = new LinkedList();
+        
+        this.sortConversions = new HashMap();
+        this.functionConversions = new HashMap();
+        this.constantConversions = new HashMap();
     }
     
     public Solver convert() {
