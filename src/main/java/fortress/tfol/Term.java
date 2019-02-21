@@ -1,8 +1,10 @@
 package fortress.tfol;
 
+import fortress.data.ImmutableList;
+import fortress.data.ImmutableWrapperList;
 import java.util.List;
-import java.util.ArrayList;
 import java.util.Optional;
+import fortress.data.PersistentSet;
 import java.util.Set;
 import fortress.util.Errors;
 
@@ -17,8 +19,10 @@ public abstract class Term {
     // be consistent
     //      - no different functions or constants of the same name)
     //      - constants, functions must use types that exist in the types set
-    public static Optional<Type> typeCheck(Term term, Set<Type> types,
-        Set<AnnotatedVar> constants, Set<FuncDecl> functionDeclarations) {
+    public static Optional<Type> typeCheck(Term term,
+                                           Set<Type> types,
+                                           Set<AnnotatedVar> constants,
+                                           Set<FuncDecl> functionDeclarations) {
         TypeCheckVisitor typeChecker = new TypeCheckVisitor(types, constants, functionDeclarations);
         return typeChecker.visit(term);
     }
@@ -42,32 +46,27 @@ public abstract class Term {
     
     // NOTE: There is no mkAnnotatedVar because we do not want people to think
     // that AnnotatedVar is a Term
-    // To create an annotated var, use Term.mkVar("x").of(type)
+    // To create an annotated var, use Term.mkVar(name).of(type)
     
-    public static Term mkAnd(List<Term> arguments) {
-        Errors.failIf(arguments.size() < 2);
-        return new AndList(arguments);
-    }
+    // NOTE: Terms should NOT use the identical list/collection/etc given by the user
+    // unless it is guaranteed to be immutable - terms could then be mutated
+    
     public static Term mkAnd(Term... args) {
         Errors.failIf(args.length < 2);
-        List<Term> arguments = new ArrayList<>();
-        for(Term arg : args) {
-            arguments.add(arg);
-        }
-        return mkAnd(arguments);
+        return new AndList(ImmutableWrapperList.copyArray(args));
+    }
+    public static Term mkAnd(List<Term> args) {
+        Errors.failIf(args.size() < 2);
+        return new AndList(ImmutableWrapperList.copyCollection(args));
     }
     
-    public static Term mkOr(List<Term> arguments) {
-        Errors.failIf(arguments.size() < 2);
-        return new OrList(arguments);
-    }
     public static Term mkOr(Term... args) {
         Errors.failIf(args.length < 2);
-        List<Term> arguments = new ArrayList<>();
-        for(Term arg : args) {
-            arguments.add(arg);
-        }
-        return mkOr(arguments);
+        return new OrList(ImmutableWrapperList.copyArray(args));
+    }
+    public static Term mkOr(List<Term> args) {
+        Errors.failIf(args.size() < 2);
+        return new OrList(ImmutableWrapperList.copyCollection(args));
     }
     
     public static Term mkNot(Term t) {
@@ -86,44 +85,38 @@ public abstract class Term {
         return new Eq(t1, t2);
     }
     
-    public static Term mkApp(String functionName, List<Term> arguments) {
-        return new App(functionName, arguments);
+    public static Term mkDistinct(List<Term> arguments) {
+        Errors.failIf(arguments.size() < 2);
+        return new Distinct(ImmutableWrapperList.copyCollection(arguments));
     }
+    public static Term mkDistinct(Term... arguments) {
+        Errors.failIf(arguments.length < 2);
+        return new Distinct(ImmutableWrapperList.copyArray(arguments));
+    }
+    
     public static Term mkApp(String functionName, Term... arguments) {
-        List<Term> args = new ArrayList<>();
-        for(Term arg : arguments) {
-            args.add(arg);
-        }
-        return mkApp(functionName, args);
+        return new App(functionName, ImmutableWrapperList.copyArray(arguments));
+    }
+    public static Term mkApp(String functionName, List<Term> arguments) {
+        return new App(functionName, ImmutableWrapperList.copyCollection(arguments));
     }
     
     public static Term mkForall(List<AnnotatedVar> vars, Term body) {
-        return new Forall(vars, body);
+        ImmutableList<AnnotatedVar> varsCopy = ImmutableWrapperList.copyCollection(vars);
+        return new Forall(varsCopy, body);
     }
     public static Term mkForall(AnnotatedVar x, Term body) {
-        List<AnnotatedVar> vars = new ArrayList<>();
-        vars.add(x);
-        return mkForall(vars, body);
+        ImmutableList<AnnotatedVar> vars = ImmutableList.of(x);
+        return new Forall(vars, body);
     }
     
     public static Term mkExists(List<AnnotatedVar> vars, Term body) {
-        return new Exists(vars, body);
+        ImmutableList<AnnotatedVar> varsCopy = ImmutableWrapperList.copyCollection(vars);
+        return new Exists(varsCopy, body);
     }
     public static Term mkExists(AnnotatedVar x, Term body) {
-        List<AnnotatedVar> vars = new ArrayList<>();
-        vars.add(x);
-        return mkExists(vars, body);
-    }
-    
-    public static Term mkDistinct(List<Term> arguments) {
-        return new Distinct(arguments);
-    }
-    public static Term mkDistinct(Term... args) {
-        List<Term> arguments = new ArrayList<>();
-        for(Term arg : args) {
-            arguments.add(arg);
-        }
-        return mkDistinct(arguments);
+        ImmutableList<AnnotatedVar> vars = ImmutableList.of(x);
+        return new Exists(vars, body);
     }
     
     @Override

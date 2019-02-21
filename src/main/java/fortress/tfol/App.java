@@ -1,15 +1,16 @@
 package fortress.tfol;
 
+import fortress.data.ImmutableList;
+import fortress.util.Errors;
 import java.util.List;
 import java.util.ArrayList;
-import fortress.util.Errors;
 
 //Function application f(x_1, ..., x_n)
 class App extends Term {
     private String functionName;
-    private List<Term> arguments;
+    private ImmutableList<Term> arguments;
 
-    protected App(String functionName, List<Term> arguments) {
+    protected App(String functionName, ImmutableList<Term> arguments) {
         this.functionName = functionName;
         this.arguments = arguments;
     }
@@ -18,7 +19,7 @@ class App extends Term {
         return functionName;
     }
     
-    protected List<Term> getArguments() {
+    protected ImmutableList<Term> getArguments() {
         return arguments;
     }
     

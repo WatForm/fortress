@@ -1,9 +1,9 @@
 package fortress.tfol;
 
-import java.util.List;
+import fortress.data.ImmutableList;
 
 class AndList extends AndOrList {
-    protected AndList(List<Term> arguments) {
+    protected AndList(ImmutableList<Term> arguments) {
         super(arguments);
     }
     

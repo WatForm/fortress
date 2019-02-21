@@ -1,20 +1,21 @@
 package fortress.tfol;
 
+import fortress.data.ImmutableList;
+import fortress.util.Errors;
 import java.util.List;
 import java.util.ArrayList;
-import fortress.util.Errors;
 
 abstract class Quantifier extends Term {
-    protected List<AnnotatedVar> vars;
+    protected ImmutableList<AnnotatedVar> vars;
     protected Term body;
     
-    protected Quantifier(List<AnnotatedVar> vars, Term body) {
+    protected Quantifier(ImmutableList<AnnotatedVar> vars, Term body) {
         Errors.failIf(vars.size() < 1);
         this.vars = vars;
         this.body = body;
     }
     
-    protected List<AnnotatedVar> getVars() {
+    protected ImmutableList<AnnotatedVar> getVars() {
         return vars;
     }
     

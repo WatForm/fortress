@@ -3,8 +3,8 @@ package fortress.tfol;
 import java.util.Optional;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.Set;
 
 // class TypeContext {
 //     LinkedList<Var> 
@@ -21,7 +21,9 @@ class TypeCheckVisitor implements TermVisitor<Optional<Type>> {
     
     // Free variables are allowed but it checks they are consistently typed
     // and do not clash with function declarations etc
-    public TypeCheckVisitor(Set<Type> types, Set<AnnotatedVar> constants, Set<FuncDecl> functionDeclarations) {
+    public TypeCheckVisitor(Set<Type> types,
+                            Set<AnnotatedVar> constants,
+                            Set<FuncDecl> functionDeclarations) {
         this.types = types;
         this.constants = constants;
         this.functionDeclarations = functionDeclarations;

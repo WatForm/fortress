@@ -1,5 +1,7 @@
 package fortress.tfol;
 
+import fortress.data.ImmutableList;
+import fortress.data.ImmutableWrapperList;
 import java.util.List;
 import java.util.ArrayList;
 import fortress.util.Errors;
@@ -7,11 +9,21 @@ import fortress.util.Errors;
 public class FuncDecl {
     private String name;
     // TODO should these fields be renamed to domain, and codomain/range?
-    private List<Type> argTypes;
+    private ImmutableList<Type> argTypes;
     private Type resultType;
     
+    private FuncDecl(String name, ImmutableList<Type> argTypes, Type resultType) {
+        //TODO what about nullary functions?
+        //I don't think these should fail here, but when used in App they are replaced
+        
+        // TODO may not need need type in FuncDecl depending on how we do typechecking
+        this.name = name;
+        this.argTypes = argTypes;
+        this.resultType = resultType;
+    }
+    
     public static FuncDecl mkFuncDecl(String name, List<Type> argTypes, Type resultType) {
-        return new FuncDecl(name, argTypes, resultType);
+        return new FuncDecl(name, ImmutableWrapperList.copyCollection(argTypes), resultType);
     }
     
     public static FuncDecl mkFuncDecl(String name, Type... types) {
@@ -22,16 +34,6 @@ public class FuncDecl {
             argTypes.add(types[i]);
         }
         return mkFuncDecl(name, argTypes, resultType);
-    }
-    
-    private FuncDecl(String name, List<Type> argTypes, Type resultType) {
-        //TODO what about nullary functions?
-        //I don't think these should fail here, but when used in App they are replaced
-        
-        // TODO may not need need type in FuncDecl depending on how we do typechecking
-        this.name = name;
-        this.argTypes = argTypes;
-        this.resultType = resultType;
     }
     
     public int getArity() {

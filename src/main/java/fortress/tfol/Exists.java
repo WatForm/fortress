@@ -1,9 +1,9 @@
 package fortress.tfol;
 
-import java.util.List;
+import fortress.data.ImmutableList;
 
 class Exists extends Quantifier {
-    protected Exists(List<AnnotatedVar> vars, Term body) {
+    protected Exists(ImmutableList<AnnotatedVar> vars, Term body) {
         super(vars, body);
     }
     

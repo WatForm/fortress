@@ -14,7 +14,7 @@ public class ModelFinder {
     private Timer solverTimer;
     
     public enum Result {
-        SAT, UNSAT, TIMEOUT, ERROR
+        SAT, UNSAT, UNKNOWN, TIMEOUT, ERROR
     }
     
     public ModelFinder(TheoryTransformer theoryTransformer, SolverStrategy solverStrategy) {
@@ -33,8 +33,6 @@ public class ModelFinder {
     }
     
     public Result findModel(Theory theory, int solverTimeout) {
-        // TODO typecheck theory
-        // TODO verify theory has no free variables that are not constants 
         
         transformationTimer.set();
         for(TheoryTransformer theoryTransformer : theoryTransformers) {

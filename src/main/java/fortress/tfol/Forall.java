@@ -1,9 +1,9 @@
 package fortress.tfol;
 
-import java.util.List;
+import fortress.data.ImmutableList;
 
 class Forall extends Quantifier {
-    protected Forall(List<AnnotatedVar> vars, Term body){
+    protected Forall(ImmutableList<AnnotatedVar> vars, Term body){
         super(vars, body);
     }
     

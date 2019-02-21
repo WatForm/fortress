@@ -1,17 +1,18 @@
 package fortress.tfol;
 
-import java.util.List;
-import java.util.ArrayList;
+import fortress.data.ImmutableList;
 import fortress.util.Errors;
+import java.util.ArrayList;
+import java.util.List;
 
 abstract class ListOp extends Term {
-    private List<Term> arguments;
+    private ImmutableList<Term> arguments;
     
-    protected ListOp(List<Term> arguments) {
+    protected ListOp(ImmutableList<Term> arguments) {
         this.arguments = arguments;
     }
     
-    protected List<Term> getArguments() {
+    protected ImmutableList<Term> getArguments() {
         return arguments;
     }
     
