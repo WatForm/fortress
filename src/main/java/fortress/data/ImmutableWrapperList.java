@@ -12,7 +12,7 @@ import java.util.Collection;
 // is no way for a user to access the underlying list and modify it without
 // going through the view
 public class ImmutableWrapperList<E> implements ImmutableList<E> {
-    private List<E> implList;
+    private final List<E> implList;
     
     protected ImmutableWrapperList(List<E> implList) {
         this.implList = implList;

@@ -46,6 +46,8 @@ public interface PersistentSet<E> extends Set<E> {
    
     public PersistentSet<E> plus(E value);
     
+    public PersistentSet<E> plusAll(Iterable<? extends E> iterable);
+    
     public PersistentSet<E> minus(E value);
     
     // Added so users can be more confident in type safety

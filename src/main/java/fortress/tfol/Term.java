@@ -149,7 +149,7 @@ public abstract class Term {
     
     // Returns the set of free variables of this term with respect
     // to the given signature.
-    Set<Var> freeVars(Signature signature) {
+    public Set<Var> freeVars(Signature signature) {
         Set<Var> freeVars = freeVarConstSymbols();
         freeVars.removeAll(signature.getConstants());
         return freeVars;
@@ -158,7 +158,7 @@ public abstract class Term {
     // Returns an optional containing the term's type with repsect to the
     // given signature, or an empty optional if typechecking fails.
     // Note that a term that is not closed cannot typecheck correctly.
-    Optional<Type> typecheck(Signature signature) {
+    public Optional<Type> typecheck(Signature signature) {
         TypeCheckVisitor visitor = new TypeCheckVisitor(signature);
         return visitor.visit(this);
     }

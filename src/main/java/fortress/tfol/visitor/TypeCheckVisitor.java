@@ -29,6 +29,14 @@ public class TypeCheckVisitor implements TermVisitor<Optional<Type>> {
     
     @Override
     public Optional<Type> visitVar(Var variable) {
+        // Check variable is not an already declared function symbol
+        // This must be done even with a consistent signature
+        // TODO: this behaviour should be documented
+        // TODO: is this considered poorly typed or a different kind of error?
+        if(signature.lookupFunctionDeclaration(variable.getName()).isPresent()) {
+            return Optional.empty();
+        }
+        
         
         // Check if it is in the Context
         // Note that the context is used as a stack, so we just need to iterate

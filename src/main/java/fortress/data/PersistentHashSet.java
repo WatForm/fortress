@@ -2,12 +2,13 @@ package fortress.data;
 
 import java.util.stream.Stream;
 import java.util.Iterator;
+import java.lang.Iterable;
 import java.util.Collection;
 import java.util.Set;
 import cyclops.data.HashSet;
 
 public class PersistentHashSet<E> implements PersistentSet<E> {
-    private HashSet<E> implSet;
+    private final HashSet<E> implSet;
     
     private PersistentHashSet(HashSet<E> implSet) {
         this.implSet = implSet;
@@ -22,6 +23,10 @@ public class PersistentHashSet<E> implements PersistentSet<E> {
     @Override
     public PersistentSet<E> plus(E item) {
         return new PersistentHashSet(implSet.plus(item));
+    }
+    
+    public PersistentSet<E> plusAll(Iterable<? extends E> iterable) {
+        return new PersistentHashSet(implSet.plusAll(iterable));
     }
     
     @Override
