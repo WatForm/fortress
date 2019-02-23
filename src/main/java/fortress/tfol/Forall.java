@@ -1,14 +1,15 @@
 package fortress.tfol;
 
 import fortress.data.ImmutableList;
+import fortress.tfol.visitor.TermVisitor;
 
-class Forall extends Quantifier {
+public class Forall extends Quantifier {
     protected Forall(ImmutableList<AnnotatedVar> vars, Term body){
         super(vars, body);
     }
     
     @Override
-    protected <T> T accept(TermVisitor<T> visitor) {
+    public <T> T accept(TermVisitor<T> visitor) {
         return visitor.visitForall(this);
     }
 }

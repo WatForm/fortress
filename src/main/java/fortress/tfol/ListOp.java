@@ -5,14 +5,16 @@ import fortress.util.Errors;
 import java.util.ArrayList;
 import java.util.List;
 
-abstract class ListOp extends Term {
-    private ImmutableList<Term> arguments;
+// TODO consider renaming
+
+public abstract class ListOp extends Term {
+    private final ImmutableList<Term> arguments;
     
     protected ListOp(ImmutableList<Term> arguments) {
         this.arguments = arguments;
     }
     
-    protected ImmutableList<Term> getArguments() {
+    public ImmutableList<Term> getArguments() {
         return arguments;
     }
     
@@ -23,7 +25,7 @@ abstract class ListOp extends Term {
     }
     
     @Override
-    protected List<Integer> innerHashNumbers() {
+    public List<Integer> innerHashNumbers() {
         List<Integer> numbers = new ArrayList<>();
         numbers.add(arguments.hashCode());
         return numbers;

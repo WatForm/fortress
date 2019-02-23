@@ -86,7 +86,7 @@ public class Z3CommandLine implements SolverStrategy {
             type ->
                 SExpr.mkList(
                     SExpr.mkAtom("declare-sort"),
-                    SExpr.mkAtom(type.toString())
+                    SExpr.mkAtom(type.getName())
                 )
         ).collect(Collectors.toList());
     }
@@ -96,7 +96,7 @@ public class Z3CommandLine implements SolverStrategy {
         List<SExpr> declarations = new ArrayList<>();
         for(FuncDecl funcDecl: theory.getFunctionDeclarations()) {
             List<SExpr> argTypeExprs = funcDecl.getArgTypes().stream().map(
-                type -> SExpr.mkAtom(type.toString())
+                type -> SExpr.mkAtom(type.getName())
             ).collect(Collectors.toList());
             declarations.add(
                 SExpr.mkList(
@@ -122,12 +122,11 @@ public class Z3CommandLine implements SolverStrategy {
     }
     
     private static List<SExpr> generateAssertions(Theory theory) {
-        SmtExprVisitor toSmtExpr = new SmtExprVisitor();
         return theory.getAxioms().stream().map(
             axiom ->
                 SExpr.mkList(
                     SExpr.mkAtom("assert"),
-                    toSmtExpr.visit(axiom)
+                    axiom.toSmtExpr()
                 )
         ).collect(Collectors.toList());
     }

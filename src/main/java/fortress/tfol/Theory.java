@@ -12,28 +12,21 @@ import java.lang.Iterable;
 import fortress.modelfind.*;
 
 public class Theory {
+    private Signature signature;
     private PersistentSet<Term> axioms;
-    private PersistentSet<AnnotatedVar> constants;
-    private PersistentSet<FuncDecl> functionDeclarations;
-    private PersistentSet<Type> types;
     
+    // We will leave the explicit call to new to emphasize that this is getting a new theory object.
+    // If we were able to call Theory.empty(), it wouldn't be clear we are returning a new theory object
+    // each time, and it wouldn't be clear to a user what should happen if they mutate Theory.empty()?
     public Theory() {
-        // TODO hash set or tree set?
+        this.signature = signature.empty();
         this.axioms = PersistentHashSet.empty();
-        this.constants = PersistentHashSet.empty();
-        this.functionDeclarations = PersistentHashSet.empty();
-        this.types = PersistentHashSet.empty().plus(Type.Bool);
     }
     
-    private Theory(PersistentSet<Term> axioms,
-        PersistentSet<AnnotatedVar> constants,
-        PersistentSet<FuncDecl> functionDeclarations,
-        PersistentSet<Type> types) {
-            this.axioms = axioms;
-            this.constants = constants;
-            this.functionDeclarations = functionDeclarations;
-            this.types = types.plus(Type.Bool);
-        }
+    private Theory(Signature signature, PersistentSet<Term> axioms) {
+        this.signature = signature;
+        this.axioms = PersistentHashSet.empty();
+    }
     
     // Mutates this theory object
     public void addAxiom(Term formula) {
@@ -43,38 +36,34 @@ public class Theory {
     // Returns a new theory object without modifying the previous
     public Theory withAxiom(Term formula) {
         checkAxiom(formula);
-        return new Theory(axioms.plus(formula), constants, functionDeclarations, types);
+        return new Theory(signature, axioms.plus(formula));
     }
     
     // Mutates this theory object
     public void addType(Type type) {
-        types = types.plus(type);
+        signature = signature.withType(type);
     }
     // Returns a new theory object without modifying the previous
     public Theory withType(Type type) {
-        return new Theory(axioms, constants, functionDeclarations, types.plus(type));
+        return new Theory(signature.withType(type), axioms);
     }
     
     // Mutates this theory object
     public void addConstant(AnnotatedVar constant) {
-        assertConstIsConsistent(constant);
-        constants = constants.plus(constant);
+        signature = signature.withConstant(constant);
     }
     // Returns a new theory object without modifying the previous
     public Theory withConstant(AnnotatedVar constant) {
-        assertConstIsConsistent(constant);
-        return new Theory(axioms, constants.plus(constant), functionDeclarations, types);
+        return new Theory(signature.withConstant(constant), axioms);
     }
     
     // Mutates this theory object
     public void addFunctionDeclaration(FuncDecl f) {
-        assertFuncDeclIsConsistent(f);
-        functionDeclarations = functionDeclarations.plus(f);
+        signature = signature.withFunctionDeclaration(f);
     }
     // Returns a new theory object without modifying the previous
     public Theory withFunctionDeclaration(FuncDecl f) {
-        assertFuncDeclIsConsistent(f);
-        return new Theory(axioms, constants, functionDeclarations.plus(f), types);
+        return new Theory(signature.withFunctionDeclaration(f), axioms);
     }
     
     public Set<Term> getAxioms() {
@@ -82,51 +71,22 @@ public class Theory {
     }
     
     public Set<Type> getTypes() {
-        return types;
+        return signature.getTypes();
     }
     
     public Set<AnnotatedVar> getConstants() {
-        return constants;
+        return signature.getConstants();
     }
     
     public Set<FuncDecl> getFunctionDeclarations() {
-        return functionDeclarations;
+        return signature.getFunctionDeclarations();
     }
     
     private void checkAxiom(Term formula) {
         // Check axiom typechecks as bool
-        Errors.failIf(! Term.typeCheck(formula, types, constants, functionDeclarations)
+        // Note that a formula cannot typecheck if it has any free variables (that are not constants of the signature)
+        Errors.failIf(! formula.typecheck(signature)
             .equals(Optional.of(Type.Bool)));
-        // TODO efficiency
-        Set<Var> asVars = constants.stream().map(av -> av.getVar()).collect(Collectors.toSet());
-        Errors.failIf(! asVars.containsAll(Term.freeVariables(formula)));
-    }
-    
-    private boolean consistent(AnnotatedVar const1, AnnotatedVar const2) {
-        return const1.getName() != const2.getName()
-            || const1.equals(const2);
-    }
-    
-    private boolean consistent(FuncDecl f1, FuncDecl f2) {
-        return f1.getName() != f2.getName()
-            || f1.equals(f2);
-    }
-    
-    private boolean consistent(FuncDecl f, AnnotatedVar c) {
-        return f.getName() != c.getName();
-    }
-    
-    private void assertConstIsConsistent(AnnotatedVar c) {
-        Errors.failIf(!types.containsValue(c.getType())); // type exists in theory
-        Errors.failIf(!constants.stream().allMatch(otherConst -> consistent(c, otherConst))); // doesn't conflict with other constants
-        Errors.failIf(!functionDeclarations.stream().allMatch(f -> consistent(f, c))); // doesn't conflict with function names
-    }
-    
-    private void assertFuncDeclIsConsistent(FuncDecl f) {
-        Errors.failIf(!f.getArgTypes().stream().allMatch(types::containsValue)); // arg types exist in theory
-        Errors.failIf(!types.containsValue(f.getResultType())); // result type exists in theory
-        Errors.failIf(!constants.stream().allMatch(c -> consistent(f, c))); // doesn't conflict with constants
-        Errors.failIf(!functionDeclarations.stream().allMatch(otherFun -> consistent(f, otherFun))); // doesn't conflict with other function declarations
     }
     
     @Override
@@ -141,20 +101,16 @@ public class Theory {
             return false;
         }
         Theory o = (Theory) other;
-        return this.axioms.equals(o.axioms)
-            && this.constants.equals(o.constants)
-            && this.functionDeclarations.equals(o.functionDeclarations)
-            && this.types.equals(o.types);
+        return this.signature.equals(o.signature)
+            && this.axioms.equals(o.axioms);
     }
     
     @Override
     public int hashCode() {
         int prime = 31;
         int result = 1;
+        result = result * prime + signature.hashCode();
         result = result * prime + axioms.hashCode();
-        result = result * prime + constants.hashCode();
-        result = result * prime + functionDeclarations.hashCode();
-        result = result * prime + types.hashCode();
         return result;
     }
     

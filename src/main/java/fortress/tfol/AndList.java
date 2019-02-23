@@ -1,14 +1,15 @@
 package fortress.tfol;
 
 import fortress.data.ImmutableList;
+import fortress.tfol.visitor.TermVisitor;
 
-class AndList extends AndOrList {
+public class AndList extends AndOrList {
     protected AndList(ImmutableList<Term> arguments) {
         super(arguments);
     }
     
     @Override
-    protected <T> T accept(TermVisitor<T> visitor) {
+    public <T> T accept(TermVisitor<T> visitor) {
         return visitor.visitAndList(this);
     }
 }

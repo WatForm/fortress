@@ -1,8 +1,9 @@
-package fortress.tfol;
+package fortress.tfol.visitor;
 
 import fortress.sexpr.SExpr;
 import java.util.List;
 import java.util.ArrayList;
+import fortress.tfol.*;
 
 public class SmtExprVisitor implements TermVisitor<SExpr> {
     
@@ -105,7 +106,7 @@ public class SmtExprVisitor implements TermVisitor<SExpr> {
             variableExpressions.add(
                 SExpr.mkList(
                     SExpr.mkAtom(v.getName()),
-                    SExpr.mkAtom(v.getType().toString())
+                    SExpr.mkAtom(v.getType().getName())
                 )
             );
         }
@@ -123,7 +124,7 @@ public class SmtExprVisitor implements TermVisitor<SExpr> {
             variableExpressions.add(
                 SExpr.mkList(
                     SExpr.mkAtom(v.getName()),
-                    SExpr.mkAtom(v.getType().toString())
+                    SExpr.mkAtom(v.getType().getName())
                 )
             );
         }

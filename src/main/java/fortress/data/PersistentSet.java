@@ -48,7 +48,7 @@ public interface PersistentSet<E> extends Set<E> {
     
     public PersistentSet<E> minus(E value);
     
-    // Added so you users can be more confident in type safety
+    // Added so users can be more confident in type safety
     public boolean containsValue(E value);
     
 }

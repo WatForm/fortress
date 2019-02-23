@@ -1,9 +1,14 @@
 package fortress.tfol;
 
+// TODO: is there any reason for Annotated Var to contain a var object and
+// not just the name? Can make annoying to decide whether to check by names
+// or variable equality etc. Should just be one option for simplicity.
+// On the other hand I can also see some cases it might be less work to have two options.
+
 // NOTE: does not extend Term
 public class AnnotatedVar {
-    private Var variable;
-    private Type type;
+    private final Var variable;
+    private final Type type;
     
     protected AnnotatedVar(Var variable, Type type) {
         this.variable = variable;
@@ -14,7 +19,7 @@ public class AnnotatedVar {
         return type;
     }
     
-    protected Var getVar() {
+    public Var getVar() {
         return variable;
     }
     

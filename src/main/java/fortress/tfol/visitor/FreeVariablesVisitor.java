@@ -1,11 +1,14 @@
-package fortress.tfol;
+package fortress.tfol.visitor;
 
 import java.util.Set;
 import java.util.HashSet;
 import java.util.stream.Collectors;
 import java.util.List;
+import fortress.tfol.*;
 
-class FreeVariablesVisitor implements TermVisitor<Set<Var>> {
+// Yields a mutable set of variables containing all the Vars (which may be constants
+// depending on the theory) that appears unquantified in the term
+public class FreeVariablesVisitor implements TermVisitor<Set<Var>> {
     
     @Override
     public Set<Var> visitTop(Top term) {

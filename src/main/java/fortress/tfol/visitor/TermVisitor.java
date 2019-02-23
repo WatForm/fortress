@@ -1,4 +1,6 @@
-package fortress.tfol;
+package fortress.tfol.visitor;
+
+import fortress.tfol.*;
 
 public interface TermVisitor<T> {
     default public T visit(Term term) {

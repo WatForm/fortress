@@ -1,33 +1,20 @@
-package fortress.tfol;
+package fortress.tfol.visitor;
 
 import java.util.Optional;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.Set;
+import fortress.tfol.*;
 
-// class TypeContext {
-//     LinkedList<Var> 
-//     void add{}
-//     Optional<Type> lookup()
-// }
-
-class TypeCheckVisitor implements TermVisitor<Optional<Type>> {
+public class TypeCheckVisitor implements TermVisitor<Optional<Type>> {
     
-    Set<Type> types;
-    Set<AnnotatedVar> constants;
-    Set<FuncDecl> functionDeclarations;
-    LinkedList<AnnotatedVar> context;
+    private final Signature signature;
+    private final LinkedList<AnnotatedVar> contextStack;
     
-    // Free variables are allowed but it checks they are consistently typed
-    // and do not clash with function declarations etc
-    public TypeCheckVisitor(Set<Type> types,
-                            Set<AnnotatedVar> constants,
-                            Set<FuncDecl> functionDeclarations) {
-        this.types = types;
-        this.constants = constants;
-        this.functionDeclarations = functionDeclarations;
-        this.context = new LinkedList<>();
+    public TypeCheckVisitor(Signature signature) {
+        this.signature = signature;
+        this.contextStack = new LinkedList<>();
     }
     
     @Override
@@ -42,29 +29,22 @@ class TypeCheckVisitor implements TermVisitor<Optional<Type>> {
     
     @Override
     public Optional<Type> visitVar(Var variable) {
-        // Check variable is not an already declared function symbol
-        for(FuncDecl decl : functionDeclarations) {
-            if(variable.getName().equals(decl.getName())) {
-                return Optional.empty();
-            }
-        }
+        
         // Check if it is in the Context
         // Note that the context is used as a stack, so we just need to iterate
         // from front to back and not have to worry about shadowed variables.
         // e.g. in (forall v: A, forall v : B, p(v)), the context will look like
         // List[v: B, v: A], and the term will fail to typecheck if p : A -> Bool
         // since the use of v will have type B
-        for(AnnotatedVar v : context) {
+        for(AnnotatedVar v : contextStack) {
             if(v.getName().equals(variable.getName())) {
                 return Optional.of(v.getType());
             }
         }
         
-        // Finally check if is in the declared Constants
-        return constants.stream()
-            .filter(c -> c.getVar().equals(variable))
-            .findFirst()
-            .map(c -> c.getType());
+        // If it is not in the stack, check if is in the declared constants
+        return signature.lookupConstant(variable)
+            .map( (AnnotatedVar av) -> av.getType());
     }
     
     @Override
@@ -152,11 +132,9 @@ class TypeCheckVisitor implements TermVisitor<Optional<Type>> {
         String funcName = app.getFunctionName();
         List<Term> arguments = app.getArguments();
         
-        return functionDeclarations.stream()
-            .filter(fdecl -> fdecl.getName().equals(funcName)) // Check function symbol is in declared functions
-            .findFirst()
+        return signature.lookupFunctionDeclaration(funcName) // Check for function symbol in declared functions
             .filter(fdecl -> functionTypeMatches(fdecl, arguments)) // Check argument types match function declaration
-            .map(fdecl -> fdecl.getResultType()); // If all true, its type is the declaration's result type
+            .map(fdecl -> fdecl.getResultType()); // If true, the application's type is the declaration's result type
     }
     
     Optional<Type> visitQuantifier(Quantifier term) {
@@ -166,13 +144,13 @@ class TypeCheckVisitor implements TermVisitor<Optional<Type>> {
         // e.g. (forall v: A v: B, p(v)), the context should be
         // List[v: B, v: A]
         for(AnnotatedVar av : variables) {
-            context.addFirst(av);
+            contextStack.addFirst(av);
         }
         boolean correct = typesAsBool(term.getBody());
         
         // Pop context stack
         for(AnnotatedVar av : variables) {
-            context.removeFirst();
+            contextStack.removeFirst();
         }
         if(correct) {
             return Optional.of(Type.Bool);

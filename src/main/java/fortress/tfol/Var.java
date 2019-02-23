@@ -3,26 +3,23 @@ package fortress.tfol;
 import java.util.List;
 import java.util.ArrayList;
 import fortress.util.Errors;
+import fortress.tfol.visitor.TermVisitor;
 
 public class Var extends Term {
-    private String name;
+    private final String name;
     
     protected Var(String name) {
         Errors.failIf(name.length() < 1);
         this.name = name;
     }
     
-    protected String getName() {
+    public String getName() {
         return name;
-    }
-    
-    public AnnotatedVar annotate(Type term) {
-        return new AnnotatedVar(this, term);
     }
     
     // Shorthand for annotate(Type term)
     public AnnotatedVar of(Type type) {
-        return annotate(type);
+        return new AnnotatedVar(this, type);
     }
     
     @Override
@@ -40,7 +37,7 @@ public class Var extends Term {
     }
     
     @Override
-    protected <T> T accept(TermVisitor<T> visitor) {
+    public <T> T accept(TermVisitor<T> visitor) {
         return visitor.visitVar(this);
     }
 }

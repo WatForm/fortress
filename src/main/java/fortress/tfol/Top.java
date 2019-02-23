@@ -3,9 +3,10 @@ package fortress.tfol;
 import java.util.List;
 import java.util.ArrayList;
 import fortress.util.Errors;
+import fortress.tfol.visitor.TermVisitor;
 
 // TODO Consider making this a singleton
-class Top extends Term {
+public class Top extends Term {
     protected Top() {
         // Empty
     }
@@ -23,7 +24,7 @@ class Top extends Term {
     }
     
     @Override
-    protected <T> T accept(TermVisitor<T> visitor) {
+    public <T> T accept(TermVisitor<T> visitor) {
         return visitor.visitTop(this);
     }
 }

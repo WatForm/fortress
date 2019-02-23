@@ -3,15 +3,16 @@ package fortress.tfol;
 import fortress.util.Errors;
 import java.util.List;
 import java.util.ArrayList;
+import fortress.tfol.visitor.TermVisitor;
 
-class Not extends Term {
-    private Term body;
+public class Not extends Term {
+    private final Term body;
     
     protected Not(Term body){
         this.body = body;
     }
     
-    protected Term getBody() {
+    public Term getBody() {
         return body;
     }
     
@@ -29,7 +30,7 @@ class Not extends Term {
     }
     
     @Override
-    protected <T> T accept(TermVisitor<T> visitor) {
+    public <T> T accept(TermVisitor<T> visitor) {
         return visitor.visitNot(this);
     }
 }

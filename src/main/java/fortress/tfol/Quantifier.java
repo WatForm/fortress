@@ -5,9 +5,9 @@ import fortress.util.Errors;
 import java.util.List;
 import java.util.ArrayList;
 
-abstract class Quantifier extends Term {
-    protected ImmutableList<AnnotatedVar> vars;
-    protected Term body;
+public abstract class Quantifier extends Term {
+    protected final ImmutableList<AnnotatedVar> vars;
+    protected final Term body;
     
     protected Quantifier(ImmutableList<AnnotatedVar> vars, Term body) {
         Errors.failIf(vars.size() < 1);
@@ -15,11 +15,11 @@ abstract class Quantifier extends Term {
         this.body = body;
     }
     
-    protected ImmutableList<AnnotatedVar> getVars() {
+    public ImmutableList<AnnotatedVar> getVars() {
         return vars;
     }
     
-    protected Term getBody() {
+    public Term getBody() {
         return body;
     }
     

@@ -4,20 +4,20 @@ import fortress.util.Errors;
 import java.util.List;
 import java.util.ArrayList;
 
-abstract class BinOp extends Term {
-    protected Term left;
-    protected Term right;
+public abstract class BinOp extends Term {
+    protected final Term left;
+    protected final Term right;
     
     protected BinOp(Term left, Term right) {
         this.left = left;
         this.right = right;
     }
     
-    protected Term getLeft() {
+    public Term getLeft() {
         return left;
     }
     
-    protected Term getRight() {
+    public Term getRight() {
         return right;
     }
     

@@ -60,7 +60,7 @@ public class TptpToFortress extends FOFTPTPBaseVisitor {
         // Add free variables that are not prime propositions as constants of
         // the universe
         formulas.stream()
-            .flatMap(formula -> Term.freeVariables(formula).stream())
+            .flatMap(formula -> formula.freeVarConstSymbols().stream())
             .filter(freeVar -> !primePropositions.contains(freeVar))
             .forEach(freeVar -> theory.addConstant(freeVar.of(universeType)));
 

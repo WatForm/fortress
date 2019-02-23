@@ -1,25 +1,30 @@
 package fortress.tfol;
 
-import java.util.List;
+import fortress.util.Errors;
+import fortress.tfol.visitor.TermVisitor;
 
-// TODO Does type need subclasses?
-// While I do think the constructor should be protected in case we
-// change implementation, I never
-// see a need for any kinds of types other than TypeConst for our purposes
-// If I do change it, need to decide whether to change classes that use type.toString()
-// to just get the name
-
-public abstract class Type {
+public class Type {
+    private final String name;
+    
+    private Type(String name) {
+        Errors.failIf(name.length() < 1);
+        this.name = name;
+    }
+    
     public static Type mkTypeConst(String name) {
-        return new TypeConst(name);
+        return new Type(name);
     }
     
     public static Type Bool = mkTypeConst("Bool");
     
-    // TODO should have getName() rather than just toString() for consistency
+    public String getName() {
+        return name;
+    }
     
     @Override
-    public abstract String toString();
+    public String toString() {
+        return name;
+    }
     
     @Override
     public boolean equals(Object other) {
@@ -33,24 +38,11 @@ public abstract class Type {
         if(this.getClass() != other.getClass()) {
             return false;
         }
-        return innerEquals(other);
+        return this.name.equals( ((Type)other).getName() );
     }
-    
-    // Given an object, guaranteed to be a term of the the same subtype, return
-    // whether they are equal to this
-    protected abstract boolean innerEquals(Object other);
     
     @Override
     public int hashCode() {
-        // Template method design
-        int prime = 31;
-        int result = 1;
-        for(int num : innerHashNumbers()) {
-            result = result * prime + num;
-        }
-        return result;
+        return name.hashCode();
     }
-    
-    // List of numbers to be included when computing the hashCode
-    protected abstract List<Integer> innerHashNumbers();
 }

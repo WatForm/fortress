@@ -7,30 +7,18 @@ import java.util.Optional;
 import fortress.data.PersistentSet;
 import java.util.Set;
 import fortress.util.Errors;
+import fortress.tfol.visitor.TermVisitor;
+import fortress.tfol.visitor.TypeCheckVisitor;
+import fortress.tfol.visitor.FreeVariablesVisitor;
+import fortress.tfol.visitor.SmtExprVisitor;
+import fortress.sexpr.*;
 
 public abstract class Term {
     
     // Published interface 
     // Term subclasses are not published
     
-    // TODO sepearate out this precondition into a function
-    // TODO should typecheck also check consistency? Efficiency concerns for Theory
-    // Precondition: types, constants, and function declarations must together
-    // be consistent
-    //      - no different functions or constants of the same name)
-    //      - constants, functions must use types that exist in the types set
-    public static Optional<Type> typeCheck(Term term,
-                                           Set<Type> types,
-                                           Set<AnnotatedVar> constants,
-                                           Set<FuncDecl> functionDeclarations) {
-        TypeCheckVisitor typeChecker = new TypeCheckVisitor(types, constants, functionDeclarations);
-        return typeChecker.visit(term);
-    }
-    
-    public static Set<Var> freeVariables(Term term) {
-        FreeVariablesVisitor freeVarsCollector = new FreeVariablesVisitor();
-        return freeVarsCollector.visit(term);
-    }
+    // Creation operations
     
     public static Term mkTop() {
         return new Top();
@@ -134,10 +122,6 @@ public abstract class Term {
         return innerEquals(other);
     }
     
-    // Given an object, guaranteed to be a term of the the same subtype, return
-    // whether they are equal to this
-    protected abstract boolean innerEquals(Object other);
-    
     @Override
     public int hashCode() {
         // Template method design
@@ -149,11 +133,85 @@ public abstract class Term {
         return result;
     }
     
+    // Not published
+    
+    // TODO should freeVars, typecheck be a method of Term or Signature?
+    
+    // TODO: should freeVarConstSymbols be published? TptpToFortress makes good use of it
+    // -- TptpToFortress could avoid it, but it would be more difficult
+    
+    // Returns the set of Vars that appear unquantified in this term.
+    // This only looks at syntax without respect to a given signature,
+    // so it could also include what are intended to be constants.
+    public Set<Var> freeVarConstSymbols() {
+        return new FreeVariablesVisitor().visit(this);
+    }
+    
+    // Returns the set of free variables of this term with respect
+    // to the given signature.
+    Set<Var> freeVars(Signature signature) {
+        Set<Var> freeVars = freeVarConstSymbols();
+        freeVars.removeAll(signature.getConstants());
+        return freeVars;
+    }
+    
+    // Returns an optional containing the term's type with repsect to the
+    // given signature, or an empty optional if typechecking fails.
+    // Note that a term that is not closed cannot typecheck correctly.
+    Optional<Type> typecheck(Signature signature) {
+        TypeCheckVisitor visitor = new TypeCheckVisitor(signature);
+        return visitor.visit(this);
+    }
+    
+    public SExpr toSmtExpr() {
+        return new SmtExprVisitor().visit(this);
+    }
+    
+    
+    // TODO negation normal form with =? = can be bi-implication
+    // need to eliminate <=> but checking if = is <=> requires typechecking
+    // So maybe it needs to be done at the theory level?
+    
+    // NOTE: 
+    // We shouldn't provide these tools to the user
+    // One step of the theory should be to replace = by iff where possible
+    
+
+    // public Term negationNormalForm() {
+    //     ???
+    // }
+    // 
+    // // Returns a logically equivalent formula 
+    // public Term prenexNormalForm() {
+    //     Term t = refreshBoundVariables();
+    //     ???
+    // }
+    // 
+    // public Term withTypeSubstitution(Map<Type, Type> typeSubstitution) {
+    //     ???
+    // }
+    // 
+    // public boolean alphaEquivalent(Term other) {
+    //     ???
+    // } 
+    // 
+    // public Term refreshBoundVariables(NameGenerator generator) {
+    //     ???
+    // }
+    // 
+    // public Term substituteVars(Map<Var, Term> )
+    
+    // Given an object, guaranteed to be a term of the the same subtype, return
+    // whether they are equal to this
+    protected abstract boolean innerEquals(Object other);
+    
+    
+    
     // List of numbers to be included when computing the hashCode
     // TODO consider making this an int[] instead for efficiency
     protected abstract List<Integer> innerHashNumbers();
 
-    protected abstract <T> T accept(TermVisitor<T> visitor);
+    public abstract <T> T accept(TermVisitor<T> visitor);
     
     // For testing only
     @Override

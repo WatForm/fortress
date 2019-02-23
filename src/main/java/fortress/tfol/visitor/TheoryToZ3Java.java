@@ -1,4 +1,4 @@
-package fortress.tfol;
+package fortress.tfol.visitor;
 
 import com.microsoft.z3.*;
 import java.util.Map;
@@ -7,16 +7,17 @@ import java.util.LinkedList;
 import java.lang.RuntimeException;
 import java.util.stream.Collectors;
 import java.util.Optional;
+import fortress.tfol.*;
 
 public class TheoryToZ3Java implements TermVisitor<Expr>{
-    private Theory theory;
-    private Context context;
+    private final Theory theory;
+    private final Context context;
     
-    private LinkedList<AnnotatedVar> typeContext;
+    private final LinkedList<AnnotatedVar> typeContext;
     
-    private Map<Type, Sort> sortConversions;
-    private Map<String, com.microsoft.z3.FuncDecl> functionConversions;
-    private Map<String, com.microsoft.z3.FuncDecl> constantConversions;
+    private final Map<Type, Sort> sortConversions;
+    private final Map<String, com.microsoft.z3.FuncDecl> functionConversions;
+    private final Map<String, com.microsoft.z3.FuncDecl> constantConversions;
     
     // Precondition: theory must be typechecked and all declarations must
     // be internally consistent
@@ -38,7 +39,7 @@ public class TheoryToZ3Java implements TermVisitor<Expr>{
         for(Type t : theory.getTypes()) {
             // TODO more elegant handling of built-in types
             if(!t.equals(Type.Bool)) {
-                Sort s = context.mkUninterpretedSort(t.toString());
+                Sort s = context.mkUninterpretedSort(t.getName());
                 sortConversions.put(t, s);
             }
         }
