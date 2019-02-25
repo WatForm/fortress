@@ -105,11 +105,6 @@ public class TypeCheckVisitor implements TermVisitor<Optional<Type>> {
     }
     
     @Override
-    public Optional<Type> visitIff(Iff term) {
-        return checkBoolList(List.of(term.getLeft(), term.getRight()));
-    }
-    
-    @Override
     public Optional<Type> visitImplication(Implication term) {
         return checkBoolList(List.of(term.getLeft(), term.getRight()));
     }

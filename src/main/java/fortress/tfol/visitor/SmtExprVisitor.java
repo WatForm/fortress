@@ -63,15 +63,6 @@ public class SmtExprVisitor implements TermVisitor<SExpr> {
     }
     
     @Override
-    public SExpr visitIff(Iff term) {
-        return SExpr.mkList(
-            SExpr.mkAtom("="), // SMT-LIB uses = for iff
-            visit(term.getLeft()),
-            visit(term.getRight())
-        );
-    }
-    
-    @Override
     public SExpr visitImplication(Implication term) {
         return SExpr.mkList(
             SExpr.mkAtom("=>"),

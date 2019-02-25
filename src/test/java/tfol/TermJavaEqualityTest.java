@@ -73,12 +73,6 @@ public class TermJavaEqualityTest {
     }
     
     @Test
-    public void Iff() {
-        assertEquals(mkIff(p, q), mkIff(p, q));
-        assertNotEquals(mkIff(p, q), mkIff(p, r));
-    }
-    
-    @Test
     public void Eq() {
         assertEquals(mkEq(a1, a2), mkEq(a1, a2));
         assertNotEquals(mkEq(a1, a2), mkEq(a1, a3));

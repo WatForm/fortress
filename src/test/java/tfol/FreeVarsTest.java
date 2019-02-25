@@ -26,7 +26,7 @@ public class FreeVarsTest {
     Term t = Term.mkAnd(
         Term.mkApp("p", x),
         Term.mkNot(
-            Term.mkIff(
+            Term.mkImp(
                 Term.mkApp("q", y),
                 Term.mkApp("p", x)
             )

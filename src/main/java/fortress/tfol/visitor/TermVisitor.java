@@ -14,7 +14,6 @@ public interface TermVisitor<T> {
     public T visitAndList(AndList term);
     public T visitOrList(OrList term);
     public T visitDistinct(Distinct term);
-    public T visitIff(Iff term);
     public T visitImplication(Implication term);
     public T visitEq(Eq term);
     public T visitApp(App term);

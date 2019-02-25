@@ -138,7 +138,7 @@ public class TptpToFortress extends FOFTPTPBaseVisitor {
     public Object visitIff(FOFTPTPParser.IffContext ctx) {
         Term left = (Term) visit(ctx.fof_formula(0));
         Term right = (Term) visit(ctx.fof_formula(1));
-        return Term.mkIff(left, right);
+        return Term.mkEq(left, right);
     }
 
     @Override

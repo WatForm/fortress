@@ -152,14 +152,6 @@ public class TheoryToZ3Java implements TermVisitor<Expr>{
         return context.mkDistinct(args);
     }
     
-    public Expr visitIff(Iff term) {
-        // TODO is there a simple way to avoid casting here?
-        return context.mkIff(
-            (BoolExpr) visit(term.getLeft()),
-            (BoolExpr) visit(term.getRight())
-        );
-    }
-    
     public Expr visitImplication(Implication term) {
         // TODO is there a simple way to avoid casting here?
         return context.mkImplies(

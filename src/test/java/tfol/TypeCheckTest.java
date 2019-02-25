@@ -145,7 +145,7 @@ public class TypeCheckTest {
     }
     
     @Test
-    public void andOrImpIff() {
+    public void andOrImp() {
         Set<Type> types = Set.of(A);
         Set<AnnotatedVar> constants = Set.of(y.of(Type.Bool));
         Set<FuncDecl> decls = Set.of(p);
@@ -155,15 +155,13 @@ public class TypeCheckTest {
         Term and = Term.mkAnd(arg1, arg2);
         Term or = Term.mkOr(arg1, arg2);
         Term imp = Term.mkImp(arg1, arg2);
-        Term iff = Term.mkIff(arg1, arg2);
         assertEquals(Optional.of(Type.Bool), and.typecheck(sig));
         assertEquals(Optional.of(Type.Bool), or.typecheck(sig));
         assertEquals(Optional.of(Type.Bool), imp.typecheck(sig));
-        assertEquals(Optional.of(Type.Bool), iff.typecheck(sig));
     }
     
     @Test
-    public void andOrImpIffWrongArg() {
+    public void andOrImpWrongArg() {
         Set<Type> types = Set.of(A, B);
         Set<AnnotatedVar> constants = Set.of(x.of(A), y.of(Type.Bool));
         Set<FuncDecl> decls = Set.of(f);
@@ -173,11 +171,9 @@ public class TypeCheckTest {
         Term and = Term.mkAnd(arg1, arg2);
         Term or = Term.mkOr(arg1, arg2);
         Term imp = Term.mkImp(arg1, arg2);
-        Term iff = Term.mkIff(arg1, arg2);
         assertEquals(Optional.empty(), and.typecheck(sig));
         assertEquals(Optional.empty(), or.typecheck(sig));
         assertEquals(Optional.empty(), imp.typecheck(sig));
-        assertEquals(Optional.empty(), iff.typecheck(sig));
     }
     
     @Test
