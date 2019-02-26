@@ -14,6 +14,7 @@ import fortress.tfol.visitor.SmtExprVisitor;
 import fortress.tfol.visitor.NnfVisitor;
 import fortress.sexpr.*;
 import java.util.function.Function;
+import fortress.data.Either;
 
 public abstract class Term {
     
@@ -156,7 +157,14 @@ public abstract class Term {
     // Returns an optional containing the term's type with repsect to the
     // given signature, or an empty optional if typechecking fails.
     // Note that a term that is not closed cannot typecheck correctly.
-    public Optional<Type> typecheck(Signature signature) {
+    public Optional<Type> typecheckOption(Signature signature) {
+        return typecheckEither(signature).match(
+            (String err) -> Optional.empty(),
+            (Type t) -> Optional.of(t) 
+        );
+    }
+    
+    public Either<String, Type> typecheckEither(Signature signature) {
         TypeCheckVisitor visitor = new TypeCheckVisitor(signature);
         return visitor.visit(this);
     }

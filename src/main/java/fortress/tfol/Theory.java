@@ -93,8 +93,10 @@ public class Theory {
     private void checkAxiom(Term formula) {
         // Check axiom typechecks as bool
         // Note that a formula cannot typecheck if it has any free variables (that are not constants of the signature)
-        Errors.failIf(! formula.typecheck(signature)
-            .equals(Optional.of(Type.Bool)));
+        formula.typecheckEither(signature).matchDo(
+            (String err) -> Errors.failIf(true, err),
+            (Type t) -> Errors.failIf(!t.equals(Type.Bool), "Axiom " + formula.toString() + " has type " + t.getName())
+        );
     }
     
     @Override

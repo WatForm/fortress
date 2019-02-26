@@ -38,7 +38,7 @@ public class TypeCheckTest {
         Set<AnnotatedVar> constants = Set.of();
         Set<FuncDecl> decls = Set.of();
         Signature sig = Signature.mkSignature(types, decls, constants);
-        assertEquals(Optional.empty(), x.typecheck(sig));
+        assertEquals(Optional.empty(), x.typecheckOption(sig));
     }
     
     @Test
@@ -47,7 +47,7 @@ public class TypeCheckTest {
         Set<AnnotatedVar> constants = Set.of(x.of(A));
         Set<FuncDecl> decls = Set.of();
         Signature sig = Signature.mkSignature(types, decls, constants);
-        assertEquals(Optional.of(A), x.typecheck(sig));
+        assertEquals(Optional.of(A), x.typecheckOption(sig));
     }
     
     @Test
@@ -57,7 +57,7 @@ public class TypeCheckTest {
         Set<FuncDecl> decls = Set.of(f);
         Signature sig = Signature.mkSignature(types, decls, constants);
         Term app = Term.mkApp("f", x);
-        assertEquals(Optional.of(B), app.typecheck(sig));
+        assertEquals(Optional.of(B), app.typecheckOption(sig));
     }
     
     @Test
@@ -67,7 +67,7 @@ public class TypeCheckTest {
         Set<FuncDecl> decls = Set.of(f);
         Signature sig = Signature.mkSignature(types, decls, constants);
         Term app = Term.mkApp("g", x);
-        assertEquals(Optional.empty(), app.typecheck(sig));
+        assertEquals(Optional.empty(), app.typecheckOption(sig));
     }
     
     @Test
@@ -77,7 +77,7 @@ public class TypeCheckTest {
         Set<FuncDecl> decls = Set.of();
         Signature sig = Signature.mkSignature(types, decls, constants);
         Term app = Term.mkApp("f", x);
-        assertEquals(Optional.empty(), app.typecheck(sig));
+        assertEquals(Optional.empty(), app.typecheckOption(sig));
     }
     
     @Test
@@ -88,8 +88,8 @@ public class TypeCheckTest {
         Signature sig = Signature.mkSignature(types, decls, constants);
         Term app1 = Term.mkForall(x.of(A), Term.mkApp("p", x));
         Term app2 = Term.mkExists(x.of(A), Term.mkApp("p", x));
-        assertEquals(Optional.of(Type.Bool), app1.typecheck(sig));
-        assertEquals(Optional.of(Type.Bool), app2.typecheck(sig));
+        assertEquals(Optional.of(Type.Bool), app1.typecheckOption(sig));
+        assertEquals(Optional.of(Type.Bool), app2.typecheckOption(sig));
     }
     
     @Test
@@ -100,8 +100,8 @@ public class TypeCheckTest {
         Signature sig = Signature.mkSignature(types, decls, constants);
         Term app1 = Term.mkForall(y.of(B), Term.mkApp("p", y));
         Term app2 = Term.mkExists(y.of(B), Term.mkApp("p", y));
-        assertEquals(Optional.empty(), app1.typecheck(sig));
-        assertEquals(Optional.empty(), app2.typecheck(sig));
+        assertEquals(Optional.empty(), app1.typecheckOption(sig));
+        assertEquals(Optional.empty(), app2.typecheckOption(sig));
     }
     
     @Test
@@ -112,8 +112,8 @@ public class TypeCheckTest {
         Signature sig = Signature.mkSignature(types, decls, constants);
         Term term1 = Term.mkForall(x.of(Type.Bool), Term.mkOr(x, Term.mkApp("h", x)));
         Term term2 = Term.mkForall(x.of(Type.Bool), Term.mkOr(x, Term.mkApp("h", x)));
-        assertEquals(Optional.of(Type.Bool), term1.typecheck(sig));
-        assertEquals(Optional.of(Type.Bool), term2.typecheck(sig));
+        assertEquals(Optional.of(Type.Bool), term1.typecheckOption(sig));
+        assertEquals(Optional.of(Type.Bool), term2.typecheckOption(sig));
     }
     
     @Test
@@ -125,9 +125,9 @@ public class TypeCheckTest {
         Term fx = Term.mkApp("f", x);
         Term gfx = Term.mkApp("g", fx);
         Term pgfx = Term.mkApp("p", gfx);
-        assertEquals(Optional.of(B), fx.typecheck(sig));
-        assertEquals(Optional.of(A), gfx.typecheck(sig));
-        assertEquals(Optional.of(Type.Bool), pgfx.typecheck(sig));
+        assertEquals(Optional.of(B), fx.typecheckOption(sig));
+        assertEquals(Optional.of(A), gfx.typecheckOption(sig));
+        assertEquals(Optional.of(Type.Bool), pgfx.typecheckOption(sig));
     }
     
     @Test
@@ -139,9 +139,9 @@ public class TypeCheckTest {
         Term fx = Term.mkApp("f", x);
         Term ffx = Term.mkApp("f", fx);
         Term pffx = Term.mkApp("p", ffx);
-        assertEquals(Optional.of(B), fx.typecheck(sig));
-        assertEquals(Optional.empty(), ffx.typecheck(sig));
-        assertEquals(Optional.empty(), pffx.typecheck(sig));
+        assertEquals(Optional.of(B), fx.typecheckOption(sig));
+        assertEquals(Optional.empty(), ffx.typecheckOption(sig));
+        assertEquals(Optional.empty(), pffx.typecheckOption(sig));
     }
     
     @Test
@@ -155,9 +155,9 @@ public class TypeCheckTest {
         Term and = Term.mkAnd(arg1, arg2);
         Term or = Term.mkOr(arg1, arg2);
         Term imp = Term.mkImp(arg1, arg2);
-        assertEquals(Optional.of(Type.Bool), and.typecheck(sig));
-        assertEquals(Optional.of(Type.Bool), or.typecheck(sig));
-        assertEquals(Optional.of(Type.Bool), imp.typecheck(sig));
+        assertEquals(Optional.of(Type.Bool), and.typecheckOption(sig));
+        assertEquals(Optional.of(Type.Bool), or.typecheckOption(sig));
+        assertEquals(Optional.of(Type.Bool), imp.typecheckOption(sig));
     }
     
     @Test
@@ -171,9 +171,9 @@ public class TypeCheckTest {
         Term and = Term.mkAnd(arg1, arg2);
         Term or = Term.mkOr(arg1, arg2);
         Term imp = Term.mkImp(arg1, arg2);
-        assertEquals(Optional.empty(), and.typecheck(sig));
-        assertEquals(Optional.empty(), or.typecheck(sig));
-        assertEquals(Optional.empty(), imp.typecheck(sig));
+        assertEquals(Optional.empty(), and.typecheckOption(sig));
+        assertEquals(Optional.empty(), or.typecheckOption(sig));
+        assertEquals(Optional.empty(), imp.typecheckOption(sig));
     }
     
     @Test
@@ -189,10 +189,10 @@ public class TypeCheckTest {
         Term eq1 = Term.mkEq(arg1, arg2);
         Term eq2 = Term.mkEq(arg1, arg3);
         Term eq3 = Term.mkEq(arg2, arg3);
-        assertEquals(Optional.of(Type.Bool), distinct.typecheck(sig));
-        assertEquals(Optional.of(Type.Bool), eq1.typecheck(sig));
-        assertEquals(Optional.of(Type.Bool), eq2.typecheck(sig));
-        assertEquals(Optional.of(Type.Bool), eq3.typecheck(sig));
+        assertEquals(Optional.of(Type.Bool), distinct.typecheckOption(sig));
+        assertEquals(Optional.of(Type.Bool), eq1.typecheckOption(sig));
+        assertEquals(Optional.of(Type.Bool), eq2.typecheckOption(sig));
+        assertEquals(Optional.of(Type.Bool), eq3.typecheckOption(sig));
     }
     
     @Test
@@ -207,9 +207,9 @@ public class TypeCheckTest {
         Term distinct = Term.mkDistinct(arg1, arg2, arg3);
         Term eq1 = Term.mkEq(arg1, arg3);
         Term eq2 = Term.mkEq(arg2, arg3);
-        assertEquals(Optional.empty(), distinct.typecheck(sig));
-        assertEquals(Optional.empty(), eq1.typecheck(sig));
-        assertEquals(Optional.empty(), eq2.typecheck(sig));
+        assertEquals(Optional.empty(), distinct.typecheckOption(sig));
+        assertEquals(Optional.empty(), eq1.typecheckOption(sig));
+        assertEquals(Optional.empty(), eq2.typecheckOption(sig));
     }
     
     @Test
@@ -218,8 +218,8 @@ public class TypeCheckTest {
         Set<AnnotatedVar> constants = Set.of();
         Set<FuncDecl> decls = Set.of();
         Signature sig = Signature.mkSignature(types, decls, constants);
-        assertEquals(Optional.of(Type.Bool), Term.mkTop().typecheck(sig));
-        assertEquals(Optional.of(Type.Bool), Term.mkBottom().typecheck(sig));
+        assertEquals(Optional.of(Type.Bool), Term.mkTop().typecheckOption(sig));
+        assertEquals(Optional.of(Type.Bool), Term.mkBottom().typecheckOption(sig));
         
     }
     
@@ -230,7 +230,7 @@ public class TypeCheckTest {
         Set<FuncDecl> decls = Set.of(p);
         Signature sig = Signature.mkSignature(types, decls, constants);
         Term not = Term.mkNot(Term.mkApp("p", x));
-        assertEquals(Optional.of(Type.Bool), not.typecheck(sig));
+        assertEquals(Optional.of(Type.Bool), not.typecheckOption(sig));
     }
     
     @Test
@@ -240,7 +240,7 @@ public class TypeCheckTest {
         Set<FuncDecl> decls = Set.of(f);
         Signature sig = Signature.mkSignature(types, decls, constants);
         Term not = Term.mkNot(Term.mkApp("f", x));
-        assertEquals(Optional.empty(), not.typecheck(sig));
+        assertEquals(Optional.empty(), not.typecheckOption(sig));
     }
     
     @Test
@@ -251,8 +251,8 @@ public class TypeCheckTest {
         Signature sig = Signature.mkSignature(types, decls, constants);
         Term forall = Term.mkForall(x.of(A), Term.mkApp("p", x));
         Term exists = Term.mkExists(y.of(B), Term.mkApp("q", y));
-        assertEquals(Optional.of(Type.Bool), forall.typecheck(sig));
-        assertEquals(Optional.of(Type.Bool), exists.typecheck(sig));
+        assertEquals(Optional.of(Type.Bool), forall.typecheckOption(sig));
+        assertEquals(Optional.of(Type.Bool), exists.typecheckOption(sig));
     }
     
     @Test
@@ -263,8 +263,8 @@ public class TypeCheckTest {
         Signature sig = Signature.mkSignature(types, decls, constants);
         Term forall = Term.mkForall(x.of(A), Term.mkApp("f", x));
         Term exists = Term.mkExists(y.of(B), Term.mkApp("g", y));
-        assertEquals(Optional.empty(), forall.typecheck(sig));
-        assertEquals(Optional.empty(), exists.typecheck(sig));
+        assertEquals(Optional.empty(), forall.typecheckOption(sig));
+        assertEquals(Optional.empty(), exists.typecheckOption(sig));
     }
     
     @Test
@@ -275,8 +275,8 @@ public class TypeCheckTest {
         Signature sig = Signature.mkSignature(types, decls, constants);
         Term forall = Term.mkForall(x.of(A), Term.mkApp("p", x));
         Term exists = Term.mkExists(y.of(B), Term.mkApp("q", y));
-        assertEquals(Optional.of(Type.Bool), forall.typecheck(sig));
-        assertEquals(Optional.of(Type.Bool), exists.typecheck(sig));
+        assertEquals(Optional.of(Type.Bool), forall.typecheckOption(sig));
+        assertEquals(Optional.of(Type.Bool), exists.typecheckOption(sig));
     }
     
     @Test
@@ -287,8 +287,8 @@ public class TypeCheckTest {
         Signature sig = Signature.mkSignature(types, decls, constants);
         Term forall = Term.mkForall(x.of(A), Term.mkApp("q", y));
         Term exists = Term.mkExists(x.of(A), Term.mkApp("q", y));
-        assertEquals(Optional.empty(), forall.typecheck(sig));
-        assertEquals(Optional.empty(), exists.typecheck(sig));
+        assertEquals(Optional.empty(), forall.typecheckOption(sig));
+        assertEquals(Optional.empty(), exists.typecheckOption(sig));
     }
     
     // Check that errors percolate upwards
@@ -302,8 +302,8 @@ public class TypeCheckTest {
         Term bad2 = Term.mkApp("f", y);
         Term t1 = Term.mkAnd(Term.mkImp(Term.mkNot(bad1), Term.mkBottom()), Term.mkTop());
         Term t2 = Term.mkOr(Term.mkEq(y, bad2), Term.mkTop());
-        assertEquals(Optional.empty(), t1.typecheck(sig));
-        assertEquals(Optional.empty(), t2.typecheck(sig));
+        assertEquals(Optional.empty(), t1.typecheckOption(sig));
+        assertEquals(Optional.empty(), t2.typecheckOption(sig));
     }
     
     @Test // Former bug
@@ -319,7 +319,7 @@ public class TypeCheckTest {
             Term.mkApp("p", x)
         );
         
-        assertEquals(Optional.empty(), t.typecheck(sig));
+        assertEquals(Optional.empty(), t.typecheckOption(sig));
     }
     
     @Test
@@ -335,7 +335,7 @@ public class TypeCheckTest {
             Term.mkApp("p", x)
         );
         
-        assertEquals(Optional.of(Type.Bool), t.typecheck(sig));
+        assertEquals(Optional.of(Type.Bool), t.typecheckOption(sig));
     }
     
     @Test // Former bug
@@ -351,7 +351,7 @@ public class TypeCheckTest {
             Term.mkApp("p", x)
         );
         
-        assertEquals(Optional.empty(), t.typecheck(sig));
+        assertEquals(Optional.empty(), t.typecheckOption(sig));
     }
     
     
@@ -364,6 +364,6 @@ public class TypeCheckTest {
         Signature sig = Signature.mkSignature(types, decls, constants);
         Var xp = Term.mkVar("p"); // name clashes with function name
         Term t = Term.mkForall(xp.of(Type.Bool), xp);
-        assertEquals(Optional.empty(), t.typecheck(sig));
+        assertEquals(Optional.empty(), t.typecheckOption(sig));
     }
 }

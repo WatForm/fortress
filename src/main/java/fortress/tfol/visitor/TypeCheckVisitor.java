@@ -1,13 +1,16 @@
 package fortress.tfol.visitor;
 
+import fortress.data.Either;
 import java.util.Optional;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.Set;
+import java.util.HashSet;
 import fortress.tfol.*;
+import java.util.Iterator;
 
-public class TypeCheckVisitor implements TermVisitor<Optional<Type>> {
+public class TypeCheckVisitor implements TermVisitor<Either<String, Type>> {
     
     private final Signature signature;
     private final LinkedList<AnnotatedVar> contextStack;
@@ -24,23 +27,23 @@ public class TypeCheckVisitor implements TermVisitor<Optional<Type>> {
     }
     
     @Override
-    public Optional<Type> visitTop(Top term) {
-        return Optional.of(Type.Bool);
+    public Either<String, Type> visitTop(Top term) {
+        return Either.rightOf(Type.Bool);
     }
     
     @Override
-    public Optional<Type> visitBottom(Bottom term) {
-        return Optional.of(Type.Bool);
+    public Either<String, Type> visitBottom(Bottom term) {
+        return Either.rightOf(Type.Bool);
     }
     
     @Override
-    public Optional<Type> visitVar(Var variable) {
+    public Either<String, Type> visitVar(Var variable) {
         // Check variable is not an already declared function symbol
         // This must be done even with a consistent signature
         // TODO: this behaviour should be documented
         // TODO: is this considered poorly typed or a different kind of error?
         if(signature.lookupFunctionDeclaration(variable.getName()).isPresent()) {
-            return Optional.empty();
+            return Either.leftOf("Variable name " + variable.getName() + " conflicts with existing function symbol");
         }
         
         
@@ -52,101 +55,127 @@ public class TypeCheckVisitor implements TermVisitor<Optional<Type>> {
         // since the use of v will have type B
         for(AnnotatedVar v : contextStack) {
             if(v.getName().equals(variable.getName())) {
-                return Optional.of(v.getType());
+                return Either.rightOf(v.getType());
             }
         }
         
         // If it is not in the stack, check if is in the declared constants
         return signature.lookupConstant(variable)
-            .map( (AnnotatedVar av) -> av.getType());
+            .map( (AnnotatedVar av) -> Either.<String, Type>rightOf(av.getType()))
+            .orElse(Either.<String, Type>leftOf("Could not determine type of variable " + variable.getName()));
     }
     
     @Override
-    public Optional<Type> visitNot(Not term) {
-        if(typesAsBool(term.getBody())) {
-            return Optional.of(Type.Bool);
-        } else {
-            return Optional.empty();
+    public Either<String, Type> visitNot(Not term) {
+        return visit(term.getBody()).match(
+            (String err) -> Either.leftOf(err),
+            (Type t) -> {
+                if(t.equals(Type.Bool)) {
+                    return Either.rightOf(Type.Bool);
+                } else {
+                    return Either.leftOf("Argument of negation is of type " + t.getName() + " in " + term.toString());
+                }
+            }
+        );
+    }
+    
+    private Either<String, Type> checkBoolList(List<Term> terms, Term base) {
+        for(Term term : terms) {
+            Either<String, Type> result = visit(term);
+            if(result.isLeft()) {
+                return result;
+            } else {
+                Type t = result.getRight();
+                if(!t.equals(Type.Bool)) {
+                    return Either.leftOf("Expected type Bool but was " + t.getName() + " in " + base.toString());
+                }
+            }
         }
+        return Either.rightOf(Type.Bool);
     }
-    
-    private boolean typesAsBool(Term term) {
-        return visit(term).filter(Type.Bool::equals).isPresent();
-    }
-    
-    private boolean allTypeAsBool(List<Term> terms) {
-        return terms.stream().allMatch(term -> typesAsBool(term));
-    }
-    
-    // If the given list of terms all typecheck as bool
-    private Optional<Type> checkBoolList(List<Term> terms) {
-        if(allTypeAsBool(terms)) {
-            return Optional.of(Type.Bool);
-        } else {
-            return Optional.empty();
-        }
+
+    @Override
+    public Either<String, Type> visitAndList(AndList andList) {
+        return checkBoolList(andList.getArguments(), andList);
     }
     
     @Override
-    public Optional<Type> visitAndList(AndList andList) {
-        return checkBoolList(andList.getArguments());
+    public Either<String, Type> visitOrList(OrList orList) {
+        return checkBoolList(orList.getArguments(), orList);
     }
     
-    @Override
-    public Optional<Type> visitOrList(OrList orList) {
-        return checkBoolList(orList.getArguments());
-    }
-    
-    @Override
-    public Optional<Type> visitDistinct(Distinct term) {
-        List<Term> arguments = term.getArguments();
-        List<Optional<Type>> types = arguments.stream().map(v -> visit(v)).collect(Collectors.toList());
-        boolean allSameType = types.stream().allMatch(types.get(0)::equals);
-        // Check first one is well typed and they all have the same type
-        if(allSameType && types.get(0).isPresent()) {
-            return Optional.of(Type.Bool);
-        } else {
-            return Optional.empty();
-        }
-    }
-    
-    @Override
-    public Optional<Type> visitImplication(Implication term) {
-        return checkBoolList(List.of(term.getLeft(), term.getRight()));
-    }
-    
-    @Override
-    public Optional<Type> visitEq(Eq term) {
-        if(visit(term.getLeft()).equals(visit(term.getRight()))) {
-            return Optional.of(Type.Bool);
-        } else {
-            return Optional.empty();
-        }
-    }
-    
-    private boolean functionTypeMatches(FuncDecl funcDecl, List<Term> arguments) {
-        List<Optional<Type>> expected = funcDecl.getArgTypes().stream().map(
-            type -> Optional.of(type)
-        ).collect(Collectors.toList());
+    private Either<String, Type> sameTypeThenBool(List<Term> terms, Term base) {
+        Set<Type> foundTypes = new HashSet();
         
-        List<Optional<Type>> actual = arguments.stream().map(
-            term -> visit(term)
-        ).collect(Collectors.toList());
+        for(Term arg : terms) {
+            Either<String, Type> result = visit(arg);
+            if(result.isLeft()) {
+                return result;
+            } else {
+                Type t = result.getRight();
+                foundTypes.add(t);
+            }
+        }
         
-        return expected.equals(actual);
+        if(foundTypes.size() > 1) {
+            return Either.leftOf("Arguments of multiple types " + foundTypes.toString() + " in " + base.toString());
+        }
+        
+        return Either.rightOf(Type.Bool);
     }
     
     @Override
-    public Optional<Type> visitApp(App app) {
+    public Either<String, Type> visitDistinct(Distinct term) {
+        return sameTypeThenBool(term.getArguments(), term);
+    }
+    
+    @Override
+    public Either<String, Type> visitImplication(Implication term) {
+        return checkBoolList(List.of(term.getLeft(), term.getRight()), term);
+    }
+    
+    @Override
+    public Either<String, Type> visitEq(Eq term) {
+        return sameTypeThenBool(List.of(term.getLeft(), term.getRight()), term);
+    }
+    
+    private Either<String, Type> checkFunction(FuncDecl funcDecl, List<Term> arguments) {
+        if(funcDecl.getArity() != arguments.size()) {
+            return Either.leftOf("Application of " + funcDecl.getName() + " to wrong number of arguments");
+        }
+        
+        Iterator<Type> itTypes = funcDecl.getArgTypes().iterator();
+        Iterator<Term> itArgs = arguments.iterator();
+        int argNum = 0;
+        while(itTypes.hasNext() && itArgs.hasNext()) {
+            argNum++;
+            Type expected = itTypes.next();
+            Term term = itArgs.next();
+            Either<String, Type> result = visit(term);
+            if(result.isLeft()) {
+                return result;
+            } else {
+                Type actual = result.getRight();
+                if(!expected.equals(actual)) {
+                    return Either.leftOf("In argument " + argNum + " of " + funcDecl.getName() + ", expected " + expected.getName() + " but was " + actual.getName());
+                }
+            }
+        }
+        
+        return Either.rightOf(funcDecl.getResultType());
+    }
+    
+    @Override
+    public Either<String, Type> visitApp(App app) {
         String funcName = app.getFunctionName();
         List<Term> arguments = app.getArguments();
         
         return signature.lookupFunctionDeclaration(funcName) // Check for function symbol in declared functions
-            .filter(fdecl -> functionTypeMatches(fdecl, arguments)) // Check argument types match function declaration
-            .map(fdecl -> fdecl.getResultType()); // If true, the application's type is the declaration's result type
+            .map((FuncDecl fdecl) -> checkFunction(fdecl, arguments)) // Check argument types match function declaration and return result type if true
+            .orElse(Either.leftOf("Unknown function " + funcName)); // If function declaration not present
     }
     
-    Optional<Type> visitQuantifier(Quantifier term) {
+    private Either<String, Type> visitQuantifier(Quantifier term) {
         List<AnnotatedVar> variables = term.getVars();
         
         // Must put variables on context stack in this order
@@ -155,26 +184,22 @@ public class TypeCheckVisitor implements TermVisitor<Optional<Type>> {
         for(AnnotatedVar av : variables) {
             contextStack.addFirst(av);
         }
-        boolean correct = typesAsBool(term.getBody());
+        Either<String, Type> result = checkBoolList(List.of(term.getBody()), term);
         
         // Pop context stack
         for(AnnotatedVar av : variables) {
             contextStack.removeFirst();
         }
-        if(correct) {
-            return Optional.of(Type.Bool);
-        } else {
-            return Optional.empty();
-        }
+        return result;
     }
     
     @Override
-    public Optional<Type> visitExists(Exists term) {
+    public Either<String, Type> visitExists(Exists term) {
         return visitQuantifier(term);
     }
     
     @Override
-    public Optional<Type> visitForall(Forall term) {
+    public Either<String, Type> visitForall(Forall term) {
         return visitQuantifier(term);
     }
     

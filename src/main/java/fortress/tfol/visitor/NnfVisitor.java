@@ -7,6 +7,7 @@ import java.util.LinkedList;
 import java.util.ArrayList;
 import java.util.Optional;
 import fortress.util.Errors;
+import fortress.data.Either;
 
 // Given a signature and a well-typed formula, compute the negation normal form of the
 // formula
@@ -110,9 +111,9 @@ public class NnfVisitor implements TermVisitor<Term> {
     @Override
     public Term visitEq(Eq term) {
         TypeCheckVisitor typechecker = new TypeCheckVisitor(signature, contextStack);
-        Optional<Type> typeMaybe = typechecker.visit(term.getLeft());
-        Errors.failIf(!typeMaybe.isPresent(), "Unexpected typechecking error in Nnf");
-        Type argType = typeMaybe.get();
+        Either<String, Type> typeMaybe = typechecker.visit(term.getLeft());
+        Errors.failIf(!typeMaybe.isLeft(), "Unexpected typechecking error in Nnf");
+        Type argType = typeMaybe.getRight();
         if(argType.equals(Type.Bool)) {
             // Iff
             Term left = term.getLeft();
@@ -223,9 +224,9 @@ public class NnfVisitor implements TermVisitor<Term> {
         @Override
         public Term visitEq(Eq term) {
             TypeCheckVisitor typechecker = new TypeCheckVisitor(nnf.signature, nnf.contextStack);
-            Optional<Type> typeMaybe = typechecker.visit(term.getLeft());
-            Errors.failIf(!typeMaybe.isPresent(), "Unexpected typechecking error in Nnf");
-            Type argType = typeMaybe.get();
+            Either<String, Type> typeMaybe = typechecker.visit(term.getLeft());
+            Errors.failIf(!typeMaybe.isLeft(), "Unexpected typechecking error in Nnf");
+            Type argType = typeMaybe.getRight();
             if(argType.equals(Type.Bool)) {
                 // Iff
                 Term left = term.getLeft();
