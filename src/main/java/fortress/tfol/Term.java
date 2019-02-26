@@ -11,7 +11,9 @@ import fortress.tfol.visitor.TermVisitor;
 import fortress.tfol.visitor.TypeCheckVisitor;
 import fortress.tfol.visitor.FreeVariablesVisitor;
 import fortress.tfol.visitor.SmtExprVisitor;
+import fortress.tfol.visitor.NnfVisitor;
 import fortress.sexpr.*;
+import java.util.function.Function;
 
 public abstract class Term {
     
@@ -157,6 +159,11 @@ public abstract class Term {
     public Optional<Type> typecheck(Signature signature) {
         TypeCheckVisitor visitor = new TypeCheckVisitor(signature);
         return visitor.visit(this);
+    }
+    
+    public Term nnf(Signature sig) {
+        NnfVisitor nnf = new NnfVisitor(sig); 
+        return nnf.visit(this);
     }
     
     public SExpr toSmtExpr() {

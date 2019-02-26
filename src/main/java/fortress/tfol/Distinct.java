@@ -3,6 +3,8 @@ package fortress.tfol;
 import fortress.data.ImmutableList;
 import fortress.util.Errors;
 import fortress.tfol.visitor.TermVisitor;
+import java.util.List;
+import java.util.ArrayList;
 
 public class Distinct extends ListOp {
     
@@ -15,5 +17,21 @@ public class Distinct extends ListOp {
     @Override
     public <T> T accept(TermVisitor<T> visitor) {
         return visitor.visitDistinct(this);
+    }
+    
+    public Term asPairwiseNotEquals() {
+        List<Term> pairs = new ArrayList();
+        int i = 0;
+        int j = 0;
+        for(Term ti : getArguments()) {
+            i++;
+            for(Term tj : getArguments()) {
+                j++;
+                if(i < j) {
+                    pairs.add(Term.mkNot(Term.mkEq(ti, tj)));
+                }
+            }
+        }
+        return Term.mkAnd(pairs);
     }
 }

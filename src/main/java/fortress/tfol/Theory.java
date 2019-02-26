@@ -28,6 +28,10 @@ public class Theory {
         this.axioms = PersistentHashSet.empty();
     }
     
+    static public Theory mkTheory(Signature signature) {
+        return new Theory(signature, PersistentHashSet.empty());
+    }
+    
     // Mutates this theory object
     public void addAxiom(Term formula) {
         checkAxiom(formula);
@@ -80,6 +84,10 @@ public class Theory {
     
     public Set<FuncDecl> getFunctionDeclarations() {
         return signature.getFunctionDeclarations();
+    }
+    
+    public Signature getSignature() {
+        return signature;
     }
     
     private void checkAxiom(Term formula) {

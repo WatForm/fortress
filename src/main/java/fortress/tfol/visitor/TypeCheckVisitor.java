@@ -17,6 +17,12 @@ public class TypeCheckVisitor implements TermVisitor<Optional<Type>> {
         this.contextStack = new LinkedList<>();
     }
     
+    // For entering partway through a term traversal
+    public TypeCheckVisitor(Signature signature, LinkedList<AnnotatedVar> contextStack) {
+        this.signature = signature;
+        this.contextStack = contextStack;
+    }
+    
     @Override
     public Optional<Type> visitTop(Top term) {
         return Optional.of(Type.Bool);

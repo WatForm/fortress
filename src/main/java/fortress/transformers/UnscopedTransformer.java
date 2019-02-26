@@ -1,4 +1,4 @@
-package fortress.modelfind;
+package fortress.transformers;
 
 import fortress.tfol.*;
 
@@ -8,7 +8,7 @@ public class UnscopedTransformer implements TheoryTransformer {
     }
     
     @Override
-    public Theory transform(Theory theory) {
+    public Theory apply(Theory theory) {
         return theory;
     }
 }

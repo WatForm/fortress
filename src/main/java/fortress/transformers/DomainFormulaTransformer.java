@@ -1,4 +1,4 @@
-package fortress.modelfind;
+package fortress.transformers;
 
 import java.util.Map;
 import java.util.List;
@@ -7,8 +7,8 @@ import java.util.stream.Collectors;
 
 import fortress.tfol.*;
 
-public abstract class NaiveScopeTransformer implements TheoryTransformer {
-    public void NaiveScopeTransformer() {
+public abstract class DomainFormulaTransformer implements TheoryTransformer {
+    public void DomainFormulaTransformer() {
         // Empty
     }
     

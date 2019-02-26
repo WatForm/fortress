@@ -9,6 +9,9 @@ import java.util.Collection;
 import java.util.function.UnaryOperator;
 import java.util.Comparator;
 
+// TODO need a more efficient way to build immutable lists
+// e.g. ImmutableListBuilder class that you can only call getImmutable() on once.
+
 public interface ImmutableList<E> extends List<E> {
     
     // Unsupported Operations

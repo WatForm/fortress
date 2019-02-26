@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.ArrayList;
 
 import fortress.tfol.*;
+import fortress.transformers.TheoryTransformer;
 
 public class ModelFinder {
     private List<TheoryTransformer> theoryTransformers;
@@ -36,7 +37,7 @@ public class ModelFinder {
         
         transformationTimer.set();
         for(TheoryTransformer theoryTransformer : theoryTransformers) {
-            theory = theoryTransformer.transform(theory);
+            theory = theoryTransformer.apply(theory);
         }
         transformationTimer.stop();
         

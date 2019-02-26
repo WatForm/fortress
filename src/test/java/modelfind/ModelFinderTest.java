@@ -15,6 +15,7 @@ import java.util.List;
 import java.util.ArrayList;
 import java.io.*;
 import fortress.util.Errors;
+import fortress.transformers.*;
 
 public class ModelFinderTest {
     
