@@ -25,7 +25,7 @@ public class Theory {
     
     private Theory(Signature signature, PersistentSet<Term> axioms) {
         this.signature = signature;
-        this.axioms = PersistentHashSet.empty();
+        this.axioms = axioms;
     }
     
     static public Theory mkTheory(Signature signature) {

@@ -105,4 +105,9 @@ public class PersistentHashSet<E> implements PersistentSet<E> {
     public <T> T[] toArray(T[] as) {
         throw new UnsupportedOperationException("HashSet<E> does not support <T> T[] toArray(T[] a) at this time. It will be implemented.");
     } 
+    
+    @Override
+    public String toString() {
+        return implSet.toString();
+    }
 }

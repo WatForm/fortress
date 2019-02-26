@@ -120,4 +120,9 @@ public class ImmutableWrapperList<E> implements ImmutableList<E> {
     public <T> T[] toArray(T[] as) {
         return implList.toArray(as);
     }
+    
+    @Override
+    public String toString() {
+        return implList.toString();
+    }
 }
