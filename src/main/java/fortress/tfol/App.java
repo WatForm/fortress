@@ -12,6 +12,7 @@ public class App extends Term {
     private final ImmutableList<Term> arguments;
 
     protected App(String functionName, ImmutableList<Term> arguments) {
+        Errors.failIf(arguments.size() < 1, "Nullary function application " + functionName + " should be a Var");
         this.functionName = functionName;
         this.arguments = arguments;
     }

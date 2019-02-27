@@ -12,6 +12,8 @@ import fortress.tfol.visitor.TypeCheckVisitor;
 import fortress.tfol.visitor.FreeVariablesVisitor;
 import fortress.tfol.visitor.SmtExprVisitor;
 import fortress.tfol.visitor.NnfVisitor;
+import fortress.tfol.visitor.DeBruijnConverter;
+import fortress.tfol.visitor.Substituter;
 import fortress.sexpr.*;
 import java.util.function.Function;
 import fortress.data.Either;
@@ -176,6 +178,22 @@ public abstract class Term {
     
     public SExpr toSmtExpr() {
         return new SmtExprVisitor().visit(this);
+    }
+    
+    public Term deBruijn() {
+        return new DeBruijnConverter().visit(this);
+    }
+    
+    public boolean alphaEquivalent(Term other) {
+        return this.deBruijn().equals(other.deBruijn());
+    }
+    
+    public Term substitute(Var toSub, Term subWith, Set<String> forbiddenNames) {
+        return new Substituter(this, toSub, subWith, forbiddenNames).substitute();
+    }
+    
+    public Term substitute(Var toSub, Term subWith) {
+        return substitute(toSub, subWith, Set.of());
     }
     
     

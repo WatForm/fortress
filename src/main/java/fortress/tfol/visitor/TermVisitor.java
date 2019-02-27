@@ -7,16 +7,16 @@ public interface TermVisitor<T> {
         return term.accept(this);
     }
     
-    public T visitTop(Top term);
-    public T visitBottom(Bottom term);
-    public T visitVar(Var term);
-    public T visitNot(Not term);
-    public T visitAndList(AndList term);
-    public T visitOrList(OrList term);
-    public T visitDistinct(Distinct term);
-    public T visitImplication(Implication term);
-    public T visitEq(Eq term);
-    public T visitApp(App term);
-    public T visitExists(Exists term);
-    public T visitForall(Forall term);
+    public T visitTop(Top top);
+    public T visitBottom(Bottom bottom);
+    public T visitVar(Var var);
+    public T visitNot(Not not);
+    public T visitAndList(AndList and);
+    public T visitOrList(OrList or);
+    public T visitDistinct(Distinct dist);
+    public T visitImplication(Implication imp);
+    public T visitEq(Eq eq);
+    public T visitApp(App app);
+    public T visitExists(Exists exists);
+    public T visitForall(Forall forall);
 }
