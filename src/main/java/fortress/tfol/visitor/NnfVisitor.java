@@ -112,7 +112,7 @@ public class NnfVisitor implements TermVisitor<Term> {
     public Term visitEq(Eq term) {
         TypeCheckVisitor typechecker = new TypeCheckVisitor(signature, contextStack);
         Either<String, Type> typeMaybe = typechecker.visit(term.getLeft());
-        Errors.failIf(!typeMaybe.isLeft(), "Unexpected typechecking error in Nnf");
+        Errors.failIf(typeMaybe.isLeft(), "Unexpected typechecking error in Nnf");
         Type argType = typeMaybe.getRight();
         if(argType.equals(Type.Bool)) {
             // Iff
@@ -225,7 +225,7 @@ public class NnfVisitor implements TermVisitor<Term> {
         public Term visitEq(Eq term) {
             TypeCheckVisitor typechecker = new TypeCheckVisitor(nnf.signature, nnf.contextStack);
             Either<String, Type> typeMaybe = typechecker.visit(term.getLeft());
-            Errors.failIf(!typeMaybe.isLeft(), "Unexpected typechecking error in Nnf");
+            Errors.failIf(typeMaybe.isLeft(), "Unexpected typechecking error in Nnf");
             Type argType = typeMaybe.getRight();
             if(argType.equals(Type.Bool)) {
                 // Iff
@@ -243,7 +243,7 @@ public class NnfVisitor implements TermVisitor<Term> {
         
         @Override
         public Term visitNot(Not term) {
-            return term.getBody();
+            return nnf.visit(term.getBody());
         }
     }
 }
