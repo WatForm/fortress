@@ -10,20 +10,15 @@ import java.util.HashSet;
 import fortress.tfol.*;
 import java.util.Iterator;
 
-public class TypeCheckVisitor implements TermVisitor<Either<String, Type>> {
-    
-    private final Signature signature;
-    private final LinkedList<AnnotatedVar> contextStack;
+public class TypeCheckVisitor extends TermVisitorWithContext<Either<String, Type>> {
     
     public TypeCheckVisitor(Signature signature) {
-        this.signature = signature;
-        this.contextStack = new LinkedList<>();
+        super(signature);
     }
     
     // For entering partway through a term traversal
     public TypeCheckVisitor(Signature signature, LinkedList<AnnotatedVar> contextStack) {
-        this.signature = signature;
-        this.contextStack = contextStack;
+        super(signature, contextStack);
     }
     
     @Override
@@ -42,26 +37,12 @@ public class TypeCheckVisitor implements TermVisitor<Either<String, Type>> {
         // This must be done even with a consistent signature
         // TODO: this behaviour should be documented
         // TODO: is this considered poorly typed or a different kind of error?
-        if(signature.lookupFunctionDeclaration(variable.getName()).isPresent()) {
-            return Either.leftOf("Variable name " + variable.getName() + " conflicts with existing function symbol");
+        if(lookupFunctionDeclaration(variable.getName()).isPresent()) {
+            return Either.leftOf("Variable or constant name " + variable.getName() + " conflicts with existing function symbol");
         }
         
-        
-        // Check if it is in the Context
-        // Note that the context is used as a stack, so we just need to iterate
-        // from front to back and not have to worry about shadowed variables.
-        // e.g. in (forall v: A, forall v : B, p(v)), the context will look like
-        // List[v: B, v: A], and the term will fail to typecheck if p : A -> Bool
-        // since the use of v will have type B
-        for(AnnotatedVar v : contextStack) {
-            if(v.getName().equals(variable.getName())) {
-                return Either.rightOf(v.getType());
-            }
-        }
-        
-        // If it is not in the stack, check if is in the declared constants
-        return signature.lookupConstant(variable)
-            .map( (AnnotatedVar av) -> Either.<String, Type>rightOf(av.getType()))
+        return lookupType(variable)
+            .map( (Type type) -> Either.<String, Type>rightOf(type) )
             .orElse(Either.<String, Type>leftOf("Could not determine type of variable " + variable.getName()));
     }
     
@@ -170,36 +151,31 @@ public class TypeCheckVisitor implements TermVisitor<Either<String, Type>> {
         String funcName = app.getFunctionName();
         List<Term> arguments = app.getArguments();
         
-        return signature.lookupFunctionDeclaration(funcName) // Check for function symbol in declared functions
+        return lookupFunctionDeclaration(funcName) // Check for function symbol in declared functions
             .map((FuncDecl fdecl) -> checkFunction(fdecl, arguments)) // Check argument types match function declaration and return result type if true
             .orElse(Either.leftOf("Unknown function " + funcName)); // If function declaration not present
     }
     
     private Either<String, Type> visitQuantifier(Quantifier term) {
-        List<AnnotatedVar> variables = term.getVars();
         
-        // Must put variables on context stack in this order
-        // e.g. (forall v: A v: B, p(v)), the context should be
-        // List[v: B, v: A]
-        for(AnnotatedVar av : variables) {
-            contextStack.addFirst(av);
+        // Check variables don't clash with function names
+        for(AnnotatedVar av : term.getVars()) {
+            if(lookupFunctionDeclaration(av.getName()).isPresent()) {
+                return Either.leftOf("Variable name " + av.getName() + " conflicts with existing function symbol");
+            }
         }
+        
         Either<String, Type> result = checkBoolList(List.of(term.getBody()), term);
-        
-        // Pop context stack
-        for(AnnotatedVar av : variables) {
-            contextStack.removeFirst();
-        }
         return result;
     }
     
     @Override
-    public Either<String, Type> visitExists(Exists term) {
+    public Either<String, Type> visitExistsInner(Exists term) {
         return visitQuantifier(term);
     }
     
     @Override
-    public Either<String, Type> visitForall(Forall term) {
+    public Either<String, Type> visitForallInner(Forall term) {
         return visitQuantifier(term);
     }
     

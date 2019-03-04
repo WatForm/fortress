@@ -37,7 +37,7 @@ public class Substituter {
         this.visitor = new SubstitutionVisitor(this);
     }
     
-    private Substituter(Term topLevelTerm, Var toSub, Term subWith, NameGenerator nameGen) {
+    public Substituter(Term topLevelTerm, Var toSub, Term subWith, NameGenerator nameGen) {
         // Copy things so we don't modify them
         this.topLevelTerm = topLevelTerm;
         this.toSub = toSub;

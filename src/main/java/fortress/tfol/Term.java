@@ -14,6 +14,8 @@ import fortress.tfol.visitor.SmtExprVisitor;
 import fortress.tfol.visitor.NnfVisitor;
 import fortress.tfol.visitor.DeBruijnConverter;
 import fortress.tfol.visitor.Substituter;
+import fortress.tfol.visitor.AllVariablesVisitor;
+import java.util.stream.Collectors;
 import fortress.sexpr.*;
 import java.util.function.Function;
 import fortress.data.Either;
@@ -194,6 +196,14 @@ public abstract class Term {
     
     public Term substitute(Var toSub, Term subWith) {
         return substitute(toSub, subWith, Set.of());
+    }
+    
+    public Set<String> allVarConstSymbols() {
+        AllVariablesVisitor allVars = new AllVariablesVisitor();
+        Set<String> usedNames = allVars.visit(this).stream().map(
+            (Var v) -> v.getName()
+        ).collect(Collectors.toSet());
+        return usedNames;
     }
     
     
