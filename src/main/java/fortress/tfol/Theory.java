@@ -60,6 +60,9 @@ public class Theory {
     public Theory withConstant(AnnotatedVar constant) {
         return new Theory(signature.withConstant(constant), axioms);
     }
+    public Theory withConstants(Iterable<AnnotatedVar> constants) {
+        return new Theory(signature.withConstants(constants), axioms);
+    }
     
     // Mutates this theory object
     public void addFunctionDeclaration(FuncDecl f) {
@@ -68,6 +71,9 @@ public class Theory {
     // Returns a new theory object without modifying the previous
     public Theory withFunctionDeclaration(FuncDecl f) {
         return new Theory(signature.withFunctionDeclaration(f), axioms);
+    }
+    public Theory withFunctionDeclarations(Iterable<FuncDecl> fdecls) {
+        return new Theory(signature.withFunctionDeclarations(fdecls), axioms);
     }
     
     public Set<Term> getAxioms() {

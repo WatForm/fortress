@@ -2,28 +2,43 @@ package fortress.tfol.visitor;
 
 import fortress.tfol.*;
 import fortress.data.NameGenerator;
-
 import java.util.Set;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.HashMap;
-import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.ArrayList;
 import java.lang.IllegalArgumentException;
+import fortress.util.Errors;
+import java.util.Optional;
 
 // Skolemizes a given term
 // Free variables in the given term are ignored, so the top level term must be
 // closed with respect to the signature in question for this operation to be valid.
-public abstract class Skolemizer implements TermVisitor<Term> {
+public class Skolemizer extends TermVisitorWithContext<Term> {
     private Term toplevelTerm;
     private NameGenerator gen;
+    private Set<FuncDecl> skolemFunctions;
+    private Set<AnnotatedVar> skolemConstants;
     
-    public Skolemizer(Term toplevelTerm, NameGenerator gen) {
+    public Skolemizer(Term toplevelTerm, Signature sig, NameGenerator gen) {
+        super(sig);
         this.toplevelTerm = toplevelTerm;
         this.gen = gen;
+        this.skolemFunctions = new HashSet();
+        this.skolemConstants = new HashSet();
     }
     
-    Term convert() {
+    public Term convert() {
         return visit(toplevelTerm);
+    }
+    
+    public Set<FuncDecl> getSkolemFunctions() {
+        return skolemFunctions;
+    }
+    
+    public Set<AnnotatedVar> getSkolemConstants() {
+        return skolemConstants;
     }
     
     @Override
@@ -51,10 +66,10 @@ public abstract class Skolemizer implements TermVisitor<Term> {
         return and.mapArguments(this::visit);
     }
     
-    // @Override
-    // public Term visitOrList(OrList or) {
-    //     return Term.mkOr(visit(or.getLeft()), visit(or.getRight()));
-    // }
+    @Override
+    public Term visitOrList(OrList or) {
+        return or.mapArguments(this::visit);
+    }
     
     @Override
     public Term visitDistinct(Distinct distinct) {
@@ -73,9 +88,51 @@ public abstract class Skolemizer implements TermVisitor<Term> {
     
     @Override
     public Term visitEq(Eq eq) {
-        return Term.mkEq(visit(eq.getLeft()), visit(eq.getRight()));
+        return eq.mapArguments(this::visit);
     }
-    // public Term visitApp(App term);
-    // public Term visitExists(Exists term);
-    // public Term visitForall(Forall term);
+    
+    public Term visitApp(App app) {
+        return app.mapArguments(this::visit);
+    }
+    
+    public Term visitExistsInner(Exists exists) {
+        Term temporaryBody = exists.getBody();
+        for(AnnotatedVar av: exists.getVars()) {
+            Set<Var> freeVars = exists.freeVars(signature);
+            if(freeVars.size() == 0) {
+                // Skolem Constant
+                String skolemConstantName = gen.freshName("sk");
+                
+                AnnotatedVar skolemConstant = Term.mkVar(skolemConstantName).of(av.getType());
+                skolemConstants.add(skolemConstant);
+                
+                temporaryBody = temporaryBody.substitute(av.getVar(), skolemConstant.getVar());
+            } else {
+                // Skolem function
+                String skolemFunctionName = gen.freshName("sk");
+                
+                List<Type> argumentTypes = new ArrayList();
+                List<Term> arguments = new ArrayList();
+                for(Var v : freeVars) {
+                    Optional<Type> typeMaybe = lookupType(v);
+                    Errors.failIf(!typeMaybe.isPresent(), "Type of variable " + v.getName() + " could not be found");
+                    Type type = typeMaybe.get();
+                    
+                    argumentTypes.add(type);
+                    arguments.add(v);
+                }
+                
+                FuncDecl skolemFunction = FuncDecl.mkFuncDecl(skolemFunctionName, argumentTypes, av.getType());
+                skolemFunctions.add(skolemFunction);
+                
+                Term skolemApplication = Term.mkApp(skolemFunctionName, arguments);
+                temporaryBody = temporaryBody.substitute(av.getVar(), skolemApplication, gen);
+            }
+        }
+        return visit(temporaryBody);
+    }
+    
+    public Term visitForallInner(Forall forall) {
+        return Term.mkForall(forall.getVars(), visit(forall.getBody()));
+    }
 }

@@ -6,7 +6,7 @@ import java.util.LinkedList;
 import fortress.tfol.*;
 
 abstract class TermVisitorWithContext<T> implements TermVisitor<T> {
-    private Signature signature;
+    protected Signature signature;
     private Deque<AnnotatedVar> typeContextStack;
     
     protected TermVisitorWithContext(Signature signature) {

@@ -57,7 +57,7 @@ public class Signature {
         return new Signature(types, functionDeclarations.plus(fdecl), constants);
     }
     
-    private Signature withFunctionDeclarations(Iterable<FuncDecl> fdecls) {
+    public Signature withFunctionDeclarations(Iterable<FuncDecl> fdecls) {
         Signature sig = this;
         for(FuncDecl f : fdecls) {
             sig = sig.withFunctionDeclaration(f);
@@ -70,7 +70,7 @@ public class Signature {
         return new Signature(types, functionDeclarations, constants.plus(c));
     }
     
-    private Signature withConstants(Iterable<AnnotatedVar> constants) {
+    public Signature withConstants(Iterable<AnnotatedVar> constants) {
         Signature sig = this;
         for(AnnotatedVar c : constants) {
             sig = sig.withConstant(c);

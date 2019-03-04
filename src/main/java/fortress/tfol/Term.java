@@ -19,6 +19,7 @@ import java.util.stream.Collectors;
 import fortress.sexpr.*;
 import java.util.function.Function;
 import fortress.data.Either;
+import fortress.data.NameGenerator;
 
 public abstract class Term {
     
@@ -196,6 +197,10 @@ public abstract class Term {
     
     public Term substitute(Var toSub, Term subWith, Set<String> forbiddenNames) {
         return new Substituter(this, toSub, subWith, forbiddenNames).substitute();
+    }
+    
+    public Term substitute(Var toSub, Term subWith, NameGenerator nameGenerator) {
+        return new Substituter(this, toSub, subWith, nameGenerator).substitute();
     }
     
     public Term substitute(Var toSub, Term subWith) {
