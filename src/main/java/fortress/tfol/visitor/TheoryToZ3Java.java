@@ -160,6 +160,13 @@ public class TheoryToZ3Java implements TermVisitor<Expr>{
         );
     }
     
+    public Expr visitIff(Iff term) {
+        return context.mkEq(
+            visit(term.getLeft()),
+            visit(term.getRight())
+        );
+    }
+    
     public Expr visitEq(Eq term) {
         return context.mkEq(
             visit(term.getLeft()),

@@ -72,6 +72,10 @@ public abstract class Term {
         return new Implication(t1, t2);
     }
     
+    public static Term mkIff(Term t1, Term t2) {
+        return new Iff(t1, t2);
+    }
+    
     public static Term mkEq(Term t1, Term t2) {
         return new Eq(t1, t2);
     }

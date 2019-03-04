@@ -114,6 +114,10 @@ public class TypeCheckVisitor extends TermVisitorWithContext<Either<String, Type
     public Either<String, Type> visitImplication(Implication term) {
         return checkBoolList(List.of(term.getLeft(), term.getRight()), term);
     }
+    @Override
+    public Either<String, Type> visitIff(Iff term) {
+        return checkBoolList(List.of(term.getLeft(), term.getRight()), term);
+    }
     
     @Override
     public Either<String, Type> visitEq(Eq term) {

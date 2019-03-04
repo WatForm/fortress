@@ -2,6 +2,7 @@ package fortress.tfol;
 
 import fortress.data.ImmutableList;
 import fortress.tfol.visitor.TermVisitor;
+import java.util.function.Function;
 
 public class AndList extends AndOrList {
     protected AndList(ImmutableList<Term> arguments) {
@@ -11,5 +12,9 @@ public class AndList extends AndOrList {
     @Override
     public <T> T accept(TermVisitor<T> visitor) {
         return visitor.visitAndList(this);
+    }
+    
+    public Term mapArguments(Function<Term, ? extends Term> mapping) {
+        return new AndList(arguments.map(mapping));
     }
 }

@@ -5,6 +5,7 @@ import fortress.util.Errors;
 import fortress.tfol.visitor.TermVisitor;
 import java.util.List;
 import java.util.ArrayList;
+import java.util.function.Function;
 
 public class Distinct extends ListOp {
     
@@ -33,5 +34,9 @@ public class Distinct extends ListOp {
             }
         }
         return Term.mkAnd(pairs);
+    }
+    
+    public Term mapArguments(Function<Term, ? extends Term> mapping) {
+        return new Distinct(arguments.map(mapping));
     }
 }

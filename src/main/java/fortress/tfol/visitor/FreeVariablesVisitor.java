@@ -61,6 +61,11 @@ public class FreeVariablesVisitor implements TermVisitor<Set<Var>> {
     }
     
     @Override
+    public Set<Var> visitIff(Iff term) {
+        return combineFreeVarsOfList(List.of(term.getLeft(), term.getRight()));
+    }
+    
+    @Override
     public Set<Var> visitEq(Eq term) {
         return combineFreeVarsOfList(List.of(term.getLeft(), term.getRight()));
     }

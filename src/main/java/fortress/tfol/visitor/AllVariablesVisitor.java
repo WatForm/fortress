@@ -61,6 +61,11 @@ public class AllVariablesVisitor implements TermVisitor<Set<Var>> {
     }
     
     @Override
+    public Set<Var> visitIff(Iff iff) {
+        return combineVarsOfList(List.of(iff.getLeft(), iff.getRight()));
+    }
+    
+    @Override
     public Set<Var> visitEq(Eq term) {
         return combineVarsOfList(List.of(term.getLeft(), term.getRight()));
     }

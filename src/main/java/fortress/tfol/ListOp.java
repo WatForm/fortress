@@ -8,7 +8,7 @@ import java.util.List;
 // TODO consider renaming
 
 public abstract class ListOp extends Term {
-    private final ImmutableList<Term> arguments;
+    protected final ImmutableList<Term> arguments;
     
     protected ListOp(ImmutableList<Term> arguments) {
         this.arguments = arguments;

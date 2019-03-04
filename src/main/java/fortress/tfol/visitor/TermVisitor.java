@@ -15,6 +15,7 @@ public interface TermVisitor<T> {
     public T visitOrList(OrList or);
     public T visitDistinct(Distinct dist);
     public T visitImplication(Implication imp);
+    public T visitIff(Iff iff);
     public T visitEq(Eq eq);
     public T visitApp(App app);
     public T visitExists(Exists exists);

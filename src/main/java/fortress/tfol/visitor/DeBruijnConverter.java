@@ -78,6 +78,11 @@ public class DeBruijnConverter implements TermVisitor<Term>{
     }
     
     @Override
+    public Term visitIff(Iff iff) {
+        return Term.mkIff(visit(iff.getLeft()), visit(iff.getRight()));
+    }
+    
+    @Override
     public Term visitEq(Eq eq) {
         return Term.mkEq(visit(eq.getLeft()), visit(eq.getRight()));
     }

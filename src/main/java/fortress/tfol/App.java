@@ -5,6 +5,7 @@ import fortress.util.Errors;
 import java.util.List;
 import java.util.ArrayList;
 import fortress.tfol.visitor.TermVisitor;
+import java.util.function.Function;
 
 //Function application f(x_1, ..., x_n)
 public class App extends Term {
@@ -43,5 +44,9 @@ public class App extends Term {
     @Override
     public <T> T accept(TermVisitor<T> visitor) {
         return visitor.visitApp(this);
+    }
+    
+    public Term mapArguments(Function<Term, ? extends Term> mapping) {
+        return new App(functionName, arguments.map(mapping));
     }
 }

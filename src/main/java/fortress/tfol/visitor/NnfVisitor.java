@@ -106,6 +106,16 @@ public class NnfVisitor implements TermVisitor<Term> {
         return t;
     }
     
+    @Override
+    public Term visitIff(Iff iff) {
+        Term left = iff.getLeft();
+        Term right = iff.getRight();
+        return Term.mkOr(
+            Term.mkAnd(visit(left), visit(right)),
+            Term.mkAnd(visit(Term.mkNot(left)), visit(Term.mkNot(right)))
+        );
+    }
+    
     // Eq could be between Bools (i.e. it means iff), in which case it must be removed
     // so we have to do some typechecking here.
     @Override
@@ -219,6 +229,16 @@ public class NnfVisitor implements TermVisitor<Term> {
                 nnf.contextStack.removeFirst();
             }
             return t;
+        }
+        
+        @Override
+        public Term visitIff(Iff term) {
+            Term left = term.getLeft();
+            Term right = term.getRight();
+            return Term.mkOr(
+                Term.mkAnd(nnf.visit(left), nnf.visit(Term.mkNot(right))),
+                Term.mkAnd(nnf.visit(Term.mkNot(left)), nnf.visit(right))
+            );
         }
         
         @Override
