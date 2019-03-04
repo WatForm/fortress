@@ -28,4 +28,11 @@ public class ImmutableWrapperListTest {
         assertFalse(il3.equals(il2));
         assertFalse(il2.equals(il3));
     }
+    
+    @Test
+    public void map() {
+        ImmutableList<Integer> ilist1 = ImmutableWrapperList.copyCollection(List.of(1, 2));
+        ImmutableList<Integer> ilist2 = ImmutableWrapperList.copyCollection(List.of(-1, -2));
+        assertEquals(ilist2, ilist1.map((Integer i) -> (-i)));
+    }
 }

@@ -6,6 +6,7 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.ListIterator;
 import java.util.Collection;
+import java.util.function.Function;
 
 // Wraps a standard list but provides no mutation operators
 // NOTE: this differs from a stanard Java unmodifiable view, because there
@@ -124,5 +125,15 @@ public class ImmutableWrapperList<E> implements ImmutableList<E> {
     @Override
     public String toString() {
         return implList.toString();
+    }
+    
+    // ImmutableList operations
+    @Override
+    public <R> ImmutableList<R> map(Function<? super E, ? extends R> mapping) {
+        List<R> newImplList = new ArrayList(implList.size());
+        for(E elem : implList) {
+            newImplList.add(mapping.apply(elem));
+        }
+        return new ImmutableWrapperList(newImplList);
     }
 }

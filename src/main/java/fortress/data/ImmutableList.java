@@ -7,6 +7,7 @@ import java.util.List;
 import java.lang.UnsupportedOperationException;
 import java.util.Collection;
 import java.util.function.UnaryOperator;
+import java.util.function.Function;
 import java.util.Comparator;
 
 // TODO need a more efficient way to build immutable lists
@@ -79,6 +80,9 @@ public interface ImmutableList<E> extends List<E> {
     // Overriden operations
     @Override
     public ImmutableList<E> subList(int fromIndex, int toIndex);
+    
+    // New operations
+    public <R> ImmutableList<R> map(Function<? super E, ? extends R> mapping);
     
     // Static operations
     public static <T> ImmutableList<T> of(T item) {
