@@ -1,7 +1,5 @@
 apply plugin: 'java'
 apply plugin: 'distribution'
-apply plugin: 'jacoco'
-apply plugin: 'pmd'
 apply plugin: 'antlr'
 
 repositories{
@@ -10,18 +8,33 @@ repositories{
 
 dependencies {
     antlr "org.antlr:antlr4:4.7.2"
-    compile group: 'org.antlr', name: 'antlr4-runtime', version: '4.7.2'
+    compile "org.antlr:antlr4-runtime:4.7.2"
     compile group: 'com.oath.cyclops', name: 'cyclops', version: '10.1.0'
     compile files('z3/com.microsoft.z3.jar')
-    runtime files('libz3java.dylib')
+    runtime files('z3/libz3java.dylib') // Required to run Z3's Java interface
     testCompile 'junit:junit:4.12'
 }
+
+// JUNIT
 
 test {
     ignoreFailures true // Don't stop build when unit test fails
     testLogging {
         events "passed", "skipped", "failed"
     }
+}
+
+tasks.withType(Test) {
+    // Allow junit test runtime to find libz3java.dylib
+    systemProperty "java.library.path", "z3/"
+}
+
+// ANTLR
+
+generateGrammarSource {
+    maxHeapSize = "64m"
+    arguments += ["-visitor", "-long-messages"]
+    arguments += ['-package', 'fortress.formats'] // Add fortress.formats package header to files
 }
 
 // Zip up both the main fortress jar and any runtime dependencies
@@ -34,50 +47,3 @@ distributions {
         }
     }
 }
-
-jacocoTestReport {
-    reports {
-        xml.enabled false
-        csv.enabled false
-    }
-}
-
-jacocoTestReport.dependsOn test
-build.dependsOn jacocoTestReport
-build.dependsOn javadoc
-
-tasks.withType(Pmd) {
-    reports {
-        xml.enabled false
-        html.enabled true
-    }
-}
-
-tasks.withType(Test) {
-    // Allow junit test runtime to find libz3java.dylib
-    systemProperty "java.library.path", "z3/"
-}
-
-pmd {
-    toolVersion = '6.1.0'
-    ignoreFailures true // Don't prevent the build from continuing, but still report errors
-    pmdTest.enabled false
-    ruleSets = [
-        'pmd/custom.xml'
-    ]
-}
-
-// ANTRL
-generateGrammarSource {
-    maxHeapSize = "64m"
-    arguments += ["-visitor", "-long-messages"]
-    arguments += ['-package', 'fortress.formats']
-    outputDirectory = new File("build/generated-src/antlr/main/fortress/formats".toString())
-}
-
-sourceSets {
-    generated {
-        java.srcDir 'build/generated-src/antlr/main/'
-    }
-}
-compileJava.source sourceSets.generated.java, sourceSets.main.java
