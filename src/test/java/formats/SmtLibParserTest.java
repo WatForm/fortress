@@ -28,41 +28,41 @@ public class SmtLibParserTest {
         converter.visit(tree);
         Theory resultTheory = converter.getTheory();
         
-        Theory expectedTheory = new Theory();
+        Theory expectedTheory = Theory.empty();
         
         Type A = Type.mkTypeConst("A");
         Type B = Type.mkTypeConst("B");
-        expectedTheory.addType(A);
-        expectedTheory.addType(B);
+        expectedTheory = expectedTheory.withType(A);
+        expectedTheory = expectedTheory.withType(B);
         
         Var x = Term.mkVar("x");
         Var y = Term.mkVar("y");
-        expectedTheory.addConstant(x.of(A));
-        expectedTheory.addConstant(y.of(B));
+        expectedTheory = expectedTheory.withConstant(x.of(A));
+        expectedTheory = expectedTheory.withConstant(y.of(B));
         
         FuncDecl decl = FuncDecl.mkFuncDecl("p", A, B, Type.Bool);
-        expectedTheory.addFunctionDeclaration(decl);
+        expectedTheory = expectedTheory.withFunctionDeclaration(decl);
         
-        expectedTheory.addAxiom(Term.mkApp("p", x, y));
+        expectedTheory = expectedTheory.withAxiom(Term.mkApp("p", x, y));
         
-        expectedTheory.addAxiom(Term.mkForall(List.of(x.of(A), y.of(B)), Term.mkTop()));
+        expectedTheory = expectedTheory.withAxiom(Term.mkForall(List.of(x.of(A), y.of(B)), Term.mkTop()));
         
-        expectedTheory.addAxiom(Term.mkExists(List.of(x.of(A)), Term.mkTop()));
+        expectedTheory = expectedTheory.withAxiom(Term.mkExists(List.of(x.of(A)), Term.mkTop()));
         
         Var q = Term.mkVar("q");
-        expectedTheory.addConstant(q.of(Type.Bool));
+        expectedTheory = expectedTheory.withConstant(q.of(Type.Bool));
         
-        expectedTheory.addAxiom(Term.mkOr(q, Term.mkNot(q)));
+        expectedTheory = expectedTheory.withAxiom(Term.mkOr(q, Term.mkNot(q)));
         
-        expectedTheory.addAxiom(Term.mkAnd(q, q));
+        expectedTheory = expectedTheory.withAxiom(Term.mkAnd(q, q));
         
-        expectedTheory.addAxiom(Term.mkNot(Term.mkBottom()));
+        expectedTheory = expectedTheory.withAxiom(Term.mkNot(Term.mkBottom()));
         
-        expectedTheory.addAxiom(Term.mkDistinct(q, Term.mkBottom()));
+        expectedTheory = expectedTheory.withAxiom(Term.mkDistinct(q, Term.mkBottom()));
         
-        expectedTheory.addAxiom(Term.mkEq(q, q));
+        expectedTheory = expectedTheory.withAxiom(Term.mkEq(q, q));
         
-        expectedTheory.addAxiom(Term.mkImp(Term.mkBottom(), Term.mkTop()));
+        expectedTheory = expectedTheory.withAxiom(Term.mkImp(Term.mkBottom(), Term.mkTop()));
         
         assertEquals(expectedTheory, resultTheory);
     }   

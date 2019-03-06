@@ -14,7 +14,7 @@ public class SmtLibToTheory extends SmtLibSubsetBaseVisitor {
     public int numAxioms = 0;
     
     public SmtLibToTheory() {
-        this.theory = new Theory();
+        this.theory = Theory.empty();
     }
     
     public Theory getTheory() {
@@ -25,7 +25,7 @@ public class SmtLibToTheory extends SmtLibSubsetBaseVisitor {
     public Object visitDeclareconst(SmtLibSubsetParser.DeclareconstContext ctx) {
         Var x = Term.mkVar(ctx.ID(0).getText());
         Type type = Type.mkTypeConst(ctx.ID(1).getText());
-        theory.addConstant(x.of(type));
+        theory = theory.withConstant(x.of(type));
         return null;
     }
     
@@ -51,14 +51,14 @@ public class SmtLibToTheory extends SmtLibSubsetBaseVisitor {
             argTypes.add(Type.mkTypeConst(ctx.ID(i).getText()));
         }
         FuncDecl decl = FuncDecl.mkFuncDecl(function, argTypes, returnType);
-        theory.addFunctionDeclaration(decl);
+        theory = theory.withFunctionDeclaration(decl);
         return null;
     }
     
     @Override
     public Object visitDeclaresort(SmtLibSubsetParser.DeclaresortContext ctx) {
         Type t = Type.mkTypeConst(ctx.ID().getText());
-        theory.addType(t);
+        theory = theory.withType(t);
         return null;
     }
 
@@ -72,7 +72,7 @@ public class SmtLibToTheory extends SmtLibSubsetBaseVisitor {
         // Interval interval = new Interval(a,b);
         // Errors.failIf(term == null, ctx.start.getInputStream().getText(interval));
         // Errors.failIf(theory == null);
-        theory.addAxiom(term);
+        theory = theory.withAxiom(term);
         return null;
     }
 

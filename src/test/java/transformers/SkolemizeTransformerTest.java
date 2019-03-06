@@ -25,7 +25,7 @@ public class SkolemizeTransformerTest {
     FuncDecl Q = FuncDecl.mkFuncDecl("Q", A, A, Type.Bool);
     FuncDecl R = FuncDecl.mkFuncDecl("R", A, A, A, Type.Bool);
     
-    Theory baseTheory = new Theory()
+    Theory baseTheory = Theory.empty()
         .withType(A)
         .withType(B)
         .withConstant(p.of(Type.Bool))

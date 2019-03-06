@@ -23,7 +23,7 @@ public class TptpToFortress extends FOFTPTPBaseVisitor {
     private Set<Var> primePropositions;
 
     public TptpToFortress(){
-        this.theory = new Theory();
+        this.theory = Theory.empty();
         this.formulas = new ArrayList<>();
         this.functionDeclarations = new HashSet<>();
         this.primePropositions = new HashSet<>();
@@ -45,16 +45,16 @@ public class TptpToFortress extends FOFTPTPBaseVisitor {
         
         // Construct theory
         
-        theory.addType(universeType);
+        theory = theory.withType(universeType);
         
         // Add function declarations
         for(FuncDecl f : functionDeclarations) {
-            theory.addFunctionDeclaration(f);
+            theory = theory.withFunctionDeclaration(f);
         }
         
         // Add prime propositions as Bool constants
         for(Var p : primePropositions) {
-            theory.addConstant(p.of(Type.Bool));
+            theory = theory.withConstant(p.of(Type.Bool));
         }
         
         // Add free variables that are not prime propositions as constants of
@@ -62,11 +62,11 @@ public class TptpToFortress extends FOFTPTPBaseVisitor {
         formulas.stream()
             .flatMap(formula -> formula.freeVarConstSymbols().stream())
             .filter(freeVar -> !primePropositions.contains(freeVar))
-            .forEach(freeVar -> theory.addConstant(freeVar.of(universeType)));
+            .forEach(freeVar -> theory = theory.withConstant(freeVar.of(universeType)));
 
         // Add axioms
         for(Term formula : formulas) {
-            theory.addAxiom(formula);
+            theory = theory.withAxiom(formula);
         }
         
         return null;

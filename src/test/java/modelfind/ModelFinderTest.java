@@ -19,31 +19,20 @@ import fortress.transformers.*;
 
 public class ModelFinderTest {
     
-    static Theory simpleSatTheory;
-    static Theory simpleUnsatTheory;
+    static Var p = Term.mkVar("p");
     
-    static Var p;
+    static Theory simpleSatTheory = Theory.empty()
+        .withConstant(p.of(Type.Bool))
+        .withAxiom(mkAnd(p, p));
+        
+    static Theory simpleUnsatTheory = Theory.empty()
+        .withConstant(p.of(Type.Bool))
+        .withAxiom(mkAnd(p, mkNot(p)));
     
-    static ModelFinder modelFinder;
-    
-    @BeforeClass
-    public static void setup() {
-        simpleSatTheory = new Theory();
-        simpleUnsatTheory = new Theory();
-        
-        p = Term.mkVar("p");
-        
-        simpleSatTheory.addConstant(p.of(Type.Bool));
-        simpleSatTheory.addAxiom(mkAnd(p, p));
-        
-        simpleUnsatTheory.addConstant(p.of(Type.Bool));
-        simpleUnsatTheory.addAxiom(mkAnd(p, mkNot(p)));
-        
-        modelFinder = new ModelFinder(
-            new UnscopedTransformer(),
-            new Z3CommandLine()
-        );
-    }
+    static ModelFinder modelFinder = new ModelFinder(
+        new UnscopedTransformer(),
+        new Z3CommandLine()
+    );
     
     @Test
     public void BasicUnscopedZ3CommandLineOutput() throws IOException {

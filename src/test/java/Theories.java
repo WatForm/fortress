@@ -26,12 +26,6 @@ public class Theories {
     public static Theory nonAbelianGroupTheory = constructNonAbelianGroupTheory();
     
     private static Theory constructGroupTheory() {
-        Theory groupTheory = new Theory();
-        
-        groupTheory.addType(G);
-        groupTheory.addConstant(e.of(G));
-        groupTheory.addFunctionDeclaration(f);
-        
         Var x = Term.mkVar("x");
         Var y = Term.mkVar("y");
         Var z = Term.mkVar("z");
@@ -51,11 +45,13 @@ public class Theories {
                 Term.mkEq(Term.mkApp("f", x, y), e),
                 Term.mkEq(Term.mkApp("f", y, x), e))));
                 
-        groupTheory.addAxiom(associativeAxiom);
-        groupTheory.addAxiom(identityAxiom);
-        groupTheory.addAxiom(inverseAxiom);
-        
-        return groupTheory;
+        return Theory.empty()
+            .withType(G)
+            .withConstant(e.of(G))
+            .withFunctionDeclaration(f)
+            .withAxiom(associativeAxiom)
+            .withAxiom(identityAxiom)
+            .withAxiom(inverseAxiom);
     }
     
     public static Theory constructNonAbelianGroupTheory() {

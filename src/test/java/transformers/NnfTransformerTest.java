@@ -22,7 +22,7 @@ public class NnfTransformerTest {
     FuncDecl f = FuncDecl.mkFuncDecl("f", A, A);
     FuncDecl P = FuncDecl.mkFuncDecl("P", A, Type.Bool);
     
-    Theory baseTheory = new Theory()
+    Theory baseTheory = Theory.empty()
         .withType(A)
         .withType(B)
         .withConstant(p.of(Type.Bool))

@@ -19,7 +19,7 @@ public class TheoryWithTest {
         Type A = Type.mkTypeConst("A");
         Type B = Type.mkTypeConst("B");
         
-        Theory theory1 = new Theory();
+        Theory theory1 = Theory.empty();
         assertEquals(Set.of(Type.Bool), theory1.getTypes());
         Theory theory2 = theory1.withType(A);
         assertEquals(Set.of(Type.Bool, A), theory2.getTypes());
@@ -34,7 +34,7 @@ public class TheoryWithTest {
         FuncDecl f = FuncDecl.mkFuncDecl("f", A, A);
         FuncDecl p = FuncDecl.mkFuncDecl("p", A, A, Type.Bool);
         
-        Theory theory1 = new Theory().withType(A);
+        Theory theory1 = Theory.empty().withType(A);
         assertEquals(Set.of(), theory1.getFunctionDeclarations());
         Theory theory2 = theory1.withFunctionDeclaration(f);
         assertEquals(Set.of(f), theory2.getFunctionDeclarations());
@@ -49,7 +49,7 @@ public class TheoryWithTest {
         AnnotatedVar p = Term.mkVar("p").of(Type.Bool);
         AnnotatedVar c = Term.mkVar("c").of(A);
         
-        Theory theory1 = new Theory().withType(A);
+        Theory theory1 = Theory.empty().withType(A);
         assertEquals(Set.of(), theory1.getConstants());
         Theory theory2 = theory1.withConstant(p);
         assertEquals(Set.of(p), theory2.getConstants());
@@ -63,7 +63,7 @@ public class TheoryWithTest {
         Term axiom1 = Term.mkNot(Term.mkTop());
         Term axiom2 = Term.mkAnd(axiom1, axiom1);
         
-        Theory theory1 = new Theory();
+        Theory theory1 = Theory.empty();
         assertEquals(Set.of(), theory1.getAxioms());
         Theory theory2 = theory1.withAxiom(axiom1);
         assertEquals(Set.of(axiom1), theory2.getAxioms());

@@ -14,11 +14,8 @@ import fortress.modelfind.*;
 public class Theory {
     private Signature signature;
     private PersistentSet<Term> axioms;
-    
-    // We will leave the explicit call to new to emphasize that this is getting a new theory object.
-    // If we were able to call Theory.empty(), it wouldn't be clear we are returning a new theory object
-    // each time, and it wouldn't be clear to a user what should happen if they mutate Theory.empty()?
-    public Theory() {
+
+    private Theory() {
         this.signature = signature.empty();
         this.axioms = PersistentHashSet.empty();
     }
@@ -32,30 +29,21 @@ public class Theory {
         return new Theory(signature, PersistentHashSet.empty());
     }
     
-    // Mutates this theory object
-    public void addAxiom(Term formula) {
-        checkAxiom(formula);
-        axioms = axioms.plus(formula);
+    public static Theory empty() {
+        return new Theory();
     }
+    
     // Returns a new theory object without modifying the previous
     public Theory withAxiom(Term formula) {
         checkAxiom(formula);
         return new Theory(signature, axioms.plus(formula));
     }
     
-    // Mutates this theory object
-    public void addType(Type type) {
-        signature = signature.withType(type);
-    }
     // Returns a new theory object without modifying the previous
     public Theory withType(Type type) {
         return new Theory(signature.withType(type), axioms);
     }
     
-    // Mutates this theory object
-    public void addConstant(AnnotatedVar constant) {
-        signature = signature.withConstant(constant);
-    }
     // Returns a new theory object without modifying the previous
     public Theory withConstant(AnnotatedVar constant) {
         return new Theory(signature.withConstant(constant), axioms);
@@ -64,10 +52,6 @@ public class Theory {
         return new Theory(signature.withConstants(constants), axioms);
     }
     
-    // Mutates this theory object
-    public void addFunctionDeclaration(FuncDecl f) {
-        signature = signature.withFunctionDeclaration(f);
-    }
     // Returns a new theory object without modifying the previous
     public Theory withFunctionDeclaration(FuncDecl f) {
         return new Theory(signature.withFunctionDeclaration(f), axioms);

@@ -49,18 +49,13 @@ public class TptpParserTest {
         converter.visit(tree);
         Theory resultTheory = converter.getTheory();
         
-        Theory expectedTheory = new Theory();
-        
         Type universeType = converter.getUniverseType();
-        expectedTheory.addType(universeType);
         
         Var A = Term.mkVar("A");
         Var B = Term.mkVar("B");
         Var C = Term.mkVar("C");
         Var e = Term.mkVar("e");
         FuncDecl f = FuncDecl.mkFuncDecl("f", universeType, universeType, universeType);
-        expectedTheory.addConstant(e.of(universeType));
-        expectedTheory.addFunctionDeclaration(f);
         
         Term associative = Term.mkForall(List.of(A.of(universeType), B.of(universeType), C.of(universeType)),
             Term.mkEq(
@@ -79,11 +74,15 @@ public class TptpParserTest {
         
         Term notAbelian = Term.mkNot(Term.mkForall(List.of(A.of(universeType), B.of(universeType)),
             Term.mkEq(Term.mkApp("f", A, B), Term.mkApp("f", B, A))));
-            
-        expectedTheory.addAxiom(associative);
-        expectedTheory.addAxiom(identity);
-        expectedTheory.addAxiom(inverse);
-        expectedTheory.addAxiom(notAbelian);
+        
+        Theory expectedTheory = Theory.empty()
+            .withType(universeType)
+            .withConstant(e.of(universeType))
+            .withFunctionDeclaration(f)
+            .withAxiom(associative)
+            .withAxiom(identity)
+            .withAxiom(inverse)
+            .withAxiom(notAbelian);
         
         assertEquals(expectedTheory, resultTheory);
     }
