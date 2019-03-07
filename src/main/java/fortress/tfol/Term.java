@@ -326,7 +326,7 @@ public abstract class Term {
     * by an underscore to make it clearer (e.g. the first quantified variable is "_1")
     */
     public Term deBruijn() {
-        return new DeBruijnConverter().visit(this);
+        return new DeBruijnConverter().convert(this);
     }
     
     /**
@@ -348,12 +348,13 @@ public abstract class Term {
         return substitute(toSub, subWith, Set.of());
     }
     
-    public Set<String> allVarConstSymbols() {
-        AllVariablesVisitor allVars = new AllVariablesVisitor();
-        Set<String> usedNames = allVars.visit(this).stream().map(
-            (Var v) -> v.getName()
-        ).collect(Collectors.toSet());
-        return usedNames;
+    /**
+    * Returns the set of all symbol names used in the term, including:
+    * free variables and constants, bound variables (even those that aren't used),
+    * function names, and type names that appear on variable bindings.
+    */
+    public Set<String> allSymbols() {
+        return new AllSymbolsVisitor().visit(this);
     }
     
     

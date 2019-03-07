@@ -14,7 +14,7 @@ public class SubIntNameGenerator implements NameGenerator {
     
     // TODO: could be implemented more efficiently in cases where we know
     // we are likely to use the same base often.
-    
+    @Override
     public String freshName(String base) {
         int i = 0;
         String candidate = base + "_" + i;
@@ -24,5 +24,9 @@ public class SubIntNameGenerator implements NameGenerator {
         }
         forbiddenNames.add(candidate);
         return candidate;
+    }
+    @Override
+    public void forbidName(String name) {
+        forbiddenNames.add(name);
     }
 }

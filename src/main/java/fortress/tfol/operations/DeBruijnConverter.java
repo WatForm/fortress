@@ -7,9 +7,10 @@ import java.util.stream.Collectors;
 import java.util.List;
 import java.util.ArrayList;
 
-public class DeBruijnConverter implements TermVisitor<Term>{
+public class DeBruijnConverter {
     private int counter;
     private LinkedList<Mapping> mappingStack;
+    private DeBruijnVisitor visitor;
     
     private class Mapping {
         private int index;
@@ -24,116 +25,126 @@ public class DeBruijnConverter implements TermVisitor<Term>{
     public DeBruijnConverter() {
         this.counter = 0;
         this.mappingStack = new LinkedList();
+        this.visitor = new DeBruijnVisitor();
     }
     
-    @Override
-    public Term visitTop(Top top) {
-        return top;
+    public Term convert(Term term) {
+        this.counter = 0;
+        this.mappingStack = new LinkedList();
+        return visitor.visit(term);
     }
     
-    @Override
-    public Term visitBottom(Bottom bottom) {
-        return bottom;
-    }
-    
-    @Override
-    public Term visitVar(Var var) {
-        for(Mapping m : mappingStack) {
-            if(var.equals(m.variable)) {
-                return Term.mkVar("_" + Integer.toString(m.index));
+    private class DeBruijnVisitor implements TermVisitor<Term> {
+        
+        @Override
+        public Term visitTop(Top top) {
+            return top;
+        }
+        
+        @Override
+        public Term visitBottom(Bottom bottom) {
+            return bottom;
+        }
+        
+        @Override
+        public Term visitVar(Var var) {
+            for(Mapping m : mappingStack) {
+                if(var.equals(m.variable)) {
+                    return Term.mkVar("_" + Integer.toString(m.index));
+                }
             }
-        }
-        return var;
-    }
-    
-    @Override
-    public Term visitNot(Not not) {
-        return visit(not);
-    }
-    
-    @Override
-    public Term visitAndList(AndList and) {
-        return Term.mkAnd(
-            and.getArguments().stream().map(this::visit).collect(Collectors.toList())
-        );
-    }
-    
-    @Override
-    public Term visitOrList(OrList or) {
-        return Term.mkOr(
-            or.getArguments().stream().map(this::visit).collect(Collectors.toList())
-        );
-    }
-    
-    @Override
-    public Term visitDistinct(Distinct dist) {
-        return Term.mkDistinct(
-            dist.getArguments().stream().map(this::visit).collect(Collectors.toList())
-        );
-    }
-    
-    @Override
-    public Term visitImplication(Implication imp) {
-        return Term.mkImp(visit(imp.getLeft()), visit(imp.getRight()));
-    }
-    
-    @Override
-    public Term visitIff(Iff iff) {
-        return Term.mkIff(visit(iff.getLeft()), visit(iff.getRight()));
-    }
-    
-    @Override
-    public Term visitEq(Eq eq) {
-        return Term.mkEq(visit(eq.getLeft()), visit(eq.getRight()));
-    }
-    
-    @Override
-    public Term visitApp(App app) {
-        return Term.mkApp(app.getFunctionName(),
-            app.getArguments().stream().map(this::visit).collect(Collectors.toList())
-        );
-    }
-    
-    @Override
-    public Term visitExists(Exists exists) {
-        List<AnnotatedVar> newVars = new ArrayList();
-        for(AnnotatedVar av : exists.getVars()) {
-            counter++;
-            Mapping m = new Mapping(counter, av.getVar());
-            mappingStack.addFirst(m);
-            newVars.add(Term.mkVar("_" + Integer.toString(counter)).of(av.getType()));
+            return var;
         }
         
-        Term body = visit(exists.getBody());
-        
-        // Return state back to way it was
-        for(AnnotatedVar av : exists.getVars()) {
-            counter--;
-            mappingStack.removeFirst();
+        @Override
+        public Term visitNot(Not not) {
+            return visit(not);
         }
         
-        return Term.mkExists(newVars, body);
-    }
-    
-    @Override
-    public Term visitForall(Forall forall) {
-        List<AnnotatedVar> newVars = new ArrayList();
-        for(AnnotatedVar av : forall.getVars()) {
-            counter++;
-            Mapping m = new Mapping(counter, av.getVar());
-            mappingStack.addFirst(m);
-            newVars.add(Term.mkVar("_" + Integer.toString(counter)).of(av.getType()));
+        @Override
+        public Term visitAndList(AndList and) {
+            return Term.mkAnd(
+                and.getArguments().stream().map(this::visit).collect(Collectors.toList())
+            );
         }
         
-        Term body = visit(forall.getBody());
-        
-        // Return state back to way it was
-        for(AnnotatedVar av : forall.getVars()) {
-            counter--;
-            mappingStack.removeFirst();
+        @Override
+        public Term visitOrList(OrList or) {
+            return Term.mkOr(
+                or.getArguments().stream().map(this::visit).collect(Collectors.toList())
+            );
         }
         
-        return Term.mkForall(newVars, body);
+        @Override
+        public Term visitDistinct(Distinct dist) {
+            return Term.mkDistinct(
+                dist.getArguments().stream().map(this::visit).collect(Collectors.toList())
+            );
+        }
+        
+        @Override
+        public Term visitImplication(Implication imp) {
+            return Term.mkImp(visit(imp.getLeft()), visit(imp.getRight()));
+        }
+        
+        @Override
+        public Term visitIff(Iff iff) {
+            return Term.mkIff(visit(iff.getLeft()), visit(iff.getRight()));
+        }
+        
+        @Override
+        public Term visitEq(Eq eq) {
+            return Term.mkEq(visit(eq.getLeft()), visit(eq.getRight()));
+        }
+        
+        @Override
+        public Term visitApp(App app) {
+            return Term.mkApp(app.getFunctionName(),
+                app.getArguments().stream().map(this::visit).collect(Collectors.toList())
+            );
+        }
+        
+        @Override
+        public Term visitExists(Exists exists) {
+            List<AnnotatedVar> newVars = new ArrayList();
+            for(AnnotatedVar av : exists.getVars()) {
+                counter++;
+                Mapping m = new Mapping(counter, av.getVar());
+                mappingStack.addFirst(m);
+                newVars.add(Term.mkVar("_" + Integer.toString(counter)).of(av.getType()));
+            }
+            
+            Term body = visit(exists.getBody());
+            
+            // Return state back to way it was
+            for(AnnotatedVar av : exists.getVars()) {
+                counter--;
+                mappingStack.removeFirst();
+            }
+            
+            return Term.mkExists(newVars, body);
+        }
+        
+        @Override
+        public Term visitForall(Forall forall) {
+            List<AnnotatedVar> newVars = new ArrayList();
+            for(AnnotatedVar av : forall.getVars()) {
+                counter++;
+                Mapping m = new Mapping(counter, av.getVar());
+                mappingStack.addFirst(m);
+                newVars.add(Term.mkVar("_" + Integer.toString(counter)).of(av.getType()));
+            }
+            
+            Term body = visit(forall.getBody());
+            
+            // Return state back to way it was
+            for(AnnotatedVar av : forall.getVars()) {
+                counter--;
+                mappingStack.removeFirst();
+            }
+            
+            return Term.mkForall(newVars, body);
+        }
     }
     
 }

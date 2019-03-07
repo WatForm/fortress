@@ -12,6 +12,9 @@ import fortress.tfol.operations.TypeCheckResult;
 
 import fortress.modelfind.*;
 
+// TODO Theory needs to check for inconsistencies when adding functions as well.
+// e.g. If some term already uses "f" as a variable and we add "f : A -> B".
+
 public class Theory {
     
     // Published Interface 
@@ -27,7 +30,9 @@ public class Theory {
     * @Publish
     * Returns a theory consisting of the current theory but with the given
     * axiom added. Note that this does not modify the current Theory object,
-    * but rather just returns a new Theory object.
+    * but rather just returns a new Theory object. Throws an exception
+    * if the result fails to typecheck with respect to this theory's signature.
+    * 
     */
     public Theory withAxiom(Term formula) {
         Term sanitizedAxiom = sanitizeAxiom(formula);

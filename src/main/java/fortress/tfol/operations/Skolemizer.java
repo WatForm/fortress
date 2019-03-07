@@ -15,124 +15,150 @@ import java.util.Optional;
 // Skolemizes a given term
 // Free variables in the given term are ignored, so the top level term must be
 // closed with respect to the signature in question for this operation to be valid.
-public class Skolemizer extends TermVisitorWithContext<Term> {
+public class Skolemizer {
     private Term toplevelTerm;
-    private NameGenerator gen;
+    private NameGenerator nameGen;
     private Set<FuncDecl> skolemFunctions;
     private Set<AnnotatedVar> skolemConstants;
+    private SkolemVisitor visitor;
     
-    public Skolemizer(Term toplevelTerm, Signature sig, NameGenerator gen) {
-        super(sig);
+    /** Creates a Skolemizer primes to Skolemize the given topLevelTerm.
+    * When creating new skolem functions or constants, and also when introducing
+    * new variables while making substitutions (@see Substituter), the provided
+    * name generator will be used.
+    * This will mutate the name generator.
+    */
+    public Skolemizer(Term toplevelTerm, Signature signature, NameGenerator nameGen) {
         this.toplevelTerm = toplevelTerm;
-        this.gen = gen;
+        this.nameGen = nameGen;
         this.skolemFunctions = new HashSet();
         this.skolemConstants = new HashSet();
+        this.visitor = new SkolemVisitor(signature);
     }
     
+    /**
+    * Perform the skolemization and get the resulting term.
+    * Don't forget to call getSkolemFunctions() and getSkolemConstants()
+    * after this.
+    * Convert should only be called once per Skolemizer object.
+    */
     public Term convert() {
-        return visit(toplevelTerm);
+        return visitor.visit(toplevelTerm);
     }
     
+    /**
+    * Returns the set of generated skolem functions. Must be called after convert.
+    */
     public Set<FuncDecl> getSkolemFunctions() {
         return skolemFunctions;
     }
     
+    /**
+    * Returns the set of generated skolem functions. Must be called after convert.
+    */
     public Set<AnnotatedVar> getSkolemConstants() {
         return skolemConstants;
     }
     
-    @Override
-    public Term visitTop(Top top) {
-        return top;
-    }
-    
-    @Override
-    public Term visitBottom(Bottom bottom) {
-        return bottom;
-    }
-    
-    @Override
-    public Term visitVar(Var variable) {
-        return variable;
-    }
-    
-    @Override
-    public Term visitNot(Not not) {
-        return Term.mkNot(visit(not.getBody()));
-    }
-    
-    @Override
-    public Term visitAndList(AndList and) {
-        return and.mapArguments(this::visit);
-    }
-    
-    @Override
-    public Term visitOrList(OrList or) {
-        return or.mapArguments(this::visit);
-    }
-    
-    @Override
-    public Term visitDistinct(Distinct distinct) {
-        throw new IllegalArgumentException("Term supposed to be in NNF but found distinct: " + distinct.toString());
-    }
-    
-    @Override
-    public Term visitIff(Iff iff) {
-        throw new IllegalArgumentException("Term supposed to be in NNF but found iff: " + iff.toString());
-    }
-    
-    @Override
-    public Term visitImplication(Implication imp) {
-        throw new IllegalArgumentException("Term supposed to be in NNF but found imp: " + imp.toString());
-    }
-    
-    @Override
-    public Term visitEq(Eq eq) {
-        return eq.mapArguments(this::visit);
-    }
-    
-    public Term visitApp(App app) {
-        return app.mapArguments(this::visit);
-    }
-    
-    public Term visitExistsInner(Exists exists) {
-        Term temporaryBody = exists.getBody();
-        for(AnnotatedVar av: exists.getVars()) {
-            Set<Var> freeVars = exists.freeVars(signature);
-            if(freeVars.size() == 0) {
-                // Skolem Constant
-                String skolemConstantName = gen.freshName("sk");
-                
-                AnnotatedVar skolemConstant = Term.mkVar(skolemConstantName).of(av.getType());
-                skolemConstants.add(skolemConstant);
-                
-                temporaryBody = temporaryBody.substitute(av.getVar(), skolemConstant.getVar());
-            } else {
-                // Skolem function
-                String skolemFunctionName = gen.freshName("sk");
-                
-                List<Type> argumentTypes = new ArrayList();
-                List<Term> arguments = new ArrayList();
-                for(Var v : freeVars) {
-                    Optional<Type> typeMaybe = lookupType(v);
-                    Errors.failIf(!typeMaybe.isPresent(), "Type of variable " + v.getName() + " could not be found");
-                    Type type = typeMaybe.get();
-                    
-                    argumentTypes.add(type);
-                    arguments.add(v);
-                }
-                
-                FuncDecl skolemFunction = FuncDecl.mkFuncDecl(skolemFunctionName, argumentTypes, av.getType());
-                skolemFunctions.add(skolemFunction);
-                
-                Term skolemApplication = Term.mkApp(skolemFunctionName, arguments);
-                temporaryBody = temporaryBody.substitute(av.getVar(), skolemApplication, gen);
-            }
+    private class SkolemVisitor extends TermVisitorWithContext<Term> {
+        
+        public SkolemVisitor(Signature signature) {
+            super(signature);
         }
-        return visit(temporaryBody);
-    }
-    
-    public Term visitForallInner(Forall forall) {
-        return Term.mkForall(forall.getVars(), visit(forall.getBody()));
+        
+        @Override
+        public Term visitTop(Top top) {
+            return top;
+        }
+        
+        @Override
+        public Term visitBottom(Bottom bottom) {
+            return bottom;
+        }
+        
+        @Override
+        public Term visitVar(Var variable) {
+            return variable;
+        }
+        
+        @Override
+        public Term visitNot(Not not) {
+            return Term.mkNot(visit(not.getBody()));
+        }
+        
+        @Override
+        public Term visitAndList(AndList and) {
+            return and.mapArguments(this::visit);
+        }
+        
+        @Override
+        public Term visitOrList(OrList or) {
+            return or.mapArguments(this::visit);
+        }
+        
+        @Override
+        public Term visitDistinct(Distinct distinct) {
+            throw new IllegalArgumentException("Term supposed to be in NNF but found distinct: " + distinct.toString());
+        }
+        
+        @Override
+        public Term visitIff(Iff iff) {
+            throw new IllegalArgumentException("Term supposed to be in NNF but found iff: " + iff.toString());
+        }
+        
+        @Override
+        public Term visitImplication(Implication imp) {
+            throw new IllegalArgumentException("Term supposed to be in NNF but found imp: " + imp.toString());
+        }
+        
+        @Override
+        public Term visitEq(Eq eq) {
+            return eq.mapArguments(this::visit);
+        }
+        
+        public Term visitApp(App app) {
+            return app.mapArguments(this::visit);
+        }
+        
+        public Term visitExistsInner(Exists exists) {
+            Term temporaryBody = exists.getBody();
+            for(AnnotatedVar av: exists.getVars()) {
+                Set<Var> freeVars = exists.freeVars(signature);
+                if(freeVars.size() == 0) {
+                    // Skolem Constant
+                    String skolemConstantName = nameGen.freshName("sk");
+                    
+                    AnnotatedVar skolemConstant = Term.mkVar(skolemConstantName).of(av.getType());
+                    skolemConstants.add(skolemConstant);
+                    
+                    temporaryBody = temporaryBody.substitute(av.getVar(), skolemConstant.getVar());
+                } else {
+                    // Skolem function
+                    String skolemFunctionName = nameGen.freshName("sk");
+                    
+                    List<Type> argumentTypes = new ArrayList();
+                    List<Term> arguments = new ArrayList();
+                    for(Var v : freeVars) {
+                        Optional<Type> typeMaybe = lookupType(v);
+                        Errors.failIf(!typeMaybe.isPresent(), "Type of variable " + v.getName() + " could not be found");
+                        Type type = typeMaybe.get();
+                        
+                        argumentTypes.add(type);
+                        arguments.add(v);
+                    }
+                    
+                    FuncDecl skolemFunction = FuncDecl.mkFuncDecl(skolemFunctionName, argumentTypes, av.getType());
+                    skolemFunctions.add(skolemFunction);
+                    
+                    Term skolemApplication = Term.mkApp(skolemFunctionName, arguments);
+                    temporaryBody = temporaryBody.substitute(av.getVar(), skolemApplication, nameGen);
+                }
+            }
+            return visit(temporaryBody);
+        }
+        
+        public Term visitForallInner(Forall forall) {
+            return Term.mkForall(forall.getVars(), visit(forall.getBody()));
+        }
     }
 }

@@ -21,11 +21,6 @@ public class AbelianModelTest {
         Z3TestDummy dummy = new Z3TestDummy();
     }
     
-    @Test
-    public void foobar2() {
-        String[] array = {};
-        JavaExample.foobartest(array);
-    }
     
     // @Test
     // public void foo() {
