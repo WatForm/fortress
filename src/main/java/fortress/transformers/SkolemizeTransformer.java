@@ -5,13 +5,13 @@ import java.util.Set;
 import java.util.HashSet;
 import fortress.data.NameGenerator;
 import fortress.data.SubIntNameGenerator;
-import fortress.tfol.visitor.Skolemizer;
+import fortress.tfol.operations.Skolemizer;
 
 public class SkolemizeTransformer implements TheoryTransformer {
     @Override
     public Theory apply(Theory theory) {
         Signature sig = theory.getSignature();
-        Theory result = Theory.mkTheory(sig);
+        Theory result = Theory.mkTheoryWithSignature(sig);
         
         Set<String> forbiddenNames = new HashSet();
         

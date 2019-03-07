@@ -1,7 +1,7 @@
 package fortress.tfol;
 
 import fortress.data.ImmutableList;
-import fortress.tfol.visitor.TermVisitor;
+import fortress.tfol.operations.TermVisitor;
 import java.util.function.Function;
 
 public class AndList extends AndOrList {

@@ -1,6 +1,6 @@
 package fortress.tfol;
 
-import fortress.tfol.visitor.TermVisitor;
+import fortress.tfol.operations.TermVisitor;
 import java.util.function.Function;
 
 public class Iff extends BinOp {

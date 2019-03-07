@@ -3,9 +3,29 @@ package fortress.tfol;
 import java.util.List;
 import java.util.ArrayList;
 import fortress.util.Errors;
-import fortress.tfol.visitor.TermVisitor;
+import fortress.tfol.operations.TermVisitor;
 
+/**
+* @Publish
+* Represents a syntactic variable or constant.
+* Variables and constants are treated as syntactically indistinguishable;
+* a Var is only considered a variable or constant depending on the signature it
+* is used within.
+*/
 public class Var extends Term {
+    
+    // Published Interface
+    /**
+    * @Publish
+    * Returns an AnnotatedVar that represents this varible annotated with the
+    * given type.
+    */
+    public AnnotatedVar of(Type type) {
+        return new AnnotatedVar(this, type);
+    }
+    
+    // End of published interface 
+    
     private final String name;
     
     protected Var(String name) {
@@ -17,10 +37,7 @@ public class Var extends Term {
         return name;
     }
     
-    // Shorthand for annotate(Type term)
-    public AnnotatedVar of(Type type) {
-        return new AnnotatedVar(this, type);
-    }
+    
     
     @Override
     protected boolean innerEquals(Object other) {

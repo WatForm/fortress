@@ -3,7 +3,7 @@ package fortress.tfol;
 import fortress.util.Errors;
 import java.util.List;
 import java.util.ArrayList;
-import fortress.tfol.visitor.TermVisitor;
+import fortress.tfol.operations.TermVisitor;
 
 public class Not extends Term {
     private final Term body;

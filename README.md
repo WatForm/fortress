@@ -17,6 +17,9 @@ It was original described in the paper "Finite Model Finding Using the Logic of 
 3. Run `./gradlew build`.
     This will automatically download the appropriate version of the build system, as well as any additional dependencies for Fortress.
     It will also produce archive files in both zip and tar formats that contain a Fortress jar and all of its runtime dependencies.
-   
+
+## Running Unit Tests
+1. Run `./gradlew cleanTest`.
+2. Run `./gradlew test`.
 
 ## Running Fortress in Your Project

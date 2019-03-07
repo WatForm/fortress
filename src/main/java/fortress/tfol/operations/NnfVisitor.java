@@ -1,4 +1,4 @@
-package fortress.tfol.visitor;
+package fortress.tfol.operations;
 
 import fortress.tfol.*;
 
@@ -16,12 +16,10 @@ import fortress.data.Either;
 public class NnfVisitor implements TermVisitor<Term> {
     
     private Signature signature;
-    private LinkedList contextStack;
     private OnceNegatedVisitor onceNegated;
     
     public NnfVisitor(Signature sig) {
         this.signature = sig;
-        this.contextStack = new LinkedList();
         this.onceNegated = new OnceNegatedVisitor(this);
     }
     
@@ -82,28 +80,12 @@ public class NnfVisitor implements TermVisitor<Term> {
     
     @Override
     public Term visitExists(Exists term) {
-        // Manage context stack so we can do typechecking later...
-        for(AnnotatedVar av : term.getVars()) {
-            contextStack.addFirst(av);
-        }
-        Term t = Term.mkExists(term.getVars(), visit(term.getBody()));
-        for(AnnotatedVar av : term.getVars()) {
-            contextStack.removeFirst();
-        }
-        return t;
+        return Term.mkExists(term.getVars(), visit(term.getBody()));
     }
     
     @Override
     public Term visitForall(Forall term) {
-        // Manage context stack so we can do typechecking later...
-        for(AnnotatedVar av : term.getVars()) {
-            contextStack.addFirst(av);
-        }
-        Term t = Term.mkForall(term.getVars(), visit(term.getBody()));
-        for(AnnotatedVar av : term.getVars()) {
-            contextStack.removeFirst();
-        }
-        return t;
+        return Term.mkForall(term.getVars(), visit(term.getBody()));
     }
     
     @Override
@@ -116,27 +98,9 @@ public class NnfVisitor implements TermVisitor<Term> {
         );
     }
     
-    // Eq could be between Bools (i.e. it means iff), in which case it must be removed
-    // so we have to do some typechecking here.
     @Override
     public Term visitEq(Eq term) {
-        TypeCheckVisitor typechecker = new TypeCheckVisitor(signature, contextStack);
-        Either<String, Type> typeMaybe = typechecker.visit(term.getLeft());
-        Errors.failIf(typeMaybe.isLeft(), "Unexpected typechecking error in Nnf");
-        Type argType = typeMaybe.getRight();
-        if(argType.equals(Type.Bool)) {
-            // Iff
-            Term left = term.getLeft();
-            Term right = term.getRight();
-            return Term.mkOr(
-                Term.mkAnd(visit(left), visit(right)),
-                Term.mkAnd(visit(Term.mkNot(left)), visit(Term.mkNot(right)))
-            );
-        } else {
-            // = of any other type is atomic
-            return term;
-        }
-        
+        return term;
     }
     
     @Override
@@ -207,28 +171,12 @@ public class NnfVisitor implements TermVisitor<Term> {
         
         @Override
         public Term visitExists(Exists term) {
-            // Manage context stack so we can do typechecking later...
-            for(AnnotatedVar av : term.getVars()) {
-                nnf.contextStack.addFirst(av);
-            }
-            Term t = Term.mkForall(term.getVars(), nnf.visit(Term.mkNot(term.getBody())));
-            for(AnnotatedVar av : term.getVars()) {
-                nnf.contextStack.removeFirst();
-            }
-            return t;
+            return Term.mkForall(term.getVars(), nnf.visit(Term.mkNot(term.getBody())));
         }
         
         @Override
         public Term visitForall(Forall term) {
-            // Manage context stack so we can do typechecking later...
-            for(AnnotatedVar av : term.getVars()) {
-                nnf.contextStack.addFirst(av);
-            }
-            Term t = Term.mkExists(term.getVars(), nnf.visit(Term.mkNot(term.getBody())));
-            for(AnnotatedVar av : term.getVars()) {
-                nnf.contextStack.removeFirst();
-            }
-            return t;
+            return Term.mkExists(term.getVars(), nnf.visit(Term.mkNot(term.getBody())));
         }
         
         @Override
@@ -243,22 +191,7 @@ public class NnfVisitor implements TermVisitor<Term> {
         
         @Override
         public Term visitEq(Eq term) {
-            TypeCheckVisitor typechecker = new TypeCheckVisitor(nnf.signature, nnf.contextStack);
-            Either<String, Type> typeMaybe = typechecker.visit(term.getLeft());
-            Errors.failIf(typeMaybe.isLeft(), "Unexpected typechecking error in Nnf");
-            Type argType = typeMaybe.getRight();
-            if(argType.equals(Type.Bool)) {
-                // Iff
-                Term left = term.getLeft();
-                Term right = term.getRight();
-                return Term.mkOr(
-                    Term.mkAnd(nnf.visit(left), nnf.visit(Term.mkNot(right))),
-                    Term.mkAnd(nnf.visit(Term.mkNot(left)), nnf.visit(right))
-                );
-            } else {
-                // = of any other argument types is atomic
-                return Term.mkNot(term);
-            }
+            return Term.mkNot(term);
         }
         
         @Override

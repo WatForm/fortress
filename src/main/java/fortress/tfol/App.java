@@ -4,7 +4,7 @@ import fortress.data.ImmutableList;
 import fortress.util.Errors;
 import java.util.List;
 import java.util.ArrayList;
-import fortress.tfol.visitor.TermVisitor;
+import fortress.tfol.operations.TermVisitor;
 import java.util.function.Function;
 
 //Function application f(x_1, ..., x_n)

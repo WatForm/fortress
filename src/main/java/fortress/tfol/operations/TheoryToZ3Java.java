@@ -1,4 +1,4 @@
-package fortress.tfol.visitor;
+package fortress.tfol.operations;
 
 import com.microsoft.z3.*;
 import java.util.Map;

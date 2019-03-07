@@ -8,15 +8,96 @@ import java.io.*;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import java.lang.Iterable;
+import fortress.tfol.operations.TypeCheckResult;
 
 import fortress.modelfind.*;
 
 public class Theory {
-    private Signature signature;
-    private PersistentSet<Term> axioms;
-
+    
+    // Published Interface 
+    
+    /**
+    * Returns a theory with an empty signature and no axioms.
+    */
+    public static Theory empty() {
+        return new Theory();
+    }
+    
+    /**
+    * @Publish
+    * Returns a theory consisting of the current theory but with the given
+    * axiom added. Note that this does not modify the current Theory object,
+    * but rather just returns a new Theory object.
+    */
+    public Theory withAxiom(Term formula) {
+        Term sanitizedAxiom = sanitizeAxiom(formula);
+        return new Theory(signature, axioms.plus(sanitizedAxiom));
+    }
+    
+    /**
+    * @Publish
+    * Returns a theory consisting of the current theory but with the given
+    * type declaration added. Note that this does not modify the current Theory object,
+    * but rather just returns a new Theory object.
+    */
+    public Theory withType(Type type) {
+        return new Theory(signature.withType(type), axioms);
+    }
+    /**
+    * @Publish
+    * Returns a theory consisting of the current theory but with the given
+    * type declarations added. Note that this does not modify the current Theory object,
+    * but rather just returns a new Theory object.
+    */
+    public Theory withTypes(Iterable<Type> types) {
+        return new Theory(signature.withTypes(types), axioms);
+    }
+    
+    /**
+    * @Publish
+    * Returns a theory consisting of the current theory but with the given
+    * constant declaration added. Note that this does not modify the current Theory object,
+    * but rather just returns a new Theory object.
+    */
+    public Theory withConstant(AnnotatedVar constant) {
+        return new Theory(signature.withConstant(constant), axioms);
+    }
+    /**
+    * @Publish
+    * Returns a theory consisting of the current theory but with the given
+    * constant declarations added. Note that this does not modify the current Theory object,
+    * but rather just returns a new Theory object.
+    */
+    public Theory withConstants(Iterable<AnnotatedVar> constants) {
+        return new Theory(signature.withConstants(constants), axioms);
+    }
+    
+    /**
+    * @Publish
+    * Returns a theory consisting of the current theory but with the given
+    * function declaration added. Note that this does not modify the current Theory object,
+    * but rather just returns a new Theory object.
+    */
+    public Theory withFunctionDeclaration(FuncDecl f) {
+        return new Theory(signature.withFunctionDeclaration(f), axioms);
+    }
+    /**
+    * @Publish
+    * Returns a theory consisting of the current theory but with the given
+    * function declarations added. Note that this does not modify the current Theory object,
+    * but rather just returns a new Theory object.
+    */
+    public Theory withFunctionDeclarations(Iterable<FuncDecl> fdecls) {
+        return new Theory(signature.withFunctionDeclarations(fdecls), axioms);
+    }
+    
+    // End of published interface
+    
+    private final Signature signature;
+    private final PersistentSet<Term> axioms;
+    
     private Theory() {
-        this.signature = signature.empty();
+        this.signature = Signature.empty();
         this.axioms = PersistentHashSet.empty();
     }
     
@@ -25,39 +106,8 @@ public class Theory {
         this.axioms = axioms;
     }
     
-    static public Theory mkTheory(Signature signature) {
+    static public Theory mkTheoryWithSignature(Signature signature) {
         return new Theory(signature, PersistentHashSet.empty());
-    }
-    
-    public static Theory empty() {
-        return new Theory();
-    }
-    
-    // Returns a new theory object without modifying the previous
-    public Theory withAxiom(Term formula) {
-        checkAxiom(formula);
-        return new Theory(signature, axioms.plus(formula));
-    }
-    
-    // Returns a new theory object without modifying the previous
-    public Theory withType(Type type) {
-        return new Theory(signature.withType(type), axioms);
-    }
-    
-    // Returns a new theory object without modifying the previous
-    public Theory withConstant(AnnotatedVar constant) {
-        return new Theory(signature.withConstant(constant), axioms);
-    }
-    public Theory withConstants(Iterable<AnnotatedVar> constants) {
-        return new Theory(signature.withConstants(constants), axioms);
-    }
-    
-    // Returns a new theory object without modifying the previous
-    public Theory withFunctionDeclaration(FuncDecl f) {
-        return new Theory(signature.withFunctionDeclaration(f), axioms);
-    }
-    public Theory withFunctionDeclarations(Iterable<FuncDecl> fdecls) {
-        return new Theory(signature.withFunctionDeclarations(fdecls), axioms);
     }
     
     public Set<Term> getAxioms() {
@@ -80,13 +130,12 @@ public class Theory {
         return signature;
     }
     
-    private void checkAxiom(Term formula) {
+    private Term sanitizeAxiom(Term formula) {
         // Check axiom typechecks as bool
         // Note that a formula cannot typecheck if it has any free variables (that are not constants of the signature)
-        formula.typecheckEither(signature).matchDo(
-            (String err) -> Errors.failIf(true, err),
-            (Type t) -> Errors.failIf(!t.equals(Type.Bool), "Axiom " + formula.toString() + " has type " + t.getName())
-        );
+        TypeCheckResult result = formula.typeCheck(signature);
+        Errors.failIf(! result.type.equals(Type.Bool));
+        return result.term;
     }
     
     @Override

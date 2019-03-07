@@ -3,7 +3,7 @@ package fortress.tfol;
 import java.util.List;
 import java.util.ArrayList;
 import fortress.util.Errors;
-import fortress.tfol.visitor.TermVisitor;
+import fortress.tfol.operations.TermVisitor;
 
 // TODO Consider making this a singleton
 public class Top extends Term {

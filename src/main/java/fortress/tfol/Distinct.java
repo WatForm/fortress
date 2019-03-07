@@ -2,7 +2,7 @@ package fortress.tfol;
 
 import fortress.data.ImmutableList;
 import fortress.util.Errors;
-import fortress.tfol.visitor.TermVisitor;
+import fortress.tfol.operations.TermVisitor;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.function.Function;

@@ -1,7 +1,7 @@
 package fortress.tfol;
 
 import fortress.data.ImmutableList;
-import fortress.tfol.visitor.TermVisitor;
+import fortress.tfol.operations.TermVisitor;
 
 public class Forall extends Quantifier {
     protected Forall(ImmutableList<AnnotatedVar> vars, Term body){

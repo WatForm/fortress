@@ -5,8 +5,22 @@ package fortress.tfol;
 // or variable equality etc. Should just be one option for simplicity.
 // On the other hand I can also see some cases it might be less work to have two options.
 
-// NOTE: does not extend Term
+/**
+* @Publish
+* Represents a variable together with a type annotation.
+* This is used, for example, when quantifying a variable
+* (as type annotations are required in quantifiers), or when declaring
+* a variable to be a constant of a given type.
+* Note that AnnotatedVar is not a subclass of Term.
+* Fortress does not allow variables to be annotated when used as terms.
+* This is to avoid silly errors such as "forall x: A, p(x:B)".
+* Inside a term it is only possible (and in fact required) to annotate variables
+* where a quantifier declares it bound.
+*/
 public class AnnotatedVar {
+    
+    // No published interface
+    
     private final Var variable;
     private final Type type;
     

@@ -44,7 +44,7 @@ public class Signature {
         return new Signature(types.plus(t), functionDeclarations, constants);
     }
     
-    private Signature withTypes(Iterable<Type> types) {
+    public Signature withTypes(Iterable<Type> types) {
         Signature sig = this;
         for(Type t : types) {
             sig = sig.withType(t);

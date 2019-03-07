@@ -1,4 +1,4 @@
-package fortress.tfol.visitor;
+package fortress.tfol.operations;
 
 import fortress.tfol.*;
 

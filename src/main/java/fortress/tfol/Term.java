@@ -7,112 +7,227 @@ import java.util.Optional;
 import fortress.data.PersistentSet;
 import java.util.Set;
 import fortress.util.Errors;
-import fortress.tfol.visitor.TermVisitor;
-import fortress.tfol.visitor.TypeCheckVisitor;
-import fortress.tfol.visitor.FreeVariablesVisitor;
-import fortress.tfol.visitor.SmtExprVisitor;
-import fortress.tfol.visitor.NnfVisitor;
-import fortress.tfol.visitor.DeBruijnConverter;
-import fortress.tfol.visitor.Substituter;
-import fortress.tfol.visitor.AllVariablesVisitor;
+import fortress.tfol.operations.*;
+import fortress.data.TypeCheckException;
 import java.util.stream.Collectors;
 import fortress.sexpr.*;
 import java.util.function.Function;
 import fortress.data.Either;
 import fortress.data.NameGenerator;
 
+// NOTE: There is no mkAnnotatedVar because we do not want people to think
+// that AnnotatedVar is a Term
+// To create an annotated var, use Term.mkVar(name).of(type)
+
+// NOTE: Terms should NOT use the identical list/collection/etc given by the user
+// unless it is guaranteed to be immutable - terms could then be mutated
+
 public abstract class Term {
     
     // Published interface 
-    // Term subclasses are not published
+    // Term subclasses are not published, with the exception of Var
     
-    // Creation operations
-    
+    /** 
+    * @Publish
+    * Returns a term representing Top/Verum.
+    */
     public static Term mkTop() {
         return new Top();
     }
     
+    /**
+    * @Publish
+    * Returns a term representing Bottom/Falsum.
+    */
     public static Term mkBottom() {
         return new Bottom();
     }
     
+    /**
+    * @Publish
+    * Returns a term representing the variable (or constant, depending on the
+    * context in which it is used) with the given name.
+    */
     public static Var mkVar(String name) {
         return new Var(name);
     }
     
-    // NOTE: There is no mkAnnotatedVar because we do not want people to think
-    // that AnnotatedVar is a Term
-    // To create an annotated var, use Term.mkVar(name).of(type)
-    
-    // NOTE: Terms should NOT use the identical list/collection/etc given by the user
-    // unless it is guaranteed to be immutable - terms could then be mutated
-    
+    /**
+    * @Publish
+    * Returns a term representing the conjunction of the given terms. At least
+    * two or more terms must be provided.
+    */
     public static Term mkAnd(Term... args) {
         Errors.failIf(args.length < 2);
         return new AndList(ImmutableWrapperList.copyArray(args));
     }
+    /**
+    * @Publish
+    * Returns a term representing the conjunction of the given terms. At least
+    * two or more terms must be provided.
+    */
     public static Term mkAnd(List<Term> args) {
         Errors.failIf(args.size() < 2);
         return new AndList(ImmutableWrapperList.copyCollection(args));
     }
     
+    /**
+    * @Publish
+    * Returns a term representing the disjunction of the given terms. At least
+    * two or more terms must be provided.
+    */
     public static Term mkOr(Term... args) {
         Errors.failIf(args.length < 2);
         return new OrList(ImmutableWrapperList.copyArray(args));
     }
+    /**
+    * @Publish
+    * Returns a term representing the conjunction of the given terms. At least
+    * two or more terms must be provided.
+    */
     public static Term mkOr(List<Term> args) {
         Errors.failIf(args.size() < 2);
         return new OrList(ImmutableWrapperList.copyCollection(args));
     }
     
+    /**
+    * @Publish
+    * Returns a term representing the negation of the given term.
+    */
     public static Term mkNot(Term t) {
         return new Not(t);
     }
     
+    /**
+    * @Publish
+    * Returns a term representing the implication "t1 implies t2".
+    */
     public static Term mkImp(Term t1, Term t2) {
         return new Implication(t1, t2);
     }
     
-    public static Term mkIff(Term t1, Term t2) {
-        return new Iff(t1, t2);
-    }
-    
+    /**
+    * @Publish
+    * Returns a term representing the truth value of whether t1 and t2 are equal.
+    * Users should also use this for the bi-equivalence "t1 iff t2".
+    */
     public static Term mkEq(Term t1, Term t2) {
         return new Eq(t1, t2);
     }
     
+    /**
+    * @Publish
+    * Returns a term representing the truth value of whether the given terms have
+    * distinct values. Two or more terms must be provided.
+    */
     public static Term mkDistinct(List<Term> arguments) {
         Errors.failIf(arguments.size() < 2);
         return new Distinct(ImmutableWrapperList.copyCollection(arguments));
     }
+    /**
+    * @Publish
+    * Returns a term representing the truth value of whether the given terms have
+    * distinct values. Two or more terms must be provided.
+    */
     public static Term mkDistinct(Term... arguments) {
         Errors.failIf(arguments.length < 2);
         return new Distinct(ImmutableWrapperList.copyArray(arguments));
     }
     
+    /**
+    * @Publish
+    * Returns a term representing the result of the application of a function with
+    * the given functionName to the given arguments. At least one or more arguments
+    * must be provided.
+    */
     public static Term mkApp(String functionName, Term... arguments) {
         return new App(functionName, ImmutableWrapperList.copyArray(arguments));
     }
+    /**
+    * @Publish
+    * Returns a term representing the result of the application of a function with
+    * the given functionName to the given arguments. At least one or more arguments
+    * must be provided.
+    */
     public static Term mkApp(String functionName, List<Term> arguments) {
         return new App(functionName, ImmutableWrapperList.copyCollection(arguments));
     }
     
+    /**
+    * @Publish
+    * Returns a term representing the universal quantification of the given body
+    * over the given annotated variables.
+    * At least one or more variables must be provided.
+    */
     public static Term mkForall(List<AnnotatedVar> vars, Term body) {
         ImmutableList<AnnotatedVar> varsCopy = ImmutableWrapperList.copyCollection(vars);
         return new Forall(varsCopy, body);
     }
+    /**
+    * @Publish
+    * Returns a term representing the universal quantification of the given body
+    * over the given annotated variable.
+    */
     public static Term mkForall(AnnotatedVar x, Term body) {
         ImmutableList<AnnotatedVar> vars = ImmutableList.of(x);
         return new Forall(vars, body);
     }
     
+    /**
+    * @Publish
+    * Returns a term representing the existential quantification of the given body
+    * over the given annotated variables.
+    * At least one or more variables must be provided.
+    */
     public static Term mkExists(List<AnnotatedVar> vars, Term body) {
         ImmutableList<AnnotatedVar> varsCopy = ImmutableWrapperList.copyCollection(vars);
         return new Exists(varsCopy, body);
     }
+    /**
+    * @Publish
+    * Returns a term representing the existential quantification of the given body
+    * over the given annotated variable.
+    */
     public static Term mkExists(AnnotatedVar x, Term body) {
         ImmutableList<AnnotatedVar> vars = ImmutableList.of(x);
         return new Exists(vars, body);
+    }
+    
+    // End of Published Interface
+    
+    /**
+    * Returns a term representing the bi-equivalence "t1 iff t2".
+    */
+    public static Term mkIff(Term t1, Term t2) {
+        return new Iff(t1, t2);
+    }
+    
+    /**
+    * Internal method to make AndLists without needing to copy the argument list.
+    */
+    public static Term mkAndF(ImmutableList<Term> arguments) {
+        return new AndList(arguments);
+    }
+    
+    /**
+    * Internal method to make OrLists without needing to copy the argument list.
+    */
+    public static Term mkOrF(ImmutableList<Term> arguments) {
+        return new OrList(arguments);
+    }
+    
+    /**
+    * Internal method to make Distinct terms without needing to copy the argument list.
+    */
+    public static Term mkDistinctF(ImmutableList<Term> arguments) {
+        return new Distinct(arguments);
+    }
+    
+    /**
+    * Internal method to make Apps without needing to copy the argument list.
+    */
+    public static Term mkAppF(String functionName, ImmutableList<Term> arguments) {
+        return new App(functionName, arguments);
     }
     
     @Override
@@ -148,49 +263,75 @@ public abstract class Term {
     // TODO: should freeVarConstSymbols be published? TptpToFortress makes good use of it
     // -- TptpToFortress could avoid it, but it would be more difficult
     
-    // Returns the set of Vars that appear unquantified in this term.
-    // This only looks at syntax without respect to a given signature,
-    // so it could also include what are intended to be constants.
+    /** Returns the set of Vars that appear unquantified in this term.
+    * This only looks at syntax without respect to a given signature,
+    * so it could also include what are intended to be constants.
+    */ 
     public Set<Var> freeVarConstSymbols() {
         return new FreeVariablesVisitor().visit(this);
     }
     
-    // Returns the set of free variables of this term with respect
-    // to the given signature.
+    /** Returns the set of free variables of this term with respect
+    * to the given signature. Constants of the signature are not included.
+    */ 
     public Set<Var> freeVars(Signature signature) {
         Set<Var> freeVars = freeVarConstSymbols();
         freeVars.removeAll(signature.getConstants());
         return freeVars;
     }
     
-    // Returns an optional containing the term's type with repsect to the
-    // given signature, or an empty optional if typechecking fails.
-    // Note that a term that is not closed cannot typecheck correctly.
+    /**
+    * Returns an optional containing the term's type with repsect to the
+    * given signature, or an empty optional if typechecking fails.
+    * Note that a term that is not closed cannot typecheck correctly.
+    */ 
     public Optional<Type> typecheckOption(Signature signature) {
-        return typecheckEither(signature).match(
-            (String err) -> Optional.empty(),
-            (Type t) -> Optional.of(t) 
-        );
+        try {
+            TypeCheckResult result = typeCheck(signature);
+            return Optional.of(result.type);
+        } catch(TypeCheckException e) {
+            return Optional.empty();
+        }
     }
     
-    public Either<String, Type> typecheckEither(Signature signature) {
-        TypeCheckVisitor visitor = new TypeCheckVisitor(signature);
-        return visitor.visit(this);
+    /**
+    * Given a signature, typechecks the term with respect to the signature.
+    * Returns a TypeCheckResult containing the type of the term, AND a new term
+    * that is equal to the old term but with instances of Eq replaced with Iff
+    * when comparing Bool types. Such a term is called "sanitized".
+    */
+    public TypeCheckResult typeCheck(Signature signature) {
+        return TypeChecker.typeCheck(signature, this);
     }
     
+    /**
+    * Returns the negation normal form version of this term.
+    * The term must be sanitized to call this method.
+    */
     public Term nnf(Signature sig) {
         NnfVisitor nnf = new NnfVisitor(sig); 
         return nnf.visit(this);
     }
     
+    /**
+    * Returns an SExpr representing this term as it would appear in SMT-LIB.
+    */
     public SExpr toSmtExpr() {
         return new SmtExprVisitor().visit(this);
     }
     
+    /**
+    * Returns a term that is alpha-equivalent to this one but whose quantified
+    * variables are instead De Bruijn indices. Note that these indices are prefixed
+    * by an underscore to make it clearer (e.g. the first quantified variable is "_1")
+    */
     public Term deBruijn() {
         return new DeBruijnConverter().visit(this);
     }
     
+    /**
+    * Returns true iff the other term is alpha-equivalen to this term.
+    */
     public boolean alphaEquivalent(Term other) {
         return this.deBruijn().equals(other.deBruijn());
     }
