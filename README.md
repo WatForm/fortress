@@ -22,4 +22,7 @@ It was original described in the paper "Finite Model Finding Using the Logic of 
 1. Run `./gradlew cleanTest`.
 2. Run `./gradlew test`.
 
+## Building Documentation
+1. Run `./gradlew javadoc`
+
 ## Running Fortress in Your Project

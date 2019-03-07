@@ -21,7 +21,7 @@ public class Substituter {
     
     /**
     * Creates a Substituter that is primed to perform the substitution
-    * toSub |-> subWith inside the topLevelTerm.
+    * [toSub \u21A6] subWith inside the topLevelTerm.
     * The substituter will perform alpha-renaming to avoid variable capture when
     * necessary.
     * When creating new variables for alpha-renaming, it will not use any of
@@ -44,7 +44,7 @@ public class Substituter {
     
     /**
     * Creates a Substituter that is primed to perform the substitution
-    * toSub |-> subWith inside the topLevelTerm.
+    * [toSub \u21A6] subWith inside the topLevelTerm.
     * The substituter will perform alpha-renaming to avoid variable capture when
     * necessary.
     * When creating new variables for alpha-renaming, it will use the given name

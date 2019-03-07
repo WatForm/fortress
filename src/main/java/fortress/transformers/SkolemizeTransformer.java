@@ -7,6 +7,14 @@ import fortress.data.NameGenerator;
 import fortress.data.SubIntNameGenerator;
 import fortress.tfol.operations.Skolemizer;
 
+/**
+* @publish
+* A transformer that takes in a theory, whose formulas must all be in negation
+* normal form, and produces an equisatisfiable theory whose formulas are
+* still in negation normal form and contains no existential quantifiers.
+* If the formulas of the input theory were in prenex normal form, they still
+* will be in the resulting theory. 
+*/
 public class SkolemizeTransformer implements TheoryTransformer {
     @Override
     public Theory apply(Theory theory) {

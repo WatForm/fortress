@@ -2,6 +2,11 @@ package fortress.transformers;
 
 import fortress.tfol.*;
 
+/**
+* @publish
+* A transformer that takes in a theory and produces an equivalent theory
+* in which all formulas are in negation normal form.
+*/
 public class NnfTransformer implements TheoryTransformer {
     @Override
     public Theory apply(Theory theory) {

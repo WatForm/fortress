@@ -6,7 +6,7 @@ import fortress.util.Errors;
 import fortress.tfol.operations.TermVisitor;
 
 /**
-* @Publish
+* @publish
 * Represents a syntactic variable or constant.
 * Variables and constants are treated as syntactically indistinguishable;
 * a Var is only considered a variable or constant depending on the signature it
@@ -16,7 +16,7 @@ public class Var extends Term {
     
     // Published Interface
     /**
-    * @Publish
+    * @publish
     * Returns an AnnotatedVar that represents this varible annotated with the
     * given type.
     */

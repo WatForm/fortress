@@ -4,7 +4,7 @@ import fortress.util.Errors;
 import fortress.tfol.operations.TermVisitor;
 
 /**
-* @Publish
+* @publish
 * Represents a type, sometimes called a sort.
 */
 public class Type {
@@ -12,7 +12,7 @@ public class Type {
     // Published Interface
     
     /**
-    * @Publish
+    * @publish
     * Returns a Type with the given name.
     */
     public static Type mkTypeConst(String name) {

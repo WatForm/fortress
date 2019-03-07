@@ -15,7 +15,7 @@ dependencies {
     testCompile 'junit:junit:4.12'
 }
 
-// JUNIT
+// JUnit
 
 test {
     ignoreFailures true // Don't stop build when unit test fails
@@ -29,13 +29,22 @@ tasks.withType(Test) {
     systemProperty "java.library.path", "z3/"
 }
 
-// ANTLR
+// Antlr Parser Generator
 
 generateGrammarSource {
     maxHeapSize = "64m"
     arguments += ["-visitor", "-long-messages"]
     arguments += ['-package', 'fortress.formats'] // Add fortress.formats package header to files
 }
+
+// Javadoc
+javadoc {
+    options.tags = ["publish"] // Custom tags
+    javadoc.options.addStringOption('Xdoclint:none', '-quiet') // Turn off doclint
+    options.addBooleanOption('html5', true) // Generate in HTML5
+}
+
+// Distribution
 
 // Zip up both the main fortress jar and any runtime dependencies
 // Note that these are kept as separate jars in the zip file, not one fat jar

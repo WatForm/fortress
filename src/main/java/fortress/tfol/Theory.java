@@ -27,7 +27,7 @@ public class Theory {
     }
     
     /**
-    * @Publish
+    * @publish
     * Returns a theory consisting of the current theory but with the given
     * axiom added. Note that this does not modify the current Theory object,
     * but rather just returns a new Theory object. Throws an exception
@@ -40,7 +40,7 @@ public class Theory {
     }
     
     /**
-    * @Publish
+    * @publish
     * Returns a theory consisting of the current theory but with the given
     * type declaration added. Note that this does not modify the current Theory object,
     * but rather just returns a new Theory object.
@@ -49,7 +49,7 @@ public class Theory {
         return new Theory(signature.withType(type), axioms);
     }
     /**
-    * @Publish
+    * @publish
     * Returns a theory consisting of the current theory but with the given
     * type declarations added. Note that this does not modify the current Theory object,
     * but rather just returns a new Theory object.
@@ -59,7 +59,7 @@ public class Theory {
     }
     
     /**
-    * @Publish
+    * @publish
     * Returns a theory consisting of the current theory but with the given
     * constant declaration added. Note that this does not modify the current Theory object,
     * but rather just returns a new Theory object.
@@ -68,7 +68,7 @@ public class Theory {
         return new Theory(signature.withConstant(constant), axioms);
     }
     /**
-    * @Publish
+    * @publish
     * Returns a theory consisting of the current theory but with the given
     * constant declarations added. Note that this does not modify the current Theory object,
     * but rather just returns a new Theory object.
@@ -78,7 +78,7 @@ public class Theory {
     }
     
     /**
-    * @Publish
+    * @publish
     * Returns a theory consisting of the current theory but with the given
     * function declaration added. Note that this does not modify the current Theory object,
     * but rather just returns a new Theory object.
@@ -87,7 +87,7 @@ public class Theory {
         return new Theory(signature.withFunctionDeclaration(f), axioms);
     }
     /**
-    * @Publish
+    * @publish
     * Returns a theory consisting of the current theory but with the given
     * function declarations added. Note that this does not modify the current Theory object,
     * but rather just returns a new Theory object.

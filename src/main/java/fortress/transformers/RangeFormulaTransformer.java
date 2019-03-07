@@ -4,12 +4,29 @@ import java.util.stream.Collectors;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Map;
+import java.util.HashMap;
 
 import fortress.tfol.*;
 
+/**
+* @publish
+* A transformation that instantiates universal quantifiers and adds finite range formulas.
+* The theory must not contain any existential quantifiers (e.g. it is Skolemized).
+* This transformation is parameterized by a mapping from types to sizes, called scopes.
+* The resulting theory will be satisfiable if and only if the original theory
+* had a satisfying model that respects these scopes.
+*/
 public abstract class RangeFormulaTransformer implements TheoryTransformer {
-    public void NaiveScopeTransformer() {
-        // Empty
+    private Map<Type, Integer> scopes;
+    
+    public RangeFormulaTransformer(Map<Type, Integer> scopes) {
+        this.scopes = new HashMap(scopes); // Copy
+    }
+    
+    // TODO implement
+    @Override
+    public Theory apply(Theory theory) {
+        return theory;
     }
     
     // @Override

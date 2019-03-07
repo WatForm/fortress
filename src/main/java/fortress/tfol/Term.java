@@ -28,7 +28,7 @@ public abstract class Term {
     // Term subclasses are not published, with the exception of Var
     
     /** 
-    * @Publish
+    * @publish
     * Returns a term representing Top/Verum.
     */
     public static Term mkTop() {
@@ -36,7 +36,7 @@ public abstract class Term {
     }
     
     /**
-    * @Publish
+    * @publish
     * Returns a term representing Bottom/Falsum.
     */
     public static Term mkBottom() {
@@ -44,7 +44,7 @@ public abstract class Term {
     }
     
     /**
-    * @Publish
+    * @publish
     * Returns a term representing the variable (or constant, depending on the
     * context in which it is used) with the given name.
     */
@@ -53,7 +53,7 @@ public abstract class Term {
     }
     
     /**
-    * @Publish
+    * @publish
     * Returns a term representing the conjunction of the given terms. At least
     * two or more terms must be provided.
     */
@@ -62,7 +62,7 @@ public abstract class Term {
         return new AndList(ImmutableWrapperList.copyArray(args));
     }
     /**
-    * @Publish
+    * @publish
     * Returns a term representing the conjunction of the given terms. At least
     * two or more terms must be provided.
     */
@@ -72,7 +72,7 @@ public abstract class Term {
     }
     
     /**
-    * @Publish
+    * @publish
     * Returns a term representing the disjunction of the given terms. At least
     * two or more terms must be provided.
     */
@@ -81,7 +81,7 @@ public abstract class Term {
         return new OrList(ImmutableWrapperList.copyArray(args));
     }
     /**
-    * @Publish
+    * @publish
     * Returns a term representing the conjunction of the given terms. At least
     * two or more terms must be provided.
     */
@@ -91,7 +91,7 @@ public abstract class Term {
     }
     
     /**
-    * @Publish
+    * @publish
     * Returns a term representing the negation of the given term.
     */
     public static Term mkNot(Term t) {
@@ -99,7 +99,7 @@ public abstract class Term {
     }
     
     /**
-    * @Publish
+    * @publish
     * Returns a term representing the implication "t1 implies t2".
     */
     public static Term mkImp(Term t1, Term t2) {
@@ -107,7 +107,7 @@ public abstract class Term {
     }
     
     /**
-    * @Publish
+    * @publish
     * Returns a term representing the truth value of whether t1 and t2 are equal.
     * Users should also use this for the bi-equivalence "t1 iff t2".
     */
@@ -116,7 +116,7 @@ public abstract class Term {
     }
     
     /**
-    * @Publish
+    * @publish
     * Returns a term representing the truth value of whether the given terms have
     * distinct values. Two or more terms must be provided.
     */
@@ -125,7 +125,7 @@ public abstract class Term {
         return new Distinct(ImmutableWrapperList.copyCollection(arguments));
     }
     /**
-    * @Publish
+    * @publish
     * Returns a term representing the truth value of whether the given terms have
     * distinct values. Two or more terms must be provided.
     */
@@ -135,7 +135,7 @@ public abstract class Term {
     }
     
     /**
-    * @Publish
+    * @publish
     * Returns a term representing the result of the application of a function with
     * the given functionName to the given arguments. At least one or more arguments
     * must be provided.
@@ -144,7 +144,7 @@ public abstract class Term {
         return new App(functionName, ImmutableWrapperList.copyArray(arguments));
     }
     /**
-    * @Publish
+    * @publish
     * Returns a term representing the result of the application of a function with
     * the given functionName to the given arguments. At least one or more arguments
     * must be provided.
@@ -154,7 +154,7 @@ public abstract class Term {
     }
     
     /**
-    * @Publish
+    * @publish
     * Returns a term representing the universal quantification of the given body
     * over the given annotated variables.
     * At least one or more variables must be provided.
@@ -164,7 +164,7 @@ public abstract class Term {
         return new Forall(varsCopy, body);
     }
     /**
-    * @Publish
+    * @publish
     * Returns a term representing the universal quantification of the given body
     * over the given annotated variable.
     */
@@ -174,7 +174,7 @@ public abstract class Term {
     }
     
     /**
-    * @Publish
+    * @publish
     * Returns a term representing the existential quantification of the given body
     * over the given annotated variables.
     * At least one or more variables must be provided.
@@ -184,7 +184,7 @@ public abstract class Term {
         return new Exists(varsCopy, body);
     }
     /**
-    * @Publish
+    * @publish
     * Returns a term representing the existential quantification of the given body
     * over the given annotated variable.
     */

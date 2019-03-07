@@ -6,7 +6,7 @@ package fortress.tfol;
 // On the other hand I can also see some cases it might be less work to have two options.
 
 /**
-* @Publish
+* @publish
 * Represents a variable together with a type annotation.
 * This is used, for example, when quantifying a variable
 * (as type annotations are required in quantifiers), or when declaring

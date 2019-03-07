@@ -11,8 +11,10 @@ import fortress.util.Errors;
 import fortress.tfol.*;
 
 public class Z3CommandLine implements SolverStrategy {
-    public Z3CommandLine() {
-        // Empty
+    
+    @Override
+    public boolean canAttemptSolving(Theory theory) {
+        return true;
     }
     
     public ModelFinder.Result solve(Theory theory, int timeout) {
