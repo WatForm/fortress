@@ -1,4 +1,4 @@
-package fortress.formats;
+package fortress.inputs;
 
 import org.antlr.v4.runtime.tree.TerminalNode;
 

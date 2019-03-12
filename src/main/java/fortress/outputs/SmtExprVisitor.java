@@ -1,9 +1,10 @@
-package fortress.tfol.operations;
+package fortress.outputs;
 
 import fortress.sexpr.SExpr;
 import java.util.List;
 import java.util.ArrayList;
 import fortress.tfol.*;
+import fortress.tfol.operations.TermVisitor;
 
 public class SmtExprVisitor implements TermVisitor<SExpr> {
     

@@ -14,15 +14,19 @@ It was original described in the paper "Finite Model Finding Using the Logic of 
     Specifically you will need to place the following files in the corresponding locations:
     * `com.microsoft.z3.jar` in `fortress-2.0/z3/`, and
     * `libz3java.dylib` in `fortress-2.0/z3`.
-3. Run `./gradlew build`.
+3. Install the Microsoft Z3 command line tool, version 4.8.4 or higher.
+    * If using MacOS, I recommend using Homebrew: `brew install z3`.
+4. Run `./gradlew build` on \*nix machines, or `gradle.bat build` if running Windows.
     This will automatically download the appropriate version of the build system, as well as any additional dependencies for Fortress.
     It will also produce archive files in both zip and tar formats that contain a Fortress jar and all of its runtime dependencies.
 
 ## Running Unit Tests
+On Windows, substitute `./gradlew` for `gradle.bat`.
 1. Run `./gradlew cleanTest`.
 2. Run `./gradlew test`.
 
 ## Building Documentation
+On Windows, substitute `./gradlew` for `gradle.bat`.
 1. Run `./gradlew javadoc`
 
 ## Running Fortress in Your Project

@@ -34,7 +34,7 @@ tasks.withType(Test) {
 generateGrammarSource {
     maxHeapSize = "64m"
     arguments += ["-visitor", "-long-messages"]
-    arguments += ['-package', 'fortress.formats'] // Add fortress.formats package header to files
+    arguments += ['-package', 'fortress.inputs'] // Add fortress.inputs package header to files
 }
 
 // Javadoc

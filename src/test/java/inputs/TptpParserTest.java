@@ -2,54 +2,24 @@ import static org.junit.Assert.assertEquals;
 import org.junit.Test;
 import org.junit.Ignore;
 
-import org.antlr.v4.runtime.*;
-import org.antlr.v4.runtime.tree.ParseTree;
-import fortress.formats.*;
+import fortress.inputs.*;
 import fortress.tfol.*;
 import java.util.List;
 import java.util.ArrayList;
-import java.io.IOException;
+import java.io.*;
+
 
 public class TptpParserTest {
-    
-    /*
-    Group Theory example
-    The universe is described as a group
-    The group is conjectured to be abelian
-    The following link should tell you for which sizes non-abelian groups exist for
-    https://en.wikipedia.org/wiki/List_of_small_groups#List_of_small_non-abelian_groups
-    Note that any prime sized group will be abelian, since they are cyclic and cyclic groups are abelian
-    */
-    
-    String abelianInput = ""
-    + "fof(associative, axiom, ("
-    + "   ! [A, B, C] : (f(f(A, B), C) = f(A, f(B, C)))"
-    + "   ))."
-
-    + " fof(identity, axiom, ("
-    + "   ! [A] : ((f(A, e) = A) & (f(e, A) = A))"
-    + "   ))."
-
-    + " fof(inverse, axiom, ("
-    + "   ! [A] : (? [B] : ((f(A, B) = e) & (f(B, A) = e)))"
-    + "   ))."
-
-    + " fof(abelian, conjecture, ("
-    + "  ! [A, B] : (f(A, B) = f(B, A))"
-    + "   )).";
 
     @Test
     public void abelian() throws IOException {
-        ANTLRInputStream input = new ANTLRInputStream(abelianInput);
-        FOFTPTPLexer lexer = new FOFTPTPLexer(input);
-        CommonTokenStream tokens = new CommonTokenStream(lexer);
-        FOFTPTPParser parser = new FOFTPTPParser(tokens);
-        ParseTree tree = parser.spec();
-        TptpToFortress converter = new TptpToFortress();
-        converter.visit(tree);
-        Theory resultTheory = converter.getTheory();
+        ClassLoader classLoader = getClass().getClassLoader();
+        File file = new File(classLoader.getResource("abelian.p").getFile());
+        FileInputStream fileStream = new FileInputStream(file);
         
-        Type universeType = converter.getUniverseType();
+        TheoryParser.TptpFofResult result = TheoryParser.parseTptpFof(fileStream);
+        Theory resultTheory = result.theory;
+        Type universeType = result.universeType;
         
         Var A = Term.mkVar("A");
         Var B = Term.mkVar("B");

@@ -1,4 +1,4 @@
-package fortress.formats;
+package fortress.inputs;
 
 import fortress.tfol.*;
 import java.util.List;

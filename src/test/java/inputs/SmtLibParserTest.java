@@ -2,9 +2,7 @@ import static org.junit.Assert.assertEquals;
 import org.junit.Test;
 import org.junit.Ignore;
 
-import org.antlr.v4.runtime.*;
-import org.antlr.v4.runtime.tree.ParseTree;
-import fortress.formats.*;
+import fortress.inputs.*;
 import fortress.tfol.*;
 import java.util.List;
 import java.util.ArrayList;
@@ -19,14 +17,8 @@ public class SmtLibParserTest {
         ClassLoader classLoader = getClass().getClassLoader();
         File file = new File(classLoader.getResource("sample1.smt").getFile());
         FileInputStream fileStream = new FileInputStream(file);
-        ANTLRInputStream input = new ANTLRInputStream(fileStream);
-        SmtLibSubsetLexer lexer = new SmtLibSubsetLexer(input);
-        CommonTokenStream tokens = new CommonTokenStream(lexer);
-        SmtLibSubsetParser parser = new SmtLibSubsetParser(tokens);
-        ParseTree tree = parser.commands();
-        SmtLibToTheory converter = new SmtLibToTheory();
-        converter.visit(tree);
-        Theory resultTheory = converter.getTheory();
+        
+        Theory resultTheory = TheoryParser.parseSmtLib(fileStream);
         
         Theory expectedTheory = Theory.empty();
         

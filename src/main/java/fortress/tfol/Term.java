@@ -14,6 +14,7 @@ import fortress.sexpr.*;
 import java.util.function.Function;
 import fortress.data.Either;
 import fortress.data.NameGenerator;
+import fortress.outputs.*;
 
 // NOTE: There is no mkAnnotatedVar because we do not want people to think
 // that AnnotatedVar is a Term
