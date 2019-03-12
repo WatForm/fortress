@@ -17,9 +17,8 @@ public class TptpParserTest {
         File file = new File(classLoader.getResource("abelian.p").getFile());
         FileInputStream fileStream = new FileInputStream(file);
         
-        TheoryParser.TptpFofResult result = TheoryParser.parseTptpFof(fileStream);
-        Theory resultTheory = result.theory;
-        Type universeType = result.universeType;
+        Theory resultTheory = new TptpFofParser().parse(fileStream);
+        Type universeType = Type.mkTypeConst("_UNIV");
         
         Var A = Term.mkVar("A");
         Var B = Term.mkVar("B");

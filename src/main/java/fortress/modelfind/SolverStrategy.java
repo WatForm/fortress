@@ -7,7 +7,7 @@ import fortress.tfol.*;
 * An abstraction of which solving method should be used to search for a satisfying model.
 * For example, dumping the theory to SMT-LIB and solving it using a command-line SMT solver.
 */
-interface SolverStrategy {
+public interface SolverStrategy {
     /**
     * Returns true if and only if the solver can attempt to solve the given theory.
     * For example, a SolverStrategy that invokes a SAT solver will reject a theory

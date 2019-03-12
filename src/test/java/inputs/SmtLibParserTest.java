@@ -18,7 +18,7 @@ public class SmtLibParserTest {
         File file = new File(classLoader.getResource("sample1.smt").getFile());
         FileInputStream fileStream = new FileInputStream(file);
         
-        Theory resultTheory = TheoryParser.parseSmtLib(fileStream);
+        Theory resultTheory = new SmtLibParser().parse(fileStream);
         
         Theory expectedTheory = Theory.empty();
         

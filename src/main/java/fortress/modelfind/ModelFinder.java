@@ -77,4 +77,14 @@ public class ModelFinder {
         
         return r;
     }
+    
+    // TODO update this
+    public String getTransformationTimeReport() {
+        return transformationTimer.getReport();
+    }
+    
+    // TODO update this
+    public String getSolverTimeReport() {
+        return solverTimer.getReport();
+    }
 }
