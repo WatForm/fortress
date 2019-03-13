@@ -46,7 +46,7 @@ public class SmtLibToTheory extends SmtLibSubsetBaseVisitor {
         int lastIndex = ctx.ID().size() - 1;
         String function = ctx.ID(0).getText();
         Type returnType = Type.mkTypeConst(ctx.ID(lastIndex).getText());
-        List<Type> argTypes = new ArrayList();
+        List<Type> argTypes = new ArrayList<>();
         for(int i = 1; i < lastIndex; i++) {
             argTypes.add(Type.mkTypeConst(ctx.ID(i).getText()));
         }

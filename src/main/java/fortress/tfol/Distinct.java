@@ -21,7 +21,7 @@ public class Distinct extends ListOp {
     }
     
     public Term asPairwiseNotEquals() {
-        List<Term> pairs = new ArrayList();
+        List<Term> pairs = new ArrayList<>();
         int i = 0;
         int j = 0;
         for(Term ti : getArguments()) {

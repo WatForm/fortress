@@ -136,8 +136,8 @@ public class Skolemizer {
                     // Skolem function
                     String skolemFunctionName = nameGen.freshName("sk");
                     
-                    List<Type> argumentTypes = new ArrayList();
-                    List<Term> arguments = new ArrayList();
+                    List<Type> argumentTypes = new ArrayList<>();
+                    List<Term> arguments = new ArrayList<>();
                     for(Var v : freeVars) {
                         Optional<Type> typeMaybe = lookupType(v);
                         Errors.failIf(!typeMaybe.isPresent(), "Type of variable " + v.getName() + " could not be found");

@@ -89,14 +89,14 @@ public class UnivInstantiationVisitor implements TermVisitor<Term> {
         // TODO does the order of quantifier instantiation matter? Here we do a bottom up approach
         Term body = visit(forall.getBody());
         
-        List<Term> toConjunct = new ArrayList();
+        List<Term> toConjunct = new ArrayList<>();
         
         // Forall x_1: A_1, x_2 : A_2, ... x_n: A_n
         // Where A_i is to be instantiated using the set S_i
         // Get the list [S_1, S_2, ..., S_n]
         // and the list [x_1, x_2, ..., x_n]
-        List<List<Var>> listOfTypeSets = new ArrayList();
-        List<Var> vars = new ArrayList();
+        List<List<Var>> listOfTypeSets = new ArrayList<>();
+        List<Var> vars = new ArrayList<>();
         for(AnnotatedVar av: forall.getVars()) {
             Type type = av.getType();
             listOfTypeSets.add(typeInstantiations.get(type));

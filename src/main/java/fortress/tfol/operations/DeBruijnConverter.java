@@ -106,7 +106,7 @@ public class DeBruijnConverter {
         
         @Override
         public Term visitExists(Exists exists) {
-            List<AnnotatedVar> newVars = new ArrayList();
+            List<AnnotatedVar> newVars = new ArrayList<>();
             for(AnnotatedVar av : exists.getVars()) {
                 counter++;
                 Mapping m = new Mapping(counter, av.getVar());
@@ -127,7 +127,7 @@ public class DeBruijnConverter {
         
         @Override
         public Term visitForall(Forall forall) {
-            List<AnnotatedVar> newVars = new ArrayList();
+            List<AnnotatedVar> newVars = new ArrayList<>();
             for(AnnotatedVar av : forall.getVars()) {
                 counter++;
                 Mapping m = new Mapping(counter, av.getVar());

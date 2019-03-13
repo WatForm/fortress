@@ -50,7 +50,7 @@ public class CartesianProduct<E> implements Iterable<List<E>> {
             Errors.failIf(!hasNext());
             
             // Get current item of counter first
-            List<E> productElement = new ArrayList();
+            List<E> productElement = new ArrayList<>();
             for(int i = 0; i < numberOfSets; i++) {
                 List<E> set_i = sets.get(i);
                 E element = set_i.get(currentPosition[i]);

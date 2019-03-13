@@ -16,7 +16,7 @@ public abstract class SExpr implements SimpleEquals {
     }
     
     public static SExpr mkList(SExpr... subexpressions) {
-        List<SExpr> sub = new ArrayList();
+        List<SExpr> sub = new ArrayList<>();
         for(SExpr e : subexpressions) {
             sub.add(e);
         }

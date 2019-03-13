@@ -111,7 +111,7 @@ public class Substituter {
         
         @Override
         public Term visitAndList(AndList and) {
-            List<Term> args = new ArrayList();
+            List<Term> args = new ArrayList<>();
             for(Term arg : and.getArguments()) {
                 args.add(visit(arg));
             }
@@ -120,7 +120,7 @@ public class Substituter {
         
         @Override
         public Term visitOrList(OrList or) {
-            List<Term> args = new ArrayList();
+            List<Term> args = new ArrayList<>();
             for(Term arg : or.getArguments()) {
                 args.add(visit(arg));
             }
@@ -129,7 +129,7 @@ public class Substituter {
         
         @Override
         public Term visitDistinct(Distinct dist) {
-            List<Term> args = new ArrayList();
+            List<Term> args = new ArrayList<>();
             for(Term arg : dist.getArguments()) {
                 args.add(visit(arg));
             }
@@ -153,7 +153,7 @@ public class Substituter {
         
         @Override
         public Term visitApp(App app) {
-            List<Term> args = new ArrayList();
+            List<Term> args = new ArrayList<>();
             for(Term arg : app.getArguments()) {
                 args.add(visit(arg));
             }
@@ -170,7 +170,7 @@ public class Substituter {
             }
             
             // Avoid variable capturing
-            List<AnnotatedVar> newVars = new ArrayList();
+            List<AnnotatedVar> newVars = new ArrayList<>();
             Term newBody = exists.getBody();
             for(AnnotatedVar av : exists.getVars()) {
                 Var v = av.getVar();
@@ -197,7 +197,7 @@ public class Substituter {
             }
             
             // Avoid variable capturing
-            List<AnnotatedVar> newVars = new ArrayList();
+            List<AnnotatedVar> newVars = new ArrayList<>();
             Term newBody = forall.getBody();
             for(AnnotatedVar av : forall.getVars()) {
                 Var v = av.getVar();

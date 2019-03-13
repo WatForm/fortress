@@ -42,7 +42,7 @@ public class PersistentInsertionOrderedHashSetTest {
         //     .plus("rat")
         //     .plus("raccoon")
         //     .plus("bird");
-        // List<String> lll = new ArrayList();
+        // List<String> lll = new ArrayList<>();
         // for(String s : q) {
         //     lll.add(s);
         // }
@@ -72,8 +72,8 @@ public class PersistentInsertionOrderedHashSetTest {
         s2 = s2.plus("raccoon");
         s2 = s2.plus("bird");
         
-        List<String> l1 = new ArrayList(s1);
-        List<String> l2 = new ArrayList(s2);
+        List<String> l1 = new ArrayList<>(s1);
+        List<String> l2 = new ArrayList<>(s2);
         
         assertEquals(l1, List.of("cat", "dog", "mouse", "rat", "raccoon", "bird"));
         assertNotEquals(l1, l2); // Otherwise we aren't actually testing anything

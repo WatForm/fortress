@@ -40,7 +40,7 @@ public class NnfVisitor implements TermVisitor<Term> {
     
     @Override
     public Term visitAndList(AndList term) {
-        List<Term> args = new ArrayList();
+        List<Term> args = new ArrayList<>();
         for(Term arg : term.getArguments()) {
             args.add(visit(arg));
         }
@@ -49,7 +49,7 @@ public class NnfVisitor implements TermVisitor<Term> {
     
     @Override
     public Term visitOrList(OrList term) {
-        List<Term> args = new ArrayList();
+        List<Term> args = new ArrayList<>();
         for(Term arg : term.getArguments()) {
             args.add(visit(arg));
         }
@@ -58,7 +58,7 @@ public class NnfVisitor implements TermVisitor<Term> {
     
     @Override
     public Term visitDistinct(Distinct term) {
-        List<Term> args = new ArrayList();
+        List<Term> args = new ArrayList<>();
         for(Term arg : term.getArguments()) {
             args.add(visit(arg));
         }
@@ -135,7 +135,7 @@ public class NnfVisitor implements TermVisitor<Term> {
         
         @Override
         public Term visitAndList(AndList term) {
-            List<Term> args = new ArrayList();
+            List<Term> args = new ArrayList<>();
             for(Term arg: term.getArguments()) {
                 args.add(nnf.visit(Term.mkNot(arg)));
             }
@@ -144,7 +144,7 @@ public class NnfVisitor implements TermVisitor<Term> {
         
         @Override
         public Term visitOrList(OrList term) {
-            List<Term> args = new ArrayList();
+            List<Term> args = new ArrayList<>();
             for(Term arg: term.getArguments()) {
                 args.add(nnf.visit(Term.mkNot(arg)));
             }

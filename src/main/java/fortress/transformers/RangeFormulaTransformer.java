@@ -5,8 +5,12 @@ import java.util.List;
 import java.util.ArrayList;
 import java.util.Map;
 import java.util.HashMap;
+import java.util.Set;
+import java.util.HashSet;
 
 import fortress.tfol.*;
+import fortress.data.NameGenerator;
+import fortress.data.SubIntNameGenerator;
 
 /**
 * @publish
@@ -14,7 +18,7 @@ import fortress.tfol.*;
 * The theory must not contain any existential quantifiers (e.g. it is Skolemized).
 * This transformation is parameterized by a mapping from types to sizes, called scopes.
 * The resulting theory will be satisfiable if and only if the original theory
-* had a satisfying model that respects these scopes.
+* has a satisfying model that respects these scopes.
 */
 public abstract class RangeFormulaTransformer implements TheoryTransformer {
     private Map<Type, Integer> scopes;
@@ -23,61 +27,88 @@ public abstract class RangeFormulaTransformer implements TheoryTransformer {
         this.scopes = new HashMap(scopes); // Copy
     }
     
-    // TODO implement
     @Override
     public Theory apply(Theory theory) {
-        return theory;
+        
+        // TODO could make this name forbidding more efficient if make it a method of theory
+        // and have theory keep track of all names it uses
+        
+        Set<String> forbiddenNames = new HashSet();
+
+        for(FuncDecl fdecl : theory.getFunctionDeclarations()) {
+            forbiddenNames.add(fdecl.getName());
+        }
+        
+        for(AnnotatedVar c : theory.getConstants()) {
+            forbiddenNames.add(c.getName());
+        }
+        
+        for(Term axiom : theory.getAxioms()) {
+            forbiddenNames.addAll(axiom.allSymbols());
+        }
+        
+        NameGenerator nameGen = new SubIntNameGenerator(forbiddenNames);
+        
+        Map<Type, List<Var>> generatedUniverse = generateUniverse(nameGen);
+        
+        List<Term> rangeFormulas = generateRangeFormulas(theory, generatedUniverse);
+        
+        // Theory result = new GroundingTransformer(generatedUniverse).apply(theory)
+            // .withAxioms(rangeFormulas);
+        
+        return null;
     }
     
-    // @Override
-    // public void transformTheory(Theory theory) {
-    //     // TODO fresh names
-    //     Map<Type, Integer> scopes = theory.getScopes();
-    //     scopes.forEach( (type, scope) -> {
-    //         // Generate universe of given type
-    //         // TODO make this separate function, possibly in another class
-    //         // to avoid duplication
-    //         List<AnnotatedVar> universeVars = new ArrayList<>();
-    //         AnnotatedVar x = Term.mkAnnotatedVar("x", type);
-    //         for(int i = 1; i <= scope; i++) {
-    //             AnnotatedVar ei = Term.mkAnnotatedVar(type.toString() + i, type);
-    //             universeVars.add(ei);
-    //             theory.addConstant(ei);
-    //         }
-    //         theory.addAxiom(Term.mkDistinct(universeVars.stream().map(av -> av.getVar()).collect(Collectors.toList())));
-    // 
-    //         // Restrict constant values
-    //         for(AnnotatedVar c : theory.getConstants()) {
-    //             if (c.getType().equals(type)) {
-    //                 List<Term> equalityTerms = universeVars.stream().map(
-    //                     ei -> Term.mkEq(x.getVar(), ei.getVar())
-    //                 ).collect(Collectors.toList());
-    //                 Term rangeAxiom = Term.mkOr(equalityTerms);
-    //                 theory.addAxiom(rangeAxiom);
-    //             }
-    //         }
-    // 
-    //         // Restrict output values of functions
-    //         for(FuncDecl f : theory.getFunctionDeclarations()) {
-    //             if(f.getResultType().equals(type)) {
-    //                 List<AnnotatedVar> domainVars = new ArrayList<>();
-    //                 List<Type> domainTypes = f.getArgTypes();
-    //                 for(int i = 0; i < domainTypes.size(); i++) {
-    //                     AnnotatedVar xi = Term.mkAnnotatedVar("x" + (i + 1), domainTypes.get(i));
-    //                     domainVars.add(xi);
-    //                 }
-    // 
-    //                 // f(x_1, ..., x_m) = e_1 or ... or f(x_1, ..., x_m) = e_n
-    //                 // TODO should we allow covariance to avoid this copying?
-    //                 List<Term> domainVarUses = new ArrayList<Term>(domainVars.stream().map(av -> av.getVar()).collect(Collectors.toList()));
-    //                 List<Term> equalityTerms = universeVars.stream().map(
-    //                     ei -> Term.mkEq(Term.mkApp(f.getName(), domainVarUses), ei.getVar())
-    //                 ).collect(Collectors.toList());
-    // 
-    //                 Term rangeAxiom = Term.mkForall(domainVars, Term.mkOr(equalityTerms));
-    //                 theory.addAxiom(rangeAxiom);
-    //             }
-    //         }
-    //     });
-    // }
+    private Map<Type, List<Var>> generateUniverse(NameGenerator nameGen) {
+        Map<Type, List<Var>> universe = new HashMap();
+        for(Map.Entry<Type, Integer> scope : scopes.entrySet()) {
+            Type type = scope.getKey();
+            int size = scope.getValue();
+            List<Var> vars = new ArrayList<>();
+            for(int i = 0; i < size; i++) {
+                String name = nameGen.freshName(type.getName());
+                vars.add(Term.mkVar(name));
+            }
+            universe.put(type, vars);
+        }
+        return universe;
+    }
+    
+    private List<Term> generateRangeFormulas(Theory theory, Map<Type, List<Var>> generatedUniverse) {
+        List<Term> rangeConstraints = new ArrayList<>();
+        
+        // Generate range constraints for constants, with symmetry breaking
+        // Track how many far up we've gone for each type in symmetry breaking
+        Map<Type, Integer> symmetryDepth = new HashMap();
+        for(Type type : generatedUniverse.keySet()) {
+            symmetryDepth.put(type, 0);
+        }
+        for(AnnotatedVar av : theory.getConstants()) {
+            Type type = av.getType();
+            Var c = av.getVar();
+            
+            List<Var> univForType = generatedUniverse.get(type);
+            // The number of equalities c = a_i to disjunct is either however
+            // many equalities we made for the last constant of this type plus one,
+            // or the total number of universe constants of this type,
+            // whichever is smaller
+            int numEqualities = Math.min(symmetryDepth.get(type) + 1, univForType.size());
+            symmetryDepth.put(type, numEqualities);
+            
+            List<Term> equalities = new ArrayList<>(numEqualities);
+            for(int i = 0; i < numEqualities; i++) {
+                equalities.add(Term.mkEq(c, generatedUniverse.get(type).get(i)));
+            }
+            
+            Term disjunction = Term.mkOr(equalities);
+            rangeConstraints.add(disjunction);
+        }
+        
+        // TODO implement symmetry breaking
+        // Generate range constraints for functions, without symmetry breaking
+        for(FuncDecl funcDecl : theory.getFunctionDeclarations()) {
+            List<Term> toDisjunct;
+        }
+        return null;
+    }
 }

@@ -130,7 +130,7 @@ public class ImmutableWrapperList<E> implements ImmutableList<E> {
     // ImmutableList operations
     @Override
     public <R> ImmutableList<R> map(Function<? super E, ? extends R> mapping) {
-        List<R> newImplList = new ArrayList(implList.size());
+        List<R> newImplList = new ArrayList<>(implList.size());
         for(E elem : implList) {
             newImplList.add(mapping.apply(elem));
         }
