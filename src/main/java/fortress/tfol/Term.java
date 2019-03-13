@@ -15,6 +15,7 @@ import java.util.function.Function;
 import fortress.data.Either;
 import fortress.data.NameGenerator;
 import fortress.outputs.*;
+import java.util.Map;
 
 // NOTE: There is no mkAnnotatedVar because we do not want people to think
 // that AnnotatedVar is a Term
@@ -347,6 +348,10 @@ public abstract class Term {
     
     public Term substitute(Var toSub, Term subWith) {
         return substitute(toSub, subWith, Set.of());
+    }
+    
+    public Term univInstantiate(Map<Type, List<Var>> typeInstantiations) {
+        return new UnivInstantiationVisitor(typeInstantiations).visit(this);
     }
     
     /**

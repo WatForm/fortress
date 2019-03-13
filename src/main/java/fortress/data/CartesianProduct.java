@@ -9,9 +9,9 @@ import java.lang.UnsupportedOperationException;
 
 public class CartesianProduct<E> implements Iterable<List<E>> {
     
-    List<List<E>> sets;
-    int numberOfSets;
-    int[] numberOfElements;
+    private List<List<E>> sets;
+    private int numberOfSets;
+    private int[] numberOfElements;
     
     // Give a list A_1, ... A_n, where each is a list of elements
     public CartesianProduct(List<List<E>> sets) {
@@ -27,9 +27,9 @@ public class CartesianProduct<E> implements Iterable<List<E>> {
         return new ProductIterator();
     }
     
-    public class ProductIterator implements Iterator<List<E>> {
-        int[] currentPosition;
-        boolean atEnd;
+    private class ProductIterator implements Iterator<List<E>> {
+        private int[] currentPosition;
+        private boolean atEnd;
         
         private ProductIterator() {
             this.currentPosition = new int[numberOfSets];
