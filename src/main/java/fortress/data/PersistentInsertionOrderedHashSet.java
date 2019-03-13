@@ -6,27 +6,38 @@ import java.lang.Iterable;
 import java.util.Collection;
 import java.util.Set;
 import cyclops.data.HashSet;
+import cyclops.data.BankersQueue;
 
-public class PersistentHashSet<E> implements PersistentSet<E> {
+public class PersistentInsertionOrderedHashSet<E> implements PersistentSet<E> {
     private final HashSet<E> implSet;
+    private final BankersQueue<E> queue;
     
-    private PersistentHashSet(HashSet<E> implSet) {
+    private PersistentInsertionOrderedHashSet(HashSet<E> implSet, BankersQueue<E> queue) {
         this.implSet = implSet;
+        this.queue = queue;
     }
     
     // New operations
-    public static PersistentHashSet empty() {
-        return new PersistentHashSet(HashSet.empty());
+    public static PersistentInsertionOrderedHashSet empty() {
+        return new PersistentInsertionOrderedHashSet(HashSet.empty(), BankersQueue.empty());
     }
     
     // PersistentSet operations
     @Override
     public PersistentSet<E> plus(E item) {
-        return new PersistentHashSet(implSet.plus(item));
+        if(containsValue(item)) {
+            return this; // Have to worry about duplicates in queue
+        }
+        return new PersistentInsertionOrderedHashSet(implSet.plus(item), queue.plus(item));
     }
     
     public PersistentSet<E> plusAll(Iterable<? extends E> iterable) {
-        return new PersistentHashSet(implSet.plusAll(iterable));
+        // Have to worry about duplicates in queue, call plus which handles it
+        PersistentSet<E> set = this;
+        for(E item : iterable) {
+            set = set.plus(item);
+        }
+        return set;
     }
     
     @Override
@@ -77,7 +88,7 @@ public class PersistentHashSet<E> implements PersistentSet<E> {
     
     @Override
     public Iterator<E> iterator() {
-        return implSet.iterator();
+        return queue.iterator();
     }
     
     @Override
@@ -87,18 +98,18 @@ public class PersistentHashSet<E> implements PersistentSet<E> {
     
     @Override
     public Stream<E> stream() {
-        return implSet.stream();
+        return queue.stream();
     }
     
     @Override
     public Object[] toArray() {
-        return implSet.toArray();
+        return queue.toArray();
     }
     
     // TODO must implement
     @Override
     public <T> T[] toArray(T[] as) {
-        throw new UnsupportedOperationException("PersistentHashSet<E> does not support <T> T[] toArray(T[] a) at this time. It will be implemented.");
+        throw new UnsupportedOperationException("PersistentInsertionOrderedHashSet<E> does not support <T> T[] toArray(T[] a) at this time. It will be implemented.");
     } 
     
     @Override
