@@ -366,4 +366,11 @@ public class TypeCheckTest {
         Term t = Term.mkForall(xp.of(Type.Bool), xp);
         assertEquals(Optional.empty(), t.typecheckOption(sig));
     }
+    
+    @Test
+    public void badType() {
+        Signature sig = Signature.empty();
+        Term t = Term.mkForall(x.of(A), Term.mkTop());
+        assertEquals(Optional.empty(), t.typecheckOption(sig));
+    }
 }
