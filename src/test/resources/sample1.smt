@@ -1,4 +1,9 @@
+(set-info :smt-lib-version 2.6)
 (set-info :status sat)
+(set-info :category "toyExample")
+(set-info :source |
+This is just a test really.
+|)
 (set-logic UF)
 (declare-sort A) (declare-sort B)
 (declare-const x A)
@@ -15,5 +20,13 @@
 (assert (= q q))
 (assert (=> false true))
 
+(declare-fun f (A) A)
+(declare-fun g (A) A)
+(declare-const a A)
+(declare-const b A)
+(declare-const c A)
+(assert (forall ((x A))
+                (! (= (f (g x)) x)
+                   :pattern ((f (g x))))))
 (check-sat)
 (exit)

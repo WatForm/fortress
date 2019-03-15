@@ -9,6 +9,8 @@ import java.util.ArrayList;
 import java.io.IOException;
 import java.io.FileInputStream;
 import java.io.File;
+import java.util.Optional;
+import java.util.Map;
 
 public class SmtLibParserTest {
 
@@ -18,7 +20,23 @@ public class SmtLibParserTest {
         File file = new File(classLoader.getResource("sample1.smt").getFile());
         FileInputStream fileStream = new FileInputStream(file);
         
-        Theory resultTheory = new SmtLibParser().parse(fileStream);
+        SmtLibParser parser = new SmtLibParser();
+        Theory resultTheory = parser.parse(fileStream);
+        Map<String, String> info = parser.getInfo();
+        Optional<String> logic = parser.getLogic();
+        
+        assertEquals(Optional.of("UF"), logic);
+        
+        String source = "\nThis is just a test really.\n";
+        
+        Map<String, String> expectedInfo = Map.of(
+            "smt-lib-version", "2.6",
+            "status", "sat",
+            "category", "toyExample",
+            "source", source
+        );
+        
+        assertEquals(expectedInfo, info);
         
         Theory expectedTheory = Theory.empty();
         
@@ -32,14 +50,14 @@ public class SmtLibParserTest {
         expectedTheory = expectedTheory.withConstant(x.of(A));
         expectedTheory = expectedTheory.withConstant(y.of(B));
         
-        FuncDecl decl = FuncDecl.mkFuncDecl("p", A, B, Type.Bool);
-        expectedTheory = expectedTheory.withFunctionDeclaration(decl);
+        FuncDecl p = FuncDecl.mkFuncDecl("p", A, B, Type.Bool);
+        expectedTheory = expectedTheory.withFunctionDeclaration(p);
         
         expectedTheory = expectedTheory.withAxiom(Term.mkApp("p", x, y));
         
         expectedTheory = expectedTheory.withAxiom(Term.mkForall(List.of(x.of(A), y.of(B)), Term.mkTop()));
         
-        expectedTheory = expectedTheory.withAxiom(Term.mkExists(List.of(x.of(A)), Term.mkTop()));
+        expectedTheory = expectedTheory.withAxiom(Term.mkExists(x.of(A), Term.mkTop()));
         
         Var q = Term.mkVar("q");
         expectedTheory = expectedTheory.withConstant(q.of(Type.Bool));
@@ -55,6 +73,25 @@ public class SmtLibParserTest {
         expectedTheory = expectedTheory.withAxiom(Term.mkEq(q, q));
         
         expectedTheory = expectedTheory.withAxiom(Term.mkImp(Term.mkBottom(), Term.mkTop()));
+        
+        FuncDecl f = FuncDecl.mkFuncDecl("f", A, A);
+        FuncDecl g = FuncDecl.mkFuncDecl("g", A, A);
+        expectedTheory = expectedTheory.withFunctionDeclaration(f);
+        expectedTheory = expectedTheory.withFunctionDeclaration(g);
+        
+        Var a = Term.mkVar("a");
+        Var b = Term.mkVar("b");
+        Var c = Term.mkVar("c");
+        expectedTheory = expectedTheory.withConstant(a.of(A));
+        expectedTheory = expectedTheory.withConstant(b.of(A));
+        expectedTheory = expectedTheory.withConstant(c.of(A));
+        
+        expectedTheory = expectedTheory.withAxiom(
+            Term.mkForall(x.of(A),
+                Term.mkEq(
+                    Term.mkApp("f",
+                        Term.mkApp("g", x)),
+                    x)));
         
         assertEquals(expectedTheory, resultTheory);
     }   
