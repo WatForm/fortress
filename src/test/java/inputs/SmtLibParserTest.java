@@ -13,6 +13,26 @@ import java.util.Optional;
 import java.util.Map;
 
 public class SmtLibParserTest {
+    
+    @Test(expected = fortress.inputs.ParserException.class)
+    public void parserThrowsOnError() throws IOException {
+        ClassLoader classLoader = getClass().getClassLoader();
+        File file = new File(classLoader.getResource("badParse.smt").getFile());
+        FileInputStream fileStream = new FileInputStream(file);
+        
+        SmtLibParser parser = new SmtLibParser();
+        Theory resultTheory = parser.parse(fileStream);
+    }
+    
+    @Test(expected = fortress.inputs.LexerException.class)
+    public void lexerThrowsOnError() throws IOException {
+        ClassLoader classLoader = getClass().getClassLoader();
+        File file = new File(classLoader.getResource("badLexical.smt").getFile());
+        FileInputStream fileStream = new FileInputStream(file);
+        
+        SmtLibParser parser = new SmtLibParser();
+        Theory resultTheory = parser.parse(fileStream);
+    }
 
     @Test
     public void sample1() throws IOException {
@@ -94,5 +114,5 @@ public class SmtLibParserTest {
                     x)));
         
         assertEquals(expectedTheory, resultTheory);
-    }   
+    }  
 }

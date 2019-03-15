@@ -21,9 +21,13 @@ public class SmtLibParser implements TheoryParser {
     @Override
     public Theory parse(InputStream inputStream) throws IOException {
         CharStream stream = CharStreams.fromStream(inputStream);
-        SmtLibSubsetLexer lexer = new SmtLibSubsetLexer(stream);
+        // Use the "give up" lexer
+        SmtLibSubsetLexer lexer = new StopAtFirstErrorSmtLibLexer(stream);
         CommonTokenStream tokens = new CommonTokenStream(lexer);
         SmtLibSubsetParser parser = new SmtLibSubsetParser(tokens);
+        // Use the "give up" error handler for parser
+        parser.setErrorHandler(new StopAtFirstErrorStrategy());
+        
         ParseTree tree = parser.commands();
         SmtLibVisitor visitor = new SmtLibVisitor();
         visitor.visit(tree);
