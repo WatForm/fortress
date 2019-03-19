@@ -4,6 +4,11 @@ import fortress.util.Timer;
 import fortress.util.Errors;
 import java.util.List;
 import java.util.ArrayList;
+import java.io.OutputStream;
+import java.io.Writer;
+import java.io.PrintWriter;
+import java.io.IOException;
+import fortress.data.NullOutputStream;
 
 import fortress.tfol.*;
 import fortress.transformers.TheoryTransformer;
@@ -59,22 +64,38 @@ public class ModelFinder {
     * Throws an exception if the SolverStrategy cannot attempt to solve the resulant theory
     * after the transformers are applied.
     */
-    public Result findModel(Theory theory, int solverTimeout) {
+    public Result findModel(Theory theory, int solverTimeout) throws IOException {
+        return findModel(theory, solverTimeout, new NullOutputStream());
+    }
+    
+    public Result findModel(Theory theory, int solverTimeout, OutputStream outputStream) throws IOException {
+        Writer log = new PrintWriter(outputStream);
         
         transformationTimer.set();
         for(TheoryTransformer theoryTransformer : theoryTransformers) {
+            log.write("Applying transformer: " + theoryTransformer.getName());
+            log.write("...");
+            log.flush();
             theory = theoryTransformer.apply(theory);
         }
         transformationTimer.stop();
         
+        log.write("Checking if solver can attempt...");
+        log.flush();
         if(!solverStrategy.canAttemptSolving(theory)) {
+            log.write("solver cannot attempt.\n");
+            log.flush();
             throw new RuntimeException("Provided SolverStrategy cannot attempt to solve the theory.");
         }
+        log.write("solver can attempt.\n");
         
+        log.write("Attempting to solve...\n");
+        log.flush();
         solverTimer.set();
-        Result r = solverStrategy.solve(theory, solverTimeout);
+        Result r = solverStrategy.solve(theory, solverTimeout, log);
         solverTimer.stop();
-        
+        log.write("Done. Result was " + r.toString());
+
         return r;
     }
     

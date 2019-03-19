@@ -2,6 +2,7 @@ package fortress.tfol;
 
 import fortress.data.PersistentSet;
 import fortress.data.PersistentHashSet;
+import fortress.data.PersistentInsertionOrderedHashSet;
 import java.util.Optional;
 import java.util.Set;
 import fortress.util.Errors;
@@ -22,10 +23,11 @@ public class Signature {
     }
     
     public static Signature empty() {
+        // For testing consistency, use an insertion ordered set
         return new Signature(
-            PersistentHashSet.empty().plus(Type.Bool), // Every signature contains Bool
-            PersistentHashSet.empty(),
-            PersistentHashSet.empty()
+            PersistentInsertionOrderedHashSet.empty().plus(Type.Bool), // Every signature contains Bool
+            PersistentInsertionOrderedHashSet.empty(),
+            PersistentInsertionOrderedHashSet.empty()
         );
     }
     

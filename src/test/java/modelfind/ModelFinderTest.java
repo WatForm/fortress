@@ -16,6 +16,7 @@ import java.util.ArrayList;
 import java.io.*;
 import fortress.util.Errors;
 import fortress.transformers.*;
+import java.io.*;
 
 public class ModelFinderTest {
     
@@ -66,7 +67,7 @@ public class ModelFinderTest {
     }
     
     @Test
-    public void BasicUnscopedZ3CommandLine() {
+    public void BasicUnscopedZ3CommandLine() throws IOException {
         Errors.failIf(null == modelFinder);
         Errors.failIf(null == simpleSatTheory);
         ModelFinder.Result satTheoryResult = modelFinder.findModel(simpleSatTheory, 1000);

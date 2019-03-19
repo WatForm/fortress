@@ -17,4 +17,9 @@ public class UnscopedTransformer implements TheoryTransformer {
     public Theory apply(Theory theory) {
         return theory;
     }
+    
+    @Override
+    public String getName() {
+        return "Unscoped Transformer";
+    }
 }

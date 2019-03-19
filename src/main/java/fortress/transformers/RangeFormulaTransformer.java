@@ -7,10 +7,12 @@ import java.util.Map;
 import java.util.HashMap;
 import java.util.Set;
 import java.util.HashSet;
+import java.util.stream.Collectors;
 
 import fortress.tfol.*;
 import fortress.data.NameGenerator;
 import fortress.data.SubIntNameGenerator;
+import fortress.data.CartesianProduct;
 
 /**
 * @publish
@@ -20,7 +22,7 @@ import fortress.data.SubIntNameGenerator;
 * The resulting theory will be satisfiable if and only if the original theory
 * has a satisfying model that respects these scopes.
 */
-public abstract class RangeFormulaTransformer implements TheoryTransformer {
+public class RangeFormulaTransformer implements TheoryTransformer {
     private Map<Type, Integer> scopes;
     
     public RangeFormulaTransformer(Map<Type, Integer> scopes) {
@@ -47,16 +49,22 @@ public abstract class RangeFormulaTransformer implements TheoryTransformer {
             forbiddenNames.addAll(axiom.allSymbols());
         }
         
-        NameGenerator nameGen = new SubIntNameGenerator(forbiddenNames);
+        NameGenerator nameGen = new SubIntNameGenerator(forbiddenNames, 1);
         
         Map<Type, List<Var>> generatedUniverse = generateUniverse(nameGen);
         
+        List<Term> distinctUniverseElements = new ArrayList<>();
+        for(List<Var> domainElementsOfTypeT : generatedUniverse.values()) {
+            distinctUniverseElements.add(Term.mkDistinct(domainElementsOfTypeT));
+        }
+        
         List<Term> rangeFormulas = generateRangeFormulas(theory, generatedUniverse);
         
-        // Theory result = new GroundingTransformer(generatedUniverse).apply(theory)
-            // .withAxioms(rangeFormulas);
+        Theory result = new GroundingTransformer(generatedUniverse).apply(theory)
+            .withAxioms(distinctUniverseElements)
+            .withAxioms(rangeFormulas);
         
-        return null;
+        return result;
     }
     
     private Map<Type, List<Var>> generateUniverse(NameGenerator nameGen) {
@@ -66,7 +74,7 @@ public abstract class RangeFormulaTransformer implements TheoryTransformer {
             int size = scope.getValue();
             List<Var> vars = new ArrayList<>();
             for(int i = 0; i < size; i++) {
-                String name = nameGen.freshName(type.getName());
+                String name = nameGen.freshName(type.getName().toLowerCase());
                 vars.add(Term.mkVar(name));
             }
             universe.put(type, vars);
@@ -106,9 +114,36 @@ public abstract class RangeFormulaTransformer implements TheoryTransformer {
         
         // TODO implement symmetry breaking
         // Generate range constraints for functions, without symmetry breaking
-        for(FuncDecl funcDecl : theory.getFunctionDeclarations()) {
-            List<Term> toDisjunct;
+        for(FuncDecl f : theory.getFunctionDeclarations()) {
+            // Skip predicates
+            if(f.getResultType().equals(Type.Bool)) {
+                continue;
+            }
+            
+            // if f: A_1 x ... x A_n -> B
+            // and each A_i has generated domain S_i
+            // get the list [S_1, ..., S_n] and take the cartesian product
+            List<List<Var>> toProduct = new ArrayList<>();
+            for(Type type : f.getArgTypes()) {
+                toProduct.add(generatedUniverse.get(type));
+            }
+            CartesianProduct<Var> argumentLists = new CartesianProduct(toProduct);
+            for(List<Var> argumentList : argumentLists) {
+                Term f_args = Term.mkApp(f.getName(), argumentList);
+                
+                // Generate f(args) = b_1 OR f(args) = b_2 OR ...
+                List<Term> equalities = new ArrayList<>();
+                for(Var b : generatedUniverse.get(f.getResultType())) {
+                    equalities.add(Term.mkEq(f_args, b));
+                }
+                rangeConstraints.add(Term.mkOr(equalities));
+            }
         }
-        return null;
+        return rangeConstraints;
+    }
+    
+    @Override
+    public String getName() {
+        return "RangeFormulaTransformer";
     }
 }

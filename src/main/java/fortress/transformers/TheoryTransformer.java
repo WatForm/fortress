@@ -15,4 +15,6 @@ public interface TheoryTransformer {
     * produces a new one.
     */
     public Theory apply(Theory theory);
+    
+    public String getName();
 }

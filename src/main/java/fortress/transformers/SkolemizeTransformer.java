@@ -36,7 +36,7 @@ public class SkolemizeTransformer implements TheoryTransformer {
             forbiddenNames.addAll(axiom.allSymbols());
         }
         
-        NameGenerator nameGenerator = new SubIntNameGenerator(forbiddenNames);
+        NameGenerator nameGenerator = new SubIntNameGenerator(forbiddenNames, 0);
         
         for(Term axiom : theory.getAxioms()) {
             Skolemizer skolemizer = new Skolemizer(axiom, sig, nameGenerator);
@@ -47,5 +47,10 @@ public class SkolemizeTransformer implements TheoryTransformer {
         }
         
         return result;
+    }
+    
+    @Override
+    public String getName() {
+        return "Skolemize Transformer";
     }
 }

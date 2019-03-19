@@ -32,4 +32,9 @@ public class GroundingTransformer implements TheoryTransformer {
         }
         return result;
     }
+    
+    @Override
+    public String getName() {
+        return "Grounding Transformer";
+    }
 }

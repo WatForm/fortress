@@ -76,19 +76,28 @@ public abstract class Term {
     /**
     * @publish
     * Returns a term representing the disjunction of the given terms. At least
-    * two or more terms must be provided.
+    * one term must be provided. If only one term is provided, it will be the
+    * result.
+    * 
     */
     public static Term mkOr(Term... args) {
-        Errors.failIf(args.length < 2);
+        Errors.failIf(args.length < 1, "One or more arguments must be given");
+        if(args.length == 1) {
+            return args[0];
+        }
         return new OrList(ImmutableWrapperList.copyArray(args));
     }
     /**
     * @publish
     * Returns a term representing the conjunction of the given terms. At least
-    * two or more terms must be provided.
+    * one term must be provided. If only one term is provided, it will be the
+    * result.
     */
     public static Term mkOr(List<Term> args) {
-        Errors.failIf(args.size() < 2);
+        Errors.failIf(args.size() < 1, "One or more arguments must be given");
+        if(args.size() == 1) {
+            return args.get(0);
+        }
         return new OrList(ImmutableWrapperList.copyCollection(args));
     }
     
@@ -122,7 +131,7 @@ public abstract class Term {
     * Returns a term representing the truth value of whether the given terms have
     * distinct values. Two or more terms must be provided.
     */
-    public static Term mkDistinct(List<Term> arguments) {
+    public static Term mkDistinct(List<? extends Term> arguments) {
         Errors.failIf(arguments.size() < 2);
         return new Distinct(ImmutableWrapperList.copyCollection(arguments));
     }
@@ -151,7 +160,7 @@ public abstract class Term {
     * the given functionName to the given arguments. At least one or more arguments
     * must be provided.
     */
-    public static Term mkApp(String functionName, List<Term> arguments) {
+    public static Term mkApp(String functionName, List<? extends Term> arguments) {
         return new App(functionName, ImmutableWrapperList.copyCollection(arguments));
     }
     

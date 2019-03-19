@@ -38,7 +38,7 @@ public class Substituter {
         // Forbid all names used in term
         forbidden.addAll(topLevelTerm.allSymbols());
         
-        this.nameGen = new SubIntNameGenerator(forbidden);
+        this.nameGen = new SubIntNameGenerator(forbidden, 0);
         this.visitor = new SubstitutionVisitor();
     }
     

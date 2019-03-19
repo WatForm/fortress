@@ -22,7 +22,7 @@ public class ImmutableWrapperList<E> implements ImmutableList<E> {
     // New operations
     
     // Shallow copy
-    public static <T> ImmutableWrapperList<T> copyCollection(Collection<T> collection) {
+    public static <T> ImmutableWrapperList<T> copyCollection(Collection<? extends T> collection) {
         return new ImmutableWrapperList(new ArrayList<T>(collection));
     }
     

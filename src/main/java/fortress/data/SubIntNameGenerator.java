@@ -4,19 +4,20 @@ import java.util.Set;
 import java.util.HashSet;
 
 public class SubIntNameGenerator implements NameGenerator {
-    Set<String> forbiddenNames;
+    private Set<String> forbiddenNames;
+    private int startingIndex;
     
-    public SubIntNameGenerator(Set<String> forbiddenNames) {
-        this.forbiddenNames = new HashSet();
+    public SubIntNameGenerator(Set<String> forbiddenNames, int startingIndex) {
         // Copy the elements in case forbiddenNames changes
-        this.forbiddenNames.addAll(forbiddenNames);
+        this.forbiddenNames = new HashSet(forbiddenNames);
+        this.startingIndex = startingIndex;
     }
     
     // TODO: could be implemented more efficiently in cases where we know
     // we are likely to use the same base often.
     @Override
     public String freshName(String base) {
-        int i = 0;
+        int i = startingIndex;
         String candidate = base + "_" + i;
         while(forbiddenNames.contains(candidate)) {
             i++;

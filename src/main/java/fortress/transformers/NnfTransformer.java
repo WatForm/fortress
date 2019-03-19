@@ -20,4 +20,9 @@ public class NnfTransformer implements TheoryTransformer {
         
         return result;
     }
+    
+    @Override
+    public String getName() {
+        return "Negation Normal Form Transformer";
+    }
 }

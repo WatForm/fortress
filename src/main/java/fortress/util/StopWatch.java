@@ -32,25 +32,6 @@ public class StopWatch {
     }
     
     public static String format(long nanoseconds) {
-        // long length = nanoseconds / 10000000;
-        // long hsec = length % 100;
-        // length /= 100;
-        // long second = length % 60;
-        // length /= 60;
-        // long minute = length % 60;
-        // length /= 60;
-        // long hour = length % 60;
-        // length /= 60;
-        // long day = length;
-        // String report = "";
-        // if (day != 0)
-        //     report = report + Long.toString(day) + "d ";
-        // if (hour != 0)
-        //     report = report + Long.toString(hour) + "h ";
-        // if (minute != 0)
-        //     report = report + Long.toString(minute) + "m ";
-        // report = report + Long.toString(second) + "." + Long.toString(hsec) + "s";
-        // return report;
         
         long milliseconds = nanoseconds / (1000000);
         long justMillis = milliseconds % 1000;

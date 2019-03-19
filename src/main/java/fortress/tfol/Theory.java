@@ -38,6 +38,21 @@ public class Theory {
         Term sanitizedAxiom = sanitizeAxiom(formula);
         return new Theory(signature, axioms.plus(sanitizedAxiom));
     }
+    /**
+    * @publish
+    * Returns a theory consisting of the current theory but with the given
+    * axioms added. Note that this does not modify the current Theory object,
+    * but rather just returns a new Theory object. Throws an exception
+    * if the result fails to typecheck with respect to this theory's signature.
+    * 
+    */
+    public Theory withAxioms(Iterable<Term> formulas) {
+        Theory theory = this;
+        for(Term formula : formulas) {
+            theory = theory.withAxiom(formula);
+        }
+        return theory;
+    }
     
     /**
     * @publish

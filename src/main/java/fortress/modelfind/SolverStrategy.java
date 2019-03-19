@@ -1,6 +1,7 @@
 package fortress.modelfind;
 
 import fortress.tfol.*;
+import java.io.Writer;
 
 /**
 * @publish
@@ -24,5 +25,5 @@ public interface SolverStrategy {
     /**
     * Attempts to solve the given theory, searching for a satisfying instance.
     */
-    public ModelFinder.Result solve(Theory theory, int timeout);
+    public ModelFinder.Result solve(Theory theory, int timeout, Writer log);
 }
