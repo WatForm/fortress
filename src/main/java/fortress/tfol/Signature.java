@@ -106,6 +106,14 @@ public class Signature {
             .findAny();
     }
     
+    public boolean hasType(String name) {
+        return types.containsValue(Type.mkTypeConst(name));
+    }
+    
+    public boolean hasType(Type type) {
+        return types.containsValue(type);
+    }
+    
     /* Package private */ Set<AnnotatedVar> getConstants() {
         return constants;
     }
