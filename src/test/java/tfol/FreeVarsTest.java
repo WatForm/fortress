@@ -23,24 +23,45 @@ public class FreeVarsTest {
     Var x = Term.mkVar("x");
     Var y = Term.mkVar("y");
     Var z = Term.mkVar("z");
-    Term t = Term.mkAnd(
-        Term.mkApp("p", x),
+    Var c = Term.mkVar("c");
+    Var p = Term.mkVar("p");
+    Var q = Term.mkVar("q");
+    
+    Term t1 = Term.mkAnd(
+        Term.mkApp("R", x),
         Term.mkNot(
             Term.mkImp(
-                Term.mkApp("q", y),
-                Term.mkApp("p", x)
+                Term.mkApp("Q", y),
+                Term.mkApp("R", x)
             )
         )
     );
     
     @Test
     public void simpleTerm() {
-        assertEquals(Set.of(x, y), t.freeVarConstSymbols());
+        assertEquals(Set.of(x, y), t1.freeVarConstSymbols());
+        assertEquals(Set.of(x, y), t1.freeVars(Signature.empty()));
     }
     
     @Test
     public void quantifiedTerm() {
-        Term t2 = Term.mkForall(List.of(x.of(A), y.of(B)), Term.mkImp(t, z));
+        Term t2 = Term.mkForall(List.of(x.of(A), y.of(B)), Term.mkImp(t1, z));
         assertEquals(Set.of(z), t2.freeVarConstSymbols());
+        assertEquals(Set.of(z), t2.freeVars(Signature.empty()));
+    }
+    
+    @Test
+    public void constantsNotFree() {
+        Signature sig = Signature.empty()
+            .withType(A)
+            .withConstant(c.of(A))
+            .withConstant(p.of(Type.Bool));
+            
+        Term t = Term.mkAnd(
+            Term.mkEq(c, x),
+            Term.mkImp(p, q)
+        );
+        
+        assertEquals(Set.of(x, q), t.freeVars(sig));
     }
 }

@@ -287,7 +287,9 @@ public abstract class Term {
     */ 
     public Set<Var> freeVars(Signature signature) {
         Set<Var> freeVars = freeVarConstSymbols();
-        freeVars.removeAll(signature.getConstants());
+        Set<Var> constants = signature.getConstants().stream().map((AnnotatedVar av) -> av.getVar())
+            .collect(Collectors.toSet());
+        freeVars.removeAll(constants);
         return freeVars;
     }
     
