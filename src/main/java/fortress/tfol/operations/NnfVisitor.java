@@ -9,7 +9,7 @@ import java.util.Optional;
 import fortress.util.Errors;
 import fortress.data.Either;
 
-// Given a signature and a well-typed formula, compute the negation normal form of the
+// Given a signature and a well-typed, santized formula, compute the negation normal form of the
 // formula
 
 // TODO check out the linear time NNF from Harrison's Exercise 2.7
@@ -100,6 +100,7 @@ public class NnfVisitor implements TermVisitor<Term> {
     
     @Override
     public Term visitEq(Eq term) {
+        // We assume = is between non-Booleans and so is atomic
         return term;
     }
     
@@ -191,6 +192,7 @@ public class NnfVisitor implements TermVisitor<Term> {
         
         @Override
         public Term visitEq(Eq term) {
+            // We assume = is between non-Booleans and so is atomic
             return Term.mkNot(term);
         }
         

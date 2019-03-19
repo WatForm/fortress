@@ -143,7 +143,7 @@ public class NnfTransformerTest {
     }
     
     @Test
-    public void complex0() {
+    public void complex1() {
         Term axiom = Term.mkNot(
             Term.mkExists(
                 x.of(A),
@@ -162,7 +162,7 @@ public class NnfTransformerTest {
     }
     
     @Test
-    public void complex1() {
+    public void complex2() {
         // ~ ( exists x . (~p) <=> ~(q OR (forall x . ~(P(x) AND (~~q) => p))) )
         Term axiom = Term.mkNot(
             Term.mkExists(
@@ -236,29 +236,5 @@ public class NnfTransformerTest {
             .withAxiom(expectedAxiom);
         
         assertEquals(expected, nnf.apply(theory));
-    }
-    
-    @Test
-    @Ignore ("Test not yet implemented")
-    public void complex2() {
-        
-    }
-        
-    @Test
-    @Ignore ("Test not yet implemented")
-    public void equalsBool() {
-        
-    }
-    
-    @Test
-    @Ignore ("Test not yet implemented")
-    public void equalsNotBool() {
-        
-    }
-    
-    @Test
-    @Ignore ("Test not yet implemented")
-    public void atomicArguments() {
-        
     }
 }
