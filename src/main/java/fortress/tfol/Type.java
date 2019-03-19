@@ -16,6 +16,8 @@ public class Type {
     * Returns a Type with the given name.
     */
     public static Type mkTypeConst(String name) {
+        Errors.failIf(name.length() < 1, "Cannot create type with empty name");
+        Errors.failIf(Names.isIllegal(name), "Illegal type name " + name);
         return new Type(name);
     }
     
@@ -23,7 +25,6 @@ public class Type {
     private final String name;
     
     private Type(String name) {
-        Errors.failIf(name.length() < 1);
         this.name = name;
     }
     

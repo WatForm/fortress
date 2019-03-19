@@ -29,7 +29,8 @@ public class Var extends Term {
     private final String name;
     
     protected Var(String name) {
-        Errors.failIf(name.length() < 1);
+        Errors.failIf(name.length() < 1, "Cannot create variable with empty name");
+        Errors.failIf(Names.isIllegal(name), "Illegal variable name " + name);
         this.name = name;
     }
     

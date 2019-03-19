@@ -292,20 +292,6 @@ public abstract class Term {
     }
     
     /**
-    * Returns an optional containing the term's type with repsect to the
-    * given signature, or an empty optional if typechecking fails.
-    * Note that a term that is not closed cannot typecheck correctly.
-    */ 
-    public Optional<Type> typecheckOption(Signature signature) {
-        try {
-            TypeCheckResult result = typeCheck(signature);
-            return Optional.of(result.type);
-        } catch(TypeCheckException e) {
-            return Optional.empty();
-        }
-    }
-    
-    /**
     * Given a signature, typechecks the term with respect to the signature.
     * Returns a TypeCheckResult containing the type of the term, AND a new term
     * that is equal to the old term but with instances of Eq replaced with Iff

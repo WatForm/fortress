@@ -8,15 +8,14 @@ import fortress.util.Errors;
 
 public class FuncDecl {
     private String name;
-    // TODO should these fields be renamed to domain, and codomain/range?
     private ImmutableList<Type> argTypes;
     private Type resultType;
     
     private FuncDecl(String name, ImmutableList<Type> argTypes, Type resultType) {
-        //TODO what about nullary functions?
-        //I don't think these should fail here, but when used in App they are replaced
+        Errors.failIf(argTypes.size() < 1, "Cannot create nullary functions; use a constant instead");
+        Errors.failIf(Names.isIllegal(name), "Illegal function name " + name);
+        Errors.failIf(name.length() < 1, "Cannot create function with empty name");
         
-        // TODO may not need need type in FuncDecl depending on how we do typechecking
         this.name = name;
         this.argTypes = argTypes;
         this.resultType = resultType;
@@ -27,7 +26,6 @@ public class FuncDecl {
     }
     
     public static FuncDecl mkFuncDecl(String name, Type... types) {
-        Errors.failIf(types.length < 1);
         List<Type> argTypes = new ArrayList<>();
         Type resultType = types[types.length - 1];
         for(int i = 0; i < types.length - 1; i++) {

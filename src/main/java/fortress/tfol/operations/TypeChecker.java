@@ -190,7 +190,7 @@ public class TypeChecker {
             // Check for function symbol in declared functions
             Optional<FuncDecl> fMaybe = lookupFunctionDeclaration(funcName);
             if(! fMaybe.isPresent()) {
-                throw new TypeCheckException("Unknown funciton " + funcName);
+                throw new TypeCheckException("Unknown function " + funcName);
             } else {
                 FuncDecl fdecl = fMaybe.get();
                 // Check argument types match function declaration and return result type if true

@@ -31,22 +31,20 @@ public class Signature {
         );
     }
     
-    public static Signature mkSignature(Set<Type> types,
-                                       Set<FuncDecl> functionDeclarations,
-                                       Set<AnnotatedVar> constants) {
-        // Note that these are all checked for internal consistency in the withX methods
-        return Signature.empty()
-            .withTypes(types)
-            .withFunctionDeclarations(functionDeclarations)
-            .withConstants(constants);
-    }
-    
     public Signature withType(Type t) {
         assertTypeConsistent(t);
         return new Signature(types.plus(t), functionDeclarations, constants);
     }
     
     public Signature withTypes(Iterable<Type> types) {
+        Signature sig = this;
+        for(Type t : types) {
+            sig = sig.withType(t);
+        }
+        return sig;
+    }
+    
+    public Signature withTypes(Type... types) {
         Signature sig = this;
         for(Type t : types) {
             sig = sig.withType(t);
@@ -67,12 +65,28 @@ public class Signature {
         return sig;
     }
     
+    public Signature withFunctionDeclarations(FuncDecl... fdecls) {
+        Signature sig = this;
+        for(FuncDecl f : fdecls) {
+            sig = sig.withFunctionDeclaration(f);
+        }
+        return sig;
+    }
+    
     public Signature withConstant(AnnotatedVar c) {
         assertConstConsistent(c);
         return new Signature(types, functionDeclarations, constants.plus(c));
     }
     
     public Signature withConstants(Iterable<AnnotatedVar> constants) {
+        Signature sig = this;
+        for(AnnotatedVar c : constants) {
+            sig = sig.withConstant(c);
+        }
+        return sig;
+    }
+    
+    public Signature withConstants(AnnotatedVar... constants) {
         Signature sig = this;
         for(AnnotatedVar c : constants) {
             sig = sig.withConstant(c);
