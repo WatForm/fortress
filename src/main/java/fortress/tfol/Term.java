@@ -56,29 +56,36 @@ public abstract class Term {
     
     /**
     * @publish
-    * Returns a term representing the conjunction of the given terms. At least
-    * two or more terms must be provided.
+    * Returns a term representing the conjunction of the given terms. One or
+    * more terms must be provided. If only one term t is provided, the return
+    * value will be exactly t.
     */
     public static Term mkAnd(Term... args) {
-        Errors.failIf(args.length < 2);
+        Errors.failIf(args.length < 1, "One or more arguments must be given");
+        if(args.length == 1) {
+            return args[0];
+        }
         return new AndList(ImmutableWrapperList.copyArray(args));
     }
     /**
     * @publish
-    * Returns a term representing the conjunction of the given terms. At least
-    * two or more terms must be provided.
+    * Returns a term representing the conjunction of the given terms. One or
+    * more terms must be provided. If only one term t is provided, the return
+    * value will be exactly t.
     */
     public static Term mkAnd(List<Term> args) {
-        Errors.failIf(args.size() < 2);
+        Errors.failIf(args.size() < 1, "One or more arguments must be given");
+        if(args.size() == 1) {
+            return args.get(0);
+        } 
         return new AndList(ImmutableWrapperList.copyCollection(args));
     }
     
     /**
     * @publish
-    * Returns a term representing the disjunction of the given terms. At least
-    * one term must be provided. If only one term is provided, it will be the
-    * result.
-    * 
+    * Returns a term representing the disjunction of the given terms. One or
+    * more terms must be provided. If only one term t is provided, the return
+    * value will be exactly t.
     */
     public static Term mkOr(Term... args) {
         Errors.failIf(args.length < 1, "One or more arguments must be given");
@@ -89,9 +96,9 @@ public abstract class Term {
     }
     /**
     * @publish
-    * Returns a term representing the conjunction of the given terms. At least
-    * one term must be provided. If only one term is provided, it will be the
-    * result.
+    * Returns a term representing the conjunction of the given terms. One or
+    * more terms must be provided. If only one term t is provided, the return
+    * value will be exactly t.
     */
     public static Term mkOr(List<Term> args) {
         Errors.failIf(args.size() < 1, "One or more arguments must be given");
@@ -128,20 +135,20 @@ public abstract class Term {
     
     /**
     * @publish
-    * Returns a term representing the truth value of whether the given terms have
-    * distinct values. Two or more terms must be provided.
+    * Returns a term representing the constraint that the given terms have
+    * distinct values. Two or more terms must be provided
     */
     public static Term mkDistinct(List<? extends Term> arguments) {
-        Errors.failIf(arguments.size() < 2);
+        Errors.failIf(arguments.size() < 2, "Two or more arguments must be given");
         return new Distinct(ImmutableWrapperList.copyCollection(arguments));
     }
     /**
     * @publish
-    * Returns a term representing the truth value of whether the given terms have
+    * Returns a term representing the constraint that the given terms have
     * distinct values. Two or more terms must be provided.
     */
     public static Term mkDistinct(Term... arguments) {
-        Errors.failIf(arguments.length < 2);
+        Errors.failIf(arguments.length < 2, "Two or more arguments must be given");
         return new Distinct(ImmutableWrapperList.copyArray(arguments));
     }
     
@@ -217,6 +224,7 @@ public abstract class Term {
     * Internal method to make AndLists without needing to copy the argument list.
     */
     public static Term mkAndF(ImmutableList<Term> arguments) {
+        Errors.failIf(arguments.size() < 2);
         return new AndList(arguments);
     }
     
@@ -224,6 +232,7 @@ public abstract class Term {
     * Internal method to make OrLists without needing to copy the argument list.
     */
     public static Term mkOrF(ImmutableList<Term> arguments) {
+        Errors.failIf(arguments.size() < 2);
         return new OrList(arguments);
     }
     
@@ -231,6 +240,7 @@ public abstract class Term {
     * Internal method to make Distinct terms without needing to copy the argument list.
     */
     public static Term mkDistinctF(ImmutableList<Term> arguments) {
+        Errors.failIf(arguments.size() < 2);
         return new Distinct(arguments);
     }
     

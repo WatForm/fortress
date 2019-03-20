@@ -18,11 +18,15 @@ public class GroundingTransformerTest {
     Var q = Term.mkVar("q");
     Var x = Term.mkVar("x");
     Var y = Term.mkVar("y");
+    Var z = Term.mkVar("z");
+    Var c_1 = Term.mkVar("c_1");
+    Var c_2 = Term.mkVar("c_2");
     
     FuncDecl f = FuncDecl.mkFuncDecl("f", A, A);
     FuncDecl P = FuncDecl.mkFuncDecl("P", A, Type.Bool);
     FuncDecl Q = FuncDecl.mkFuncDecl("Q", B, Type.Bool);
     FuncDecl R = FuncDecl.mkFuncDecl("R", A, B, Type.Bool);
+    FuncDecl S = FuncDecl.mkFuncDecl("S", A, A, Type.Bool);
     
     Var a_1 = Term.mkVar("a_1");
     Var a_2 = Term.mkVar("a_2");
@@ -44,7 +48,8 @@ public class GroundingTransformerTest {
         .withFunctionDeclaration(f)
         .withFunctionDeclaration(P)
         .withFunctionDeclaration(Q)
-        .withFunctionDeclaration(R);
+        .withFunctionDeclaration(R)
+        .withFunctionDeclaration(S);
     
     Theory baseExpectedTheory = baseTheory
         .withConstant(a_1.of(A))
@@ -81,14 +86,66 @@ public class GroundingTransformerTest {
     }
     
     @Test
-    @Ignore ("Test not yet implemented")
-    public void nestedOneType() {
+    public void constantsNotInstantiated() {
+        Theory theory = baseTheory
+            .withConstant(x.of(A))
+            .withAxiom(Term.mkForall(y.of(B), Term.mkApp("R", x, y)));
         
+        Theory expected = baseExpectedTheory
+            .withConstant(x.of(A))
+            .withAxiom(Term.mkAnd(
+                Term.mkApp("R", x, b_1),
+                Term.mkApp("R", x, b_2)));
+        
+        assertEquals(expected, grounding.apply(theory));
     }
     
     @Test
-    @Ignore ("Test not yet implemented")
-    public void nestedTwoTypes() {
+    public void nested() {
+        // Same whether you instantiate top down or bottom up
+        Theory theory = baseTheory
+            .withAxiom(Term.mkForall(x.of(A),Term.mkOr(
+                Term.mkForall(y.of(A),Term.mkApp("S", x, y)),
+                Term.mkForall(z.of(B), Term.mkApp("R", x, z)))));
         
+        Term _11y = Term.mkApp("S", a_1, a_1);
+        Term _12y = Term.mkApp("S", a_1, a_2);
+        Term _21y = Term.mkApp("S", a_2, a_1);
+        Term _22y = Term.mkApp("S", a_2, a_2);
+        
+        Term _11z = Term.mkApp("R", a_1, b_1);
+        Term _12z = Term.mkApp("R", a_1, b_2);
+        Term _21z = Term.mkApp("R", a_2, b_1);
+        Term _22z = Term.mkApp("R", a_2, b_2);
+        
+        Term t1 = Term.mkOr(
+            Term.mkAnd(_11y, _12y),
+            Term.mkAnd(_11z, _12z)
+        );
+        Term t2 = Term.mkOr(
+            Term.mkAnd(_21y, _22y),
+            Term.mkAnd(_21z, _22z)
+        );
+        
+        Theory expected = baseExpectedTheory
+            .withAxiom(Term.mkAnd(t1, t2));
+        
+        assertEquals(expected, grounding.apply(theory));
     }
+    
+    @Test
+    public void scopeSizeOne() {
+        Theory theory = baseTheory
+            .withAxiom(Term.mkForall(x.of(A),Term.mkOr(
+                Term.mkForall(y.of(A),Term.mkApp("S", x, y)),
+                Term.mkForall(z.of(B), Term.mkApp("R", x, z)))));
+        
+        Theory expected = baseTheory
+            .withConstant(a_1.of(A))
+            .withConstant(b_1.of(B))
+            .withAxiom(Term.mkOr(Term.mkApp("S", a_1, a_1), Term.mkApp("R", a_1, b_1)));
+        
+        assertEquals(expected, new GroundingTransformer(Map.of(A, List.of(a_1), B, List.of(b_1))).apply(theory));
+    }
+    
 }
