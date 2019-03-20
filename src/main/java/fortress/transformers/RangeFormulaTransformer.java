@@ -36,6 +36,10 @@ public class RangeFormulaTransformer implements TheoryTransformer {
         // and have theory keep track of all names it uses
         
         Set<String> forbiddenNames = new HashSet();
+        
+        for(Type type : theory.getTypes()) {
+            forbiddenNames.add(type.getName());
+        }
 
         for(FuncDecl fdecl : theory.getFunctionDeclarations()) {
             forbiddenNames.add(fdecl.getName());

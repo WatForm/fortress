@@ -179,10 +179,14 @@ public class SkolemizeTransformerTest {
     }
     
     @Test
+    // Former bug: was not adding sk_0 to constants, so when encountering it
+    // later after substituting the skolemizer thought it was a free variable,
+    // and then could not find its type
     public void existsForallExists() {
         Theory theory = baseTheory
             .withAxiom(Term.mkExists(y.of(A), Term.mkForall(x.of(A), Term.mkExists(z.of(A), Term.mkApp("R", x, y, z)))));
         
+        // Note that we skolemize out to in, which reduces nested applications
         Theory expected = baseTheory
             .withConstant(Term.mkVar("sk_0").of(A))
             .withFunctionDeclaration(FuncDecl.mkFuncDecl("sk_1", A, A))
@@ -192,7 +196,23 @@ public class SkolemizeTransformerTest {
     }
     
     @Test
-    public void nameGeneration() {
+    public void nameGeneration1() {
+        // The names sk_0 is used
+        // The next name should be sk_1
+        Theory theory = baseTheory
+            .withType(Type.mkTypeConst("sk_0"))
+            .withAxiom(Term.mkExists(y.of(A), Term.mkApp("P", y)));
+                
+        Theory expected = baseTheory
+            .withType(Type.mkTypeConst("sk_0"))
+            .withConstant(Term.mkVar("sk_1").of(A))
+            .withAxiom(Term.mkApp("P", Term.mkVar("sk_1")));
+        
+        assertEquals(expected, skolemizer.apply(theory));
+    }
+    
+    @Test
+    public void nameGeneration2() {
         // The names sk_0, sk_1, sk_2, sk_4, sk_5 are used
         // The next names should be sk_3 and sk_6
         Theory theory = baseTheory

@@ -132,6 +132,11 @@ public class Skolemizer {
                     skolemConstants.add(skolemConstant);
                     
                     temporaryBody = temporaryBody.substitute(av.getVar(), skolemConstant.getVar());
+                    
+                    // We also have to update the signature with the new skolem constant
+                    // since it might now appear deeper in the new term
+                    // Failing to do this was a former bug
+                    signature = signature.withConstant(skolemConstant);
                 } else {
                     // Skolem function
                     String skolemFunctionName = nameGen.freshName("sk");
@@ -152,6 +157,8 @@ public class Skolemizer {
                     
                     Term skolemApplication = Term.mkApp(skolemFunctionName, arguments);
                     temporaryBody = temporaryBody.substitute(av.getVar(), skolemApplication, nameGen);
+                    
+                    signature = signature.withFunctionDeclaration(skolemFunction);
                 }
             }
             return visit(temporaryBody);

@@ -23,6 +23,10 @@ public class SkolemizeTransformer implements TheoryTransformer {
         
         Set<String> forbiddenNames = new HashSet();
         
+        for(Type type : theory.getTypes()) {
+            forbiddenNames.add(type.getName());
+        }
+        
         for(FuncDecl fdecl : theory.getFunctionDeclarations()) {
             forbiddenNames.add(fdecl.getName());
         }
