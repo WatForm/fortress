@@ -58,59 +58,60 @@ public class DeBruijnConverter {
         
         @Override
         public Term visitNot(Not not) {
-            return visit(not);
+            return not.mapBody(this::visit);
         }
         
         @Override
         public Term visitAndList(AndList and) {
-            return Term.mkAnd(
-                and.getArguments().stream().map(this::visit).collect(Collectors.toList())
-            );
+            return and.mapArguments(this::visit);
         }
         
         @Override
         public Term visitOrList(OrList or) {
-            return Term.mkOr(
-                or.getArguments().stream().map(this::visit).collect(Collectors.toList())
-            );
+            return or.mapArguments(this::visit);
         }
         
         @Override
         public Term visitDistinct(Distinct dist) {
-            return Term.mkDistinct(
-                dist.getArguments().stream().map(this::visit).collect(Collectors.toList())
-            );
+            return dist.mapArguments(this::visit);
         }
         
         @Override
         public Term visitImplication(Implication imp) {
-            return Term.mkImp(visit(imp.getLeft()), visit(imp.getRight()));
+            return imp.mapArguments(this::visit);
         }
         
         @Override
         public Term visitIff(Iff iff) {
-            return Term.mkIff(visit(iff.getLeft()), visit(iff.getRight()));
+            return iff.mapArguments(this::visit);
         }
         
         @Override
         public Term visitEq(Eq eq) {
-            return Term.mkEq(visit(eq.getLeft()), visit(eq.getRight()));
+            return eq.mapArguments(this::visit);
         }
         
         @Override
         public Term visitApp(App app) {
-            return Term.mkApp(app.getFunctionName(),
-                app.getArguments().stream().map(this::visit).collect(Collectors.toList())
-            );
+            return app.mapArguments(this::visit);
+        }
+        
+        private void pushVar(AnnotatedVar av) {
+            counter++;
+            Mapping m = new Mapping(counter, av.getVar());
+            mappingStack.addFirst(m);
+        }
+        
+        private void popVar() {
+            counter--;
+            mappingStack.removeFirst();
         }
         
         @Override
         public Term visitExists(Exists exists) {
             List<AnnotatedVar> newVars = new ArrayList<>();
             for(AnnotatedVar av : exists.getVars()) {
-                counter++;
-                Mapping m = new Mapping(counter, av.getVar());
-                mappingStack.addFirst(m);
+                pushVar(av);
                 newVars.add(Term.mkVar("_" + Integer.toString(counter)).of(av.getType()));
             }
             
@@ -118,8 +119,7 @@ public class DeBruijnConverter {
             
             // Return state back to way it was
             for(AnnotatedVar av : exists.getVars()) {
-                counter--;
-                mappingStack.removeFirst();
+                popVar();
             }
             
             return Term.mkExists(newVars, body);
@@ -129,9 +129,7 @@ public class DeBruijnConverter {
         public Term visitForall(Forall forall) {
             List<AnnotatedVar> newVars = new ArrayList<>();
             for(AnnotatedVar av : forall.getVars()) {
-                counter++;
-                Mapping m = new Mapping(counter, av.getVar());
-                mappingStack.addFirst(m);
+                pushVar(av);
                 newVars.add(Term.mkVar("_" + Integer.toString(counter)).of(av.getType()));
             }
             
@@ -139,8 +137,7 @@ public class DeBruijnConverter {
             
             // Return state back to way it was
             for(AnnotatedVar av : forall.getVars()) {
-                counter--;
-                mappingStack.removeFirst();
+                popVar();
             }
             
             return Term.mkForall(newVars, body);

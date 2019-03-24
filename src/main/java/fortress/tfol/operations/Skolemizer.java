@@ -12,7 +12,7 @@ import java.lang.IllegalArgumentException;
 import fortress.util.Errors;
 import java.util.Optional;
 
-// Skolemizes a given term
+// Skolemizes a given term, which must be in negation normal form.
 // Free variables in the given term are ignored, so the top level term must be
 // closed with respect to the signature in question for this operation to be valid.
 public class Skolemizer {
@@ -22,7 +22,7 @@ public class Skolemizer {
     private Set<AnnotatedVar> skolemConstants;
     private SkolemVisitor visitor;
     
-    /** Creates a Skolemizer primes to Skolemize the given topLevelTerm.
+    /** Creates a Skolemizer primed to Skolemize the given topLevelTerm.
     * When creating new skolem functions or constants, and also when introducing
     * new variables while making substitutions (@see Substituter), the provided
     * name generator will be used.
@@ -83,7 +83,7 @@ public class Skolemizer {
         
         @Override
         public Term visitNot(Not not) {
-            return Term.mkNot(visit(not.getBody()));
+            return not.mapBody(this::visit);
         }
         
         @Override

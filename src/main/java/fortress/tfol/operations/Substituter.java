@@ -21,7 +21,7 @@ public class Substituter {
     
     /**
     * Creates a Substituter that is primed to perform the substitution
-    * [toSub \u21A6] subWith inside the topLevelTerm.
+    * [toSub \u21A6 subWith] inside the topLevelTerm.
     * The substituter will perform alpha-renaming to avoid variable capture when
     * necessary.
     * When creating new variables for alpha-renaming, it will not use any of
@@ -111,53 +111,37 @@ public class Substituter {
         
         @Override
         public Term visitAndList(AndList and) {
-            List<Term> args = new ArrayList<>();
-            for(Term arg : and.getArguments()) {
-                args.add(visit(arg));
-            }
-            return Term.mkAnd(args);
+            return and.mapArguments(this::visit);
         }
         
         @Override
         public Term visitOrList(OrList or) {
-            List<Term> args = new ArrayList<>();
-            for(Term arg : or.getArguments()) {
-                args.add(visit(arg));
-            }
-            return Term.mkOr(args);
+            return or.mapArguments(this::visit);
         }
         
         @Override
         public Term visitDistinct(Distinct dist) {
-            List<Term> args = new ArrayList<>();
-            for(Term arg : dist.getArguments()) {
-                args.add(visit(arg));
-            }
-            return Term.mkDistinct(args);
+            return dist.mapArguments(this::visit);
         }
         
         @Override
         public Term visitImplication(Implication imp) {
-            return Term.mkImp(visit(imp.getLeft()), visit(imp.getRight()));
+            return imp.mapArguments(this::visit);
         }
         
         @Override
         public Term visitIff(Iff iff) {
-            return Term.mkIff(visit(iff.getLeft()), visit(iff.getRight()));
+            return iff.mapArguments(this::visit);
         }
         
         @Override
         public Term visitEq(Eq eq) {
-            return Term.mkEq(visit(eq.getLeft()), visit(eq.getRight()));
+            return eq.mapArguments(this::visit);
         }
         
         @Override
         public Term visitApp(App app) {
-            List<Term> args = new ArrayList<>();
-            for(Term arg : app.getArguments()) {
-                args.add(visit(arg));
-            }
-            return Term.mkApp(app.getFunctionName(), args);
+            return app.mapArguments(this::visit);
         }
         
         @Override
