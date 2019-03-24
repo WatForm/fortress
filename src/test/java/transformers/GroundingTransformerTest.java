@@ -134,6 +134,12 @@ public class GroundingTransformerTest {
     }
     
     @Test
+    @Ignore ("Test not yet implemented")
+    public void multiVarQuantifier() {
+        
+    }
+    
+    @Test
     public void scopeSizeOne() {
         Theory theory = baseTheory
             .withAxiom(Term.mkForall(x.of(A),Term.mkOr(
