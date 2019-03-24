@@ -106,7 +106,7 @@ public class Substituter {
         
         @Override
         public Term visitNot(Not not) {
-            return visit(not.getBody());
+            return not.mapBody(this::visit);
         }
         
         @Override

@@ -4,6 +4,7 @@ import fortress.util.Errors;
 import java.util.List;
 import java.util.ArrayList;
 import fortress.tfol.operations.TermVisitor;
+import java.util.function.Function;
 
 public class Not extends Term {
     private final Term body;
@@ -32,5 +33,9 @@ public class Not extends Term {
     @Override
     public <T> T accept(TermVisitor<T> visitor) {
         return visitor.visitNot(this);
+    }
+    
+    public Term mapBody(Function<Term, ? extends Term> mapping) {
+        return new Not(mapping.apply(body));
     }
 }

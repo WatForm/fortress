@@ -234,6 +234,11 @@ public class RangeFormulaTransformerTest {
                 Term.mkOr(Term.mkEq(y, z),
                     Term.mkNot(Term.mkEq(Term.mkApp("g", y), Term.mkApp("g", z))))));
         
+        Term f_a1 = Term.mkApp("f", a_1);
+        Term f_a2 = Term.mkApp("f", a_2);
+        Term g_b1 = Term.mkApp("g", b_1);
+        Term g_b2 = Term.mkApp("g", b_2);
+        
         Theory expected = Theory.empty()
             .withTypes(A, B)
             .withFunctionDeclarations(P, f, g)
@@ -241,16 +246,27 @@ public class RangeFormulaTransformerTest {
             // New
             .withConstants(a_1.of(A), a_2.of(A))
             .withConstants(b_1.of(B), b_2.of(B))
+            .withAxiom(Term.mkDistinct(a_1, a_2))
+            .withAxiom(Term.mkDistinct(b_1, b_2))
             .withAxiom(Term.mkAnd(
                 Term.mkOr(Term.mkEq(a_1, c_1), Term.mkApp("P", Term.mkApp("f", a_1))),
                 Term.mkOr(Term.mkEq(a_2, c_1), Term.mkApp("P", Term.mkApp("f", a_2)))
             ))
             .withAxiom(Term.mkAnd(
                 Term.mkOr(Term.mkEq(b_1, b_1), Term.mkNot(Term.mkEq(Term.mkApp("g", b_1), Term.mkApp("g", b_1)))),
-                Term.mkOr(Term.mkEq(b_1, b_2), Term.mkNot(Term.mkEq(Term.mkApp("g", b_1), Term.mkApp("g", b_2)))),
                 Term.mkOr(Term.mkEq(b_2, b_1), Term.mkNot(Term.mkEq(Term.mkApp("g", b_2), Term.mkApp("g", b_1)))),
+                Term.mkOr(Term.mkEq(b_1, b_2), Term.mkNot(Term.mkEq(Term.mkApp("g", b_1), Term.mkApp("g", b_2)))),
                 Term.mkOr(Term.mkEq(b_2, b_2), Term.mkNot(Term.mkEq(Term.mkApp("g", b_2), Term.mkApp("g", b_2))))
-            ));
+            ))
+            // Range constraints for constants
+            .withAxiom(Term.mkEq(c_1, a_1))
+            // Range constraints for functions, NOT symmetry broken
+            // f
+            .withAxiom(Term.mkOr(Term.mkEq(f_a1, a_1), Term.mkEq(f_a1, a_2)))
+            .withAxiom(Term.mkOr(Term.mkEq(f_a2, a_1), Term.mkEq(f_a2, a_2)))
+            // g
+            .withAxiom(Term.mkOr(Term.mkEq(g_b1, b_1), Term.mkEq(g_b1, b_2)))
+            .withAxiom(Term.mkOr(Term.mkEq(g_b2, b_1), Term.mkEq(g_b2, b_2)));
             
         assertEquals(expected, rf.apply(theory));
     }

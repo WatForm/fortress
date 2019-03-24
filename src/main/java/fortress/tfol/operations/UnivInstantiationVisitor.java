@@ -34,7 +34,7 @@ public class UnivInstantiationVisitor implements TermVisitor<Term> {
     
     @Override
     public Term visitNot(Not not) {
-        return Term.mkNot(visit(not));
+        return Term.mkNot(visit(not.getBody()));
     }
     
     @Override

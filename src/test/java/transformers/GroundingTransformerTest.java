@@ -154,4 +154,48 @@ public class GroundingTransformerTest {
         assertEquals(expected, new GroundingTransformer(Map.of(A, List.of(a_1), B, List.of(b_1))).apply(theory));
     }
     
+    @Test
+    // Former bug
+    public void negationBug0() {
+        Theory theory = Theory.empty()
+            .withTypes(A)
+            .withFunctionDeclaration(P)
+            .withAxiom(Term.mkForall(y.of(A),
+                    Term.mkNot(Term.mkApp("P", y))));
+                    
+        Theory expected = Theory.empty()
+            .withTypes(A)
+            .withFunctionDeclaration(P)
+            // New
+            .withConstants(a_1.of(A))
+            .withAxiom(Term.mkNot(Term.mkApp("P", a_1)));
+        
+        assertEquals(expected, new GroundingTransformer(Map.of(A, List.of(a_1))).apply(theory));
+    }
+    
+    @Test
+    // Former bug
+    public void negationBug1() {
+        Theory theory = Theory.empty()
+            .withTypes(A)
+            .withFunctionDeclaration(f)
+            .withAxiom(Term.mkForall(List.of(y.of(A), z.of(A)),
+                Term.mkOr(Term.mkEq(y, z),
+                    Term.mkNot(Term.mkEq(Term.mkApp("f", y), Term.mkApp("f", z))))));
+                    
+        Theory expected = Theory.empty()
+            .withTypes(A)
+            .withFunctionDeclaration(f)
+            // New
+            .withConstants(a_1.of(A), a_2.of(A))
+            .withAxiom(Term.mkAnd(
+                Term.mkOr(Term.mkEq(a_1, a_1), Term.mkNot(Term.mkEq(Term.mkApp("f", a_1), Term.mkApp("f", a_1)))),
+                Term.mkOr(Term.mkEq(a_2, a_1), Term.mkNot(Term.mkEq(Term.mkApp("f", a_2), Term.mkApp("f", a_1)))),
+                Term.mkOr(Term.mkEq(a_1, a_2), Term.mkNot(Term.mkEq(Term.mkApp("f", a_1), Term.mkApp("f", a_2)))),
+                Term.mkOr(Term.mkEq(a_2, a_2), Term.mkNot(Term.mkEq(Term.mkApp("f", a_2), Term.mkApp("f", a_2))))
+            ));
+        
+        assertEquals(expected, new GroundingTransformer(Map.of(A, List.of(a_1, a_2))).apply(theory));
+    }
+    
 }
