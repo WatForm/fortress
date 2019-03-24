@@ -9,6 +9,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import java.lang.Iterable;
 import fortress.tfol.operations.TypeCheckResult;
+import java.util.Arrays;
 
 import fortress.modelfind.*;
 
@@ -72,6 +73,15 @@ public class Theory {
     public Theory withTypes(Iterable<Type> types) {
         return new Theory(signature.withTypes(types), axioms);
     }
+    /**
+    * @publish
+    * Returns a theory consisting of the current theory but with the given
+    * type declarations added. Note that this does not modify the current Theory object,
+    * but rather just returns a new Theory object.
+    */
+    public Theory withTypes(Type... types) {
+        return withTypes(Arrays.asList(types));
+    }
     
     /**
     * @publish
@@ -91,6 +101,15 @@ public class Theory {
     public Theory withConstants(Iterable<AnnotatedVar> constants) {
         return new Theory(signature.withConstants(constants), axioms);
     }
+    /**
+    * @publish
+    * Returns a theory consisting of the current theory but with the given
+    * constant declarations added. Note that this does not modify the current Theory object,
+    * but rather just returns a new Theory object.
+    */
+    public Theory withConstants(AnnotatedVar... constants) {
+        return withConstants(Arrays.asList(constants));
+    }
     
     /**
     * @publish
@@ -109,6 +128,15 @@ public class Theory {
     */
     public Theory withFunctionDeclarations(Iterable<FuncDecl> fdecls) {
         return new Theory(signature.withFunctionDeclarations(fdecls), axioms);
+    }
+    /**
+    * @publish
+    * Returns a theory consisting of the current theory but with the given
+    * function declarations added. Note that this does not modify the current Theory object,
+    * but rather just returns a new Theory object.
+    */
+    public Theory withFunctionDeclarations(FuncDecl... fdecls) {
+        return withFunctionDeclarations(Arrays.asList(fdecls));
     }
     
     // End of published interface

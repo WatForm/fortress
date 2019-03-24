@@ -129,11 +129,11 @@ public class Signature {
     private void assertTypeConsistent(Type t) {
         // Type must not share a name with any function
         Errors.failIf(functionDeclarations.stream().anyMatch(
-            fdecl -> fdecl.getName().equals(t.getName())
+            (FuncDecl fdecl) -> fdecl.getName().equals(t.getName())
         ), "Name " + t.getName() + " shared by type and function");
         // Type must not share a name with any constant
         Errors.failIf(constants.stream().anyMatch(
-            c -> c.getName().equals(t.getName())
+            (AnnotatedVar c) -> c.getName().equals(t.getName())
         ), "Name " + t.getName() + " shared by type and constant");
     }
     
@@ -143,11 +143,11 @@ public class Signature {
             "Constant " + c.getName() + " of undeclared type " + c.getType().getName());
         // Constant's cannot share a name with a constant of a different type
         Errors.failIf(constants.stream().anyMatch(
-            otherConst -> otherConst.getName().equals(c.getName()) && !otherConst.equals(c)
+            (AnnotatedVar otherConst) -> otherConst.getName().equals(c.getName()) && !otherConst.equals(c)
         ), "Constant " + c.getName() + " declared with two different types");
         // Constant cannot share a name with any function 
         Errors.failIf(functionDeclarations.stream().anyMatch(
-            fdecl -> fdecl.getName().equals(c.getName())
+            (FuncDecl fdecl) -> fdecl.getName().equals(c.getName())
         ), "Name " + c.getName() + " shared by constant and function");
     }
     
@@ -160,15 +160,15 @@ public class Signature {
             "Function " + fdecl.getName() + " has result type that is undeclared");
         // Function must not share name with a constant
         Errors.failIf(constants.stream().anyMatch(
-            c -> c.getName().equals(fdecl.getName())
+            (AnnotatedVar c) -> c.getName().equals(fdecl.getName())
         ), "Name " + fdecl.getName() +  " shared by function and constant");
         // Function must not share name with a type
-        Errors.failIf(functionDeclarations.stream().anyMatch(
-            type -> type.getName().equals(fdecl.getName())
+        Errors.failIf(types.stream().anyMatch(
+            (Type type) -> type.getName().equals(fdecl.getName())
         ), "Name " + fdecl.getName() +  " shared by function and type");
         // Function must not share name with another function, unless it is the same function
         Errors.failIf(functionDeclarations.stream().anyMatch(
-            otherFun -> otherFun.getName().equals(fdecl.getName()) && ! otherFun.equals(fdecl)
+            (FuncDecl otherFun) -> otherFun.getName().equals(fdecl.getName()) && ! otherFun.equals(fdecl)
         ), "Function " + fdecl.getName() + " declared with two different types");
     }
     
