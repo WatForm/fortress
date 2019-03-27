@@ -82,7 +82,7 @@ public class TheoryToZ3Java {
     }
     
     private com.microsoft.z3.FuncDecl lookupFuncDecl(String name) {
-        if(!sortConversions.containsKey(name)) {
+        if(!functionConversions.containsKey(name)) {
             throw new RuntimeException("Could not find declaration for function " + name);
         }
         return functionConversions.get(name);

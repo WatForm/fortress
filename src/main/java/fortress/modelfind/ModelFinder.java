@@ -42,11 +42,7 @@ public class ModelFinder {
     
     
     public ModelFinder(TheoryTransformer theoryTransformer, SolverStrategy solverStrategy) {
-        this.theoryTransformers = new ArrayList<>();
-        this.theoryTransformers.add(theoryTransformer);
-        this.solverStrategy = solverStrategy;
-        this.transformationTimer = new Timer();
-        this.solverTimer = new Timer();
+        this(List.of(theoryTransformer), solverStrategy);
     }
     
     public ModelFinder(List<TheoryTransformer> theoryTransformers, SolverStrategy solverStrategy) {
@@ -65,11 +61,10 @@ public class ModelFinder {
     * after the transformers are applied.
     */
     public Result findModel(Theory theory, int solverTimeout) throws IOException {
-        return findModel(theory, solverTimeout, new NullOutputStream());
+        return findModel(theory, solverTimeout, new PrintWriter(new NullOutputStream()), false);
     }
     
-    public Result findModel(Theory theory, int solverTimeout, OutputStream outputStream) throws IOException {
-        Writer log = new PrintWriter(outputStream);
+    public Result findModel(Theory theory, int solverTimeout, Writer log, boolean debug) throws IOException {
         
         transformationTimer.set();
         for(TheoryTransformer theoryTransformer : theoryTransformers) {
@@ -77,8 +72,16 @@ public class ModelFinder {
             log.write("...");
             log.flush();
             theory = theoryTransformer.apply(theory);
+            log.write("\n");
         }
         transformationTimer.stop();
+        
+        if(debug) {
+            log.write("Resulting theory:\n");
+            log.write(theory.toString());
+            log.write("\n");
+            log.flush();
+        }
         
         log.write("Checking if solver can attempt...");
         log.flush();
@@ -94,7 +97,8 @@ public class ModelFinder {
         solverTimer.set();
         Result r = solverStrategy.solve(theory, solverTimeout, log);
         solverTimer.stop();
-        log.write("Done. Result was " + r.toString());
+        log.write("Done. Result was " + r.toString() + ".\n");
+        log.flush();
 
         return r;
     }
