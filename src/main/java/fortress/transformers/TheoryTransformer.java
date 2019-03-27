@@ -2,6 +2,9 @@ package fortress.transformers;
 
 import fortress.tfol.*;
 
+import java.util.List;
+import java.util.Map;
+
 /**
 * @publish
 * An interface to represent an operation on a theory.
@@ -17,4 +20,8 @@ public interface TheoryTransformer {
     public Theory apply(Theory theory);
     
     public String getName();
+    
+    public static List<TheoryTransformer> RangeEUF(Map<Type, Integer> scopes) {
+        return List.of(new NnfTransformer(), new SkolemizeTransformer(), new RangeFormulaTransformer(scopes));
+    }
 }

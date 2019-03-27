@@ -29,7 +29,7 @@ public class TypeChecker {
     
     // Visitor interface hidden -- the fact that it uses a visitor is
     // just an implementation detail
-    private static class TypeCheckVisitor extends TermVisitorWithContext<TypeCheckResult> {
+    private static class TypeCheckVisitor extends TermVisitorWithTypeContext<TypeCheckResult> {
         
         public TypeCheckVisitor(Signature signature) {
             super(signature);
@@ -67,7 +67,7 @@ public class TypeChecker {
                 return new TypeCheckResult(variable, typeMaybe.get(),
                     /* containsConnectives */ false, /* containsQuantifiers */ false);
             } else {
-                throw new TypeCheckException.UnknownType("Could not determine type of variable " + variable.getName());
+                throw new TypeCheckException.UndeterminedType("Could not determine type of variable " + variable.getName());
             }
         }
         

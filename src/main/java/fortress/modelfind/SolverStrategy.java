@@ -2,12 +2,15 @@ package fortress.modelfind;
 
 import fortress.tfol.*;
 import java.io.Writer;
+import java.io.IOException;
 
 /**
 * @publish
 * An abstraction of which solving method should be used to search for a satisfying model.
 * For example, dumping the theory to SMT-LIB and solving it using a command-line SMT solver.
 */
+
+//TODO Memory out errors
 public interface SolverStrategy {
     /**
     * Returns true if and only if the solver can attempt to solve the given theory.
@@ -25,5 +28,5 @@ public interface SolverStrategy {
     /**
     * Attempts to solve the given theory, searching for a satisfying instance.
     */
-    public ModelFinder.Result solve(Theory theory, int timeout, Writer log);
+    public ModelFinder.Result solve(Theory theory, int timeout, Writer log) throws IOException;
 }

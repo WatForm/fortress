@@ -60,7 +60,7 @@ public class Skolemizer {
         return skolemConstants;
     }
     
-    private class SkolemVisitor extends TermVisitorWithContext<Term> {
+    private class SkolemVisitor extends TermVisitorWithTypeContext<Term> {
         
         public SkolemVisitor(Signature signature) {
             super(signature);

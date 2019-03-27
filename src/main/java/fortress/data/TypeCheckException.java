@@ -22,6 +22,12 @@ public abstract class TypeCheckException extends RuntimeException {
         }
     }
     
+    public static class UndeterminedType extends TypeCheckException {
+        public UndeterminedType(String message) {
+            super(message);
+        }
+    }
+    
     public static class UnknownFunction extends TypeCheckException {
         public UnknownFunction(String message) {
             super(message);

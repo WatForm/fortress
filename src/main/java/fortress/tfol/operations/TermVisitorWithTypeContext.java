@@ -5,17 +5,17 @@ import java.util.Deque;
 import java.util.LinkedList;
 import fortress.tfol.*;
 
-abstract class TermVisitorWithContext<T> implements TermVisitor<T> {
+abstract class TermVisitorWithTypeContext<T> implements TermVisitor<T> {
     protected Signature signature;
     private Deque<AnnotatedVar> typeContextStack;
     
-    protected TermVisitorWithContext(Signature signature) {
+    protected TermVisitorWithTypeContext(Signature signature) {
         this.signature = signature;
         this.typeContextStack = new LinkedList();
     }
     
     // For entering partway through a term traversal
-    protected TermVisitorWithContext(Signature signature, Deque<AnnotatedVar> typeContextStack) {
+    protected TermVisitorWithTypeContext(Signature signature, Deque<AnnotatedVar> typeContextStack) {
         this.signature = signature;
         this.typeContextStack = typeContextStack;
     }

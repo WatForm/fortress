@@ -21,7 +21,7 @@ public class TypeCheckTest {
     FuncDecl g = FuncDecl.mkFuncDecl("g", B, A);
     FuncDecl h = FuncDecl.mkFuncDecl("h", Type.Bool, Type.Bool);
     
-    @Test(expected = fortress.data.TypeCheckException.UnknownType.class)
+    @Test(expected = fortress.data.TypeCheckException.UndeterminedType.class)
     public void freeVar() {
         Signature sig = Signature.empty()
             .withType(A)
@@ -333,7 +333,7 @@ public class TypeCheckTest {
         assertEquals(Type.Bool, exists.typeCheck(sig).type);
     }
     
-    @Test(expected = fortress.data.TypeCheckException.UnknownType.class)
+    @Test(expected = fortress.data.TypeCheckException.UndeterminedType.class)
     public void unbound() {
         Signature sig = Signature.empty()
             .withTypes(A, B)
@@ -367,7 +367,7 @@ public class TypeCheckTest {
     }
     
     // Former bug
-    @Test(expected = fortress.data.TypeCheckException.UnknownType.class)
+    @Test(expected = fortress.data.TypeCheckException.UndeterminedType.class)
     public void halfQuantified() {
         Signature sig = Signature.empty()
             .withTypes(A)
@@ -400,7 +400,7 @@ public class TypeCheckTest {
     }
     
     // Former bug
-    @Test(expected = fortress.data.TypeCheckException.UnknownType.class)
+    @Test(expected = fortress.data.TypeCheckException.UndeterminedType.class)
     public void halfQuantifiedMultiple() {
         Signature sig = Signature.empty()
             .withTypes(A)

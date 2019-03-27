@@ -17,7 +17,7 @@ public class Z3CommandLine implements SolverStrategy {
         return true;
     }
     
-    public ModelFinder.Result solve(Theory theory, int timeout, Writer log) {
+    public ModelFinder.Result solve(Theory theory, int timeout, Writer log) throws IOException {
         // TODO need more robust error handling
         try {
             File tempOutputFile = File.createTempFile("fortress", ".smt");
