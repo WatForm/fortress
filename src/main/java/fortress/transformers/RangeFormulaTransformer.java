@@ -59,7 +59,9 @@ public class RangeFormulaTransformer implements TheoryTransformer {
         
         List<Term> distinctUniverseElements = new ArrayList<>();
         for(List<Var> domainElementsOfTypeT : generatedUniverse.values()) {
-            distinctUniverseElements.add(Term.mkDistinct(domainElementsOfTypeT));
+            if(domainElementsOfTypeT.size() > 1) {
+                distinctUniverseElements.add(Term.mkDistinct(domainElementsOfTypeT));
+            }
         }
         
         List<Term> rangeFormulas = generateRangeFormulas(theory, generatedUniverse);

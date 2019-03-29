@@ -272,8 +272,27 @@ public class RangeFormulaTransformerTest {
     }
     
     @Test
-    @Ignore ("test not yet implemented")
     public void scopeOfOne() {
+        Map<Type, Integer> scopes = Map.of(A, 1);
+        RangeFormulaTransformer rf = new RangeFormulaTransformer(scopes);
         
+        Theory theory = Theory.empty()
+            .withTypes(A)
+            .withFunctionDeclaration(P)
+            .withConstants(c_1.of(A), c_2.of(A))
+            .withAxiom(Term.mkForall(x.of(A), Term.mkApp("P", x)));
+        
+        Theory expected = Theory.empty()
+            .withTypes(A)
+            .withFunctionDeclaration(P)
+            .withConstants(c_1.of(A), c_2.of(A))
+            // New
+            .withConstant(a_1.of(A))
+            .withAxiom(Term.mkApp("P", a_1))
+            // Range constaints
+            .withAxiom(Term.mkEq(c_1, a_1))
+            .withAxiom(Term.mkEq(c_2, a_1));
+        
+        assertEquals(expected, rf.apply(theory));
     }
 }

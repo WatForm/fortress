@@ -5,19 +5,14 @@ import java.lang.IllegalStateException;
 public class StopWatch {
     
     private long start;
-    private long stop;
     private boolean running;
     
     public StopWatch() {
         this.start = -1;
-        this.stop = -1;
         this.running = false;
     }
     
-    public void start() {
-        if(running) {
-            throw new IllegalStateException();
-        }
+    public void startFresh() {
         start = System.nanoTime();
         running = true;
     }
@@ -27,7 +22,7 @@ public class StopWatch {
         if(!running) {
             throw new IllegalStateException();
         }
-        stop = System.nanoTime();
+        long stop = System.nanoTime();
         return stop - start;
     }
     

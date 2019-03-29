@@ -1,7 +1,8 @@
 package fortress.modelfind;
 
-import fortress.util.Timer;
+import fortress.util.StopWatch;
 import fortress.util.Errors;
+
 import java.util.List;
 import java.util.ArrayList;
 import java.io.OutputStream;
@@ -23,8 +24,8 @@ import fortress.transformers.TheoryTransformer;
 public class ModelFinder {
     private List<TheoryTransformer> theoryTransformers;
     private SolverStrategy solverStrategy;
-    private Timer transformationTimer;
-    private Timer solverTimer;
+    private StopWatch transformationTimer;
+    private StopWatch solverTimer;
     
     /**
     * @publish
@@ -48,8 +49,8 @@ public class ModelFinder {
     public ModelFinder(List<TheoryTransformer> theoryTransformers, SolverStrategy solverStrategy) {
         this.theoryTransformers = theoryTransformers;
         this.solverStrategy = solverStrategy;
-        this.transformationTimer = new Timer();
-        this.solverTimer = new Timer();
+        this.transformationTimer = new StopWatch();
+        this.solverTimer = new StopWatch();
     }
     
     /**
@@ -66,15 +67,21 @@ public class ModelFinder {
     
     public Result findModel(Theory theory, int solverTimeout, Writer log, boolean debug) throws IOException {
         
-        transformationTimer.set();
+        long totalElapsedTransform = 0;
         for(TheoryTransformer theoryTransformer : theoryTransformers) {
             log.write("Applying transformer: " + theoryTransformer.getName());
-            log.write("...");
+            log.write("... ");
             log.flush();
+            transformationTimer.startFresh();
+            
             theory = theoryTransformer.apply(theory);
-            log.write("\n");
+            
+            long elapsed = transformationTimer.stop();
+            totalElapsedTransform += elapsed;
+            log.write(StopWatch.format(elapsed) + "\n");
         }
-        transformationTimer.stop();
+        log.write("Total transformation time: " + StopWatch.format(totalElapsedTransform) + "\n");
+        log.flush();
         
         if(debug) {
             log.write("Resulting theory:\n");
@@ -94,22 +101,14 @@ public class ModelFinder {
         
         log.write("Attempting to solve...\n");
         log.flush();
-        solverTimer.set();
+        solverTimer.startFresh();
         Result r = solverStrategy.solve(theory, solverTimeout, log);
-        solverTimer.stop();
+        long elapsedSolver = solverTimer.stop();
         log.write("Done. Result was " + r.toString() + ".\n");
+        log.write("Solving time: " + StopWatch.format(elapsedSolver) + "\n");
+        log.write("TOTAL time: " + StopWatch.format(totalElapsedTransform + elapsedSolver) + "\n");
         log.flush();
 
         return r;
-    }
-    
-    // TODO update this
-    public String getTransformationTimeReport() {
-        return transformationTimer.getReport();
-    }
-    
-    // TODO update this
-    public String getSolverTimeReport() {
-        return solverTimer.getReport();
     }
 }
