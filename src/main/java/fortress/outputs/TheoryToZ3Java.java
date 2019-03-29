@@ -1,4 +1,4 @@
-package fortress.tfol.operations;
+package fortress.outputs;
 
 import com.microsoft.z3.*;
 
@@ -10,6 +10,7 @@ import java.util.stream.Collectors;
 import java.util.Optional;
 
 import fortress.tfol.*;
+import fortress.tfol.operations.TermVisitorWithTypeContext;
 import fortress.util.Pair;
 
 public class TheoryToZ3Java {

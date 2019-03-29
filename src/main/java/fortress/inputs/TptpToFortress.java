@@ -38,7 +38,7 @@ public class TptpToFortress extends FOFTPTPBaseVisitor {
     }
     
     @Override
-    public Object visitSpec(FOFTPTPParser.SpecContext ctx) {
+    public Void visitSpec(FOFTPTPParser.SpecContext ctx) {
         for(FOFTPTPParser.Fof_annotatedContext f : ctx.fof_annotated()) {
             visit(f);
         }
@@ -74,7 +74,7 @@ public class TptpToFortress extends FOFTPTPBaseVisitor {
 
     // Add formulas as axioms, or if the formula is a conjecture, add its negation
     @Override
-    public Object visitFof_annotated(FOFTPTPParser.Fof_annotatedContext ctx) {
+    public Term visitFof_annotated(FOFTPTPParser.Fof_annotatedContext ctx) {
         Term f = (Term) visit(ctx.fof_formula());
         if (ctx.ID(1).getText().equals("conjecture")) {
             formulas.add(Term.mkNot(f));
@@ -86,13 +86,13 @@ public class TptpToFortress extends FOFTPTPBaseVisitor {
     }
 
     @Override
-    public Object visitNot(FOFTPTPParser.NotContext ctx) {
+    public Term visitNot(FOFTPTPParser.NotContext ctx) {
         Term formula = (Term) visit(ctx.fof_formula());
         return Term.mkNot(formula);
     }
 
     @Override
-    public Object visitForall(FOFTPTPParser.ForallContext ctx) {
+    public Term visitForall(FOFTPTPParser.ForallContext ctx) {
         List<AnnotatedVar> variables = new ArrayList<>();
         for(TerminalNode variableNode: ctx.ID()) {
             String name = variableNode.getText();
@@ -103,7 +103,7 @@ public class TptpToFortress extends FOFTPTPBaseVisitor {
     }
 
     @Override
-    public Object visitExists(FOFTPTPParser.ExistsContext ctx) {
+    public Term visitExists(FOFTPTPParser.ExistsContext ctx) {
         List<AnnotatedVar> variables = new ArrayList<>();
         for (TerminalNode variableNode: ctx.ID()) {
             String name = variableNode.getText();
@@ -121,42 +121,42 @@ public class TptpToFortress extends FOFTPTPBaseVisitor {
     }
 
     @Override
-    public Object visitOr(FOFTPTPParser.OrContext ctx) {
+    public Term visitOr(FOFTPTPParser.OrContext ctx) {
         Term left = (Term) visit(ctx.fof_formula(0));
         Term right = (Term) visit(ctx.fof_formula(1));
         return Term.mkOr(left, right);
     }
 
     @Override
-    public Object visitImp(FOFTPTPParser.ImpContext ctx) {
+    public Term visitImp(FOFTPTPParser.ImpContext ctx) {
         Term left = (Term) visit(ctx.fof_formula(0));
         Term right = (Term) visit(ctx.fof_formula(1));
         return Term.mkImp(left, right);
     }
 
     @Override
-    public Object visitIff(FOFTPTPParser.IffContext ctx) {
+    public Term visitIff(FOFTPTPParser.IffContext ctx) {
         Term left = (Term) visit(ctx.fof_formula(0));
         Term right = (Term) visit(ctx.fof_formula(1));
         return Term.mkEq(left, right);
     }
 
     @Override
-    public Object visitEq(FOFTPTPParser.EqContext ctx) {
+    public Term visitEq(FOFTPTPParser.EqContext ctx) {
         Term left = (Term) visit(ctx.term(0));
         Term right = (Term) visit(ctx.term(1));
         return Term.mkEq(left, right);
     }
 
     @Override
-    public Object visitNeq(FOFTPTPParser.NeqContext ctx) {
+    public Term visitNeq(FOFTPTPParser.NeqContext ctx) {
         Term left = (Term) visit(ctx.term(0));
         Term right = (Term) visit(ctx.term(1));
         return Term.mkNot(Term.mkEq(left, right));
     }
 
     @Override
-    public Object visitProp(FOFTPTPParser.PropContext ctx) {
+    public Term visitProp(FOFTPTPParser.PropContext ctx) {
         String name = ctx.ID().getText();
         Var v = Term.mkVar(name);
         primePropositions.add(v);
@@ -164,7 +164,7 @@ public class TptpToFortress extends FOFTPTPBaseVisitor {
     }
 
     @Override
-    public Object visitPred(FOFTPTPParser.PredContext ctx) {
+    public Term visitPred(FOFTPTPParser.PredContext ctx) {
         String name = ctx.ID().getText();
         int numArgs = ctx.term().size();
 
@@ -184,18 +184,18 @@ public class TptpToFortress extends FOFTPTPBaseVisitor {
     }
 
     @Override
-    public Object visitParen(FOFTPTPParser.ParenContext ctx) {
-        return visit(ctx.fof_formula());
+    public Term visitParen(FOFTPTPParser.ParenContext ctx) {
+        return (Term) visit(ctx.fof_formula());
     }
 
     @Override
-    public Object visitConVar(FOFTPTPParser.ConVarContext ctx) {
+    public Term visitConVar(FOFTPTPParser.ConVarContext ctx) {
         String name = ctx.ID().getText();
         return Term.mkVar(name);
     }
 
     @Override
-    public Object visitApply(FOFTPTPParser.ApplyContext ctx) {
+    public Term visitApply(FOFTPTPParser.ApplyContext ctx) {
         String name = ctx.ID().getText();
         int numArgs = ctx.term().size();
         

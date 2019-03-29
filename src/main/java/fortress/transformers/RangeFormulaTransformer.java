@@ -150,6 +150,6 @@ public class RangeFormulaTransformer implements TheoryTransformer {
     
     @Override
     public String getName() {
-        return "RangeFormulaTransformer";
+        return "Range Formula Transformer (Low Sym)";
     }
 }

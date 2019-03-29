@@ -16,12 +16,14 @@ import fortress.util.Errors;
 public class SubstitutionTest {
     
     private void assertAlphaEquivalent(Term expected, Term actual) {
-        assertTrue(actual.toString() + " should be alpha equiv to " + expected.toString(),
+        assertTrue(expected.toString() + "\n should be alpha equiv to the actual \n" + actual.toString(),
             expected.alphaEquivalent(actual));
     }
     
     Type A = Type.mkTypeConst("A");
+    Type B = Type.mkTypeConst("B");
     
+    Var w = Term.mkVar("w");
     Var x = Term.mkVar("x");
     Var y = Term.mkVar("y");
     Var z = Term.mkVar("z");
@@ -45,12 +47,16 @@ public class SubstitutionTest {
     public void boundVar() {
         Term t1 = Term.mkAnd(Term.mkEq(x, x),
                        Term.mkExists(x.of(A), Term.mkApp("R", x)));
+                       
         Term t2 = Term.mkAnd(Term.mkEq(x, x),
                        Term.mkForall(x.of(A), Term.mkApp("R", x)));
+                       
         Term e1 = Term.mkAnd(Term.mkEq(Term.mkBottom(), Term.mkBottom()),
                       Term.mkExists(x.of(A), Term.mkApp("R", x)));
+                      
         Term e2 = Term.mkAnd(Term.mkEq(Term.mkBottom(), Term.mkBottom()),
                       Term.mkForall(x.of(A), Term.mkApp("R", x)));
+                      
         assertEquals(e1, t1.substitute(x, Term.mkBottom()));    
         assertEquals(e2, t2.substitute(x, Term.mkBottom()));    
     }
@@ -60,8 +66,8 @@ public class SubstitutionTest {
         Term t1 = Term.mkExists(x.of(A), Term.mkEq(x, y));
         Term t2 = Term.mkForall(x.of(A), Term.mkEq(x, y));
         
-        Term e1 = Term.mkExists(_1.of(A), Term.mkEq(_1, x));
-        Term e2 = Term.mkForall(_1.of(A), Term.mkEq(_1, x));
+        Term e1 = Term.mkExists(z.of(A), Term.mkEq(z, x));
+        Term e2 = Term.mkForall(z.of(A), Term.mkEq(z, x));
         
         Term r1 = t1.substitute(y, x);
         Term r2 = t2.substitute(y, x);
@@ -70,15 +76,32 @@ public class SubstitutionTest {
     }
     
     @Test
-    @Ignore("Test not yet implemented")
     public void variableCaptureMultivarQuantifier() {
+        Term t1 = Term.mkExists(List.of(x.of(A), y.of(B)), Term.mkApp("P", x, y, z));
+        Term t2 = Term.mkForall(List.of(x.of(A), y.of(B)), Term.mkApp("P", x, y, z));
         
+        Term expected1 = Term.mkExists(List.of(x.of(A), w.of(B)), Term.mkApp("P", x, w, y));
+        Term expected2 = Term.mkForall(List.of(w.of(A), y.of(B)), Term.mkApp("P", w, y, x));
+        
+        assertAlphaEquivalent(expected1, t1.substitute(z, y));
+        assertAlphaEquivalent(expected2, t2.substitute(z, x));
     }
     
     @Test
-    @Ignore("Test not yet implemented")
     public void variableCaptureComplex() {
+        Term t = Term.mkOr(
+            Term.mkForall(x.of(A), Term.mkAnd(
+                Term.mkApp("Q", x),
+                Term.mkExists(x.of(A), Term.mkApp("P", x, y)))),
+            Term.mkApp("Q", y));
         
+        Term expected = Term.mkOr(
+            Term.mkForall(z.of(A), Term.mkAnd(
+                Term.mkApp("Q", z),
+                Term.mkExists(w.of(A), Term.mkApp("P", w, x)))),
+            Term.mkApp("Q", x));
+        
+        assertAlphaEquivalent(expected, t.substitute(y, x));
     }
     
 }

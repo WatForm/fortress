@@ -3,7 +3,7 @@ package fortress.modelfind;
 import java.io.*;
 
 import fortress.tfol.*;
-import fortress.tfol.operations.*;
+import fortress.outputs.*;
 import fortress.util.Pair;
 
 import com.microsoft.z3.*;

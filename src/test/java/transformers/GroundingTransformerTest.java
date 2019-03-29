@@ -27,6 +27,7 @@ public class GroundingTransformerTest {
     FuncDecl Q = FuncDecl.mkFuncDecl("Q", B, Type.Bool);
     FuncDecl R = FuncDecl.mkFuncDecl("R", A, B, Type.Bool);
     FuncDecl S = FuncDecl.mkFuncDecl("S", A, A, Type.Bool);
+    FuncDecl T = FuncDecl.mkFuncDecl("T", A, A, A, Type.Bool);
     
     Var a_1 = Term.mkVar("a_1");
     Var a_2 = Term.mkVar("a_2");
@@ -49,7 +50,8 @@ public class GroundingTransformerTest {
         .withFunctionDeclaration(P)
         .withFunctionDeclaration(Q)
         .withFunctionDeclaration(R)
-        .withFunctionDeclaration(S);
+        .withFunctionDeclaration(S)
+        .withFunctionDeclaration(T);
     
     Theory baseExpectedTheory = baseTheory
         .withConstant(a_1.of(A))
@@ -134,9 +136,23 @@ public class GroundingTransformerTest {
     }
     
     @Test
-    @Ignore ("Test not yet implemented")
     public void multiVarQuantifier() {
+        Theory theory = baseTheory
+            .withAxiom(Term.mkForall(List.of(x.of(A), y.of(A)),
+                Term.mkOr(
+                    Term.mkApp("S", x, y),
+                    Term.mkForall(z.of(A), Term.mkApp("T", x, y, z)))));
         
+        Theory expected = baseTheory
+            .withConstants(a_1.of(A), a_2.of(A))
+            .withAxiom(Term.mkAnd(
+                Term.mkOr(Term.mkApp("S", a_1, a_1), Term.mkAnd(Term.mkApp("T", a_1, a_1, a_1), Term.mkApp("T", a_1, a_1, a_2))),
+                Term.mkOr(Term.mkApp("S", a_2, a_1), Term.mkAnd(Term.mkApp("T", a_2, a_1, a_1), Term.mkApp("T", a_2, a_1, a_2))),
+                Term.mkOr(Term.mkApp("S", a_1, a_2), Term.mkAnd(Term.mkApp("T", a_1, a_2, a_1), Term.mkApp("T", a_1, a_2, a_2))),
+                Term.mkOr(Term.mkApp("S", a_2, a_2), Term.mkAnd(Term.mkApp("T", a_2, a_2, a_1), Term.mkApp("T", a_2, a_2, a_2)))));
+        
+        TheoryTransformer grounding = new GroundingTransformer(Map.of(A, List.of(a_1, a_2)));
+        assertEquals(expected, grounding.apply(theory));
     }
     
     @Test

@@ -5,7 +5,7 @@ import java.util.Deque;
 import java.util.LinkedList;
 import fortress.tfol.*;
 
-abstract class TermVisitorWithTypeContext<T> implements TermVisitor<T> {
+public abstract class TermVisitorWithTypeContext<T> implements TermVisitor<T> {
     protected Signature signature;
     private Deque<AnnotatedVar> typeContextStack;
     
@@ -43,8 +43,8 @@ abstract class TermVisitorWithTypeContext<T> implements TermVisitor<T> {
             .map( (AnnotatedVar av) -> av.getType());
     }
     
-    abstract T visitForallInner(Forall forall);
-    abstract T visitExistsInner(Exists exists);
+    protected abstract T visitForallInner(Forall forall);
+    protected abstract T visitExistsInner(Exists exists);
     
     @Override
     final public T visitForall(Forall forall) {
