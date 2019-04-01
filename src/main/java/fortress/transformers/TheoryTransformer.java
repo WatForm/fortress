@@ -21,7 +21,7 @@ public interface TheoryTransformer {
     
     public String getName();
     
-    public static List<TheoryTransformer> RangeEUF(Map<Type, Integer> scopes) {
+    public static List<TheoryTransformer> rangeEUF(Map<Type, Integer> scopes) {
         return List.of(new NnfTransformer(), new SkolemizeTransformer(), new RangeFormulaTransformer(scopes));
     }
 }

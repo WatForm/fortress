@@ -101,6 +101,15 @@ public class RangeFormulaTransformer implements TheoryTransformer {
             Type type = av.getType();
             Var c = av.getVar();
             
+            // Skip boolean variables
+            if(type.equals(Type.Bool)) {
+                continue;
+            }
+            // Skip if type is not given a scope
+            if(!generatedUniverse.containsKey(type)) {
+                continue;
+            }
+            
             List<Var> univForType = generatedUniverse.get(type);
             // The number of equalities c = a_i to disjunct is either however
             // many equalities we made for the last constant of this type plus one,

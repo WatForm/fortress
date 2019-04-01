@@ -98,7 +98,7 @@ public class ModelFinderZ3ApiTest {
             .withAxiom(Term.mkNot(conjecture));
             
         ModelFinder finder = new ModelFinder(
-            TheoryTransformer.RangeEUF(Map.of(U, 3)),
+            TheoryTransformer.rangeEUF(Map.of(U, 3)),
             new Z3ApiSolver());
             
         StringWriter log = new StringWriter();

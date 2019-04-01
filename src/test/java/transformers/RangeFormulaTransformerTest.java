@@ -26,6 +26,7 @@ public class RangeFormulaTransformerTest {
     Var c_1 = Term.mkVar("c_1");
     Var c_2 = Term.mkVar("c_2");
     Var c_3 = Term.mkVar("c_3");
+    Var d = Term.mkVar("d");
     Var d_1 = Term.mkVar("d_1");
     Var d_2 = Term.mkVar("d_2");
     Var d_3 = Term.mkVar("d_3");
@@ -294,5 +295,63 @@ public class RangeFormulaTransformerTest {
             .withAxiom(Term.mkEq(c_2, a_1));
         
         assertEquals(expected, rf.apply(theory));
+    }
+    
+    @Test
+    public void booleanConstantsNotRestricted() {
+        Map<Type, Integer> scopes = Map.of(A, 1);
+        RangeFormulaTransformer rf = new RangeFormulaTransformer(scopes);
+        
+        Theory theory = Theory.empty()
+            .withType(A)
+            .withFunctionDeclaration(P)
+            .withConstants(q.of(Type.Bool), c.of(A))
+            .withAxiom(q)
+            .withAxiom(Term.mkApp("P", c));
+        
+        Theory expected = theory
+            .withConstant(a_1.of(A))
+            .withAxiom(Term.mkEq(c, a_1));
+        
+        assertEquals(expected, rf.apply(theory));
+    }
+    
+    @Test
+    public void unlistedTypeNotExpanded() {
+        Map<Type, Integer> scopes = Map.of(A, 1);
+        RangeFormulaTransformer rf = new RangeFormulaTransformer(scopes);
+        
+        Theory theory = Theory.empty()
+            .withTypes(A, B)
+            .withFunctionDeclarations(P, Q)
+            .withConstants(c.of(A), d.of(B))
+            .withAxiom(Term.mkApp("P", c))
+            .withAxiom(Term.mkApp("Q", d));
+        
+        Theory expected = theory
+            .withConstant(a_1.of(A))
+            .withAxiom(Term.mkEq(c, a_1));
+        
+        assertEquals(expected, rf.apply(theory));
+    }
+    
+    // Usage tests
+    
+    @Test 
+    @Ignore ("Test not yet implemented")
+    public void extraTypeScopeFails() {
+        
+    }
+    
+    @Test
+    @Ignore ("Test not yet implemented")
+    public void nullScope() {
+        
+    }
+    
+    @Test
+    @Ignore ("Test not yet implemented")
+    public void booleanScopeFails() {
+        
     }
 }
