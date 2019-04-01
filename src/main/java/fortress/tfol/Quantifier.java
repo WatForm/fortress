@@ -12,10 +12,10 @@ public abstract class Quantifier extends Term {
     protected final Term body;
     
     protected Quantifier(ImmutableList<AnnotatedVar> vars, Term body) {
-        Errors.failIf(vars.size() < 1, "Quantifier must bind at least one variable");
+        Errors.precondition(vars.size() > 0, "Quantifier must bind at least one variable");
         // Check variables distinct
         Set<String> varSet = vars.stream().map((AnnotatedVar av) -> av.getName()).collect(Collectors.toSet());
-        Errors.failIf(varSet.size() != vars.size(), "Duplicate variable name in quantifier");
+        Errors.precondition(varSet.size() == vars.size(), "Duplicate variable name in quantifier");
         this.vars = vars;
         this.body = body;
     }
@@ -30,7 +30,7 @@ public abstract class Quantifier extends Term {
     
     @Override
     protected boolean innerEquals(Object other) {
-        Errors.failIf(this.getClass() != other.getClass());
+        Errors.precondition(this.getClass() == other.getClass());
         Quantifier o = (Quantifier) other;
         return this.vars.equals(o.vars)
             && this.body.equals(o.body);

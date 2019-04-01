@@ -128,46 +128,53 @@ public class Signature {
     
     private void assertTypeConsistent(Type t) {
         // Type must not share a name with any function
-        Errors.failIf(functionDeclarations.stream().anyMatch(
+        Errors.precondition(! functionDeclarations.stream().anyMatch(
             (FuncDecl fdecl) -> fdecl.getName().equals(t.getName())
         ), "Name " + t.getName() + " shared by type and function");
+        
         // Type must not share a name with any constant
-        Errors.failIf(constants.stream().anyMatch(
+        Errors.precondition(! constants.stream().anyMatch(
             (AnnotatedVar c) -> c.getName().equals(t.getName())
         ), "Name " + t.getName() + " shared by type and constant");
     }
     
     private void assertConstConsistent(AnnotatedVar c) {
         // Constant's type must be within the set of types
-        Errors.failIf(!types.containsValue(c.getType()),
+        Errors.precondition(types.containsValue(c.getType()),
             "Constant " + c.getName() + " of undeclared type " + c.getType().getName());
+        
         // Constant's cannot share a name with a constant of a different type
-        Errors.failIf(constants.stream().anyMatch(
+        Errors.precondition(! constants.stream().anyMatch(
             (AnnotatedVar otherConst) -> otherConst.getName().equals(c.getName()) && !otherConst.equals(c)
         ), "Constant " + c.getName() + " declared with two different types");
+        
         // Constant cannot share a name with any function 
-        Errors.failIf(functionDeclarations.stream().anyMatch(
+        Errors.precondition(! functionDeclarations.stream().anyMatch(
             (FuncDecl fdecl) -> fdecl.getName().equals(c.getName())
         ), "Name " + c.getName() + " shared by constant and function");
     }
     
     private void assertFuncDeclConsistent(FuncDecl fdecl) {
         // Argument types must exist in type set
-        Errors.failIf(!fdecl.getArgTypes().stream().allMatch(types::containsValue),
+        Errors.precondition(fdecl.getArgTypes().stream().allMatch(types::containsValue),
             "Function " + fdecl.getName() + " has argument types that are undeclared");
+            
         // Result type must exist in type set
-        Errors.failIf(!types.containsValue(fdecl.getResultType()),
+        Errors.precondition(types.containsValue(fdecl.getResultType()),
             "Function " + fdecl.getName() + " has result type that is undeclared");
+            
         // Function must not share name with a constant
-        Errors.failIf(constants.stream().anyMatch(
+        Errors.precondition(! constants.stream().anyMatch(
             (AnnotatedVar c) -> c.getName().equals(fdecl.getName())
         ), "Name " + fdecl.getName() +  " shared by function and constant");
+        
         // Function must not share name with a type
-        Errors.failIf(types.stream().anyMatch(
+        Errors.precondition(! types.stream().anyMatch(
             (Type type) -> type.getName().equals(fdecl.getName())
         ), "Name " + fdecl.getName() +  " shared by function and type");
+        
         // Function must not share name with another function, unless it is the same function
-        Errors.failIf(functionDeclarations.stream().anyMatch(
+        Errors.precondition(! functionDeclarations.stream().anyMatch(
             (FuncDecl otherFun) -> otherFun.getName().equals(fdecl.getName()) && ! otherFun.equals(fdecl)
         ), "Function " + fdecl.getName() + " declared with two different types");
     }

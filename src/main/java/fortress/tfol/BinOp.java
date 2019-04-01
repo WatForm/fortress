@@ -23,7 +23,7 @@ public abstract class BinOp extends Term {
     
     @Override
     protected boolean innerEquals(Object other) {
-        Errors.failIf(this.getClass() != other.getClass());
+        Errors.precondition(this.getClass() == other.getClass());
         return this.left.equals( ((BinOp)other).left )
             && this.right.equals( ((BinOp)other).right );
     }

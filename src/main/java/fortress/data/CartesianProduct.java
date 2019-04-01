@@ -18,7 +18,7 @@ public class CartesianProduct<E> implements Iterable<List<E>> {
         this.sets = sets;
         this.numberOfSets = sets.size();
         for(List<E> set : sets) {
-            Errors.failIf(set.size() == 0);
+            Errors.precondition(set.size() > 0);
         }
     }
     
@@ -47,7 +47,7 @@ public class CartesianProduct<E> implements Iterable<List<E>> {
         
         @Override
         public List<E> next() {
-            Errors.failIf(!hasNext());
+            Errors.precondition(hasNext());
             
             // Get current item of counter first
             List<E> productElement = new ArrayList<>();

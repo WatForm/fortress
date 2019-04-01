@@ -45,7 +45,7 @@ public class Errors {
         precondition(condition, messageSupplier.get());
     }
     
-    // Verification: I don't trust the output of some other function
+    // Verification: I don't trust the output of some other function/API
     // and want to check it myself
     public static void verify(boolean condition) {
         if(!condition) {
@@ -78,18 +78,5 @@ public class Errors {
     
     public static void assertion(boolean condition, Supplier<String> messageSupplier) {
         assertion(condition, messageSupplier.get());
-    }
-    
-    @Deprecated
-    public static void failIf(Boolean condition){
-        if(condition)
-            throw new AssertionError();
-    }
-    
-    @Deprecated
-    public static void failIf(Boolean condition, String msg) {
-        if(condition) {
-            throw new AssertionError(msg);
-        }
     }
 }

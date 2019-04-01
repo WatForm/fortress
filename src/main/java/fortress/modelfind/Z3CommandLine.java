@@ -29,9 +29,13 @@ public class Z3CommandLine implements SolverStrategy {
             String command = "z3 -smt2 -memory:2500 -T:2000 ";
             Process process = Runtime.getRuntime().exec(command + tempOutputFile.getAbsolutePath());
             BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
-            Errors.failIf(null == reader);
+            if(null == reader) {
+                throw new IOException();
+            }
             String firstLine = reader.readLine();
-            Errors.failIf(firstLine == null);
+            if(firstLine == null) {
+                throw new IOException();
+            }
             ModelFinder.Result result;
             if (firstLine.equals("sat")) {
                 result = ModelFinder.Result.SAT;

@@ -13,7 +13,7 @@ public class App extends Term {
     private final ImmutableList<Term> arguments;
 
     protected App(String functionName, ImmutableList<Term> arguments) {
-        Errors.failIf(arguments.size() < 1, "Nullary function application " + functionName + " should be a Var");
+        Errors.precondition(arguments.size() > 0, "Nullary function application " + functionName + " should be a Var");
         this.functionName = functionName;
         this.arguments = arguments;
     }
@@ -28,7 +28,7 @@ public class App extends Term {
     
     @Override
     protected boolean innerEquals(Object other) {
-        Errors.failIf(this.getClass() != other.getClass());
+        Errors.precondition(this.getClass() == other.getClass());
         return this.functionName.equals( ((App)other).functionName )
             && this.arguments.equals( ((App)other).arguments );
     }

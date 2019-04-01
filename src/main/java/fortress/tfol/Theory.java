@@ -182,7 +182,7 @@ public class Theory {
         // Check axiom typechecks as bool
         // Note that a formula cannot typecheck if it has any free variables (that are not constants of the signature)
         TypeCheckResult result = formula.typeCheck(signature);
-        Errors.failIf(! result.type.equals(Type.Bool));
+        Errors.precondition(result.type.equals(Type.Bool));
         return result.term;
     }
     

@@ -105,7 +105,7 @@ public class UnivInstantiationVisitor implements TermVisitor<Term> {
         
         CartesianProduct<Var> cartesianProduct = new CartesianProduct(listOfTypeSets);
         for(List<Var> substitution : cartesianProduct) {
-            Errors.failIf(substitution.size() != vars.size());
+            Errors.verify(substitution.size() == vars.size());
             Term bodyInstance = body;
             for(int i = 0; i < vars.size(); i++) {
                 // NOTE because we are substituting with fresh variables, there

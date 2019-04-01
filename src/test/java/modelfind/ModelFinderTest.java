@@ -68,8 +68,6 @@ public class ModelFinderTest {
     
     @Test
     public void BasicUnscopedZ3CommandLine() throws IOException {
-        Errors.failIf(null == modelFinder);
-        Errors.failIf(null == simpleSatTheory);
         ModelFinder.Result satTheoryResult = modelFinder.findModel(simpleSatTheory, 1000);
         assertEquals(ModelFinder.Result.SAT, satTheoryResult);
          

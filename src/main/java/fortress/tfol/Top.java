@@ -13,7 +13,7 @@ public class Top extends Term {
     
     @Override
     protected boolean innerEquals(Object other) {
-        Errors.failIf(this.getClass() != other.getClass());
+        Errors.precondition(this.getClass() == other.getClass());
         return true;
     }
     

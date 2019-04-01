@@ -29,8 +29,8 @@ public class Var extends Term {
     private final String name;
     
     protected Var(String name) {
-        Errors.failIf(name.length() < 1, "Cannot create variable with empty name");
-        Errors.failIf(Names.isIllegal(name), "Illegal variable name " + name);
+        Errors.precondition(name.length() > 0, "Cannot create variable with empty name");
+        Errors.precondition(! Names.isIllegal(name), "Illegal variable name " + name);
         this.name = name;
     }
     
@@ -42,7 +42,7 @@ public class Var extends Term {
     
     @Override
     protected boolean innerEquals(Object other) {
-       Errors.failIf(this.getClass() != other.getClass());
+       Errors.precondition(this.getClass() == other.getClass());
        Var o = (Var) other;
        return this.name.equals(o.name);
     }

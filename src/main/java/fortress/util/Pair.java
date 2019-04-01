@@ -26,7 +26,7 @@
 
 package fortress.util;
 
-import static fortress.util.Errors.failIf;
+import fortress.util.Errors;
 
 public final class Pair<L, R> {
     
@@ -34,7 +34,8 @@ public final class Pair<L, R> {
     public final R right;
     
     public Pair(L left, R right){
-        failIf(left == null || right == null);
+        Errors.precondition(left != null);
+        Errors.precondition(right != null);
         this.left = left;
         this.right = right;
     }

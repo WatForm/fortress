@@ -12,9 +12,9 @@ public class FuncDecl {
     private Type resultType;
     
     private FuncDecl(String name, ImmutableList<Type> argTypes, Type resultType) {
-        Errors.failIf(argTypes.size() < 1, "Cannot create nullary functions; use a constant instead");
-        Errors.failIf(Names.isIllegal(name), "Illegal function name " + name);
-        Errors.failIf(name.length() < 1, "Cannot create function with empty name");
+        Errors.precondition(argTypes.size() > 0, "Cannot create nullary functions; use a constant instead");
+        Errors.precondition(! Names.isIllegal(name), "Illegal function name " + name);
+        Errors.precondition(name.length() > 0, "Cannot create function with empty name");
         
         this.name = name;
         this.argTypes = argTypes;

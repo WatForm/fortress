@@ -61,7 +61,7 @@ public abstract class Term {
     * value will be exactly t.
     */
     public static Term mkAnd(Term... args) {
-        Errors.failIf(args.length < 1, "One or more arguments must be given");
+        Errors.precondition(args.length > 0, "One or more arguments must be given");
         if(args.length == 1) {
             return args[0];
         }
@@ -74,7 +74,7 @@ public abstract class Term {
     * value will be exactly t.
     */
     public static Term mkAnd(List<Term> args) {
-        Errors.failIf(args.size() < 1, "One or more arguments must be given");
+        Errors.precondition(args.size() > 0, "One or more arguments must be given");
         if(args.size() == 1) {
             return args.get(0);
         } 
@@ -88,7 +88,7 @@ public abstract class Term {
     * value will be exactly t.
     */
     public static Term mkOr(Term... args) {
-        Errors.failIf(args.length < 1, "One or more arguments must be given");
+        Errors.precondition(args.length > 0, "One or more arguments must be given");
         if(args.length == 1) {
             return args[0];
         }
@@ -101,7 +101,7 @@ public abstract class Term {
     * value will be exactly t.
     */
     public static Term mkOr(List<Term> args) {
-        Errors.failIf(args.size() < 1, "One or more arguments must be given");
+        Errors.precondition(args.size() > 0, "One or more arguments must be given");
         if(args.size() == 1) {
             return args.get(0);
         }
@@ -139,7 +139,7 @@ public abstract class Term {
     * distinct values. Two or more terms must be provided
     */
     public static Term mkDistinct(List<? extends Term> arguments) {
-        Errors.failIf(arguments.size() < 2, "Two or more arguments must be given");
+        Errors.precondition(arguments.size() >= 2, "Two or more arguments must be given");
         return new Distinct(ImmutableWrapperList.copyCollection(arguments));
     }
     /**
@@ -148,7 +148,7 @@ public abstract class Term {
     * distinct values. Two or more terms must be provided.
     */
     public static Term mkDistinct(Term... arguments) {
-        Errors.failIf(arguments.length < 2, "Two or more arguments must be given");
+        Errors.precondition(arguments.length >= 2, "Two or more arguments must be given");
         return new Distinct(ImmutableWrapperList.copyArray(arguments));
     }
     
@@ -224,7 +224,7 @@ public abstract class Term {
     * Internal method to make AndLists without needing to copy the argument list.
     */
     public static Term mkAndF(ImmutableList<Term> arguments) {
-        Errors.failIf(arguments.size() < 2);
+        Errors.precondition(arguments.size() >= 2);
         return new AndList(arguments);
     }
     
@@ -232,7 +232,7 @@ public abstract class Term {
     * Internal method to make OrLists without needing to copy the argument list.
     */
     public static Term mkOrF(ImmutableList<Term> arguments) {
-        Errors.failIf(arguments.size() < 2);
+        Errors.precondition(arguments.size() >= 2);
         return new OrList(arguments);
     }
     
@@ -240,7 +240,7 @@ public abstract class Term {
     * Internal method to make Distinct terms without needing to copy the argument list.
     */
     public static Term mkDistinctF(ImmutableList<Term> arguments) {
-        Errors.failIf(arguments.size() < 2);
+        Errors.precondition(arguments.size() >= 2);
         return new Distinct(arguments);
     }
     

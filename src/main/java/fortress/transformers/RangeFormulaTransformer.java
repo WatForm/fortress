@@ -26,7 +26,7 @@ public class RangeFormulaTransformer implements TheoryTransformer {
     private Map<Type, Integer> scopes;
     
     public RangeFormulaTransformer(Map<Type, Integer> scopes) {
-        this.scopes = new HashMap(scopes); // Copy
+        this.scopes = new HashMap<>(scopes); // Copy
     }
     
     @Override
@@ -35,7 +35,7 @@ public class RangeFormulaTransformer implements TheoryTransformer {
         // TODO could make this name forbidding more efficient if make it a method of theory
         // and have theory keep track of all names it uses
         
-        Set<String> forbiddenNames = new HashSet();
+        Set<String> forbiddenNames = new HashSet<>();
         
         for(Type type : theory.getTypes()) {
             forbiddenNames.add(type.getName());
@@ -74,7 +74,7 @@ public class RangeFormulaTransformer implements TheoryTransformer {
     }
     
     private Map<Type, List<Var>> generateUniverse(NameGenerator nameGen) {
-        Map<Type, List<Var>> universe = new HashMap();
+        Map<Type, List<Var>> universe = new HashMap<>();
         for(Map.Entry<Type, Integer> scope : scopes.entrySet()) {
             Type type = scope.getKey();
             int size = scope.getValue();
@@ -93,7 +93,7 @@ public class RangeFormulaTransformer implements TheoryTransformer {
         
         // Generate range constraints for constants, with symmetry breaking
         // Track how many far up we've gone for each type in symmetry breaking
-        Map<Type, Integer> symmetryDepth = new HashMap();
+        Map<Type, Integer> symmetryDepth = new HashMap<>();
         for(Type type : generatedUniverse.keySet()) {
             symmetryDepth.put(type, 0);
         }
@@ -142,7 +142,7 @@ public class RangeFormulaTransformer implements TheoryTransformer {
             for(Type type : f.getArgTypes()) {
                 toProduct.add(generatedUniverse.get(type));
             }
-            CartesianProduct<Var> argumentLists = new CartesianProduct(toProduct);
+            CartesianProduct<Var> argumentLists = new CartesianProduct<>(toProduct);
             for(List<Var> argumentList : argumentLists) {
                 Term f_args = Term.mkApp(f.getName(), argumentList);
                 

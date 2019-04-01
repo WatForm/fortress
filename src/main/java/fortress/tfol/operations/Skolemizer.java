@@ -145,7 +145,7 @@ public class Skolemizer {
                     List<Term> arguments = new ArrayList<>();
                     for(Var v : freeVars) {
                         Optional<Type> typeMaybe = lookupType(v);
-                        Errors.failIf(!typeMaybe.isPresent(), "Type of variable " + v.getName() + " could not be found");
+                        Errors.assertion(typeMaybe.isPresent(), "Type of variable " + v.getName() + " could not be found");
                         Type type = typeMaybe.get();
                         
                         argumentTypes.add(type);

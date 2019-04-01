@@ -12,7 +12,7 @@ public class Distinct extends ListOp {
     protected Distinct(ImmutableList<Term> arguments) {
         super(arguments);
         // Z3 allows one or more arguments
-        Errors.failIf(arguments.size() < 1);
+        Errors.precondition(arguments.size() > 0);
     }
     
     @Override

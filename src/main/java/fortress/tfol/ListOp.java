@@ -20,7 +20,7 @@ public abstract class ListOp extends Term {
     
     @Override
     protected boolean innerEquals(Object other) {
-        Errors.failIf(this.getClass() != other.getClass());
+        Errors.precondition(this.getClass() == other.getClass());
         return this.arguments.equals( ((ListOp) other).arguments );
     }
     
