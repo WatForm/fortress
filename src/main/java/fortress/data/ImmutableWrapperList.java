@@ -7,6 +7,7 @@ import java.util.Iterator;
 import java.util.ListIterator;
 import java.util.Collection;
 import java.util.function.Function;
+import java.util.function.Predicate;
 
 // Wraps a standard list but provides no mutation operators
 // NOTE: this differs from a stanard Java unmodifiable view, because there
@@ -135,5 +136,21 @@ public class ImmutableWrapperList<E> implements ImmutableList<E> {
             newImplList.add(mapping.apply(elem));
         }
         return new ImmutableWrapperList<>(newImplList);
+    }
+    
+    @Override
+    public ImmutableList<E> filter(Predicate<? super E> predicate) {
+        List<E> newImplList = new ArrayList<>(implList.size());
+        for(E elem : implList) {
+            if(predicate.test(elem)) {
+                newImplList.add(elem);
+            }
+        }
+        return new ImmutableWrapperList<>(newImplList);
+    }
+    
+    @Override
+    public boolean containsValue(E item) {
+        return implList.contains(item);
     }
 }

@@ -111,4 +111,9 @@ public class ModelFinder {
 
         return r;
     }
+    
+    // Temporary method -- will be changed
+    public String getStringModel() {
+       return solverStrategy.getStringModel(); 
+    }
 }

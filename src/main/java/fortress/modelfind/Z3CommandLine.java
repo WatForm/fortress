@@ -136,4 +136,9 @@ public class Z3CommandLine implements SolverStrategy {
                 )
         ).collect(Collectors.toList());
     }
+    
+    // Temporary method -- will be changed
+    public String getStringModel() {
+        return "ERROR";
+    }
 }

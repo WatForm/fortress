@@ -8,6 +8,7 @@ import java.lang.UnsupportedOperationException;
 import java.util.Collection;
 import java.util.function.UnaryOperator;
 import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.Comparator;
 
 // TODO need a more efficient way to build immutable lists
@@ -83,6 +84,10 @@ public interface ImmutableList<E> extends List<E> {
     
     // New operations
     public <R> ImmutableList<R> map(Function<? super E, ? extends R> mapping);
+    
+    public ImmutableList<E> filter(Predicate<? super E> predicate);
+    
+    public boolean containsValue(E value);
     
     // Static operations
     public static <T> ImmutableList<T> of(T item) {

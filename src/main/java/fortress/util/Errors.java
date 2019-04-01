@@ -79,4 +79,8 @@ public class Errors {
     public static void assertion(boolean condition, Supplier<String> messageSupplier) {
         assertion(condition, messageSupplier.get());
     }
+    
+    public static void assertUnreachable() {
+        assertion(false, "Code should be unreachable");
+    }
 }

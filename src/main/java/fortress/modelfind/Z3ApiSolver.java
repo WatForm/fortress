@@ -9,6 +9,7 @@ import fortress.util.Pair;
 import com.microsoft.z3.*;
 
 public class Z3ApiSolver implements SolverStrategy {
+    private String lastModel = "";
     
     @Override
     public boolean canAttemptSolving(Theory theory) {
@@ -35,16 +36,24 @@ public class Z3ApiSolver implements SolverStrategy {
         switch(status) {
             case UNKNOWN:
                 // TODO timeout errors
+                lastModel = "ERROR";
                 return ModelFinder.Result.UNKNOWN;
                 // break;
             case SATISFIABLE:
+                lastModel = solver.getModel().toString();
                 return ModelFinder.Result.SAT;
                 // break;
             case UNSATISFIABLE:
+                lastModel = "ERROR";
                 return ModelFinder.Result.UNSAT;
                 // break;
             default:
                 throw new RuntimeException("Unexpected solver result " + status.toString());
         }
+    }
+    
+    // Temporary method -- will be changed
+    public String getStringModel() {
+        return lastModel;
     }
 }
