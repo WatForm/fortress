@@ -35,4 +35,11 @@ public class ImmutableWrapperListTest {
         ImmutableList<Integer> ilist2 = ImmutableWrapperList.copyCollection(List.of(-1, -2));
         assertEquals(ilist2, ilist1.map((Integer i) -> (-i)));
     }
+    
+    @Test
+    public void filter() {
+        ImmutableList<Integer> ilist1 = ImmutableWrapperList.copyCollection(List.of(1, 5, 3, 4));
+        ImmutableList<Integer> ilist2 = ImmutableWrapperList.copyCollection(List.of(5, 4));
+        assertEquals(ilist2, ilist1.filter((Integer i) -> (i >= 4)));
+    }
 }

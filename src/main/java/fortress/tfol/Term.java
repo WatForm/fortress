@@ -361,6 +361,10 @@ public abstract class Term {
         return new UnivInstantiationVisitor(typeInstantiations).visit(this);
     }
     
+    public Term simplify() {
+        return new SimplifyVisitor().visit(this);
+    }
+    
     /**
     * Returns the set of all symbol names used in the term, including:
     * free variables and constants, bound variables (even those that aren't used),
