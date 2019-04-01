@@ -23,12 +23,12 @@ public class ImmutableWrapperList<E> implements ImmutableList<E> {
     
     // Shallow copy
     public static <T> ImmutableWrapperList<T> copyCollection(Collection<? extends T> collection) {
-        return new ImmutableWrapperList(new ArrayList<T>(collection));
+        return new ImmutableWrapperList<>(new ArrayList<T>(collection));
     }
     
     // Shallow copy
     public static <T> ImmutableWrapperList<T> copyArray(T[] array) {
-        return new ImmutableWrapperList(new ArrayList<T>(Arrays.asList(array)));
+        return new ImmutableWrapperList<>(new ArrayList<T>(Arrays.asList(array)));
     }
     
     // List operations
@@ -109,7 +109,7 @@ public class ImmutableWrapperList<E> implements ImmutableList<E> {
     @Override
     public ImmutableList<E> subList(int fromIndex, int toIndex) {
         List<E> sub = implList.subList(fromIndex, toIndex);
-        return new ImmutableWrapperList(sub);
+        return new ImmutableWrapperList<>(sub);
     }
     
     @Override
@@ -134,6 +134,6 @@ public class ImmutableWrapperList<E> implements ImmutableList<E> {
         for(E elem : implList) {
             newImplList.add(mapping.apply(elem));
         }
-        return new ImmutableWrapperList(newImplList);
+        return new ImmutableWrapperList<>(newImplList);
     }
 }

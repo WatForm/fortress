@@ -21,7 +21,7 @@ public class SkolemizeTransformer implements TheoryTransformer {
         Signature sig = theory.getSignature();
         Theory result = Theory.mkTheoryWithSignature(sig);
         
-        Set<String> forbiddenNames = new HashSet();
+        Set<String> forbiddenNames = new HashSet<>();
         
         for(Type type : theory.getTypes()) {
             forbiddenNames.add(type.getName());

@@ -9,7 +9,7 @@ public class SubIntNameGenerator implements NameGenerator {
     
     public SubIntNameGenerator(Set<String> forbiddenNames, int startingIndex) {
         // Copy the elements in case forbiddenNames changes
-        this.forbiddenNames = new HashSet(forbiddenNames);
+        this.forbiddenNames = new HashSet<>(forbiddenNames);
         this.startingIndex = startingIndex;
     }
     

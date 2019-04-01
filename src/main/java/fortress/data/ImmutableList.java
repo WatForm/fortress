@@ -86,6 +86,6 @@ public interface ImmutableList<E> extends List<E> {
     
     // Static operations
     public static <T> ImmutableList<T> of(T item) {
-        return new ImmutableWrapperList(List.of(item));
+        return new ImmutableWrapperList<>(List.of(item));
     }
 }

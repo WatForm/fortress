@@ -17,11 +17,11 @@ public class Either<L, R> {
     }
     
     public static <L, R> Either<L, R> leftOf(L left) {
-        return new Either(Optional.of(left), Optional.empty());
+        return new Either<>(Optional.of(left), Optional.empty());
     }
     
     public static <L, R> Either<L, R> rightOf(R right) {
-        return new Either(Optional.empty(), Optional.of(right));
+        return new Either<>(Optional.empty(), Optional.of(right));
     }
     
     public <T> T match(Function<L, T> ifLeft,

@@ -24,13 +24,13 @@ public class DeBruijnConverter {
     
     public DeBruijnConverter() {
         this.counter = 0;
-        this.mappingStack = new LinkedList();
+        this.mappingStack = new LinkedList<>();
         this.visitor = new DeBruijnVisitor();
     }
     
     public Term convert(Term term) {
         this.counter = 0;
-        this.mappingStack = new LinkedList();
+        this.mappingStack = new LinkedList<>();
         return visitor.visit(term);
     }
     

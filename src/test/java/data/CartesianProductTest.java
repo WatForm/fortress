@@ -17,7 +17,7 @@ public class CartesianProductTest {
         List<Integer> l3 = List.of(6);
         List<Integer> l4 = List.of(7, 8);
         
-        CartesianProduct<Integer> product = new CartesianProduct(List.of(l1, l2, l3, l4));
+        CartesianProduct<Integer> product = new CartesianProduct<>(List.of(l1, l2, l3, l4));
         
         Iterator<List<Integer>> iterator = product.iterator();
         assertTrue(iterator.hasNext());

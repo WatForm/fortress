@@ -103,7 +103,7 @@ public class UnivInstantiationVisitor implements TermVisitor<Term> {
             vars.add(av.getVar());
         }
         
-        CartesianProduct<Var> cartesianProduct = new CartesianProduct(listOfTypeSets);
+        CartesianProduct<Var> cartesianProduct = new CartesianProduct<>(listOfTypeSets);
         for(List<Var> substitution : cartesianProduct) {
             Errors.verify(substitution.size() == vars.size());
             Term bodyInstance = body;

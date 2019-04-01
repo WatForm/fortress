@@ -23,7 +23,7 @@ public class CartesianProduct<E> implements Iterable<List<E>> {
     }
     
     @Override
-    public Iterator iterator() {
+    public Iterator<List<E>> iterator() {
         return new ProductIterator();
     }
     

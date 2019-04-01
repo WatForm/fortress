@@ -114,7 +114,7 @@ public class TypeChecker {
         
         @Override
         public TypeCheckResult visitDistinct(Distinct distinct) {
-            Set<Type> foundTypes = new HashSet();
+            Set<Type> foundTypes = new HashSet<>();
             ImmutableList<TypeCheckResult> results = distinct.getArguments().map(this::visit);
             
             for(TypeCheckResult result : results) {
@@ -162,7 +162,7 @@ public class TypeChecker {
         
         @Override
         public TypeCheckResult visitEq(Eq eq) {
-            Set<Type> foundTypes = new HashSet();
+            Set<Type> foundTypes = new HashSet<>();
             TypeCheckResult leftResult = visit(eq.getLeft());
             TypeCheckResult rightResult = visit(eq.getRight());
             

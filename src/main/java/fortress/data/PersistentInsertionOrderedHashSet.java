@@ -19,7 +19,7 @@ public class PersistentInsertionOrderedHashSet<E> implements PersistentSet<E> {
     
     // New operations
     public static PersistentInsertionOrderedHashSet empty() {
-        return new PersistentInsertionOrderedHashSet(HashSet.empty(), BankersQueue.empty());
+        return new PersistentInsertionOrderedHashSet<>(HashSet.empty(), BankersQueue.empty());
     }
     
     // PersistentSet operations
@@ -28,7 +28,7 @@ public class PersistentInsertionOrderedHashSet<E> implements PersistentSet<E> {
         if(containsValue(item)) {
             return this; // Have to worry about duplicates in queue
         }
-        return new PersistentInsertionOrderedHashSet(implSet.plus(item), queue.plus(item));
+        return new PersistentInsertionOrderedHashSet<>(implSet.plus(item), queue.plus(item));
     }
     
     public PersistentSet<E> plusAll(Iterable<? extends E> iterable) {

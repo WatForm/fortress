@@ -26,14 +26,14 @@ public class TheoryToZ3Java {
     // Precondition: theory must be typechecked and all declarations must
     // be internally consistent
     public TheoryToZ3Java(Theory theory) {
-        HashMap<String, String> config = new HashMap();
+        HashMap<String, String> config = new HashMap<>();
         config.put("model", "true"); // turn on model generation
         this.theory = theory;
         this.context = new Context(config);
         
-        this.sortConversions = new HashMap();
-        this.functionConversions = new HashMap();
-        this.constantConversions = new HashMap();
+        this.sortConversions = new HashMap<>();
+        this.functionConversions = new HashMap<>();
+        this.constantConversions = new HashMap<>();
         termVisitor = new TermToZ3Visitor();
     }
     
@@ -72,7 +72,7 @@ public class TheoryToZ3Java {
             BoolExpr formula = (BoolExpr) termVisitor.visit(axiom);
             solver.add(formula);
         }
-        return new Pair(context, solver);
+        return new Pair<>(context, solver);
     }
     
     private Sort lookupSortConversion(Type t) {

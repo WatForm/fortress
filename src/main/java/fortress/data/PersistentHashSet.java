@@ -16,17 +16,17 @@ public class PersistentHashSet<E> implements PersistentSet<E> {
     
     // New operations
     public static PersistentHashSet empty() {
-        return new PersistentHashSet(HashSet.empty());
+        return new PersistentHashSet<>(HashSet.empty());
     }
     
     // PersistentSet operations
     @Override
     public PersistentSet<E> plus(E item) {
-        return new PersistentHashSet(implSet.plus(item));
+        return new PersistentHashSet<>(implSet.plus(item));
     }
     
     public PersistentSet<E> plusAll(Iterable<? extends E> iterable) {
-        return new PersistentHashSet(implSet.plusAll(iterable));
+        return new PersistentHashSet<>(implSet.plusAll(iterable));
     }
     
     @Override

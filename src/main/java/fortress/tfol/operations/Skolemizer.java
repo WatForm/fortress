@@ -31,8 +31,8 @@ public class Skolemizer {
     public Skolemizer(Term toplevelTerm, Signature signature, NameGenerator nameGen) {
         this.toplevelTerm = toplevelTerm;
         this.nameGen = nameGen;
-        this.skolemFunctions = new HashSet();
-        this.skolemConstants = new HashSet();
+        this.skolemFunctions = new HashSet<>();
+        this.skolemConstants = new HashSet<>();
         this.visitor = new SkolemVisitor(signature);
     }
     

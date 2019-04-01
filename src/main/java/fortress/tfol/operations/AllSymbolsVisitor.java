@@ -15,17 +15,17 @@ public class AllSymbolsVisitor implements TermVisitor<Set<String>> {
     
     @Override
     public Set<String> visitTop(Top top) {
-        return new HashSet();
+        return new HashSet<>();
     }
     
     @Override
     public Set<String> visitBottom(Bottom bottom) {
-        return new HashSet();
+        return new HashSet<>();
     }
     
     @Override
     public Set<String> visitVar(Var var) {
-        HashSet<String> set = new HashSet();
+        HashSet<String> set = new HashSet<>();
         set.add(var.getName());
         return set;
     }
@@ -36,7 +36,7 @@ public class AllSymbolsVisitor implements TermVisitor<Set<String>> {
     }
     
     private Set<String> combineVarsOfList(List<? extends Term> terms) {
-        Set<String> names = new HashSet();
+        Set<String> names = new HashSet<>();
         terms.stream().map(this::visit).forEach(
             set -> names.addAll(set)
         );

@@ -33,7 +33,7 @@ public class Substituter {
         this.subWith = subWith;
         this.freeVarsOfSubWith = subWith.freeVarConstSymbols();
         // Copy things so we don't modify them
-        Set<String> forbidden = new HashSet(forbiddenNames);
+        Set<String> forbidden = new HashSet<>(forbiddenNames);
         
         // Forbid all names used in term
         forbidden.addAll(topLevelTerm.allSymbols());

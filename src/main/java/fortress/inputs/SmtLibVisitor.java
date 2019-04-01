@@ -191,7 +191,7 @@ public class SmtLibVisitor extends SmtLibSubsetBaseVisitor {
         }
         
         // (= a b c) is short for (and (= a b) (= b c))
-        List<Term> equalities = new ArrayList();
+        List<Term> equalities = new ArrayList<>();
         for(int i = 0; i < ctx.term().size() - 1 ; i++) {
             equalities.add(Term.mkEq(
                 (Term) visit(ctx.term(i)),

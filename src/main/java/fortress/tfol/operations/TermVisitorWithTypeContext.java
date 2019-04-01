@@ -11,7 +11,7 @@ public abstract class TermVisitorWithTypeContext<T> implements TermVisitor<T> {
     
     protected TermVisitorWithTypeContext(Signature signature) {
         this.signature = signature;
-        this.typeContextStack = new LinkedList();
+        this.typeContextStack = new LinkedList<>();
     }
     
     // For entering partway through a term traversal
