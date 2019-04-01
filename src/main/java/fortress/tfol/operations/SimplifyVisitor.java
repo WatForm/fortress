@@ -63,14 +63,12 @@ public class SimplifyVisitor implements TermVisitor<Term> {
     
     @Override
     public Term visitEq(Eq eq) {
-        // Eq is assumed to be atomic
-        return eq;
+        return stepper.visit(eq.mapArguments(this::visit));
     }
     
     @Override
     public Term visitApp(App app) {
-        // Apps are atomic
-        return app;
+        return stepper.visit(app.mapArguments(this::visit));
     }
     
     @Override
@@ -120,6 +118,10 @@ public class SimplifyVisitor implements TermVisitor<Term> {
             ImmutableList<Term> arguments = and.getArguments()
                 .filter((Term t) -> ! t.equals(Term.mkTop()));
             
+            if(arguments.size() == 0) {
+                return Term.mkTop();
+            }
+            
             return Term.mkAndF(arguments);
         }
         
@@ -131,6 +133,10 @@ public class SimplifyVisitor implements TermVisitor<Term> {
             
             ImmutableList<Term> arguments = or.getArguments()
                 .filter((Term t) -> ! t.equals(Term.mkBottom()));
+            
+            if(arguments.size() == 0) {
+                return Term.mkBottom();
+            }
             
             return Term.mkOr(arguments);
         }
@@ -174,7 +180,9 @@ public class SimplifyVisitor implements TermVisitor<Term> {
         
         @Override
         public Term visitEq(Eq eq) {
-            // Eq is atomic
+            if(eq.getLeft().equals(eq.getRight())) {
+                return Term.mkTop();
+            }
             return eq;
         }
         

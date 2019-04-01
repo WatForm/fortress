@@ -114,5 +114,43 @@ public class SmtLibParserTest {
                     x)));
         
         assertEquals(expectedTheory, resultTheory);
-    }  
+    }
+    
+    @Test
+    public void ramsey_coclique_k3_badformulation() throws IOException {
+        ClassLoader classLoader = getClass().getClassLoader();
+        File file = new File(classLoader.getResource("ramsey-coclique-k3-badformulation.smt").getFile());
+        FileInputStream fileStream = new FileInputStream(file);
+        
+        SmtLibParser parser = new SmtLibParser();
+        Theory resultTheory = parser.parse(fileStream);
+        
+        Type V = Type.mkTypeConst("V");
+        FuncDecl adj = FuncDecl.mkFuncDecl("adj", V, V, Type.Bool);
+        
+        Var u = Term.mkVar("u");
+        Var v = Term.mkVar("v");
+        Var x1 = Term.mkVar("x1");
+        Var x2 = Term.mkVar("x2");
+        Var x3 = Term.mkVar("x3");
+        
+        Term undirected = Term.mkForall(List.of(u.of(V), v.of(V)), Term.mkEq(Term.mkApp("adj", u, v), Term.mkApp("adj", v, u)));
+        Term loopless = Term.mkForall(u.of(V), Term.mkNot(Term.mkApp("adj", u, u)));
+        
+        Term axiom = Term.mkNot(Term.mkExists(List.of(x1.of(V), x2.of(V), x3.of(V)),
+            Term.mkAnd(
+                Term.mkDistinct(x1, x2, x3),
+                Term.mkEq(
+                    Term.mkApp("adj", x1, x2),
+                    Term.mkApp("adj", x2, x3)))));
+        
+        Theory expected = Theory.empty()
+            .withType(V)
+            .withFunctionDeclaration(adj)
+            .withAxiom(undirected)
+            .withAxiom(loopless)
+            .withAxiom(axiom);
+        
+        assertEquals(expected, resultTheory);
+    }
 }

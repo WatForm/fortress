@@ -224,7 +224,10 @@ public abstract class Term {
     * Internal method to make AndLists without needing to copy the argument list.
     */
     public static Term mkAndF(ImmutableList<Term> arguments) {
-        Errors.precondition(arguments.size() >= 2);
+        Errors.precondition(arguments.size() > 0, "One or more arguments must be given");
+        if(arguments.size() == 1) {
+            return arguments.get(0);
+        }
         return new AndList(arguments);
     }
     
@@ -232,7 +235,10 @@ public abstract class Term {
     * Internal method to make OrLists without needing to copy the argument list.
     */
     public static Term mkOrF(ImmutableList<Term> arguments) {
-        Errors.precondition(arguments.size() >= 2);
+        Errors.precondition(arguments.size() > 0, "One or more arguments must be given");
+        if(arguments.size() == 1) {
+            return arguments.get(0);
+        }
         return new OrList(arguments);
     }
     

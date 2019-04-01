@@ -23,9 +23,9 @@ public class Distinct extends ListOp {
     public Term asPairwiseNotEquals() {
         List<Term> pairs = new ArrayList<>();
         int i = 0;
-        int j = 0;
         for(Term ti : getArguments()) {
             i++;
+            int j = 0;
             for(Term tj : getArguments()) {
                 j++;
                 if(i < j) {
@@ -33,6 +33,8 @@ public class Distinct extends ListOp {
                 }
             }
         }
+        int n = getArguments().size();
+        Errors.assertion(pairs.size() == (n*(n - 1) / 2), "" + n + " terms, but somehow generated " + pairs.size() + " pairs");
         return Term.mkAnd(pairs);
     }
     

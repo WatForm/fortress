@@ -6,6 +6,7 @@ import org.junit.Ignore;
 
 import fortress.tfol.*;
 import fortress.transformers.*;
+import java.util.List;
 
 public class NnfTransformerTest {
     
@@ -236,5 +237,68 @@ public class NnfTransformerTest {
             .withAxiom(expectedAxiom);
         
         assertEquals(expected, nnf.apply(theory));
+    }
+    
+    @Test
+    public void distinct() {
+        Type U = Type.mkTypeConst("U");
+        Var x = Term.mkVar("x");
+        Var y = Term.mkVar("y");
+        Var z = Term.mkVar("z");
+        FuncDecl P = FuncDecl.mkFuncDecl("P", U, U, U, Type.Bool);
+        
+        Term t = Term.mkForall(List.of(x.of(U), y.of(U), z.of(U)),
+            Term.mkImp(Term.mkApp("P", x, y, z), Term.mkDistinct(x, y, z)));
+        
+        Term e = Term.mkForall(List.of(x.of(U), y.of(U), z.of(U)),
+            Term.mkOr(
+                Term.mkNot(Term.mkApp("P", x, y, z)),
+                Term.mkAnd(
+                    Term.mkNot(Term.mkEq(x, y)),
+                    Term.mkNot(Term.mkEq(x, z)),
+                    Term.mkNot(Term.mkEq(y, z)))));
+                    
+        Theory base = Theory.empty()
+            .withType(U)
+            .withFunctionDeclaration(P);
+        Theory theory = base.withAxiom(t);
+        Theory expected = base.withAxiom(e);
+        
+        assertEquals(expected, nnf.apply(theory));
+    }
+    
+    @Test
+    public void distinct2() {
+        Type V = Type.mkTypeConst("V");
+        FuncDecl adj = FuncDecl.mkFuncDecl("adj", V, V, Type.Bool);
+        Var x1 = Term.mkVar("x1");
+        Var x2 = Term.mkVar("x2");
+        Var x3 = Term.mkVar("x3");
+        
+        Term t1 = Term.mkForall(List.of(x1.of(V), x2.of(V), x3.of(V)),
+            Term.mkImp(
+                Term.mkDistinct(x1, x2, x3),
+                Term.mkNot(Term.mkEq(
+                    Term.mkApp("adj", x1, x2),
+                    Term.mkApp("adj", x2, x3)))));
+                    
+        Term t2 = Term.mkForall(List.of(x1.of(V), x2.of(V), x3.of(V)),
+            Term.mkImp(
+                Term.mkAnd(
+                    Term.mkNot(Term.mkEq(x1, x2)),
+                    Term.mkNot(Term.mkEq(x1, x3)),
+                    Term.mkNot(Term.mkEq(x2, x3))),
+                Term.mkNot(Term.mkEq(
+                    Term.mkApp("adj", x1, x2),
+                    Term.mkApp("adj", x2, x3)))));
+        
+        Theory base = Theory.empty()
+            .withType(V)
+            .withFunctionDeclaration(adj);
+        
+        Theory theory1 = base.withAxiom(t1);
+        Theory theory2 = base.withAxiom(t2);
+        
+        assertEquals(nnf.apply(theory2), nnf.apply(theory1));
     }
 }

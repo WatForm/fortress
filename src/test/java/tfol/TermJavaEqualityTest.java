@@ -117,4 +117,15 @@ public class TermJavaEqualityTest {
         assertEquals(mkDistinct(x, y), mkDistinct(termList));
         assertNotEquals(mkDistinct(x, y), mkDistinct(x, z));
     }
+    
+    @Test
+    public void distinctAsPairwiseNotEquals() {
+        Distinct t1 = (Distinct) mkDistinct(x, y, z); // Casting needed for this test
+        Term t2 = mkAnd(
+            mkNot(mkEq(x, y)),
+            mkNot(mkEq(x, z)),
+            mkNot(mkEq(y, z)));
+        
+        assertEquals(t2, t1.asPairwiseNotEquals());
+    }
 }
