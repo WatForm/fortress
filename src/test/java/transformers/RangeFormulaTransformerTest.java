@@ -345,12 +345,6 @@ public class RangeFormulaTransformerTest {
     
     @Test
     @Ignore ("Test not yet implemented")
-    public void nullScope() {
-        
-    }
-    
-    @Test
-    @Ignore ("Test not yet implemented")
     public void booleanScopeFails() {
         
     }

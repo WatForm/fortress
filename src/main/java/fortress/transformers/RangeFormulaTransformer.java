@@ -14,6 +14,8 @@ import fortress.data.NameGenerator;
 import fortress.data.SubIntNameGenerator;
 import fortress.data.CartesianProduct;
 
+import fortress.util.Errors;
+
 /**
 * @publish
 * A transformation that instantiates universal quantifiers and adds finite range formulas.
@@ -26,11 +28,18 @@ public class RangeFormulaTransformer implements TheoryTransformer {
     private Map<Type, Integer> scopes;
     
     public RangeFormulaTransformer(Map<Type, Integer> scopes) {
+        Errors.precondition(allPositiveEntries(scopes), "All scopes must be positive");
+        Errors.precondition(! scopes.keySet().contains(Type.Bool), "Bool may not be given a scope");
         this.scopes = new HashMap<>(scopes); // Copy
+    }
+    
+    private static boolean allPositiveEntries(Map<Type, Integer> scopes) {
+        return scopes.values().stream().allMatch((Integer i) -> i > 0);
     }
     
     @Override
     public Theory apply(Theory theory) {
+        Errors.precondition(theory.getTypes().containsAll(scopes.keySet()), "Scoped types must be within theory's types");
         
         // TODO could make this name forbidding more efficient if make it a method of theory
         // and have theory keep track of all names it uses
