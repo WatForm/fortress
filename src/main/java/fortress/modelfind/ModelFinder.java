@@ -24,8 +24,6 @@ import fortress.transformers.TheoryTransformer;
 public class ModelFinder {
     private List<TheoryTransformer> theoryTransformers;
     private SolverStrategy solverStrategy;
-    private StopWatch transformationTimer;
-    private StopWatch solverTimer;
     
     /**
     * @publish
@@ -49,8 +47,6 @@ public class ModelFinder {
     public ModelFinder(List<TheoryTransformer> theoryTransformers, SolverStrategy solverStrategy) {
         this.theoryTransformers = theoryTransformers;
         this.solverStrategy = solverStrategy;
-        this.transformationTimer = new StopWatch();
-        this.solverTimer = new StopWatch();
     }
     
     /**
@@ -60,14 +56,22 @@ public class ModelFinder {
     * satisfying instance. Returns the result of the search.
     * Throws an exception if the SolverStrategy cannot attempt to solve the resulant theory
     * after the transformers are applied.
+    * Timeout is given in milliseconds.
     */
-    public Result findModel(Theory theory, int solverTimeout) throws IOException {
-        return findModel(theory, solverTimeout, new PrintWriter(new NullOutputStream()), false);
+    public Result findModel(Theory theory, int timeoutMillis) throws IOException {
+        return findModel(theory, timeoutMillis, new PrintWriter(new NullOutputStream()), false);
     }
     
-    public Result findModel(Theory theory, int solverTimeout, Writer log, boolean debug) throws IOException {
+    public Result findModel(Theory theory, int timeoutMillis, Writer log, boolean debug) throws IOException {
         
-        long totalElapsedTransform = 0;
+        long timeoutNano = StopWatch.millisToNano(timeoutMillis);
+        
+        StopWatch totalTimer = new StopWatch();
+        
+        StopWatch transformationTimer = new StopWatch();
+        
+        totalTimer.startFresh();
+        
         for(TheoryTransformer theoryTransformer : theoryTransformers) {
             log.write("Applying transformer: " + theoryTransformer.getName());
             log.write("... ");
@@ -76,11 +80,16 @@ public class ModelFinder {
             
             theory = theoryTransformer.apply(theory);
             
-            long elapsed = transformationTimer.stop();
-            totalElapsedTransform += elapsed;
-            log.write(StopWatch.format(elapsed) + "\n");
+            long elapsed = transformationTimer.elapsedNano();
+            log.write(StopWatch.formatNano(elapsed) + "\n");
+            
+            if(totalTimer.elapsedNano() >= timeoutNano) {
+                log.write("TIMEOUT within Fortress.\n");
+                log.flush();
+                return Result.TIMEOUT;
+            }
         }
-        log.write("Total transformation time: " + StopWatch.format(totalElapsedTransform) + "\n");
+        log.write("Total transformation time: " + StopWatch.formatNano(totalTimer.elapsedNano()) + "\n");
         log.flush();
         
         if(debug) {
@@ -99,14 +108,21 @@ public class ModelFinder {
         }
         log.write("solver can attempt.\n");
         
-        log.write("Attempting to solve...\n");
+        if(totalTimer.elapsedNano() > timeoutNano) {
+            log.write("TIMEOUT within Fortress.\n");
+            log.flush();
+            return Result.TIMEOUT;
+        }
+        
+        log.write("Invoking solver strategy...\n");
         log.flush();
-        solverTimer.startFresh();
-        Result r = solverStrategy.solve(theory, solverTimeout, log);
-        long elapsedSolver = solverTimer.stop();
+        
+        int remainingMillis = timeoutMillis - StopWatch.nanoToMillis(totalTimer.elapsedNano());
+        Result r = solverStrategy.solve(theory, remainingMillis, log);
+        
         log.write("Done. Result was " + r.toString() + ".\n");
-        log.write("Solving time: " + StopWatch.format(elapsedSolver) + "\n");
-        log.write("TOTAL time: " + StopWatch.format(totalElapsedTransform + elapsedSolver) + "\n");
+        
+        log.write("TOTAL time: " + StopWatch.formatNano(totalTimer.elapsedNano()) + "\n");
         log.flush();
 
         return r;

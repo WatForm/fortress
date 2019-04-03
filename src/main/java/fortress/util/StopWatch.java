@@ -17,16 +17,24 @@ public class StopWatch {
         running = true;
     }
     
-    // Stops the timer and returns the elapsed time in nanoseconds
-    public long stop() {
+    // Returns the elapsed time in nanoseconds
+    public long elapsedNano() {
         if(!running) {
             throw new IllegalStateException();
         }
-        long stop = System.nanoTime();
-        return stop - start;
+        long now = System.nanoTime();
+        return now - start;
     }
     
-    public static String format(long nanoseconds) {
+    public static long millisToNano(int seconds) {
+        return ((long)seconds) * 1000000L;
+    }
+    
+    public static int nanoToMillis(long nanoseconds) {
+        return (int) (nanoseconds / 1000000L);
+    }
+    
+    public static String formatNano(long nanoseconds) {
         
         long milliseconds = nanoseconds / (1000000);
         long justMillis = milliseconds % 1000;

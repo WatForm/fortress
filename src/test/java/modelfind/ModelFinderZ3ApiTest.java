@@ -37,7 +37,7 @@ public class ModelFinderZ3ApiTest {
             new UnscopedTransformer(),
             new Z3ApiSolver());
         
-        assertEquals(ModelFinder.Result.SAT, finder.findModel(theory, 2));
+        assertEquals(ModelFinder.Result.SAT, finder.findModel(theory, 5000));
     }
     
     @Test
@@ -50,7 +50,7 @@ public class ModelFinderZ3ApiTest {
             new UnscopedTransformer(),
             new Z3ApiSolver());
         
-        assertEquals(ModelFinder.Result.UNSAT, finder.findModel(theory, 2));
+        assertEquals(ModelFinder.Result.UNSAT, finder.findModel(theory, 5000));
     }
     
     @Test
@@ -63,7 +63,7 @@ public class ModelFinderZ3ApiTest {
             new UnscopedTransformer(),
             new Z3ApiSolver());
         
-        assertEquals(ModelFinder.Result.UNSAT, finder.findModel(theory, 2));
+        assertEquals(ModelFinder.Result.UNSAT, finder.findModel(theory, 5000));
     }
     
     @Test
@@ -76,7 +76,7 @@ public class ModelFinderZ3ApiTest {
             new UnscopedTransformer(),
             new Z3ApiSolver());
         
-        assertEquals(ModelFinder.Result.SAT, finder.findModel(theory, 2));
+        assertEquals(ModelFinder.Result.SAT, finder.findModel(theory, 5000));
     }
     
     // EUF tests
@@ -103,7 +103,7 @@ public class ModelFinderZ3ApiTest {
             
         StringWriter log = new StringWriter();
         
-        ModelFinder.Result result = finder.findModel(theory, 5, log, /* debug */ true);
+        ModelFinder.Result result = finder.findModel(theory, 5000, log, /* debug */ true);
         
         assertEquals(log.toString(), ModelFinder.Result.UNSAT, result);
     }
