@@ -2,6 +2,9 @@ apply plugin: 'java'
 apply plugin: 'distribution'
 apply plugin: 'antlr'
 
+sourceCompatibility = JavaVersion.VERSION_1_10
+targetCompatibility = JavaVersion.VERSION_1_10
+
 repositories{
     mavenCentral()
 }

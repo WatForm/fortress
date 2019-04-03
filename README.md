@@ -34,6 +34,7 @@ Scripts are available to automate some of the setup for the following platforms:
     * If on `Ubuntu`, do not use `apt-get`. Its version of Z3 is out of date.
 
 ## Building Fortress
+Java 10 or higher is required to build Fortress.
 Fortress uses the Gradle build system.
 If running Windows, substitute `./gradlew` for `gradle.bat` in all commands.
 Any use of `./gradlew` will automatically download the appropriate version of the build system, as well any additional dependencies for fortress.
