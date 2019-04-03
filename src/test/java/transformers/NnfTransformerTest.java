@@ -239,7 +239,7 @@ public class NnfTransformerTest {
         assertEquals(expected, nnf.apply(theory));
     }
     
-    @Test
+    @Test // Former bug
     public void distinct() {
         Type U = Type.mkTypeConst("U");
         Var x = Term.mkVar("x");
@@ -267,7 +267,7 @@ public class NnfTransformerTest {
         assertEquals(expected, nnf.apply(theory));
     }
     
-    @Test
+    @Test // Former bug
     public void distinct2() {
         Type V = Type.mkTypeConst("V");
         FuncDecl adj = FuncDecl.mkFuncDecl("adj", V, V, Type.Bool);
@@ -281,6 +281,41 @@ public class NnfTransformerTest {
                 Term.mkNot(Term.mkEq(
                     Term.mkApp("adj", x1, x2),
                     Term.mkApp("adj", x2, x3)))));
+                    
+        Term t2 = Term.mkForall(List.of(x1.of(V), x2.of(V), x3.of(V)),
+            Term.mkImp(
+                Term.mkAnd(
+                    Term.mkNot(Term.mkEq(x1, x2)),
+                    Term.mkNot(Term.mkEq(x1, x3)),
+                    Term.mkNot(Term.mkEq(x2, x3))),
+                Term.mkNot(Term.mkEq(
+                    Term.mkApp("adj", x1, x2),
+                    Term.mkApp("adj", x2, x3)))));
+        
+        Theory base = Theory.empty()
+            .withType(V)
+            .withFunctionDeclaration(adj);
+        
+        Theory theory1 = base.withAxiom(t1);
+        Theory theory2 = base.withAxiom(t2);
+        
+        assertEquals(nnf.apply(theory2), nnf.apply(theory1));
+    }
+    
+    @Test
+    public void distinct3() {
+        Type V = Type.mkTypeConst("V");
+        FuncDecl adj = FuncDecl.mkFuncDecl("adj", V, V, Type.Bool);
+        Var x1 = Term.mkVar("x1");
+        Var x2 = Term.mkVar("x2");
+        Var x3 = Term.mkVar("x3");
+        
+        Term t1 = Term.mkNot(Term.mkExists(List.of(x1.of(V), x2.of(V), x3.of(V)),
+            Term.mkAnd(
+                Term.mkDistinct(x1, x2, x3),
+                (Term.mkEq(
+                    Term.mkApp("adj", x1, x2),
+                    Term.mkApp("adj", x2, x3))))));
                     
         Term t2 = Term.mkForall(List.of(x1.of(V), x2.of(V), x3.of(V)),
             Term.mkImp(

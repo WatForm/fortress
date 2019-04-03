@@ -119,7 +119,7 @@ public class SmtLibParserTest {
     @Test
     public void ramsey_coclique_k3_badformulation() throws IOException {
         ClassLoader classLoader = getClass().getClassLoader();
-        File file = new File(classLoader.getResource("ramsey-coclique-k3-badformulation.smt").getFile());
+        File file = new File(classLoader.getResource("length-two-paths.smt").getFile());
         FileInputStream fileStream = new FileInputStream(file);
         
         SmtLibParser parser = new SmtLibParser();
