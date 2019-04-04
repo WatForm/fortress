@@ -24,10 +24,10 @@ import fortress.util.Errors;
 * The resulting theory will be satisfiable if and only if the original theory
 * has a satisfying model that respects these scopes.
 */
-public class RangeFormulaTransformer implements TheoryTransformer {
+public class GroundRangeFormulaTransformer implements TheoryTransformer {
     private Map<Type, Integer> scopes;
     
-    public RangeFormulaTransformer(Map<Type, Integer> scopes) {
+    public GroundRangeFormulaTransformer(Map<Type, Integer> scopes) {
         Errors.precondition(allPositiveEntries(scopes), "All scopes must be positive");
         Errors.precondition(! scopes.keySet().contains(Type.Bool), "Bool may not be given a scope");
         this.scopes = new HashMap<>(scopes); // Copy
@@ -168,6 +168,6 @@ public class RangeFormulaTransformer implements TheoryTransformer {
     
     @Override
     public String getName() {
-        return "Range Formula Transformer (Low Sym)";
+        return "Ground Range Transformer (Low Sym)";
     }
 }

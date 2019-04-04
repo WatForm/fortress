@@ -6,11 +6,14 @@ import fortress.tfol.*;
 import fortress.outputs.*;
 import fortress.util.Pair;
 import fortress.util.StopWatch;
+import fortress.util.Errors;
 
 import com.microsoft.z3.*;
 
-public class Z3ApiSolver implements SolverStrategy {
+public class Z3ApiSolver extends SolverTemplate {
     private String lastModel = "";
+    private Context context = null;
+    private Solver solver = null;
     
     @Override
     public boolean canAttemptSolving(Theory theory) {
@@ -18,46 +21,35 @@ public class Z3ApiSolver implements SolverStrategy {
     }
     
     @Override
-    public ModelFinder.Result solve(Theory theory, int timeoutMillis, Writer log) throws IOException {
-        log.write("Creating Z3 API solver: ");
-        log.flush();
-        
-        StopWatch conversionTimer = new StopWatch();
-        conversionTimer.startFresh();
-        
+    protected void convertTheory(Theory theory, Writer log) { 
         Pair<Context, Solver> pair = new TheoryToZ3Java(theory).convert();
-        Context context = pair.left;
-        Solver solver = pair.right;
-        
-        log.write(StopWatch.formatNano(conversionTimer.elapsedNano()) + "\n");
-        log.flush();
+        context = pair.left;
+        solver = pair.right;
+    }
+    
+    @Override
+    protected void updateTimeout(int remainingMillis) {
+        Errors.assertion(null != context);
+        Errors.assertion(null != solver);
         
         Params params = context.mkParams();
-        int remainingMillis = timeoutMillis - StopWatch.nanoToMillis(conversionTimer.elapsedNano());
-        if(remainingMillis <= 0) {
-            log.write("TIMEOUT within Fortress.\n");
-            log.flush();
-            return ModelFinder.Result.TIMEOUT;
-        }
         params.add("timeout", remainingMillis);
         solver.setParameters(params);
-        
-        log.write("Solving... ");
-        log.flush();
-        
-        StopWatch solverTimer = new StopWatch();
-        solverTimer.startFresh();
+    }
+    
+    @Override
+    protected ModelFinder.Result runSolver(Writer log) throws IOException {
+        Errors.assertion(null != context);
+        Errors.assertion(null != solver);
         
         Status status = solver.check();
-        
-        
         switch(status) {
             case UNKNOWN:
                 // TODO timeout errors
                 lastModel = "ERROR - NO MODEL";
                 log.write("UKNOWN (" + solver.getReasonUnknown() + ").\n");
-                log.write("Z3 solver time: " + StopWatch.formatNano(solverTimer.elapsedNano()) + "\n");
-                if(solver.getReasonUnknown().equals("timeout")) {
+                if(solver.getReasonUnknown().equals("timeout")
+                        || solver.getReasonUnknown().equals("canceled")) {
                     return ModelFinder.Result.TIMEOUT;
                 }
                 return ModelFinder.Result.UNKNOWN;
@@ -65,13 +57,11 @@ public class Z3ApiSolver implements SolverStrategy {
             case SATISFIABLE:
                 lastModel = solver.getModel().toString();
                 log.write("SAT.\n");
-                log.write("Z3 solver time: " + StopWatch.formatNano(solverTimer.elapsedNano()) + "\n");
                 return ModelFinder.Result.SAT;
                 // break;
             case UNSATISFIABLE:
                 lastModel = "ERROR - NO MODEL";
                 log.write("UNSAT.\n");
-                log.write("Z3 solver time: " + StopWatch.formatNano(solverTimer.elapsedNano()) + "\n");
                 return ModelFinder.Result.UNSAT;
                 // break;
             default:

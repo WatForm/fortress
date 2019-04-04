@@ -28,7 +28,7 @@ public interface SolverStrategy {
     /**
     * Attempts to solve the given theory, searching for a satisfying instance.
     */
-    public ModelFinder.Result solve(Theory theory, int timeout, Writer log) throws IOException;
+    public ModelFinder.Result solve(Theory theory, int timeoutMillis, Writer log) throws IOException;
     
     // Temporary method -- will be changed
     public String getStringModel();

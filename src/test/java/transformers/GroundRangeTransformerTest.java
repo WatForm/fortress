@@ -9,7 +9,7 @@ import fortress.transformers.*;
 import java.util.Map;
 import java.util.List;
 
-public class RangeFormulaTransformerTest {
+public class GroundRangeTransformerTest {
     
     // NOTE: these tests rely upon the implementation detail that 
     // constants are symmetry-broken by insertion order
@@ -50,7 +50,7 @@ public class RangeFormulaTransformerTest {
     @Test
     public void basicOneConst() {
         Map<Type, Integer> scopes = Map.of(A, 2);
-        RangeFormulaTransformer rf = new RangeFormulaTransformer(scopes);
+        GroundRangeFormulaTransformer rf = new GroundRangeFormulaTransformer(scopes);
         
         Theory theory = Theory.empty()
             .withType(A)
@@ -75,7 +75,7 @@ public class RangeFormulaTransformerTest {
     @Test
     public void basicManyConst() {
         Map<Type, Integer> scopes = Map.of(A, 2);
-        RangeFormulaTransformer rf = new RangeFormulaTransformer(scopes);
+        GroundRangeFormulaTransformer rf = new GroundRangeFormulaTransformer(scopes);
         
         Theory theory = Theory.empty()
             .withType(A)
@@ -105,7 +105,7 @@ public class RangeFormulaTransformerTest {
     @Test
     public void multipleTypesConsts() {
         Map<Type, Integer> scopes = Map.of(A, 2, B, 3);
-        RangeFormulaTransformer rf = new RangeFormulaTransformer(scopes);
+        GroundRangeFormulaTransformer rf = new GroundRangeFormulaTransformer(scopes);
         
         Theory theory = Theory.empty()
             .withTypes(A, B)
@@ -133,7 +133,7 @@ public class RangeFormulaTransformerTest {
     @Test
     public void quantifiers() {
         Map<Type, Integer> scopes = Map.of(A, 2, B, 3);
-        RangeFormulaTransformer rf = new RangeFormulaTransformer(scopes);
+        GroundRangeFormulaTransformer rf = new GroundRangeFormulaTransformer(scopes);
         
         Theory theory = Theory.empty()
             .withTypes(A, B)
@@ -172,7 +172,7 @@ public class RangeFormulaTransformerTest {
     @Test
     public void functions() {
         Map<Type, Integer> scopes = Map.of(A, 2, B, 3);
-        RangeFormulaTransformer rf = new RangeFormulaTransformer(scopes);
+        GroundRangeFormulaTransformer rf = new GroundRangeFormulaTransformer(scopes);
         
         Theory theory = Theory.empty()
             .withTypes(A, B)
@@ -224,7 +224,7 @@ public class RangeFormulaTransformerTest {
     @Test
     public void functionsAndQuantifiers() {
         Map<Type, Integer> scopes = Map.of(A, 2, B, 2);
-        RangeFormulaTransformer rf = new RangeFormulaTransformer(scopes);
+        GroundRangeFormulaTransformer rf = new GroundRangeFormulaTransformer(scopes);
         
         Theory theory = Theory.empty()
             .withTypes(A, B)
@@ -275,7 +275,7 @@ public class RangeFormulaTransformerTest {
     @Test
     public void scopeOfOne() {
         Map<Type, Integer> scopes = Map.of(A, 1);
-        RangeFormulaTransformer rf = new RangeFormulaTransformer(scopes);
+        GroundRangeFormulaTransformer rf = new GroundRangeFormulaTransformer(scopes);
         
         Theory theory = Theory.empty()
             .withTypes(A)
@@ -300,7 +300,7 @@ public class RangeFormulaTransformerTest {
     @Test
     public void booleanConstantsNotRestricted() {
         Map<Type, Integer> scopes = Map.of(A, 1);
-        RangeFormulaTransformer rf = new RangeFormulaTransformer(scopes);
+        GroundRangeFormulaTransformer rf = new GroundRangeFormulaTransformer(scopes);
         
         Theory theory = Theory.empty()
             .withType(A)
@@ -319,7 +319,7 @@ public class RangeFormulaTransformerTest {
     @Test
     public void unlistedTypeNotExpanded() {
         Map<Type, Integer> scopes = Map.of(A, 1);
-        RangeFormulaTransformer rf = new RangeFormulaTransformer(scopes);
+        GroundRangeFormulaTransformer rf = new GroundRangeFormulaTransformer(scopes);
         
         Theory theory = Theory.empty()
             .withTypes(A, B)
