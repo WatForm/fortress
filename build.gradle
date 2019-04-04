@@ -14,7 +14,8 @@ dependencies {
     compile "org.antlr:antlr4-runtime:4.7.2"
     compile group: 'com.oath.cyclops', name: 'cyclops', version: '10.1.0'
     compile files('z3/com.microsoft.z3.jar')
-    runtime files('z3/libz3java.dylib') // Required to run Z3's Java interface
+    runtime files('z3/libz3java.dylib') // Required to run Z3's Java interface on MacOS
+    runtime files('z3/libz3java.so') // Required to run Z3's Java interface on Ubuntu
     
     testCompile 'junit:junit:4.12'
     testImplementation 'org.hamcrest:hamcrest-library:1.3'
@@ -39,7 +40,7 @@ test {
 }
 
 tasks.withType(Test) {
-    // Allow junit test runtime to find libz3java.dylib
+    // Allow junit test runtime to find libz3java.dylib or libz3java.so
     systemProperty "java.library.path", "z3/"
 }
 
