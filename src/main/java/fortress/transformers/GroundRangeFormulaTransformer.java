@@ -64,25 +64,25 @@ public class GroundRangeFormulaTransformer implements TheoryTransformer {
         
         NameGenerator nameGen = new SubIntNameGenerator(forbiddenNames, 1);
         
-        Map<Type, List<Var>> generatedUniverse = generateUniverse(nameGen);
+        Map<Type, List<Var>> domains = generateDomains(nameGen);
         
-        List<Term> distinctUniverseElements = new ArrayList<>();
-        for(List<Var> domainElementsOfTypeT : generatedUniverse.values()) {
+        List<Term> distinctUniverseElementsAxioms = new ArrayList<>();
+        for(List<Var> domainElementsOfTypeT : domains.values()) {
             if(domainElementsOfTypeT.size() > 1) {
-                distinctUniverseElements.add(Term.mkDistinct(domainElementsOfTypeT));
+                distinctUniverseElementsAxioms.add(Term.mkDistinct(domainElementsOfTypeT));
             }
         }
         
-        List<Term> rangeFormulas = generateRangeFormulas(theory, generatedUniverse);
+        List<Term> rangeFormulas = generateRangeFormulas(theory, domains);
         
-        Theory result = new GroundingTransformer(generatedUniverse).apply(theory)
-            .withAxioms(distinctUniverseElements)
+        Theory result = new GroundingTransformer(domains).apply(theory)
+            .withAxioms(distinctUniverseElementsAxioms)
             .withAxioms(rangeFormulas);
         
         return result;
     }
     
-    private Map<Type, List<Var>> generateUniverse(NameGenerator nameGen) {
+    private Map<Type, List<Var>> generateDomains(NameGenerator nameGen) {
         Map<Type, List<Var>> universe = new HashMap<>();
         for(Map.Entry<Type, Integer> scope : scopes.entrySet()) {
             Type type = scope.getKey();
@@ -97,13 +97,13 @@ public class GroundRangeFormulaTransformer implements TheoryTransformer {
         return universe;
     }
     
-    private List<Term> generateRangeFormulas(Theory theory, Map<Type, List<Var>> generatedUniverse) {
+    private List<Term> generateRangeFormulas(Theory theory, Map<Type, List<Var>> domains) {
         List<Term> rangeConstraints = new ArrayList<>();
         
         // Generate range constraints for constants, with symmetry breaking
         // Track how many far up we've gone for each type in symmetry breaking
         Map<Type, Integer> symmetryDepth = new HashMap<>();
-        for(Type type : generatedUniverse.keySet()) {
+        for(Type type : domains.keySet()) {
             symmetryDepth.put(type, 0);
         }
         for(AnnotatedVar av : theory.getConstants()) {
@@ -115,21 +115,21 @@ public class GroundRangeFormulaTransformer implements TheoryTransformer {
                 continue;
             }
             // Skip if type is not given a scope
-            if(!generatedUniverse.containsKey(type)) {
+            if(!domains.containsKey(type)) {
                 continue;
             }
             
-            List<Var> univForType = generatedUniverse.get(type);
+            List<Var> domainOfType = domains.get(type);
             // The number of equalities c = a_i to disjunct is either however
             // many equalities we made for the last constant of this type plus one,
             // or the total number of universe constants of this type,
             // whichever is smaller
-            int numEqualities = Math.min(symmetryDepth.get(type) + 1, univForType.size());
+            int numEqualities = Math.min(symmetryDepth.get(type) + 1, domainOfType.size());
             symmetryDepth.put(type, numEqualities);
             
             List<Term> equalities = new ArrayList<>(numEqualities);
             for(int i = 0; i < numEqualities; i++) {
-                equalities.add(Term.mkEq(c, generatedUniverse.get(type).get(i)));
+                equalities.add(Term.mkEq(c, domains.get(type).get(i)));
             }
             
             Term disjunction = Term.mkOr(equalities);
@@ -149,7 +149,7 @@ public class GroundRangeFormulaTransformer implements TheoryTransformer {
             // get the list [S_1, ..., S_n] and take the cartesian product
             List<List<Var>> toProduct = new ArrayList<>();
             for(Type type : f.getArgTypes()) {
-                toProduct.add(generatedUniverse.get(type));
+                toProduct.add(domains.get(type));
             }
             CartesianProduct<Var> argumentLists = new CartesianProduct<>(toProduct);
             for(List<Var> argumentList : argumentLists) {
@@ -157,7 +157,7 @@ public class GroundRangeFormulaTransformer implements TheoryTransformer {
                 
                 // Generate f(args) = b_1 OR f(args) = b_2 OR ...
                 List<Term> equalities = new ArrayList<>();
-                for(Var b : generatedUniverse.get(f.getResultType())) {
+                for(Var b : domains.get(f.getResultType())) {
                     equalities.add(Term.mkEq(f_args, b));
                 }
                 rangeConstraints.add(Term.mkOr(equalities));

@@ -450,6 +450,12 @@ public class TypeCheckTest {
         t.typeCheck(sig);
     }
     
+    
+    @Test
+    @Ignore ("Test not yet implemented")
+    public void varFAddFuncF() {
+        // Have a variable named F, then add a function named F
+    }
     // Term structure
     
     @Test(expected = fortress.data.TypeCheckException.BadStructure.class)

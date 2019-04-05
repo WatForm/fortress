@@ -335,6 +335,12 @@ public class GroundRangeTransformerTest {
         assertEquals(expected, rf.apply(theory));
     }
     
+    @Test
+    @Ignore ("Test not yet implemented")
+    public void unlistedTypeNotExpanded2() {
+        
+    }
+    
     // Usage tests
     
     @Test 

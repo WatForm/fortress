@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.ArrayList;
 import java.util.stream.Collectors;
 import java.util.Set;
+import java.util.function.Function;
 
 public abstract class Quantifier extends Term {
     protected final ImmutableList<AnnotatedVar> vars;
@@ -27,6 +28,8 @@ public abstract class Quantifier extends Term {
     public Term getBody() {
         return body;
     }
+    
+    abstract public Term mapBody(Function<Term, ? extends Term> mapping);
     
     @Override
     protected boolean innerEquals(Object other) {

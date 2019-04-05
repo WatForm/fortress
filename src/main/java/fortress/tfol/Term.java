@@ -363,8 +363,15 @@ public abstract class Term {
         return substitute(toSub, subWith, Set.of());
     }
     
-    public Term univInstantiate(Map<Type, List<Var>> typeInstantiations) {
-        return new UnivInstantiationVisitor(typeInstantiations).visit(this);
+    /* Does not account for variable capture.
+    * If in doubt do not use this function.
+    */
+    public Term recklessSubstitute(Map<Var, Term> substitutions) {
+        return new RecklessSubstitutionVisitor(substitutions).visit(this);
+    }
+    
+    public Term recklessUnivInstantiate(Map<Type, List<Var>> typeInstantiations) {
+        return new RecklessUnivInstantiationVisitor(typeInstantiations).visit(this);
     }
     
     public Term simplify() {

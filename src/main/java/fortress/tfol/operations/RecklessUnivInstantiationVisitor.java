@@ -1,6 +1,7 @@
 package fortress.tfol.operations;
 
 import java.util.Map;
+import java.util.HashMap;
 import java.lang.IllegalArgumentException;
 import java.util.List;
 import java.util.ArrayList;
@@ -10,10 +11,10 @@ import fortress.util.Errors;
 
 // TODO this could be made much more efficient
 
-public class UnivInstantiationVisitor implements TermVisitor<Term> {
+public class RecklessUnivInstantiationVisitor implements TermVisitor<Term> {
     private Map<Type, List<Var>> typeInstantiations;
     
-    public UnivInstantiationVisitor(Map<Type, List<Var>> typeInstantiations) {
+    public RecklessUnivInstantiationVisitor(Map<Type, List<Var>> typeInstantiations) {
         this.typeInstantiations = typeInstantiations;
     }
     
@@ -83,8 +84,6 @@ public class UnivInstantiationVisitor implements TermVisitor<Term> {
     @Override
     public Term visitForall(Forall forall) {
         // TODO this assumes each type is instantiated, which we may change later
-        // Perhaps it makes more sense to do each single type instantation one at a time?
-        // Or would that take too long?
         
         // TODO does the order of quantifier instantiation matter? Here we do a bottom up approach
         Term body = visit(forall.getBody());
@@ -106,18 +105,17 @@ public class UnivInstantiationVisitor implements TermVisitor<Term> {
         CartesianProduct<Var> cartesianProduct = new CartesianProduct<>(listOfTypeSets);
         for(List<Var> substitution : cartesianProduct) {
             Errors.verify(substitution.size() == vars.size());
-            Term bodyInstance = body;
+            
+            Map<Var, Term> varSubstitutions = new HashMap<>();
             for(int i = 0; i < vars.size(); i++) {
-                // NOTE because we are substituting with fresh variables, there
-                // should never be any variable capture or any other name issues
-                // TODO note that the above means this could be more efficient!
-                // We could use a faster substituter that doesn't care about capture
-                // TODO it would be especially much faster to do multiple substitutions at once
-                bodyInstance = bodyInstance.substitute(vars.get(i), substitution.get(i));
+                varSubstitutions.put(vars.get(i), substitution.get(i));
             }
+            
+            // NOTE because we are substituting with fresh variables, there
+            // should never be any variable capture or any other name issues
+            Term bodyInstance = body.recklessSubstitute(varSubstitutions);
             toConjunct.add(bodyInstance);
         }
-        // TODO what if size 1?
         return Term.mkAnd(toConjunct);
     }
 }

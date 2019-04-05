@@ -4,31 +4,32 @@ import fortress.tfol.*;
 import fortress.util.Errors;
 
 import java.util.Map;
+import java.util.HashMap;
 import java.util.List;
 
 // Preconditions: instantiations must be to fresh variables
 public class GroundingTransformer implements TheoryTransformer {
     
-    private Map<Type, List<Var>> typeInstantiations;
+    private Map<Type, List<Var>> domains;
     
-    public GroundingTransformer(Map<Type, List<Var>> typeInstantiations) {
-        Errors.precondition(allNonempty(typeInstantiations), "All instantiation lists must be nonempty");
-        Errors.precondition(! typeInstantiations.keySet().contains(Type.Bool), "Bool may not be instantiated");
-        this.typeInstantiations = typeInstantiations;
+    public GroundingTransformer(Map<Type, List<Var>> domains) {
+        Errors.precondition(allNonempty(domains), "All provided domains must be nonempty");
+        Errors.precondition(! domains.keySet().contains(Type.Bool), "Bool may not be instantiated");
+        this.domains = new HashMap<>(domains);
     }
     
-    private static boolean allNonempty(Map<Type, List<Var>> typeInstantiations) {
-        return typeInstantiations.values().stream().allMatch((List<Var> list) -> list.size() > 0);
+    private static boolean allNonempty(Map<Type, List<Var>> domains) {
+        return domains.values().stream().allMatch((List<Var> list) -> list.size() > 0);
     }
     
     @Override
     public Theory apply(Theory theory) {
-        Errors.precondition(theory.getTypes().containsAll(typeInstantiations.keySet()), "Scoped types must be within theory's types");
+        Errors.precondition(theory.getTypes().containsAll(domains.keySet()), "Scoped types must be within theory's types");
         
         Signature sig = theory.getSignature();
         Theory result = Theory.mkTheoryWithSignature(sig);
         
-        for(Map.Entry<Type, List<Var>> instantiation : typeInstantiations.entrySet()) {
+        for(Map.Entry<Type, List<Var>> instantiation : domains.entrySet()) {
             Type type = instantiation.getKey();
             List<Var> constants = instantiation.getValue();
             for(Var c : constants) {
@@ -37,7 +38,7 @@ public class GroundingTransformer implements TheoryTransformer {
         }
         
         for(Term axiom : theory.getAxioms()) {
-            Term instantiated = axiom.univInstantiate(typeInstantiations);
+            Term instantiated = axiom.recklessUnivInstantiate(domains);
             result = result.withAxiom(instantiated);
         }
         return result;
