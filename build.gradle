@@ -17,8 +17,9 @@ dependencies {
     runtime files('z3/libz3java.dylib') // Required to run Z3's Java interface on MacOS
     runtime files('z3/libz3java.so') // Required to run Z3's Java interface on Ubuntu
     
-    testCompile 'junit:junit:4.12'
+    testImplementation 'junit:junit:4.12'
     testImplementation 'org.hamcrest:hamcrest-library:1.3'
+    testImplementation 'org.scalatest:scalatest_2.12:3.0.5'
     
     implementation 'org.scala-lang:scala-library:2.12.8'
     runtime 'org.scala-lang:scala-library:2.12.8'

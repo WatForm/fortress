@@ -8,7 +8,9 @@ import scala.annotation.varargs // So we can call Scala varargs methods from Jav
 // TODO Theory needs to check for inconsistencies when adding functions as well.
 // e.g. If some term already uses "f" as a variable and we add "f : A -> B".
 
-case class Theory(signature: Signature, axioms: Set[Term]) {
+// The constructor is private -- the only way to make theories outside of this class
+// is through the empty and withXYZ methods 
+case class Theory private (signature: Signature, axioms: Set[Term]) {
     
     /** Returns a theory consisting of the current theory but with the given
       * axiom added. Note that this does not modify the current Theory object,

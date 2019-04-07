@@ -26,7 +26,7 @@ sealed abstract class Term {
       */ 
     def freeVars(signature: Signature): java.util.Set[Var] = {
         val freeVars: java.util.Set[Var] = freeVarConstSymbols
-        val constants: java.util.Set[Var] = signature.getConstants().asScala.map((av: AnnotatedVar) => av.getVar).asJava
+        val constants: java.util.Set[Var] = signature.constants.map((av: AnnotatedVar) => av.getVar).asJava
         freeVars.removeAll(constants)
         freeVars
     }
@@ -128,6 +128,8 @@ case class AnnotatedVar(variable: Var, sort: Type) {
     def getVar: Var = variable
     def getType: Type = sort
     def getName: String = variable.name
+    
+    override def toString: String = variable.toString + ": " + sort.toString
 }
 
 /** Represents a negation. */
