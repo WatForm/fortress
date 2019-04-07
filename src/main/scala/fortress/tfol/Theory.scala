@@ -1,14 +1,9 @@
-package fortress.tfol;
+package fortress.tfol
 
 import fortress.util.Errors
-import java.io._
 import fortress.tfol.operations.TypeCheckResult
-
 import scala.collection.JavaConverters._
-
 import scala.annotation.varargs // So we can call Scala varargs methods from Java
-
-import fortress.modelfind._
 
 // TODO Theory needs to check for inconsistencies when adding functions as well.
 // e.g. If some term already uses "f" as a variable and we add "f : A -> B".

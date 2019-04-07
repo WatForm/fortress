@@ -186,7 +186,7 @@ public class TypeChecker {
         // 2. arguments contain no connectives or quantifiers
         private TypeCheckResult checkFunction(FuncDecl funcDecl, ImmutableList<Term> arguments) {
             if(funcDecl.getArity() != arguments.size()) {
-                throw new TypeCheckException.WrongArity("Application of " + funcDecl.getName() + " to wrong number of arguments");
+                throw new TypeCheckException.WrongArity("Application of " + funcDecl.toString() + " to wrong number of arguments");
             }
             
             ImmutableList<TypeCheckResult> results = arguments.map(this::visit);
