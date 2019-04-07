@@ -8,6 +8,7 @@ import fortress.outputs._
 import fortress.sexpr._
 import scala.collection.JavaConverters._
 import scala.annotation.varargs // So we can call Scala varargs methods from Java
+import scala.collection.immutable.Seq // Default to immutable Seqs
 
 /** Representation of a syntactic Term. */
 sealed abstract class Term {
@@ -47,19 +48,16 @@ sealed abstract class Term {
     }
     
     /** Returns an SExpr representing this term as it would appear in SMT-LIB. */
-    def toSmtExpr: SExpr =
-        new SmtExprVisitor().visit(this)
+    def toSmtExpr: SExpr = new SmtExprVisitor().visit(this)
     
     /** Returns a term that is alpha-equivalent to this one but whose quantified
       * variables are instead De Bruijn indices. Note that these indices are prefixed
       * by an underscore to make it clearer (e.g. the first quantified variable is "_1")
       */
-    def deBruijn: Term =
-        new DeBruijnConverter().convert(this)
+    def deBruijn: Term = new DeBruijnConverter().convert(this)
     
     /** Returns true iff the other term is alpha-equivalen to this term. */
-    def alphaEquivalent(other: Term): Boolean =
-        this.deBruijn == other.deBruijn
+    def alphaEquivalent(other: Term): Boolean = this.deBruijn == other.deBruijn
     
     def substitute(toSub: Var, subWith: Term, forbiddenNames: java.util.Set[String]): Term = 
         new Substituter(this, toSub, subWith, forbiddenNames).substitute()
@@ -136,37 +134,37 @@ case class AnnotatedVar(variable: Var, sort: Type) {
 case class Not(body: Term) extends Term {
     def getBody: Term = body
     override def accept[T](visitor: TermVisitor[T]): T = visitor.visitNot(this)
-    def mapBody(mapping: java.util.function.Function[Term, Term]): Term =
+    def mapBody(mapping: Term => Term): Term =
         Not(mapping.apply(body))
 }
 
 /** Represents a conjunction. */
-case class AndList(arguments: List[Term]) extends Term {
+case class AndList(arguments: Seq[Term]) extends Term {
     Errors.precondition(arguments.size >= 2)
     
     def getArguments: fortress.data.ImmutableList[Term] = Conversions.toFortressList(arguments)
     override def accept[T](visitor: TermVisitor[T]): T = visitor.visitAndList(this)
-    def mapArguments(mapping: java.util.function.Function[Term, Term]): Term =
+    def mapArguments(mapping: Term => Term): Term =
         AndList(arguments.map(arg => mapping.apply(arg)))
 }
 
 /** Represents a disjunction. */
-case class OrList(arguments: List[Term]) extends Term {
+case class OrList(arguments: Seq[Term]) extends Term {
     Errors.precondition(arguments.size >= 2)
     
     def getArguments: fortress.data.ImmutableList[Term] = Conversions.toFortressList(arguments)
     override def accept[T](visitor: TermVisitor[T]): T = visitor.visitOrList(this)
-    def mapArguments(mapping: java.util.function.Function[Term, Term]): Term =
+    def mapArguments(mapping: Term => Term): Term =
         OrList(arguments.map(arg => mapping.apply(arg)))
 }
 
 /** Represents a formula signifying whether its arguments have distinct values. */
-case class Distinct(arguments: List[Term]) extends Term {
+case class Distinct(arguments: Seq[Term]) extends Term {
     Errors.precondition(arguments.size >= 1)
     
     def getArguments: fortress.data.ImmutableList[Term] = Conversions.toFortressList(arguments)
     override def accept[T](visitor: TermVisitor[T]): T = visitor.visitDistinct(this)
-    def mapArguments(mapping: java.util.function.Function[Term, Term]): Term =
+    def mapArguments(mapping: Term => Term): Term =
         Distinct(arguments.map(arg => mapping.apply(arg)))
     
     def asPairwiseNotEquals: Term = {
@@ -192,7 +190,7 @@ case class Implication(left: Term, right: Term) extends Term {
     def getLeft: Term = left
     def getRight: Term = right
     override def accept[T](visitor: TermVisitor[T]): T = visitor.visitImplication(this)
-    def mapArguments(mapping: java.util.function.Function[Term, Term]): Term =
+    def mapArguments(mapping: Term => Term): Term =
         Implication(mapping.apply(left), mapping.apply(right))
 }
 
@@ -201,7 +199,7 @@ case class Iff(left: Term, right: Term) extends Term {
     def getLeft: Term = left
     def getRight: Term = right
     override def accept[T](visitor: TermVisitor[T]): T = visitor.visitIff(this)
-    def mapArguments(mapping: java.util.function.Function[Term, Term]): Term =
+    def mapArguments(mapping: Term => Term): Term =
         Iff(mapping.apply(left), mapping.apply(right))
 }
 
@@ -210,29 +208,29 @@ case class Eq(left: Term, right: Term) extends Term {
     def getLeft: Term = left
     def getRight: Term = right
     override def accept[T](visitor: TermVisitor[T]): T = visitor.visitEq(this)
-    def mapArguments(mapping: java.util.function.Function[Term, Term]): Term =
+    def mapArguments(mapping: Term => Term): Term =
         Eq(mapping.apply(left), mapping.apply(right))
 }
 
 /** Represents a function or predicate application. */
-case class App(functionName: String, arguments: List[Term]) extends Term {
+case class App(functionName: String, arguments: Seq[Term]) extends Term {
     Errors.precondition(arguments.size >= 1, "Nullary function application " + functionName + " should be a Var")
     
     def getArguments: fortress.data.ImmutableList[Term] = Conversions.toFortressList(arguments)
     def getFunctionName: String = functionName
     override def accept[T](visitor: TermVisitor[T]): T  = visitor.visitApp(this)
-    def mapArguments(mapping: java.util.function.Function[Term, Term]): Term =
+    def mapArguments(mapping: Term => Term): Term =
         App(functionName, arguments.map(arg => mapping.apply(arg)))
 }
 
 abstract class Quantifier extends Term {
     def getVars: fortress.data.ImmutableList[AnnotatedVar]
     def getBody: Term
-    def mapBody(mapping: java.util.function.Function[Term, Term]): Term
+    def mapBody(mapping: Term => Term): Term
 }
 
 /** Represents an existentially quantified Term. */
-case class Exists(vars: List[AnnotatedVar], body: Term) extends Quantifier {
+case class Exists(vars: Seq[AnnotatedVar], body: Term) extends Quantifier {
     Errors.precondition(vars.size >= 1, "Quantifier must bind at least one variable");
     // Check variables distinct
     Errors.precondition(vars.map(av => av.getName).toSet.size == vars.size, "Duplicate variable name in quantifier")
@@ -240,12 +238,12 @@ case class Exists(vars: List[AnnotatedVar], body: Term) extends Quantifier {
     def getVars: fortress.data.ImmutableList[AnnotatedVar] = Conversions.toFortressList(vars)
     def getBody: Term = body
     override def accept[T](visitor: TermVisitor[T]): T = visitor.visitExists(this)
-    def mapBody(mapping: java.util.function.Function[Term, Term]): Term =
+    def mapBody(mapping: Term => Term): Term =
         Exists(vars, mapping.apply(body))
 }
 
 /** Represents a universally quantified Term. */
-case class Forall(vars: List[AnnotatedVar], body: Term) extends Quantifier {
+case class Forall(vars: Seq[AnnotatedVar], body: Term) extends Quantifier {
     Errors.precondition(vars.size >= 1, "Quantifier must bind at least one variable")
     // Check variables distinct
     Errors.precondition(vars.map(av => av.getName).toSet.size == vars.size, "Duplicate variable name in quantifier")
@@ -253,7 +251,7 @@ case class Forall(vars: List[AnnotatedVar], body: Term) extends Quantifier {
     def getVars: fortress.data.ImmutableList[AnnotatedVar] = Conversions.toFortressList(vars)
     def getBody: Term = body
     override def accept[T](visitor: TermVisitor[T]): T = visitor.visitForall(this)
-    def mapBody(mapping: java.util.function.Function[Term, Term]): Term =
+    def mapBody(mapping: Term => Term): Term =
         Forall(vars, mapping.apply(body))
 }
 

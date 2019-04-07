@@ -13,5 +13,10 @@ public class TypeCheckResult {
         this.type = type;
         this.containsConnectives = containsConnectives;
         this.containsQuantifiers = containsQuantifiers;
+        
+    }
+    
+    public Type sort() {
+        return type;
     }
 }
