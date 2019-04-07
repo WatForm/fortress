@@ -35,12 +35,12 @@ public class TermJavaEqualityTest {
     
     @Test
     public void FuncDeclaration() {
-        FuncDecl p1 = mkFuncDecl("p", A, Bool);
+        FuncDecl p1 = mkFuncDecl("p", A, Type.Bool());
         List<Type> argTypes = new ArrayList<>();
         argTypes.add(A);
-        FuncDecl p2 = mkFuncDecl("p", argTypes, Bool);
-        FuncDecl p3 = mkFuncDecl("pp", A, Bool);
-        FuncDecl p4 = mkFuncDecl("p", Bool, Bool);
+        FuncDecl p2 = mkFuncDecl("p", argTypes, Type.Bool());
+        FuncDecl p3 = mkFuncDecl("pp", A, Type.Bool());
+        FuncDecl p4 = mkFuncDecl("p", Type.Bool(), Type.Bool());
         
         assertEquals(p1, p2);
         assertNotEquals(p1, p3);
@@ -95,7 +95,7 @@ public class TermJavaEqualityTest {
         assertNotEquals(mkForall(x.of(A), mkApp("P", x)), mkForall(y.of(A), mkApp("P", x)));
         assertNotEquals(mkForall(x.of(A), mkApp("P", x)), mkForall(x.of(A), mkApp("Q", x)));
         assertNotEquals(mkForall(x.of(A), mkApp("P", x)), mkForall(y.of(A), mkApp("P", y)));
-        assertNotEquals(mkForall(x.of(Bool), mkApp("P", x)), mkForall(x.of(A), mkApp("P", x)));
+        assertNotEquals(mkForall(x.of(Type.Bool()), mkApp("P", x)), mkForall(x.of(A), mkApp("P", x)));
     }
     
     @Test
@@ -106,7 +106,7 @@ public class TermJavaEqualityTest {
         assertNotEquals(mkExists(x.of(A), mkApp("P", x)), mkExists(y.of(A), mkApp("P", x)));
         assertNotEquals(mkExists(x.of(A), mkApp("P", x)), mkExists(x.of(A), mkApp("Q", x)));
         assertNotEquals(mkExists(x.of(A), mkApp("P", x)), mkExists(y.of(A), mkApp("P", y)));
-        assertNotEquals(mkExists(x.of(Bool), mkApp("P", x)), mkExists(x.of(A), mkApp("P", x)));
+        assertNotEquals(mkExists(x.of(Type.Bool()), mkApp("P", x)), mkExists(x.of(A), mkApp("P", x)));
     }
     
     @Test

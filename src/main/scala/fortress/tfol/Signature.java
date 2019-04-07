@@ -25,7 +25,7 @@ public class Signature {
     public static Signature empty() {
         // For testing consistency, use an insertion ordered set
         return new Signature(
-            PersistentInsertionOrderedHashSet.empty().plus(Type.Bool), // Every signature contains Bool
+            PersistentInsertionOrderedHashSet.empty().plus(Type.Bool()), // Every signature contains Bool
             PersistentInsertionOrderedHashSet.empty(),
             PersistentInsertionOrderedHashSet.empty()
         );

@@ -20,11 +20,11 @@ public class TheoryWithTest {
         Type B = Type.mkTypeConst("B");
         
         Theory theory1 = Theory.empty();
-        assertEquals(Set.of(Type.Bool), theory1.getTypes());
+        assertEquals(Set.of(Type.Bool()), theory1.getTypes());
         Theory theory2 = theory1.withType(A);
-        assertEquals(Set.of(Type.Bool, A), theory2.getTypes());
+        assertEquals(Set.of(Type.Bool(), A), theory2.getTypes());
         Theory theory3 = theory2.withType(B);
-        assertEquals(Set.of(Type.Bool, A, B), theory3.getTypes());
+        assertEquals(Set.of(Type.Bool(), A, B), theory3.getTypes());
     }
     
     @Test
@@ -32,7 +32,7 @@ public class TheoryWithTest {
     public void withFunctionDeclarationShouldAdd() {
         Type A = Type.mkTypeConst("A");
         FuncDecl f = FuncDecl.mkFuncDecl("f", A, A);
-        FuncDecl p = FuncDecl.mkFuncDecl("p", A, A, Type.Bool);
+        FuncDecl p = FuncDecl.mkFuncDecl("p", A, A, Type.Bool());
         
         Theory theory1 = Theory.empty().withType(A);
         assertEquals(Set.of(), theory1.getFunctionDeclarations());
@@ -46,7 +46,7 @@ public class TheoryWithTest {
     // withConstant should create new theory with constant added
     public void withConstantShouldAdd() {
         Type A = Type.mkTypeConst("A");
-        AnnotatedVar p = Term.mkVar("p").of(Type.Bool);
+        AnnotatedVar p = Term.mkVar("p").of(Type.Bool());
         AnnotatedVar c = Term.mkVar("c").of(A);
         
         Theory theory1 = Theory.empty().withType(A);

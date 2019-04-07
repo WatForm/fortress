@@ -35,9 +35,9 @@ public class GroundRangeTransformerTest {
     FuncDecl g = FuncDecl.mkFuncDecl("g", B, B);
     FuncDecl h = FuncDecl.mkFuncDecl("h", A, B);
     FuncDecl k = FuncDecl.mkFuncDecl("k", B, A);
-    FuncDecl P = FuncDecl.mkFuncDecl("P", A, Type.Bool);
-    FuncDecl Q = FuncDecl.mkFuncDecl("Q", B, Type.Bool);
-    FuncDecl R = FuncDecl.mkFuncDecl("R", A, B, Type.Bool);
+    FuncDecl P = FuncDecl.mkFuncDecl("P", A, Type.Bool());
+    FuncDecl Q = FuncDecl.mkFuncDecl("Q", B, Type.Bool());
+    FuncDecl R = FuncDecl.mkFuncDecl("R", A, B, Type.Bool());
     
     Var a_1 = Term.mkVar("a_1");
     Var a_2 = Term.mkVar("a_2");
@@ -305,7 +305,7 @@ public class GroundRangeTransformerTest {
         Theory theory = Theory.empty()
             .withType(A)
             .withFunctionDeclaration(P)
-            .withConstants(q.of(Type.Bool), c.of(A))
+            .withConstants(q.of(Type.Bool()), c.of(A))
             .withAxiom(q)
             .withAxiom(Term.mkApp("P", c));
         

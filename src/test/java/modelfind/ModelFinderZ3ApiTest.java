@@ -21,15 +21,15 @@ public class ModelFinderZ3ApiTest {
     
     Type U = Type.mkTypeConst("U");
     
-    FuncDecl Human = FuncDecl.mkFuncDecl("Human", U, Type.Bool);
-    FuncDecl Mortal = FuncDecl.mkFuncDecl("Mortal", U, Type.Bool);
+    FuncDecl Human = FuncDecl.mkFuncDecl("Human", U, Type.Bool());
+    FuncDecl Mortal = FuncDecl.mkFuncDecl("Mortal", U, Type.Bool());
     
     // Propositional tests
     
     @Test
     public void propSat1() throws IOException {
         Theory theory = Theory.empty()
-            .withConstant(p.of(Type.Bool))
+            .withConstant(p.of(Type.Bool()))
             .withAxiom(Term.mkAnd(p, p));
             
         
@@ -43,7 +43,7 @@ public class ModelFinderZ3ApiTest {
     @Test
     public void propUnsat1() throws IOException {
         Theory theory = Theory.empty()
-            .withConstant(p.of(Type.Bool))
+            .withConstant(p.of(Type.Bool()))
             .withAxiom(Term.mkAnd(p, Term.mkNot(p)));
         
         ModelFinder finder = new ModelFinder(
@@ -56,7 +56,7 @@ public class ModelFinderZ3ApiTest {
     @Test
     public void propUnsat2() throws IOException {
         Theory theory = Theory.empty()
-            .withConstants(p.of(Type.Bool), q.of(Type.Bool))
+            .withConstants(p.of(Type.Bool()), q.of(Type.Bool()))
             .withAxiom(Term.mkNot(Term.mkImp(Term.mkAnd(p, q), q)));
         
         ModelFinder finder = new ModelFinder(
@@ -69,7 +69,7 @@ public class ModelFinderZ3ApiTest {
     @Test
     public void propSat2() throws IOException {
         Theory theory = Theory.empty()
-            .withConstants(p.of(Type.Bool), q.of(Type.Bool))
+            .withConstants(p.of(Type.Bool()), q.of(Type.Bool()))
             .withAxiom(Term.mkNot(Term.mkImp(Term.mkOr(p, q), q)));
         
         ModelFinder finder = new ModelFinder(

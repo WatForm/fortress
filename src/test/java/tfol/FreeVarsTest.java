@@ -55,7 +55,7 @@ public class FreeVarsTest {
         Signature sig = Signature.empty()
             .withType(A)
             .withConstant(c.of(A))
-            .withConstant(p.of(Type.Bool));
+            .withConstant(p.of(Type.Bool()));
             
         Term t = Term.mkAnd(
             Term.mkEq(c, x),

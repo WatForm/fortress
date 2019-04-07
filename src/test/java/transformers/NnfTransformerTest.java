@@ -21,13 +21,13 @@ public class NnfTransformerTest {
     Var y = Term.mkVar("y");
     
     FuncDecl f = FuncDecl.mkFuncDecl("f", A, A);
-    FuncDecl P = FuncDecl.mkFuncDecl("P", A, Type.Bool);
+    FuncDecl P = FuncDecl.mkFuncDecl("P", A, Type.Bool());
     
     Theory baseTheory = Theory.empty()
         .withType(A)
         .withType(B)
-        .withConstant(p.of(Type.Bool))
-        .withConstant(q.of(Type.Bool))
+        .withConstant(p.of(Type.Bool()))
+        .withConstant(q.of(Type.Bool()))
         .withFunctionDeclaration(f)
         .withFunctionDeclaration(P);
     
@@ -245,7 +245,7 @@ public class NnfTransformerTest {
         Var x = Term.mkVar("x");
         Var y = Term.mkVar("y");
         Var z = Term.mkVar("z");
-        FuncDecl P = FuncDecl.mkFuncDecl("P", U, U, U, Type.Bool);
+        FuncDecl P = FuncDecl.mkFuncDecl("P", U, U, U, Type.Bool());
         
         Term t = Term.mkForall(List.of(x.of(U), y.of(U), z.of(U)),
             Term.mkImp(Term.mkApp("P", x, y, z), Term.mkDistinct(x, y, z)));
@@ -270,7 +270,7 @@ public class NnfTransformerTest {
     @Test // Former bug
     public void distinct2() {
         Type V = Type.mkTypeConst("V");
-        FuncDecl adj = FuncDecl.mkFuncDecl("adj", V, V, Type.Bool);
+        FuncDecl adj = FuncDecl.mkFuncDecl("adj", V, V, Type.Bool());
         Var x1 = Term.mkVar("x1");
         Var x2 = Term.mkVar("x2");
         Var x3 = Term.mkVar("x3");
@@ -305,7 +305,7 @@ public class NnfTransformerTest {
     @Test
     public void distinct3() {
         Type V = Type.mkTypeConst("V");
-        FuncDecl adj = FuncDecl.mkFuncDecl("adj", V, V, Type.Bool);
+        FuncDecl adj = FuncDecl.mkFuncDecl("adj", V, V, Type.Bool());
         Var x1 = Term.mkVar("x1");
         Var x2 = Term.mkVar("x2");
         Var x3 = Term.mkVar("x3");

@@ -25,18 +25,18 @@ public class SkolemizeTransformerTest {
     Var z = Term.mkVar("z");
     
     FuncDecl f = FuncDecl.mkFuncDecl("f", A, A);
-    FuncDecl P = FuncDecl.mkFuncDecl("P", A, Type.Bool);
-    FuncDecl Q = FuncDecl.mkFuncDecl("Q", A, A, Type.Bool);
-    FuncDecl R = FuncDecl.mkFuncDecl("R", A, A, A, Type.Bool);
-    FuncDecl S = FuncDecl.mkFuncDecl("S", B, Type.Bool);
-    FuncDecl T = FuncDecl.mkFuncDecl("T", A, B, Type.Bool);
-    FuncDecl R_1 = FuncDecl.mkFuncDecl("R_1", A, A, B, Type.Bool);
+    FuncDecl P = FuncDecl.mkFuncDecl("P", A, Type.Bool());
+    FuncDecl Q = FuncDecl.mkFuncDecl("Q", A, A, Type.Bool());
+    FuncDecl R = FuncDecl.mkFuncDecl("R", A, A, A, Type.Bool());
+    FuncDecl S = FuncDecl.mkFuncDecl("S", B, Type.Bool());
+    FuncDecl T = FuncDecl.mkFuncDecl("T", A, B, Type.Bool());
+    FuncDecl R_1 = FuncDecl.mkFuncDecl("R_1", A, A, B, Type.Bool());
     
     Theory baseTheory = Theory.empty()
         .withType(A)
         .withType(B)
-        .withConstant(p.of(Type.Bool))
-        .withConstant(q.of(Type.Bool))
+        .withConstant(p.of(Type.Bool()))
+        .withConstant(q.of(Type.Bool()))
         .withFunctionDeclaration(f)
         .withFunctionDeclaration(P)
         .withFunctionDeclaration(Q)
@@ -217,7 +217,7 @@ public class SkolemizeTransformerTest {
         // The next names should be sk_3 and sk_6
         Theory theory = baseTheory
             .withType(Type.mkTypeConst("sk_0"))
-            .withFunctionDeclaration(FuncDecl.mkFuncDecl("sk_1", A, Type.Bool))
+            .withFunctionDeclaration(FuncDecl.mkFuncDecl("sk_1", A, Type.Bool()))
             .withConstant(Term.mkVar("sk_2").of(A))
             .withAxiom(Term.mkForall(Term.mkVar("sk_4").of(A), Term.mkTop()))
             .withAxiom(Term.mkForall(Term.mkVar("sk_5").of(A), Term.mkTop()))
@@ -227,7 +227,7 @@ public class SkolemizeTransformerTest {
                 
         Theory expected = baseTheory
             .withType(Type.mkTypeConst("sk_0"))
-            .withFunctionDeclaration(FuncDecl.mkFuncDecl("sk_1", A, Type.Bool))
+            .withFunctionDeclaration(FuncDecl.mkFuncDecl("sk_1", A, Type.Bool()))
             .withConstant(Term.mkVar("sk_2").of(A))
             .withAxiom(Term.mkForall(Term.mkVar("sk_4").of(A), Term.mkTop()))
             .withAxiom(Term.mkForall(Term.mkVar("sk_5").of(A), Term.mkTop()))

@@ -82,7 +82,7 @@ public class Z3CommandLine implements SolverStrategy {
     }
     
     private static Set<Type> sortsDoNotDeclare = new HashSet<>() {{
-        add(Type.Bool);
+        add(Type.Bool());
     }};
     
     private static List<SExpr> generateSortDeclarations(Theory theory) {

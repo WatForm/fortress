@@ -14,7 +14,7 @@ public class GroundingTransformer implements TheoryTransformer {
     
     public GroundingTransformer(Map<Type, List<Var>> domains) {
         Errors.precondition(allNonempty(domains), "All provided domains must be nonempty");
-        Errors.precondition(! domains.keySet().contains(Type.Bool), "Bool may not be instantiated");
+        Errors.precondition(! domains.keySet().contains(Type.Bool()), "Bool may not be instantiated");
         this.domains = new HashMap<>(domains);
     }
     

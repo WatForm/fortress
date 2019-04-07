@@ -23,11 +23,11 @@ public class GroundingTransformerTest {
     Var c_2 = Term.mkVar("c_2");
     
     FuncDecl f = FuncDecl.mkFuncDecl("f", A, A);
-    FuncDecl P = FuncDecl.mkFuncDecl("P", A, Type.Bool);
-    FuncDecl Q = FuncDecl.mkFuncDecl("Q", B, Type.Bool);
-    FuncDecl R = FuncDecl.mkFuncDecl("R", A, B, Type.Bool);
-    FuncDecl S = FuncDecl.mkFuncDecl("S", A, A, Type.Bool);
-    FuncDecl T = FuncDecl.mkFuncDecl("T", A, A, A, Type.Bool);
+    FuncDecl P = FuncDecl.mkFuncDecl("P", A, Type.Bool());
+    FuncDecl Q = FuncDecl.mkFuncDecl("Q", B, Type.Bool());
+    FuncDecl R = FuncDecl.mkFuncDecl("R", A, B, Type.Bool());
+    FuncDecl S = FuncDecl.mkFuncDecl("S", A, A, Type.Bool());
+    FuncDecl T = FuncDecl.mkFuncDecl("T", A, A, A, Type.Bool());
     
     Var a_1 = Term.mkVar("a_1");
     Var a_2 = Term.mkVar("a_2");
@@ -44,8 +44,8 @@ public class GroundingTransformerTest {
     Theory baseTheory = Theory.empty()
         .withType(A)
         .withType(B)
-        .withConstant(p.of(Type.Bool))
-        .withConstant(q.of(Type.Bool))
+        .withConstant(p.of(Type.Bool()))
+        .withConstant(q.of(Type.Bool()))
         .withFunctionDeclaration(f)
         .withFunctionDeclaration(P)
         .withFunctionDeclaration(Q)

@@ -15,11 +15,11 @@ public class TypeCheckTest {
     Var p = Term.mkVar("p");
     Var q = Term.mkVar("q");
     
-    FuncDecl P = FuncDecl.mkFuncDecl("P", A, Type.Bool);
-    FuncDecl Q = FuncDecl.mkFuncDecl("Q", B, Type.Bool);
+    FuncDecl P = FuncDecl.mkFuncDecl("P", A, Type.Bool());
+    FuncDecl Q = FuncDecl.mkFuncDecl("Q", B, Type.Bool());
     FuncDecl f = FuncDecl.mkFuncDecl("f", A, B);
     FuncDecl g = FuncDecl.mkFuncDecl("g", B, A);
-    FuncDecl h = FuncDecl.mkFuncDecl("h", Type.Bool, Type.Bool);
+    FuncDecl h = FuncDecl.mkFuncDecl("h", Type.Bool(), Type.Bool());
     
     @Test(expected = fortress.data.TypeCheckException.UndeterminedType.class)
     public void freeVar() {
@@ -81,8 +81,8 @@ public class TypeCheckTest {
         Term app1 = Term.mkForall(x.of(A), Term.mkApp("P", x));
         Term app2 = Term.mkExists(x.of(A), Term.mkApp("P", x));
         
-        assertEquals(Type.Bool, app1.typeCheck(sig).type);
-        assertEquals(Type.Bool, app2.typeCheck(sig).type);
+        assertEquals(Type.Bool(), app1.typeCheck(sig).type);
+        assertEquals(Type.Bool(), app2.typeCheck(sig).type);
     }
     
     @Test(expected = fortress.data.TypeCheckException.WrongArgType.class)
@@ -111,11 +111,11 @@ public class TypeCheckTest {
             .withTypes(A)
             .withConstants()
             .withFunctionDeclarations(h);
-        Term term1 = Term.mkForall(x.of(Type.Bool), Term.mkOr(x, Term.mkApp("h", x)));
-        Term term2 = Term.mkForall(x.of(Type.Bool), Term.mkOr(x, Term.mkApp("h", x)));
+        Term term1 = Term.mkForall(x.of(Type.Bool()), Term.mkOr(x, Term.mkApp("h", x)));
+        Term term2 = Term.mkForall(x.of(Type.Bool()), Term.mkOr(x, Term.mkApp("h", x)));
         
-        assertEquals(Type.Bool, term1.typeCheck(sig).type);
-        assertEquals(Type.Bool, term2.typeCheck(sig).type);
+        assertEquals(Type.Bool(), term1.typeCheck(sig).type);
+        assertEquals(Type.Bool(), term2.typeCheck(sig).type);
     }
     
     @Test
@@ -129,7 +129,7 @@ public class TypeCheckTest {
         Term pgfx = Term.mkApp("P", gfx);
         assertEquals(B, fx.typeCheck(sig).type);
         assertEquals(A, gfx.typeCheck(sig).type);
-        assertEquals(Type.Bool, pgfx.typeCheck(sig).type);
+        assertEquals(Type.Bool(), pgfx.typeCheck(sig).type);
     }
     
     @Test(expected = fortress.data.TypeCheckException.WrongArgType.class)
@@ -161,23 +161,23 @@ public class TypeCheckTest {
     public void andOrImp() {
         Signature sig = Signature.empty()
             .withTypes(A)
-            .withConstants(y.of(Type.Bool))
+            .withConstants(y.of(Type.Bool()))
             .withFunctionDeclarations(P);
         Term arg1 = Term.mkForall(x.of(A), Term.mkApp("P", x));
         Term arg2 = y;
         Term and = Term.mkAnd(arg1, arg2);
         Term or = Term.mkOr(arg1, arg2);
         Term imp = Term.mkImp(arg1, arg2);
-        assertEquals(Type.Bool, and.typeCheck(sig).type);
-        assertEquals(Type.Bool, or.typeCheck(sig).type);
-        assertEquals(Type.Bool, imp.typeCheck(sig).type);
+        assertEquals(Type.Bool(), and.typeCheck(sig).type);
+        assertEquals(Type.Bool(), or.typeCheck(sig).type);
+        assertEquals(Type.Bool(), imp.typeCheck(sig).type);
     }
     
     @Test(expected = fortress.data.TypeCheckException.WrongArgType.class)
     public void andWrongArg() {
         Signature sig = Signature.empty()
             .withTypes(A, B)
-            .withConstants(x.of(A), y.of(Type.Bool))
+            .withConstants(x.of(A), y.of(Type.Bool()))
             .withFunctionDeclarations(f);
         Term arg1 = Term.mkApp("f", x);
         Term arg2 = y;
@@ -189,7 +189,7 @@ public class TypeCheckTest {
     public void orWrongArg() {
         Signature sig = Signature.empty()
             .withTypes(A, B)
-            .withConstants(x.of(A), y.of(Type.Bool))
+            .withConstants(x.of(A), y.of(Type.Bool()))
             .withFunctionDeclarations(f);
         Term arg1 = Term.mkApp("f", x);
         Term arg2 = y;
@@ -201,7 +201,7 @@ public class TypeCheckTest {
     public void impWrongArg() {
         Signature sig = Signature.empty()
             .withTypes(A, B)
-            .withConstants(x.of(A), y.of(Type.Bool))
+            .withConstants(x.of(A), y.of(Type.Bool()))
             .withFunctionDeclarations(f);
         Term arg1 = Term.mkApp("f", x);
         Term arg2 = y;
@@ -222,10 +222,10 @@ public class TypeCheckTest {
         Term eq1 = Term.mkEq(arg1, arg2);
         Term eq2 = Term.mkEq(arg1, arg3);
         Term eq3 = Term.mkEq(arg2, arg3);
-        assertEquals(Type.Bool, distinct.typeCheck(sig).type);
-        assertEquals(Type.Bool, eq1.typeCheck(sig).type);
-        assertEquals(Type.Bool, eq2.typeCheck(sig).type);
-        assertEquals(Type.Bool, eq3.typeCheck(sig).type);
+        assertEquals(Type.Bool(), distinct.typeCheck(sig).type);
+        assertEquals(Type.Bool(), eq1.typeCheck(sig).type);
+        assertEquals(Type.Bool(), eq2.typeCheck(sig).type);
+        assertEquals(Type.Bool(), eq3.typeCheck(sig).type);
     }
     
     @Test(expected = fortress.data.TypeCheckException.WrongArgType.class)
@@ -274,8 +274,8 @@ public class TypeCheckTest {
             .withTypes()
             .withConstants()
             .withFunctionDeclarations();
-        assertEquals(Type.Bool, Term.mkTop().typeCheck(sig).type);
-        assertEquals(Type.Bool, Term.mkBottom().typeCheck(sig).type);
+        assertEquals(Type.Bool(), Term.mkTop().typeCheck(sig).type);
+        assertEquals(Type.Bool(), Term.mkBottom().typeCheck(sig).type);
         
     }
     
@@ -286,7 +286,7 @@ public class TypeCheckTest {
             .withConstants(x.of(A))
             .withFunctionDeclarations(P);
         Term not = Term.mkNot(Term.mkApp("P", x));
-        assertEquals(Type.Bool, not.typeCheck(sig).type);
+        assertEquals(Type.Bool(), not.typeCheck(sig).type);
     }
     
     @Test(expected = fortress.data.TypeCheckException.WrongArgType.class)
@@ -307,8 +307,8 @@ public class TypeCheckTest {
             .withFunctionDeclarations(P, Q);
         Term forall = Term.mkForall(x.of(A), Term.mkApp("P", x));
         Term exists = Term.mkExists(y.of(B), Term.mkApp("Q", y));
-        assertEquals(Type.Bool, forall.typeCheck(sig).type);
-        assertEquals(Type.Bool, exists.typeCheck(sig).type);
+        assertEquals(Type.Bool(), forall.typeCheck(sig).type);
+        assertEquals(Type.Bool(), exists.typeCheck(sig).type);
     }
     
     @Test(expected = fortress.data.TypeCheckException.WrongArgType.class)
@@ -329,8 +329,8 @@ public class TypeCheckTest {
             .withFunctionDeclarations(P, Q);
         Term forall = Term.mkForall(x.of(A), Term.mkApp("P", x));
         Term exists = Term.mkExists(y.of(B), Term.mkApp("Q", y));
-        assertEquals(Type.Bool, forall.typeCheck(sig).type);
-        assertEquals(Type.Bool, exists.typeCheck(sig).type);
+        assertEquals(Type.Bool(), forall.typeCheck(sig).type);
+        assertEquals(Type.Bool(), exists.typeCheck(sig).type);
     }
     
     @Test(expected = fortress.data.TypeCheckException.UndeterminedType.class)
@@ -396,7 +396,7 @@ public class TypeCheckTest {
             Term.mkApp("P", x)
         );
         
-        assertEquals(Type.Bool, t.typeCheck(sig).type);
+        assertEquals(Type.Bool(), t.typeCheck(sig).type);
     }
     
     // Former bug
@@ -435,7 +435,7 @@ public class TypeCheckTest {
             .withConstants()
             .withFunctionDeclarations(P);
         Var xp = Term.mkVar("P"); // name clashes with function name
-        Term t = Term.mkForall(xp.of(Type.Bool), xp);
+        Term t = Term.mkForall(xp.of(Type.Bool()), xp);
         t.typeCheck(sig);
     }
     
@@ -446,7 +446,7 @@ public class TypeCheckTest {
             .withConstants()
             .withFunctionDeclarations(P);
         Var xp = Term.mkVar("A"); // name clashes with type name
-        Term t = Term.mkForall(xp.of(Type.Bool), xp);
+        Term t = Term.mkForall(xp.of(Type.Bool()), xp);
         t.typeCheck(sig);
     }
     

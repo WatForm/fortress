@@ -54,7 +54,7 @@ public class TptpToFortress extends FOFTPTPBaseVisitor {
         
         // Add prime propositions as Bool constants
         for(Var p : primePropositions) {
-            theory = theory.withConstant(p.of(Type.Bool));
+            theory = theory.withConstant(p.of(Type.Bool()));
         }
         
         // Add free variables that are not prime propositions as constants of
@@ -177,7 +177,7 @@ public class TptpToFortress extends FOFTPTPBaseVisitor {
         }
         
         // Remember what function signature we encountered
-        FuncDecl p = FuncDecl.mkFuncDecl(name, argTypes, Type.Bool);
+        FuncDecl p = FuncDecl.mkFuncDecl(name, argTypes, Type.Bool());
         functionDeclarations.add(p);
         
         return Term.mkApp(name, arguments);

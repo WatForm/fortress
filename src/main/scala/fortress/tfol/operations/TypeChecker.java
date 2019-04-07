@@ -37,13 +37,13 @@ public class TypeChecker {
     
         @Override
         public TypeCheckResult visitTop(Top top) {
-            return new TypeCheckResult(top, Type.Bool,
+            return new TypeCheckResult(top, Type.Bool(),
                 /* containsConnectives */ false, /* containsQuantifiers */ false);
         }
         
         @Override
         public TypeCheckResult visitBottom(Bottom bottom) {
-            return new TypeCheckResult(bottom, Type.Bool,
+            return new TypeCheckResult(bottom, Type.Bool(),
                 /* containsConnectives */ false, /* containsQuantifiers */ false);
         }
         
@@ -76,8 +76,8 @@ public class TypeChecker {
             TypeCheckResult bodyResult = visit(not.getBody());
             Term newBody = bodyResult.term;
             Type bodyType = bodyResult.type;
-            if(bodyType.equals(Type.Bool)) {
-                return new TypeCheckResult(Term.mkNot(newBody), Type.Bool,
+            if(bodyType.equals(Type.Bool())) {
+                return new TypeCheckResult(Term.mkNot(newBody), Type.Bool(),
                     /* containsConnectives */ true, /* containsQuantifiers */ bodyResult.containsQuantifiers);
             } else {
                 throw new TypeCheckException.WrongArgType("Argument of negation is of type " + bodyType.getName() + " in " + not.toString());
@@ -88,13 +88,13 @@ public class TypeChecker {
         public TypeCheckResult visitAndList(AndList andList) {
             ImmutableList<TypeCheckResult> results = andList.getArguments().map(this::visit);
             for(TypeCheckResult r : results) {
-                if(! r.type.equals(Type.Bool)) {
+                if(! r.type.equals(Type.Bool())) {
                     throw new TypeCheckException.WrongArgType("Expected type Bool but was " + r.type.getName() + " in " + andList.toString());
                 }
             }
             ImmutableList<Term> newArguments = results.map(r -> r.term);
             boolean containsQuantifiers = results.stream().anyMatch((TypeCheckResult r) -> r.containsQuantifiers);
-            return new TypeCheckResult(Term.mkAndF(newArguments), Type.Bool,
+            return new TypeCheckResult(Term.mkAndF(newArguments), Type.Bool(),
                 /* containsConnectives */ true, /* containsQuantifiers*/ containsQuantifiers);
         }
         
@@ -102,13 +102,13 @@ public class TypeChecker {
         public TypeCheckResult visitOrList(OrList orList) {
             ImmutableList<TypeCheckResult> results = orList.getArguments().map(this::visit);
             for(TypeCheckResult r : results) {
-                if(! r.type.equals(Type.Bool)) {
+                if(! r.type.equals(Type.Bool())) {
                     throw new TypeCheckException.WrongArgType("Expected type Bool but was " + r.type.getName() + " in " + orList.toString());
                 }
             }
             ImmutableList<Term> newArguments = results.map(r -> r.term);
             boolean containsQuantifiers = results.stream().anyMatch((TypeCheckResult r) -> r.containsQuantifiers);
-            return new TypeCheckResult(Term.mkOrF(newArguments), Type.Bool,
+            return new TypeCheckResult(Term.mkOrF(newArguments), Type.Bool(),
                 /* containsConnectives */ true, /* containsQuantifiers*/ containsQuantifiers);
         }
         
@@ -127,7 +127,7 @@ public class TypeChecker {
             
             ImmutableList<Term> newArguments = results.map(r -> r.term);
             boolean containsQuantifiers = results.stream().anyMatch((TypeCheckResult r) -> r.containsQuantifiers);
-            return new TypeCheckResult(Term.mkDistinctF(newArguments), Type.Bool,
+            return new TypeCheckResult(Term.mkDistinctF(newArguments), Type.Bool(),
                 /* containsConnectives */ true, /* containsQuantifiers*/ containsQuantifiers);
         }
         
@@ -135,28 +135,28 @@ public class TypeChecker {
         public TypeCheckResult visitImplication(Implication imp) {
             TypeCheckResult leftResult = visit(imp.getLeft());
             TypeCheckResult rightResult = visit(imp.getRight());
-            if(! leftResult.type.equals(Type.Bool)) {
+            if(! leftResult.type.equals(Type.Bool())) {
                 throw new TypeCheckException.WrongArgType("Expected type Bool but was " + leftResult.type.getName() + " in " + imp.toString() );
             }
-            if(! rightResult.type.equals(Type.Bool)) {
+            if(! rightResult.type.equals(Type.Bool())) {
                 throw new TypeCheckException.WrongArgType("Expected type Bool but was " + rightResult.type.getName() + " in " + imp.toString() );
             }
             boolean containsQuantifiers = leftResult.containsQuantifiers || rightResult.containsQuantifiers;
-            return new TypeCheckResult(Term.mkImp(leftResult.term, rightResult.term), Type.Bool,
+            return new TypeCheckResult(Term.mkImp(leftResult.term, rightResult.term), Type.Bool(),
                 /* containsConnectives */ true, /* containsQuantifiers*/ containsQuantifiers);
         }
         @Override
         public TypeCheckResult visitIff(Iff iff) {
             TypeCheckResult leftResult = visit(iff.getLeft());
             TypeCheckResult rightResult = visit(iff.getRight());
-            if(! leftResult.type.equals(Type.Bool)) {
+            if(! leftResult.type.equals(Type.Bool())) {
                 throw new TypeCheckException.WrongArgType("Expected type Bool but was " + leftResult.type.getName() + " in " + iff.toString() );
             }
-            if(! rightResult.type.equals(Type.Bool)) {
+            if(! rightResult.type.equals(Type.Bool())) {
                 throw new TypeCheckException.WrongArgType("Expected type Bool but was " + rightResult.type.getName() + " in " + iff.toString() );
             }
             boolean containsQuantifiers = leftResult.containsQuantifiers || rightResult.containsQuantifiers;
-            return new TypeCheckResult(Term.mkIff(leftResult.term, rightResult.term), Type.Bool,
+            return new TypeCheckResult(Term.mkIff(leftResult.term, rightResult.term), Type.Bool(),
                 /* containsConnectives */ true, /* containsQuantifiers*/ containsQuantifiers);
         }
         
@@ -172,11 +172,11 @@ public class TypeChecker {
             }
             boolean containsQuantifiers = leftResult.containsQuantifiers || rightResult.containsQuantifiers;
             // Replaces (Bool) = (Bool) with Iff
-            if(leftResult.type.equals(Type.Bool)) {
-                return new TypeCheckResult(Term.mkIff(leftResult.term, rightResult.term), Type.Bool,
+            if(leftResult.type.equals(Type.Bool())) {
+                return new TypeCheckResult(Term.mkIff(leftResult.term, rightResult.term), Type.Bool(),
                     /* containsConnectives */ true, /* containsQuantifiers*/ containsQuantifiers);
             } else {
-                return new TypeCheckResult(Term.mkEq(leftResult.term, rightResult.term), Type.Bool,
+                return new TypeCheckResult(Term.mkEq(leftResult.term, rightResult.term), Type.Bool(),
                     /* containsConnectives */ true, /* containsQuantifiers*/ containsQuantifiers);
             }
         }
@@ -245,8 +245,8 @@ public class TypeChecker {
             }
             
             TypeCheckResult bodyResult = visit(exists.getBody());
-            if(bodyResult.type.equals(Type.Bool)) {
-                return new TypeCheckResult(Term.mkExists(exists.getVars(), bodyResult.term), Type.Bool,
+            if(bodyResult.type.equals(Type.Bool())) {
+                return new TypeCheckResult(Term.mkExists(exists.getVars(), bodyResult.term), Type.Bool(),
                     /* containsConnective */ bodyResult.containsConnectives, /* containsQuantifiers */ true);
             } else {
                 throw new TypeCheckException.WrongArgType("Expected Bool but was " + bodyResult.type.toString() + " in " + exists.toString());
@@ -267,8 +267,8 @@ public class TypeChecker {
             }
             
             TypeCheckResult bodyResult = visit(forall.getBody());
-            if(bodyResult.type.equals(Type.Bool)) {
-                return new TypeCheckResult(Term.mkForall(forall.getVars(), bodyResult.term), Type.Bool,
+            if(bodyResult.type.equals(Type.Bool())) {
+                return new TypeCheckResult(Term.mkForall(forall.getVars(), bodyResult.term), Type.Bool(),
                     /* containsConnective */ bodyResult.containsConnectives, /* containsQuantifiers */ true);
             } else {
                 throw new TypeCheckException.WrongArgType("Expected Bool but was " + bodyResult.type.toString() + " in " + forall.toString());

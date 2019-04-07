@@ -29,7 +29,7 @@ public class GroundRangeFormulaTransformer implements TheoryTransformer {
     
     public GroundRangeFormulaTransformer(Map<Type, Integer> scopes) {
         Errors.precondition(allPositiveEntries(scopes), "All scopes must be positive");
-        Errors.precondition(! scopes.keySet().contains(Type.Bool), "Bool may not be given a scope");
+        Errors.precondition(! scopes.keySet().contains(Type.Bool()), "Bool may not be given a scope");
         this.scopes = new HashMap<>(scopes); // Copy
     }
     
@@ -111,7 +111,7 @@ public class GroundRangeFormulaTransformer implements TheoryTransformer {
             Var c = av.getVar();
             
             // Skip boolean variables
-            if(type.equals(Type.Bool)) {
+            if(type.equals(Type.Bool())) {
                 continue;
             }
             // Skip if type is not given a scope
@@ -140,7 +140,7 @@ public class GroundRangeFormulaTransformer implements TheoryTransformer {
         // Generate range constraints for functions, without symmetry breaking
         for(FuncDecl f : theory.getFunctionDeclarations()) {
             // Skip predicates
-            if(f.getResultType().equals(Type.Bool)) {
+            if(f.getResultType().equals(Type.Bool())) {
                 continue;
             }
             

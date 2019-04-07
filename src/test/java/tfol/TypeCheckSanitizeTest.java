@@ -21,7 +21,7 @@ public class TypeCheckSanitizeTest {
         Signature sig = Signature.empty()
             .withType(A)
             .withConstant(x.of(A))
-            .withConstant(p.of(Type.Bool));
+            .withConstant(p.of(Type.Bool()));
             
         Term t = Term.mkAnd(
             Term.mkEq(x, x),
@@ -34,7 +34,7 @@ public class TypeCheckSanitizeTest {
         );
         
         TypeCheckResult result = t.typeCheck(sig);
-        assertEquals(Type.Bool, result.type);
+        assertEquals(Type.Bool(), result.type);
         assertEquals(expected, result.term);
     }
 }

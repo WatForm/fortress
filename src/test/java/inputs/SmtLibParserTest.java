@@ -70,7 +70,7 @@ public class SmtLibParserTest {
         expectedTheory = expectedTheory.withConstant(x.of(A));
         expectedTheory = expectedTheory.withConstant(y.of(B));
         
-        FuncDecl p = FuncDecl.mkFuncDecl("p", A, B, Type.Bool);
+        FuncDecl p = FuncDecl.mkFuncDecl("p", A, B, Type.Bool());
         expectedTheory = expectedTheory.withFunctionDeclaration(p);
         
         expectedTheory = expectedTheory.withAxiom(Term.mkApp("p", x, y));
@@ -80,7 +80,7 @@ public class SmtLibParserTest {
         expectedTheory = expectedTheory.withAxiom(Term.mkExists(x.of(A), Term.mkTop()));
         
         Var q = Term.mkVar("q");
-        expectedTheory = expectedTheory.withConstant(q.of(Type.Bool));
+        expectedTheory = expectedTheory.withConstant(q.of(Type.Bool()));
         
         expectedTheory = expectedTheory.withAxiom(Term.mkOr(q, Term.mkNot(q)));
         
@@ -126,7 +126,7 @@ public class SmtLibParserTest {
         Theory resultTheory = parser.parse(fileStream);
         
         Type V = Type.mkTypeConst("V");
-        FuncDecl adj = FuncDecl.mkFuncDecl("adj", V, V, Type.Bool);
+        FuncDecl adj = FuncDecl.mkFuncDecl("adj", V, V, Type.Bool());
         
         Var u = Term.mkVar("u");
         Var v = Term.mkVar("v");

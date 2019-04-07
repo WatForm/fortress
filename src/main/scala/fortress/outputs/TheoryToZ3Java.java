@@ -39,10 +39,10 @@ public class TheoryToZ3Java {
     
     public Pair<Context, Solver> convert() {
         // Put in sort conversions
-        sortConversions.put(Type.Bool, context.getBoolSort());
+        sortConversions.put(Type.Bool(), context.getBoolSort());
         for(Type t : theory.getTypes()) {
             // TODO more elegant handling of built-in types
-            if(!t.equals(Type.Bool)) {
+            if(!t.equals(Type.Bool())) {
                 Sort s = context.mkUninterpretedSort(t.getName());
                 sortConversions.put(t, s);
             }

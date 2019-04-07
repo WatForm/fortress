@@ -23,11 +23,11 @@ public class ModelFinderTest {
     static Var p = Term.mkVar("p");
     
     static Theory simpleSatTheory = Theory.empty()
-        .withConstant(p.of(Type.Bool))
+        .withConstant(p.of(Type.Bool()))
         .withAxiom(mkAnd(p, p));
         
     static Theory simpleUnsatTheory = Theory.empty()
-        .withConstant(p.of(Type.Bool))
+        .withConstant(p.of(Type.Bool()))
         .withAxiom(mkAnd(p, mkNot(p)));
     
     static ModelFinder modelFinder = new ModelFinder(
