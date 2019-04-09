@@ -3,7 +3,7 @@ package fortress.tfol
 import fortress.util.Errors
 
 /** Represents a type, sometimes called a sort. */
-case class Type(name: String) {
+case class Type private (name: String) {
     Errors.precondition(name.length > 0, "Cannot create type with empty name");
     Errors.precondition(! Names.isIllegal(name), "Illegal type name " + name);
     

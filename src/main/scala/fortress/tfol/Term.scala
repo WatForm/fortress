@@ -42,10 +42,7 @@ sealed abstract class Term {
     /** Returns the negation normal form version of this term.
       * The term must be sanitized to call this method.
       */
-    def nnf(sig: Signature): Term = {
-        val nnf: NnfVisitor = new NnfVisitor(sig);
-        nnf.visit(this)
-    }
+    def nnf: Term = new NnfVisitor().visit(this)
     
     /** Returns an SExpr representing this term as it would appear in SMT-LIB. */
     def toSmtExpr: SExpr = new SmtExprVisitor().visit(this)
@@ -77,7 +74,7 @@ sealed abstract class Term {
     def recklessUnivInstantiate(typeInstantiations: java.util.Map[Type, java.util.List[Var]]): Term =
         new RecklessUnivInstantiationVisitor(typeInstantiations).visit(this)
     
-    def simplify: Term = new SimplifyVisitor().visit(this)
+    def simplify: Term = Simplifier(this)
     
     /** Returns the set of all symbol names used in the term, including:
       * free variables and constants, bound variables (even those that aren't used),
@@ -216,6 +213,7 @@ case class Eq(left: Term, right: Term) extends Term {
 
 /** Represents a function or predicate application. */
 case class App(functionName: String, arguments: Seq[Term]) extends Term {
+    Errors.precondition(functionName.length >= 1, "Empty function name")
     Errors.precondition(arguments.size >= 1, "Nullary function application " + functionName + " should be a Var")
     
     def getArguments: fortress.data.ImmutableList[Term] = Conversions.toFortressList(arguments)

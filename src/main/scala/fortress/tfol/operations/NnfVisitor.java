@@ -15,11 +15,9 @@ import fortress.data.ImmutableList;
 // TODO check out the linear time NNF from Harrison's Exercise 2.7
 public class NnfVisitor implements TermVisitor<Term> {
     
-    private Signature signature;
     private OnceNegatedVisitor onceNegated;
     
-    public NnfVisitor(Signature sig) {
-        this.signature = sig;
+    public NnfVisitor() {
         this.onceNegated = new OnceNegatedVisitor(this);
     }
     

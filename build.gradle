@@ -12,7 +12,6 @@ repositories{
 dependencies {
     antlr "org.antlr:antlr4:4.7.2"
     compile "org.antlr:antlr4-runtime:4.7.2"
-    compile group: 'com.oath.cyclops', name: 'cyclops', version: '10.1.0'
     compile files('z3/com.microsoft.z3.jar')
     runtime files('z3/libz3java.dylib') // Required to run Z3's Java interface on MacOS
     runtime files('z3/libz3java.so') // Required to run Z3's Java interface on Ubuntu

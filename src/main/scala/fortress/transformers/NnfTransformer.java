@@ -14,7 +14,7 @@ public class NnfTransformer implements TheoryTransformer {
         Theory result = Theory.mkTheoryWithSignature(sig);
         
         for(Term axiom : theory.getAxioms()) {
-            Term axiomPrime = axiom.nnf(sig);
+            Term axiomPrime = axiom.nnf();
             result = result.withAxiom(axiomPrime);
         }
         
