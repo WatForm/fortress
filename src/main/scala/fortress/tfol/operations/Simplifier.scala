@@ -63,12 +63,13 @@ object Simplifier {
             case OrList(args) => simplify1(OrList(args.map(simplify)))
             case Implication(left, right) => simplify1(Implication(simplify(left), simplify(right)))
             case Iff(left, right) => simplify1(Iff(simplify(left), simplify(right)))
-            case Eq(left, right) => simplify1(Eq(simplify(left), simplify(right)))
-            case App(fname, args) => simplify1(App(fname, args.map(simplify)))
             case Distinct(args) => simplify1(Distinct(args.map(simplify)))
             case Exists(vars, body) => simplify1(Exists(vars, simplify(body)))
             case Forall(vars, body) => simplify1(Forall(vars, simplify(body)))
-            case _ => term
+            // We consider applications and equals to be atomic and have non-Boolean arguments
+            // so we need not recurse on their arguments
+            case Eq(_, _) | App(_, _) | TC(_, _, _) => simplify1(term)
+            case Top() | Bottom() | Var(_) | DomainElement(_, _) => term
         }
         
         simplify(term)

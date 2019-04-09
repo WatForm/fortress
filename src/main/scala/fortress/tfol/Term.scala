@@ -423,6 +423,8 @@ object Term {
     /** Returns a term representing the bi-equivalence "t1 iff t2". */
     def mkIff(t1: Term, t2: Term): Term = Iff(t1, t2)
     
+    def mkTC(relationName: String, arg1: Term, arg2: Term): Term = TC(relationName, arg1, arg2)
+    
     // TODO need to update these for efficiency
     
     /** Internal method to make AndLists without needing to copy the argument list. */
