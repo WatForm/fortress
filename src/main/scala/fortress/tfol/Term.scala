@@ -269,7 +269,9 @@ case class DomainElement(index: Int, sort: Type) extends Term {
     
     def getIndex: Int = index
     def getType: Type = sort
-    override def accept[T](visitor: TermVisitor[T]): T = ???
+    override def accept[T](visitor: TermVisitor[T]): T = visitor.visitDomainElement(this)
+    
+    val asSmtConstant = Var("@" + index.toString + sort.toString)
 }
 
 /** Represents an application/membership test of the transitive closure of a predicate/relation.*/
@@ -279,7 +281,7 @@ case class TC(relationName: String, arg1: Term, arg2: Term) extends Term {
     def getRelationName: String = relationName
     def getArg1: Term = arg1
     def getArg2: Term = arg2
-    override def accept[T](visitor: TermVisitor[T]): T = ???
+    override def accept[T](visitor: TermVisitor[T]): T = visitor.visitTC(this)
     def mapBody(mapping: Term => Term) = TC(relationName, mapping(arg2), mapping(arg2))
     
 }

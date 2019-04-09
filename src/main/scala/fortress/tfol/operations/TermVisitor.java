@@ -10,6 +10,7 @@ public interface TermVisitor<T> {
     public T visitTop(Top top);
     public T visitBottom(Bottom bottom);
     public T visitVar(Var var);
+    public T visitDomainElement(DomainElement d);
     public T visitNot(Not not);
     public T visitAndList(AndList and);
     public T visitOrList(OrList or);
@@ -20,4 +21,5 @@ public interface TermVisitor<T> {
     public T visitApp(App app);
     public T visitExists(Exists exists);
     public T visitForall(Forall forall);
+    public T visitTC(TC tc);
 }

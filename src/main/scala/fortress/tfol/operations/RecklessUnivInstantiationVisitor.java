@@ -118,4 +118,14 @@ public class RecklessUnivInstantiationVisitor implements TermVisitor<Term> {
         }
         return Term.mkAnd(toConjunct);
     }
+    
+    @Override
+    public Term visitDomainElement(DomainElement d) {
+        return fortress.util.Errors.<Term>notImplemented();
+    }
+    
+    @Override
+    public Term visitTC(TC tc) {
+        return fortress.util.Errors.<Term>notImplemented();
+    }
 }

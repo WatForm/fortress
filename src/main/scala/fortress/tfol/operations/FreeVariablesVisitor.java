@@ -91,4 +91,14 @@ public class FreeVariablesVisitor implements TermVisitor<Set<Var>> {
         return visitQuantifier(term);
     }
     
+    @Override
+    public Set<Var> visitDomainElement(DomainElement d) {
+        return fortress.util.Errors.<Set<Var>>notImplemented();
+    }
+    
+    @Override
+    public Set<Var> visitTC(TC tc) {
+        return fortress.util.Errors.<Set<Var>>notImplemented();
+    }
+    
 }

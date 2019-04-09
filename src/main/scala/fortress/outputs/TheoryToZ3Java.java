@@ -232,5 +232,15 @@ public class TheoryToZ3Java {
                 null // No symbol to track skolem constants
             );
         }
+        
+        @Override
+        public Expr visitDomainElement(DomainElement d) {
+            return fortress.util.Errors.<Expr>notImplemented();
+        }
+        
+        @Override
+        public Expr visitTC(TC tc) {
+            return fortress.util.Errors.<Expr>notImplemented();
+        }
     }
 }

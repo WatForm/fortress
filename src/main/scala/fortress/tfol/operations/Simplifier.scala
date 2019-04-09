@@ -32,6 +32,7 @@ object Simplifier {
             case Iff(Top(), p) => p
             case Iff(p, Bottom()) => Not(p)
             case Iff(Bottom(), p) => Not(p)
+            case Eq(d1 @ DomainElement(_, _), d2 @ DomainElement(_, _)) => if (d1 == d2) Top() else Bottom()
             case Eq(left, right) => if (left == right) Top() else term
             // Note that we don't need a signature to check below whether the free
             // free variable is really or a constant. We just want to check if

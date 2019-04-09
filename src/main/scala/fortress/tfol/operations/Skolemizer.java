@@ -167,5 +167,15 @@ public class Skolemizer {
         public Term visitForallInner(Forall forall) {
             return Term.mkForall(forall.getVars(), visit(forall.getBody()));
         }
+        
+        @Override
+        public Term visitDomainElement(DomainElement d) {
+            return fortress.util.Errors.<Term>notImplemented();
+        }
+        
+        @Override
+        public Term visitTC(TC tc) {
+            return fortress.util.Errors.<Term>notImplemented();
+        }
     }
 }

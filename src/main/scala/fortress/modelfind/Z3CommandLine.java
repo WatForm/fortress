@@ -18,41 +18,42 @@ public class Z3CommandLine implements SolverStrategy {
     }
     
     public ModelFinder.Result solve(Theory theory, int timeout, Writer log) throws IOException {
-        // TODO need more robust error handling
-        try {
-            File tempOutputFile = File.createTempFile("fortress", ".smt");
-            BufferedWriter writer = new BufferedWriter(new FileWriter(tempOutputFile));
-            writeSmtLib(theory, writer);
-            writer.flush();
-            writer.close();
-        
-            String command = "z3 -smt2 -memory:2500 -T:2000 ";
-            Process process = Runtime.getRuntime().exec(command + tempOutputFile.getAbsolutePath());
-            BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
-            if(null == reader) {
-                throw new IOException();
-            }
-            String firstLine = reader.readLine();
-            if(firstLine == null) {
-                throw new IOException();
-            }
-            ModelFinder.Result result;
-            if (firstLine.equals("sat")) {
-                result = ModelFinder.Result.SAT;
-            } else if (firstLine.equals("unsat")){
-                result = ModelFinder.Result.UNSAT;
-            } else {
-                result = ModelFinder.Result.ERROR;
-            }
-            process.waitFor();
-            process.destroy();
-        
-            return result;
-        } catch(IOException e) {
-            return ModelFinder.Result.ERROR;
-        } catch(InterruptedException e) {
-            return ModelFinder.Result.ERROR;
-        }
+        return Errors.<ModelFinder.Result>notImplemented();
+        // // TODO need more robust error handling
+        // try {
+        //     File tempOutputFile = File.createTempFile("fortress", ".smt");
+        //     BufferedWriter writer = new BufferedWriter(new FileWriter(tempOutputFile));
+        //     writeSmtLib(theory, writer);
+        //     writer.flush();
+        //     writer.close();
+        // 
+        //     String command = "z3 -smt2 -memory:2500 -T:2000 ";
+        //     Process process = Runtime.getRuntime().exec(command + tempOutputFile.getAbsolutePath());
+        //     BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
+        //     if(null == reader) {
+        //         throw new IOException();
+        //     }
+        //     String firstLine = reader.readLine();
+        //     if(firstLine == null) {
+        //         throw new IOException();
+        //     }
+        //     ModelFinder.Result result;
+        //     if (firstLine.equals("sat")) {
+        //         result = ModelFinder.Result.SAT;
+        //     } else if (firstLine.equals("unsat")){
+        //         result = ModelFinder.Result.UNSAT;
+        //     } else {
+        //         result = ModelFinder.Result.ERROR;
+        //     }
+        //     process.waitFor();
+        //     process.destroy();
+        // 
+        //     return result;
+        // } catch(IOException e) {
+        //     return ModelFinder.Result.ERROR;
+        // } catch(InterruptedException e) {
+        //     return ModelFinder.Result.ERROR;
+        // }
     }
     
     public static void writeSmtLib(Theory theory, BufferedWriter writer) throws IOException {

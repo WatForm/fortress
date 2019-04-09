@@ -99,4 +99,14 @@ public class AllSymbolsVisitor implements TermVisitor<Set<String>> {
         return visitQuantifier(term);
     }
     
+    @Override
+    public Set<String> visitDomainElement(DomainElement d) {
+        return fortress.util.Errors.<Set<String>>notImplemented();
+    }
+    
+    @Override
+    public Set<String> visitTC(TC tc) {
+        return fortress.util.Errors.<Set<String>>notImplemented();
+    }
+    
 }

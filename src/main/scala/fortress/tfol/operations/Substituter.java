@@ -172,7 +172,7 @@ public class Substituter {
         }
         
         @Override
-        public Term visitForall(Forall forall){
+        public Term visitForall(Forall forall) {
             // Substitute x->t in (forall x . phi) equals (forall x . phi)
             for(AnnotatedVar av : forall.getVars()) {
                 if(av.getVar().equals(toSub)) {
@@ -196,6 +196,16 @@ public class Substituter {
             Term finalBody = visit(newBody);
             
             return Term.mkForall(newVars, finalBody);
+        }
+        
+        @Override
+        public Term visitDomainElement(DomainElement d) {
+            return fortress.util.Errors.<Term>notImplemented();
+        }
+        
+        @Override
+        public Term visitTC(TC tc) {
+            return fortress.util.Errors.<Term>notImplemented();
         }
     }
     

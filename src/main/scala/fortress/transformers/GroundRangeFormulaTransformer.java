@@ -17,12 +17,13 @@ import fortress.data.CartesianProduct;
 import fortress.util.Errors;
 
 /**
-* @publish
-* A transformation that instantiates universal quantifiers and adds finite range formulas.
+* Instantiates universal quantifiers and adds finite range formulas.
 * The theory must not contain any existential quantifiers (e.g. it is Skolemized).
-* This transformation is parameterized by a mapping from types to sizes, called scopes.
+* This transformation is parameterized by scopes mapping types to sizes.
 * The resulting theory will be satisfiable if and only if the original theory
 * has a satisfying model that respects these scopes.
+* Equivalent to applying the DomainInstantiation, RangeFormula, and
+* DomainElimination transformers in that order.
 */
 public class GroundRangeFormulaTransformer implements TheoryTransformer {
     private Map<Type, Integer> scopes;

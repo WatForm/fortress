@@ -116,4 +116,14 @@ public class RecklessSubstitutionVisitor implements TermVisitor<Term> {
         return visitQuantifier(forall);
     }
     
+    @Override
+    public Term visitDomainElement(DomainElement d) {
+        return fortress.util.Errors.<Term>notImplemented();
+    }
+    
+    @Override
+    public Term visitTC(TC tc) {
+        return fortress.util.Errors.<Term>notImplemented();
+    }
+    
 }

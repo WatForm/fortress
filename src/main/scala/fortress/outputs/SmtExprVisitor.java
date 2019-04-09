@@ -136,4 +136,14 @@ public class SmtExprVisitor implements TermVisitor<SExpr> {
         );
     }
     
+    @Override
+    public SExpr visitDomainElement(DomainElement d) {
+        return fortress.util.Errors.<SExpr>notImplemented();
+    }
+    
+    @Override
+    public SExpr visitTC(TC tc) {
+        return fortress.util.Errors.<SExpr>notImplemented();
+    }
+    
 }

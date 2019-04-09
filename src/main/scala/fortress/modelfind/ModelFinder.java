@@ -128,6 +128,10 @@ public class ModelFinder {
         return r;
     }
     
+    public FiniteModel getModel() {
+        return Errors.<FiniteModel>notImplemented();
+    }
+    
     // Temporary method -- will be changed
     public String getStringModel() {
        return solverStrategy.getStringModel(); 

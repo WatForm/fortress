@@ -83,4 +83,8 @@ public class Errors {
     public static void assertUnreachable() {
         assertion(false, "Code should be unreachable");
     }
+    
+    public static <T> T notImplemented() {
+        throw new scala.NotImplementedError();
+    }
 }

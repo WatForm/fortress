@@ -274,6 +274,16 @@ public class TypeChecker {
                 throw new TypeCheckException.WrongArgType("Expected Bool but was " + bodyResult.type.toString() + " in " + forall.toString());
             }
         }
+        
+        @Override
+        public TypeCheckResult visitDomainElement(DomainElement d) {
+            return fortress.util.Errors.<TypeCheckResult>notImplemented();
+        }
+        
+        @Override
+        public TypeCheckResult visitTC(TC tc) {
+            return fortress.util.Errors.<TypeCheckResult>notImplemented();
+        }
     
     }
     

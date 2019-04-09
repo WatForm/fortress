@@ -2,6 +2,9 @@ package fortress.transformers;
 
 import fortress.tfol.*;
 
+/** 
+* Attempts to simplify the formulas in a theory, replacing them with equivalent formulas.
+*/
 public class SimplifyTransformer implements TheoryTransformer {
     @Override
     public Theory apply(Theory theory) {
