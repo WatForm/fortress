@@ -42,7 +42,7 @@ sealed abstract class Term {
     /** Returns the negation normal form version of this term.
       * The term must be sanitized to call this method.
       */
-    def nnf: Term = new NnfVisitor().visit(this)
+    def nnf: Term = NegationNormalizer(this)
     
     /** Returns an SExpr representing this term as it would appear in SMT-LIB. */
     def toSmtExpr: SExpr = new SmtExprVisitor().visit(this)
@@ -133,8 +133,7 @@ case class AnnotatedVar(variable: Var, sort: Type) {
 case class Not(body: Term) extends Term {
     def getBody: Term = body
     override def accept[T](visitor: TermVisitor[T]): T = visitor.visitNot(this)
-    def mapBody(mapping: Term => Term): Term =
-        Not(mapping.apply(body))
+    def mapBody(mapping: Term => Term): Term = Not(mapping(body))
 }
 
 /** Represents a conjunction. */
@@ -144,7 +143,11 @@ case class AndList(arguments: Seq[Term]) extends Term {
     def getArguments: fortress.data.ImmutableList[Term] = Conversions.toFortressList(arguments)
     override def accept[T](visitor: TermVisitor[T]): T = visitor.visitAndList(this)
     def mapArguments(mapping: Term => Term): Term =
-        AndList(arguments.map(arg => mapping.apply(arg)))
+        AndList(arguments.map(mapping))
+}
+
+object AndList {
+    def apply(arg1: Term, arg2: Term): Term = AndList(Seq(arg1, arg2))
 }
 
 /** Represents a disjunction. */
@@ -154,7 +157,11 @@ case class OrList(arguments: Seq[Term]) extends Term {
     def getArguments: fortress.data.ImmutableList[Term] = Conversions.toFortressList(arguments)
     override def accept[T](visitor: TermVisitor[T]): T = visitor.visitOrList(this)
     def mapArguments(mapping: Term => Term): Term =
-        OrList(arguments.map(arg => mapping.apply(arg)))
+        OrList(arguments.map(mapping))
+}
+
+object OrList {
+    def apply(arg1: Term, arg2: Term): Term = OrList(Seq(arg1, arg2))
 }
 
 /** Represents a formula signifying whether its arguments have distinct values. */
@@ -164,7 +171,7 @@ case class Distinct(arguments: Seq[Term]) extends Term {
     def getArguments: fortress.data.ImmutableList[Term] = Conversions.toFortressList(arguments)
     override def accept[T](visitor: TermVisitor[T]): T = visitor.visitDistinct(this)
     def mapArguments(mapping: Term => Term): Term =
-        Distinct(arguments.map(arg => mapping.apply(arg)))
+        Distinct(arguments.map(mapping))
     
     def asPairwiseNotEquals: Term = {
         // TODO update this to be scala code
@@ -190,7 +197,7 @@ case class Implication(left: Term, right: Term) extends Term {
     def getRight: Term = right
     override def accept[T](visitor: TermVisitor[T]): T = visitor.visitImplication(this)
     def mapArguments(mapping: Term => Term): Term =
-        Implication(mapping.apply(left), mapping.apply(right))
+        Implication(mapping(left), mapping(right))
 }
 
 /** Represents a bi-equivalence. */
@@ -199,7 +206,7 @@ case class Iff(left: Term, right: Term) extends Term {
     def getRight: Term = right
     override def accept[T](visitor: TermVisitor[T]): T = visitor.visitIff(this)
     def mapArguments(mapping: Term => Term): Term =
-        Iff(mapping.apply(left), mapping.apply(right))
+        Iff(mapping(left), mapping(right))
 }
 
 /** Represents an equality. */
@@ -208,7 +215,7 @@ case class Eq(left: Term, right: Term) extends Term {
     def getRight: Term = right
     override def accept[T](visitor: TermVisitor[T]): T = visitor.visitEq(this)
     def mapArguments(mapping: Term => Term): Term =
-        Eq(mapping.apply(left), mapping.apply(right))
+        Eq(mapping(left), mapping(right))
 }
 
 /** Represents a function or predicate application. */
@@ -220,10 +227,10 @@ case class App(functionName: String, arguments: Seq[Term]) extends Term {
     def getFunctionName: String = functionName
     override def accept[T](visitor: TermVisitor[T]): T  = visitor.visitApp(this)
     def mapArguments(mapping: Term => Term): Term =
-        App(functionName, arguments.map(arg => mapping.apply(arg)))
+        App(functionName, arguments.map(mapping))
 }
 
-abstract class Quantifier extends Term {
+sealed abstract class Quantifier extends Term {
     def getVars: fortress.data.ImmutableList[AnnotatedVar]
     def getBody: Term
     def mapBody(mapping: Term => Term): Term
@@ -238,8 +245,7 @@ case class Exists(vars: Seq[AnnotatedVar], body: Term) extends Quantifier {
     def getVars: fortress.data.ImmutableList[AnnotatedVar] = Conversions.toFortressList(vars)
     def getBody: Term = body
     override def accept[T](visitor: TermVisitor[T]): T = visitor.visitExists(this)
-    def mapBody(mapping: Term => Term): Term =
-        Exists(vars, mapping.apply(body))
+    def mapBody(mapping: Term => Term): Term = Exists(vars, mapping(body))
 }
 
 /** Represents a universally quantified Term. */
@@ -251,8 +257,31 @@ case class Forall(vars: Seq[AnnotatedVar], body: Term) extends Quantifier {
     def getVars: fortress.data.ImmutableList[AnnotatedVar] = Conversions.toFortressList(vars)
     def getBody: Term = body
     override def accept[T](visitor: TermVisitor[T]): T = visitor.visitForall(this)
-    def mapBody(mapping: Term => Term): Term =
-        Forall(vars, mapping.apply(body))
+    def mapBody(mapping: Term => Term): Term = Forall(vars, mapping(body))
+}
+
+/** Represents an indexed domain element.
+  * For example, DomainElement(2, A) represents the domain element at index 2
+  * for sort A, written as 2A.
+  * DomainElements are indexed starting with 1.*/
+case class DomainElement(index: Int, sort: Type) extends Term {
+    Errors.precondition(index >= 1)
+    
+    def getIndex: Int = index
+    def getType: Type = sort
+    override def accept[T](visitor: TermVisitor[T]): T = ???
+}
+
+/** Represents an application/membership test of the transitive closure of a predicate/relation.*/
+case class TC(relationName: String, arg1: Term, arg2: Term) extends Term {
+    Errors.precondition(relationName.length >= 1, "Empty relation name in transitive closure")
+    
+    def getRelationName: String = relationName
+    def getArg1: Term = arg1
+    def getArg2: Term = arg2
+    override def accept[T](visitor: TermVisitor[T]): T = ???
+    def mapBody(mapping: Term => Term) = TC(relationName, mapping(arg2), mapping(arg2))
+    
 }
 
 /** Companion object for Term. */
