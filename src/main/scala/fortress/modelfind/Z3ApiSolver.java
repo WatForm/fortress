@@ -11,7 +11,7 @@ import fortress.util.Errors;
 import com.microsoft.z3.*;
 
 public class Z3ApiSolver extends SolverTemplate {
-    private String lastModel = "";
+    private FiniteModel lastModel = null;
     private Context context = null;
     private Solver solver = null;
     
@@ -43,10 +43,10 @@ public class Z3ApiSolver extends SolverTemplate {
         Errors.assertion(null != solver);
         
         Status status = solver.check();
+        lastModel = null;
         switch(status) {
             case UNKNOWN:
                 // TODO timeout errors
-                lastModel = "ERROR - NO MODEL";
                 log.write("UKNOWN (" + solver.getReasonUnknown() + ").\n");
                 if(solver.getReasonUnknown().equals("timeout")
                         || solver.getReasonUnknown().equals("canceled")) {
@@ -55,12 +55,11 @@ public class Z3ApiSolver extends SolverTemplate {
                 return ModelFinder.Result.UNKNOWN;
                 // break;
             case SATISFIABLE:
-                lastModel = solver.getModel().toString();
+                lastModel = solver.getModel();
                 log.write("SAT.\n");
                 return ModelFinder.Result.SAT;
                 // break;
             case UNSATISFIABLE:
-                lastModel = "ERROR - NO MODEL";
                 log.write("UNSAT.\n");
                 return ModelFinder.Result.UNSAT;
                 // break;
@@ -71,6 +70,12 @@ public class Z3ApiSolver extends SolverTemplate {
     
     // Temporary method -- will be changed
     public String getStringModel() {
-        return lastModel;
+        if (lastModel == null)
+            return "ERROR - NO MODEL";
+        return lastModel.toString();
+    }
+
+    public FiniteModel getModel(Theory theory) {
+        return Errors.<FiniteModel>notImplemented();
     }
 }

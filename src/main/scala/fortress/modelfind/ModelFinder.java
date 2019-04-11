@@ -24,7 +24,7 @@ import fortress.transformers.TheoryTransformer;
 public class ModelFinder {
     private List<TheoryTransformer> theoryTransformers;
     private SolverStrategy solverStrategy;
-    
+    private Theory lastTheory;
     /**
     * @publish
     * The various return possibilities of the model finder.
@@ -63,6 +63,8 @@ public class ModelFinder {
     }
     
     public Result findModel(Theory theory, int timeoutMillis, Writer log, boolean debug) throws IOException {
+
+        lastTheory = theory;
         
         long timeoutNano = StopWatch.millisToNano(timeoutMillis);
         
@@ -129,7 +131,7 @@ public class ModelFinder {
     }
     
     public FiniteModel getModel() {
-        return Errors.<FiniteModel>notImplemented();
+        return solverStrategy.getModel(lastTheory);
     }
     
     // Temporary method -- will be changed

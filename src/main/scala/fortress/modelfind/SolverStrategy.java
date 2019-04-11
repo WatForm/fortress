@@ -32,4 +32,6 @@ public interface SolverStrategy {
     
     // Temporary method -- will be changed
     public String getStringModel();
+
+    public FiniteModel getModel(Theory theory);
 }
