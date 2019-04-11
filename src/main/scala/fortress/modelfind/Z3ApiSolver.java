@@ -5,6 +5,7 @@ import java.util.Map;
 import java.util.List;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.ArrayList;
 import java.util.stream.Collectors;
 
 import fortress.tfol.*;
@@ -12,6 +13,7 @@ import fortress.outputs.*;
 import fortress.util.Pair;
 import fortress.util.StopWatch;
 import fortress.util.Errors;
+import fortress.data.CartesianProduct;
 
 import com.microsoft.z3.*;
 
@@ -98,61 +100,61 @@ public class Z3ApiSolver extends SolverTemplate {
             }
         }
 
-        // find mappings for constants and functions
+        // find mappings for constants
         Map<AnnotatedVar, Var> constantMappings = new HashMap<>();
-        Map<FuncDecl, Map<List<Var>, Var>> functionMappings = new HashMap<>();
         Map<String, AnnotatedVar> constants = new HashMap<>();
-        Map<String, FuncDecl> functions = new HashMap<>();
         for (AnnotatedVar v : theory.getConstants())
             constants.put(v.getName(), v);
-        for (FuncDecl f : theory.getFunctionDeclarations())
+        for (com.microsoft.z3.FuncDecl z3Decl : lastModel.getConstDecls()) {
+            AnnotatedVar v = constants.get(z3Decl.getName().toString());
+            if (v != null)
+                constantMappings.put(v, Term.mkVar(lastModel.getConstInterp(z3Decl).toString()));
+        }        
+
+        // find mappings for functions
+        Map<fortress.tfol.FuncDecl, Map<List<Var>, Var>> functionMappings = new HashMap<>();
+        Map<String, fortress.tfol.FuncDecl> functions = new HashMap<>();
+        for (fortress.tfol.FuncDecl f : theory.getFunctionDeclarations())
             functions.put(f.getName(), f);
         for (com.microsoft.z3.FuncDecl z3Decl : lastModel.getFuncDecls()) {
-            String funcName = z3Decl.getName().toString();
-            AnnotatedVar v = constants.get(funcName);
-            FuncDecl f = functions.get(funcName);
+            fortress.tfol.FuncDecl f = functions.get(z3Decl.getName().toString());
             if (f != null) {
                 Map<List<Var>, Var> argumentMappings = new HashMap<>();
                 List<List<Expr>> toProduct = new ArrayList<>();
-                for (Sort type : z3Decl.getDomain()) {
+                for (Sort type : z3Decl.getDomain())
                     toProduct.add(domains.get(type));
-                }
                 CartesianProduct<Expr> argumentLists = new CartesianProduct<>(toProduct);
                 for(List<Expr> argumentList : argumentLists) {
                     List<Var> args = argumentList.stream().map(s -> Term.mkVar(s.toString())).collect(Collectors.toList());
                     Expr returnExpr = lastModel.evaluate(z3Decl.apply(argumentList.stream().toArray(Expr[]::new)), true);
                     if (z3Decl.getRange() instanceof BoolSort) {
-                        if (returnExpr.isTrue()) {
-                            argumentMappings.put(args, Term.mkTop());
-                        } else {
-                            argumentMappings.put(args, Term.mkBottom());
-                        }
-                    } else {
+                        if (returnExpr.isTrue())
+                            argumentMappings.put(args, Term.mkVar("True"));
+                        else
+                            argumentMappings.put(args, Term.mkVar("False"));
+                    } else
                         argumentMappings.put(args, Term.mkVar(returnExpr.toString()));
-                    }
                 }
-                functionMappings.addTuple(f, argumentMappings);
-            } else if (v != null) {
-                constantsMappings.put(v, Term.mkVar(lastModel.getFuncInterp(z3Decl).getElse().toString()));
+                functionMappings.put(f, argumentMappings);
             }
         }
 
         // print model (remove later)
-        for (Map.Entry<Type, List<Var>> entry : typeMappings) {
+        for (Map.Entry<Type, List<Var>> entry : typeMappings.entrySet()) {
             System.out.print(entry.getKey().getName() + ": ");
             for (Var v : entry.getValue())
                 System.out.print(v.getName() + " ");
             System.out.println();
         }
-        for (Map.Entry<AnnotatedVar, Var> entry : constantMappings) {
+        for (Map.Entry<AnnotatedVar, Var> entry : constantMappings.entrySet()) {
             System.out.println(entry.getKey().getName() + ": " + entry.getValue().getName());
         }
-        for (Map.Entry<FuncDecl, Map<List<Var>, Var>> entry : functionMappings) {
-            System.out.println(entry.getKey().getName());
-            for (Map.Entry<List<Var>, Var> args : entry.getValue()) {
+        for (Map.Entry<fortress.tfol.FuncDecl, Map<List<Var>, Var>> entry : functionMappings.entrySet()) {
+            System.out.println(entry.getKey().getName() + ":");
+            for (Map.Entry<List<Var>, Var> args : entry.getValue().entrySet()) {
                 for (Var v : args.getKey())
                     System.out.print(v.getName() + " ");
-                System.out.println(": "+args.getValue().getName());
+                System.out.println("-> "+args.getValue().getName());
             }
         }
         return Errors.<FiniteModel>notImplemented();
