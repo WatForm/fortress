@@ -22,6 +22,8 @@ case class FuncDecl(name: String, argTypes: Seq[Type], resultType: Type) {
 }
 
 object FuncDecl {
+    def apply(name: String, types: Type*): FuncDecl = FuncDecl(name, types.take(types.size - 1).toList, types.last)
+    
     def mkFuncDecl(name: String, argTypes: java.util.List[Type], resultType: Type): FuncDecl =
         FuncDecl(name, argTypes.asScala.toList, resultType)
     

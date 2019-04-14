@@ -10,19 +10,19 @@ import java.lang.Deprecated;
 
 public class Errors {
     
-    static class PreconditionException extends RuntimeException {
+    public static class PreconditionException extends RuntimeException {
         public PreconditionException(String message) {
             super(message);
         }
     }
     
-    static class VerifyException extends RuntimeException {
+    public static class VerifyException extends RuntimeException {
         public VerifyException(String message) {
             super(message);
         }
     }
     
-    static class AssertionException extends RuntimeException {
+    public static class AssertionException extends RuntimeException {
         public AssertionException(String message) {
             super(message);
         }

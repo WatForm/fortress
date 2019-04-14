@@ -81,6 +81,13 @@ sealed abstract class Term {
       * function names, and type names that appear on variable bindings.
       */
     def allSymbols: java.util.Set[String] = new AllSymbolsVisitor().visit(this)
+    
+    // Be aware if you chain this method together, you will get several nested AndLists
+    def and(other: Term): Term = AndList(Seq(this, other))
+    // Be aware if you chain this method together, you will get several nested OrLists
+    def or(other: Term): Term = OrList(Seq(this, other))
+    def ==>(other: Term): Term = Implication(this, other)
+    def ===(other: Term): Term = Eq(this, other)
 }
 
 /** Term that represents True. */
@@ -147,7 +154,11 @@ case class AndList(arguments: Seq[Term]) extends Term {
 }
 
 object AndList {
-    def apply(arg1: Term, arg2: Term): Term = AndList(Seq(arg1, arg2))
+    def apply(args: Term*): Term = AndList(args.toList)
+}
+
+object And {
+    def apply(args: Term*): Term = AndList(args.toList)
 }
 
 /** Represents a disjunction. */
@@ -230,6 +241,10 @@ case class App(functionName: String, arguments: Seq[Term]) extends Term {
         App(functionName, arguments.map(mapping))
 }
 
+object App {
+    def apply(functionName: String, arguments: Term*): App = App(functionName, arguments.toList)
+}
+
 sealed abstract class Quantifier extends Term {
     def getVars: fortress.data.ImmutableList[AnnotatedVar]
     def getBody: Term
@@ -248,6 +263,10 @@ case class Exists(vars: Seq[AnnotatedVar], body: Term) extends Quantifier {
     def mapBody(mapping: Term => Term): Term = Exists(vars, mapping(body))
 }
 
+object Exists {
+    def apply(variable: AnnotatedVar, body: Term): Exists = Exists(Seq(variable), body)
+}
+
 /** Represents a universally quantified Term. */
 case class Forall(vars: Seq[AnnotatedVar], body: Term) extends Quantifier {
     Errors.precondition(vars.size >= 1, "Quantifier must bind at least one variable")
@@ -258,6 +277,10 @@ case class Forall(vars: Seq[AnnotatedVar], body: Term) extends Quantifier {
     def getBody: Term = body
     override def accept[T](visitor: TermVisitor[T]): T = visitor.visitForall(this)
     def mapBody(mapping: Term => Term): Term = Forall(vars, mapping(body))
+}
+
+object Forall {
+    def apply(variable: AnnotatedVar, body: Term): Forall = Forall(Seq(variable), body)
 }
 
 /** Represents an indexed domain element.
