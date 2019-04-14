@@ -21,6 +21,7 @@ class DomainInstantiationTests extends FunSuite with Matchers {
     val Q = FuncDecl("Q", B, Type.Bool)
     val R = FuncDecl("R", A, B, Type.Bool)
     val f = FuncDecl("f", A, B)
+    val g = FuncDecl("g", A, A)
     
     test("single variable forall") {
         val theory = Theory.empty
@@ -77,18 +78,18 @@ class DomainInstantiationTests extends FunSuite with Matchers {
     test("nested foralls") {
         val theory = Theory.empty
             .withTypes(A, B)
-            .withFunctionDeclarations(P, Q, R, f)
-            .withAxiom(Forall(x of A, (App("f", x) === x) or (Forall(y of B, App("R", x, y)))))
+            .withFunctionDeclarations(P, Q, R, g)
+            .withAxiom(Forall(x of A, (App("g", x) === x) or (Forall(y of B, App("R", x, y)))))
         
-        val t1A = (App("f", DomainElement(1, A)) === DomainElement(1, A)) or 
+        val t1A = (App("g", DomainElement(1, A)) === DomainElement(1, A)) or 
             (App("R", DomainElement(1, A), DomainElement(1, B)) and (App("R", DomainElement(1, A), DomainElement(2, B))))
         
-        val t2A = (App("f", DomainElement(2, A)) === DomainElement(2, A)) or 
+        val t2A = (App("g", DomainElement(2, A)) === DomainElement(2, A)) or 
             (App("R", DomainElement(2, A), DomainElement(1, B)) and (App("R", DomainElement(2, A), DomainElement(2, B))))
         
         val expected = Theory.empty
             .withTypes(A, B)
-            .withFunctionDeclarations(P, Q, R, f)
+            .withFunctionDeclarations(P, Q, R, g)
             .withAxiom(t1A and t2A)
         
         val scopes = Map(A -> 2, B -> 2)
