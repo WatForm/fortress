@@ -5,13 +5,14 @@ import org.junit.Ignore;
 import fortress.tfol.*;
 import java.util.List;
 
-public class TypeCheckTest {
+public class NegativeTypeCheckTest {
     
     Type A = Type.mkTypeConst("A");
     Type B = Type.mkTypeConst("B");
     
     Var x = Term.mkVar("x");
     Var y = Term.mkVar("y");
+    Var z = Term.mkVar("z");
     Var p = Term.mkVar("p");
     Var q = Term.mkVar("q");
     
@@ -20,9 +21,15 @@ public class TypeCheckTest {
     FuncDecl f = FuncDecl.mkFuncDecl("f", A, B);
     FuncDecl g = FuncDecl.mkFuncDecl("g", B, A);
     FuncDecl h = FuncDecl.mkFuncDecl("h", Type.Bool(), Type.Bool());
+    FuncDecl R = FuncDecl.mkFuncDecl("R", A, A, Type.Bool());
+    
+    FuncDecl transitionRelation = FuncDecl.mkFuncDecl("transition", A, A, Type.Bool());
+    FuncDecl transitionFunction = FuncDecl.mkFuncDecl("transition", A, Type.Bool());
+    
     
     @Test(expected = fortress.data.TypeCheckException.UndeterminedType.class)
     public void freeVar() {
+        // A free var should fail typechecking
         Signature sig = Signature.empty()
             .withType(A)
             .withConstants()
@@ -31,29 +38,9 @@ public class TypeCheckTest {
         x.typeCheck(sig);
     }
     
-    @Test
-    public void constant() {
-        Signature sig = Signature.empty()
-            .withTypes(A)
-            .withConstants(x.of(A))
-            .withFunctionDeclarations();
-        
-        assertEquals(A, x.typeCheck(sig).type);
-    }
-    
-    @Test
-    public void functionAppConst() {
-        Signature sig = Signature.empty()
-            .withTypes(A, B)
-            .withConstants(x.of(A))
-            .withFunctionDeclarations(f);
-        Term app = Term.mkApp("f", x);
-        
-        assertEquals(B, app.typeCheck(sig).type);
-    }
-    
     @Test(expected = fortress.data.TypeCheckException.WrongArgType.class)
     public void functionAppConstWrongArg() {
+        // Application of a function to a constant of the wrong argument type
         Signature sig = Signature.empty()
             .withTypes(A, B)
             .withConstants(x.of(A))
@@ -64,25 +51,13 @@ public class TypeCheckTest {
     
     @Test(expected = fortress.data.TypeCheckException.UnknownFunction.class)
     public void functionAppConstMissingDecl() {
+        // Use of a function that is missing a declaration
         Signature sig = Signature.empty()
             .withTypes(A)
             .withConstants(x.of(A))
             .withFunctionDeclarations();
         Term app = Term.mkApp("f", x);
         app.typeCheck(sig);
-    }
-    
-    @Test
-    public void predicateAppQuantifiedVar() {
-        Signature sig = Signature.empty()
-            .withTypes(A)
-            .withConstants()
-            .withFunctionDeclarations(P);
-        Term app1 = Term.mkForall(x.of(A), Term.mkApp("P", x));
-        Term app2 = Term.mkExists(x.of(A), Term.mkApp("P", x));
-        
-        assertEquals(Type.Bool(), app1.typeCheck(sig).type);
-        assertEquals(Type.Bool(), app2.typeCheck(sig).type);
     }
     
     @Test(expected = fortress.data.TypeCheckException.WrongArgType.class)
@@ -103,33 +78,6 @@ public class TypeCheckTest {
             .withFunctionDeclarations(P);
         Term app = Term.mkExists(y.of(B), Term.mkApp("P", y));
         app.typeCheck(sig);
-    }
-    
-    @Test
-    public void quantifiedBoolAnd() {
-        Signature sig = Signature.empty()
-            .withTypes(A)
-            .withConstants()
-            .withFunctionDeclarations(h);
-        Term term1 = Term.mkForall(x.of(Type.Bool()), Term.mkOr(x, Term.mkApp("h", x)));
-        Term term2 = Term.mkForall(x.of(Type.Bool()), Term.mkOr(x, Term.mkApp("h", x)));
-        
-        assertEquals(Type.Bool(), term1.typeCheck(sig).type);
-        assertEquals(Type.Bool(), term2.typeCheck(sig).type);
-    }
-    
-    @Test
-    public void nestedApp() {
-        Signature sig = Signature.empty()
-            .withTypes(A, B)
-            .withConstants(x.of(A))
-            .withFunctionDeclarations(g, f, P);
-        Term fx = Term.mkApp("f", x);
-        Term gfx = Term.mkApp("g", fx);
-        Term pgfx = Term.mkApp("P", gfx);
-        assertEquals(B, fx.typeCheck(sig).type);
-        assertEquals(A, gfx.typeCheck(sig).type);
-        assertEquals(Type.Bool(), pgfx.typeCheck(sig).type);
     }
     
     @Test(expected = fortress.data.TypeCheckException.WrongArgType.class)
@@ -155,22 +103,6 @@ public class TypeCheckTest {
         Term pffx = Term.mkApp("P", ffx);
         assertEquals(B, fx.typeCheck(sig).type);
         pffx.typeCheck(sig);
-    }
-    
-    @Test
-    public void andOrImp() {
-        Signature sig = Signature.empty()
-            .withTypes(A)
-            .withConstants(y.of(Type.Bool()))
-            .withFunctionDeclarations(P);
-        Term arg1 = Term.mkForall(x.of(A), Term.mkApp("P", x));
-        Term arg2 = y;
-        Term and = Term.mkAnd(arg1, arg2);
-        Term or = Term.mkOr(arg1, arg2);
-        Term imp = Term.mkImp(arg1, arg2);
-        assertEquals(Type.Bool(), and.typeCheck(sig).type);
-        assertEquals(Type.Bool(), or.typeCheck(sig).type);
-        assertEquals(Type.Bool(), imp.typeCheck(sig).type);
     }
     
     @Test(expected = fortress.data.TypeCheckException.WrongArgType.class)
@@ -207,25 +139,6 @@ public class TypeCheckTest {
         Term arg2 = y;
         Term imp = Term.mkImp(arg1, arg2);
         imp.typeCheck(sig);
-    }
-    
-    @Test
-    public void eqDistinct() {
-        Signature sig = Signature.empty()
-            .withTypes(A, B)
-            .withConstants(x.of(A), y.of(B))
-            .withFunctionDeclarations(f, g);
-        Term arg1 = Term.mkApp("f", x);
-        Term arg2 = y;
-        Term arg3 = Term.mkApp("f", Term.mkApp("g", Term.mkApp("f", x)));
-        Term distinct = Term.mkDistinct(arg1, arg2, arg3);
-        Term eq1 = Term.mkEq(arg1, arg2);
-        Term eq2 = Term.mkEq(arg1, arg3);
-        Term eq3 = Term.mkEq(arg2, arg3);
-        assertEquals(Type.Bool(), distinct.typeCheck(sig).type);
-        assertEquals(Type.Bool(), eq1.typeCheck(sig).type);
-        assertEquals(Type.Bool(), eq2.typeCheck(sig).type);
-        assertEquals(Type.Bool(), eq3.typeCheck(sig).type);
     }
     
     @Test(expected = fortress.data.TypeCheckException.WrongArgType.class)
@@ -268,27 +181,6 @@ public class TypeCheckTest {
         eq2.typeCheck(sig);
     }
     
-    @Test
-    public void topBottom() {
-        Signature sig = Signature.empty()
-            .withTypes()
-            .withConstants()
-            .withFunctionDeclarations();
-        assertEquals(Type.Bool(), Term.mkTop().typeCheck(sig).type);
-        assertEquals(Type.Bool(), Term.mkBottom().typeCheck(sig).type);
-        
-    }
-    
-    @Test
-    public void not() {
-        Signature sig = Signature.empty()
-            .withTypes(A)
-            .withConstants(x.of(A))
-            .withFunctionDeclarations(P);
-        Term not = Term.mkNot(Term.mkApp("P", x));
-        assertEquals(Type.Bool(), not.typeCheck(sig).type);
-    }
-    
     @Test(expected = fortress.data.TypeCheckException.WrongArgType.class)
     public void notWrongArg() {
         Signature sig = Signature.empty()
@@ -299,18 +191,6 @@ public class TypeCheckTest {
         not.typeCheck(sig);
     }
     
-    @Test
-    public void quantifier() {
-        Signature sig = Signature.empty()
-            .withTypes(A, B)
-            .withConstants()
-            .withFunctionDeclarations(P, Q);
-        Term forall = Term.mkForall(x.of(A), Term.mkApp("P", x));
-        Term exists = Term.mkExists(y.of(B), Term.mkApp("Q", y));
-        assertEquals(Type.Bool(), forall.typeCheck(sig).type);
-        assertEquals(Type.Bool(), exists.typeCheck(sig).type);
-    }
-    
     @Test(expected = fortress.data.TypeCheckException.WrongArgType.class)
     public void forallWrongArg() {
         Signature sig = Signature.empty()
@@ -319,18 +199,6 @@ public class TypeCheckTest {
             .withFunctionDeclarations(f, g);
         Term forall = Term.mkForall(x.of(A), Term.mkApp("f", x));
         forall.typeCheck(sig);
-    }
-    
-    @Test
-    public void quantifierShadow() {
-        Signature sig = Signature.empty()
-            .withTypes(A, B)
-            .withConstants(x.of(B), y.of(A))
-            .withFunctionDeclarations(P, Q);
-        Term forall = Term.mkForall(x.of(A), Term.mkApp("P", x));
-        Term exists = Term.mkExists(y.of(B), Term.mkApp("Q", y));
-        assertEquals(Type.Bool(), forall.typeCheck(sig).type);
-        assertEquals(Type.Bool(), exists.typeCheck(sig).type);
     }
     
     @Test(expected = fortress.data.TypeCheckException.UndeterminedType.class)
@@ -383,22 +251,6 @@ public class TypeCheckTest {
         t.typeCheck(sig);
     }
     
-    @Test
-    public void halfQuantifiedButConstant() {
-        Signature sig = Signature.empty()
-            .withTypes(A)
-            .withConstants(x.of(A))
-            .withFunctionDeclarations(P);
-        
-        // x is free in the second and argument -- but it is a constant so this is fine
-        Term t = Term.mkAnd(
-            Term.mkForall(x.of(A), Term.mkApp("P", x)),
-            Term.mkApp("P", x)
-        );
-        
-        assertEquals(Type.Bool(), t.typeCheck(sig).type);
-    }
-    
     // Former bug
     @Test(expected = fortress.data.TypeCheckException.UndeterminedType.class)
     public void halfQuantifiedMultiple() {
@@ -424,98 +276,120 @@ public class TypeCheckTest {
         t.typeCheck(sig);
     }
     
-    // Naming tests
-    
-    // TODO need more tests of this style
-    // Former bug
-    @Test(expected = fortress.data.TypeCheckException.NameConflict.class)
-    public void clashingVarFunction() {
-        Signature sig = Signature.empty()
-            .withTypes(A)
-            .withConstants()
-            .withFunctionDeclarations(P);
-        Var xp = Term.mkVar("P"); // name clashes with function name
-        Term t = Term.mkForall(xp.of(Type.Bool()), xp);
-        t.typeCheck(sig);
-    }
-    
-    @Test(expected = fortress.data.TypeCheckException.NameConflict.class)
-    public void clashingVarType() {
-        Signature sig = Signature.empty()
-            .withTypes(A)
-            .withConstants()
-            .withFunctionDeclarations(P);
-        Var xp = Term.mkVar("A"); // name clashes with type name
-        Term t = Term.mkForall(xp.of(Type.Bool()), xp);
-        t.typeCheck(sig);
-    }
-    
-    
-    @Test
-    @Ignore ("Test not yet implemented")
-    public void varFAddFuncF() {
-        // Have a variable named F, then add a function named F
-    }
-    // Term structure
-    
-    @Test(expected = fortress.data.TypeCheckException.BadStructure.class)
-    public void forallInsideApp() {
-        // Forall is not allowed inside an application
-        Signature sig = Signature.empty()
-            .withTypes(A)
-            .withFunctionDeclarations(h);
-        Term t = Term.mkApp("h", Term.mkForall(x.of(A), Term.mkTop()));
-        t.typeCheck(sig);
-    }
-    
-    @Test(expected = fortress.data.TypeCheckException.BadStructure.class)
-    public void existsInsideApp() {
-        // Exists is not allowed inside an application
-        Signature sig = Signature.empty()
-            .withTypes(A)
-            .withFunctionDeclarations(h);
-        Term t = Term.mkApp("h", Term.mkExists(x.of(A), Term.mkTop()));
-        t.typeCheck(sig);
-    }
-    
-    @Test(expected = fortress.data.TypeCheckException.BadStructure.class)
-    public void connectiveInsideApp() {
-        // Logical connectives are not allowed inside an application
-        Signature sig = Signature.empty()
-            .withFunctionDeclaration(h);
-        Term t = Term.mkApp("h", Term.mkAnd(Term.mkTop(), Term.mkTop()));
-        t.typeCheck(sig);
-            
-    }
-    
-    @Test(expected = fortress.data.TypeCheckException.BadStructure.class)
-    public void negationInsideApp() {
-        // Negation is not allowed inside an application
-        Signature sig = Signature.empty()
-            .withFunctionDeclaration(h);
-        Term t = Term.mkApp("h", Term.mkNot(Term.mkTop()));
-        t.typeCheck(sig);
-    }
-    
-    @Test(expected = fortress.data.TypeCheckException.BadStructure.class)
-    public void equalsInsideApp() {
-        // = is not allowed inside an application
+    @Test(expected = fortress.data.TypeCheckException.WrongArity.class)
+    public void functionWrongArity() {
+        // Application of function to wrong number of arguments
         Signature sig = Signature.empty()
             .withType(A)
-            .withConstant(x.of(A))
-            .withFunctionDeclaration(h);
-        Term t = Term.mkApp("h", Term.mkEq(x, x));
+            .withConstant(x.of(A));
+        Term t = Term.mkApp("f", x, x);
         t.typeCheck(sig);
     }
     
-    @Test(expected = fortress.data.TypeCheckException.BadStructure.class)
-    public void distinctInsideApp() {
-        // distinct is not allowed inside an application
+    @Test(expected = fortress.data.TypeCheckException.WrongArgType.class)
+    public void transitiveClosureRelationWrongArg1() {
+         // ^P(x, y) where P: A x A -> Bool but x: B
+         Signature sig = Signature.empty()
+            .withTypes(A, B)
+            .withConstants(x.of(B), y.of(A))
+            .withFunctionDeclaration(transitionRelation);
+         Term t = Term.mkTC("transition", x, y);
+         t.typeCheck(sig);
+    }
+    
+    @Test(expected = fortress.data.TypeCheckException.WrongArgType.class)
+    public void transitiveClosureRelationWrongArg2() {
+        // ^P(x, y) where P: A x A -> Bool but y: B
         Signature sig = Signature.empty()
-            .withType(A)
-            .withConstant(x.of(A))
-            .withFunctionDeclaration(h);
-        Term t = Term.mkApp("h", Term.mkDistinct(x, x));
+            .withTypes(A, B)
+            .withConstants(x.of(A), y.of(B))
+            .withFunctionDeclaration(transitionRelation);
+         Term t = Term.mkTC("transition", x, y);
+         t.typeCheck(sig);
+    }
+    
+    @Test(expected = fortress.data.TypeCheckException.WrongArgType.class)
+    public void transitiveClosureFunctionWrongArg1() {
+        // ^P(x, y) where P: A -> A but x: B
+        Signature sig = Signature.empty()
+            .withTypes(A, B)
+           .withConstants(x.of(B), y.of(A))
+           .withFunctionDeclaration(transitionFunction);
+        Term t = Term.mkTC("transition", x, y);
         t.typeCheck(sig);
     }
+    
+    @Test(expected = fortress.data.TypeCheckException.WrongArgType.class)
+    public void transitiveClosureFunctionWrongArg2() {
+        // ^P(x, y) where P: A -> A but y: B
+        Signature sig = Signature.empty()
+            .withTypes(A, B)
+            .withConstants(x.of(A), y.of(B))
+            .withFunctionDeclaration(transitionFunction);
+         Term t = Term.mkTC("transition", x, y);
+         t.typeCheck(sig);
+    }
+    
+    @Test(expected = fortress.data.TypeCheckException.UnknownFunction.class)
+    public void transitiveClosureUnknownRelation() {
+        // Transitive closure taken of undeclared relation/function
+        Signature sig = Signature.empty()
+            .withType(A)
+            .withConstants(x.of(A), y.of(A));
+        Term t = Term.mkTC("transition", x, y);
+        t.typeCheck(sig);
+    }
+    
+    @Test(expected = fortress.data.TypeCheckException.WrongArgType.class)
+    public void transitiveClosureWrongRelationType1() {
+        FuncDecl transition = FuncDecl.mkFuncDecl("transition", A, B, Type.Bool());
+        // Transitive colosure of A x B -> Bool, not A x A -> Bool or A -> A
+        Signature sig = Signature.empty()
+            .withTypes(A, B)
+            .withConstants(x.of(A), y.of(A));
+        Term t = Term.mkTC("transition", x, y);
+        t.typeCheck(sig);
+    }
+    
+    @Test(expected = fortress.data.TypeCheckException.WrongArgType.class)
+    public void transitiveClosureWrongRelationType2() {
+        FuncDecl transition = FuncDecl.mkFuncDecl("transition", A, A, A, Type.Bool());
+        // Transitive colosure of A x A x A -> Bool, not A x A -> Bool or A -> A
+        Signature sig = Signature.empty()
+            .withTypes(A, B)
+            .withConstants(x.of(A), y.of(A));
+        Term t = Term.mkTC("transition", x, y);
+        t.typeCheck(sig);
+    }
+    
+    @Test(expected = fortress.data.TypeCheckException.WrongArgType.class)
+    public void transitiveClosureWrongRelationType3() {
+        FuncDecl transition = FuncDecl.mkFuncDecl("transition", A, B);
+        // Transitive colosure of A -> B, not A x A -> Bool or A -> A
+        Signature sig = Signature.empty()
+            .withTypes(A, B)
+            .withConstants(x.of(A), y.of(A));
+        Term t = Term.mkTC("transition", x, y);
+        t.typeCheck(sig);
+    }
+    
+    @Test(expected = fortress.data.TypeCheckException.UnknownType.class)
+    public void domainElementUnkownType() {
+        // Use a domain element of an undeclared type
+        Signature sig = Signature.empty()
+            .withTypes(A);
+        Term t = Term.mkDomainElement(2, B);
+        t.typeCheck(sig);
+    }
+    
+    @Test(expected = fortress.data.TypeCheckException.WrongArgType.class)
+    public void domainElementTypeBool() {
+        // Use a domain element of type Bool
+        Signature sig = Signature.empty()
+            .withType(A);
+        Term t = Term.mkDomainElement(2, Type.Bool());
+        t.typeCheck(sig);
+    }
+    
+    
 }

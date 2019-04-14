@@ -482,4 +482,6 @@ object Term {
     def mkAppF(functionName: String, arguments: fortress.data.ImmutableList[Term]): Term =
         App(functionName, arguments.asScala.toList)
     
+    /** Internal method for creating Domain Elements. */
+    def mkDomainElement(index: Int, sort: Type) = DomainElement(index, sort)
 }
