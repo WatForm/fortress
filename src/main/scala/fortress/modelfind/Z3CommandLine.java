@@ -142,4 +142,8 @@ public class Z3CommandLine implements SolverStrategy {
     public String getStringModel() {
         return "ERROR";
     }
+
+    public FiniteModel getModel(Theory theory) {
+        return Errors.<FiniteModel>notImplemented();
+    }
 }
