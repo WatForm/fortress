@@ -71,8 +71,8 @@ class RangeFormulaTests extends FunSuite with Matchers {
                 App("g", DomainElement(2, B)) === DomainElement(1, A),
                 App("g", DomainElement(2, B)) === DomainElement(2, A)))
             .withAxiom(Or(
-                App("g", DomainElement(2, B)) === DomainElement(1, A),
-                App("g", DomainElement(2, B)) === DomainElement(2, A)))
+                App("g", DomainElement(3, B)) === DomainElement(1, A),
+                App("g", DomainElement(3, B)) === DomainElement(2, A)))
         
         val scopes = Map(A -> 2, B -> 3)
         val transformer = new RangeFormulaTransformer(scopes)

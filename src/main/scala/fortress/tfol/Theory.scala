@@ -111,6 +111,8 @@ case class Theory private (signature: Signature, axioms: Set[Term]) {
     def getFunctionDeclarations: java.util.Set[FuncDecl] = signature.getFunctionDeclarations
     
     def getSignature: Signature = signature
+    def functionDeclarations: Set[FuncDecl] = signature.functionDeclarations
+    def constants: Set[AnnotatedVar] = signature.constants
     
     private def sanitizeAxiom(axiom: Term): Term = {
         // Check axiom typechecks as bool
@@ -120,7 +122,7 @@ case class Theory private (signature: Signature, axioms: Set[Term]) {
         result.term
     }
     
-    override def toString(): String = signature.toString + " Axioms <<\n" + axioms.mkString("\n") + ">>"
+    override def toString(): String = "\n" + signature.toString + " Axioms <<\n" + axioms.mkString("\n") + ">>\n"
     
 }
 

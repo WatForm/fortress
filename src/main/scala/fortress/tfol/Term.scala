@@ -143,6 +143,8 @@ case class Not(body: Term) extends Term {
     def getBody: Term = body
     override def accept[T](visitor: TermVisitor[T]): T = visitor.visitNot(this)
     def mapBody(mapping: Term => Term): Term = Not(mapping(body))
+    
+    override def toString: String = "~" + body.toString
 }
 
 /** Represents a conjunction. */
@@ -153,6 +155,8 @@ case class AndList(arguments: Seq[Term]) extends Term {
     override def accept[T](visitor: TermVisitor[T]): T = visitor.visitAndList(this)
     def mapArguments(mapping: Term => Term): Term =
         AndList(arguments.map(mapping))
+    
+    override def toString: String = "And(" + arguments.mkString(", ") + ")"
 }
 
 object AndList {
@@ -171,6 +175,8 @@ case class OrList(arguments: Seq[Term]) extends Term {
     override def accept[T](visitor: TermVisitor[T]): T = visitor.visitOrList(this)
     def mapArguments(mapping: Term => Term): Term =
         OrList(arguments.map(mapping))
+    
+    override def toString: String = "Or(" + arguments.mkString(", ") + ")"
 }
 
 object OrList {
@@ -178,7 +184,8 @@ object OrList {
 }
 
 object Or {
-    def apply(args: Term*): Term = OrList(args.toList)
+    def apply(args: Term*): Term = Or(args.toList)
+    def apply(args: Seq[Term]) = if(args.size == 1) args(0) else OrList(args)
 }
 
 /** Represents a formula signifying whether its arguments have distinct values. */
@@ -206,6 +213,8 @@ case class Distinct(arguments: Seq[Term]) extends Term {
         Errors.assertion(pairs.size() == (n*(n - 1) / 2), "" + n + " terms, but somehow generated " + pairs.size() + " pairs")
         Term.mkAnd(pairs)
     }
+    
+    override def toString: String = "Distinct(" + arguments.mkString(", ") + ")"
 }
 
 object Distinct {
@@ -219,6 +228,8 @@ case class Implication(left: Term, right: Term) extends Term {
     override def accept[T](visitor: TermVisitor[T]): T = visitor.visitImplication(this)
     def mapArguments(mapping: Term => Term): Term =
         Implication(mapping(left), mapping(right))
+    
+    override def toString: String = left.toString + " => " + right.toString
 }
 
 /** Represents a bi-equivalence. */
@@ -228,6 +239,8 @@ case class Iff(left: Term, right: Term) extends Term {
     override def accept[T](visitor: TermVisitor[T]): T = visitor.visitIff(this)
     def mapArguments(mapping: Term => Term): Term =
         Iff(mapping(left), mapping(right))
+    
+    override def toString: String = left.toString + " <=> " + right.toString
 }
 
 /** Represents an equality. */
@@ -237,6 +250,8 @@ case class Eq(left: Term, right: Term) extends Term {
     override def accept[T](visitor: TermVisitor[T]): T = visitor.visitEq(this)
     def mapArguments(mapping: Term => Term): Term =
         Eq(mapping(left), mapping(right))
+        
+    override def toString: String = left.toString + " = " + right.toString
 }
 
 /** Represents a function or predicate application. */
@@ -249,6 +264,8 @@ case class App(functionName: String, arguments: Seq[Term]) extends Term {
     override def accept[T](visitor: TermVisitor[T]): T  = visitor.visitApp(this)
     def mapArguments(mapping: Term => Term): Term =
         App(functionName, arguments.map(mapping))
+    
+    override def toString: String = functionName + "(" + arguments.mkString(", ") + ")"
 }
 
 object App {
@@ -271,6 +288,8 @@ case class Exists(vars: Seq[AnnotatedVar], body: Term) extends Quantifier {
     def getBody: Term = body
     override def accept[T](visitor: TermVisitor[T]): T = visitor.visitExists(this)
     def mapBody(mapping: Term => Term): Term = Exists(vars, mapping(body))
+    
+    override def toString: String = "exists " + vars.mkString(", ") + " . " + body.toString
 }
 
 object Exists {
@@ -287,6 +306,8 @@ case class Forall(vars: Seq[AnnotatedVar], body: Term) extends Quantifier {
     def getBody: Term = body
     override def accept[T](visitor: TermVisitor[T]): T = visitor.visitForall(this)
     def mapBody(mapping: Term => Term): Term = Forall(vars, mapping(body))
+    
+    override def toString: String = "exists " + vars.mkString(", ") + " . " + body.toString
 }
 
 object Forall {
