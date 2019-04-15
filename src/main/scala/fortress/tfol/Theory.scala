@@ -21,18 +21,23 @@ case class Theory private (signature: Signature, axioms: Set[Term]) {
         val sanitizedAxiom: Term = sanitizeAxiom(axiom)
         Theory(signature, axioms + sanitizedAxiom)
     }
+    
     /** Returns a theory consisting of the current theory but with the given
       * axioms added. Note that this does not modify the current Theory object,
       * but rather just returns a new Theory object. Throws an exception
       * if the result fails to typecheck with respect to this theory's signature.
       */
-      
-    def withAxioms(axioms: java.lang.Iterable[Term]): Theory = {
+    def withAxioms(newAxioms: java.lang.Iterable[Term]): Theory = {
         var theory: Theory = this
-        axioms.forEach { axiom =>
+        newAxioms.forEach { axiom =>
             theory = theory.withAxiom(axiom)
         }
         theory
+    }
+    
+    def withAxioms(newAxioms: Seq[Term]): Theory = {
+        val sanitizedAxioms = axioms.map(sanitizeAxiom)
+        Theory(signature, axioms ++ sanitizedAxioms)
     }
     
     /** Returns a theory consisting of the current theory but with the given

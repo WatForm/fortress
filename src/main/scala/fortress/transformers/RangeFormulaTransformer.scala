@@ -11,7 +11,7 @@ import fortress.tfol._
   * (for example, if a the theory was the result of instantiating a theory that had
   * no explicit domain elements).
   */
-class RangeFormulaTransformer(scopes: Map[Type, Integer]) extends TheoryTransformer {
+class RangeFormulaTransformer(scopes: Map[Type, Int]) extends TheoryTransformer {
     override def apply(theory: Theory): Theory = ???
     
     override def getName: String = "Range Formula Transformer (Low Sym)"

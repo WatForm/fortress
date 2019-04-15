@@ -172,7 +172,11 @@ case class OrList(arguments: Seq[Term]) extends Term {
 }
 
 object OrList {
-    def apply(arg1: Term, arg2: Term): Term = OrList(Seq(arg1, arg2))
+    def apply(args: Term*): Term = OrList(args.toList)
+}
+
+object Or {
+    def apply(args: Term*): Term = OrList(args.toList)
 }
 
 /** Represents a formula signifying whether its arguments have distinct values. */
