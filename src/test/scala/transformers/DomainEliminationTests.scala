@@ -52,4 +52,22 @@ class DomainEliminationTests extends FunSuite with Matchers {
     test("out of bounds scope error") {
         pending
     }
+    
+    test("scope of one") {
+        val theory = Theory.empty
+            .withTypes(A, B)
+            .withConstants(c of A, d of B)
+            .withAxiom(c === DomainElement(1, A))
+            .withAxiom(d === DomainElement(1, B))
+        val expected =  Theory.empty
+            .withTypes(A, B)
+            .withConstants(c of A, d of B)
+            .withConstants(Var("@1A") of A, Var("@1B") of B)
+            .withAxiom(c === Var("@1A"))
+            .withAxiom(d === Var("@1B"))
+        
+        val scopes = Map(A -> 1, B -> 1)
+        val transformer = new DomainEliminationTransformer(scopes)
+        transformer(theory) should be (expected)
+    }
 }

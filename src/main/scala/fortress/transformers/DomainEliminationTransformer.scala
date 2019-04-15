@@ -37,7 +37,7 @@ class DomainEliminationTransformer(scopes: Map[Type, Int]) extends TheoryTransfo
         
         // Assert the constants are distinct
         val distinctConstraints = for(
-            (sort, domainConstantVars) <- domainConstantsMap
+            (sort, domainConstantVars) <- domainConstantsMap if (domainConstantVars.size > 1)
         ) yield Distinct(domainConstantVars)
         
         // Eliminate domain elements in existing axioms

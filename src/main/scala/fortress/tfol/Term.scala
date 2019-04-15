@@ -148,7 +148,7 @@ case class Not(body: Term) extends Term {
 }
 
 /** Represents a conjunction. */
-case class AndList(arguments: Seq[Term]) extends Term {
+case class AndList private (arguments: Seq[Term]) extends Term {
     Errors.precondition(arguments.size >= 2)
     
     def getArguments: fortress.data.ImmutableList[Term] = Conversions.toFortressList(arguments)
@@ -165,10 +165,11 @@ object AndList {
 
 object And {
     def apply(args: Term*): Term = AndList(args.toList)
+    def apply(args: Seq[Term]) = if(args.size == 1) args(0) else AndList(args)
 }
 
 /** Represents a disjunction. */
-case class OrList(arguments: Seq[Term]) extends Term {
+case class OrList private (arguments: Seq[Term]) extends Term {
     Errors.precondition(arguments.size >= 2)
     
     def getArguments: fortress.data.ImmutableList[Term] = Conversions.toFortressList(arguments)
@@ -190,7 +191,7 @@ object Or {
 
 /** Represents a formula signifying whether its arguments have distinct values. */
 case class Distinct(arguments: Seq[Term]) extends Term {
-    Errors.precondition(arguments.size >= 1)
+    Errors.precondition(arguments.size >= 2)
     
     def getArguments: fortress.data.ImmutableList[Term] = Conversions.toFortressList(arguments)
     override def accept[T](visitor: TermVisitor[T]): T = visitor.visitDistinct(this)
