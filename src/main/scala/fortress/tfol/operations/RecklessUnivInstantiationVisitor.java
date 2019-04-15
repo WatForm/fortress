@@ -12,9 +12,9 @@ import fortress.util.Errors;
 // TODO this could be made much more efficient
 
 public class RecklessUnivInstantiationVisitor implements TermVisitor<Term> {
-    private Map<Type, List<Var>> typeInstantiations;
+    private Map<Type, List<Term>> typeInstantiations;
     
-    public RecklessUnivInstantiationVisitor(Map<Type, List<Var>> typeInstantiations) {
+    public RecklessUnivInstantiationVisitor(Map<Type, List<Term>> typeInstantiations) {
         this.typeInstantiations = typeInstantiations;
     }
     
@@ -94,7 +94,7 @@ public class RecklessUnivInstantiationVisitor implements TermVisitor<Term> {
         // Where A_i is to be instantiated using the set S_i
         // Get the list [S_1, S_2, ..., S_n]
         // and the list [x_1, x_2, ..., x_n]
-        List<List<Var>> listOfTypeSets = new ArrayList<>();
+        List<List<Term>> listOfTypeSets = new ArrayList<>();
         List<Var> vars = new ArrayList<>();
         for(AnnotatedVar av: forall.getVars()) {
             Type type = av.getType();
@@ -102,8 +102,8 @@ public class RecklessUnivInstantiationVisitor implements TermVisitor<Term> {
             vars.add(av.getVar());
         }
         
-        CartesianProduct<Var> cartesianProduct = new CartesianProduct<>(listOfTypeSets);
-        for(List<Var> substitution : cartesianProduct) {
+        CartesianProduct<Term> cartesianProduct = new CartesianProduct<>(listOfTypeSets);
+        for(List<Term> substitution : cartesianProduct) {
             Errors.verify(substitution.size() == vars.size());
             
             Map<Var, Term> varSubstitutions = new HashMap<>();

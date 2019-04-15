@@ -144,6 +144,8 @@ case class Signature private (
             (otherFun: FuncDecl) => otherFun.getName == fdecl.getName && otherFun != fdecl
         ), "Function " + fdecl.getName + " declared with two different types")
     }
+    
+    override def toString: String = "Signature <<\n" + types.mkString("\n") + "\n" + functionDeclarations.mkString("\n") + "\n" + constants.mkString("\n") + ">>"
 }
 
 object Signature {

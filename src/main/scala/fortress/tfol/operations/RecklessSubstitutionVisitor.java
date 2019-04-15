@@ -118,7 +118,7 @@ public class RecklessSubstitutionVisitor implements TermVisitor<Term> {
     
     @Override
     public Term visitDomainElement(DomainElement d) {
-        return fortress.util.Errors.<Term>notImplemented();
+        return d;
     }
     
     @Override

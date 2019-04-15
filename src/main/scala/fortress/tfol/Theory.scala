@@ -35,8 +35,8 @@ case class Theory private (signature: Signature, axioms: Set[Term]) {
         theory
     }
     
-    def withAxioms(newAxioms: Seq[Term]): Theory = {
-        val sanitizedAxioms = axioms.map(sanitizeAxiom)
+    def withAxioms(newAxioms: Iterable[Term]): Theory = {
+        val sanitizedAxioms = newAxioms.map(sanitizeAxiom)
         Theory(signature, axioms ++ sanitizedAxioms)
     }
     
@@ -101,6 +101,7 @@ case class Theory private (signature: Signature, axioms: Set[Term]) {
     
     def getAxioms: java.util.Set[Term] = axioms.asJava
     
+    def types: Set[Type] = signature.types
     def getTypes: java.util.Set[Type] = signature.getTypes
     
     def getConstants: java.util.Set[AnnotatedVar] = signature.getConstants
@@ -116,6 +117,8 @@ case class Theory private (signature: Signature, axioms: Set[Term]) {
         Errors.precondition(result.sort == Type.Bool)
         result.term
     }
+    
+    override def toString(): String = signature.toString + " Axioms <<\n" + axioms.mkString("\n") + ">>"
     
 }
 

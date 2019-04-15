@@ -24,7 +24,9 @@ public interface TheoryTransformer {
             new SimplifyTransformer(),
             new NnfTransformer(),
             new SkolemizeTransformer(),
-            new GroundRangeFormulaTransformer(scopes),
+            new DomainInstantiationTransformer(scopes),
+            new RangeFormulaTransformer(scopes),
+            new DomainEliminationTransformer(),
             new SimplifyTransformer()
         );
     }

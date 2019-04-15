@@ -71,7 +71,7 @@ sealed abstract class Term {
     def recklessSubstitute(substitutions: java.util.Map[Var, Term]): Term =
         new RecklessSubstitutionVisitor(substitutions).visit(this)
     
-    def recklessUnivInstantiate(typeInstantiations: java.util.Map[Type, java.util.List[Var]]): Term =
+    def recklessUnivInstantiate(typeInstantiations: java.util.Map[Type, java.util.List[Term]]): Term =
         new RecklessUnivInstantiationVisitor(typeInstantiations).visit(this)
     
     def simplify: Term = Simplifier(this)

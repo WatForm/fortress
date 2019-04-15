@@ -28,6 +28,12 @@ public class Errors {
         }
     }
     
+    public static class DebugException extends RuntimeException {
+        public DebugException(String message) {
+            super(message);
+        }
+    }
+    
     // Precondition: if failed, the method caller messed up
     public static void precondition(boolean condition) {
         if(!condition) {

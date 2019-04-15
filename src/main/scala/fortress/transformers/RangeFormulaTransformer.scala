@@ -1,5 +1,7 @@
 package fortress.transformers
 
+import scala.collection.JavaConverters._
+
 import fortress.tfol._
 
 /** Introduces (quantifier-free) range formulas restricting the ranges of
@@ -12,6 +14,12 @@ import fortress.tfol._
   * no explicit domain elements).
   */
 class RangeFormulaTransformer(scopes: Map[Type, Int]) extends TheoryTransformer {
+    // Ugly conversion from Java data structures
+    def this(scopes: java.util.Map[Type, Integer]) = this({
+        val scopes1: Map[Type, Integer] = scopes.asScala.toMap
+        scopes1.map { case (sort, size: Integer) => (sort, Predef.Integer2int(size)) }
+    })
+    
     override def apply(theory: Theory): Theory = ???
     
     override def getName: String = "Range Formula Transformer (Low Sym)"
