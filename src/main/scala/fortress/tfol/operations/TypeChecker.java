@@ -269,7 +269,7 @@ public class TypeChecker {
             TypeCheckResult bodyResult = visit(forall.getBody());
             if(bodyResult.type.equals(Type.Bool())) {
                 return new TypeCheckResult(Term.mkForall(forall.getVars(), bodyResult.term), Type.Bool(),
-                    /* containsConnective */ bodyResult.containsConnectives, /* containsQuantifiers */ true);
+                    /* containsConnectives */ bodyResult.containsConnectives, /* containsQuantifiers */ true);
             } else {
                 throw new TypeCheckException.WrongArgType("Expected Bool but was " + bodyResult.type.toString() + " in " + forall.toString());
             }
@@ -277,12 +277,58 @@ public class TypeChecker {
         
         @Override
         public TypeCheckResult visitDomainElement(DomainElement d) {
-            return fortress.util.Errors.<TypeCheckResult>notImplemented();
+            Type type = d.sort();
+            if(type.equals(Type.Bool())) {
+                throw new TypeCheckException.WrongArgType("Cannot create domain element of type Bool");
+            }
+            if(!signature.hasType(type)) {
+                throw new TypeCheckException.UnknownType("Unkown type " + type.toString() + " in " + d.toString());
+            } else {
+                return new TypeCheckResult(d, type, /* containsConnectives */ false, /* containsQuantifiers */ false);
+            }
         }
         
         @Override
         public TypeCheckResult visitTC(TC tc) {
-            return fortress.util.Errors.<TypeCheckResult>notImplemented();
+            String relationName = tc.relationName();
+            Optional<FuncDecl> relationMaybe = signature.lookupFunctionDeclaration(relationName);
+            if(!relationMaybe.isPresent()) {
+                throw new TypeCheckException.UnknownFunction("Unkown relation " + relationName + " in " + tc.toString());
+            }
+            FuncDecl relation = relationMaybe.get();
+            List<Type> argTypes = relation.getArgTypes();
+            if(argTypes.size() != 1 && argTypes.size() != 2) {
+                throw new TypeCheckException.WrongArgType("Cannot take transitive closure of " + relation.toString());
+            } else if(argTypes.size() == 2) {
+                // Check relation: A * A -> Bool
+                if(!argTypes.get(0).equals(argTypes.get(1)) || !relation.getResultType().equals(Type.Bool())) {
+                    throw new TypeCheckException.WrongArgType("Cannot take transitive closure of " + relation.toString());
+                }
+            } else /* (argTypes.size() == 1) */ {
+                // Check function: A -> A
+                if(!argTypes.get(0).equals(relation.getResultType())) {
+                    throw new TypeCheckException.WrongArgType("Cannot take transitive closure of " + relation.toString());
+                }
+            }
+            Type type = argTypes.get(0);
+            TypeCheckResult arg1Result = visit(tc.arg1());
+            TypeCheckResult arg2Result = visit(tc.arg2());
+            if(arg1Result.containsConnectives || arg2Result.containsConnectives) {
+                throw new TypeCheckException.BadStructure("Argument of " + tc.toString() + " contains connective");
+            }
+            if(arg1Result.containsQuantifiers || arg2Result.containsQuantifiers) {
+                throw new TypeCheckException.BadStructure("Argument of " + tc.toString() + " contains quantifier");
+            }
+            
+            if(!arg1Result.type.equals(type)) {
+                throw new TypeCheckException.WrongArgType("Expected " + type.toString() + " but was " + arg1Result.type.toString() + " in " + tc.toString());
+            }
+            if(!arg2Result.type.equals(type)) {
+                throw new TypeCheckException.WrongArgType("Expected " + type.toString() + " but was " + arg2Result.type.toString() + " in " + tc.toString());
+            }
+            
+            return new TypeCheckResult(Term.mkTC(relationName, arg1Result.term, arg2Result.term), Type.Bool(),
+                /* containsConnectives */ false, /* containsQuantifiers */ false);
         }
     
     }

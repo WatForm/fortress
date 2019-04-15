@@ -346,7 +346,8 @@ public class NegativeTypeCheckTest {
         // Transitive colosure of A x B -> Bool, not A x A -> Bool or A -> A
         Signature sig = Signature.empty()
             .withTypes(A, B)
-            .withConstants(x.of(A), y.of(A));
+            .withConstants(x.of(A), y.of(A))
+            .withFunctionDeclaration(transition);
         Term t = Term.mkTC("transition", x, y);
         t.typeCheck(sig);
     }
@@ -357,7 +358,8 @@ public class NegativeTypeCheckTest {
         // Transitive colosure of A x A x A -> Bool, not A x A -> Bool or A -> A
         Signature sig = Signature.empty()
             .withTypes(A, B)
-            .withConstants(x.of(A), y.of(A));
+            .withConstants(x.of(A), y.of(A))
+            .withFunctionDeclaration(transition);
         Term t = Term.mkTC("transition", x, y);
         t.typeCheck(sig);
     }
@@ -368,7 +370,8 @@ public class NegativeTypeCheckTest {
         // Transitive colosure of A -> B, not A x A -> Bool or A -> A
         Signature sig = Signature.empty()
             .withTypes(A, B)
-            .withConstants(x.of(A), y.of(A));
+            .withConstants(x.of(A), y.of(A))
+            .withFunctionDeclaration(transition);
         Term t = Term.mkTC("transition", x, y);
         t.typeCheck(sig);
     }
