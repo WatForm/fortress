@@ -298,6 +298,7 @@ case class DomainElement(index: Int, sort: Type) extends Term {
     def getType: Type = sort
     override def accept[T](visitor: TermVisitor[T]): T = visitor.visitDomainElement(this)
     
+    // TODO need to restrict any other code from using this naming convention
     val asSmtConstant = Var("@" + index.toString + sort.toString)
 }
 
