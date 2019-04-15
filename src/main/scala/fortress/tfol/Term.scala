@@ -76,6 +76,8 @@ sealed abstract class Term {
     
     def simplify: Term = Simplifier(this)
     
+    def eliminateDomainElements = DomainElementEliminator(this)
+    
     /** Returns the set of all symbol names used in the term, including:
       * free variables and constants, bound variables (even those that aren't used),
       * function names, and type names that appear on variable bindings.

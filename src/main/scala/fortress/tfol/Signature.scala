@@ -61,6 +61,14 @@ case class Signature private (
         return sig;
     }
     
+    def withConstants(constants: Iterable[AnnotatedVar]): Signature = {
+        var sig = this;
+        constants.foreach { c =>
+            sig = sig.withConstant(c);
+        }
+        return sig;
+    }
+    
     @varargs
     def withConstants(constants: AnnotatedVar*): Signature = withConstants(constants.asJava)
     

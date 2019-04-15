@@ -78,6 +78,8 @@ case class Theory private (signature: Signature, axioms: Set[Term]) {
     @varargs
     def withConstants(constants: AnnotatedVar*): Theory = withConstants(constants.asJava)
     
+    def withConstants(constants: Iterable[AnnotatedVar]): Theory = Theory(signature.withConstants(constants), axioms)
+    
     /** Returns a theory consisting of the current theory but with the given
       * function declaration added. Note that this does not modify the current Theory object,
       * but rather just returns a new Theory object.
