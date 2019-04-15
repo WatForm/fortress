@@ -206,6 +206,10 @@ case class Distinct(arguments: Seq[Term]) extends Term {
     }
 }
 
+object Distinct {
+    def apply(arguments: Term*): Term = Distinct(arguments.toList)
+}
+
 /** Represents an implication. */
 case class Implication(left: Term, right: Term) extends Term {
     def getLeft: Term = left
