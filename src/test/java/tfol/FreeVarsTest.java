@@ -39,14 +39,14 @@ public class FreeVarsTest {
     
     @Test
     public void simpleTerm() {
-        assertEquals(Set.of(x, y), t1.freeVarConstSymbols());
+        assertEquals(Set.of(x, y), t1.freeVarConstSymbolsJava());
         assertEquals(Set.of(x, y), t1.freeVars(Signature.empty()));
     }
     
     @Test
     public void quantifiedTerm() {
         Term t2 = Term.mkForall(List.of(x.of(A), y.of(B)), Term.mkImp(t1, z));
-        assertEquals(Set.of(z), t2.freeVarConstSymbols());
+        assertEquals(Set.of(z), t2.freeVarConstSymbolsJava());
         assertEquals(Set.of(z), t2.freeVars(Signature.empty()));
     }
     

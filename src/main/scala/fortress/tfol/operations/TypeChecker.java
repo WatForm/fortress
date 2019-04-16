@@ -94,7 +94,7 @@ public class TypeChecker {
             }
             ImmutableList<Term> newArguments = results.map(r -> r.term);
             boolean containsQuantifiers = results.stream().anyMatch((TypeCheckResult r) -> r.containsQuantifiers);
-            return new TypeCheckResult(Term.mkAndF(newArguments), Type.Bool(),
+            return new TypeCheckResult(Term.mkAnd(newArguments), Type.Bool(),
                 /* containsConnectives */ true, /* containsQuantifiers*/ containsQuantifiers);
         }
         
@@ -108,7 +108,7 @@ public class TypeChecker {
             }
             ImmutableList<Term> newArguments = results.map(r -> r.term);
             boolean containsQuantifiers = results.stream().anyMatch((TypeCheckResult r) -> r.containsQuantifiers);
-            return new TypeCheckResult(Term.mkOrF(newArguments), Type.Bool(),
+            return new TypeCheckResult(Term.mkOr(newArguments), Type.Bool(),
                 /* containsConnectives */ true, /* containsQuantifiers*/ containsQuantifiers);
         }
         
@@ -127,7 +127,7 @@ public class TypeChecker {
             
             ImmutableList<Term> newArguments = results.map(r -> r.term);
             boolean containsQuantifiers = results.stream().anyMatch((TypeCheckResult r) -> r.containsQuantifiers);
-            return new TypeCheckResult(Term.mkDistinctF(newArguments), Type.Bool(),
+            return new TypeCheckResult(Term.mkDistinct(newArguments), Type.Bool(),
                 /* containsConnectives */ true, /* containsQuantifiers*/ containsQuantifiers);
         }
         
@@ -213,7 +213,7 @@ public class TypeChecker {
             }
             
             ImmutableList<Term> newArguments = results.map(r -> r.term);
-            return new TypeCheckResult(Term.mkAppF(funcDecl.getName(), newArguments), funcDecl.getResultType(),
+            return new TypeCheckResult(Term.mkApp(funcDecl.getName(), newArguments), funcDecl.getResultType(),
                 /* containsConnectives */ false, /* containsQuantifiers */ false);
         }
         

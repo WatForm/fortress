@@ -40,7 +40,7 @@ object Simplifier {
             // If x is within free vars union constants, then since it is quantified
             // here it must be a free var.
             case Exists(vars, body) => {
-                val freeVars: java.util.Set[Var] = body.freeVarConstSymbols
+                val freeVars: java.util.Set[Var] = body.freeVarConstSymbolsJava
                 val newVars = vars.filter((av: AnnotatedVar) => freeVars.contains(av.variable))
                 if (newVars.size == 0)
                     body
@@ -48,7 +48,7 @@ object Simplifier {
                     Exists(newVars, body)
             }
             case Forall(vars, body) => {
-                val freeVars: java.util.Set[Var] = body.freeVarConstSymbols
+                val freeVars: java.util.Set[Var] = body.freeVarConstSymbolsJava
                 val newVars = vars.filter((av: AnnotatedVar) => freeVars.contains(av.variable))
                 if (newVars.size == 0)
                     body

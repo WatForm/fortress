@@ -35,7 +35,7 @@ public class SkolemizeTransformer implements TheoryTransformer {
         
         // TODO: do we need this restriction if Substituter already restricts these inside one term?
         for(Term axiom : theory.getAxioms()) {
-            forbiddenNames.addAll(axiom.allSymbols());
+            forbiddenNames.addAll(axiom.allSymbolsJava());
         }
         
         NameGenerator nameGenerator = new SubIntNameGenerator(forbiddenNames, 0);

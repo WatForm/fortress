@@ -2,8 +2,7 @@ package fortress.tfol
 
 import fortress.util.Errors
 import fortress.tfol.operations._
-import fortress.data.Conversions
-import fortress.data.NameGenerator
+import fortress.data._
 import fortress.outputs._
 import fortress.sexpr._
 import scala.collection.JavaConverters._
@@ -19,6 +18,7 @@ sealed abstract class Term {
       * so it could also include what are intended to be constants.
       */ 
     def freeVarConstSymbols: java.util.Set[Var] = FreeVariables(this).asJava
+    def freeVarConstSymbolsJava: java.util.Set[Var] = FreeVariables(this).asJava
     
     /** Returns the set of free variables of this term with respect
       * to the given signature. Constants of the signature are not included.
@@ -53,14 +53,11 @@ sealed abstract class Term {
     /** Returns true iff the other term is alpha-equivalen to this term. */
     def alphaEquivalent(other: Term): Boolean = this.deBruijn == other.deBruijn
     
-    def substitute(toSub: Var, subWith: Term, forbiddenNames: java.util.Set[String]): Term = 
-        new Substituter(this, toSub, subWith, forbiddenNames).substitute()
-    
     def substitute(toSub: Var, subWith: Term, nameGenerator: NameGenerator): Term =
-        new Substituter(this, toSub, subWith, nameGenerator).substitute()
+        Substituter(toSub, subWith, this, nameGenerator)
     
     def substitute(toSub: Var, subWith: Term): Term =
-        substitute(toSub, subWith, java.util.Set.of[String])
+        substitute(toSub, subWith, new SubIntNameGenerator(java.util.Set.of[String], 0))
     
     /** Does not account for variable capture.
       * If in doubt do not use this function.
@@ -79,7 +76,8 @@ sealed abstract class Term {
       * free variables and constants, bound variables (even those that aren't used),
       * function names, and type names that appear on variable bindings.
       */
-    def allSymbols: java.util.Set[String] = AllSymbols(this).asJava
+    def allSymbols: Set[String] = AllSymbols(this)
+    def allSymbolsJava: java.util.Set[String] = allSymbols.asJava
     
     // Be aware if you chain this method together, you will get several nested AndLists
     def and(other: Term): Term = AndList(Seq(this, other))
@@ -478,38 +476,6 @@ object Term {
     def mkIff(t1: Term, t2: Term): Term = Iff(t1, t2)
     
     def mkTC(relationName: String, arg1: Term, arg2: Term): Term = TC(relationName, arg1, arg2)
-    
-    // TODO need to update these for efficiency
-    
-    /** Internal method to make AndLists without needing to copy the argument list. */
-    def mkAndF(arguments: fortress.data.ImmutableList[Term]): Term = {
-        Errors.precondition(arguments.size > 0, "One or more arguments must be given")
-        if(arguments.size == 1) {
-            arguments.get(0);
-        } else {
-            AndList(arguments.asScala.toList)
-        }
-    }
-    
-    /** Internal method to make OrLists without needing to copy the argument list. */
-    def mkOrF(arguments: fortress.data.ImmutableList[Term]): Term = {
-        Errors.precondition(arguments.size > 0, "One or more arguments must be given")
-        if(arguments.size == 1) {
-            arguments.get(0);
-        } else {
-            OrList(arguments.asScala.toList)
-        }
-    }
-    
-    /** Internal method to make Distinct terms without needing to copy the argument list. */
-    def mkDistinctF(arguments: fortress.data.ImmutableList[Term]): Term = {
-        Errors.precondition(arguments.size >= 2)
-        Distinct(arguments.asScala.toList)
-    }
-    
-    /** Internal method to make Apps without needing to copy the argument list. */
-    def mkAppF(functionName: String, arguments: fortress.data.ImmutableList[Term]): Term =
-        App(functionName, arguments.asScala.toList)
     
     /** Internal method for creating Domain Elements. */
     def mkDomainElement(index: Int, sort: Type) = DomainElement(index, sort)
