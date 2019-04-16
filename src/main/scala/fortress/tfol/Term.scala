@@ -62,8 +62,11 @@ sealed abstract class Term {
     /** Does not account for variable capture.
       * If in doubt do not use this function.
       */
-    def recklessSubstitute(substitutions: java.util.Map[Var, Term]): Term =
-        new RecklessSubstitutionVisitor(substitutions).visit(this)
+    def recklessSubstitute(substitutions: Map[Var, Term]): Term =
+        RecklessSubstituter(substitutions, this)
+    
+    def recklessSubstituteJava(substitutions: java.util.Map[Var, Term]): Term =
+        RecklessSubstituter(substitutions.asScala.toMap, this)
     
     def recklessUnivInstantiate(typeInstantiations: java.util.Map[Type, java.util.List[Term]]): Term =
         new RecklessUnivInstantiationVisitor(typeInstantiations).visit(this)

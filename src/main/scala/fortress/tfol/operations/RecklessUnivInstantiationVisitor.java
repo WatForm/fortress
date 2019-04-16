@@ -113,7 +113,7 @@ public class RecklessUnivInstantiationVisitor implements TermVisitor<Term> {
             
             // NOTE because we are substituting with fresh variables, there
             // should never be any variable capture or any other name issues
-            Term bodyInstance = body.recklessSubstitute(varSubstitutions);
+            Term bodyInstance = body.recklessSubstituteJava(varSubstitutions);
             toConjunct.add(bodyInstance);
         }
         return Term.mkAnd(toConjunct);
