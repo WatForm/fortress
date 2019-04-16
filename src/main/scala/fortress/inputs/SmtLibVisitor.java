@@ -48,10 +48,20 @@ public class SmtLibVisitor extends SmtLibSubsetBaseVisitor {
         }
     }
     
+    private Type parseType(String name) {
+        if(name.equals("Bool")) {
+            return Type.Bool();
+        } else if(name.equals("Int")) {
+            return Type.Int();
+        } else {
+            return Type.mkTypeConst(name);
+        }
+    }
+    
 	@Override
     public Void visitDeclare_const(SmtLibSubsetParser.Declare_constContext ctx) {
         Var x = Term.mkVar(ctx.ID(0).getText());
-        Type type = Type.mkTypeConst(ctx.ID(1).getText());
+        Type type = parseType(ctx.ID(1).getText());
         theory = theory.withConstant(x.of(type));
         return null;
     }
@@ -60,7 +70,8 @@ public class SmtLibVisitor extends SmtLibSubsetBaseVisitor {
     public Void visitDeclare_fun(SmtLibSubsetParser.Declare_funContext ctx) {
         int lastIndex = ctx.ID().size() - 1;
         String function = ctx.ID(0).getText();
-        Type returnType = Type.mkTypeConst(ctx.ID(lastIndex).getText());
+        String returnTypeText = ctx.ID(lastIndex).getText();
+        Type returnType = parseType(returnTypeText);
         List<Type> argTypes = new ArrayList<>();
         for(int i = 1; i < lastIndex; i++) {
             argTypes.add(Type.mkTypeConst(ctx.ID(i).getText()));

@@ -101,13 +101,13 @@ case class Signature private (
     def assertTypeConsistent(t: Type): Unit = {
         // Type must not share a name with any function
         Errors.precondition(! functionDeclarations.exists(
-            (fdecl: FuncDecl) => fdecl.getName == t.getName
-        ), "Name " + t.getName + " shared by type and function")
+            (fdecl: FuncDecl) => fdecl.getName == t.name
+        ), "Name " + t.name + " shared by type and function")
         
         // Type must not share a name with any constant
         Errors.precondition(! constants.exists(
-            (c: AnnotatedVar) => c.getName == t.getName
-        ), "Name " + t.getName + " shared by type and constant")
+            (c: AnnotatedVar) => c.getName == t.name
+        ), "Name " + t.name + " shared by type and constant")
     }
     
     private 
@@ -144,7 +144,7 @@ case class Signature private (
         
         // Function must not share name with a type
         Errors.precondition(! types.exists(
-            (t: Type) => t.getName == fdecl.getName
+            (t: Type) => t.name == fdecl.getName
         ), "Name " + fdecl.getName +  " shared by function and type")
         
         // Function must not share name with another function, unless it is the same function
