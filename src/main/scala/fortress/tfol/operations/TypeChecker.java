@@ -10,7 +10,6 @@ import java.util.HashSet;
 import fortress.tfol.*;
 import java.util.Iterator;
 import fortress.util.Pair;
-import fortress.data.ImmutableList;
 import fortress.data.TypeCheckException;
 
 public class TypeChecker {
@@ -86,13 +85,13 @@ public class TypeChecker {
 
         @Override
         public TypeCheckResult visitAndList(AndList andList) {
-            ImmutableList<TypeCheckResult> results = andList.getArguments().map(this::visit);
+            List<TypeCheckResult> results = andList.getArguments().stream().map(this::visit).collect(Collectors.toList());
             for(TypeCheckResult r : results) {
                 if(! r.type.equals(Type.Bool())) {
                     throw new TypeCheckException.WrongArgType("Expected type Bool but was " + r.type.getName() + " in " + andList.toString());
                 }
             }
-            ImmutableList<Term> newArguments = results.map(r -> r.term);
+            List<Term> newArguments = results.stream().map(r -> r.term).collect(Collectors.toList());
             boolean containsQuantifiers = results.stream().anyMatch((TypeCheckResult r) -> r.containsQuantifiers);
             return new TypeCheckResult(Term.mkAnd(newArguments), Type.Bool(),
                 /* containsConnectives */ true, /* containsQuantifiers*/ containsQuantifiers);
@@ -100,13 +99,13 @@ public class TypeChecker {
         
         @Override
         public TypeCheckResult visitOrList(OrList orList) {
-            ImmutableList<TypeCheckResult> results = orList.getArguments().map(this::visit);
+            List<TypeCheckResult> results = orList.getArguments().stream().map(this::visit).collect(Collectors.toList());
             for(TypeCheckResult r : results) {
                 if(! r.type.equals(Type.Bool())) {
                     throw new TypeCheckException.WrongArgType("Expected type Bool but was " + r.type.getName() + " in " + orList.toString());
                 }
             }
-            ImmutableList<Term> newArguments = results.map(r -> r.term);
+            List<Term> newArguments = results.stream().map(r -> r.term).collect(Collectors.toList());
             boolean containsQuantifiers = results.stream().anyMatch((TypeCheckResult r) -> r.containsQuantifiers);
             return new TypeCheckResult(Term.mkOr(newArguments), Type.Bool(),
                 /* containsConnectives */ true, /* containsQuantifiers*/ containsQuantifiers);
@@ -115,7 +114,7 @@ public class TypeChecker {
         @Override
         public TypeCheckResult visitDistinct(Distinct distinct) {
             Set<Type> foundTypes = new HashSet<>();
-            ImmutableList<TypeCheckResult> results = distinct.getArguments().map(this::visit);
+            List<TypeCheckResult> results = distinct.getArguments().stream().map(this::visit).collect(Collectors.toList());
             
             for(TypeCheckResult result : results) {
                 foundTypes.add(result.type);
@@ -125,7 +124,7 @@ public class TypeChecker {
                 throw new TypeCheckException.WrongArgType("Arguments of multiple types " + foundTypes.toString() + " in " + distinct.toString());
             }
             
-            ImmutableList<Term> newArguments = results.map(r -> r.term);
+            List<Term> newArguments = results.stream().map(r -> r.term).collect(Collectors.toList());
             boolean containsQuantifiers = results.stream().anyMatch((TypeCheckResult r) -> r.containsQuantifiers);
             return new TypeCheckResult(Term.mkDistinct(newArguments), Type.Bool(),
                 /* containsConnectives */ true, /* containsQuantifiers*/ containsQuantifiers);
@@ -184,12 +183,12 @@ public class TypeChecker {
         // Check argument:
         // 1. types match function declaration
         // 2. arguments contain no connectives or quantifiers
-        private TypeCheckResult checkFunction(FuncDecl funcDecl, ImmutableList<Term> arguments) {
+        private TypeCheckResult checkFunction(FuncDecl funcDecl, List<Term> arguments) {
             if(funcDecl.getArity() != arguments.size()) {
                 throw new TypeCheckException.WrongArity("Application of " + funcDecl.toString() + " to wrong number of arguments");
             }
             
-            ImmutableList<TypeCheckResult> results = arguments.map(this::visit);
+            List<TypeCheckResult> results = arguments.stream().map(this::visit).collect(Collectors.toList());
             
             Iterator<Type> itTypes = funcDecl.getArgTypes().iterator();
             Iterator<TypeCheckResult> itResults = results.iterator();
@@ -212,7 +211,7 @@ public class TypeChecker {
                 }
             }
             
-            ImmutableList<Term> newArguments = results.map(r -> r.term);
+            List<Term> newArguments = results.stream().map(r -> r.term).collect(Collectors.toList());
             return new TypeCheckResult(Term.mkApp(funcDecl.getName(), newArguments), funcDecl.getResultType(),
                 /* containsConnectives */ false, /* containsQuantifiers */ false);
         }

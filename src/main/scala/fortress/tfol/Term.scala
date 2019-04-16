@@ -149,7 +149,7 @@ case class Not(body: Term) extends Term {
 case class AndList private (arguments: Seq[Term]) extends Term {
     Errors.precondition(arguments.size >= 2)
     
-    def getArguments: fortress.data.ImmutableList[Term] = Conversions.toFortressList(arguments)
+    def getArguments: java.util.List[Term] = arguments.asJava
     override def accept[T](visitor: TermVisitor[T]): T = visitor.visitAndList(this)
     def mapArguments(mapping: Term => Term): Term =
         AndList(arguments.map(mapping))
@@ -170,7 +170,7 @@ object And {
 case class OrList private (arguments: Seq[Term]) extends Term {
     Errors.precondition(arguments.size >= 2)
     
-    def getArguments: fortress.data.ImmutableList[Term] = Conversions.toFortressList(arguments)
+    def getArguments: java.util.List[Term] = arguments.asJava
     override def accept[T](visitor: TermVisitor[T]): T = visitor.visitOrList(this)
     def mapArguments(mapping: Term => Term): Term =
         OrList(arguments.map(mapping))
@@ -191,7 +191,7 @@ object Or {
 case class Distinct(arguments: Seq[Term]) extends Term {
     Errors.precondition(arguments.size >= 2)
     
-    def getArguments: fortress.data.ImmutableList[Term] = Conversions.toFortressList(arguments)
+    def getArguments: java.util.List[Term] = arguments.asJava
     override def accept[T](visitor: TermVisitor[T]): T = visitor.visitDistinct(this)
     def mapArguments(mapping: Term => Term): Term =
         Distinct(arguments.map(mapping))
@@ -258,7 +258,7 @@ case class App(functionName: String, arguments: Seq[Term]) extends Term {
     Errors.precondition(functionName.length >= 1, "Empty function name")
     Errors.precondition(arguments.size >= 1, "Nullary function application " + functionName + " should be a Var")
     
-    def getArguments: fortress.data.ImmutableList[Term] = Conversions.toFortressList(arguments)
+    def getArguments: java.util.List[Term] = arguments.asJava
     def getFunctionName: String = functionName
     override def accept[T](visitor: TermVisitor[T]): T  = visitor.visitApp(this)
     def mapArguments(mapping: Term => Term): Term =
@@ -272,7 +272,7 @@ object App {
 }
 
 sealed abstract class Quantifier extends Term {
-    def getVars: fortress.data.ImmutableList[AnnotatedVar]
+    def getVars: java.util.List[AnnotatedVar]
     def getBody: Term
     def mapBody(mapping: Term => Term): Term
 }
@@ -283,7 +283,7 @@ case class Exists(vars: Seq[AnnotatedVar], body: Term) extends Quantifier {
     // Check variables distinct
     Errors.precondition(vars.map(av => av.getName).toSet.size == vars.size, "Duplicate variable name in quantifier")
     
-    def getVars: fortress.data.ImmutableList[AnnotatedVar] = Conversions.toFortressList(vars)
+    def getVars: java.util.List[AnnotatedVar] = vars.asJava
     def getBody: Term = body
     override def accept[T](visitor: TermVisitor[T]): T = visitor.visitExists(this)
     def mapBody(mapping: Term => Term): Term = Exists(vars, mapping(body))
@@ -301,7 +301,7 @@ case class Forall(vars: Seq[AnnotatedVar], body: Term) extends Quantifier {
     // Check variables distinct
     Errors.precondition(vars.map(av => av.getName).toSet.size == vars.size, "Duplicate variable name in quantifier")
     
-    def getVars: fortress.data.ImmutableList[AnnotatedVar] = Conversions.toFortressList(vars)
+    def getVars: java.util.List[AnnotatedVar] = vars.asJava
     def getBody: Term = body
     override def accept[T](visitor: TermVisitor[T]): T = visitor.visitForall(this)
     def mapBody(mapping: Term => Term): Term = Forall(vars, mapping(body))
