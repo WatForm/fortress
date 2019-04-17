@@ -20,10 +20,6 @@ public abstract class TermVisitorWithTypeContext<T> implements TermVisitor<T> {
         this.typeContextStack = typeContextStack;
     }
     
-    protected Optional<FuncDecl> lookupFunctionDeclaration(String name) {
-        return signature.lookupFunctionDeclaration(name);
-    }
-    
     // Looks up variable type in context first, then tries constants
     protected Optional<Type> lookupType(Var variable) {
         // Check if it is in the Context
@@ -39,7 +35,7 @@ public abstract class TermVisitorWithTypeContext<T> implements TermVisitor<T> {
         }
         
         // If it is not in the stack, check if is in the declared constants
-        return signature.lookupConstant(variable)
+        return signature.queryConstantJava(variable)
             .map( (AnnotatedVar av) -> av.getType());
     }
     

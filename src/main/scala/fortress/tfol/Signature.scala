@@ -5,6 +5,27 @@ import fortress.util.Errors
 import fortress.tfol.operations.TypeCheckResult
 import scala.collection.JavaConverters._
 import scala.annotation.varargs // So we can call Scala varargs methods from Java
+import scala.collection.immutable.Seq // Use immutable seq by default
+
+trait TypeCheckable {
+    def hasType(sort: Type): Boolean
+    def hasTypeWithName(name: String): Boolean
+    def hasFunctionWithName(name: String): Boolean
+    def queryFunction(name: String, argTypes: Seq[Type]): Option[FuncDecl]
+    def queryConstant(v: Var): Option[AnnotatedVar]
+    
+    def queryFunctionJava(name: String, argTypes: java.util.List[Type]): java.util.Optional[FuncDecl] =
+        queryFunction(name, argTypes.asScala.toList) match {
+            case Some(fdecl) => java.util.Optional.of[FuncDecl](fdecl)
+            case None => java.util.Optional.empty[FuncDecl]()
+        }
+        
+    def queryConstantJava(v: Var): java.util.Optional[AnnotatedVar] =
+        queryConstant(v) match {
+            case Some(av: AnnotatedVar) => java.util.Optional.of(av)
+            case None => java.util.Optional.empty[AnnotatedVar]
+        }
+}
 
 // Persistent and Immutable
 // Internally consistent
@@ -14,7 +35,7 @@ case class Signature private (
     types: Set[Type],
     functionDeclarations: Set[FuncDecl],
     constants: Set[AnnotatedVar]
-) {
+) extends TypeCheckable {
     
     def withType(t: Type): Signature = {
         assertTypeConsistent(t)
@@ -72,21 +93,14 @@ case class Signature private (
     @varargs
     def withConstants(constants: AnnotatedVar*): Signature = withConstants(constants.asJava)
     
-    def lookupConstant(v: Var): java.util.Optional[AnnotatedVar] =
-        constants.find(c => c.getVar == v) match {
-            case Some(av: AnnotatedVar) => java.util.Optional.of(av)
-            case None => java.util.Optional.empty[AnnotatedVar]
-        }
+    def queryConstant(v: Var): Option[AnnotatedVar] = constants.find(_.variable == v)
     
-    def lookupFunctionDeclaration(functionName: String): java.util.Optional[FuncDecl] =
-        functionDeclarations.find(fdecl => fdecl.getName == functionName) match {
-            case Some(fdecl: FuncDecl) => java.util.Optional.of(fdecl)
-            case None => java.util.Optional.empty[FuncDecl]
-        }
+    def queryFunction(name: String, argTypes: Seq[Type]): Option[FuncDecl] =
+        functionDeclarations.find(fdecl => fdecl.getName == name && fdecl.argTypes == argTypes)
     
-    def hasType(name: String): Boolean = types.contains(Type.mkTypeConst(name))
-    
-    def hasType(sort: Type): Boolean = types.contains(sort)
+    def hasType(sort: Type): Boolean = types contains sort
+    def hasTypeWithName(name: String): Boolean = types.exists(_.name == name)
+    def hasFunctionWithName(name: String): Boolean = functionDeclarations.exists(_.name == name)
     
     private[tfol]
     def getConstants: java.util.Set[AnnotatedVar] = constants.asJava

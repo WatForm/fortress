@@ -52,12 +52,12 @@ public class TypeChecker {
             // This must be done even with a consistent signature
             // TODO: this behaviour should be documented
             // TODO: is this considered poorly typed or a different kind of error?
-            if(lookupFunctionDeclaration(variable.getName()).isPresent()) {
+            if(signature.hasFunctionWithName(variable.getName())) {
                 throw new TypeCheckException.NameConflict("Variable or constant name " + variable.getName() + " conflicts with existing function symbol");
             }
             
             // Check variable is not an already declared type symbol
-            if(signature.hasType(variable.getName())) {
+            if(signature.hasTypeWithName(variable.getName())) {
                 throw new TypeCheckException.NameConflict("Variable or constant name " + variable.getName() + " conflicts with existing type symbol");
             }
             
@@ -183,51 +183,33 @@ public class TypeChecker {
         // Check argument:
         // 1. types match function declaration
         // 2. arguments contain no connectives or quantifiers
-        private TypeCheckResult checkFunction(FuncDecl funcDecl, List<Term> arguments) {
-            if(funcDecl.getArity() != arguments.size()) {
-                throw new TypeCheckException.WrongArity("Application of " + funcDecl.toString() + " to wrong number of arguments");
-            }
-            
-            List<TypeCheckResult> results = arguments.stream().map(this::visit).collect(Collectors.toList());
-            
-            Iterator<Type> itTypes = funcDecl.getArgTypes().iterator();
-            Iterator<TypeCheckResult> itResults = results.iterator();
-            int argNum = 0;
-            while(itTypes.hasNext() && itResults.hasNext()) {
-                argNum++;
-                Type expected = itTypes.next();
-                TypeCheckResult result = itResults.next();
-                Type actual = result.type;
-                if(!expected.equals(actual)) {
-                    throw new TypeCheckException.WrongArgType("In argument " + argNum + " of " + funcDecl.getName() + ", expected " + expected.getName() + " but was " + actual.getName());
-                }
-                
-                if(result.containsConnectives) {
-                    throw new TypeCheckException.BadStructure("Argument " + argNum + " of " + funcDecl.getName() + " contains connective");
-                }
-                
-                if(result.containsQuantifiers) {
-                    throw new TypeCheckException.BadStructure("Argument " + argNum + " of " + funcDecl.getName() + " contains quantifier");
-                }
-            }
-            
-            List<Term> newArguments = results.stream().map(r -> r.term).collect(Collectors.toList());
-            return new TypeCheckResult(Term.mkApp(funcDecl.getName(), newArguments), funcDecl.getResultType(),
-                /* containsConnectives */ false, /* containsQuantifiers */ false);
-        }
-        
         @Override
         public TypeCheckResult visitApp(App app) {
             String funcName = app.getFunctionName();
             
-            // Check for function symbol in declared functions
-            Optional<FuncDecl> fMaybe = lookupFunctionDeclaration(funcName);
-            if(! fMaybe.isPresent()) {
-                throw new TypeCheckException.UnknownFunction("Unknown function " + funcName);
-            } else {
-                FuncDecl fdecl = fMaybe.get();
-                return checkFunction(fdecl, app.getArguments());
+            if(!signature.hasFunctionWithName(funcName)) {
+                throw new TypeCheckException.UnknownFunction("Could not find function " + funcName);
             }
+            
+            List<TypeCheckResult> results = app.getArguments().stream().map(this::visit).collect(Collectors.toList());
+            List<Type> argTypes = results.stream().map(result -> result.type).collect(Collectors.toList());
+            
+            Optional<FuncDecl> funcMaybe = signature.queryFunctionJava(funcName, argTypes);
+            if(!funcMaybe.isPresent()) {
+                throw new TypeCheckException.WrongArgType(funcName + " cannot accept argument types " + argTypes.toString() + " in " + app.toString());
+            }
+            FuncDecl fdecl = funcMaybe.get();
+            
+            if(results.stream().anyMatch(result -> result.containsConnectives)) {
+                throw new TypeCheckException.BadStructure("Argument of " + funcName + " contains connective");
+            }
+            if(results.stream().anyMatch(result -> result.containsQuantifiers)) {
+                throw new TypeCheckException.BadStructure("Argument of " + funcName + " contains quantifier");
+            }
+            
+            List<Term> newArguments = results.stream().map(r -> r.term).collect(Collectors.toList());
+            return new TypeCheckResult(Term.mkApp(funcName, newArguments), fdecl.getResultType(),
+                /* containsConnectives */ false, /* containsQuantifiers */ false);
         }
         
         @Override
@@ -235,7 +217,7 @@ public class TypeChecker {
             // Check variables don't clash with function names
             // and that their type exists
             for(AnnotatedVar av : exists.getVars()) {
-                if(lookupFunctionDeclaration(av.getName()).isPresent()) {
+                if(signature.hasFunctionWithName(av.getName())) {
                     throw new TypeCheckException.NameConflict("Variable name " + av.getName() + " conflicts with existing function symbol");
                 }
                 if(! signature.hasType(av.getType())) {
@@ -257,7 +239,7 @@ public class TypeChecker {
             // Check variables don't clash with function names
             // and that their type exists
             for(AnnotatedVar av : forall.getVars()) {
-                if(lookupFunctionDeclaration(av.getName()).isPresent()) {
+                if(signature.hasFunctionWithName(av.getName())) {
                     throw new TypeCheckException.NameConflict("Variable name " + av.getName() + " conflicts with existing function symbol");
                 }
                 if(! signature.hasType(av.getType())) {
@@ -290,26 +272,11 @@ public class TypeChecker {
         @Override
         public TypeCheckResult visitTC(TC tc) {
             String relationName = tc.relationName();
-            Optional<FuncDecl> relationMaybe = signature.lookupFunctionDeclaration(relationName);
-            if(!relationMaybe.isPresent()) {
+            if(!signature.hasFunctionWithName(relationName)) {
                 throw new TypeCheckException.UnknownFunction("Unkown relation " + relationName + " in " + tc.toString());
             }
-            FuncDecl relation = relationMaybe.get();
-            List<Type> argTypes = relation.getArgTypes();
-            if(argTypes.size() != 1 && argTypes.size() != 2) {
-                throw new TypeCheckException.WrongArgType("Cannot take transitive closure of " + relation.toString());
-            } else if(argTypes.size() == 2) {
-                // Check relation: A * A -> Bool
-                if(!argTypes.get(0).equals(argTypes.get(1)) || !relation.getResultType().equals(Type.Bool())) {
-                    throw new TypeCheckException.WrongArgType("Cannot take transitive closure of " + relation.toString());
-                }
-            } else /* (argTypes.size() == 1) */ {
-                // Check function: A -> A
-                if(!argTypes.get(0).equals(relation.getResultType())) {
-                    throw new TypeCheckException.WrongArgType("Cannot take transitive closure of " + relation.toString());
-                }
-            }
-            Type type = argTypes.get(0);
+            
+            
             TypeCheckResult arg1Result = visit(tc.arg1());
             TypeCheckResult arg2Result = visit(tc.arg2());
             if(arg1Result.containsConnectives || arg2Result.containsConnectives) {
@@ -318,16 +285,28 @@ public class TypeChecker {
             if(arg1Result.containsQuantifiers || arg2Result.containsQuantifiers) {
                 throw new TypeCheckException.BadStructure("Argument of " + tc.toString() + " contains quantifier");
             }
-            
-            if(!arg1Result.type.equals(type)) {
-                throw new TypeCheckException.WrongArgType("Expected " + type.toString() + " but was " + arg1Result.type.toString() + " in " + tc.toString());
-            }
-            if(!arg2Result.type.equals(type)) {
-                throw new TypeCheckException.WrongArgType("Expected " + type.toString() + " but was " + arg2Result.type.toString() + " in " + tc.toString());
+            if(! arg1Result.type.equals(arg2Result.type)) {
+                throw new TypeCheckException.WrongArgType("Arguments of different types in " + tc.toString());
             }
             
-            return new TypeCheckResult(Term.mkTC(relationName, arg1Result.term, arg2Result.term), Type.Bool(),
-                /* containsConnectives */ false, /* containsQuantifiers */ false);
+            Type type = arg1Result.type;
+            
+            // Look for a relation A * A -> Bool
+            Optional<FuncDecl> relationMaybe = signature.queryFunctionJava(relationName, List.of(type, type));
+            if(relationMaybe.isPresent() && relationMaybe.get().getResultType().equals(Type.Bool())) {
+                return new TypeCheckResult(Term.mkTC(relationName, arg1Result.term, arg2Result.term), Type.Bool(),
+                    /* containsConnectives */ false, /* containsQuantifiers */ false);
+            }
+            
+            // Look for a function A -> A
+            Optional<FuncDecl> functionMaybe = signature.queryFunctionJava(relationName, List.of(type));
+            if(functionMaybe.isPresent() && functionMaybe.get().getResultType().equals(type)) {
+                return new TypeCheckResult(Term.mkTC(relationName, arg1Result.term, arg2Result.term), Type.Bool(),
+                    /* containsConnectives */ false, /* containsQuantifiers */ false);
+            }
+            
+            throw new TypeCheckException.UnknownFunction("Cannot find relation " + FuncDecl.mkFuncDecl(relationName, type, type, Type.Bool()).toString()
+                + " or function " + FuncDecl.mkFuncDecl(relationName, type, type).toString() + " to take transitive closure of");
         }
         
         @Override
