@@ -7,7 +7,7 @@ import scala.collection.JavaConverters._
 import scala.annotation.varargs // So we can call Scala varargs methods from Java
 import scala.collection.immutable.Seq // Use immutable seq by default
 
-trait TypeCheckable {
+trait SignatureTypechecking {
     def hasType(sort: Type): Boolean
     def hasTypeWithName(name: String): Boolean
     def hasFunctionWithName(name: String): Boolean
@@ -34,12 +34,14 @@ trait TypeCheckable {
 case class Signature private (
     types: Set[Type],
     functionDeclarations: Set[FuncDecl],
-    constants: Set[AnnotatedVar]
-) extends TypeCheckable {
+    constants: Set[AnnotatedVar],
+    extensions: Set[SignatureExtension]
+) extends SignatureTypechecking {
     
+    // TODO need to check this type is not builtin
     def withType(t: Type): Signature = {
         assertTypeConsistent(t)
-        Signature(types + t, functionDeclarations, constants)
+        Signature(types + t, functionDeclarations, constants, extensions)
     }
     
     def withTypes(types: java.lang.Iterable[Type]): Signature = {
@@ -55,11 +57,11 @@ case class Signature private (
     
     def withFunctionDeclaration(fdecl: FuncDecl): Signature = {
         assertFuncDeclConsistent(fdecl)
-        Signature(types, functionDeclarations + fdecl, constants)
+        Signature(types, functionDeclarations + fdecl, constants, extensions)
     }
     
     def withFunctionDeclarations(fdecls: java.lang.Iterable[FuncDecl]): Signature = {
-        var sig: Signature = this;
+        var sig: Signature = this
         fdecls.forEach { f =>
             sig = sig.withFunctionDeclaration(f)
         }
@@ -71,21 +73,21 @@ case class Signature private (
     
     def withConstant(c: AnnotatedVar): Signature = {
         assertConstConsistent(c);
-        Signature(types, functionDeclarations, constants + c);
+        Signature(types, functionDeclarations, constants + c, extensions)
     }
     
     def withConstants(constants: java.lang.Iterable[AnnotatedVar]): Signature = {
-        var sig = this;
+        var sig = this
         constants.forEach { c =>
-            sig = sig.withConstant(c);
+            sig = sig.withConstant(c)
         }
-        return sig;
+        return sig
     }
     
     def withConstants(constants: Iterable[AnnotatedVar]): Signature = {
-        var sig = this;
+        var sig = this
         constants.foreach { c =>
-            sig = sig.withConstant(c);
+            sig = sig.withConstant(c)
         }
         return sig;
     }
@@ -95,12 +97,18 @@ case class Signature private (
     
     def queryConstant(v: Var): Option[AnnotatedVar] = constants.find(_.variable == v)
     
-    def queryFunction(name: String, argTypes: Seq[Type]): Option[FuncDecl] =
-        functionDeclarations.find(fdecl => fdecl.getName == name && fdecl.argTypes == argTypes)
+    def queryFunction(name: String, argTypes: Seq[Type]): Option[FuncDecl] = {
+        val matches: Set[FuncDecl] = extensions.flatMap(extension => extension.queryFunction(name, argTypes))
+        Errors.assertion(matches.size <= 1, "Found multiple matches to function " + name + ": " + argTypes)
+        if(matches.nonEmpty) Some(matches.head)
+        else functionDeclarations.find(fdecl => fdecl.getName == name && fdecl.argTypes == argTypes)
+    }
     
-    def hasType(sort: Type): Boolean = types contains sort
-    def hasTypeWithName(name: String): Boolean = types.exists(_.name == name)
-    def hasFunctionWithName(name: String): Boolean = functionDeclarations.exists(_.name == name)
+    def hasType(sort: Type): Boolean = extensions.exists(_.hasType(sort)) || (types contains sort)
+    
+    def hasTypeWithName(name: String): Boolean = extensions.exists(_.hasTypeWithName(name)) || types.exists(_.name == name)
+    
+    def hasFunctionWithName(name: String): Boolean = (extensions.exists(_.hasFunctionWithName(name))) || functionDeclarations.exists(_.name == name)
     
     private[tfol]
     def getConstants: java.util.Set[AnnotatedVar] = constants.asJava
@@ -110,6 +118,8 @@ case class Signature private (
     
     private[tfol]
     def getTypes: java.util.Set[Type] = types.asJava
+    
+    def withIntegers: Signature = new Signature(types, functionDeclarations, constants, extensions + IntegerExtension)
     
     private
     def assertTypeConsistent(t: Type): Unit = {
@@ -167,38 +177,21 @@ case class Signature private (
         ), "Function " + fdecl.getName + " declared with two different types")
     }
     
-    override def toString: String = "Signature <<\n" + types.mkString("\n") + "\n" + functionDeclarations.mkString("\n") + "\n" + constants.mkString("\n") + ">>"
+    override def toString: String = "Signature <<\n" + types.mkString("\n") + "\n" + functionDeclarations.mkString("\n") + "\n" + constants.mkString("\n") +
+        "\nExtensions:\n" + extensions.mkString("\n") + ">>"
 }
 
 object Signature {
-    def empty: Signature = Signature(InsertionOrderedSet.empty[Type] + Type.Bool, InsertionOrderedSet.empty, InsertionOrderedSet.empty) // For testing consistency, use an insertion ordered set
+    def empty: Signature = 
+        // For testing consistency for symmetry breaking, use an insertion ordered set
+        Signature(InsertionOrderedSet.empty[Type] + Type.Bool, InsertionOrderedSet.empty, InsertionOrderedSet.empty, Set())
 }
 
-// A mixin for a signature to add builtin types
-trait BuiltinSignatureExtension {
-    def hasType(sort: Type): Boolean
-    def queryFunction(name: String, argTypes: Seq[Type]): Option[Type]
-    def name: String
-}
 
-object IntegerSignature extends BuiltinSignatureExtension {
-    override def hasType(sort: Type) = sort == IntType
-    
-    override def queryFunction(name: String, argTypes: Seq[Type]): Option[Type] = (name, argTypes) match {
-        case (`plus`, Seq(IntType, IntType)) => Some(IntType)
-        case (`minus`, Seq(IntType, IntType)) => Some(IntType)
-        case (`times`, Seq(IntType, IntType)) => Some(IntType)
-        case (`div`, Seq(IntType, IntType)) => Some(IntType)
-        case (`mod`, Seq(IntType, IntType)) => Some(IntType)
-        case (`abs`, Seq(IntType, IntType)) => Some(IntType)
-        case (`LE`, Seq(IntType, IntType)) => Some(BoolType)
-        case (`LT`, Seq(IntType, IntType)) => Some(BoolType)
-        case (`GE`, Seq(IntType, IntType)) => Some(BoolType)
-        case (`GT`, Seq(IntType, IntType)) => Some(BoolType)
-        case _ => None
-    }
-    override def name = "Integer Signature"
-    
+trait SignatureExtension extends SignatureTypechecking
+
+// Cannot implement this as a mixin -- must implement as an object
+object IntegerExtension extends SignatureExtension {
     val plus = "+"
     val minus = "-"
     val times = "*"
@@ -209,22 +202,47 @@ object IntegerSignature extends BuiltinSignatureExtension {
     val LT = "<"
     val GE = ">="
     val GT = ">"
+    
+    override def hasType(sort: Type): Boolean = sort == IntType
+    
+    override def hasTypeWithName(name: String): Boolean = name == IntType.name
+    
+    override def queryFunction(name: String, argTypes: Seq[Type]): Option[FuncDecl] = (name, argTypes) match {
+        case (`plus`, Seq(IntType, IntType)) => Some(FuncDecl(plus, IntType, IntType, IntType))
+        case (`minus`, Seq(IntType, IntType)) => Some(FuncDecl(minus, IntType, IntType, IntType)) // Binary minus
+        case (`minus`, Seq(IntType)) => Some(FuncDecl(minus, IntType, IntType)) // Unary minus
+        case (`times`, Seq(IntType, IntType)) => Some(FuncDecl(times, IntType, IntType, IntType))
+        case (`div`, Seq(IntType, IntType)) => Some(FuncDecl(div, IntType, IntType, IntType))
+        case (`mod`, Seq(IntType, IntType)) => Some(FuncDecl(mod, IntType, IntType))
+        case (`abs`, Seq(IntType)) => Some(FuncDecl(abs, IntType, IntType))
+        case (`LE`, Seq(IntType, IntType)) => Some(FuncDecl(LE, IntType, IntType, BoolType))
+        case (`LT`, Seq(IntType, IntType)) => Some(FuncDecl(LT, IntType, IntType, BoolType))
+        case (`GE`, Seq(IntType, IntType)) => Some(FuncDecl(GE, IntType, IntType, BoolType))
+        case (`GT`, Seq(IntType, IntType)) => Some(FuncDecl(GT, IntType, IntType, BoolType))
+        case _ => None
+    }
+    
+    override def hasFunctionWithName(name: String): Boolean = 
+        Set(plus, minus, times, div, mod, abs, LE, LT, GE, GT) contains name
+        
+    override def queryConstant(v: Var): Option[AnnotatedVar] = None
+    
+    override def toString: String = "Integer Extension"
 }
 
-object BitVectorSignature extends BuiltinSignatureExtension {
-    override def hasType(sort: Type) = sort match {
+// TODO make this a mixin
+object BitVectorSignature {
+    def hasType(sort: Type) = sort match {
         case BitVectorType(_) => true
         case _ => false
     }
     
-    override def queryFunction(name: String, argTypes: Seq[Type]): Option[Type] = (name, argTypes) match {
+    def queryFunction(name: String, argTypes: Seq[Type]): Option[Type] = (name, argTypes) match {
         case (binop, Seq(BitVectorType(n), BitVectorType(m)))
             if (binaryOperations contains binop) && (n == m) => Some(BitVectorType(n))
         case (unop, Seq(BitVectorType(n))) if (unaryOperations contains unop) => Some(BitVectorType(n))
         case _ => None
     }
-    
-    override def name = "BitVector Signature"
     
     // Arithmetic operations
     val bvadd = "bvadd" // addition

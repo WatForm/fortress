@@ -311,7 +311,12 @@ public class TypeChecker {
         
         @Override
         public TypeCheckResult visitIntegerLiteral(IntegerLiteral literal) {
-            return fortress.util.Errors.<TypeCheckResult>notImplemented();
+            // Should fail if Int is not in signature
+            if(!signature.hasType(Type.Int())) {
+                throw new TypeCheckException.UnknownType("Given signature does not include integers");
+            } else {
+                return new TypeCheckResult(literal, Type.Int(), /* containsConnectives */ false, /* containsQuantifiers */ false);
+            }
         }
         
         @Override
