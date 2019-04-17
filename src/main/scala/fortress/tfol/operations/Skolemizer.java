@@ -177,5 +177,15 @@ public class Skolemizer {
         public Term visitTC(TC tc) {
             return fortress.util.Errors.<Term>notImplemented();
         }
+        
+        @Override
+        public Term visitIntegerLiteral(IntegerLiteral literal) {
+            return fortress.util.Errors.<Term>notImplemented();
+        }
+        
+        @Override
+        public Term visitBitVectorLiteral(BitVectorLiteral literal) {
+            return fortress.util.Errors.<Term>notImplemented();
+        }
     }
 }

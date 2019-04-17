@@ -329,6 +329,16 @@ public class TypeChecker {
             return new TypeCheckResult(Term.mkTC(relationName, arg1Result.term, arg2Result.term), Type.Bool(),
                 /* containsConnectives */ false, /* containsQuantifiers */ false);
         }
+        
+        @Override
+        public TypeCheckResult visitIntegerLiteral(IntegerLiteral literal) {
+            return fortress.util.Errors.<TypeCheckResult>notImplemented();
+        }
+        
+        @Override
+        public TypeCheckResult visitBitVectorLiteral(BitVectorLiteral literal) {
+            return fortress.util.Errors.<TypeCheckResult>notImplemented();
+        }
     
     }
     

@@ -339,6 +339,15 @@ case class TC(relationName: String, arg1: Term, arg2: Term) extends Term {
     
 }
 
+case class IntegerLiteral(value: Int) extends Term {
+    override def accept[T](visitor: TermVisitor[T]): T = visitor.visitIntegerLiteral(this)
+}
+
+case class BitVectorLiteral(value: Int, bitWidth: Int) extends Term {
+    Errors.precondition(bitWidth > 0)
+    override def accept[T](visitor: TermVisitor[T]): T = visitor.visitBitVectorLiteral(this)
+}
+
 /** Companion object for Term. */
 object Term {
     /** Returns a Term representing Top/Verum */

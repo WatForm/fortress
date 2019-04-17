@@ -159,3 +159,101 @@ case class Signature private (
 object Signature {
     def empty: Signature = Signature(InsertionOrderedSet.empty[Type] + Type.Bool, InsertionOrderedSet.empty, InsertionOrderedSet.empty) // For testing consistency, use an insertion ordered set
 }
+
+// A mixin for a signature to add builtin types
+trait BuiltinSignatureExtension {
+    def hasType(sort: Type): Boolean
+    def queryFunction(name: String, argTypes: Seq[Type]): Option[Type]
+    def name: String
+}
+
+object IntegerSignature extends BuiltinSignatureExtension {
+    override def hasType(sort: Type) = sort == IntType
+    
+    override def queryFunction(name: String, argTypes: Seq[Type]): Option[Type] = (name, argTypes) match {
+        case (`plus`, Seq(IntType, IntType)) => Some(IntType)
+        case (`minus`, Seq(IntType, IntType)) => Some(IntType)
+        case (`times`, Seq(IntType, IntType)) => Some(IntType)
+        case (`div`, Seq(IntType, IntType)) => Some(IntType)
+        case (`mod`, Seq(IntType, IntType)) => Some(IntType)
+        case (`abs`, Seq(IntType, IntType)) => Some(IntType)
+        case (`LE`, Seq(IntType, IntType)) => Some(BoolType)
+        case (`LT`, Seq(IntType, IntType)) => Some(BoolType)
+        case (`GE`, Seq(IntType, IntType)) => Some(BoolType)
+        case (`GT`, Seq(IntType, IntType)) => Some(BoolType)
+        case _ => None
+    }
+    override def name = "Integer Signature"
+    
+    val plus = "+"
+    val minus = "-"
+    val times = "*"
+    val div = "div"
+    val mod = "mod"
+    val abs = "abs"
+    val LE = "<="
+    val LT = "<"
+    val GE = ">="
+    val GT = ">"
+}
+
+object BitVectorSignature extends BuiltinSignatureExtension {
+    override def hasType(sort: Type) = sort match {
+        case BitVectorType(_) => true
+        case _ => false
+    }
+    
+    override def queryFunction(name: String, argTypes: Seq[Type]): Option[Type] = (name, argTypes) match {
+        case (binop, Seq(BitVectorType(n), BitVectorType(m)))
+            if (binaryOperations contains binop) && (n == m) => Some(BitVectorType(n))
+        case (unop, Seq(BitVectorType(n))) if (unaryOperations contains unop) => Some(BitVectorType(n))
+        case _ => None
+    }
+    
+    override def name = "BitVector Signature"
+    
+    // Arithmetic operations
+    val bvadd = "bvadd" // addition
+    val bvsub = "bvsub" // subtraction
+    val bvneg = "bvneg" // unary minus
+    val bvmul =  "bvmul" // multiplication
+    val bvurem = "bvurem" // unsigned remainder
+    val bvsrem = "bvsrem" // signed remainder
+    val bvsmod = "bvsmod" // signed modulo
+    val bvshl = "bvshl" // shift left
+    val bvlshr = "bvlshr" // unsigned (logical) shift right
+    val bvashr = "bvashr" // signed (arithmetical) shift right
+    
+    // Bitwise operations
+    val bvor = "bvor" // bitwise or
+    val bvand  = "bvand" // bitwise and
+    val bvnot = "bvnot" // bitwise not
+    val bvnand = "bvnand" // bitwise nand
+    val bvnor = "bvnor" // bitwise nor
+    val bvxnor = "bvxnor" // bitwise xnor
+    
+    // Special operations for internal use only
+    val bvAddNoOverflowUnsigned = "bvAddNoOverflowUnsigned"
+    val bvAddNoUnderflowSigned = "bvAddNoOverflowUnsigned"
+    val bvAddNoUnderflow = "bvAddNoUnderflow"
+    val bvSubNoOverflow = "bvSubNoOverflow"
+    val bvSubNoUnderflowUnsigned = "bvSubNoUnderflowUnsigned"
+    val bvSubNoUnderflowSigned = "bvSubNoUnderflowSigned"
+    val bvSDivNoOverflow = "bvSDivNoOverflow"
+    val bvNegNoOverflow = "bvNegNoOverflow"
+    val bvMulNoOverflowUnsigned = "bvMulNoOverflowUnsigned"
+    val bvMulNoUnderflowSigned = "bvMulNoUnderflowSigned"
+    val bvMulNoUnderflow = "bvMulNoUnderflow"
+    
+    val binaryOperations: Set[String] = Set(
+        bvadd, bvsub, bvmul, bvurem, bvsrem, bvsmod, bvshl, bvlshr, bvashr,
+        bvor, bvand, bvnand, bvnor, bvxnor,
+        bvAddNoOverflowUnsigned, bvAddNoUnderflowSigned, bvAddNoUnderflow,
+        bvSubNoOverflow, bvSubNoUnderflowUnsigned, bvSubNoUnderflowSigned,
+        bvSDivNoOverflow, bvMulNoOverflowUnsigned, bvMulNoUnderflowSigned,
+        bvMulNoUnderflow
+    ) 
+    val unaryOperations: Set[String] = Set(
+        bvneg, bvnot, bvNegNoOverflow
+    )
+}
