@@ -5,7 +5,6 @@ import java.util.Map;
 import java.util.List;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.regex.*;
 import java.util.ArrayList;
 import java.util.stream.Collectors;
 
@@ -85,43 +84,29 @@ public class Z3ApiSolver extends SolverTemplate {
 
     public FiniteModel getModel(Theory theory) {
         FiniteModel model = new FiniteModel();
+        Signature sig = theory.getSignature();
         Map<Expr, DomainElement> typeMappings = new HashMap<>();
         Map<Sort, List<Expr>> domains = new HashMap<>();
         Map<String, Type> types = new HashMap<>();
         for (Type type : theory.getTypes())
             types.put(type.getName(), type);
         for (Sort sort : lastModel.getSorts()) {
-            String typeName = sort.toString();
-            if (types.get(typeName) != null)
+            if (sig.hasType(sort.toString()))
                 domains.put(sort, Arrays.asList(lastModel.getSortUniverse(sort)));
         }
-        Map<String, AnnotatedVar> constants = new HashMap<>();
-        for (AnnotatedVar v : theory.getConstants())
-            constants.put(v.getName(), v);
         for (com.microsoft.z3.FuncDecl z3Decl : lastModel.getConstDecls()) {
             String constantName = z3Decl.getName().toString();
             if (constantName.charAt(0) == '@') {
-                Matcher m = java.util.regex.Pattern.compile("\\p{L}").matcher(constantName);
-                if (m.find()) {
-                    int typePosition = m.start();
-                    int index = Integer.parseInt(constantName.substring(1, typePosition));
-                    Type sort = types.get(constantName.substring(typePosition));
-                    typeMappings.put(lastModel.getConstInterp(z3Decl), Term.mkDomainElement(index, sort));
-                }
+                String typeName = z3Decl.getRange().getName().toString();
+                int index = Integer.parseInt(constantName.substring(1, constantName.length()-typeName.length()));
+                Type sort = types.get(typeName);
+                typeMappings.put(lastModel.getConstInterp(z3Decl), Term.mkDomainElement(index, sort));
             }
         }    
-        for (com.microsoft.z3.FuncDecl z3Decl : lastModel.getConstDecls()) {
-            AnnotatedVar v = constants.get(z3Decl.getName().toString());
-            if (v != null)
-                model.addConstantMapping(v, typeMappings.get(lastModel.getConstInterp(z3Decl)));    
-        }
-        Map<fortress.tfol.FuncDecl, Map<List<Var>, Var>> functionMappings = new HashMap<>();
-        Map<String, fortress.tfol.FuncDecl> functions = new HashMap<>();
-        for (fortress.tfol.FuncDecl f : theory.getFunctionDeclarations())
-            functions.put(f.getName(), f);
+        for (com.microsoft.z3.FuncDecl z3Decl : lastModel.getConstDecls())
+            sig.lookupConstant(Term.mkVar(z3Decl.getName().toString())).ifPresent(v -> model.addConstantMapping(v, typeMappings.get(lastModel.getConstInterp(z3Decl))));
         for (com.microsoft.z3.FuncDecl z3Decl : lastModel.getFuncDecls()) {
-            fortress.tfol.FuncDecl f = functions.get(z3Decl.getName().toString());
-            if (f != null) {
+            sig.lookupFunctionDeclaration(z3Decl.getName().toString()).ifPresent( f -> {
                 List<List<Expr>> toProduct = new ArrayList<>();
                 for (Sort type : z3Decl.getDomain())
                     toProduct.add(domains.get(type));
@@ -137,7 +122,7 @@ public class Z3ApiSolver extends SolverTemplate {
                     } else
                         model.addFunctionMapping(f, args, typeMappings.get(returnExpr));
                 }
-            }
+            });
         }
         return model;
     }
