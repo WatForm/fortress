@@ -82,7 +82,7 @@ public class Z3ApiSolver extends SolverTemplate {
         return lastModel.toString();
     }
 
-    public FiniteModel getModel(Theory theory) {
+    public Interpretation getInstance(Theory theory) {
         //TODO: edit to fit FiniteModel
         // find mappings for types
         Map<Type, List<Var>> typeMappings = new HashMap<>();
@@ -157,6 +157,6 @@ public class Z3ApiSolver extends SolverTemplate {
                 System.out.println("-> "+args.getValue().getName());
             }
         }
-        return Errors.<FiniteModel>notImplemented();
+        return Errors.<Interpretation>notImplemented();
     }
 }

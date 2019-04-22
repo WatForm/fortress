@@ -13,6 +13,7 @@ trait SignatureTypechecking {
     def hasFunctionWithName(name: String): Boolean
     def queryFunction(name: String, argTypes: Seq[Type]): Option[FuncDecl]
     def queryConstant(v: Var): Option[AnnotatedVar]
+    def queryEnum(v: Var): Option[AnnotatedVar]
     
     def queryFunctionJava(name: String, argTypes: java.util.List[Type]): java.util.Optional[FuncDecl] =
         queryFunction(name, argTypes.asScala.toList) match {
@@ -22,6 +23,11 @@ trait SignatureTypechecking {
         
     def queryConstantJava(v: Var): java.util.Optional[AnnotatedVar] =
         queryConstant(v) match {
+            case Some(av: AnnotatedVar) => java.util.Optional.of(av)
+            case None => java.util.Optional.empty[AnnotatedVar]
+        }
+    def queryEnumJava(v: Var): java.util.Optional[AnnotatedVar] =
+        queryEnum(v) match {
             case Some(av: AnnotatedVar) => java.util.Optional.of(av)
             case None => java.util.Optional.empty[AnnotatedVar]
         }
@@ -35,13 +41,14 @@ case class Signature private (
     types: Set[Type],
     functionDeclarations: Set[FuncDecl],
     constants: Set[AnnotatedVar],
+    enumConstants: Map[Type, Seq[Var]],
     extensions: Set[SignatureExtension]
 ) extends SignatureTypechecking {
     
     // TODO need to check this type is not builtin
     def withType(t: Type): Signature = {
         assertTypeConsistent(t)
-        Signature(types + t, functionDeclarations, constants, extensions)
+        Signature(types + t, functionDeclarations, constants, enumConstants, extensions)
     }
     
     def withTypes(types: java.lang.Iterable[Type]): Signature = {
@@ -57,7 +64,7 @@ case class Signature private (
     
     def withFunctionDeclaration(fdecl: FuncDecl): Signature = {
         assertFuncDeclConsistent(fdecl)
-        Signature(types, functionDeclarations + fdecl, constants, extensions)
+        Signature(types, functionDeclarations + fdecl, constants, enumConstants, extensions)
     }
     
     def withFunctionDeclarations(fdecls: java.lang.Iterable[FuncDecl]): Signature = {
@@ -73,7 +80,7 @@ case class Signature private (
     
     def withConstant(c: AnnotatedVar): Signature = {
         assertConstConsistent(c);
-        Signature(types, functionDeclarations, constants + c, extensions)
+        Signature(types, functionDeclarations, constants + c, enumConstants, extensions)
     }
     
     def withConstants(constants: java.lang.Iterable[AnnotatedVar]): Signature = {
@@ -95,7 +102,21 @@ case class Signature private (
     @varargs
     def withConstants(constants: AnnotatedVar*): Signature = withConstants(constants.asJava)
     
+    def withEnumType(t: Type, values: Seq[Var]) = {
+        // TODO more consistency checking
+        Signature(types + t, functionDeclarations, constants, enumConstants + (t -> values), extensions)
+    }
+    
+    def withEnumType(t: Type, values: java.util.List[Var]) = {
+        // TODO more consistency checking
+        Signature(types + t, functionDeclarations, constants, enumConstants + (t -> values.asScala.toList), extensions)
+    }
+    
     def queryConstant(v: Var): Option[AnnotatedVar] = constants.find(_.variable == v)
+    
+    def queryEnum(v: Var): Option[AnnotatedVar] = enumConstants.find {
+        case (sort, enumConstants) => enumConstants contains v
+    }.map { case (sort, _) => v of sort }
     
     def queryFunction(name: String, argTypes: Seq[Type]): Option[FuncDecl] = {
         val matches: Set[FuncDecl] = extensions.flatMap(extension => extension.queryFunction(name, argTypes))
@@ -119,7 +140,9 @@ case class Signature private (
     private[tfol]
     def getTypes: java.util.Set[Type] = types.asJava
     
-    def withIntegers: Signature = new Signature(types, functionDeclarations, constants, extensions + IntegerExtension)
+    def withIntegers: Signature = Signature(types, functionDeclarations, constants, enumConstants, extensions + IntegerExtension)
+    
+    def withoutEnums = Signature(types, functionDeclarations, constants, Map.empty, extensions)
     
     private
     def assertTypeConsistent(t: Type): Unit = {
@@ -184,7 +207,7 @@ case class Signature private (
 object Signature {
     def empty: Signature = 
         // For testing consistency for symmetry breaking, use an insertion ordered set
-        Signature(InsertionOrderedSet.empty[Type] + Type.Bool, InsertionOrderedSet.empty, InsertionOrderedSet.empty, Set())
+        Signature(InsertionOrderedSet.empty[Type] + Type.Bool, InsertionOrderedSet.empty, InsertionOrderedSet.empty, Map(), Set())
 }
 
 
@@ -226,6 +249,7 @@ object IntegerExtension extends SignatureExtension {
         Set(plus, minus, times, div, mod, abs, LE, LT, GE, GT) contains name
         
     override def queryConstant(v: Var): Option[AnnotatedVar] = None
+    override def queryEnum(v: Var): Option[AnnotatedVar] = None
     
     override def toString: String = "Integer Extension"
 }

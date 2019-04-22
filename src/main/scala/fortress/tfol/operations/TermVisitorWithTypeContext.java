@@ -35,8 +35,14 @@ public abstract class TermVisitorWithTypeContext<T> implements TermVisitor<T> {
         }
         
         // If it is not in the stack, check if is in the declared constants
-        return signature.queryConstantJava(variable)
-            .map( (AnnotatedVar av) -> av.getType());
+        Optional<AnnotatedVar> constMaybe = signature.queryConstantJava(variable);
+        if(constMaybe.isPresent()) {
+            return Optional.of(constMaybe.get().getType());
+        }
+        
+        // Check if it is an enum
+        return signature.queryEnumJava(variable)
+            .map(av -> av.getType());
     }
     
     protected abstract T visitForallInner(Forall forall);

@@ -18,16 +18,4 @@ public interface TheoryTransformer {
     public Theory apply(Theory theory);
     
     public String getName();
-    
-    public static List<TheoryTransformer> rangeEUF(Map<Type, Integer> scopes) {
-        return List.of(
-            new SimplifyTransformer(),
-            new NnfTransformer(),
-            new SkolemizeTransformer(),
-            new DomainInstantiationTransformer(scopes),
-            new RangeFormulaTransformer(scopes),
-            new DomainEliminationTransformer(scopes),
-            new SimplifyTransformer()
-        );
-    }
 }

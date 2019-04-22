@@ -1,6 +1,8 @@
-package fortress.tfol
+package fortress.modelfind
 
-abstract class FiniteModel {
+import fortress.tfol._
+
+trait Interpretation {
     def constantMappings: Map[AnnotatedVar, DomainElement]
     def functionMappings: Map[FuncDecl, Map[List[DomainElement], DomainElement]]
 }

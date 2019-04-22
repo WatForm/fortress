@@ -17,7 +17,7 @@ sealed abstract class Term {
       * This only looks at syntax without respect to a given signature,
       * so it could also include what are intended to be constants.
       */ 
-    def freeVarConstSymbols: java.util.Set[Var] = FreeVariables(this).asJava
+    def freeVarConstSymbols: Set[Var] = FreeVariables(this)
     def freeVarConstSymbolsJava: java.util.Set[Var] = FreeVariables(this).asJava
     
     /** Returns the set of free variables of this term with respect

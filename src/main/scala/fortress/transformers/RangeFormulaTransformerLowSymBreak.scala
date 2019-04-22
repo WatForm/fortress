@@ -17,7 +17,7 @@ import scala.math.min
   * (for example, if a the theory was the result of instantiating a theory that had
   * no explicit domain elements).
   */
-class RangeFormulaTransformer(scopes: Map[Type, Int]) extends TheoryTransformer {
+class RangeFormulaTransformerLowSymBreak(scopes: Map[Type, Int]) extends TheoryTransformer {
     // Ugly conversion from Java data structures
     def this(scopes: java.util.Map[Type, Integer]) = this({
         val scopes1: Map[Type, Integer] = scopes.asScala.toMap
@@ -67,5 +67,5 @@ class RangeFormulaTransformer(scopes: Map[Type, Int]) extends TheoryTransformer 
         theory.withAxioms(constantRangeConstraints).withAxioms(functionRangeConstraints.toList)
     }
     
-    override def getName: String = "Range Formula Transformer (Low Sym)"
+    override def getName: String = "Range Formula Transformer (Low Sym Break)"
 }
