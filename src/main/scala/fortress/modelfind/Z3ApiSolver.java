@@ -83,80 +83,48 @@ public class Z3ApiSolver extends SolverTemplate {
     }
 
     public Interpretation getInstance(Theory theory) {
-        //TODO: edit to fit FiniteModel
-        // find mappings for types
-        Map<Type, List<Var>> typeMappings = new HashMap<>();
+        // TODO builtin types
+        Interpretation model = new Interpretation();
+        Signature sig = theory.getSignature();
+        Map<Expr, DomainElement> typeMappings = new HashMap<>();
         Map<Sort, List<Expr>> domains = new HashMap<>();
         Map<String, Type> types = new HashMap<>();
         for (Type type : theory.getTypes())
             types.put(type.getName(), type);
-        for(Sort sort : lastModel.getSorts()) {
-            String typeName = sort.toString();
-            Type type = types.get(typeName);
-            if (type != null) {
-                List<Expr> vars = Arrays.asList(lastModel.getSortUniverse(sort));
-                typeMappings.put(type, vars.stream().map(s -> Term.mkVar(s.toString())).collect(Collectors.toList()));
-                domains.put(sort, vars);
-            }
+        for (Sort sort : lastModel.getSorts()) {
+            if (sig.hasType(Type.mkTypeConst(sort.getName().toString())))
+                domains.put(sort, Arrays.asList(lastModel.getSortUniverse(sort)));
         }
-
-        // find mappings for constants
-        Map<AnnotatedVar, Var> constantMappings = new HashMap<>();
-        Map<String, AnnotatedVar> constants = new HashMap<>();
-        for (AnnotatedVar v : theory.getConstants())
-            constants.put(v.getName(), v);
         for (com.microsoft.z3.FuncDecl z3Decl : lastModel.getConstDecls()) {
-            AnnotatedVar v = constants.get(z3Decl.getName().toString());
-            if (v != null)
-                constantMappings.put(v, Term.mkVar(lastModel.getConstInterp(z3Decl).toString()));
-        }        
-
-        // find mappings for functions
-        Map<fortress.tfol.FuncDecl, Map<List<Var>, Var>> functionMappings = new HashMap<>();
-        Map<String, fortress.tfol.FuncDecl> functions = new HashMap<>();
-        for (fortress.tfol.FuncDecl f : theory.getFunctionDeclarations())
-            functions.put(f.getName(), f);
+            String constantName = z3Decl.getName().toString();
+            if (constantName.charAt(0) == '@') {
+                String typeName = z3Decl.getRange().getName().toString();
+                int index = Integer.parseInt(constantName.substring(1, constantName.length()-typeName.length()));
+                Type sort = types.get(typeName);
+                typeMappings.put(lastModel.getConstInterp(z3Decl), Term.mkDomainElement(index, sort));
+            }
+        }    
+        for (com.microsoft.z3.FuncDecl z3Decl : lastModel.getConstDecls())
+            sig.queryConstantJava(Term.mkVar(z3Decl.getName().toString())).ifPresent(v -> model.addConstantMapping(v, typeMappings.get(lastModel.getConstInterp(z3Decl))));
         for (com.microsoft.z3.FuncDecl z3Decl : lastModel.getFuncDecls()) {
-            fortress.tfol.FuncDecl f = functions.get(z3Decl.getName().toString());
-            if (f != null) {
-                Map<List<Var>, Var> argumentMappings = new HashMap<>();
+            sig.queryUninterpretedFunctionJava(z3Decl.getName().toString()).ifPresent( f -> {
                 List<List<Expr>> toProduct = new ArrayList<>();
                 for (Sort type : z3Decl.getDomain())
                     toProduct.add(domains.get(type));
                 CartesianProduct<Expr> argumentLists = new CartesianProduct<>(toProduct);
                 for(List<Expr> argumentList : argumentLists) {
-                    List<Var> args = argumentList.stream().map(s -> Term.mkVar(s.toString())).collect(Collectors.toList());
+                    List<DomainElement> args = argumentList.stream().map(s -> typeMappings.get(s)).collect(Collectors.toList());
                     Expr returnExpr = lastModel.evaluate(z3Decl.apply(argumentList.stream().toArray(Expr[]::new)), true);
                     if (z3Decl.getRange() instanceof BoolSort) {
                         if (returnExpr.isTrue())
-                            argumentMappings.put(args, Term.mkVar("True"));
+                            model.addFunctionMapping(f, args, Term.mkDomainElement(1, Type.Bool()));
                         else
-                            argumentMappings.put(args, Term.mkVar("False"));
+                            model.addFunctionMapping(f, args, Term.mkDomainElement(0, Type.Bool()));
                     } else
-                        argumentMappings.put(args, Term.mkVar(returnExpr.toString()));
+                        model.addFunctionMapping(f, args, typeMappings.get(returnExpr));
                 }
-                functionMappings.put(f, argumentMappings);
-            }
+            });
         }
-
-        // print model (remove later)
-        for (Map.Entry<Type, List<Var>> entry : typeMappings.entrySet()) {
-            System.out.print(entry.getKey().getName() + ": ");
-            for (Var v : entry.getValue())
-                System.out.print(v.getName() + " ");
-            System.out.println();
-        }
-        for (Map.Entry<AnnotatedVar, Var> entry : constantMappings.entrySet()) {
-            System.out.println(entry.getKey().getName() + ": " + entry.getValue().getName());
-        }
-        for (Map.Entry<fortress.tfol.FuncDecl, Map<List<Var>, Var>> entry : functionMappings.entrySet()) {
-            System.out.println(entry.getKey().getName() + ":");
-            for (Map.Entry<List<Var>, Var> args : entry.getValue().entrySet()) {
-                for (Var v : args.getKey())
-                    System.out.print(v.getName() + " ");
-                System.out.println("-> "+args.getValue().getName());
-            }
-        }
-        return Errors.<Interpretation>notImplemented();
+        return model;
     }
 }
