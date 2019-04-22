@@ -10,8 +10,8 @@ import fortress.util.Errors
   * More scopes can be provided in addition to the ones in the theory.
   * The theory's scopes, together with the additional scopes, must provide
   * sizes for all types in the theory.
-  * The resulting theory has no scopes.
   * The input theory is required to have no existential quantifiers and no enum types.
+  * The resulting theory has no scopes, though its signature is unchanged.
   */
 class DomainInstantiationTransformer(additionalScopes: Map[Type, Int]) extends TheoryTransformer {
     
@@ -25,7 +25,7 @@ class DomainInstantiationTransformer(additionalScopes: Map[Type, Int]) extends T
         Errors.precondition(fortress.util.Maps.noConflict(additionalScopes, theory.scopes))
         val scopes = additionalScopes ++ theory.scopes
         Errors.precondition(!scopes.contains(Type.Bool))
-        Errors.precondition(scopes.keySet == theory.types.filter(!_.isBuiltin))
+        Errors.precondition(scopes.keySet == theory.types.filter(!_.isBuiltin), scopes.keySet.toString)
         Errors.precondition(scopes.values.forall(_ > 0))
         
         val domainElemsMap: Map[Type, Seq[Term]] = scopes.map {

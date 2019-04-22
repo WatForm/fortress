@@ -5,8 +5,8 @@ import scala.collection.JavaConverters._
 import fortress.tfol._
 import fortress.util.Errors
 
-/** Replaces with distinct constants and asserts all values are one of them.
-    This could be implemented more efficiently. */
+/** Replaces enum values with domain elements, following the mapping from the
+  * computeEnumTypeMapping method. */
 class EnumEliminationTransformer() extends TheoryTransformer {
     override def apply(theory: Theory): Theory = {
         val mapping = computeEnumTypeMapping(theory)

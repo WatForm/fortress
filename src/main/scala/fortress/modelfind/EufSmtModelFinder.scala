@@ -4,17 +4,14 @@ import fortress.tfol._
 import fortress.transformers._
 import fortress.util._
 
-class EufSmtModelFinder(
-    var solverStrategy: SolverStrategy,
-    var timeoutMilliseconds: Int,
-    var analysisScopes: Map[Type, Int],
-    var instance: Option[Interpretation],
-    var log: java.io.Writer,
-    var debug: Boolean
-) extends ModelFinder {
+class EufSmtModelFinder(var solverStrategy: SolverStrategy) extends ModelFinder {
     
-    def this(solverStrategy: SolverStrategy) = this(solverStrategy, 60000,
-            Map(), None, new java.io.PrintWriter(new fortress.data.NullOutputStream), false)
+    var timeoutMilliseconds: Int = 60000
+    var analysisScopes: Map[Type, Int] = Map.empty
+    var instance: Option[Interpretation] = None
+    var log: java.io.Writer = new java.io.PrintWriter(new fortress.data.NullOutputStream)
+    var debug: Boolean = false
+    var lastTheory: Option[Theory] = None
     
     override def setTimeout(milliseconds: Int): Unit = {
         Errors.precondition(milliseconds >= 0)
@@ -43,6 +40,8 @@ class EufSmtModelFinder(
         
     override def checkSat(theory: Theory): ModelFinder.Result = {
         // TODO check analysis and theory scopes consistent
+        
+        lastTheory = Some(theory)
         
         val timeoutNano = StopWatch.millisToNano(timeoutMilliseconds);
         
@@ -132,5 +131,8 @@ class EufSmtModelFinder(
         r
     }
     
-    def getInstance: Interpretation = ???
+    def getInstance: Interpretation =  {
+        Errors.precondition(lastTheory.nonEmpty)
+        solverStrategy.getInstance(lastTheory.get);
+    }
 }

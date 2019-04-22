@@ -16,6 +16,7 @@ import scala.math.min
   * It is required that domain elements must be permutable within the input theory
   * (for example, if a the theory was the result of instantiating a theory that had
   * no explicit domain elements).
+  * Only new constaints are added; no other aspect of the theory is changed.
   */
 class RangeFormulaTransformerLowSymBreak(scopes: Map[Type, Int]) extends TheoryTransformer {
     // Ugly conversion from Java data structures

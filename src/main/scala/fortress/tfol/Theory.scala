@@ -139,6 +139,8 @@ case class Theory private (signature: Signature, scopes: Map[Type, Int], axioms:
     
     def enumConstants: Map[Type, Seq[Var]] = signature.enumConstants
     
+    def withoutAxioms: Theory = Theory(signature, scopes, Set.empty)
+    
     private def sanitizeAxiom(axiom: Term): Term = {
         // Check axiom typechecks as bool
         // Note that a formula cannot typecheck if it has any free variables (that are not constants of the signature)
