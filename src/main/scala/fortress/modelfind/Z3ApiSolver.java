@@ -84,16 +84,11 @@ public class Z3ApiSolver extends SolverTemplate {
 
 
     public Interpretation getInstance(Theory theory) {
-        if (lastModel == null)
-            return null;
         // TODO builtin types
         Interpretation model = new Interpretation();
         Signature sig = theory.getSignature();
         Map<Expr, DomainElement> typeMappings = new HashMap<>();
         Map<Sort, List<Expr>> domains = new HashMap<>();
-        Map<String, Type> types = new HashMap<>();
-        for (Type type : theory.getTypes())
-            types.put(type.getName(), type);
         for (Sort sort : lastModel.getSorts()) {
             if (sig.hasType(Type.mkTypeConst(sort.getName().toString())))
                 domains.put(sort, Arrays.asList(lastModel.getSortUniverse(sort)));
@@ -103,8 +98,7 @@ public class Z3ApiSolver extends SolverTemplate {
             if (constantName.charAt(0) == '@') {
                 String typeName = z3Decl.getRange().getName().toString();
                 int index = Integer.parseInt(constantName.substring(1, constantName.length()-typeName.length()));
-                Type sort = types.get(typeName);
-                typeMappings.put(lastModel.getConstInterp(z3Decl), Term.mkDomainElement(index, sort));
+                typeMappings.put(lastModel.getConstInterp(z3Decl), Term.mkDomainElement(index, Type.mkTypeConst(typeName)));
             }
         }    
         for (com.microsoft.z3.FuncDecl z3Decl : lastModel.getConstDecls())
