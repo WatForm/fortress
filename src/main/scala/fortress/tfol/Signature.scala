@@ -5,6 +5,41 @@ import fortress.util.Errors
 import fortress.tfol.operations.TypeCheckResult
 import scala.collection.JavaConverters._
 import scala.annotation.varargs // So we can call Scala varargs methods from Java
+import scala.collection.immutable.Seq // Use immutable seq by default
+
+trait SignatureTypechecking {
+    def hasType(sort: Type): Boolean
+    def hasTypeWithName(name: String): Boolean
+    def hasFunctionWithName(name: String): Boolean
+    def queryFunction(name: String, argTypes: Seq[Type]): Option[FuncDecl]
+    def queryConstant(v: Var): Option[AnnotatedVar]
+    def queryEnum(v: Var): Option[AnnotatedVar]
+    def queryUninterpretedFunction(name: String): Option[FuncDecl]
+    
+    def queryFunctionJava(name: String, argTypes: java.util.List[Type]): java.util.Optional[FuncDecl] =
+        queryFunction(name, argTypes.asScala.toList) match {
+            case Some(fdecl) => java.util.Optional.of[FuncDecl](fdecl)
+            case None => java.util.Optional.empty[FuncDecl]()
+        }
+        
+    def queryConstantJava(v: Var): java.util.Optional[AnnotatedVar] =
+        queryConstant(v) match {
+            case Some(av: AnnotatedVar) => java.util.Optional.of(av)
+            case None => java.util.Optional.empty[AnnotatedVar]
+        }
+        
+    def queryEnumJava(v: Var): java.util.Optional[AnnotatedVar] =
+        queryEnum(v) match {
+            case Some(av: AnnotatedVar) => java.util.Optional.of(av)
+            case None => java.util.Optional.empty[AnnotatedVar]
+        }
+    
+    def queryUninterpretedFunctionJava(name: String): java.util.Optional[FuncDecl] =
+        queryUninterpretedFunction(name) match {
+            case Some(fdecl) => java.util.Optional.of[FuncDecl](fdecl)
+            case None => java.util.Optional.empty[FuncDecl]()
+        }
+}
 
 // Persistent and Immutable
 // Internally consistent
@@ -13,12 +48,15 @@ import scala.annotation.varargs // So we can call Scala varargs methods from Jav
 case class Signature private (
     types: Set[Type],
     functionDeclarations: Set[FuncDecl],
-    constants: Set[AnnotatedVar]
-) {
+    constants: Set[AnnotatedVar],
+    enumConstants: Map[Type, Seq[Var]],
+    extensions: Set[SignatureExtension]
+) extends SignatureTypechecking {
     
+    // TODO need to check this type is not builtin
     def withType(t: Type): Signature = {
         assertTypeConsistent(t)
-        Signature(types + t, functionDeclarations, constants)
+        Signature(types + t, functionDeclarations, constants, enumConstants, extensions)
     }
     
     def withTypes(types: java.lang.Iterable[Type]): Signature = {
@@ -34,11 +72,11 @@ case class Signature private (
     
     def withFunctionDeclaration(fdecl: FuncDecl): Signature = {
         assertFuncDeclConsistent(fdecl)
-        Signature(types, functionDeclarations + fdecl, constants)
+        Signature(types, functionDeclarations + fdecl, constants, enumConstants, extensions)
     }
     
     def withFunctionDeclarations(fdecls: java.lang.Iterable[FuncDecl]): Signature = {
-        var sig: Signature = this;
+        var sig: Signature = this
         fdecls.forEach { f =>
             sig = sig.withFunctionDeclaration(f)
         }
@@ -50,21 +88,21 @@ case class Signature private (
     
     def withConstant(c: AnnotatedVar): Signature = {
         assertConstConsistent(c);
-        Signature(types, functionDeclarations, constants + c);
+        Signature(types, functionDeclarations, constants + c, enumConstants, extensions)
     }
     
     def withConstants(constants: java.lang.Iterable[AnnotatedVar]): Signature = {
-        var sig = this;
+        var sig = this
         constants.forEach { c =>
-            sig = sig.withConstant(c);
+            sig = sig.withConstant(c)
         }
-        return sig;
+        return sig
     }
     
     def withConstants(constants: Iterable[AnnotatedVar]): Signature = {
-        var sig = this;
+        var sig = this
         constants.foreach { c =>
-            sig = sig.withConstant(c);
+            sig = sig.withConstant(c)
         }
         return sig;
     }
@@ -72,21 +110,36 @@ case class Signature private (
     @varargs
     def withConstants(constants: AnnotatedVar*): Signature = withConstants(constants.asJava)
     
-    def lookupConstant(v: Var): java.util.Optional[AnnotatedVar] =
-        constants.find(c => c.getVar == v) match {
-            case Some(av: AnnotatedVar) => java.util.Optional.of(av)
-            case None => java.util.Optional.empty[AnnotatedVar]
-        }
+    def withEnumType(t: Type, values: Seq[Var]) = {
+        // TODO more consistency checking
+        Signature(types + t, functionDeclarations, constants, enumConstants + (t -> values), extensions)
+    }
     
-    def lookupFunctionDeclaration(functionName: String): java.util.Optional[FuncDecl] =
-        functionDeclarations.find(fdecl => fdecl.getName == functionName) match {
-            case Some(fdecl: FuncDecl) => java.util.Optional.of(fdecl)
-            case None => java.util.Optional.empty[FuncDecl]
-        }
+    def withEnumType(t: Type, values: java.util.List[Var]) = {
+        // TODO more consistency checking
+        Signature(types + t, functionDeclarations, constants, enumConstants + (t -> values.asScala.toList), extensions)
+    }
     
-    def hasType(name: String): Boolean = types.contains(Type.mkTypeConst(name))
+    def queryConstant(v: Var): Option[AnnotatedVar] = constants.find(_.variable == v)
     
-    def hasType(sort: Type): Boolean = types.contains(sort)
+    def queryEnum(v: Var): Option[AnnotatedVar] = enumConstants.find {
+        case (sort, enumConstants) => enumConstants contains v
+    }.map { case (sort, _) => v of sort }
+    
+    def queryFunction(name: String, argTypes: Seq[Type]): Option[FuncDecl] = {
+        val matches: Set[FuncDecl] = extensions.flatMap(extension => extension.queryFunction(name, argTypes))
+        Errors.assertion(matches.size <= 1, "Found multiple matches to function " + name + ": " + argTypes)
+        if(matches.nonEmpty) Some(matches.head)
+        else functionDeclarations.find(fdecl => fdecl.getName == name && fdecl.argTypes == argTypes)
+    }
+    
+    def queryUninterpretedFunction(name: String): Option[FuncDecl] = functionDeclarations.find(_.name == name)
+    
+    def hasType(sort: Type): Boolean = extensions.exists(_.hasType(sort)) || (types contains sort)
+    
+    def hasTypeWithName(name: String): Boolean = extensions.exists(_.hasTypeWithName(name)) || types.exists(_.name == name)
+    
+    def hasFunctionWithName(name: String): Boolean = (extensions.exists(_.hasFunctionWithName(name))) || functionDeclarations.exists(_.name == name)
     
     private[tfol]
     def getConstants: java.util.Set[AnnotatedVar] = constants.asJava
@@ -96,6 +149,10 @@ case class Signature private (
     
     private[tfol]
     def getTypes: java.util.Set[Type] = types.asJava
+    
+    def withIntegers: Signature = Signature(types, functionDeclarations, constants, enumConstants, extensions + IntegerExtension)
+    
+    def withoutEnums = Signature(types, functionDeclarations, constants, Map.empty, extensions)
     
     private
     def assertTypeConsistent(t: Type): Unit = {
@@ -153,9 +210,118 @@ case class Signature private (
         ), "Function " + fdecl.getName + " declared with two different types")
     }
     
-    override def toString: String = "Signature <<\n" + types.mkString("\n") + "\n" + functionDeclarations.mkString("\n") + "\n" + constants.mkString("\n") + ">>"
+    override def toString: String = "Signature <<\n" + types.mkString("\n") + "\n" + functionDeclarations.mkString("\n") + "\n" + constants.mkString("\n") +
+        "\nExtensions:\n" + extensions.mkString("\n") + ">>"
 }
 
 object Signature {
-    def empty: Signature = Signature(InsertionOrderedSet.empty[Type] + Type.Bool, InsertionOrderedSet.empty, InsertionOrderedSet.empty) // For testing consistency, use an insertion ordered set
+    def empty: Signature = 
+        // For testing consistency for symmetry breaking, use an insertion ordered set
+        Signature(InsertionOrderedSet.empty[Type] + Type.Bool, InsertionOrderedSet.empty, InsertionOrderedSet.empty, Map(), Set())
+}
+
+
+trait SignatureExtension extends SignatureTypechecking {
+    override def queryUninterpretedFunction(name: String): Option[FuncDecl] = None
+}
+
+// Cannot implement this as a mixin -- must implement as an object
+object IntegerExtension extends SignatureExtension {
+    val plus = "+"
+    val minus = "-"
+    val times = "*"
+    val div = "div"
+    val mod = "mod"
+    val abs = "abs"
+    val LE = "<="
+    val LT = "<"
+    val GE = ">="
+    val GT = ">"
+    
+    override def hasType(sort: Type): Boolean = sort == IntType
+    
+    override def hasTypeWithName(name: String): Boolean = name == IntType.name
+    
+    override def queryFunction(name: String, argTypes: Seq[Type]): Option[FuncDecl] = (name, argTypes) match {
+        case (`plus`, Seq(IntType, IntType)) => Some(FuncDecl(plus, IntType, IntType, IntType))
+        case (`minus`, Seq(IntType, IntType)) => Some(FuncDecl(minus, IntType, IntType, IntType)) // Binary minus
+        case (`minus`, Seq(IntType)) => Some(FuncDecl(minus, IntType, IntType)) // Unary minus
+        case (`times`, Seq(IntType, IntType)) => Some(FuncDecl(times, IntType, IntType, IntType))
+        case (`div`, Seq(IntType, IntType)) => Some(FuncDecl(div, IntType, IntType, IntType))
+        case (`mod`, Seq(IntType, IntType)) => Some(FuncDecl(mod, IntType, IntType))
+        case (`abs`, Seq(IntType)) => Some(FuncDecl(abs, IntType, IntType))
+        case (`LE`, Seq(IntType, IntType)) => Some(FuncDecl(LE, IntType, IntType, BoolType))
+        case (`LT`, Seq(IntType, IntType)) => Some(FuncDecl(LT, IntType, IntType, BoolType))
+        case (`GE`, Seq(IntType, IntType)) => Some(FuncDecl(GE, IntType, IntType, BoolType))
+        case (`GT`, Seq(IntType, IntType)) => Some(FuncDecl(GT, IntType, IntType, BoolType))
+        case _ => None
+    }
+    
+    override def hasFunctionWithName(name: String): Boolean = 
+        Set(plus, minus, times, div, mod, abs, LE, LT, GE, GT) contains name
+        
+    override def queryConstant(v: Var): Option[AnnotatedVar] = None
+    override def queryEnum(v: Var): Option[AnnotatedVar] = None
+    
+    override def toString: String = "Integer Extension"
+}
+
+// TODO make this a mixin
+object BitVectorSignature {
+    def hasType(sort: Type) = sort match {
+        case BitVectorType(_) => true
+        case _ => false
+    }
+    
+    def queryFunction(name: String, argTypes: Seq[Type]): Option[Type] = (name, argTypes) match {
+        case (binop, Seq(BitVectorType(n), BitVectorType(m)))
+            if (binaryOperations contains binop) && (n == m) => Some(BitVectorType(n))
+        case (unop, Seq(BitVectorType(n))) if (unaryOperations contains unop) => Some(BitVectorType(n))
+        case _ => None
+    }
+    
+    // Arithmetic operations
+    val bvadd = "bvadd" // addition
+    val bvsub = "bvsub" // subtraction
+    val bvneg = "bvneg" // unary minus
+    val bvmul =  "bvmul" // multiplication
+    val bvurem = "bvurem" // unsigned remainder
+    val bvsrem = "bvsrem" // signed remainder
+    val bvsmod = "bvsmod" // signed modulo
+    val bvshl = "bvshl" // shift left
+    val bvlshr = "bvlshr" // unsigned (logical) shift right
+    val bvashr = "bvashr" // signed (arithmetical) shift right
+    
+    // Bitwise operations
+    val bvor = "bvor" // bitwise or
+    val bvand  = "bvand" // bitwise and
+    val bvnot = "bvnot" // bitwise not
+    val bvnand = "bvnand" // bitwise nand
+    val bvnor = "bvnor" // bitwise nor
+    val bvxnor = "bvxnor" // bitwise xnor
+    
+    // Special operations for internal use only
+    val bvAddNoOverflowUnsigned = "bvAddNoOverflowUnsigned"
+    val bvAddNoUnderflowSigned = "bvAddNoOverflowUnsigned"
+    val bvAddNoUnderflow = "bvAddNoUnderflow"
+    val bvSubNoOverflow = "bvSubNoOverflow"
+    val bvSubNoUnderflowUnsigned = "bvSubNoUnderflowUnsigned"
+    val bvSubNoUnderflowSigned = "bvSubNoUnderflowSigned"
+    val bvSDivNoOverflow = "bvSDivNoOverflow"
+    val bvNegNoOverflow = "bvNegNoOverflow"
+    val bvMulNoOverflowUnsigned = "bvMulNoOverflowUnsigned"
+    val bvMulNoUnderflowSigned = "bvMulNoUnderflowSigned"
+    val bvMulNoUnderflow = "bvMulNoUnderflow"
+    
+    val binaryOperations: Set[String] = Set(
+        bvadd, bvsub, bvmul, bvurem, bvsrem, bvsmod, bvshl, bvlshr, bvashr,
+        bvor, bvand, bvnand, bvnor, bvxnor,
+        bvAddNoOverflowUnsigned, bvAddNoUnderflowSigned, bvAddNoUnderflow,
+        bvSubNoOverflow, bvSubNoUnderflowUnsigned, bvSubNoUnderflowSigned,
+        bvSDivNoOverflow, bvMulNoOverflowUnsigned, bvMulNoUnderflowSigned,
+        bvMulNoUnderflow
+    ) 
+    val unaryOperations: Set[String] = Set(
+        bvneg, bvnot, bvNegNoOverflow
+    )
 }

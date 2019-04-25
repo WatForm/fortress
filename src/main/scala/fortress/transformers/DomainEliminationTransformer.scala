@@ -6,8 +6,9 @@ import scala.collection.immutable.Seq // By default use immutable Seq
 import fortress.tfol._
 import fortress.util.Errors
 
-/** Replaces domain elements with distinct constants that simulate them.
-  * This transformation is required before sending the theory to an SMT solver.
+/** Replaces occurences of domain elements in axioms with distinct constants 
+  * that simulate them.
+  * Leaves all other aspects of the theory unchanged.
   */
 class DomainEliminationTransformer(scopes: Map[Type, Int]) extends TheoryTransformer {
     
@@ -45,7 +46,7 @@ class DomainEliminationTransformer(scopes: Map[Type, Int]) extends TheoryTransfo
             axiom => axiom.eliminateDomainElements
         )
         
-        Theory.mkTheoryWithSignature(theory.signature)
+        theory.withoutAxioms
             .withConstants(domainConstants)
             .withAxioms(distinctConstraints)
             .withAxioms(convertedAxioms)

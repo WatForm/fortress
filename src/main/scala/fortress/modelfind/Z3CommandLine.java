@@ -143,7 +143,7 @@ public class Z3CommandLine implements SolverStrategy {
         return "ERROR";
     }
 
-    public FiniteModel getModel(Theory theory) {
-        return Errors.<FiniteModel>notImplemented();
+    public Interpretation getInstance(Theory theory) {
+        return Errors.<Interpretation>notImplemented();
     }
 }

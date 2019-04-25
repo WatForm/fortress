@@ -30,9 +30,11 @@ object NegationNormalizer {
             )
             case Not(Forall(vars, body)) => Exists(vars, nnf(Not(body)))
             case Not(Exists(vars, body)) => Forall(vars, nnf(Not(body)))
-            case Top() | Bottom() | Var(_) | App(_, _) | Eq(_, _) | DomainElement(_, _) | TC(_, _, _) |
-                Not(Var(_)) | Not(App(_, _)) | Not(Eq(_, _)) | Not(TC(_, _, _)) => term
-            case Not(DomainElement(_, _)) => ???
+            case Top() | Bottom() | Var(_) | App(_, _) | Eq(_, _) | DomainElement(_, _) | TC(_, _, _)
+                | IntegerLiteral(_) | BitVectorLiteral(_, _)
+                | Not(Var(_)) | Not(App(_, _)) | Not(Eq(_, _)) | Not(TC(_, _, _)) => term
+            case Not(DomainElement(_, _)) | Not(IntegerLiteral(_))
+                |  Not(BitVectorLiteral(_, _)) => ???
         }
         nnf(term)
     }

@@ -6,7 +6,7 @@ import fortress.tfol._
 import fortress.transformers._
 
 @RunWith(classOf[JUnitRunner])
-class RangeFormulaTests extends FunSuite with Matchers {
+class RangeFormulaLowSymBreakTests extends FunSuite with Matchers {
     
     val A = Type.mkTypeConst("A")
     val B = Type.mkTypeConst("B")
@@ -38,7 +38,7 @@ class RangeFormulaTests extends FunSuite with Matchers {
             .withAxiom(d1 === DomainElement(1, B))
         
         val scopes = Map(A -> 2, B -> 2)
-        val transformer = new RangeFormulaTransformer(scopes)
+        val transformer = new RangeFormulaTransformerLowSymBreak(scopes)
         transformer(theory) should be (expected)
     }
     
@@ -75,7 +75,7 @@ class RangeFormulaTests extends FunSuite with Matchers {
                 App("g", DomainElement(3, B)) === DomainElement(2, A)))
         
         val scopes = Map(A -> 2, B -> 3)
-        val transformer = new RangeFormulaTransformer(scopes)
+        val transformer = new RangeFormulaTransformerLowSymBreak(scopes)
         transformer(theory) should be (expected)
     }
     
@@ -107,7 +107,7 @@ class RangeFormulaTests extends FunSuite with Matchers {
                 App("f", DomainElement(2, A), DomainElement(3, B)) === DomainElement(2, C)))
         
         val scopes = Map(A -> 2, B -> 3, C -> 2)
-        val transformer = new RangeFormulaTransformer(scopes)
+        val transformer = new RangeFormulaTransformerLowSymBreak(scopes)
         transformer(theory) should be (expected)
     }
     
@@ -131,7 +131,7 @@ class RangeFormulaTests extends FunSuite with Matchers {
             .withAxioms(rangeFormulas)
         
         val scopes = Map(A -> 5, B -> 7, C -> 2)
-        val transformer = new RangeFormulaTransformer(scopes)
+        val transformer = new RangeFormulaTransformerLowSymBreak(scopes)
         transformer(theory) should be (expected)
     }
     
@@ -152,7 +152,7 @@ class RangeFormulaTests extends FunSuite with Matchers {
                 or (App("f", DomainElement(2, A)) === DomainElement(2, A)) )
         
         val scopes = Map(A -> 2)
-        val transformer = new RangeFormulaTransformer(scopes)
+        val transformer = new RangeFormulaTransformerLowSymBreak(scopes)
         transformer(theory) should be (expected)
     }
     
@@ -170,7 +170,7 @@ class RangeFormulaTests extends FunSuite with Matchers {
             // Nothing about p, q, P
         
         val scopes = Map(A -> 2)
-        val transformer = new RangeFormulaTransformer(scopes)
+        val transformer = new RangeFormulaTransformerLowSymBreak(scopes)
         transformer(theory) should be (expected)
     }
     
@@ -184,7 +184,7 @@ class RangeFormulaTests extends FunSuite with Matchers {
             .withAxiom(App("P", c1))
         
         val scopes = Map(A -> 2, Type.Bool -> 3)
-        val transformer = new RangeFormulaTransformer(scopes)
+        val transformer = new RangeFormulaTransformerLowSymBreak(scopes)
         a [fortress.util.Errors.PreconditionException] should be thrownBy (transformer(theory))
     }
     
@@ -205,7 +205,7 @@ class RangeFormulaTests extends FunSuite with Matchers {
             .withAxiom(App("g", DomainElement(1, B)) === DomainElement(1, A))
         
         val scopes = Map(A -> 1, B -> 1)
-        val transformer = new RangeFormulaTransformer(scopes)
+        val transformer = new RangeFormulaTransformerLowSymBreak(scopes)
         transformer(theory) should be (expected)
     }
     
@@ -215,7 +215,7 @@ class RangeFormulaTests extends FunSuite with Matchers {
             .withConstant(c1 of A)
         
         val scopes = Map(A -> 2, B -> 1)
-        val transformer = new RangeFormulaTransformer(scopes)
+        val transformer = new RangeFormulaTransformerLowSymBreak(scopes)
         a [fortress.util.Errors.PreconditionException] should be thrownBy (transformer(theory))
     }
     

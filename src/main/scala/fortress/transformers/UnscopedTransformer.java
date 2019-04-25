@@ -8,9 +8,6 @@ import fortress.tfol.*;
 * be done to the theory and it should be solved as an unscoped problem.
 */
 public class UnscopedTransformer implements TheoryTransformer {
-    public void UnscopedTransformer() {
-        // Empty
-    }
     
     @Override
     public Theory apply(Theory theory) {

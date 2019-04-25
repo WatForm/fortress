@@ -276,7 +276,7 @@ public class NegativeTypeCheckTest {
         t.typeCheck(sig);
     }
     
-    @Test(expected = fortress.data.TypeCheckException.WrongArity.class)
+    @Test(expected = fortress.data.TypeCheckException.UnknownFunction.class)
     public void functionWrongArity() {
         // Application of function to wrong number of arguments
         Signature sig = Signature.empty()
@@ -340,7 +340,7 @@ public class NegativeTypeCheckTest {
         t.typeCheck(sig);
     }
     
-    @Test(expected = fortress.data.TypeCheckException.WrongArgType.class)
+    @Test(expected = fortress.data.TypeCheckException.UnknownFunction.class)
     public void transitiveClosureWrongRelationType1() {
         FuncDecl transition = FuncDecl.mkFuncDecl("transition", A, B, Type.Bool());
         // Transitive colosure of A x B -> Bool, not A x A -> Bool or A -> A
@@ -352,7 +352,7 @@ public class NegativeTypeCheckTest {
         t.typeCheck(sig);
     }
     
-    @Test(expected = fortress.data.TypeCheckException.WrongArgType.class)
+    @Test(expected = fortress.data.TypeCheckException.UnknownFunction.class)
     public void transitiveClosureWrongRelationType2() {
         FuncDecl transition = FuncDecl.mkFuncDecl("transition", A, A, A, Type.Bool());
         // Transitive colosure of A x A x A -> Bool, not A x A -> Bool or A -> A
@@ -364,7 +364,7 @@ public class NegativeTypeCheckTest {
         t.typeCheck(sig);
     }
     
-    @Test(expected = fortress.data.TypeCheckException.WrongArgType.class)
+    @Test(expected = fortress.data.TypeCheckException.UnknownFunction.class)
     public void transitiveClosureWrongRelationType3() {
         FuncDecl transition = FuncDecl.mkFuncDecl("transition", A, B);
         // Transitive colosure of A -> B, not A x A -> Bool or A -> A
@@ -377,7 +377,7 @@ public class NegativeTypeCheckTest {
     }
     
     @Test(expected = fortress.data.TypeCheckException.UnknownType.class)
-    public void domainElementUnkownType() {
+    public void domainElementUnknownType() {
         // Use a domain element of an undeclared type
         Signature sig = Signature.empty()
             .withTypes(A);

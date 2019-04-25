@@ -70,7 +70,8 @@ object Simplifier {
             // We consider applications and equals to be atomic and have non-Boolean arguments
             // so we need not recurse on their arguments
             case Eq(_, _) | App(_, _) | TC(_, _, _) => simplify1(term)
-            case Top() | Bottom() | Var(_) | DomainElement(_, _) => term
+            case Top() | Bottom() | Var(_) | DomainElement(_, _)
+                | IntegerLiteral(_) | BitVectorLiteral(_, _) => term
         }
         
         simplify(term)

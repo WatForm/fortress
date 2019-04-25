@@ -12,13 +12,11 @@ import fortress.tfol.operations.Skolemizer;
 * an equisatisfiable theory whose formulas are still in negation normal form and
 * contain no existential quantifiers.
 * Prenex normal form is preserved.
+* Scopes are preserved.
 */
 public class SkolemizeTransformer implements TheoryTransformer {
     @Override
     public Theory apply(Theory theory) {
-        Signature sig = theory.getSignature();
-        Theory result = Theory.mkTheoryWithSignature(sig);
-        
         Set<String> forbiddenNames = new HashSet<>();
         
         for(Type type : theory.getTypes()) {
@@ -40,8 +38,9 @@ public class SkolemizeTransformer implements TheoryTransformer {
         
         NameGenerator nameGenerator = new SubIntNameGenerator(forbiddenNames, 0);
         
+        Theory result = theory.withoutAxioms();
         for(Term axiom : theory.getAxioms()) {
-            Skolemizer skolemizer = new Skolemizer(axiom, sig, nameGenerator);
+            Skolemizer skolemizer = new Skolemizer(axiom, result.getSignature(), nameGenerator);
             Term newAxiom = skolemizer.convert();
             result = result.withFunctionDeclarations(skolemizer.getSkolemFunctions());
             result = result.withConstants(skolemizer.getSkolemConstants());

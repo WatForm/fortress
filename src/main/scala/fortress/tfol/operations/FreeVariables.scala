@@ -8,7 +8,8 @@ import fortress.tfol._
 object FreeVariables {
     def apply(term: Term): Set[Var] = {
         def fv(term: Term): Set[Var] = term match {
-            case Top() | Bottom() | DomainElement(_, _) => Set()
+            case Top() | Bottom() | DomainElement(_, _)
+                | IntegerLiteral(_) | BitVectorLiteral(_, _) => Set()
             case v @ Var(x) => Set(v)
             case Not(p) => fv(p)
             case AndList(args) => args.map(fv).reduce((a, b) => a union b)

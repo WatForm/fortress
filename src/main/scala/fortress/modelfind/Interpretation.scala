@@ -1,9 +1,10 @@
-package fortress.tfol
+package fortress.modelfind
 
 import scala.collection.mutable.Map
 import scala.collection.JavaConverters._
+import fortress.tfol._
 
-class FiniteModel {
+class Interpretation {
     var constantMappings = Map[AnnotatedVar, DomainElement]()
     var functionMappings = Map[FuncDecl, Map[java.util.List[DomainElement], DomainElement]]()
 

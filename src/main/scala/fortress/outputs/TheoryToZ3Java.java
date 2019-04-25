@@ -242,5 +242,15 @@ public class TheoryToZ3Java {
         public Expr visitTC(TC tc) {
             return fortress.util.Errors.<Expr>notImplemented();
         }
+        
+        @Override
+        public Expr visitIntegerLiteral(IntegerLiteral literal) {
+            return fortress.util.Errors.<Expr>notImplemented();
+        }
+        
+        @Override
+        public Expr visitBitVectorLiteral(BitVectorLiteral literal) {
+            return fortress.util.Errors.<Expr>notImplemented();
+        }
     }
 }

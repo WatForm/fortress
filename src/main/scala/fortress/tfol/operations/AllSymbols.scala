@@ -9,7 +9,8 @@ import fortress.tfol._
 object AllSymbols {
     def apply(term: Term): Set[String] = {
         def symbols(term: Term): Set[String] = term match {
-            case Top() | Bottom() | DomainElement(_, _) => Set()
+            case Top() | Bottom() | DomainElement(_, _)
+                | IntegerLiteral(_) | BitVectorLiteral(_, _) => Set()
             case Var(x) => Set(x)
             case Not(p) => symbols(p)
             case AndList(args) => args.map(symbols).reduce((a, b) => a union b)

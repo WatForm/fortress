@@ -82,10 +82,12 @@ public class Z3ApiSolver extends SolverTemplate {
         return lastModel.toString();
     }
 
-    public FiniteModel getModel(Theory theory) {
+
+    public Interpretation getInstance(Theory theory) {
         if (lastModel == null)
             return null;
-        FiniteModel model = new FiniteModel();
+        // TODO builtin types
+        Interpretation model = new Interpretation();
         Signature sig = theory.getSignature();
         Map<Expr, DomainElement> typeMappings = new HashMap<>();
         Map<Sort, List<Expr>> domains = new HashMap<>();
@@ -93,7 +95,7 @@ public class Z3ApiSolver extends SolverTemplate {
         for (Type type : theory.getTypes())
             types.put(type.getName(), type);
         for (Sort sort : lastModel.getSorts()) {
-            if (sig.hasType(sort.toString()))
+            if (sig.hasType(Type.mkTypeConst(sort.getName().toString())))
                 domains.put(sort, Arrays.asList(lastModel.getSortUniverse(sort)));
         }
         for (com.microsoft.z3.FuncDecl z3Decl : lastModel.getConstDecls()) {
@@ -106,9 +108,9 @@ public class Z3ApiSolver extends SolverTemplate {
             }
         }    
         for (com.microsoft.z3.FuncDecl z3Decl : lastModel.getConstDecls())
-            sig.lookupConstant(Term.mkVar(z3Decl.getName().toString())).ifPresent(v -> model.addConstantMapping(v, typeMappings.get(lastModel.getConstInterp(z3Decl))));
+            sig.queryConstantJava(Term.mkVar(z3Decl.getName().toString())).ifPresent(v -> model.addConstantMapping(v, typeMappings.get(lastModel.getConstInterp(z3Decl))));
         for (com.microsoft.z3.FuncDecl z3Decl : lastModel.getFuncDecls()) {
-            sig.lookupFunctionDeclaration(z3Decl.getName().toString()).ifPresent( f -> {
+            sig.queryUninterpretedFunctionJava(z3Decl.getName().toString()).ifPresent( f -> {
                 List<List<Expr>> toProduct = new ArrayList<>();
                 for (Sort type : z3Decl.getDomain())
                     toProduct.add(domains.get(type));
