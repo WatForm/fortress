@@ -83,6 +83,8 @@ public class Z3ApiSolver extends SolverTemplate {
     }
 
     public FiniteModel getModel(Theory theory) {
+        if (lastModel == null)
+            return null;
         FiniteModel model = new FiniteModel();
         Signature sig = theory.getSignature();
         Map<Expr, DomainElement> typeMappings = new HashMap<>();
@@ -116,9 +118,9 @@ public class Z3ApiSolver extends SolverTemplate {
                     Expr returnExpr = lastModel.evaluate(z3Decl.apply(argumentList.stream().toArray(Expr[]::new)), true);
                     if (z3Decl.getRange() instanceof BoolSort) {
                         if (returnExpr.isTrue())
-                            model.addFunctionMapping(f, args, Term.mkDomainElement(1, Type.Bool()));
+                            model.addFunctionMapping(f, args, Term.mkDomainElement(2, Type.Bool()));
                         else
-                            model.addFunctionMapping(f, args, Term.mkDomainElement(0, Type.Bool()));
+                            model.addFunctionMapping(f, args, Term.mkDomainElement(1, Type.Bool()));
                     } else
                         model.addFunctionMapping(f, args, typeMappings.get(returnExpr));
                 }
