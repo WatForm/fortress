@@ -74,16 +74,9 @@ public class Z3ApiSolver extends SolverTemplate {
                 throw new RuntimeException("Unexpected solver result " + status.toString());
         }
     }
-    
-    // Temporary method -- will be changed
-    public String getStringModel() {
-        if (lastModel == null)
-            return "ERROR - NO MODEL";
-        return lastModel.toString();
-    }
-
 
     public Interpretation getInstance(Theory theory) {
+        Errors.assertion(null != lastModel, "There is no current instance");
         // TODO builtin types
         Interpretation model = new Interpretation();
         Signature sig = theory.getSignature();
