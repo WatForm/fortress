@@ -334,9 +334,13 @@ case class DomainElement(index: Int, sort: Type) extends Term {
 case class TC(relationName: String, arg1: Term, arg2: Term) extends Term {
     Errors.precondition(relationName.length >= 1, "Empty relation name in transitive closure")
     
+    def getFunctionName: String = functionName
     override def accept[T](visitor: TermVisitor[T]): T = visitor.visitTC(this)
-    def mapBody(mapping: Term => Term) = TC(relationName, mapping(arg2), mapping(arg2))
-    
+    def mapArguments(mapping: Term => Term) = TC(relationName, mapping(arg1), mapping(arg2))    
+}
+
+object TC {
+    def apply(functionName: String, arg1: Term, arg2: Term): TC = TC(functionName, arg1, arg2)
 }
 
 case class IntegerLiteral(value: Int) extends Term {
