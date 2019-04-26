@@ -5,9 +5,6 @@ import fortress.data.NameGenerator;
 import java.util.Set;
 import java.util.HashSet;
 import java.util.Map;
-import java.util.HashMap;
-import java.util.List;
-import java.util.ArrayList;
 import java.lang.IllegalArgumentException;
 import fortress.util.Errors;
 import java.util.Optional;
@@ -17,14 +14,18 @@ import java.util.Optional;
 // closed with respect to the signature in question for this operation to be valid.
 public class ClosureEliminator {
     private Term toplevelTerm;
+    private Map<Type, Integer> scopes;
     private NameGenerator nameGen;
     private Set<FuncDecl> closureFunctions;
+    private Set<Term> closureAxioms;
     private ClosureVisitor visitor;
     
-    public ClosureEliminator(Term toplevelTerm, Signature signature, NameGenerator nameGen) {
+    public ClosureEliminator(Term toplevelTerm, Signature signature, Map<Type, Integer> scopes, NameGenerator nameGen) {
         this.toplevelTerm = toplevelTerm;
+        this.scopes = scopes;
         this.nameGen = nameGen;
         this.closureFunctions = new HashSet<>();
+        this.closureAxioms = new HashSet<>();
         this.visitor = new ClosureVisitor(signature);
     }
     
@@ -35,8 +36,15 @@ public class ClosureEliminator {
     /**
     * Returns the set of generated closure functions. Must be called after convert.
     */
-    public Set<FuncDecl> getSkolemFunctions() {
-        return skolemFunctions;
+    public Set<FuncDecl> getClosureFunctions() {
+        return closureFunctions;
+    }
+
+    /**
+    * Returns the set of axioms defining closure functions. Must be called after convert.
+    */
+    public Set<Term> getClosureAxioms() {
+        return closureAxioms;
     }
     
     private class ClosureVisitor extends TermVisitorWithTypeContext<Term> {
@@ -114,47 +122,18 @@ public class ClosureEliminator {
         
         @Override
         public Term visitTC(TC tc) {
-            Term temporaryBody = exists.getBody();
-            for(AnnotatedVar av: exists.getVars()) {
-                Set<Var> freeVars = exists.freeVars(signature);
-                if(freeVars.size() == 0) {
-                    // Skolem Constant
-                    String skolemConstantName = nameGen.freshName("sk");
+            String relationName = tc.relationName();
+            String closureName = "^" + relationName;
+            // if (!signature.hasFunctionWithName(closureName)) {
+            //     signature.queryUninterpretedFunctionJava(functionName).ifPresent(f -> {
+            //         // TODO: error checking for types of f
+            //         Type type = f.getArgTypes().get(0);
+            //         FuncDecl closureFunction = FuncDecl.mkFuncDecl(closureName, type, type, Type.Bool());
                     
-                    AnnotatedVar skolemConstant = Term.mkVar(skolemConstantName).of(av.getType());
-                    skolemConstants.add(skolemConstant);
-                    
-                    temporaryBody = temporaryBody.substitute(av.getVar(), skolemConstant.getVar());
-                    
-                    // We also have to update the signature with the new skolem constant
-                    // since it might now appear deeper in the new term
-                    // Failing to do this was a former bug
-                    signature = signature.withConstant(skolemConstant);
-                } else {
-                    // Skolem function
-                    String skolemFunctionName = nameGen.freshName("sk");
-                    
-                    List<Type> argumentTypes = new ArrayList<>();
-                    List<Term> arguments = new ArrayList<>();
-                    for(Var v : freeVars) {
-                        Optional<Type> typeMaybe = lookupType(v);
-                        Errors.assertion(typeMaybe.isPresent(), "Type of variable " + v.getName() + " could not be found");
-                        Type type = typeMaybe.get();
-                        
-                        argumentTypes.add(type);
-                        arguments.add(v);
-                    }
-                    
-                    FuncDecl skolemFunction = FuncDecl.mkFuncDecl(skolemFunctionName, argumentTypes, av.getType());
-                    skolemFunctions.add(skolemFunction);
-                    
-                    Term skolemApplication = Term.mkApp(skolemFunctionName, arguments);
-                    temporaryBody = temporaryBody.substitute(av.getVar(), skolemApplication, nameGen);
-                    
-                    signature = signature.withFunctionDeclaration(skolemFunction);
-                }
-            }
-            return visit(temporaryBody);
+            //     });
+            //     // TODO: throw error if f does not exist
+            // }
+            return tc.mkApp(closureName).mapArguments(this::visit);
         }
         
         @Override

@@ -331,16 +331,12 @@ case class DomainElement(index: Int, sort: Type) extends Term {
 /** Represents an application/membership test of the transitive closure of a predicate/relation.
   * For example, TC(P, x, y) represents the truth value of whether (x, y) is a member of the 
   * the transitive closure of P. */
-case class TC(relationName: String, arg1: Term, arg2: Term) extends Term {
+case class TC(relationName: String, arg1: Term, arg2: Term) extends Term {     
     Errors.precondition(relationName.length >= 1, "Empty relation name in transitive closure")
     
-    def getFunctionName: String = functionName
-    override def accept[T](visitor: TermVisitor[T]): T = visitor.visitTC(this)
-    def mapArguments(mapping: Term => Term) = TC(relationName, mapping(arg1), mapping(arg2))    
-}
-
-object TC {
-    def apply(functionName: String, arg1: Term, arg2: Term): TC = TC(functionName, arg1, arg2)
+    def mkApp(functionName: String): App = App(functionName, arg1, arg2)
+    override def accept[T](visitor: TermVisitor[T]): T = visitor.visitTC(this)     
+    def mapBody(mapping: Term => Term) = TC(relationName, mapping(arg1), mapping(arg2))     
 }
 
 case class IntegerLiteral(value: Int) extends Term {
@@ -491,7 +487,7 @@ object Term {
     /** Returns a term representing the bi-equivalence "t1 iff t2". */
     def mkIff(t1: Term, t2: Term): Term = Iff(t1, t2)
     
-    def mkTC(relationName: String, arg1: Term, arg2: Term): Term = TC(relationName, arg1, arg2)
+    def mkTC(functionName: String, arg1: Term, arg2: Term): Term = TC(functionName, arg1, arg2)
     
     /** Internal method for creating Domain Elements. */
     def mkDomainElement(index: Int, sort: Type) = DomainElement(index, sort)

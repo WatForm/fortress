@@ -1,5 +1,7 @@
 package fortress.modelfind
 
+import scala.collection.JavaConverters._
+
 import fortress.tfol._
 import fortress.transformers._
 import fortress.util._
@@ -58,9 +60,12 @@ class EufSmtModelFinder(var solverStrategy: SolverStrategy) extends ModelFinder 
             if (usesEnumType(theory)) { new RangeFormulaTransformerNoSymBreak(analysisScopes ++ theory.scopes) }
             else { new RangeFormulaTransformerLowSymBreak(analysisScopes ++ theory.scopes) }
         
+        // ugly conversion to Java Map and Int (Closure Elimination Transformer)
         val transformerSequence = Seq(
             enumEliminationTransformer,
             new SimplifyTransformer,
+            new NnfTransformer,
+            new ClosureEliminationTransformer((analysisScopes ++ theory.scopes).map{ case (t, s) => t -> int2Integer(s) }.asJava),
             new NnfTransformer,
             new SkolemizeTransformer,
             new DomainInstantiationTransformer(analysisScopes),
