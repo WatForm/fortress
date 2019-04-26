@@ -30,8 +30,5 @@ public interface SolverStrategy {
     */
     public ModelFinder.Result solve(Theory theory, int timeoutMillis, Writer log) throws IOException;
     
-    // Temporary method -- will be changed
-    public String getStringModel();
-
     public Interpretation getInstance(Theory theory);
 }

@@ -126,7 +126,7 @@ public class RecklessUnivInstantiationVisitor implements TermVisitor<Term> {
     
     @Override
     public Term visitTC(TC tc) {
-        return fortress.util.Errors.<Term>notImplemented();
+        throw new IllegalArgumentException("Term must not have TC: " + tc.toString());
     }
     
     @Override

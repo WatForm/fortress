@@ -2,6 +2,7 @@ package fortress.tfol.operations;
 
 import fortress.tfol.*;
 import fortress.data.NameGenerator;
+import java.util.List;
 import java.util.Set;
 import java.util.HashSet;
 import java.util.Map;
@@ -124,15 +125,29 @@ public class ClosureEliminator {
         public Term visitTC(TC tc) {
             String relationName = tc.relationName();
             String closureName = "^" + relationName;
-            // if (!signature.hasFunctionWithName(closureName)) {
-            //     signature.queryUninterpretedFunctionJava(functionName).ifPresent(f -> {
-            //         // TODO: error checking for types of f
-            //         Type type = f.getArgTypes().get(0);
-            //         FuncDecl closureFunction = FuncDecl.mkFuncDecl(closureName, type, type, Type.Bool());
-                    
-            //     });
-            //     // TODO: throw error if f does not exist
-            // }
+            if (!signature.hasFunctionWithName(closureName)) {
+                String helperName = nameGen.freshName(relationName);
+                String reflexiveClosureName = "*" + relationName;
+                FuncDecl relation = signature.queryUninterpretedFunctionJava(relationName).get();
+                Type type = relation.getArgTypes().get(0);
+                FuncDecl closureFunction = FuncDecl.mkFuncDecl(closureName, type, type, Type.Bool());
+                FuncDecl helperFunction = FuncDecl.mkFuncDecl(helperName, type, type, type, Type.Bool());
+                FuncDecl reflexiveClosureFunction = FuncDecl.mkFuncDecl(reflexiveClosureName, type, type, Type.Bool());
+                closureFunctions.add(closureFunction);
+                closureFunctions.add(helperFunction);
+                closureFunctions.add(reflexiveClosureFunction);
+                Var x = Term.mkVar(nameGen.freshName("x")), y = Term.mkVar(nameGen.freshName("y"));
+                Var z = Term.mkVar(nameGen.freshName("z")), u = Term.mkVar(nameGen.freshName("u"));
+                AnnotatedVar ax = x.of(type), ay = y.of(type), az = z.of(type);
+                closureAxioms.add(Term.mkForall(List.of(ax, ay), Term.mkNot(Term.mkApp(helperName, x, x, y))));
+                closureAxioms.add(Term.mkForall(List.of(ax, ay, az, u.of(type)), Term.mkImp(Term.mkAnd(Term.mkApp(helperName, x, y, u), Term.mkApp(helperName, y, z, u)), Term.mkApp(helperName, x, z, u))));
+                closureAxioms.add(Term.mkForall(List.of(ax, ay, az), Term.mkImp(Term.mkAnd(Term.mkApp(helperName, x, y, y), Term.mkApp(helperName, y, z, z), Term.mkNot(Term.mkEq(x, z))), Term.mkApp(helperName, x, z, z))));
+                closureAxioms.add(Term.mkForall(List.of(ax, ay), Term.mkImp(Term.mkAnd(Term.mkApp(relationName, x, y), Term.mkNot(Term.mkEq(x, y))), Term.mkApp(helperName, x, y, y))));
+                closureAxioms.add(Term.mkForall(List.of(ax, ay), Term.mkImp(Term.mkApp(helperName, x, y, y), Term.mkExists(az, Term.mkAnd(Term.mkApp(relationName, x, z), Term.mkApp(helperName, x, z, y))))));
+                closureAxioms.add(Term.mkForall(List.of(ax, ay, az), Term.mkImp(Term.mkAnd(Term.mkApp(helperName, x, y, z), Term.mkNot(Term.mkEq(y, z))), Term.mkApp(helperName, y, z, z))));
+                closureAxioms.add(Term.mkForall(List.of(ax, ay), Term.mkEq(Term.mkApp(reflexiveClosureName, x, y), Term.mkOr(Term.mkApp(helperName, x, y, y), Term.mkEq(x, y)))));
+                closureAxioms.add(Term.mkForall(List.of(ax, ay), Term.mkEq(Term.mkApp(closureName, x, y), Term.mkExists(az, Term.mkAnd(Term.mkApp(relationName, x, z), Term.mkApp(reflexiveClosureName, z, y))))));
+            }
             return tc.mkApp(closureName).mapArguments(this::visit);
         }
         
