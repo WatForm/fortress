@@ -128,14 +128,10 @@ public class ClosureEliminator {
             if (!signature.hasFunctionWithName(closureName)) {
                 String helperName = nameGen.freshName(relationName);
                 String reflexiveClosureName = "*" + relationName;
-                FuncDecl relation = signature.queryUninterpretedFunctionJava(relationName).get();
-                Type type = relation.getArgTypes().get(0);
-                FuncDecl closureFunction = FuncDecl.mkFuncDecl(closureName, type, type, Type.Bool());
-                FuncDecl helperFunction = FuncDecl.mkFuncDecl(helperName, type, type, type, Type.Bool());
-                FuncDecl reflexiveClosureFunction = FuncDecl.mkFuncDecl(reflexiveClosureName, type, type, Type.Bool());
-                closureFunctions.add(closureFunction);
-                closureFunctions.add(helperFunction);
-                closureFunctions.add(reflexiveClosureFunction);
+                Type type = signature.queryUninterpretedFunctionJava(relationName).get().getArgTypes().get(0);
+                closureFunctions.add(FuncDecl.mkFuncDecl(closureName, type, type, Type.Bool()));
+                closureFunctions.add(FuncDecl.mkFuncDecl(helperName, type, type, type, Type.Bool()));
+                closureFunctions.add(FuncDecl.mkFuncDecl(reflexiveClosureName, type, type, Type.Bool()));
                 Var x = Term.mkVar(nameGen.freshName("x")), y = Term.mkVar(nameGen.freshName("y"));
                 Var z = Term.mkVar(nameGen.freshName("z")), u = Term.mkVar(nameGen.freshName("u"));
                 AnnotatedVar ax = x.of(type), ay = y.of(type), az = z.of(type);
