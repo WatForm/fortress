@@ -128,7 +128,8 @@ public class ClosureEliminator {
             if (!signature.hasFunctionWithName(closureName)) {
                 String helperName = nameGen.freshName(relationName);
                 String reflexiveClosureName = "*" + relationName;
-                Type type = signature.queryUninterpretedFunctionJava(relationName).get().getArgTypes().get(0);
+                List<Type> argTypes = signature.queryUninterpretedFunctionJava(relationName).get().getArgTypes();
+                Type type = argTypes.get(0);
                 closureFunctions.add(FuncDecl.mkFuncDecl(closureName, type, type, Type.Bool()));
                 closureFunctions.add(FuncDecl.mkFuncDecl(helperName, type, type, type, Type.Bool()));
                 closureFunctions.add(FuncDecl.mkFuncDecl(reflexiveClosureName, type, type, Type.Bool()));
@@ -138,11 +139,12 @@ public class ClosureEliminator {
                 closureAxioms.add(Term.mkForall(List.of(ax, ay), Term.mkNot(Term.mkApp(helperName, x, x, y))));
                 closureAxioms.add(Term.mkForall(List.of(ax, ay, az, u.of(type)), Term.mkImp(Term.mkAnd(Term.mkApp(helperName, x, y, u), Term.mkApp(helperName, y, z, u)), Term.mkApp(helperName, x, z, u))));
                 closureAxioms.add(Term.mkForall(List.of(ax, ay, az), Term.mkImp(Term.mkAnd(Term.mkApp(helperName, x, y, y), Term.mkApp(helperName, y, z, z), Term.mkNot(Term.mkEq(x, z))), Term.mkApp(helperName, x, z, z))));
-                closureAxioms.add(Term.mkForall(List.of(ax, ay), Term.mkImp(Term.mkAnd(Term.mkApp(relationName, x, y), Term.mkNot(Term.mkEq(x, y))), Term.mkApp(helperName, x, y, y))));
-                closureAxioms.add(Term.mkForall(List.of(ax, ay), Term.mkImp(Term.mkApp(helperName, x, y, y), Term.mkExists(az, Term.mkAnd(Term.mkApp(relationName, x, z), Term.mkApp(helperName, x, z, y))))));
                 closureAxioms.add(Term.mkForall(List.of(ax, ay, az), Term.mkImp(Term.mkAnd(Term.mkApp(helperName, x, y, z), Term.mkNot(Term.mkEq(y, z))), Term.mkApp(helperName, y, z, z))));
                 closureAxioms.add(Term.mkForall(List.of(ax, ay), Term.mkEq(Term.mkApp(reflexiveClosureName, x, y), Term.mkOr(Term.mkApp(helperName, x, y, y), Term.mkEq(x, y)))));
-                closureAxioms.add(Term.mkForall(List.of(ax, ay), Term.mkEq(Term.mkApp(closureName, x, y), Term.mkExists(az, Term.mkAnd(Term.mkApp(relationName, x, z), Term.mkApp(reflexiveClosureName, z, y))))));
+                Term t = (argTypes.size() == 1) ? Term.mkEq(Term.mkApp(relationName, x), z) : Term.mkApp(relationName, x, z);
+                closureAxioms.add(Term.mkForall(List.of(ax, az), Term.mkImp(Term.mkAnd(t, Term.mkNot(Term.mkEq(x, z))), Term.mkApp(helperName, x, z, z))));
+                closureAxioms.add(Term.mkForall(List.of(ax, ay), Term.mkImp(Term.mkApp(helperName, x, y, y), Term.mkExists(az, Term.mkAnd(t, Term.mkApp(helperName, x, z, y))))));
+                closureAxioms.add(Term.mkForall(List.of(ax, ay), Term.mkEq(Term.mkApp(closureName, x, y), Term.mkExists(az, Term.mkAnd(t, Term.mkApp(reflexiveClosureName, z, y))))));
             }
             return tc.mkApp(closureName).mapArguments(this::visit);
         }
