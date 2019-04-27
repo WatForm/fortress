@@ -33,6 +33,7 @@ public class ClosureEliminationTransformer implements TheoryTransformer {
             forbiddenNames.add(c.getName());
         }
         
+        // TODO: do we need this restriction if Substituter already restricts these inside one term?
         for(Term axiom : theory.getAxioms()) {
             forbiddenNames.addAll(axiom.allSymbolsJava());
         }
