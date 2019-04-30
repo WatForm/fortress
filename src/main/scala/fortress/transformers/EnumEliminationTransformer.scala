@@ -14,7 +14,7 @@ class EnumEliminationTransformer() extends TheoryTransformer {
         // Since we are replacing with domain elements, which cannot be in
         // quantifiers, we do not need to worry about variable capture in
         // substitution and can use the faster substituter.
-        val newAxioms = theory.axioms.map(axiom => axiom.recklessSubstitute(mapping))
+        val newAxioms = theory.axioms.map(axiom => axiom.eliminateEnumValues(mapping))
         
         val newSignature = theory.signature.withoutEnums
         
@@ -23,8 +23,8 @@ class EnumEliminationTransformer() extends TheoryTransformer {
             .withAxioms(newAxioms)
     }
     
-    def computeEnumTypeMapping(theory: Theory): Map[Var, DomainElement] = {
-        val mapping = scala.collection.mutable.Map[Var, DomainElement]()
+    def computeEnumTypeMapping(theory: Theory): Map[EnumValue, DomainElement] = {
+        val mapping = scala.collection.mutable.Map[EnumValue, DomainElement]()
         for((sort, enumConstants) <- theory.enumConstants) {
             enumConstants.zipWithIndex.foreach { case (constant, index) =>
                 mapping += constant -> DomainElement(index + 1, sort)

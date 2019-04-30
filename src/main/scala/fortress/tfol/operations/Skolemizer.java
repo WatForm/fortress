@@ -67,13 +67,13 @@ public class Skolemizer {
         }
         
         @Override
-        public Term visitTop(Top top) {
-            return top;
+        public Term visitTop() {
+            return Term.mkTop();
         }
         
         @Override
-        public Term visitBottom(Bottom bottom) {
-            return bottom;
+        public Term visitBottom() {
+            return Term.mkBottom();
         }
         
         @Override
@@ -185,6 +185,11 @@ public class Skolemizer {
         
         @Override
         public Term visitBitVectorLiteral(BitVectorLiteral literal) {
+            return fortress.util.Errors.<Term>notImplemented();
+        }
+        
+        @Override
+        public Term visitEnumValue(EnumValue e) {
             return fortress.util.Errors.<Term>notImplemented();
         }
     }

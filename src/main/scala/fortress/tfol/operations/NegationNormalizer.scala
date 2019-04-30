@@ -17,8 +17,8 @@ object NegationNormalizer {
             )
             case Forall(vars, body) => Forall(vars, nnf(body))
             case Exists(vars, body) => Exists(vars, nnf(body))
-            case Not(Top()) => Bottom()
-            case Not(Bottom()) => Top()
+            case Not(Top) => Bottom
+            case Not(Bottom) => Top
             case Not(Not(p)) => nnf(p)
             case Not(AndList(args)) => OrList(args.map(arg => nnf(Not(arg))))
             case Not(OrList(args)) => AndList(args.map(arg => nnf(Not(arg))))
@@ -30,11 +30,11 @@ object NegationNormalizer {
             )
             case Not(Forall(vars, body)) => Exists(vars, nnf(Not(body)))
             case Not(Exists(vars, body)) => Forall(vars, nnf(Not(body)))
-            case Top() | Bottom() | Var(_) | App(_, _) | Eq(_, _) | DomainElement(_, _) | TC(_, _, _)
-                | IntegerLiteral(_) | BitVectorLiteral(_, _)
+            case Top | Bottom | Var(_) | App(_, _) | Eq(_, _) | DomainElement(_, _) | TC(_, _, _)
+                | IntegerLiteral(_) | BitVectorLiteral(_, _) | EnumValue(_)
                 | Not(Var(_)) | Not(App(_, _)) | Not(Eq(_, _)) | Not(TC(_, _, _)) => term
             case Not(DomainElement(_, _)) | Not(IntegerLiteral(_))
-                |  Not(BitVectorLiteral(_, _)) => ???
+                |  Not(BitVectorLiteral(_, _)) | Not(EnumValue(_)) => ???
         }
         nnf(term)
     }

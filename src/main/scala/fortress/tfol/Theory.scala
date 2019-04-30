@@ -112,12 +112,12 @@ case class Theory private (signature: Signature, scopes: Map[Type, Int], axioms:
         theory
     }
     
-    def withEnumType(t: Type, values: Seq[Var]) = {
+    def withEnumType(t: Type, values: Seq[EnumValue]) = {
         // TODO consistency checking
         Theory(signature.withEnumType(t, values), scopes + (t -> values.size), axioms)
     }
     
-    def withEnumType(t: Type, values: java.util.List[Var]) = {
+    def withEnumType(t: Type, values: java.util.List[EnumValue]) = {
         // TODO consistency checking
         Theory(signature.withEnumType(t, values), scopes + (t -> values.size), axioms)
     }
@@ -137,7 +137,7 @@ case class Theory private (signature: Signature, scopes: Map[Type, Int], axioms:
     def functionDeclarations: Set[FuncDecl] = signature.functionDeclarations
     def constants: Set[AnnotatedVar] = signature.constants
     
-    def enumConstants: Map[Type, Seq[Var]] = signature.enumConstants
+    def enumConstants: Map[Type, Seq[EnumValue]] = signature.enumConstants
     
     def withoutAxioms: Theory = Theory(signature, scopes, Set.empty)
     

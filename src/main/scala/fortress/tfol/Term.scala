@@ -73,7 +73,11 @@ sealed abstract class Term {
     
     def simplify: Term = Simplifier(this)
     
-    def eliminateDomainElements = DomainElementEliminator(this)
+    def eliminateDomainElements: Term = DomainElementEliminator(this)
+    
+    def eliminateEnumValues(eliminationMapping: Map[EnumValue, DomainElement]): Term = EnumValueEliminator(this, eliminationMapping)
+    
+    def allEnumValues: Set[EnumValue] = EnumValueAccumulator(this)
     
     /** Returns the set of all symbol names used in the term, including:
       * free variables and constants, bound variables (even those that aren't used),
@@ -88,18 +92,28 @@ sealed abstract class Term {
     def or(other: Term): Term = OrList(Seq(this, other))
     def ==>(other: Term): Term = Implication(this, other)
     def ===(other: Term): Term = Eq(this, other)
+    
+    // TODO should these methods be part of another trait that is mixed in to objects that pattern match? Probably
+    def naturalRecur(recursiveCall: Term => Term): Term
+    def naturalRecurSetAccumulate[A](recursiveCall: Term => Set[A]): Set[A]
+}
+
+sealed trait Value extends Term
+sealed trait LeafTerm extends Term {
+    override def naturalRecur(recursiveCall: Term => Term): Term = this
+    override def naturalRecurSetAccumulate[A](recursiveCall: Term => Set[A]): Set[A] = Set.empty
 }
 
 /** Term that represents True. */
-case class Top() extends Term {
+case object Top extends Term with LeafTerm with Value {
     override def toString: String = "true"
-    override def accept[T](visitor: TermVisitor[T]): T = visitor.visitTop(this)
+    override def accept[T](visitor: TermVisitor[T]): T = visitor.visitTop()
 }
 
 /** Term that represents Bottom. */
-case class Bottom() extends Term {
+case object Bottom extends Term with LeafTerm with Value {
     override def toString: String = "false"
-    override def accept[T](visitor: TermVisitor[T]): T = visitor.visitBottom(this)
+    override def accept[T](visitor: TermVisitor[T]): T = visitor.visitBottom()
 }
 
 /** Term that represents a variable (including prime propositions).
@@ -107,8 +121,8 @@ case class Bottom() extends Term {
   * Whether it is treated as a variable or constant depends on the context
   * in which it is used (e.g. a signature or quantifier binding).
   */
-case class Var(name: String) extends Term {
-    Errors.precondition(name.length() > 0, "Cannot create variable with empty name")
+case class Var(name: String) extends Term with LeafTerm {
+    Errors.precondition(name.length > 0, "Cannot create variable with empty name")
     Errors.precondition(! Names.isIllegal(name), "Illegal variable name " + name)
     
     override def toString: String = name
@@ -119,6 +133,15 @@ case class Var(name: String) extends Term {
       * with a Type.
       */
     def of(sort: Type) = AnnotatedVar(this, sort)
+}
+
+case class EnumValue(name: String) extends Term with LeafTerm with Value {
+    Errors.precondition(name.length > 0)
+    Errors.precondition(! Names.isIllegal(name))
+    
+    override def toString: String = name
+    def getName: String = name
+    override def accept[T](visitor: TermVisitor[T]): T = visitor.visitEnumValue(this)
 }
 
 /** Represents a variable together with a Type annotation.
@@ -143,6 +166,9 @@ case class Not(body: Term) extends Term {
     def mapBody(mapping: Term => Term): Term = Not(mapping(body))
     
     override def toString: String = "~" + body.toString
+    
+    override def naturalRecur(recursiveCall: Term => Term): Term = Not(recursiveCall(body))
+    override def naturalRecurSetAccumulate[A](recursiveCall: Term => Set[A]): Set[A] = recursiveCall(body)
 }
 
 /** Represents a conjunction. */
@@ -155,6 +181,10 @@ case class AndList private (arguments: Seq[Term]) extends Term {
         AndList(arguments.map(mapping))
     
     override def toString: String = "And(" + arguments.mkString(", ") + ")"
+    
+    override def naturalRecur(recursiveCall: Term => Term): Term = AndList(arguments map recursiveCall)
+    override def naturalRecurSetAccumulate[A](recursiveCall: Term => Set[A]): Set[A] =
+        (arguments map recursiveCall) reduce (_ union _)
 }
 
 object AndList {
@@ -176,6 +206,11 @@ case class OrList private (arguments: Seq[Term]) extends Term {
         OrList(arguments.map(mapping))
     
     override def toString: String = "Or(" + arguments.mkString(", ") + ")"
+    
+    
+    override def naturalRecur(recursiveCall: Term => Term): Term = OrList(arguments map recursiveCall)
+    override def naturalRecurSetAccumulate[A](recursiveCall: Term => Set[A]): Set[A] =
+        (arguments map recursiveCall) reduce (_ union _)
 }
 
 object OrList {
@@ -214,6 +249,10 @@ case class Distinct(arguments: Seq[Term]) extends Term {
     }
     
     override def toString: String = "Distinct(" + arguments.mkString(", ") + ")"
+    
+    override def naturalRecur(recursiveCall: Term => Term): Term = Distinct(arguments map recursiveCall)
+    override def naturalRecurSetAccumulate[A](recursiveCall: Term => Set[A]): Set[A] =
+        (arguments map recursiveCall) reduce (_ union _)
 }
 
 object Distinct {
@@ -229,6 +268,10 @@ case class Implication(left: Term, right: Term) extends Term {
         Implication(mapping(left), mapping(right))
     
     override def toString: String = left.toString + " => " + right.toString
+    
+    override def naturalRecur(recursiveCall: Term => Term): Term = Implication(recursiveCall(left), recursiveCall(right))
+    override def naturalRecurSetAccumulate[A](recursiveCall: Term => Set[A]): Set[A] =
+        recursiveCall(left) union recursiveCall(right)
 }
 
 /** Represents a bi-equivalence. */
@@ -240,6 +283,10 @@ case class Iff(left: Term, right: Term) extends Term {
         Iff(mapping(left), mapping(right))
     
     override def toString: String = left.toString + " <=> " + right.toString
+    
+    override def naturalRecur(recursiveCall: Term => Term): Term = Iff(recursiveCall(left), recursiveCall(right))
+    override def naturalRecurSetAccumulate[A](recursiveCall: Term => Set[A]): Set[A] =
+        recursiveCall(left) union recursiveCall(right)
 }
 
 /** Represents an equality. */
@@ -251,6 +298,10 @@ case class Eq(left: Term, right: Term) extends Term {
         Eq(mapping(left), mapping(right))
         
     override def toString: String = left.toString + " = " + right.toString
+    
+    override def naturalRecur(recursiveCall: Term => Term): Term = Eq(recursiveCall(left), recursiveCall(right))
+    override def naturalRecurSetAccumulate[A](recursiveCall: Term => Set[A]): Set[A] =
+        recursiveCall(left) union recursiveCall(right)
 }
 
 /** Represents a function or predicate application. */
@@ -265,6 +316,10 @@ case class App(functionName: String, arguments: Seq[Term]) extends Term {
         App(functionName, arguments.map(mapping))
     
     override def toString: String = functionName + "(" + arguments.mkString(", ") + ")"
+    
+    override def naturalRecur(recursiveCall: Term => Term): Term = App(functionName, arguments map recursiveCall)
+    override def naturalRecurSetAccumulate[A](recursiveCall: Term => Set[A]): Set[A] =
+        (arguments map recursiveCall) reduce (_ union _)
 }
 
 object App {
@@ -289,6 +344,9 @@ case class Exists(vars: Seq[AnnotatedVar], body: Term) extends Quantifier {
     def mapBody(mapping: Term => Term): Term = Exists(vars, mapping(body))
     
     override def toString: String = "exists " + vars.mkString(", ") + " . " + body.toString
+    
+    override def naturalRecur(recursiveCall: Term => Term): Term = Exists(vars, recursiveCall(body))
+    override def naturalRecurSetAccumulate[A](recursiveCall: Term => Set[A]): Set[A] = recursiveCall(body)
 }
 
 object Exists {
@@ -307,6 +365,9 @@ case class Forall(vars: Seq[AnnotatedVar], body: Term) extends Quantifier {
     def mapBody(mapping: Term => Term): Term = Forall(vars, mapping(body))
     
     override def toString: String = "exists " + vars.mkString(", ") + " . " + body.toString
+    
+    override def naturalRecur(recursiveCall: Term => Term): Term = Forall(vars, recursiveCall(body))
+    override def naturalRecurSetAccumulate[A](recursiveCall: Term => Set[A]): Set[A] = recursiveCall(body)
 }
 
 object Forall {
@@ -317,7 +378,7 @@ object Forall {
   * For example, DomainElement(2, A) represents the domain element at index 2
   * for sort A, written as 2A.
   * DomainElements are indexed starting with 1.*/
-case class DomainElement(index: Int, sort: Type) extends Term {
+case class DomainElement(index: Int, sort: Type) extends Term with LeafTerm with Value {
     Errors.precondition(index >= 1)
     
     def getIndex: Int = index
@@ -336,14 +397,17 @@ case class TC(relationName: String, arg1: Term, arg2: Term) extends Term {
     
     def mkApp(functionName: String): App = App(functionName, arg1, arg2)
     override def accept[T](visitor: TermVisitor[T]): T = visitor.visitTC(this)     
-    def mapBody(mapping: Term => Term) = TC(relationName, mapping(arg1), mapping(arg2))     
+    def mapBody(mapping: Term => Term) = TC(relationName, mapping(arg1), mapping(arg2))
+    
+    override def naturalRecur(recursiveCall: Term => Term): Term = TC(relationName, recursiveCall(arg1), recursiveCall(arg2))
+    override def naturalRecurSetAccumulate[A](recursiveCall: Term => Set[A]): Set[A] = recursiveCall(arg1) union recursiveCall(arg2)
 }
 
-case class IntegerLiteral(value: Int) extends Term {
+case class IntegerLiteral(value: Int) extends Term with LeafTerm with Value {
     override def accept[T](visitor: TermVisitor[T]): T = visitor.visitIntegerLiteral(this)
 }
 
-case class BitVectorLiteral(value: Int, bitWidth: Int) extends Term {
+case class BitVectorLiteral(value: Int, bitWidth: Int) extends Term with LeafTerm with Value {
     Errors.precondition(bitWidth > 0)
     override def accept[T](visitor: TermVisitor[T]): T = visitor.visitBitVectorLiteral(this)
 }
@@ -351,15 +415,17 @@ case class BitVectorLiteral(value: Int, bitWidth: Int) extends Term {
 /** Companion object for Term. */
 object Term {
     /** Returns a Term representing Top/Verum */
-    def mkTop: Term = Top()
+    val mkTop: Term = Top
     
     /** Returns a Term representing Bottom/Falsum */
-    def mkBottom: Term = Bottom()
+    val mkBottom: Term = Bottom
     
     /** Returns a Term representing the variable (or constant, depending on the
       * context in which it is used) with the given name.
       */
     def mkVar(name: String): Var = Var(name)
+    
+    def mkEnumValue(name: String): EnumValue = EnumValue(name)
     
     /** Returns a Term representing the conjunction of the given terms. One or
       * more terms must be provided. If only one Term t is provided, the return

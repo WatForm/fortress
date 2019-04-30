@@ -11,12 +11,12 @@ public class SmtExprVisitor implements TermVisitor<SExpr> {
     // TODO there is room for duplication removal
     
     @Override
-    public SExpr visitTop(Top term) {
+    public SExpr visitTop() {
         return SExpr.mkAtom("true");
     }
     
     @Override
-    public SExpr visitBottom(Bottom term) {
+    public SExpr visitBottom() {
         return SExpr.mkAtom("false");
     }
     
@@ -153,6 +153,11 @@ public class SmtExprVisitor implements TermVisitor<SExpr> {
     
     @Override
     public SExpr visitBitVectorLiteral(BitVectorLiteral literal) {
+        return fortress.util.Errors.<SExpr>notImplemented();
+    }
+    
+    @Override
+    public SExpr visitEnumValue(EnumValue e) {
         return fortress.util.Errors.<SExpr>notImplemented();
     }
     

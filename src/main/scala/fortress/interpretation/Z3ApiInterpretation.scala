@@ -1,11 +1,18 @@
-package fortress.modelfind
-
-import scala.collection.JavaConverters._
+package fortress.interpretation
 
 import fortress.tfol._
 
+import scala.collection.JavaConverters._
+
 // TODO: change DomainElement to Value
-class Interpretation {
+class Z3ApiInterpretation extends Interpretation {
+    
+    override def viewModel(enumMapping: Var => DomainElement): Interpretation = ???
+    override def toConstraints: Set[Term] = ???
+    override def functionInterpretations: Map[FuncDecl, List[Value]] = ???
+    override def constantInterpretations: Map[AnnotatedVar, Value] = ???
+    override def typeInterpretations: Map[Type, Seq[Value]] = ???
+    
     var constantMappings: Map[AnnotatedVar, DomainElement] = Map.empty
     var functionMappings: Map[FuncDecl, Map[java.util.List[DomainElement], DomainElement]] = Map.empty
 

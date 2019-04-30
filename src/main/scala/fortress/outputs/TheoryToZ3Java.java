@@ -106,12 +106,12 @@ public class TheoryToZ3Java {
         }
         
         @Override
-        public Expr visitTop(Top term) {
+        public Expr visitTop() {
             return context.mkTrue();
         }
         
         @Override
-        public Expr visitBottom(Bottom term) {
+        public Expr visitBottom() {
             return context.mkFalse();
         }
         
@@ -250,6 +250,11 @@ public class TheoryToZ3Java {
         
         @Override
         public Expr visitBitVectorLiteral(BitVectorLiteral literal) {
+            return fortress.util.Errors.<Expr>notImplemented();
+        }
+        
+        @Override
+        public Expr visitEnumValue(EnumValue e) {
             return fortress.util.Errors.<Expr>notImplemented();
         }
     }

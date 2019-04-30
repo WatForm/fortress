@@ -1,7 +1,8 @@
-package fortress.modelfind;
+package fortress.solverinterface;
 
 import fortress.tfol.*;
 import fortress.util.StopWatch;
+import fortress.modelfind.*;
 
 import java.io.Writer;
 import java.io.IOException;
@@ -9,7 +10,7 @@ import java.io.IOException;
 abstract class SolverTemplate implements SolverStrategy {
     
     @Override
-    public ModelFinder.Result solve(Theory theory, int timeoutMillis, Writer log) throws IOException {
+    public ModelFinderResult solve(Theory theory, int timeoutMillis, Writer log) throws IOException {
         // template method
         
         log.write("Converting to solver format: ");
@@ -28,7 +29,7 @@ abstract class SolverTemplate implements SolverStrategy {
         if(remainingMillis <= 0) {
             log.write("TIMEOUT within Fortress.\n");
             log.flush();
-            return ModelFinder.Result.TIMEOUT;
+            return ModelFinderResult.Timeout();
         }
         
         updateTimeout(remainingMillis);
@@ -39,7 +40,7 @@ abstract class SolverTemplate implements SolverStrategy {
         StopWatch solverTimer = new StopWatch();
         solverTimer.startFresh();
         
-        ModelFinder.Result result = runSolver(log);
+        ModelFinderResult result = runSolver(log);
         
         log.write("Z3 solver time: " + StopWatch.formatNano(solverTimer.elapsedNano()) + "\n");
         
@@ -48,5 +49,5 @@ abstract class SolverTemplate implements SolverStrategy {
     
     abstract protected void convertTheory(Theory theory, Writer log) throws IOException;
     abstract protected void updateTimeout(int remainingMillis);
-    abstract protected ModelFinder.Result runSolver(Writer log) throws IOException;
+    abstract protected ModelFinderResult runSolver(Writer log) throws IOException;
 }

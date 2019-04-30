@@ -1,4 +1,4 @@
-package fortress.modelfind;
+package fortress.solverinterface;
 
 import java.io.*;
 import java.util.Map;
@@ -14,6 +14,10 @@ import fortress.util.Pair;
 import fortress.util.StopWatch;
 import fortress.util.Errors;
 import fortress.data.CartesianProduct;
+
+import fortress.modelfind.*;
+import fortress.solverinterface.*;
+import fortress.interpretation.*;
 
 import com.microsoft.z3.*;
 
@@ -45,7 +49,7 @@ public class Z3ApiSolver extends SolverTemplate {
     }
     
     @Override
-    protected ModelFinder.Result runSolver(Writer log) throws IOException {
+    protected ModelFinderResult runSolver(Writer log) throws IOException {
         Errors.assertion(null != context);
         Errors.assertion(null != solver);
         
@@ -57,18 +61,18 @@ public class Z3ApiSolver extends SolverTemplate {
                 log.write("UKNOWN (" + solver.getReasonUnknown() + ").\n");
                 if(solver.getReasonUnknown().equals("timeout")
                         || solver.getReasonUnknown().equals("canceled")) {
-                    return ModelFinder.Result.TIMEOUT;
+                    return ModelFinderResult.Timeout();
                 }
-                return ModelFinder.Result.UNKNOWN;
+                return ModelFinderResult.Unknown();
                 // break;
             case SATISFIABLE:
                 lastModel = solver.getModel();
                 log.write("SAT.\n");
-                return ModelFinder.Result.SAT;
+                return ModelFinderResult.Sat();
                 // break;
             case UNSATISFIABLE:
                 log.write("UNSAT.\n");
-                return ModelFinder.Result.UNSAT;
+                return ModelFinderResult.Unsat();
                 // break;
             default:
                 throw new RuntimeException("Unexpected solver result " + status.toString());
@@ -78,7 +82,7 @@ public class Z3ApiSolver extends SolverTemplate {
     public Interpretation getInstance(Theory theory) {
         Errors.assertion(null != lastModel, "There is no current instance");
         // TODO builtin types
-        Interpretation model = new Interpretation();
+        Z3ApiInterpretation model = new Z3ApiInterpretation();
         Signature sig = theory.getSignature();
         Map<Expr, DomainElement> typeMappings = new HashMap<>();
         Map<Sort, List<Expr>> domains = new HashMap<>();

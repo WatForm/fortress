@@ -5,6 +5,8 @@ import scala.collection.JavaConverters._
 import fortress.tfol._
 import fortress.transformers._
 import fortress.util._
+import fortress.interpretation._
+import fortress.solverinterface._
 
 class EufSmtModelFinder(var solverStrategy: SolverStrategy) extends ModelFinder {
     
@@ -13,7 +15,11 @@ class EufSmtModelFinder(var solverStrategy: SolverStrategy) extends ModelFinder 
     var instance: Option[Interpretation] = None
     var log: java.io.Writer = new java.io.PrintWriter(new fortress.data.NullOutputStream)
     var debug: Boolean = false
-    var lastTheory: Option[Theory] = None
+    var theory: Theory = Theory.empty
+    
+    override def setTheory(newTheory: Theory): Unit = {
+        theory = newTheory
+    }
     
     override def setTimeout(milliseconds: Int): Unit = {
         Errors.precondition(milliseconds >= 0)
@@ -33,17 +39,10 @@ class EufSmtModelFinder(var solverStrategy: SolverStrategy) extends ModelFinder 
         log = logWriter
     }
     
-    private def usesEnumType(theory: Theory): Boolean = {
-        val allFreeVarConsts = theory.axioms.map(axiom => axiom.freeVarConstSymbols).reduce( (set1, set2) => set1 union set2 )
-        theory.enumConstants.exists {
-            case (sort, constants) => constants.exists(c => allFreeVarConsts contains c)
-        }
-    }
-        
-    override def checkSat(theory: Theory): ModelFinder.Result = {
+    private def usesEnumType(theory: Theory): Boolean = theory.axioms.exists(_.allEnumValues.nonEmpty)
+    
+    override def checkSat(): ModelFinderResult = {
         // TODO check analysis and theory scopes consistent
-        
-        lastTheory = Some(theory)
         
         val timeoutNano = StopWatch.millisToNano(timeoutMilliseconds);
         
@@ -54,7 +53,7 @@ class EufSmtModelFinder(var solverStrategy: SolverStrategy) extends ModelFinder 
         totalTimer.startFresh()
         
         val enumEliminationTransformer = new EnumEliminationTransformer
-        val enumTypeMapping: Map[Var, DomainElement] = enumEliminationTransformer.computeEnumTypeMapping(theory)
+        val enumTypeMapping: Map[EnumValue, DomainElement] = enumEliminationTransformer.computeEnumTypeMapping(theory)
         
         val rangeFormulaTransformer =
             if (usesEnumType(theory)) { new RangeFormulaTransformerNoSymBreak(analysisScopes ++ theory.scopes) }
@@ -94,7 +93,7 @@ class EufSmtModelFinder(var solverStrategy: SolverStrategy) extends ModelFinder 
             if(totalTimer.elapsedNano() >= timeoutNano) {
                 log.write("TIMEOUT within Fortress.\n");
                 log.flush();
-                return ModelFinder.Result.TIMEOUT;
+                return TimeoutResult;
             }
         }
         log.write("Total transformation time: " + StopWatch.formatNano(totalTimer.elapsedNano()) + "\n")
@@ -119,14 +118,14 @@ class EufSmtModelFinder(var solverStrategy: SolverStrategy) extends ModelFinder 
         if(totalTimer.elapsedNano() > timeoutNano) {
             log.write("TIMEOUT within Fortress.\n")
             log.flush()
-            return ModelFinder.Result.TIMEOUT
+            return TimeoutResult
         }
         
         log.write("Invoking solver strategy...\n")
         log.flush()
         
         val remainingMillis = timeoutMilliseconds - StopWatch.nanoToMillis(totalTimer.elapsedNano)
-        val r: ModelFinder.Result = solverStrategy.solve(intermediateTheory, remainingMillis, log)
+        val r: ModelFinderResult = solverStrategy.solve(intermediateTheory, remainingMillis, log)
         
         log.write("Done. Result was " + r.toString + ".\n")
         
@@ -136,8 +135,7 @@ class EufSmtModelFinder(var solverStrategy: SolverStrategy) extends ModelFinder 
         r
     }
     
-    def getInstance: Interpretation =  {
-        Errors.precondition(lastTheory.nonEmpty)
-        solverStrategy.getInstance(lastTheory.get);
+    def viewModel: Interpretation =  {
+        solverStrategy.getInstance(theory)
     }
 }

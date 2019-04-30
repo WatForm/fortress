@@ -27,7 +27,7 @@ object Substituter {
         
         def sub(t: Term): Term = t match {
             case (v: Var) if (v == x) => s
-            case Top() | Bottom() | Var(_) | DomainElement(_, _)
+            case Top | Bottom | Var(_) | EnumValue(_) | DomainElement(_, _)
                 | IntegerLiteral(_) | BitVectorLiteral(_, _) => t
             case Not(p) => Not(sub(p))
             case AndList(args) => AndList(args.map(sub))
@@ -94,7 +94,7 @@ object RecklessSubstituter {
             if (sigma.isEmpty) t
             else t match {
                 case (v: Var) if (sigma contains v) => sigma(v)
-                case Top() | Bottom() | Var(_) | DomainElement(_, _)
+                case Top | Bottom | Var(_) | DomainElement(_, _)
                     | IntegerLiteral(_) | BitVectorLiteral(_, _) => t
                 case Not(p) => Not(sub(sigma, p))
                 case AndList(args) => AndList(args.map(sub(sigma, _)))
@@ -119,6 +119,7 @@ object RecklessSubstituter {
                     val sigmaPrime = sigma.filterKeys(!variables.contains(_))
                     Forall(vars, sub(sigmaPrime, body))
                 }
+                case EnumValue(_) => ???
             }
         
         sub(substitutions, t)

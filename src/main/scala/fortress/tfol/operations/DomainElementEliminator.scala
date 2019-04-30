@@ -17,7 +17,7 @@ object DomainElementEliminator {
             case Exists(vars, body) => Exists(vars, eliminateDomainElements(body))
             case Forall(vars, body) => Forall(vars, eliminateDomainElements(body))
             case TC(relName, arg1, arg2) => TC(relName, eliminateDomainElements(arg1), eliminateDomainElements(arg2))
-            case Top() | Bottom() | Var(_) 
+            case Top | Bottom | Var(_) | EnumValue(_)
                 | IntegerLiteral(_) | BitVectorLiteral(_, _) => term
         }
         eliminateDomainElements(term)

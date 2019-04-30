@@ -35,14 +35,14 @@ public class TypeChecker {
         }
     
         @Override
-        public TypeCheckResult visitTop(Top top) {
-            return new TypeCheckResult(top, Type.Bool(),
+        public TypeCheckResult visitTop() {
+            return new TypeCheckResult(Term.mkTop(), Type.Bool(),
                 /* containsConnectives */ false, /* containsQuantifiers */ false);
         }
         
         @Override
-        public TypeCheckResult visitBottom(Bottom bottom) {
-            return new TypeCheckResult(bottom, Type.Bool(),
+        public TypeCheckResult visitBottom() {
+            return new TypeCheckResult(Term.mkBottom(), Type.Bool(),
                 /* containsConnectives */ false, /* containsQuantifiers */ false);
         }
         
@@ -321,6 +321,11 @@ public class TypeChecker {
         
         @Override
         public TypeCheckResult visitBitVectorLiteral(BitVectorLiteral literal) {
+            return fortress.util.Errors.<TypeCheckResult>notImplemented();
+        }
+        
+        @Override
+        public TypeCheckResult visitEnumValue(EnumValue e) {
             return fortress.util.Errors.<TypeCheckResult>notImplemented();
         }
     

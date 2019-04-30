@@ -49,7 +49,7 @@ case class Signature private (
     types: Set[Type],
     functionDeclarations: Set[FuncDecl],
     constants: Set[AnnotatedVar],
-    enumConstants: Map[Type, Seq[Var]],
+    enumConstants: Map[Type, Seq[EnumValue]],
     extensions: Set[SignatureExtension]
 ) extends SignatureTypechecking {
     
@@ -110,12 +110,12 @@ case class Signature private (
     @varargs
     def withConstants(constants: AnnotatedVar*): Signature = withConstants(constants.asJava)
     
-    def withEnumType(t: Type, values: Seq[Var]) = {
+    def withEnumType(t: Type, values: Seq[EnumValue]) = {
         // TODO more consistency checking
         Signature(types + t, functionDeclarations, constants, enumConstants + (t -> values), extensions)
     }
     
-    def withEnumType(t: Type, values: java.util.List[Var]) = {
+    def withEnumType(t: Type, values: java.util.List[EnumValue]) = {
         // TODO more consistency checking
         Signature(types + t, functionDeclarations, constants, enumConstants + (t -> values.asScala.toList), extensions)
     }

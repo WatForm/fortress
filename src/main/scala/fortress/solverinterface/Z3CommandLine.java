@@ -1,4 +1,4 @@
-package fortress.modelfind;
+package fortress.solverinterface;
 
 import java.util.List;
 import java.util.ArrayList;
@@ -9,6 +9,8 @@ import java.util.stream.Collectors;
 import java.io.*;
 import fortress.util.Errors;
 import fortress.tfol.*;
+import fortress.modelfind.*;
+import fortress.interpretation.*;
 
 public class Z3CommandLine implements SolverStrategy {
     
@@ -17,8 +19,8 @@ public class Z3CommandLine implements SolverStrategy {
         return true;
     }
     
-    public ModelFinder.Result solve(Theory theory, int timeout, Writer log) throws IOException {
-        return Errors.<ModelFinder.Result>notImplemented();
+    public ModelFinderResult solve(Theory theory, int timeout, Writer log) throws IOException {
+        return Errors.<ModelFinderResult>notImplemented();
         // // TODO need more robust error handling
         // try {
         //     File tempOutputFile = File.createTempFile("fortress", ".smt");

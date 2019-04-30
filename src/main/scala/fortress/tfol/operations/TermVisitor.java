@@ -7,9 +7,10 @@ public interface TermVisitor<T> {
         return term.accept(this);
     }
     
-    public T visitTop(Top top);
-    public T visitBottom(Bottom bottom);
+    public T visitTop();
+    public T visitBottom();
     public T visitVar(Var var);
+    public T visitEnumValue(EnumValue e);
     public T visitDomainElement(DomainElement d);
     public T visitNot(Not not);
     public T visitAndList(AndList and);

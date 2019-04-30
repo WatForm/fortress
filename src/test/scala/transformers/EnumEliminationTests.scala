@@ -18,30 +18,30 @@ class EnumEliminationTests extends FunSuite with Matchers {
     
     test("compute appropriate mapping") {
         val theory = Theory.empty
-            .withEnumType(A, Seq(Var("cat"), Var("dog"), Var("mouse")))
+            .withEnumType(A, Seq(EnumValue("cat"), EnumValue("dog"), EnumValue("mouse")))
             .withType(B)
-            .withEnumType(C, Seq(Var("red"), Var("blue")))
+            .withEnumType(C, Seq(EnumValue("red"), EnumValue("blue")))
         
         val mapping = ( new EnumEliminationTransformer ).computeEnumTypeMapping(theory)
         val expected = Map(
-            Var("cat") -> DomainElement(1, A),
-            Var("dog") -> DomainElement(2, A),
-            Var("mouse") -> DomainElement(3, A),
-            Var("red") -> DomainElement(1, C),
-            Var("blue") -> DomainElement(2, C)
+            EnumValue("cat") -> DomainElement(1, A),
+            EnumValue("dog") -> DomainElement(2, A),
+            EnumValue("mouse") -> DomainElement(3, A),
+            EnumValue("red") -> DomainElement(1, C),
+            EnumValue("blue") -> DomainElement(2, C)
         )
         mapping should be (expected)
     }
     
     test("elimination") {
         val theory = Theory.empty
-            .withEnumType(A, Seq(Var("cat"), Var("dog"), Var("mouse")))
+            .withEnumType(A, Seq(EnumValue("cat"), EnumValue("dog"), EnumValue("mouse")))
             .withType(B)
             .withScope(B, 4)
-            .withEnumType(C, Seq(Var("red"), Var("blue")))
+            .withEnumType(C, Seq(EnumValue("red"), EnumValue("blue")))
             .withFunctionDeclaration(FuncDecl("f", A, B, C))
             .withAxiom(Forall(x of B,
-                Not(App("f", Var("cat"), x) === Var("blue"))))
+                Not(App("f", EnumValue("cat"), x) === EnumValue("blue"))))
         
         val expected = Theory.empty
             .withTypes(A, B, C)

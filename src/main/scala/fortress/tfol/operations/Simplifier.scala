@@ -5,35 +5,35 @@ import fortress.tfol._
 object Simplifier {
     def apply(term: Term): Term = {
         def simplify1(term: Term): Term = term match {
-            case Not(Bottom()) => Top()
-            case Not(Top()) => Bottom()
+            case Not(Bottom) => Top
+            case Not(Top) => Bottom
             case Not(Not(body)) => body
             case AndList(args) => {
-                if (args.exists(t => t == Bottom()))
-                    Bottom()
+                if (args.exists(t => t == Bottom))
+                    Bottom
                 else {
-                    val newArgs = args.filter(t => t != Top())
-                    if (newArgs.size == 0) Top() else And(newArgs)
+                    val newArgs = args.filter(t => t != Top)
+                    if (newArgs.size == 0) Top else And(newArgs)
                 }
             }
             case OrList(args) => {
-                if (args.exists(t => t == Top()))
-                    Top()
+                if (args.exists(t => t == Top))
+                    Top
                 else {
-                    val newArgs = args.filter(t => t != Bottom())
-                    if (newArgs.size == 0) Bottom() else Or(newArgs)
+                    val newArgs = args.filter(t => t != Bottom)
+                    if (newArgs.size == 0) Bottom else Or(newArgs)
                 }
             }
-            case Implication(Bottom(), _) => Top()
-            case Implication(_, Top()) => Top()
-            case Implication(Top(), p) => p
-            case Implication(p, Bottom()) => Not(p)
-            case Iff(p, Top()) => p
-            case Iff(Top(), p) => p
-            case Iff(p, Bottom()) => Not(p)
-            case Iff(Bottom(), p) => Not(p)
-            case Eq(d1 @ DomainElement(_, _), d2 @ DomainElement(_, _)) => if (d1 == d2) Top() else Bottom()
-            case Eq(left, right) => if (left == right) Top() else term
+            case Implication(Bottom, _) => Top
+            case Implication(_, Top) => Top
+            case Implication(Top, p) => p
+            case Implication(p, Bottom) => Not(p)
+            case Iff(p, Top) => p
+            case Iff(Top, p) => p
+            case Iff(p, Bottom) => Not(p)
+            case Iff(Bottom, p) => Not(p)
+            case Eq(d1 @ DomainElement(_, _), d2 @ DomainElement(_, _)) => if (d1 == d2) Top else Bottom
+            case Eq(left, right) => if (left == right) Top else term
             // Note that we don't need a signature to check below whether the free
             // free variable is really or a constant. We just want to check if
             // the quantified variable x is within the set of free vars.
@@ -70,7 +70,7 @@ object Simplifier {
             // We consider applications and equals to be atomic and have non-Boolean arguments
             // so we need not recurse on their arguments
             case Eq(_, _) | App(_, _) | TC(_, _, _) => simplify1(term)
-            case Top() | Bottom() | Var(_) | DomainElement(_, _)
+            case Top | Bottom | Var(_) | EnumValue(_) | DomainElement(_, _)
                 | IntegerLiteral(_) | BitVectorLiteral(_, _) => term
         }
         

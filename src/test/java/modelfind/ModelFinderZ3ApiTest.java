@@ -33,8 +33,9 @@ public class ModelFinderZ3ApiTest {
             .withAxiom(Term.mkAnd(p, p));
         
         ModelFinder finder = ModelFinder.createDefault();
+        finder.setTheory(theory);
         
-        assertEquals(ModelFinder.Result.SAT, finder.checkSat(theory));
+        assertEquals(ModelFinderResult.Sat(), finder.checkSat());
     }
     
     @Test
@@ -44,8 +45,9 @@ public class ModelFinderZ3ApiTest {
             .withAxiom(Term.mkAnd(p, Term.mkNot(p)));
         
         ModelFinder finder = ModelFinder.createDefault();
+        finder.setTheory(theory);
         
-        assertEquals(ModelFinder.Result.UNSAT, finder.checkSat(theory));
+        assertEquals(ModelFinderResult.Unsat(), finder.checkSat());
     }
     
     @Test
@@ -55,8 +57,9 @@ public class ModelFinderZ3ApiTest {
             .withAxiom(Term.mkNot(Term.mkImp(Term.mkAnd(p, q), q)));
         
         ModelFinder finder = ModelFinder.createDefault();
+        finder.setTheory(theory);
         
-        assertEquals(ModelFinder.Result.UNSAT, finder.checkSat(theory));
+        assertEquals(ModelFinderResult.Unsat(), finder.checkSat());
     }
     
     @Test
@@ -66,8 +69,9 @@ public class ModelFinderZ3ApiTest {
             .withAxiom(Term.mkNot(Term.mkImp(Term.mkOr(p, q), q)));
         
         ModelFinder finder = ModelFinder.createDefault();
+        finder.setTheory(theory);
         
-        assertEquals(ModelFinder.Result.SAT, finder.checkSat(theory));
+        assertEquals(ModelFinderResult.Sat(), finder.checkSat());
     }
     
     // EUF tests
@@ -89,8 +93,8 @@ public class ModelFinderZ3ApiTest {
             .withAxiom(Term.mkNot(conjecture));
             
         ModelFinder finder = ModelFinder.createDefault();
+        finder.setTheory(theory);
         finder.setAnalysisScope(U, 3);
-        ModelFinder.Result result = finder.checkSat(theory);
-        assertEquals(ModelFinder.Result.UNSAT, result);
+        assertEquals(ModelFinderResult.Unsat(), finder.checkSat());
     }
 }
