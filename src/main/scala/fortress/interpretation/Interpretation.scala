@@ -14,7 +14,14 @@ trait Interpretation {
     }
 
     def toConstraints: Set[Term] = {
-        ???
+        var constraints = constantInterpretations.map{ case(a, v) => Term.mkEq(a.getVar, v) }.toSet
+        functionInterpretations.foreach { case(fdecl, values) => {
+            fdecl.getResultType match {
+                case Type.Bool => constraints = constraints union values.map{ case(args, ret) => if (ret == Term.mkTop) Term.mkApp(fdecl.getName, args:_*) else Term.mkNot(Term.mkApp(fdecl.getName, args:_*))}.toSet
+                case _ => constraints = constraints union values.map{ case(args, ret) => Term.mkEq(Term.mkApp(fdecl.getName, args:_*), ret)}.toSet
+            }
+        }}
+        constraints
     }
 
     override def toString: String = "Types <<\n" + typeInterpretations.map{ case(sort, values) => sort + ": " + values.mkString(", ")}.mkString("\n") + ">>\nConstants <<\n" + constantInterpretations.map(_.productIterator.mkString(": ")).mkString("\n") + ">>\nFunctions <<\n" + functionInterpretations.map{ case(fdecl, values) => fdecl + "\n" + values.map{ case(args, ret) => "\t" + args.mkString(", ") + " -> " + ret }.mkString("\n") }.mkString("\n") + ">>"
