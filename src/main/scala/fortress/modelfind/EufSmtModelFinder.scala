@@ -16,6 +16,7 @@ class EufSmtModelFinder(var solverStrategy: SolverStrategy) extends ModelFinder 
     var log: java.io.Writer = new java.io.PrintWriter(new fortress.data.NullOutputStream)
     var debug: Boolean = false
     var theory: Theory = Theory.empty
+    var enumTypeMapping: Map[EnumValue, DomainElement] = Map.empty
     
     override def setTheory(newTheory: Theory): Unit = {
         theory = newTheory
@@ -53,7 +54,7 @@ class EufSmtModelFinder(var solverStrategy: SolverStrategy) extends ModelFinder 
         totalTimer.startFresh()
         
         val enumEliminationTransformer = new EnumEliminationTransformer
-        val enumTypeMapping: Map[EnumValue, DomainElement] = enumEliminationTransformer.computeEnumTypeMapping(theory)
+        enumTypeMapping = enumEliminationTransformer.computeEnumTypeMapping(theory)
         
         val rangeFormulaTransformer =
             if (usesEnumType(theory)) { new RangeFormulaTransformerNoSymBreak(analysisScopes ++ theory.scopes) }
@@ -135,7 +136,5 @@ class EufSmtModelFinder(var solverStrategy: SolverStrategy) extends ModelFinder 
         r
     }
     
-    def viewModel: Interpretation =  {
-        solverStrategy.getInstance(theory)
-    }
+    def viewModel: Interpretation = solverStrategy.getInstance(theory).viewModel(enumTypeMapping.map(_.swap))
 }

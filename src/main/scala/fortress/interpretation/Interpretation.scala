@@ -1,16 +1,24 @@
 package fortress.interpretation
 
+import scala.collection.immutable.ListMap
 import scala.collection.JavaConverters._
 
 import fortress.tfol._
 
 trait Interpretation {
-    def functionInterpretations: Map[FuncDecl, Map[Seq[Value], Value]]
+    def functionInterpretations: Map[FuncDecl, ListMap[Seq[Value], Value]]
     def constantInterpretations: Map[AnnotatedVar, Value]
     def typeInterpretations: Map[Type, Seq[Value]]
 
-    def viewModel(enumMapping: Var => DomainElement): Interpretation = {
-        ???
+    def viewModel(enumMapping: Map[Value, EnumValue]): Interpretation = {
+        def getMapping(v: Value): Value = if (enumMapping.contains(v)) enumMapping(v) else v
+        new EnumInterpretation(
+            typeInterpretations.map{ case(sort, values) => sort -> values.map(getMapping) }, 
+            constantInterpretations.map{ case(av, value) => av -> getMapping(value) }, 
+            functionInterpretations.map{ case(fdecl, values) => fdecl -> (values.map{ 
+                case(args, values) => args.map(getMapping) -> getMapping(values) } 
+            )}
+        )
     }
 
     def toConstraints: Set[Term] = {
@@ -39,5 +47,10 @@ trait Interpretation {
     def typeInterpretationsJava: java.util.Map[Type, java.util.List[Value]] = typeInterpretations.map {
         case (sort, values) => sort -> values.asJava
     }.asJava
-    
+}
+
+class EnumInterpretation(t: Map[Type, Seq[Value]], c: Map[AnnotatedVar, Value], f: Map[FuncDecl, ListMap[Seq[Value], Value]]) extends Interpretation {
+    def typeInterpretations = t
+    def constantInterpretations = c
+    def functionInterpretations = f
 }

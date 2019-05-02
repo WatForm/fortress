@@ -20,21 +20,21 @@ class Z3ApiInterpretation(model: Model, sig: Signature, typeMappings: Map[Expr, 
         }
     ) toMap)
 
-    override def constantInterpretations: Map[AnnotatedVar, Value] = (
+    def constantInterpretations: Map[AnnotatedVar, Value] = (
         for {
             z3Decl <- model.getConstDecls
             v = sig.queryConstant(Term.mkVar(z3Decl.getName.toString)) if v isDefined
         } yield v.get -> typeMappings(model.getConstInterp(z3Decl))
     ) toMap
 
-    override def typeInterpretations: Map[Type, Seq[Value]] = (
+    def typeInterpretations: Map[Type, Seq[Value]] = (
         for {
             sort <- model.getSorts
             t = Type.mkTypeConst(sort.getName.toString) if sig.hasType(t) 
         } yield t -> ((1 to model.getSortUniverse(sort).length) map { Term.mkDomainElement(_,t) })
     ) toMap
 
-    override def functionInterpretations: Map[fortress.tfol.FuncDecl, ListMap[Seq[Value], Value]] = (
+    def functionInterpretations: Map[fortress.tfol.FuncDecl, ListMap[Seq[Value], Value]] = (
         for {
             z3Decl <- model.getFuncDecls
             fdecl = sig.queryUninterpretedFunction(z3Decl.getName.toString) if fdecl isDefined
