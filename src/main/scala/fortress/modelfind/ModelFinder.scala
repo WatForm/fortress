@@ -44,5 +44,4 @@ trait ModelFinder {
 
 object ModelFinder {
     def createDefault(): ModelFinder = new EufSmtModelFinder(new Z3ApiSolver())
-    
 }

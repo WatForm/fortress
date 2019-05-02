@@ -415,10 +415,10 @@ case class BitVectorLiteral(value: Int, bitWidth: Int) extends Term with LeafTer
 /** Companion object for Term. */
 object Term {
     /** Returns a Term representing Top/Verum */
-    val mkTop: Term = Top
+    val mkTop = Top
     
     /** Returns a Term representing Bottom/Falsum */
-    val mkBottom: Term = Bottom
+    val mkBottom = Bottom
     
     /** Returns a Term representing the variable (or constant, depending on the
       * context in which it is used) with the given name.

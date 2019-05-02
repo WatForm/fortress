@@ -1,19 +1,12 @@
 package fortress.solverinterface;
 
 import java.io.*;
-import java.util.Map;
-import java.util.List;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.ArrayList;
-import java.util.stream.Collectors;
 
 import fortress.tfol.*;
 import fortress.outputs.*;
 import fortress.util.Pair;
 import fortress.util.StopWatch;
 import fortress.util.Errors;
-import fortress.data.CartesianProduct;
 
 import fortress.modelfind.*;
 import fortress.solverinterface.*;
@@ -81,44 +74,6 @@ public class Z3ApiSolver extends SolverTemplate {
 
     public Interpretation getInstance(Theory theory) {
         Errors.assertion(null != lastModel, "There is no current instance");
-        // TODO builtin types
-        Z3ApiInterpretation model = new Z3ApiInterpretation();
-        Signature sig = theory.getSignature();
-        Map<Expr, DomainElement> typeMappings = new HashMap<>();
-        Map<Sort, List<Expr>> domains = new HashMap<>();
-        for (Sort sort : lastModel.getSorts()) {
-            if (sig.hasType(Type.mkTypeConst(sort.getName().toString())))
-                domains.put(sort, Arrays.asList(lastModel.getSortUniverse(sort)));
-        }
-        for (com.microsoft.z3.FuncDecl z3Decl : lastModel.getConstDecls()) {
-            String constantName = z3Decl.getName().toString();
-            if (constantName.charAt(0) == '@') {
-                String typeName = z3Decl.getRange().getName().toString();
-                int index = Integer.parseInt(constantName.substring(1, constantName.length()-typeName.length()));
-                typeMappings.put(lastModel.getConstInterp(z3Decl), Term.mkDomainElement(index, Type.mkTypeConst(typeName)));
-            }
-        }    
-        for (com.microsoft.z3.FuncDecl z3Decl : lastModel.getConstDecls())
-            sig.queryConstantJava(Term.mkVar(z3Decl.getName().toString())).ifPresent(v -> model.addConstantMapping(v, typeMappings.get(lastModel.getConstInterp(z3Decl))));
-        for (com.microsoft.z3.FuncDecl z3Decl : lastModel.getFuncDecls()) {
-            sig.queryUninterpretedFunctionJava(z3Decl.getName().toString()).ifPresent( f -> {
-                List<List<Expr>> toProduct = new ArrayList<>();
-                for (Sort type : z3Decl.getDomain())
-                    toProduct.add(domains.get(type));
-                CartesianProduct<Expr> argumentLists = new CartesianProduct<>(toProduct);
-                for(List<Expr> argumentList : argumentLists) {
-                    List<DomainElement> args = argumentList.stream().map(s -> typeMappings.get(s)).collect(Collectors.toList());
-                    Expr returnExpr = lastModel.evaluate(z3Decl.apply(argumentList.stream().toArray(Expr[]::new)), true);
-                    if (z3Decl.getRange() instanceof BoolSort) {
-                        if (returnExpr.isTrue())
-                            model.addFunctionMapping(f, args, Term.mkDomainElement(2, Type.Bool()));
-                        else
-                            model.addFunctionMapping(f, args, Term.mkDomainElement(1, Type.Bool()));
-                    } else
-                        model.addFunctionMapping(f, args, typeMappings.get(returnExpr));
-                }
-            });
-        }
-        return model;
+        return new Z3ApiInterpretation(lastModel, theory.getSignature());
     }
 }
