@@ -22,7 +22,6 @@ public interface TermVisitor<T> {
     public T visitApp(App app);
     public T visitExists(Exists exists);
     public T visitForall(Forall forall);
-    public T visitTC(TC tc);
     public T visitIntegerLiteral(IntegerLiteral literal);
     public T visitBitVectorLiteral(BitVectorLiteral literal);
 }

@@ -239,11 +239,6 @@ public class TheoryToZ3Java {
         }
         
         @Override
-        public Expr visitTC(TC tc) {
-            throw new IllegalArgumentException("Term must not have TC: " + tc.toString());
-        }
-        
-        @Override
         public Expr visitIntegerLiteral(IntegerLiteral literal) {
             return fortress.util.Errors.<Expr>notImplemented();
         }

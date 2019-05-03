@@ -174,11 +174,6 @@ public class Skolemizer {
         }
         
         @Override
-        public Term visitTC(TC tc) {
-            throw new IllegalArgumentException("Term must not have TC: " + tc.toString());
-        }
-        
-        @Override
         public Term visitIntegerLiteral(IntegerLiteral literal) {
             return fortress.util.Errors.<Term>notImplemented();
         }

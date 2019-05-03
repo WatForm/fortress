@@ -19,7 +19,6 @@ trait NaturalTermRecursion {
             case App(f, args) => App(f, args map naturalRecur)
             case Exists(vars, body) => Exists(vars, naturalRecur(body))
             case Forall(vars, body) => Forall(vars, naturalRecur(body))
-            case TC(relation, arg1, arg2) => TC(relation, naturalRecur(arg1), naturalRecur(arg2))
     }
 }
 
@@ -40,6 +39,5 @@ trait NaturalSetAccumulation[A] {
             case App(f, args) => (args map naturalRecur) reduce (_ union _)
             case Exists(vars, body) => naturalRecur(body)
             case Forall(vars, body) => naturalRecur(body)
-            case TC(relation, arg1, arg2) => naturalRecur(arg1) union naturalRecur(arg2)
         }
 }

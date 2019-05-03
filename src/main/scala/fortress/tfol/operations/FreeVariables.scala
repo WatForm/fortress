@@ -22,7 +22,6 @@ object FreeVariables {
             case App(f, args) => args.map(fv).reduce((a, b) => a union b)
             case Exists(vars, body) => fv(body) diff vars.map(_.variable).toSet
             case Forall(vars, body) => fv(body) diff vars.map(_.variable).toSet
-            case TC(r, arg1, arg2) => fv(arg1) union fv(arg2)
         }
         fv(term)
     }

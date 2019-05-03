@@ -142,11 +142,6 @@ public class SmtExprVisitor implements TermVisitor<SExpr> {
     }
     
     @Override
-    public SExpr visitTC(TC tc) {
-        throw new IllegalArgumentException("Term must not have TC: " + tc.toString());
-    }
-    
-    @Override
     public SExpr visitIntegerLiteral(IntegerLiteral literal) {
         return fortress.util.Errors.<SExpr>notImplemented();
     }

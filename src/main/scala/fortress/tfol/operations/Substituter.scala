@@ -37,7 +37,6 @@ object Substituter {
             case Iff(p, q) => Iff(sub(p), sub(q))
             case Eq(l, r) => Eq(sub(l), sub(r))
             case App(f, args) => App(f, args.map(sub))
-            case TC(r, arg1, arg2) => TC(r, sub(arg1), sub(arg2))
             case Exists(vars, _) if (vars.map(_.variable).contains(x)) => t
             case Forall(vars, _) if (vars.map(_.variable).contains(x)) => t
             case Exists(vars, body) => {
@@ -104,7 +103,6 @@ object RecklessSubstituter {
                 case Iff(p, q) => Iff(sub(sigma, p), sub(sigma, q))
                 case Eq(l, r) => Eq(sub(sigma, l), sub(sigma, r))
                 case App(f, args) => App(f, args.map(sub(sigma, _)))
-                case TC(r, arg1, arg2) => TC(r, sub(sigma, arg1), sub(sigma, arg2))
                 case Exists(vars, body) => {
                     // Substitute x->t in (exists x . phi) becomes (exists x . phi)
                     // Remove these from the substitution before recursive call

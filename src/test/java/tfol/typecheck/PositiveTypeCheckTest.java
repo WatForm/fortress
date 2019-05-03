@@ -181,28 +181,6 @@ public class PositiveTypeCheckTest {
         
         assertEquals(Type.Bool(), t.typeCheck(sig).sort());
     }
-
-    @Test
-    public void transitiveClosure() {
-        Signature sig = Signature.empty()
-            .withType(A)
-            .withFunctionDeclaration(R)
-            .withConstants(x.of(A), y.of(A));
-        Term t = Term.mkTC("R", x, y);
-        
-        assertEquals(Type.Bool(), t.typeCheck(sig).sort());
-    }
-    
-    @Test
-    public void transitiveClosureFunction() {
-        Signature sig = Signature.empty()
-            .withType(A)
-            .withFunctionDeclaration(next)
-            .withConstants(x.of(A), y.of(A), z.of(A));
-        Term t = Term.mkTC("next", x, y);
-        
-        assertEquals(Type.Bool(), t.typeCheck(sig).sort());
-    }
     
     @Test
     public void domainElement() {

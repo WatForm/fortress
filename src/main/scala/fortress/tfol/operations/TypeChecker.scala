@@ -213,42 +213,6 @@ class TypeChecker(signature: Signature) extends TermVisitorWithTypeContext[TypeC
         TypeCheckResult(sanitizedTerm = d, sort = d.sort, containsConnectives = false, containsQuantifiers = false)
     }
     
-    override def visitTC(tc: TC): TypeCheckResult = {
-        val relationName = tc.relationName
-        if(! (signature hasFunctionWithName relationName) ) {
-            throw new TypeCheckException.UnknownFunction("Unkown relation " + relationName + " in " + tc.toString)
-        }
-        
-        val arg1Result = visit(tc.arg1)
-        val arg2Result = visit(tc.arg2)
-        if(arg1Result.containsConnectives || arg2Result.containsConnectives) {
-            throw new TypeCheckException.BadStructure("Argument of " + tc.toString + " contains connective")
-        }
-        if(arg1Result.containsQuantifiers || arg2Result.containsQuantifiers) {
-            throw new TypeCheckException.BadStructure("Argument of " + tc.toString + " contains quantifier")
-        }
-        if(arg1Result.sort != arg2Result.sort) {
-            throw new TypeCheckException.WrongArgType("Arguments of different types in " + tc.toString)
-        }
-        
-        val argSort = arg1Result.sort
-        
-        // Look for a relation A * A -> Bool or a function A -> A
-        val relationMaybe: Option[FuncDecl] = signature.queryFunction(relationName, Seq(argSort, argSort))
-        val functionMaybe: Option[FuncDecl] = signature.queryFunction(relationName, Seq(argSort))
-        Errors.assertion(! (relationMaybe.nonEmpty && functionMaybe.nonEmpty) )
-        
-        if( (relationMaybe.nonEmpty && relationMaybe.get.resultType == BoolType)
-            || (functionMaybe.nonEmpty && functionMaybe.get.resultType == argSort) ) {
-            TypeCheckResult(sanitizedTerm = TC(relationName, arg1Result.sanitizedTerm, arg2Result.sanitizedTerm), sort = BoolType,
-                containsConnectives = false, containsQuantifiers = false)
-        } else {
-            throw new TypeCheckException.UnknownFunction("Cannot find relation " + FuncDecl(relationName, argSort, argSort, BoolType).toString
-                + " or function " + FuncDecl(relationName, argSort, argSort).toString + " to take transitive closure of")
-        }
-        
-    }
-    
     override def visitIntegerLiteral(literal: IntegerLiteral): TypeCheckResult = {
         // Should fail if Int is not in signature
         if(! (signature hasType IntType) ) {

@@ -23,7 +23,6 @@ object AllSymbols {
             case App(fname, args) => args.map(symbols).reduce((a, b) => a union b) + fname
             case Forall(vars, body) => symbols(body) union vars.map(_.variable.name).toSet union vars.map(_.sort.name).toSet
             case Exists(vars, body) => symbols(body) union vars.map(_.variable.name).toSet union vars.map(_.sort.name).toSet
-            case TC(relName, arg1, arg2) => symbols(arg1) union symbols(arg2) + relName
         }
         symbols(term)
     }

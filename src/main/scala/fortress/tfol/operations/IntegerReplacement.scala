@@ -29,7 +29,6 @@
 //                 )
 //                 Forall(newVars, recur(body))
 //             }
-//             case TC(r, arg1, arg2) => TC(r, recur(arg1), recur(arg2))
 //             case IntegerLiteral(n) => BitVectorLiteral(n, bitwidth)
 //         }
 //         def convertApp(f: String, args: Seq[Term]): Term = (f, args) match {
