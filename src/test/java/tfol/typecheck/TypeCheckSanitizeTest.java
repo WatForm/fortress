@@ -34,8 +34,8 @@ public class TypeCheckSanitizeTest {
         );
         
         TypeCheckResult result = t.typeCheck(sig);
-        assertEquals(Type.Bool(), result.type);
-        assertEquals(expected, result.term);
+        assertEquals(Type.Bool(), result.sort());
+        assertEquals(expected, result.sanitizedTerm());
     }
 }
     

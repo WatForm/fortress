@@ -146,7 +146,7 @@ case class Theory private (signature: Signature, scopes: Map[Type, Int], axioms:
         // Note that a formula cannot typecheck if it has any free variables (that are not constants of the signature)
         val result: TypeCheckResult = axiom.typeCheck(signature)
         Errors.precondition(result.sort == Type.Bool)
-        result.term
+        result.sanitizedTerm
     }
     
     override def toString(): String = "\n" + signature.toString + " Axioms <<\n" + axioms.mkString("\n") + ">>\n"

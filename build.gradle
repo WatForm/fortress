@@ -79,3 +79,7 @@ distributions {
 tasks.withType(JavaCompile) {
     options.compilerArgs << "-Xlint:deprecation"
 }
+
+compileScala { // or: tasks.withType(ScalaCompile)
+    scalaCompileOptions.additionalParameters = ["-feature"]
+}
