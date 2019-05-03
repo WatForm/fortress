@@ -33,8 +33,7 @@ sealed abstract class Term {
       * that is equal to the old term but with instances of Eq replaced with Iff
       * when comparing Bool types. Such a term is called "sanitized".
       */
-    def typeCheck(signature: Signature): TypeCheckResult =
-        TypeChecker.typeCheck(signature, this)
+    def typeCheck(signature: Signature): TypeCheckResult = (new TypeChecker(signature)).visit(this)
     
     /** Returns the negation normal form version of this term.
       * The term must be sanitized to call this method.
@@ -75,7 +74,7 @@ sealed abstract class Term {
     
     def eliminateDomainElements: Term = DomainElementEliminator(this)
     
-    def eliminateEnumValues(eliminationMapping: Map[EnumValue, DomainElement]): Term = EnumValueEliminator(this, eliminationMapping)
+    def eliminateEnumValues(eliminationMapping: Map[EnumValue, DomainElement]): Term = EnumValueEliminator(eliminationMapping)(this)
     
     def allEnumValues: Set[EnumValue] = EnumValueAccumulator(this)
     
@@ -92,17 +91,10 @@ sealed abstract class Term {
     def or(other: Term): Term = OrList(Seq(this, other))
     def ==>(other: Term): Term = Implication(this, other)
     def ===(other: Term): Term = Eq(this, other)
-    
-    // TODO should these methods be part of another trait that is mixed in to objects that pattern match? Probably
-    def naturalRecur(recursiveCall: Term => Term): Term
-    def naturalRecurSetAccumulate[A](recursiveCall: Term => Set[A]): Set[A]
 }
 
 sealed trait Value extends Term
-sealed trait LeafTerm extends Term {
-    override def naturalRecur(recursiveCall: Term => Term): Term = this
-    override def naturalRecurSetAccumulate[A](recursiveCall: Term => Set[A]): Set[A] = Set.empty
-}
+sealed trait LeafTerm extends Term
 
 /** Term that represents True. */
 case object Top extends Term with LeafTerm with Value {
@@ -155,6 +147,7 @@ case class AnnotatedVar(variable: Var, sort: Type) {
     def getVar: Var = variable
     def getType: Type = sort
     def getName: String = variable.name
+    def name: String = variable.name
     
     override def toString: String = variable.toString + ": " + sort.toString
 }
@@ -166,9 +159,6 @@ case class Not(body: Term) extends Term {
     def mapBody(mapping: Term => Term): Term = Not(mapping(body))
     
     override def toString: String = "~" + body.toString
-    
-    override def naturalRecur(recursiveCall: Term => Term): Term = Not(recursiveCall(body))
-    override def naturalRecurSetAccumulate[A](recursiveCall: Term => Set[A]): Set[A] = recursiveCall(body)
 }
 
 /** Represents a conjunction. */
@@ -181,10 +171,6 @@ case class AndList private (arguments: Seq[Term]) extends Term {
         AndList(arguments.map(mapping))
     
     override def toString: String = "And(" + arguments.mkString(", ") + ")"
-    
-    override def naturalRecur(recursiveCall: Term => Term): Term = AndList(arguments map recursiveCall)
-    override def naturalRecurSetAccumulate[A](recursiveCall: Term => Set[A]): Set[A] =
-        (arguments map recursiveCall) reduce (_ union _)
 }
 
 object AndList {
@@ -206,11 +192,6 @@ case class OrList private (arguments: Seq[Term]) extends Term {
         OrList(arguments.map(mapping))
     
     override def toString: String = "Or(" + arguments.mkString(", ") + ")"
-    
-    
-    override def naturalRecur(recursiveCall: Term => Term): Term = OrList(arguments map recursiveCall)
-    override def naturalRecurSetAccumulate[A](recursiveCall: Term => Set[A]): Set[A] =
-        (arguments map recursiveCall) reduce (_ union _)
 }
 
 object OrList {
@@ -249,10 +230,6 @@ case class Distinct(arguments: Seq[Term]) extends Term {
     }
     
     override def toString: String = "Distinct(" + arguments.mkString(", ") + ")"
-    
-    override def naturalRecur(recursiveCall: Term => Term): Term = Distinct(arguments map recursiveCall)
-    override def naturalRecurSetAccumulate[A](recursiveCall: Term => Set[A]): Set[A] =
-        (arguments map recursiveCall) reduce (_ union _)
 }
 
 object Distinct {
@@ -268,10 +245,6 @@ case class Implication(left: Term, right: Term) extends Term {
         Implication(mapping(left), mapping(right))
     
     override def toString: String = left.toString + " => " + right.toString
-    
-    override def naturalRecur(recursiveCall: Term => Term): Term = Implication(recursiveCall(left), recursiveCall(right))
-    override def naturalRecurSetAccumulate[A](recursiveCall: Term => Set[A]): Set[A] =
-        recursiveCall(left) union recursiveCall(right)
 }
 
 /** Represents a bi-equivalence. */
@@ -283,10 +256,6 @@ case class Iff(left: Term, right: Term) extends Term {
         Iff(mapping(left), mapping(right))
     
     override def toString: String = left.toString + " <=> " + right.toString
-    
-    override def naturalRecur(recursiveCall: Term => Term): Term = Iff(recursiveCall(left), recursiveCall(right))
-    override def naturalRecurSetAccumulate[A](recursiveCall: Term => Set[A]): Set[A] =
-        recursiveCall(left) union recursiveCall(right)
 }
 
 /** Represents an equality. */
@@ -298,10 +267,6 @@ case class Eq(left: Term, right: Term) extends Term {
         Eq(mapping(left), mapping(right))
         
     override def toString: String = left.toString + " = " + right.toString
-    
-    override def naturalRecur(recursiveCall: Term => Term): Term = Eq(recursiveCall(left), recursiveCall(right))
-    override def naturalRecurSetAccumulate[A](recursiveCall: Term => Set[A]): Set[A] =
-        recursiveCall(left) union recursiveCall(right)
 }
 
 /** Represents a function or predicate application. */
@@ -316,10 +281,6 @@ case class App(functionName: String, arguments: Seq[Term]) extends Term {
         App(functionName, arguments.map(mapping))
     
     override def toString: String = functionName + "(" + arguments.mkString(", ") + ")"
-    
-    override def naturalRecur(recursiveCall: Term => Term): Term = App(functionName, arguments map recursiveCall)
-    override def naturalRecurSetAccumulate[A](recursiveCall: Term => Set[A]): Set[A] =
-        (arguments map recursiveCall) reduce (_ union _)
 }
 
 object App {
@@ -344,9 +305,6 @@ case class Exists(vars: Seq[AnnotatedVar], body: Term) extends Quantifier {
     def mapBody(mapping: Term => Term): Term = Exists(vars, mapping(body))
     
     override def toString: String = "exists " + vars.mkString(", ") + " . " + body.toString
-    
-    override def naturalRecur(recursiveCall: Term => Term): Term = Exists(vars, recursiveCall(body))
-    override def naturalRecurSetAccumulate[A](recursiveCall: Term => Set[A]): Set[A] = recursiveCall(body)
 }
 
 object Exists {
@@ -365,9 +323,6 @@ case class Forall(vars: Seq[AnnotatedVar], body: Term) extends Quantifier {
     def mapBody(mapping: Term => Term): Term = Forall(vars, mapping(body))
     
     override def toString: String = "exists " + vars.mkString(", ") + " . " + body.toString
-    
-    override def naturalRecur(recursiveCall: Term => Term): Term = Forall(vars, recursiveCall(body))
-    override def naturalRecurSetAccumulate[A](recursiveCall: Term => Set[A]): Set[A] = recursiveCall(body)
 }
 
 object Forall {
@@ -398,9 +353,6 @@ case class TC(relationName: String, arg1: Term, arg2: Term) extends Term {
     def mkApp(functionName: String): App = App(functionName, arg1, arg2)
     override def accept[T](visitor: TermVisitor[T]): T = visitor.visitTC(this)     
     def mapBody(mapping: Term => Term) = TC(relationName, mapping(arg1), mapping(arg2))
-    
-    override def naturalRecur(recursiveCall: Term => Term): Term = TC(relationName, recursiveCall(arg1), recursiveCall(arg2))
-    override def naturalRecurSetAccumulate[A](recursiveCall: Term => Set[A]): Set[A] = recursiveCall(arg1) union recursiveCall(arg2)
 }
 
 case class IntegerLiteral(value: Int) extends Term with LeafTerm with Value {

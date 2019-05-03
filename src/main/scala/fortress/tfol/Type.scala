@@ -35,7 +35,7 @@ case object RealType extends Type {
 }
 
 case class BitVectorType(bitwidth: Int) extends Type {
-    def name: String = "BitVec " + bitwidth.toString
+    def name: String = "BitVec" + bitwidth.toString
     override def isBuiltin: Boolean = true
 }
 

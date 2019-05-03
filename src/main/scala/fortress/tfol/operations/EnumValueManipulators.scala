@@ -2,22 +2,18 @@ package fortress.tfol.operations
 
 import fortress.tfol._
 
-object EnumValueEliminator {
-    def apply(term : Term, eliminationMapping: Map[EnumValue, DomainElement]): Term = {
-        def recur(term: Term): Term = term match {
-            case e @ EnumValue(_) if (eliminationMapping contains e) => eliminationMapping(e)
-            case _ => term.naturalRecur(recur)
-        }
-        recur(term)
+case class EnumValueEliminator(eliminationMapping: Map[EnumValue, DomainElement]) extends NaturalTermRecursion {
+    override val exceptionalMappings: PartialFunction[Term, Term] = {
+        case e @ EnumValue(_) if (eliminationMapping contains e) => eliminationMapping(e)
     }
+    
+    def apply(term : Term): Term = naturalRecur(term)
 }
 
-object EnumValueAccumulator {
-    def apply(term: Term): Set[EnumValue] = {
-        def recur(term: Term): Set[EnumValue] = term match {
-            case e @ EnumValue(_) => Set(e)
-            case _ => term.naturalRecurSetAccumulate(recur)
-        }
-        recur(term)
+object EnumValueAccumulator extends NaturalSetAccumulation[EnumValue] {
+    override val exceptionalMappings: PartialFunction[Term, Set[EnumValue]] = {
+        case e @ EnumValue(_) => Set(e)
     }
+    
+    def apply(term: Term): Set[EnumValue] = naturalRecur(term)
 }

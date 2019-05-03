@@ -88,7 +88,7 @@ public class NegativeTypeCheckTest {
             .withFunctionDeclarations(g, f, P);
         Term fx = Term.mkApp("f", x);
         Term ffx = Term.mkApp("f", fx);
-        assertEquals(B, fx.typeCheck(sig).type);
+        assertEquals(B, fx.typeCheck(sig).sort());
         ffx.typeCheck(sig);
     }
     
@@ -101,7 +101,7 @@ public class NegativeTypeCheckTest {
         Term fx = Term.mkApp("f", x);
         Term ffx = Term.mkApp("f", fx);
         Term pffx = Term.mkApp("P", ffx);
-        assertEquals(B, fx.typeCheck(sig).type);
+        assertEquals(B, fx.typeCheck(sig).sort());
         pffx.typeCheck(sig);
     }
     

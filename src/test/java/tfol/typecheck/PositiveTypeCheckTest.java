@@ -31,7 +31,7 @@ public class PositiveTypeCheckTest {
             .withConstants(x.of(A))
             .withFunctionDeclarations();
         
-        assertEquals(A, x.typeCheck(sig).type);
+        assertEquals(A, x.typeCheck(sig).sort());
     }
     
     @Test
@@ -42,7 +42,7 @@ public class PositiveTypeCheckTest {
             .withFunctionDeclarations(f);
         Term app = Term.mkApp("f", x);
         
-        assertEquals(B, app.typeCheck(sig).type);
+        assertEquals(B, app.typeCheck(sig).sort());
     }
     
     @Test
@@ -54,8 +54,8 @@ public class PositiveTypeCheckTest {
         Term app1 = Term.mkForall(x.of(A), Term.mkApp("P", x));
         Term app2 = Term.mkExists(x.of(A), Term.mkApp("P", x));
         
-        assertEquals(Type.Bool(), app1.typeCheck(sig).type);
-        assertEquals(Type.Bool(), app2.typeCheck(sig).type);
+        assertEquals(Type.Bool(), app1.typeCheck(sig).sort());
+        assertEquals(Type.Bool(), app2.typeCheck(sig).sort());
     }
     
     @Test
@@ -67,8 +67,8 @@ public class PositiveTypeCheckTest {
         Term term1 = Term.mkForall(x.of(Type.Bool()), Term.mkOr(x, Term.mkApp("h", x)));
         Term term2 = Term.mkForall(x.of(Type.Bool()), Term.mkOr(x, Term.mkApp("h", x)));
         
-        assertEquals(Type.Bool(), term1.typeCheck(sig).type);
-        assertEquals(Type.Bool(), term2.typeCheck(sig).type);
+        assertEquals(Type.Bool(), term1.typeCheck(sig).sort());
+        assertEquals(Type.Bool(), term2.typeCheck(sig).sort());
     }
     
     @Test
@@ -80,9 +80,9 @@ public class PositiveTypeCheckTest {
         Term fx = Term.mkApp("f", x);
         Term gfx = Term.mkApp("g", fx);
         Term pgfx = Term.mkApp("P", gfx);
-        assertEquals(B, fx.typeCheck(sig).type);
-        assertEquals(A, gfx.typeCheck(sig).type);
-        assertEquals(Type.Bool(), pgfx.typeCheck(sig).type);
+        assertEquals(B, fx.typeCheck(sig).sort());
+        assertEquals(A, gfx.typeCheck(sig).sort());
+        assertEquals(Type.Bool(), pgfx.typeCheck(sig).sort());
     }
     
     @Test
@@ -96,9 +96,9 @@ public class PositiveTypeCheckTest {
         Term and = Term.mkAnd(arg1, arg2);
         Term or = Term.mkOr(arg1, arg2);
         Term imp = Term.mkImp(arg1, arg2);
-        assertEquals(Type.Bool(), and.typeCheck(sig).type);
-        assertEquals(Type.Bool(), or.typeCheck(sig).type);
-        assertEquals(Type.Bool(), imp.typeCheck(sig).type);
+        assertEquals(Type.Bool(), and.typeCheck(sig).sort());
+        assertEquals(Type.Bool(), or.typeCheck(sig).sort());
+        assertEquals(Type.Bool(), imp.typeCheck(sig).sort());
     }
     
     
@@ -115,10 +115,10 @@ public class PositiveTypeCheckTest {
         Term eq1 = Term.mkEq(arg1, arg2);
         Term eq2 = Term.mkEq(arg1, arg3);
         Term eq3 = Term.mkEq(arg2, arg3);
-        assertEquals(Type.Bool(), distinct.typeCheck(sig).type);
-        assertEquals(Type.Bool(), eq1.typeCheck(sig).type);
-        assertEquals(Type.Bool(), eq2.typeCheck(sig).type);
-        assertEquals(Type.Bool(), eq3.typeCheck(sig).type);
+        assertEquals(Type.Bool(), distinct.typeCheck(sig).sort());
+        assertEquals(Type.Bool(), eq1.typeCheck(sig).sort());
+        assertEquals(Type.Bool(), eq2.typeCheck(sig).sort());
+        assertEquals(Type.Bool(), eq3.typeCheck(sig).sort());
     }
     
     @Test
@@ -127,8 +127,8 @@ public class PositiveTypeCheckTest {
             .withTypes()
             .withConstants()
             .withFunctionDeclarations();
-        assertEquals(Type.Bool(), Term.mkTop().typeCheck(sig).type);
-        assertEquals(Type.Bool(), Term.mkBottom().typeCheck(sig).type);
+        assertEquals(Type.Bool(), Term.mkTop().typeCheck(sig).sort());
+        assertEquals(Type.Bool(), Term.mkBottom().typeCheck(sig).sort());
         
     }
     
@@ -139,7 +139,7 @@ public class PositiveTypeCheckTest {
             .withConstants(x.of(A))
             .withFunctionDeclarations(P);
         Term not = Term.mkNot(Term.mkApp("P", x));
-        assertEquals(Type.Bool(), not.typeCheck(sig).type);
+        assertEquals(Type.Bool(), not.typeCheck(sig).sort());
     }
     
     @Test
@@ -150,8 +150,8 @@ public class PositiveTypeCheckTest {
             .withFunctionDeclarations(P, Q);
         Term forall = Term.mkForall(x.of(A), Term.mkApp("P", x));
         Term exists = Term.mkExists(y.of(B), Term.mkApp("Q", y));
-        assertEquals(Type.Bool(), forall.typeCheck(sig).type);
-        assertEquals(Type.Bool(), exists.typeCheck(sig).type);
+        assertEquals(Type.Bool(), forall.typeCheck(sig).sort());
+        assertEquals(Type.Bool(), exists.typeCheck(sig).sort());
     }
     
     @Test
@@ -162,8 +162,8 @@ public class PositiveTypeCheckTest {
             .withFunctionDeclarations(P, Q);
         Term forall = Term.mkForall(x.of(A), Term.mkApp("P", x));
         Term exists = Term.mkExists(y.of(B), Term.mkApp("Q", y));
-        assertEquals(Type.Bool(), forall.typeCheck(sig).type);
-        assertEquals(Type.Bool(), exists.typeCheck(sig).type);
+        assertEquals(Type.Bool(), forall.typeCheck(sig).sort());
+        assertEquals(Type.Bool(), exists.typeCheck(sig).sort());
     }
     
     @Test
@@ -179,7 +179,7 @@ public class PositiveTypeCheckTest {
             Term.mkApp("P", x)
         );
         
-        assertEquals(Type.Bool(), t.typeCheck(sig).type);
+        assertEquals(Type.Bool(), t.typeCheck(sig).sort());
     }
 
     @Test
@@ -190,7 +190,7 @@ public class PositiveTypeCheckTest {
             .withConstants(x.of(A), y.of(A));
         Term t = Term.mkTC("R", x, y);
         
-        assertEquals(Type.Bool(), t.typeCheck(sig).type);
+        assertEquals(Type.Bool(), t.typeCheck(sig).sort());
     }
     
     @Test
@@ -201,7 +201,7 @@ public class PositiveTypeCheckTest {
             .withConstants(x.of(A), y.of(A), z.of(A));
         Term t = Term.mkTC("next", x, y);
         
-        assertEquals(Type.Bool(), t.typeCheck(sig).type);
+        assertEquals(Type.Bool(), t.typeCheck(sig).sort());
     }
     
     @Test
@@ -211,7 +211,7 @@ public class PositiveTypeCheckTest {
         
         Term t = Term.mkDomainElement(2, A);
         
-        assertEquals(A, t.typeCheck(sig).type);
+        assertEquals(A, t.typeCheck(sig).sort());
     }
     
 }
