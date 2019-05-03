@@ -18,28 +18,28 @@ class Z3ApiInterpretation(model: Model, sig: Signature, typeMappings: Map[Expr, 
             val typeName = z3Decl.getRange.getName.toString
             model.getConstInterp(z3Decl) -> Term.mkDomainElement(constantName.substring(1,constantName.length-typeName.length).toInt, Type.mkTypeConst(typeName))
         }
-    ) toMap)
+    ).toMap)
 
     var constantInterpretations: Map[AnnotatedVar, Value] = (
         for {
             z3Decl <- model.getConstDecls
-            v = sig.queryConstant(Term.mkVar(z3Decl.getName.toString)) if v isDefined
+            v = sig.queryConstant(Term.mkVar(z3Decl.getName.toString)) if v.isDefined
         } yield v.get -> typeMappings(model.getConstInterp(z3Decl))
-    ) toMap
+    ).toMap
 
     var typeInterpretations: Map[Type, Seq[Value]] = (
         for {
             sort <- model.getSorts
             t = Type.mkTypeConst(sort.getName.toString) if sig.hasType(t) 
         } yield t -> ((1 to model.getSortUniverse(sort).length) map { Term.mkDomainElement(_,t) })
-    ) toMap
+    ).toMap
 
     var functionInterpretations: Map[fortress.tfol.FuncDecl, ListMap[Seq[Value], Value]] = (
         for {
             z3Decl <- model.getFuncDecls
-            fdecl = sig.queryUninterpretedFunction(z3Decl.getName.toString) if fdecl isDefined
+            fdecl = sig.queryUninterpretedFunction(z3Decl.getName.toString) if fdecl.isDefined
         } yield fdecl.get -> {
-            val seqOfDomainSeqs = fdecl.get.argTypes.map (sort => typeInterpretations(sort).asJava) asJava
+            val seqOfDomainSeqs = fdecl.get.argTypes.map (sort => typeInterpretations(sort).asJava).asJava
             val argumentLists = new CartesianProduct[Value](seqOfDomainSeqs)
             val inverseTypeMappings: Map[Value, Expr] = typeMappings.map(_.swap)
             var argumentMapping: ListMap[Seq[Value], Value] = ListMap.empty
@@ -54,5 +54,5 @@ class Z3ApiInterpretation(model: Model, sig: Signature, typeMappings: Map[Expr, 
             })
             argumentMapping
         }
-    ) toMap
+    ).toMap
 }
