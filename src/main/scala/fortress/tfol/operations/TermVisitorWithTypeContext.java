@@ -40,9 +40,7 @@ public abstract class TermVisitorWithTypeContext<T> implements TermVisitor<T> {
             return Optional.of(constMaybe.get().getType());
         }
         
-        // Check if it is an enum
-        return signature.queryEnumJava(variable)
-            .map(av -> av.getType());
+        return Optional.empty();
     }
     
     protected abstract T visitForallInner(Forall forall);

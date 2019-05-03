@@ -39,6 +39,10 @@ case class BitVectorType(bitwidth: Int) extends Type {
     override def isBuiltin: Boolean = true
 }
 
+object BitVectorType {
+    val namingPattern: scala.util.matching.Regex = "BitVec[0-9]*".r
+}
+
 object Type {
     def mkTypeConst(name: String): Type = TypeConst(name)
     

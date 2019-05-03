@@ -2,9 +2,7 @@ package fortress.tfol
 
 import scala.collection.immutable.Seq // Use immutable seq by default
 
-trait SignatureExtension extends TypeCheckQuerying {
-    override def queryUninterpretedFunction(name: String): Option[FuncDecl] = None
-}
+trait SignatureExtension extends TypeCheckQuerying
 
 // Cannot implement this as a mixin -- must implement as an object
 object IntegerExtension extends SignatureExtension {
@@ -15,7 +13,6 @@ object IntegerExtension extends SignatureExtension {
     val times = "*"
     val div = "div"
     val mod = "mod"
-    val abs = "abs"
     val LE = "<="
     val LT = "<"
     val GE = ">="
@@ -25,86 +22,76 @@ object IntegerExtension extends SignatureExtension {
     
     override def hasTypeWithName(name: String): Boolean = name == IntType.name
     
+    override def hasFunctionWithName(name: String): Boolean = 
+        Set(plus, minus, times, div, mod, LE, LT, GE, GT) contains name
+    
     override def queryFunction(name: String, argTypes: Seq[Type]): Option[FuncDecl] = (name, argTypes) match {
-        case (`plus`, Seq(IntType, IntType)) => Some(FuncDecl(plus, IntType, IntType, IntType))
+        case (`plus`, sorts) if sorts.length > 1 && sorts.forall(_ == IntType) => Some(FuncDecl(plus, sorts, IntType))
         case (`minus`, Seq(IntType, IntType)) => Some(FuncDecl(minus, IntType, IntType, IntType)) // Binary minus
         case (`minus`, Seq(IntType)) => Some(FuncDecl(minus, IntType, IntType)) // Unary minus
         case (`times`, Seq(IntType, IntType)) => Some(FuncDecl(times, IntType, IntType, IntType))
         case (`div`, Seq(IntType, IntType)) => Some(FuncDecl(div, IntType, IntType, IntType))
         case (`mod`, Seq(IntType, IntType)) => Some(FuncDecl(mod, IntType, IntType))
-        case (`abs`, Seq(IntType)) => Some(FuncDecl(abs, IntType, IntType))
         case (`LE`, Seq(IntType, IntType)) => Some(FuncDecl(LE, IntType, IntType, BoolType))
         case (`LT`, Seq(IntType, IntType)) => Some(FuncDecl(LT, IntType, IntType, BoolType))
         case (`GE`, Seq(IntType, IntType)) => Some(FuncDecl(GE, IntType, IntType, BoolType))
         case (`GT`, Seq(IntType, IntType)) => Some(FuncDecl(GT, IntType, IntType, BoolType))
         case _ => None
     }
-    
-    override def hasFunctionWithName(name: String): Boolean = 
-        Set(plus, minus, times, div, mod, abs, LE, LT, GE, GT) contains name
         
     override def queryConstant(v: Var): Option[AnnotatedVar] = None
-    override def queryEnum(v: Var): Option[AnnotatedVar] = None
+    override def queryEnum(e: EnumValue): Option[Type] = None
+    override def queryUninterpretedFunction(name: String): Option[FuncDecl] = None
     
     override def toString: String = "Integer Extension"
 }
 
-// TODO make this a mixin
 object BitVectorSignature {
-    def hasType(sort: Type) = sort match {
-        case BitVectorType(_) => true
-        case _ => false
-    }
-    
-    def queryFunction(name: String, argTypes: Seq[Type]): Option[Type] = (name, argTypes) match {
-        case (binop, Seq(BitVectorType(n), BitVectorType(m)))
-            if (binaryOperations contains binop) && (n == m) => Some(BitVectorType(n))
-        case (unop, Seq(BitVectorType(n))) if (unaryOperations contains unop) => Some(BitVectorType(n))
-        case _ => None
-    }
-    
     // Arithmetic operations
     val bvadd = "bvadd" // addition
     val bvsub = "bvsub" // subtraction
     val bvneg = "bvneg" // unary minus
     val bvmul =  "bvmul" // multiplication
-    val bvurem = "bvurem" // unsigned remainder
+    val bvsdiv = "bvsdiv" // signed division
     val bvsrem = "bvsrem" // signed remainder
     val bvsmod = "bvsmod" // signed modulo
-    val bvshl = "bvshl" // shift left
-    val bvlshr = "bvlshr" // unsigned (logical) shift right
-    val bvashr = "bvashr" // signed (arithmetical) shift right
     
-    // Bitwise operations
-    val bvor = "bvor" // bitwise or
-    val bvand  = "bvand" // bitwise and
-    val bvnot = "bvnot" // bitwise not
-    val bvnand = "bvnand" // bitwise nand
-    val bvnor = "bvnor" // bitwise nor
-    val bvxnor = "bvxnor" // bitwise xnor
-    
-    // Special operations for internal use only
-    val bvAddNoOverflowUnsigned = "bvAddNoOverflowUnsigned"
-    val bvAddNoUnderflowSigned = "bvAddNoOverflowUnsigned"
-    val bvAddNoUnderflow = "bvAddNoUnderflow"
-    val bvSubNoOverflow = "bvSubNoOverflow"
-    val bvSubNoUnderflowUnsigned = "bvSubNoUnderflowUnsigned"
-    val bvSubNoUnderflowSigned = "bvSubNoUnderflowSigned"
-    val bvSDivNoOverflow = "bvSDivNoOverflow"
-    val bvNegNoOverflow = "bvNegNoOverflow"
-    val bvMulNoOverflowUnsigned = "bvMulNoOverflowUnsigned"
-    val bvMulNoUnderflowSigned = "bvMulNoUnderflowSigned"
-    val bvMulNoUnderflow = "bvMulNoUnderflow"
+    // // Special operations for internal use only
+    // val bvAddNoOverflowSigned = "bvAddNoOverflowSigned"
+    // val bvAddNoUnderflow = "bvAddNoOverflow" // For both signed and unsigned
+    // 
+    // val bvSubNoOverflow = "bvSubNoOverflow" // For both signed and unsigned
+    // val bvSubNoUnderflowSigned = "bvSubNoUnderflowSigned"
+    // 
+    // val bvSDivNoOverflow = "bvSDivNoOverflow"
+    // 
+    // val bvNegNoOverflow = "bvNegNoOverflow"
+    // 
+    // val bvMulNoUnderflowSigned = "bvMulNoUnderflowSigned"
+    // val bvMulNoUnderflow = "bvMulNoUnderflow"
     
     val binaryOperations: Set[String] = Set(
-        bvadd, bvsub, bvmul, bvurem, bvsrem, bvsmod, bvshl, bvlshr, bvashr,
-        bvor, bvand, bvnand, bvnor, bvxnor,
-        bvAddNoOverflowUnsigned, bvAddNoUnderflowSigned, bvAddNoUnderflow,
-        bvSubNoOverflow, bvSubNoUnderflowUnsigned, bvSubNoUnderflowSigned,
-        bvSDivNoOverflow, bvMulNoOverflowUnsigned, bvMulNoUnderflowSigned,
-        bvMulNoUnderflow
+        bvadd, bvsub, bvmul, bvsdiv, bvsrem, bvsmod
     ) 
     val unaryOperations: Set[String] = Set(
-        bvneg, bvnot, bvNegNoOverflow
+        bvneg
     )
+    
+    def hasType(sort: Type):Boolean = sort match {
+        case BitVectorType(_) => true
+        case _ => false
+    }
+    
+    def hasTypeWithName(name: String): Boolean = BitVectorType.namingPattern.findFirstIn(name).nonEmpty
+    
+    def queryFunction(name: String, argTypes: Seq[Type]): Option[FuncDecl] = (name, argTypes) match {
+        case (binop, Seq(BitVectorType(n), BitVectorType(m)))
+            if (binaryOperations contains binop) && (n == m) => Some( FuncDecl(binop, BitVectorType(n), BitVectorType(n), BitVectorType(n)) )
+        case (unop, Seq(BitVectorType(n))) if (unaryOperations contains unop) => Some( FuncDecl(unop, BitVectorType(n), BitVectorType(n)) )
+        case _ => None
+    }
+    
+    def queryConstant(v: Var): Option[AnnotatedVar] = None
+    def queryEnum(e: EnumValue): Option[Type] = None
+    def queryUninterpretedFunction(name: String): Option[FuncDecl] = None
 }
