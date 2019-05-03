@@ -259,8 +259,19 @@ class TypeChecker(signature: Signature) extends TermVisitorWithTypeContext[TypeC
         }
     }
     
-    override def visitBitVectorLiteral(literal: BitVectorLiteral) = ???
+    override def visitBitVectorLiteral(literal: BitVectorLiteral): TypeCheckResult = {
+        // Should fail if BitVector is not in signature
+        if(! (signature hasType BitVectorType(literal.bitWidth)) ) {
+            throw new TypeCheckException.UnknownType("Given signature does not include bit vectors")
+        } else {
+           TypeCheckResult(sanitizedTerm = literal, sort = BitVectorType(literal.bitWidth),
+                containsConnectives = false, containsQuantifiers = false)
+        }
+    }
     
-    override def visitEnumValue(e: EnumValue) = ???
+    override def visitEnumValue(e: EnumValue) = signature.queryEnum(e) match {
+        case Some(eSort: Type) => TypeCheckResult(sanitizedTerm = e, sort = eSort, containsConnectives = false, containsQuantifiers = true)
+        case None => throw new TypeCheckException.UndeterminedType("Could not determine type of enum " + e.name)
+    }
     
 }

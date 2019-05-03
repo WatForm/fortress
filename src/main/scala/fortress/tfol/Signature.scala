@@ -17,7 +17,7 @@ case class Signature private (
     constants: Set[AnnotatedVar],
     enumConstants: Map[Type, Seq[EnumValue]],
     extensions: Set[SignatureExtension]
-) extends TypeCheckQuerying {
+) extends ExtensibleTypeChecking {
     
     // TODO need to check this type is not builtin
     def withType(t: Type): Signature = {
@@ -86,26 +86,24 @@ case class Signature private (
         Signature(types + t, functionDeclarations, constants, enumConstants + (t -> values.asScala.toList), extensions)
     }
     
-    def queryConstant(v: Var): Option[AnnotatedVar] = constants.find(_.variable == v)
+    // TypeChecking
     
-    def queryEnum(v: Var): Option[AnnotatedVar] = enumConstants.find {
-        case (sort, enumConstants) => enumConstants contains v
-    }.map { case (sort, _) => v of sort }
+    override def queryConstantBase(v: Var): Option[AnnotatedVar] = constants.find(_.variable == v)
     
-    def queryFunction(name: String, argTypes: Seq[Type]): Option[FuncDecl] = {
-        val matches: Set[FuncDecl] = extensions.flatMap(extension => extension.queryFunction(name, argTypes))
-        Errors.assertion(matches.size <= 1, "Found multiple matches to function " + name + ": " + argTypes)
-        if(matches.nonEmpty) Some(matches.head)
-        else functionDeclarations.find(fdecl => fdecl.getName == name && fdecl.argTypes == argTypes)
-    }
+    override def queryEnumBase(e: EnumValue): Option[Type] = enumConstants.find {
+        case (sort, enumConstants) => enumConstants contains e
+    }.map { case (sort, _) => sort }
     
-    def queryUninterpretedFunction(name: String): Option[FuncDecl] = functionDeclarations.find(_.name == name)
+    override def queryFunctionBase(name: String, argTypes: Seq[Type]): Option[FuncDecl] =
+        functionDeclarations.find(fdecl => fdecl.getName == name && fdecl.argTypes == argTypes)
     
-    def hasType(sort: Type): Boolean = extensions.exists(_.hasType(sort)) || (types contains sort)
+    override def queryUninterpretedFunctionBase(name: String): Option[FuncDecl] = functionDeclarations.find(_.name == name)
     
-    def hasTypeWithName(name: String): Boolean = extensions.exists(_.hasTypeWithName(name)) || types.exists(_.name == name)
+    override def hasTypeBase(sort: Type): Boolean = extensions.exists(_.hasType(sort)) || (types contains sort)
     
-    def hasFunctionWithName(name: String): Boolean = (extensions.exists(_.hasFunctionWithName(name))) || functionDeclarations.exists(_.name == name)
+    override def hasTypeWithNameBase(name: String): Boolean = extensions.exists(_.hasTypeWithName(name)) || types.exists(_.name == name)
+    
+    override def hasFunctionWithNameBase(name: String): Boolean = (extensions.exists(_.hasFunctionWithName(name))) || functionDeclarations.exists(_.name == name)
     
     private[tfol]
     def getConstants: java.util.Set[AnnotatedVar] = constants.asJava
