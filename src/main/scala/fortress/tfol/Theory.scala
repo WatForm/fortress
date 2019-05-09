@@ -132,7 +132,7 @@ case class Theory private (signature: Signature, scopes: Map[Type, Int], axioms:
     def getConstants: java.util.Set[AnnotatedVar] = signature.getConstants
     
     def getFunctionDeclarations: java.util.Set[FuncDecl] = signature.getFunctionDeclarations
-    
+        
     def getSignature: Signature = signature
     def functionDeclarations: Set[FuncDecl] = signature.functionDeclarations
     def constants: Set[AnnotatedVar] = signature.constants

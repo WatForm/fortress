@@ -29,11 +29,6 @@ case object IntType extends Type {
     override def isBuiltin: Boolean = true
 }
 
-case object RealType extends Type {
-    def name: String = "Real"
-    override def isBuiltin: Boolean = true
-}
-
 case class BitVectorType(bitwidth: Int) extends Type {
     def name: String = "BitVec" + bitwidth.toString
     override def isBuiltin: Boolean = true
@@ -48,7 +43,6 @@ object Type {
     
     val Bool: Type = BoolType
     val Int: Type = IntType
-    val Real: Type = RealType
     def BitVector(bitwidth: Int) = BitVectorType(bitwidth)
     
     def nameMimicsBuiltin(name: String) = {

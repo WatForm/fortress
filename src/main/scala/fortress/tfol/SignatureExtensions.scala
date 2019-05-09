@@ -46,7 +46,7 @@ object IntegerExtension extends SignatureExtension {
     override def toString: String = "Integer Extension"
 }
 
-object BitVectorSignature {
+object BitVectorExtension extends SignatureExtension {
     // Arithmetic operations
     val bvadd = "bvadd" // addition
     val bvsub = "bvsub" // subtraction
@@ -55,6 +55,12 @@ object BitVectorSignature {
     val bvsdiv = "bvsdiv" // signed division
     val bvsrem = "bvsrem" // signed remainder
     val bvsmod = "bvsmod" // signed modulo
+    
+    //Comparison operations
+    val bvslt = "bvslt" // Signed less than
+    val bvsle = "bvsle" // Signed less than or equal
+    val bvsgt = "bvsgt" // Signed greater than
+    val bvsge = "bvsge" // Signed greater than or equal
     
     // // Special operations for internal use only
     // val bvAddNoOverflowSigned = "bvAddNoOverflowSigned"
@@ -77,6 +83,10 @@ object BitVectorSignature {
         bvneg
     )
     
+    val comparisonOperations: Set[String] = Set(
+        bvslt, bvsle, bvsgt, bvsge
+    )
+    
     def hasType(sort: Type):Boolean = sort match {
         case BitVectorType(_) => true
         case _ => false
@@ -90,6 +100,9 @@ object BitVectorSignature {
         case (unop, Seq(BitVectorType(n))) if (unaryOperations contains unop) => Some( FuncDecl(unop, BitVectorType(n), BitVectorType(n)) )
         case _ => None
     }
+    
+    def hasFunctionWithName(name: String): Boolean = 
+        ((binaryOperations union unaryOperations) union comparisonOperations) contains name
     
     def queryConstant(v: Var): Option[AnnotatedVar] = None
     def queryEnum(e: EnumValue): Option[Type] = None
