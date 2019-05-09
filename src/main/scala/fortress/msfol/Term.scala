@@ -1,7 +1,7 @@
-package fortress.tfol
+package fortress.msfol
 
 import fortress.util.Errors
-import fortress.tfol.operations._
+import fortress.msfol.operations._
 import fortress.data._
 import scala.collection.JavaConverters._
 import scala.annotation.varargs // So we can call Scala varargs methods from Java

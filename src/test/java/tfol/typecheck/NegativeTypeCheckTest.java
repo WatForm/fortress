@@ -2,7 +2,7 @@ import static org.junit.Assert.assertEquals;
 import org.junit.Test;
 import org.junit.Ignore;
 
-import fortress.tfol.*;
+import fortress.msfol.*;
 import java.util.List;
 
 public class NegativeTypeCheckTest {

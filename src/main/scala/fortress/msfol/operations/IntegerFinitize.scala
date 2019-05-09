@@ -1,8 +1,8 @@
-package fortress.tfol.operations
+package fortress.msfol.operations
 
-import fortress.tfol._
-import fortress.tfol.IntegerExtension._
-import fortress.tfol.BitVectorExtension._
+import fortress.msfol._
+import fortress.msfol.IntegerExtension._
+import fortress.msfol.BitVectorExtension._
 import scala.collection.immutable.Seq // Use immutable seq
  
 class IntToSignedBitVector(bitwidth: Int) extends NaturalTermRecursion {

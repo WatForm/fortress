@@ -1,6 +1,6 @@
-package fortress.tfol.operations
+package fortress.msfol.operations
 
-import fortress.tfol._
+import fortress.msfol._
 
 case class EnumValueEliminator(eliminationMapping: Map[EnumValue, DomainElement]) extends NaturalTermRecursion {
     override val exceptionalMappings: PartialFunction[Term, Term] = {

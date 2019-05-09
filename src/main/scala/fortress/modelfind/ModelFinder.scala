@@ -1,6 +1,6 @@
 package fortress.modelfind
 
-import fortress.tfol._
+import fortress.msfol._
 
 import fortress.interpretation._
 import fortress.solverinterface._

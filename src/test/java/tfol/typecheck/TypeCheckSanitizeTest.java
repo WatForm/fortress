@@ -2,8 +2,8 @@ import static org.junit.Assert.assertEquals;
 import org.junit.Test;
 import org.junit.Ignore;
 
-import fortress.tfol.*;
-import fortress.tfol.operations.TypeCheckResult;
+import fortress.msfol.*;
+import fortress.msfol.operations.TypeCheckResult;
 import java.util.List;
 
 public class TypeCheckSanitizeTest {

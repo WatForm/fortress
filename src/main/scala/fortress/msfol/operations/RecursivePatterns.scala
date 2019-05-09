@@ -1,6 +1,6 @@
-package fortress.tfol.operations
+package fortress.msfol.operations
 
-import fortress.tfol._
+import fortress.msfol._
 
 trait NaturalTermRecursion {
     val exceptionalMappings: PartialFunction[Term, Term]

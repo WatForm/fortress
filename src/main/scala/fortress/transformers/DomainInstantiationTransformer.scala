@@ -2,7 +2,7 @@ package fortress.transformers
 
 import scala.collection.JavaConverters._
 
-import fortress.tfol._
+import fortress.msfol._
 import fortress.util.Errors
 
 /** Instantiates quantifiers with domain elements.

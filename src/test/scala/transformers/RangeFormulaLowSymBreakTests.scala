@@ -2,7 +2,7 @@ import org.scalatest._
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
-import fortress.tfol._
+import fortress.msfol._
 import fortress.transformers._
 
 @RunWith(classOf[JUnitRunner])

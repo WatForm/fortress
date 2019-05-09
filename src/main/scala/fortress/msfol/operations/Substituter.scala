@@ -1,6 +1,6 @@
-package fortress.tfol.operations
+package fortress.msfol.operations
 
-import fortress.tfol._
+import fortress.msfol._
 import fortress.data.NameGenerator;
 
 import scala.collection.JavaConverters._

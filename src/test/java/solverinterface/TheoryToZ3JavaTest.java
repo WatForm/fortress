@@ -5,14 +5,14 @@ import org.junit.Test;
 import org.junit.BeforeClass;
 import org.junit.Ignore;
 
-import fortress.tfol.*;
+import fortress.msfol.*;
 import java.util.List;
 import java.util.Set;
 import java.util.ArrayList;
 import java.io.*;
 import fortress.util.Errors;
 import java.util.Optional;
-import fortress.tfol.operations.*;
+import fortress.msfol.operations.*;
 import fortress.util.Pair;
 import java.util.stream.Collectors;
 import java.util.Arrays;

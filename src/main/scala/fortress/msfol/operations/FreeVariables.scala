@@ -1,6 +1,6 @@
-package fortress.tfol.operations
+package fortress.msfol.operations
 
-import fortress.tfol._
+import fortress.msfol._
 
 /** Accumulates the free variables of a term. Note that this only considers the
   * term as a block of syntax, without respect to a signature, so a free variable

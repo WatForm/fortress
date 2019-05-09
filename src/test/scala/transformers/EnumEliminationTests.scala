@@ -3,7 +3,7 @@ import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
 
-import fortress.tfol._
+import fortress.msfol._
 import fortress.transformers._
 import scala.collection.immutable.Seq
 

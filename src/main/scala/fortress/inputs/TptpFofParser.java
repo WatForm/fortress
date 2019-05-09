@@ -2,7 +2,7 @@ package fortress.inputs;
 
 import org.antlr.v4.runtime.*;
 import org.antlr.v4.runtime.tree.*;
-import fortress.tfol.*;
+import fortress.msfol.*;
 import java.io.*;
 
 public class TptpFofParser implements TheoryParser {

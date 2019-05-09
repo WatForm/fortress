@@ -2,7 +2,7 @@ package fortress.modelfind
 
 import scala.collection.JavaConverters._
 
-import fortress.tfol._
+import fortress.msfol._
 import fortress.transformers._
 import fortress.util._
 import fortress.interpretation._

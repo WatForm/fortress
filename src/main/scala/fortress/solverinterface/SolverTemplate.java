@@ -1,6 +1,6 @@
 package fortress.solverinterface;
 
-import fortress.tfol.*;
+import fortress.msfol.*;
 import fortress.util.StopWatch;
 import fortress.modelfind.*;
 

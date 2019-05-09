@@ -1,6 +1,6 @@
 package fortress.inputs;
 
-import fortress.tfol.*;
+import fortress.msfol.*;
 import java.io.*;
 
 public interface TheoryParser {

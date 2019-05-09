@@ -3,7 +3,7 @@ package fortress.transformers
 import scala.collection.JavaConverters._
 import scala.collection.immutable.Seq // By default use immutable Seq
 
-import fortress.tfol._
+import fortress.msfol._
 import fortress.util.Errors
 
 /** Replaces occurences of domain elements in axioms with distinct constants 

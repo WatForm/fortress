@@ -1,6 +1,6 @@
-package fortress.tfol.operations;
+package fortress.msfol.operations;
 
-import fortress.tfol.*;
+import fortress.msfol.*;
 
 public interface TermVisitor<T> {
     default public T visit(Term term) {

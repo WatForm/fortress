@@ -1,6 +1,6 @@
-package fortress.tfol.operations;
+package fortress.msfol.operations;
 
-import fortress.tfol.*;
+import fortress.msfol.*;
 
 import java.util.LinkedList;
 import java.util.stream.Collectors;

@@ -1,8 +1,8 @@
-package fortress.tfol 
+package fortress.msfol 
 
 import fortress.data.InsertionOrderedSet
 import fortress.util.Errors
-import fortress.tfol.operations.TypeCheckResult
+import fortress.msfol.operations.TypeCheckResult
 import scala.collection.JavaConverters._
 import scala.annotation.varargs // So we can call Scala varargs methods from Java
 import scala.collection.immutable.Seq // Use immutable seq by default
@@ -113,13 +113,13 @@ case class Signature private (
     
     override def hasFunctionWithNameBase(name: String): Boolean = (extensions.exists(_.hasFunctionWithName(name))) || functionDeclarations.exists(_.name == name)
     
-    private[tfol]
+    private[msfol]
     def getConstants: java.util.Set[AnnotatedVar] = constants.asJava
     
-    private[tfol]
+    private[msfol]
     def getFunctionDeclarations: java.util.Set[FuncDecl] = functionDeclarations.asJava
     
-    private[tfol]
+    private[msfol]
     def getSorts: java.util.Set[Sort] = sorts.asJava
     
     def withIntegers: Signature = Signature(sorts, functionDeclarations, constants, enumConstants, extensions + IntegerExtension)

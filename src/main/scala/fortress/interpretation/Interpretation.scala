@@ -3,7 +3,7 @@ package fortress.interpretation
 import scala.collection.immutable.ListMap
 import scala.collection.JavaConverters._
 
-import fortress.tfol._
+import fortress.msfol._
 
 trait Interpretation {
     def functionInterpretations: Map[FuncDecl, ListMap[Seq[Value], Value]]

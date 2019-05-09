@@ -1,9 +1,9 @@
 package fortress.transformers
 
-import fortress.tfol._
+import fortress.msfol._
 import fortress.data.NameGenerator
 import fortress.data.SubIntNameGenerator
-import fortress.tfol.operations.Skolemizer
+import fortress.msfol.operations.Skolemizer
 
 import scala.collection.JavaConverters._
 

@@ -1,9 +1,9 @@
-package fortress.tfol.operations
+package fortress.msfol.operations
 
 import scala.collection.immutable.Seq // Use immutable seq by default
 
 import fortress.util.Errors
-import fortress.tfol._
+import fortress.msfol._
 import fortress.data._
 
 case class TypeCheckResult(

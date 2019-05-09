@@ -1,6 +1,6 @@
 package fortress.interpretation
 
-import fortress.tfol._
+import fortress.msfol._
 import fortress.data.CartesianProduct
 
 import scala.collection.immutable.ListMap
@@ -40,7 +40,7 @@ class Z3ApiInterpretation(model: Z3Model, sig: Signature, sortMappings: Map[Z3Ex
         } yield t -> ((1 to model.getSortUniverse(sort).length) map { Term.mkDomainElement(_,t) })
     ).toMap
 
-    var functionInterpretations: Map[fortress.tfol.FuncDecl, ListMap[Seq[Value], Value]] = (
+    var functionInterpretations: Map[fortress.msfol.FuncDecl, ListMap[Seq[Value], Value]] = (
         for {
             z3Decl <- model.getFuncDecls
             fdecl = sig.queryUninterpretedFunction(z3Decl.getName.toString) if fdecl.isDefined

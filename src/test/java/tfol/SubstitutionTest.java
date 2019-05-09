@@ -6,7 +6,7 @@ import org.junit.Test;
 import org.junit.BeforeClass;
 import org.junit.Ignore;
 
-import fortress.tfol.*;
+import fortress.msfol.*;
 import java.util.List;
 import java.util.Set;
 import java.util.ArrayList;

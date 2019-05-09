@@ -1,9 +1,9 @@
-package fortress.tfol.operations;
+package fortress.msfol.operations;
 
 import java.util.Optional;
 import java.util.Deque;
 import java.util.LinkedList;
-import fortress.tfol.*;
+import fortress.msfol.*;
 
 public abstract class TermVisitorWithTypeContext<T> implements TermVisitor<T> {
     protected Signature signature;

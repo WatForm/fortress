@@ -2,7 +2,7 @@ package fortress.inputs;
 
 import org.antlr.v4.runtime.*;
 import org.antlr.v4.runtime.tree.*;
-import fortress.tfol.*;
+import fortress.msfol.*;
 import java.io.*;
 import java.util.Optional;
 import java.util.Map;

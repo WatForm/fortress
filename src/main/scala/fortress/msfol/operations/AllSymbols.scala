@@ -1,6 +1,6 @@
-package fortress.tfol.operations
+package fortress.msfol.operations
 
-import fortress.tfol._
+import fortress.msfol._
 
 /** Accumulates the set of all symbol names used in the term, including free
   * variables and constants, bound variables (even useless ones that aren't

@@ -1,11 +1,11 @@
-package fortress.tfol.operations;
+package fortress.msfol.operations;
 
 import java.util.Map;
 import java.util.HashMap;
 import java.lang.IllegalArgumentException;
 import java.util.List;
 import java.util.ArrayList;
-import fortress.tfol.*;
+import fortress.msfol.*;
 import fortress.data.CartesianProduct;
 import fortress.util.Errors;
 

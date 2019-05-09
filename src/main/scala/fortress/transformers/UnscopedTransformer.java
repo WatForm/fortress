@@ -1,6 +1,6 @@
 package fortress.transformers;
 
-import fortress.tfol.*;
+import fortress.msfol.*;
 
 /**
 * A transformer that does nothing to the given theory.

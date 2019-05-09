@@ -4,7 +4,7 @@ import static org.junit.Assert.assertTrue;
 import org.junit.Test;
 import org.junit.Ignore;
 
-import fortress.tfol.*;
+import fortress.msfol.*;
 import fortress.transformers.*;
 import java.util.List;
 

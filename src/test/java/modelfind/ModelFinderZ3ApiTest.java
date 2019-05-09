@@ -4,7 +4,7 @@ import static org.junit.Assert.assertNull;
 import org.junit.Test;
 import org.junit.Ignore;
 
-import fortress.tfol.*;
+import fortress.msfol.*;
 import fortress.modelfind.*;
 import fortress.transformers.*;
 

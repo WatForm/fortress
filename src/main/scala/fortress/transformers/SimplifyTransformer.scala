@@ -1,6 +1,6 @@
 package fortress.transformers
 
-import fortress.tfol._
+import fortress.msfol._
 
 /** Applies a simplification to the formulas in a theory, replacing them with equivalent formulas.
   * All other aspects of the theory remain unchanged. */

@@ -9,8 +9,8 @@ import com.microsoft.z3.{
     BoolExpr => Z3BoolExpr
 }
 
-import fortress.tfol._
-import fortress.tfol.operations.TermVisitorWithTypeContext
+import fortress.msfol._
+import fortress.msfol.operations.TermVisitorWithTypeContext
 
 import scala.collection.JavaConverters._
 

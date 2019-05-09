@@ -3,7 +3,7 @@ import org.junit.Test;
 import org.junit.Ignore;
 
 import fortress.inputs.*;
-import fortress.tfol.*;
+import fortress.msfol.*;
 import java.util.List;
 import java.util.ArrayList;
 import java.io.*;

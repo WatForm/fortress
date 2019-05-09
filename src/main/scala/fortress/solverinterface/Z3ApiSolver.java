@@ -2,7 +2,7 @@ package fortress.solverinterface;
 
 import java.io.*;
 
-import fortress.tfol.*;
+import fortress.msfol.*;
 import fortress.outputs.*;
 import fortress.util.Pair;
 import fortress.util.StopWatch;

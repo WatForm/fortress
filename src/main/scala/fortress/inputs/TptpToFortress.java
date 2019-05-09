@@ -2,7 +2,7 @@ package fortress.inputs;
 
 import org.antlr.v4.runtime.tree.TerminalNode;
 
-import fortress.tfol.*;
+import fortress.msfol.*;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Set;

@@ -1,6 +1,6 @@
 package fortress.transformers
 
-import fortress.tfol._
+import fortress.msfol._
 
 /** Changes each axiom of the theory into negation normal form.
   * All other aspects of the theory remain unchanged. */

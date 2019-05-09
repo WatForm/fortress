@@ -1,4 +1,4 @@
-package fortress.tfol
+package fortress.msfol
 
 import scala.collection.immutable.Seq // Use immutable seq by default
 

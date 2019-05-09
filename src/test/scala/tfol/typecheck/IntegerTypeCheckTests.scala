@@ -2,9 +2,9 @@ import org.scalatest._
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
-import fortress.tfol._
+import fortress.msfol._
 import fortress.transformers._
-import fortress.tfol.IntegerExtension._
+import fortress.msfol.IntegerExtension._
 
 @RunWith(classOf[JUnitRunner])
 class IntegerTypeCheckTests extends FunSuite with Matchers {
