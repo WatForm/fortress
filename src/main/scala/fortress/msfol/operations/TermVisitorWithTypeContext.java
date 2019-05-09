@@ -29,7 +29,7 @@ public abstract class TermVisitorWithTypeContext<T> implements TermVisitor<T> {
         // List[v: B, v: A], and the term will fail to typecheck if p : A -> Bool
         // since the use of v will have type B
         for(AnnotatedVar av : typeContextStack) {
-            if(av.getName().equals(variable.getName())) {
+            if(av.name().equals(variable.name())) {
                 return Optional.of(av.sort());
             }
         }
@@ -51,14 +51,14 @@ public abstract class TermVisitorWithTypeContext<T> implements TermVisitor<T> {
         // Must put variables on context stack in this order
         // e.g. (forall v: A v: B, p(v)), the context should be
         // List[v: B, v: A]
-        for(AnnotatedVar av : forall.getVars()) {
+        for(AnnotatedVar av : forall.varsJava()) {
             typeContextStack.addFirst(av);
         }
         
         T result = visitForallInner(forall);
         
         // Pop context stack
-        for(AnnotatedVar av : forall.getVars()) {
+        for(AnnotatedVar av : forall.varsJava()) {
             typeContextStack.removeFirst();
         }
         
@@ -70,14 +70,14 @@ public abstract class TermVisitorWithTypeContext<T> implements TermVisitor<T> {
         // Must put variables on context stack in this order
         // e.g. (forall v: A v: B, p(v)), the context should be
         // List[v: B, v: A]
-        for(AnnotatedVar av : exists.getVars()) {
+        for(AnnotatedVar av : exists.varsJava()) {
             typeContextStack.addFirst(av);
         }
         
         T result = visitExistsInner(exists);
         
         // Pop context stack
-        for(AnnotatedVar av : exists.getVars()) {
+        for(AnnotatedVar av : exists.varsJava()) {
             typeContextStack.removeFirst();
         }
         

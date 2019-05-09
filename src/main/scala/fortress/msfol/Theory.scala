@@ -127,18 +127,9 @@ case class Theory private (signature: Signature, scopes: Map[Sort, Int], axioms:
     
     // End of published interface
     
-    def getAxioms: java.util.Set[Term] = axioms.asJava
-    
     def sorts: Set[Sort] = signature.sorts
-    
-    def getConstants: java.util.Set[AnnotatedVar] = signature.getConstants
-    
-    def getFunctionDeclarations: java.util.Set[FuncDecl] = signature.getFunctionDeclarations
-        
-    def getSignature: Signature = signature
     def functionDeclarations: Set[FuncDecl] = signature.functionDeclarations
     def constants: Set[AnnotatedVar] = signature.constants
-    
     def enumConstants: Map[Sort, Seq[EnumValue]] = signature.enumConstants
     
     def withoutAxioms: Theory = Theory(signature, scopes, Set.empty)
@@ -151,7 +142,7 @@ case class Theory private (signature: Signature, scopes: Map[Sort, Int], axioms:
         result.sanitizedTerm
     }
     
-    override def toString(): String = "\n" + signature.toString + " Axioms <<\n" + axioms.mkString("\n") + ">>\n"
+    override def toString: String = "\n" + signature.toString + " Axioms <<\n" + axioms.mkString("\n") + ">>\n"
     
 }
 

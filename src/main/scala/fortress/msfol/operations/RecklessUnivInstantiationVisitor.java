@@ -96,7 +96,7 @@ public class RecklessUnivInstantiationVisitor implements TermVisitor<Term> {
         // and the list [x_1, x_2, ..., x_n]
         List<List<Term>> listOfSortSets = new ArrayList<>();
         List<Var> vars = new ArrayList<>();
-        for(AnnotatedVar av: forall.getVars()) {
+        for(AnnotatedVar av: forall.varsJava()) {
             Sort sort = av.sort();
             listOfSortSets.add(sortInstantiations.get(sort));
             vars.add(av.variable());

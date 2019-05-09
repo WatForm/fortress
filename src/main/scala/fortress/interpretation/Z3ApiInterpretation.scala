@@ -35,9 +35,9 @@ class Z3ApiInterpretation(model: Z3Model, sig: Signature, sortMappings: Map[Z3Ex
 
     var sortInterpretations: Map[Sort, Seq[Value]] = (
         for {
-            sort <- model.getSorts
-            t = Sort.mkSortConst(sort.getName.toString) if sig.hasSort(t) 
-        } yield t -> ((1 to model.getSortUniverse(sort).length) map { Term.mkDomainElement(_,t) })
+            z3Sort <- model.getSorts
+            t = Sort.mkSortConst(z3Sort.getName.toString) if sig.hasSort(t) 
+        } yield t -> ((1 to model.getSortUniverse(z3Sort).length) map { Term.mkDomainElement(_,t) })
     ).toMap
 
     var functionInterpretations: Map[fortress.msfol.FuncDecl, ListMap[Seq[Value], Value]] = (

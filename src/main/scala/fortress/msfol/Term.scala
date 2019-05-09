@@ -79,7 +79,6 @@ sealed abstract class Term {
       * function names, and sort names that appear on variable bindings.
       */
     def allSymbols: Set[String] = AllSymbols(this)
-    def allSymbolsJava: java.util.Set[String] = allSymbols.asJava
     
     // Be aware if you chain this method together, you will get several nested AndLists
     def and(other: Term): Term = AndList(Seq(this, other))
@@ -114,12 +113,10 @@ case class Var(name: String) extends Term with LeafTerm {
     Errors.precondition(! Names.isIllegal(name), "Illegal variable name " + name)
     
     override def toString: String = name
-    def getName: String = name
     override def accept[T](visitor: TermVisitor[T]): T = visitor.visitVar(this)
     
     /** Returns an AnnotatedVar that represents this variable annotated with
-      * with a sort.
-      */
+      * with a sort. */
     def of(sort: Sort) = AnnotatedVar(this, sort)
 }
 
@@ -128,7 +125,6 @@ case class EnumValue(name: String) extends Term with LeafTerm with Value {
     Errors.precondition(! Names.isIllegal(name))
     
     override def toString: String = name
-    def getName: String = name
     override def accept[T](visitor: TermVisitor[T]): T = visitor.visitEnumValue(this)
 }
 
@@ -140,7 +136,6 @@ case class EnumValue(name: String) extends Term with LeafTerm with Value {
   * a quantifier declares it bound.
   */
 case class AnnotatedVar(variable: Var, sort: Sort) {
-    def getName: String = variable.name
     def name: String = variable.name
     
     override def toString: String = variable.toString + ": " + sort.toString
@@ -148,7 +143,6 @@ case class AnnotatedVar(variable: Var, sort: Sort) {
 
 /** Represents a negation. */
 case class Not(body: Term) extends Term {
-    def getBody: Term = body
     override def accept[T](visitor: TermVisitor[T]): T = visitor.visitNot(this)
     def mapBody(mapping: Term => Term): Term = Not(mapping(body))
     
@@ -159,7 +153,6 @@ case class Not(body: Term) extends Term {
 case class AndList private (arguments: Seq[Term]) extends Term {
     Errors.precondition(arguments.size >= 2)
     
-    def getArguments: java.util.List[Term] = arguments.asJava
     override def accept[T](visitor: TermVisitor[T]): T = visitor.visitAndList(this)
     def mapArguments(mapping: Term => Term): Term =
         AndList(arguments.map(mapping))
@@ -180,7 +173,6 @@ object And {
 case class OrList private (arguments: Seq[Term]) extends Term {
     Errors.precondition(arguments.size >= 2)
     
-    def getArguments: java.util.List[Term] = arguments.asJava
     override def accept[T](visitor: TermVisitor[T]): T = visitor.visitOrList(this)
     def mapArguments(mapping: Term => Term): Term =
         OrList(arguments.map(mapping))
@@ -201,7 +193,6 @@ object Or {
 case class Distinct(arguments: Seq[Term]) extends Term {
     Errors.precondition(arguments.size >= 2)
     
-    def getArguments: java.util.List[Term] = arguments.asJava
     override def accept[T](visitor: TermVisitor[T]): T = visitor.visitDistinct(this)
     def mapArguments(mapping: Term => Term): Term =
         Distinct(arguments.map(mapping))
@@ -232,8 +223,6 @@ object Distinct {
 
 /** Represents an implication. */
 case class Implication(left: Term, right: Term) extends Term {
-    def getLeft: Term = left
-    def getRight: Term = right
     override def accept[T](visitor: TermVisitor[T]): T = visitor.visitImplication(this)
     def mapArguments(mapping: Term => Term): Term =
         Implication(mapping(left), mapping(right))
@@ -254,8 +243,6 @@ case class Iff(left: Term, right: Term) extends Term {
 
 /** Represents an equality. */
 case class Eq(left: Term, right: Term) extends Term {
-    def getLeft: Term = left
-    def getRight: Term = right
     override def accept[T](visitor: TermVisitor[T]): T = visitor.visitEq(this)
     def mapArguments(mapping: Term => Term): Term =
         Eq(mapping(left), mapping(right))
@@ -268,8 +255,6 @@ case class App(functionName: String, arguments: Seq[Term]) extends Term {
     Errors.precondition(functionName.length >= 1, "Empty function name")
     Errors.precondition(arguments.size >= 1, "Nullary function application " + functionName + " should be a Var")
     
-    def getArguments: java.util.List[Term] = arguments.asJava
-    def getFunctionName: String = functionName
     override def accept[T](visitor: TermVisitor[T]): T  = visitor.visitApp(this)
     def mapArguments(mapping: Term => Term): Term =
         App(functionName, arguments.map(mapping))
@@ -282,8 +267,8 @@ object App {
 }
 
 sealed abstract class Quantifier extends Term {
-    def getVars: java.util.List[AnnotatedVar]
-    def getBody: Term
+    def vars: Seq[AnnotatedVar]
+    def body: Term
     def mapBody(mapping: Term => Term): Term
 }
 
@@ -291,14 +276,14 @@ sealed abstract class Quantifier extends Term {
 case class Exists(vars: Seq[AnnotatedVar], body: Term) extends Quantifier {
     Errors.precondition(vars.size >= 1, "Quantifier must bind at least one variable");
     // Check variables distinct
-    Errors.precondition(vars.map(av => av.getName).toSet.size == vars.size, "Duplicate variable name in quantifier")
+    Errors.precondition(vars.map(av => av.name).toSet.size == vars.size, "Duplicate variable name in quantifier")
     
-    def getVars: java.util.List[AnnotatedVar] = vars.asJava
-    def getBody: Term = body
     override def accept[T](visitor: TermVisitor[T]): T = visitor.visitExists(this)
     def mapBody(mapping: Term => Term): Term = Exists(vars, mapping(body))
     
     override def toString: String = "exists " + vars.mkString(", ") + " . " + body.toString
+    
+    def varsJava: java.util.List[AnnotatedVar] = vars.asJava
 }
 
 object Exists {
@@ -309,14 +294,14 @@ object Exists {
 case class Forall(vars: Seq[AnnotatedVar], body: Term) extends Quantifier {
     Errors.precondition(vars.size >= 1, "Quantifier must bind at least one variable")
     // Check variables distinct
-    Errors.precondition(vars.map(av => av.getName).toSet.size == vars.size, "Duplicate variable name in quantifier")
+    Errors.precondition(vars.map(av => av.name).toSet.size == vars.size, "Duplicate variable name in quantifier")
     
-    def getVars: java.util.List[AnnotatedVar] = vars.asJava
-    def getBody: Term = body
     override def accept[T](visitor: TermVisitor[T]): T = visitor.visitForall(this)
     def mapBody(mapping: Term => Term): Term = Forall(vars, mapping(body))
     
     override def toString: String = "exists " + vars.mkString(", ") + " . " + body.toString
+    
+    def varsJava: java.util.List[AnnotatedVar] = vars.asJava
 }
 
 object Forall {

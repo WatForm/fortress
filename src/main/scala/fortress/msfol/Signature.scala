@@ -113,15 +113,6 @@ case class Signature private (
     
     override def hasFunctionWithNameBase(name: String): Boolean = (extensions.exists(_.hasFunctionWithName(name))) || functionDeclarations.exists(_.name == name)
     
-    private[msfol]
-    def getConstants: java.util.Set[AnnotatedVar] = constants.asJava
-    
-    private[msfol]
-    def getFunctionDeclarations: java.util.Set[FuncDecl] = functionDeclarations.asJava
-    
-    private[msfol]
-    def getSorts: java.util.Set[Sort] = sorts.asJava
-    
     def withIntegers: Signature = Signature(sorts, functionDeclarations, constants, enumConstants, extensions + IntegerExtension)
     
     def withoutEnums = Signature(sorts, functionDeclarations, constants, Map.empty, extensions)

@@ -74,6 +74,6 @@ public class Z3ApiSolver extends SolverTemplate {
 
     public Interpretation getInstance(Theory theory) {
         Errors.assertion(null != lastModel, "There is no current instance");
-        return new Z3ApiInterpretation(lastModel, theory.getSignature());
+        return new Z3ApiInterpretation(lastModel, theory.signature());
     }
 }
