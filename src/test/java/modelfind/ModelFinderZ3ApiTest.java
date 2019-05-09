@@ -19,17 +19,17 @@ public class ModelFinderZ3ApiTest {
     Var x = Term.mkVar("x");
     Var socrates = Term.mkVar("socrates");
     
-    Type U = Type.mkTypeConst("U");
+    Sort U = Sort.mkSortConst("U");
     
-    FuncDecl Human = FuncDecl.mkFuncDecl("Human", U, Type.Bool());
-    FuncDecl Mortal = FuncDecl.mkFuncDecl("Mortal", U, Type.Bool());
+    FuncDecl Human = FuncDecl.mkFuncDecl("Human", U, Sort.Bool());
+    FuncDecl Mortal = FuncDecl.mkFuncDecl("Mortal", U, Sort.Bool());
     
     // Propositional tests
     
     @Test
     public void propSat1() throws IOException {
         Theory theory = Theory.empty()
-            .withConstant(p.of(Type.Bool()))
+            .withConstant(p.of(Sort.Bool()))
             .withAxiom(Term.mkAnd(p, p));
         
         ModelFinder finder = ModelFinder.createDefault();
@@ -41,7 +41,7 @@ public class ModelFinderZ3ApiTest {
     @Test
     public void propUnsat1() throws IOException {
         Theory theory = Theory.empty()
-            .withConstant(p.of(Type.Bool()))
+            .withConstant(p.of(Sort.Bool()))
             .withAxiom(Term.mkAnd(p, Term.mkNot(p)));
         
         ModelFinder finder = ModelFinder.createDefault();
@@ -53,7 +53,7 @@ public class ModelFinderZ3ApiTest {
     @Test
     public void propUnsat2() throws IOException {
         Theory theory = Theory.empty()
-            .withConstants(p.of(Type.Bool()), q.of(Type.Bool()))
+            .withConstants(p.of(Sort.Bool()), q.of(Sort.Bool()))
             .withAxiom(Term.mkNot(Term.mkImp(Term.mkAnd(p, q), q)));
         
         ModelFinder finder = ModelFinder.createDefault();
@@ -65,7 +65,7 @@ public class ModelFinderZ3ApiTest {
     @Test
     public void propSat2() throws IOException {
         Theory theory = Theory.empty()
-            .withConstants(p.of(Type.Bool()), q.of(Type.Bool()))
+            .withConstants(p.of(Sort.Bool()), q.of(Sort.Bool()))
             .withAxiom(Term.mkNot(Term.mkImp(Term.mkOr(p, q), q)));
         
         ModelFinder finder = ModelFinder.createDefault();
@@ -85,7 +85,7 @@ public class ModelFinderZ3ApiTest {
         Term conjecture = Term.mkApp("Mortal", socrates);
         
         Theory theory = Theory.empty()
-            .withType(U)
+            .withSort(U)
             .withConstant(socrates.of(U))
             .withFunctionDeclarations(Human, Mortal)
             .withAxiom(premise1)

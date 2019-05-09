@@ -12,10 +12,10 @@ import fortress.util.Errors;
 // TODO this could be made much more efficient
 
 public class RecklessUnivInstantiationVisitor implements TermVisitor<Term> {
-    private Map<Type, List<Term>> typeInstantiations;
+    private Map<Sort, List<Term>> sortInstantiations;
     
-    public RecklessUnivInstantiationVisitor(Map<Type, List<Term>> typeInstantiations) {
-        this.typeInstantiations = typeInstantiations;
+    public RecklessUnivInstantiationVisitor(Map<Sort, List<Term>> sortInstantiations) {
+        this.sortInstantiations = sortInstantiations;
     }
     
     @Override
@@ -83,10 +83,10 @@ public class RecklessUnivInstantiationVisitor implements TermVisitor<Term> {
     
     @Override
     public Term visitForall(Forall forall) {
-        // TODO this assumes each type is instantiated, which we may change later
+        // TODO this assumes each sort is instantiated, which we may change later
         
         // TODO does the order of quantifier instantiation matter? Here we do a bottom up approach
-        Term body = visit(forall.getBody());
+        Term body = visit(forall.body());
         
         List<Term> toConjunct = new ArrayList<>();
         
@@ -94,15 +94,15 @@ public class RecklessUnivInstantiationVisitor implements TermVisitor<Term> {
         // Where A_i is to be instantiated using the set S_i
         // Get the list [S_1, S_2, ..., S_n]
         // and the list [x_1, x_2, ..., x_n]
-        List<List<Term>> listOfTypeSets = new ArrayList<>();
+        List<List<Term>> listOfSortSets = new ArrayList<>();
         List<Var> vars = new ArrayList<>();
         for(AnnotatedVar av: forall.getVars()) {
-            Type type = av.getType();
-            listOfTypeSets.add(typeInstantiations.get(type));
-            vars.add(av.getVar());
+            Sort sort = av.sort();
+            listOfSortSets.add(sortInstantiations.get(sort));
+            vars.add(av.variable());
         }
         
-        CartesianProduct<Term> cartesianProduct = new CartesianProduct<>(listOfTypeSets);
+        CartesianProduct<Term> cartesianProduct = new CartesianProduct<>(listOfSortSets);
         for(List<Term> substitution : cartesianProduct) {
             Errors.verify(substitution.size() == vars.size());
             

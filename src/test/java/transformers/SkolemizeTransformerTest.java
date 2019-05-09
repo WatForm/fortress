@@ -15,8 +15,8 @@ public class SkolemizeTransformerTest {
     
     TheoryTransformer skolemizer = new SkolemizeTransformer();
     
-    Type A = Type.mkTypeConst("A");
-    Type B = Type.mkTypeConst("B");
+    Sort A = Sort.mkSortConst("A");
+    Sort B = Sort.mkSortConst("B");
     
     Var p = Term.mkVar("p");
     Var q = Term.mkVar("q");
@@ -25,18 +25,18 @@ public class SkolemizeTransformerTest {
     Var z = Term.mkVar("z");
     
     FuncDecl f = FuncDecl.mkFuncDecl("f", A, A);
-    FuncDecl P = FuncDecl.mkFuncDecl("P", A, Type.Bool());
-    FuncDecl Q = FuncDecl.mkFuncDecl("Q", A, A, Type.Bool());
-    FuncDecl R = FuncDecl.mkFuncDecl("R", A, A, A, Type.Bool());
-    FuncDecl S = FuncDecl.mkFuncDecl("S", B, Type.Bool());
-    FuncDecl T = FuncDecl.mkFuncDecl("T", A, B, Type.Bool());
-    FuncDecl R_1 = FuncDecl.mkFuncDecl("R_1", A, A, B, Type.Bool());
+    FuncDecl P = FuncDecl.mkFuncDecl("P", A, Sort.Bool());
+    FuncDecl Q = FuncDecl.mkFuncDecl("Q", A, A, Sort.Bool());
+    FuncDecl R = FuncDecl.mkFuncDecl("R", A, A, A, Sort.Bool());
+    FuncDecl S = FuncDecl.mkFuncDecl("S", B, Sort.Bool());
+    FuncDecl T = FuncDecl.mkFuncDecl("T", A, B, Sort.Bool());
+    FuncDecl R_1 = FuncDecl.mkFuncDecl("R_1", A, A, B, Sort.Bool());
     
     Theory baseTheory = Theory.empty()
-        .withType(A)
-        .withType(B)
-        .withConstant(p.of(Type.Bool()))
-        .withConstant(q.of(Type.Bool()))
+        .withSort(A)
+        .withSort(B)
+        .withConstant(p.of(Sort.Bool()))
+        .withConstant(q.of(Sort.Bool()))
         .withFunctionDeclaration(f)
         .withFunctionDeclaration(P)
         .withFunctionDeclaration(Q)
@@ -200,11 +200,11 @@ public class SkolemizeTransformerTest {
         // The names sk_0 is used
         // The next name should be sk_1
         Theory theory = baseTheory
-            .withType(Type.mkTypeConst("sk_0"))
+            .withSort(Sort.mkSortConst("sk_0"))
             .withAxiom(Term.mkExists(y.of(A), Term.mkApp("P", y)));
                 
         Theory expected = baseTheory
-            .withType(Type.mkTypeConst("sk_0"))
+            .withSort(Sort.mkSortConst("sk_0"))
             .withConstant(Term.mkVar("sk_1").of(A))
             .withAxiom(Term.mkApp("P", Term.mkVar("sk_1")));
         
@@ -216,8 +216,8 @@ public class SkolemizeTransformerTest {
         // The names sk_0, sk_1, sk_2, sk_4, sk_5 are used
         // The next names should be sk_3 and sk_6
         Theory theory = baseTheory
-            .withType(Type.mkTypeConst("sk_0"))
-            .withFunctionDeclaration(FuncDecl.mkFuncDecl("sk_1", A, Type.Bool()))
+            .withSort(Sort.mkSortConst("sk_0"))
+            .withFunctionDeclaration(FuncDecl.mkFuncDecl("sk_1", A, Sort.Bool()))
             .withConstant(Term.mkVar("sk_2").of(A))
             .withAxiom(Term.mkForall(Term.mkVar("sk_4").of(A), Term.mkTop()))
             .withAxiom(Term.mkForall(Term.mkVar("sk_5").of(A), Term.mkTop()))
@@ -226,8 +226,8 @@ public class SkolemizeTransformerTest {
                 Term.mkForall(x.of(A), Term.mkExists(y.of(A), Term.mkApp("Q", x, y)))));
                 
         Theory expected = baseTheory
-            .withType(Type.mkTypeConst("sk_0"))
-            .withFunctionDeclaration(FuncDecl.mkFuncDecl("sk_1", A, Type.Bool()))
+            .withSort(Sort.mkSortConst("sk_0"))
+            .withFunctionDeclaration(FuncDecl.mkFuncDecl("sk_1", A, Sort.Bool()))
             .withConstant(Term.mkVar("sk_2").of(A))
             .withAxiom(Term.mkForall(Term.mkVar("sk_4").of(A), Term.mkTop()))
             .withAxiom(Term.mkForall(Term.mkVar("sk_5").of(A), Term.mkTop()))

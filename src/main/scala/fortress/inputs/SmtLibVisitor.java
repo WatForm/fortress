@@ -48,21 +48,21 @@ public class SmtLibVisitor extends SmtLibSubsetBaseVisitor {
         }
     }
     
-    private Type parseType(String name) {
+    private Sort parseSort(String name) {
         if(name.equals("Bool")) {
-            return Type.Bool();
+            return Sort.Bool();
         } else if(name.equals("Int")) {
-            return Type.Int();
+            return Sort.Int();
         } else {
-            return Type.mkTypeConst(name);
+            return Sort.mkSortConst(name);
         }
     }
     
 	@Override
     public Void visitDeclare_const(SmtLibSubsetParser.Declare_constContext ctx) {
         Var x = Term.mkVar(ctx.ID(0).getText());
-        Type type = parseType(ctx.ID(1).getText());
-        theory = theory.withConstant(x.of(type));
+        Sort sort = parseSort(ctx.ID(1).getText());
+        theory = theory.withConstant(x.of(sort));
         return null;
     }
 	
@@ -70,21 +70,21 @@ public class SmtLibVisitor extends SmtLibSubsetBaseVisitor {
     public Void visitDeclare_fun(SmtLibSubsetParser.Declare_funContext ctx) {
         int lastIndex = ctx.ID().size() - 1;
         String function = ctx.ID(0).getText();
-        String returnTypeText = ctx.ID(lastIndex).getText();
-        Type returnType = parseType(returnTypeText);
-        List<Type> argTypes = new ArrayList<>();
+        String returnSortText = ctx.ID(lastIndex).getText();
+        Sort returnSort = parseSort(returnSortText);
+        List<Sort> argSorts = new ArrayList<>();
         for(int i = 1; i < lastIndex; i++) {
-            argTypes.add(Type.mkTypeConst(ctx.ID(i).getText()));
+            argSorts.add(Sort.mkSortConst(ctx.ID(i).getText()));
         }
-        FuncDecl decl = FuncDecl.mkFuncDecl(function, argTypes, returnType);
+        FuncDecl decl = FuncDecl.mkFuncDecl(function, argSorts, returnSort);
         theory = theory.withFunctionDeclaration(decl);
         return null;
     }
     
     @Override
     public Void visitDeclare_sort(SmtLibSubsetParser.Declare_sortContext ctx) {
-        Type t = Type.mkTypeConst(ctx.ID().getText());
-        theory = theory.withType(t);
+        Sort t = Sort.mkSortConst(ctx.ID().getText());
+        theory = theory.withSort(t);
         return null;
     }
     
@@ -271,7 +271,7 @@ public class SmtLibVisitor extends SmtLibSubsetBaseVisitor {
 	@Override
     public AnnotatedVar visitBinding(SmtLibSubsetParser.BindingContext ctx) {
         Var x = Term.mkVar(ctx.ID(0).getText());
-        Type t = Type.mkTypeConst(ctx.ID(1).getText());
+        Sort t = Sort.mkSortConst(ctx.ID(1).getText());
         return x.of(t);
     }
     

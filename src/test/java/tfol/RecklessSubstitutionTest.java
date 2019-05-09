@@ -16,8 +16,8 @@ import fortress.util.Errors;
 
 public class RecklessSubstitutionTest {
     
-    Type A = Type.mkTypeConst("A");
-    Type B = Type.mkTypeConst("B");
+    Sort A = Sort.mkSortConst("A");
+    Sort B = Sort.mkSortConst("B");
     
     Var w = Term.mkVar("w");
     Var x = Term.mkVar("x");

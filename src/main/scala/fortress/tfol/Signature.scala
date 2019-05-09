@@ -12,33 +12,33 @@ import scala.collection.immutable.Seq // Use immutable seq by default
 // The constructor is private -- the only way to make signatures outside of this class
 // is through the empty and withXYZ methods 
 case class Signature private (
-    types: Set[Type],
+    sorts: Set[Sort],
     functionDeclarations: Set[FuncDecl],
     constants: Set[AnnotatedVar],
-    enumConstants: Map[Type, Seq[EnumValue]],
+    enumConstants: Map[Sort, Seq[EnumValue]],
     extensions: Set[SignatureExtension]
 ) extends ExtensibleTypeChecking {
     
     // TODO need to check this type is not builtin
-    def withType(t: Type): Signature = {
-        assertTypeConsistent(t)
-        Signature(types + t, functionDeclarations, constants, enumConstants, extensions)
+    def withSort(t: Sort): Signature = {
+        assertSortConsistent(t)
+        Signature(sorts + t, functionDeclarations, constants, enumConstants, extensions)
     }
     
-    def withTypes(types: java.lang.Iterable[Type]): Signature = {
+    def withSorts(sorts: java.lang.Iterable[Sort]): Signature = {
         var sig: Signature = this
-        types.forEach { t =>
-            sig = sig.withType(t)
+        sorts.forEach { t =>
+            sig = sig.withSort(t)
         }
         sig
     }
     
     @varargs
-    def withTypes(types: Type*): Signature = withTypes(types.asJava)
+    def withSorts(sorts: Sort*): Signature = withSorts(sorts.asJava)
     
     def withFunctionDeclaration(fdecl: FuncDecl): Signature = {
         assertFuncDeclConsistent(fdecl)
-        Signature(types, functionDeclarations + fdecl, constants, enumConstants, extensions)
+        Signature(sorts, functionDeclarations + fdecl, constants, enumConstants, extensions)
     }
     
     def withFunctionDeclarations(fdecls: java.lang.Iterable[FuncDecl]): Signature = {
@@ -46,7 +46,15 @@ case class Signature private (
         fdecls.forEach { f =>
             sig = sig.withFunctionDeclaration(f)
         }
-        return sig
+        sig
+    }
+    
+    def withFunctionDeclarations(fdecls: Iterable[FuncDecl]): Signature = {
+        var sig = this
+        fdecls.foreach { f =>
+            sig = sig.withFunctionDeclaration(f)
+        }
+        sig
     }
     
     @varargs
@@ -54,7 +62,7 @@ case class Signature private (
     
     def withConstant(c: AnnotatedVar): Signature = {
         assertConstConsistent(c);
-        Signature(types, functionDeclarations, constants + c, enumConstants, extensions)
+        Signature(sorts, functionDeclarations, constants + c, enumConstants, extensions)
     }
     
     def withConstants(constants: java.lang.Iterable[AnnotatedVar]): Signature = {
@@ -62,7 +70,7 @@ case class Signature private (
         constants.forEach { c =>
             sig = sig.withConstant(c)
         }
-        return sig
+        sig
     }
     
     def withConstants(constants: Iterable[AnnotatedVar]): Signature = {
@@ -70,38 +78,38 @@ case class Signature private (
         constants.foreach { c =>
             sig = sig.withConstant(c)
         }
-        return sig;
+        sig;
     }
     
     @varargs
     def withConstants(constants: AnnotatedVar*): Signature = withConstants(constants.asJava)
     
-    def withEnumType(t: Type, values: Seq[EnumValue]) = {
+    def withEnumSort(t: Sort, values: Seq[EnumValue]) = {
         // TODO more consistency checking
-        Signature(types + t, functionDeclarations, constants, enumConstants + (t -> values), extensions)
+        Signature(sorts + t, functionDeclarations, constants, enumConstants + (t -> values), extensions)
     }
     
-    def withEnumType(t: Type, values: java.util.List[EnumValue]) = {
+    def withEnumSort(t: Sort, values: java.util.List[EnumValue]) = {
         // TODO more consistency checking
-        Signature(types + t, functionDeclarations, constants, enumConstants + (t -> values.asScala.toList), extensions)
+        Signature(sorts + t, functionDeclarations, constants, enumConstants + (t -> values.asScala.toList), extensions)
     }
     
     // TypeChecking
     
     override def queryConstantBase(v: Var): Option[AnnotatedVar] = constants.find(_.variable == v)
     
-    override def queryEnumBase(e: EnumValue): Option[Type] = enumConstants.find {
+    override def queryEnumBase(e: EnumValue): Option[Sort] = enumConstants.find {
         case (sort, enumConstants) => enumConstants contains e
     }.map { case (sort, _) => sort }
     
-    override def queryFunctionBase(name: String, argTypes: Seq[Type]): Option[FuncDecl] =
-        functionDeclarations.find(fdecl => fdecl.getName == name && fdecl.argTypes == argTypes)
+    override def queryFunctionBase(name: String, argSorts: Seq[Sort]): Option[FuncDecl] =
+        functionDeclarations.find(fdecl => fdecl.name == name && fdecl.argSorts == argSorts)
     
     override def queryUninterpretedFunctionBase(name: String): Option[FuncDecl] = functionDeclarations.find(_.name == name)
     
-    override def hasTypeBase(sort: Type): Boolean = extensions.exists(_.hasType(sort)) || (types contains sort)
+    override def hasSortBase(sort: Sort): Boolean = extensions.exists(_.hasSort(sort)) || (sorts contains sort)
     
-    override def hasTypeWithNameBase(name: String): Boolean = extensions.exists(_.hasTypeWithName(name)) || types.exists(_.name == name)
+    override def hasSortWithNameBase(name: String): Boolean = extensions.exists(_.hasSortWithName(name)) || sorts.exists(_.name == name)
     
     override def hasFunctionWithNameBase(name: String): Boolean = (extensions.exists(_.hasFunctionWithName(name))) || functionDeclarations.exists(_.name == name)
     
@@ -112,74 +120,74 @@ case class Signature private (
     def getFunctionDeclarations: java.util.Set[FuncDecl] = functionDeclarations.asJava
     
     private[tfol]
-    def getTypes: java.util.Set[Type] = types.asJava
+    def getSorts: java.util.Set[Sort] = sorts.asJava
     
-    def withIntegers: Signature = Signature(types, functionDeclarations, constants, enumConstants, extensions + IntegerExtension)
+    def withIntegers: Signature = Signature(sorts, functionDeclarations, constants, enumConstants, extensions + IntegerExtension)
     
-    def withoutEnums = Signature(types, functionDeclarations, constants, Map.empty, extensions)
+    def withoutEnums = Signature(sorts, functionDeclarations, constants, Map.empty, extensions)
     
     private
-    def assertTypeConsistent(t: Type): Unit = {
-        // Type must not share a name with any function
+    def assertSortConsistent(t: Sort): Unit = {
+        // Sort must not share a name with any function
         Errors.precondition(! functionDeclarations.exists(
-            (fdecl: FuncDecl) => fdecl.getName == t.name
-        ), "Name " + t.name + " shared by type and function")
+            (fdecl: FuncDecl) => fdecl.name == t.name
+        ), "Name " + t.name + " shared by sort and function")
         
-        // Type must not share a name with any constant
+        // Sort must not share a name with any constant
         Errors.precondition(! constants.exists(
-            (c: AnnotatedVar) => c.getName == t.name
-        ), "Name " + t.name + " shared by type and constant")
+            (c: AnnotatedVar) => c.name == t.name
+        ), "Name " + t.name + " shared by sort and constant")
     }
     
     private 
     def assertConstConsistent(c: AnnotatedVar): Unit = {
-        // Constant's type must be within the set of types
-        Errors.precondition(types.contains(c.getType),
-            "Constant " + c.toString + " of undeclared type ")
+        // Constant's sort must be within the set of sorts
+        Errors.precondition(sorts contains c.sort,
+            "Constant " + c.toString + " of undeclared sort ")
         
-        // Constant's cannot share a name with a constant of a different type
+        // Constant's cannot share a name with a constant of a different sorts
         Errors.precondition(! constants.exists(
-            (otherConst: AnnotatedVar) => otherConst.getName == c.getName && otherConst != c
-        ), "Constant " + c.getName + " declared with two different types")
+            (otherConst: AnnotatedVar) => otherConst.name == c.name && otherConst != c
+        ), "Constant " + c.name + " declared with two different sorts")
         
         // Constant cannot share a name with any function 
         Errors.precondition(! functionDeclarations.exists(
-            (fdecl: FuncDecl) => fdecl.getName == c.getName
-        ), "Name " + c.getName + " shared by constant and function")
+            (fdecl: FuncDecl) => fdecl.name == c.name
+        ), "Name " + c.name + " shared by constant and function")
     }
     
     private
     def assertFuncDeclConsistent(fdecl: FuncDecl): Unit = {
-        // Argument types must exist in type set
-        Errors.precondition(fdecl.argTypes.forall(t => types.contains(t)),
-            "Function " + fdecl.getName + " has argument types that are undeclared")
+        // Argument sorts must exist in sort set
+        Errors.precondition(fdecl.argSorts.forall(t => sorts contains t),
+            "Function " + fdecl.name + " has argument sorts that are undeclared")
             
-        // Result type must exist in type set
-        Errors.precondition(types.contains(fdecl.getResultType),
-            "Function " + fdecl.getName + " has result type that is undeclared")
+        // Result sort must exist in sort set
+        Errors.precondition(sorts.contains(fdecl.resultSort),
+            "Function " + fdecl.name + " has result sort that is undeclared")
             
         // Function must not share name with a constant
         Errors.precondition(! constants.exists(
-            (c: AnnotatedVar) => c.getName == fdecl.getName
-        ), "Name " + fdecl.getName +  " shared by function and constant")
+            (c: AnnotatedVar) => c.name == fdecl.name
+        ), "Name " + fdecl.name +  " shared by function and constant")
         
-        // Function must not share name with a type
-        Errors.precondition(! types.exists(
-            (t: Type) => t.name == fdecl.getName
-        ), "Name " + fdecl.getName +  " shared by function and type")
+        // Function must not share name with a sort
+        Errors.precondition(! sorts.exists(
+            (t: Sort) => t.name == fdecl.name
+        ), "Name " + fdecl.name +  " shared by function and sort")
         
         // Function must not share name with another function, unless it is the same function
         Errors.precondition(! functionDeclarations.exists(
-            (otherFun: FuncDecl) => otherFun.getName == fdecl.getName && otherFun != fdecl
-        ), "Function " + fdecl.getName + " declared with two different types")
+            (otherFun: FuncDecl) => otherFun.name == fdecl.name && otherFun != fdecl
+        ), "Function " + fdecl.name + " declared with two different sorts")
     }
     
-    override def toString: String = "Signature <<\n" + types.mkString("\n") + "\n" + functionDeclarations.mkString("\n") + "\n" + constants.mkString("\n") +
+    override def toString: String = "Signature <<\n" + sorts.mkString("\n") + "\n" + functionDeclarations.mkString("\n") + "\n" + constants.mkString("\n") +
         "\nExtensions:\n" + extensions.mkString("\n") + ">>"
 }
 
 object Signature {
     def empty: Signature = 
         // For testing consistency for symmetry breaking, use an insertion ordered set
-        Signature(InsertionOrderedSet.empty[Type] + Type.Bool, InsertionOrderedSet.empty, InsertionOrderedSet.empty, Map(), Set())
+        Signature(InsertionOrderedSet.empty[Sort] + BoolSort, InsertionOrderedSet.empty, InsertionOrderedSet.empty, Map(), Set())
 }

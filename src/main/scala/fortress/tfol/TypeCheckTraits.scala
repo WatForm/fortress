@@ -5,16 +5,16 @@ import scala.collection.immutable.Seq // Use immutable seq by default
 import fortress.util.Errors
 
 trait TypeCheckQuerying {
-    def hasType(sort: Type): Boolean
-    def hasTypeWithName(name: String): Boolean
+    def hasSort(sort: Sort): Boolean
+    def hasSortWithName(name: String): Boolean
     def hasFunctionWithName(name: String): Boolean
-    def queryFunction(name: String, argTypes: Seq[Type]): Option[FuncDecl]
+    def queryFunction(name: String, argSorts: Seq[Sort]): Option[FuncDecl]
     def queryConstant(v: Var): Option[AnnotatedVar]
-    def queryEnum(e: EnumValue): Option[Type]
+    def queryEnum(e: EnumValue): Option[Sort]
     def queryUninterpretedFunction(name: String): Option[FuncDecl]
     
-    def queryFunctionJava(name: String, argTypes: java.util.List[Type]): java.util.Optional[FuncDecl] =
-        queryFunction(name, argTypes.asScala.toList) match {
+    def queryFunctionJava(name: String, argSorts: java.util.List[Sort]): java.util.Optional[FuncDecl] =
+        queryFunction(name, argSorts.asScala.toList) match {
             case Some(fdecl) => java.util.Optional.of[FuncDecl](fdecl)
             case None => java.util.Optional.empty[FuncDecl]()
         }
@@ -25,10 +25,10 @@ trait TypeCheckQuerying {
             case None => java.util.Optional.empty[AnnotatedVar]
         }
         
-    def queryEnumJava(e: EnumValue): java.util.Optional[Type] =
+    def queryEnumJava(e: EnumValue): java.util.Optional[Sort] =
         queryEnum(e) match {
             case Some(t) => java.util.Optional.of(t)
-            case None => java.util.Optional.empty[Type]
+            case None => java.util.Optional.empty[Sort]
         }
     
     def queryUninterpretedFunctionJava(name: String): java.util.Optional[FuncDecl] =
@@ -41,28 +41,28 @@ trait TypeCheckQuerying {
 trait ExtensibleTypeChecking extends TypeCheckQuerying {
     def extensions: Set[SignatureExtension]
     
-    def hasTypeBase(sort: Type): Boolean
-    def hasTypeWithNameBase(name: String): Boolean
+    def hasSortBase(sort: Sort): Boolean
+    def hasSortWithNameBase(name: String): Boolean
     def hasFunctionWithNameBase(name: String): Boolean
-    def queryFunctionBase(name: String, argTypes: Seq[Type]): Option[FuncDecl]
+    def queryFunctionBase(name: String, argSorts: Seq[Sort]): Option[FuncDecl]
     def queryConstantBase(v: Var): Option[AnnotatedVar]
-    def queryEnumBase(e: EnumValue): Option[Type]
+    def queryEnumBase(e: EnumValue): Option[Sort]
     def queryUninterpretedFunctionBase(name: String): Option[FuncDecl]
     
-    override def hasType(sort: Type): Boolean =
-        extensions.exists(_.hasType(sort)) || hasTypeBase(sort)
+    override def hasSort(sort: Sort): Boolean =
+        extensions.exists(_.hasSort(sort)) || hasSortBase(sort)
     
-    override def hasTypeWithName(name: String): Boolean =
-        extensions.exists(_.hasTypeWithName(name)) || hasTypeWithNameBase(name)
+    override def hasSortWithName(name: String): Boolean =
+        extensions.exists(_.hasSortWithName(name)) || hasSortWithNameBase(name)
     
     override def hasFunctionWithName(name: String): Boolean =
         extensions.exists(_.hasFunctionWithName(name)) || hasFunctionWithNameBase(name)
     
-    override def queryFunction(name: String, argTypes: Seq[Type]): Option[FuncDecl] = {
-        val matches: Set[FuncDecl] = extensions.flatMap(extension => extension.queryFunction(name, argTypes))
-        Errors.assertion(matches.size <= 1, "Found multiple matches to function " + name + ": " + argTypes)
+    override def queryFunction(name: String, argSorts: Seq[Sort]): Option[FuncDecl] = {
+        val matches: Set[FuncDecl] = extensions.flatMap(extension => extension.queryFunction(name, argSorts))
+        Errors.assertion(matches.size <= 1, "Found multiple matches to function " + name + ": " + argSorts)
         if(matches.nonEmpty) Some(matches.head)
-        else queryFunctionBase(name, argTypes)
+        else queryFunctionBase(name, argSorts)
     }
     
     override def queryConstant(v: Var): Option[AnnotatedVar] = {
@@ -72,8 +72,8 @@ trait ExtensibleTypeChecking extends TypeCheckQuerying {
         else queryConstantBase(v)
     }
     
-    override def queryEnum(e: EnumValue): Option[Type] = {
-        val matches: Set[Type] = extensions.flatMap(extension => extension.queryEnum(e))
+    override def queryEnum(e: EnumValue): Option[Sort] = {
+        val matches: Set[Sort] = extensions.flatMap(extension => extension.queryEnum(e))
         Errors.assertion(matches.size <= 1, "Found multiple matches for enum " + e.name)
         if(matches.nonEmpty) Some(matches.head)
         else queryEnumBase(e)

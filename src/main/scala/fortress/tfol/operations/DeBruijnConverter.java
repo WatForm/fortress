@@ -98,7 +98,7 @@ public class DeBruijnConverter {
         
         private void pushVar(AnnotatedVar av) {
             counter++;
-            Mapping m = new Mapping(counter, av.getVar());
+            Mapping m = new Mapping(counter, av.variable());
             mappingStack.addFirst(m);
         }
         
@@ -112,7 +112,7 @@ public class DeBruijnConverter {
             List<AnnotatedVar> newVars = new ArrayList<>();
             for(AnnotatedVar av : exists.getVars()) {
                 pushVar(av);
-                newVars.add(Term.mkVar("_" + Integer.toString(counter)).of(av.getType()));
+                newVars.add(Term.mkVar("_" + Integer.toString(counter)).of(av.sort()));
             }
             
             Term body = visit(exists.getBody());
@@ -130,7 +130,7 @@ public class DeBruijnConverter {
             List<AnnotatedVar> newVars = new ArrayList<>();
             for(AnnotatedVar av : forall.getVars()) {
                 pushVar(av);
-                newVars.add(Term.mkVar("_" + Integer.toString(counter)).of(av.getType()));
+                newVars.add(Term.mkVar("_" + Integer.toString(counter)).of(av.sort()));
             }
             
             Term body = visit(forall.getBody());

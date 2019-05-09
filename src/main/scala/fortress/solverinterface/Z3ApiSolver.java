@@ -26,9 +26,9 @@ public class Z3ApiSolver extends SolverTemplate {
     
     @Override
     protected void convertTheory(Theory theory, Writer log) { 
-        Pair<Context, Solver> pair = new TheoryToZ3Java(theory).convert();
-        context = pair.left;
-        solver = pair.right;
+        var pair = new TheoryToZ3Java(theory).convert();
+        context = pair._1();
+        solver = pair._2();
     }
     
     @Override

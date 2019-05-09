@@ -60,17 +60,17 @@ public class SmtLibParserTest {
         
         Theory expectedTheory = Theory.empty();
         
-        Type A = Type.mkTypeConst("A");
-        Type B = Type.mkTypeConst("B");
-        expectedTheory = expectedTheory.withType(A);
-        expectedTheory = expectedTheory.withType(B);
+        Sort A = Sort.mkSortConst("A");
+        Sort B = Sort.mkSortConst("B");
+        expectedTheory = expectedTheory.withSort(A);
+        expectedTheory = expectedTheory.withSort(B);
         
         Var x = Term.mkVar("x");
         Var y = Term.mkVar("y");
         expectedTheory = expectedTheory.withConstant(x.of(A));
         expectedTheory = expectedTheory.withConstant(y.of(B));
         
-        FuncDecl p = FuncDecl.mkFuncDecl("p", A, B, Type.Bool());
+        FuncDecl p = FuncDecl.mkFuncDecl("p", A, B, Sort.Bool());
         expectedTheory = expectedTheory.withFunctionDeclaration(p);
         
         expectedTheory = expectedTheory.withAxiom(Term.mkApp("p", x, y));
@@ -80,7 +80,7 @@ public class SmtLibParserTest {
         expectedTheory = expectedTheory.withAxiom(Term.mkExists(x.of(A), Term.mkTop()));
         
         Var q = Term.mkVar("q");
-        expectedTheory = expectedTheory.withConstant(q.of(Type.Bool()));
+        expectedTheory = expectedTheory.withConstant(q.of(Sort.Bool()));
         
         expectedTheory = expectedTheory.withAxiom(Term.mkOr(q, Term.mkNot(q)));
         
@@ -125,8 +125,8 @@ public class SmtLibParserTest {
         SmtLibParser parser = new SmtLibParser();
         Theory resultTheory = parser.parse(fileStream);
         
-        Type V = Type.mkTypeConst("V");
-        FuncDecl adj = FuncDecl.mkFuncDecl("adj", V, V, Type.Bool());
+        Sort V = Sort.mkSortConst("V");
+        FuncDecl adj = FuncDecl.mkFuncDecl("adj", V, V, Sort.Bool());
         
         Var u = Term.mkVar("u");
         Var v = Term.mkVar("v");
@@ -145,7 +145,7 @@ public class SmtLibParserTest {
                     Term.mkApp("adj", x2, x3)))));
         
         Theory expected = Theory.empty()
-            .withType(V)
+            .withSort(V)
             .withFunctionDeclaration(adj)
             .withAxiom(undirected)
             .withAxiom(loopless)

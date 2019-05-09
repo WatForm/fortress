@@ -6,10 +6,10 @@ import fortress.tfol._
 import fortress.util.Errors
 
 /** Replaces enum values with domain elements, following the mapping from the
-  * computeEnumTypeMapping method. */
+  * computeEnumSortMapping method. */
 class EnumEliminationTransformer() extends TheoryTransformer {
     override def apply(theory: Theory): Theory = {
-        val mapping = computeEnumTypeMapping(theory)
+        val mapping = computeEnumSortMapping(theory)
         
         // Since we are replacing with domain elements, which cannot be in
         // quantifiers, we do not need to worry about variable capture in
@@ -23,7 +23,7 @@ class EnumEliminationTransformer() extends TheoryTransformer {
             .withAxioms(newAxioms)
     }
     
-    def computeEnumTypeMapping(theory: Theory): Map[EnumValue, DomainElement] = {
+    def computeEnumSortMapping(theory: Theory): Map[EnumValue, DomainElement] = {
         val mapping = scala.collection.mutable.Map[EnumValue, DomainElement]()
         for((sort, enumConstants) <- theory.enumConstants) {
             enumConstants.zipWithIndex.foreach { case (constant, index) =>
@@ -33,5 +33,5 @@ class EnumEliminationTransformer() extends TheoryTransformer {
         mapping.toMap
     }
     
-    override def getName: String = "Enum Elimination Transformer"
+    override def name: String = "Enum Elimination Transformer"
 }

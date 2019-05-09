@@ -11,12 +11,12 @@ import fortress.solverinterface._
 class EufSmtModelFinder(var solverStrategy: SolverStrategy) extends ModelFinder {
     
     var timeoutMilliseconds: Int = 60000
-    var analysisScopes: Map[Type, Int] = Map.empty
+    var analysisScopes: Map[Sort, Int] = Map.empty
     var instance: Option[Interpretation] = None
     var log: java.io.Writer = new java.io.PrintWriter(new fortress.data.NullOutputStream)
     var debug: Boolean = false
     var theory: Theory = Theory.empty
-    var enumTypeMapping: Map[EnumValue, DomainElement] = Map.empty
+    var enumSortMapping: Map[EnumValue, DomainElement] = Map.empty
     
     override def setTheory(newTheory: Theory): Unit = {
         theory = newTheory
@@ -27,7 +27,7 @@ class EufSmtModelFinder(var solverStrategy: SolverStrategy) extends ModelFinder 
         timeoutMilliseconds = milliseconds
     }
     
-    override def setAnalysisScope(t: Type, size: Int): Unit = {
+    override def setAnalysisScope(t: Sort, size: Int): Unit = {
         Errors.precondition(size >= 0)
         analysisScopes = analysisScopes + (t -> size)
     }
@@ -40,7 +40,7 @@ class EufSmtModelFinder(var solverStrategy: SolverStrategy) extends ModelFinder 
         log = logWriter
     }
     
-    private def usesEnumType(theory: Theory): Boolean = theory.axioms.exists(_.allEnumValues.nonEmpty)
+    private def usesEnumSort(theory: Theory): Boolean = theory.axioms.exists(_.allEnumValues.nonEmpty)
     
     override def checkSat(): ModelFinderResult = {
         // TODO check analysis and theory scopes consistent
@@ -54,10 +54,10 @@ class EufSmtModelFinder(var solverStrategy: SolverStrategy) extends ModelFinder 
         totalTimer.startFresh()
         
         val enumEliminationTransformer = new EnumEliminationTransformer
-        enumTypeMapping = enumEliminationTransformer.computeEnumTypeMapping(theory)
+        enumSortMapping = enumEliminationTransformer.computeEnumSortMapping(theory)
         
         val rangeFormulaTransformer =
-            if (usesEnumType(theory)) { new RangeFormulaTransformerNoSymBreak(analysisScopes ++ theory.scopes) }
+            if (usesEnumSort(theory)) { new RangeFormulaTransformerNoSymBreak(analysisScopes ++ theory.scopes) }
             else { new RangeFormulaTransformerLowSymBreak(analysisScopes ++ theory.scopes) }
         
         val transformerSequence = Seq(
@@ -72,7 +72,7 @@ class EufSmtModelFinder(var solverStrategy: SolverStrategy) extends ModelFinder 
         )
         
         def applyTransformer(transformer: TheoryTransformer, theory: Theory): Theory = {
-            log.write("Applying transformer: " + transformer.getName)
+            log.write("Applying transformer: " + transformer.name)
             log.write("... ")
             log.flush()
             transformationTimer.startFresh()
@@ -133,5 +133,5 @@ class EufSmtModelFinder(var solverStrategy: SolverStrategy) extends ModelFinder 
         r
     }
     
-    def viewModel: Interpretation = solverStrategy.getInstance(theory).viewModel(enumTypeMapping.map(_.swap))
+    def viewModel: Interpretation = solverStrategy.getInstance(theory).viewModel(enumSortMapping.map(_.swap))
 }

@@ -15,13 +15,13 @@ public abstract class TermVisitorWithTypeContext<T> implements TermVisitor<T> {
     }
     
     // For entering partway through a term traversal
-    protected TermVisitorWithTypeContext(Signature signature, Deque<AnnotatedVar> typeContextStack) {
+    protected TermVisitorWithTypeContext(Signature signature, Deque<AnnotatedVar> sortContextStack) {
         this.signature = signature;
         this.typeContextStack = typeContextStack;
     }
     
-    // Looks up variable type in context first, then tries constants
-    protected Optional<Type> lookupType(Var variable) {
+    // Looks up variable sort in context first, then tries constants
+    protected Optional<Sort> lookupSort(Var variable) {
         // Check if it is in the Context
         // Note that the context is used as a stack, so we just need to iterate
         // from front to back and not have to worry about shadowed variables.
@@ -30,14 +30,14 @@ public abstract class TermVisitorWithTypeContext<T> implements TermVisitor<T> {
         // since the use of v will have type B
         for(AnnotatedVar av : typeContextStack) {
             if(av.getName().equals(variable.getName())) {
-                return Optional.of(av.getType());
+                return Optional.of(av.sort());
             }
         }
         
         // If it is not in the stack, check if is in the declared constants
         Optional<AnnotatedVar> constMaybe = signature.queryConstantJava(variable);
         if(constMaybe.isPresent()) {
-            return Optional.of(constMaybe.get().getType());
+            return Optional.of(constMaybe.get().sort());
         }
         
         return Optional.empty();

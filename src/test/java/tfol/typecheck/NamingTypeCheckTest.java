@@ -7,8 +7,8 @@ import java.util.List;
 
 public class NamingTypeCheckTest {
     
-    Type A = Type.mkTypeConst("A");
-    Type B = Type.mkTypeConst("B");
+    Sort A = Sort.mkSortConst("A");
+    Sort B = Sort.mkSortConst("B");
     
     Var x = Term.mkVar("x");
     Var y = Term.mkVar("y");
@@ -16,12 +16,12 @@ public class NamingTypeCheckTest {
     Var p = Term.mkVar("p");
     Var q = Term.mkVar("q");
     
-    FuncDecl P = FuncDecl.mkFuncDecl("P", A, Type.Bool());
-    FuncDecl Q = FuncDecl.mkFuncDecl("Q", B, Type.Bool());
+    FuncDecl P = FuncDecl.mkFuncDecl("P", A, Sort.Bool());
+    FuncDecl Q = FuncDecl.mkFuncDecl("Q", B, Sort.Bool());
     FuncDecl f = FuncDecl.mkFuncDecl("f", A, B);
     FuncDecl g = FuncDecl.mkFuncDecl("g", B, A);
-    FuncDecl h = FuncDecl.mkFuncDecl("h", Type.Bool(), Type.Bool());
-    FuncDecl R = FuncDecl.mkFuncDecl("R", A, A, Type.Bool());
+    FuncDecl h = FuncDecl.mkFuncDecl("h", Sort.Bool(), Sort.Bool());
+    FuncDecl R = FuncDecl.mkFuncDecl("R", A, A, Sort.Bool());
     
     // Naming tests
     
@@ -30,22 +30,22 @@ public class NamingTypeCheckTest {
     @Test(expected = fortress.data.TypeCheckException.NameConflict.class)
     public void clashingVarFunction() {
         Signature sig = Signature.empty()
-            .withTypes(A)
+            .withSorts(A)
             .withConstants()
             .withFunctionDeclarations(P);
         Var xp = Term.mkVar("P"); // name clashes with function name
-        Term t = Term.mkForall(xp.of(Type.Bool()), xp);
+        Term t = Term.mkForall(xp.of(Sort.Bool()), xp);
         t.typeCheck(sig);
     }
     
     @Test(expected = fortress.data.TypeCheckException.NameConflict.class)
-    public void clashingVarType() {
+    public void clashingVarSort() {
         Signature sig = Signature.empty()
-            .withTypes(A)
+            .withSorts(A)
             .withConstants()
             .withFunctionDeclarations(P);
         Var xp = Term.mkVar("A"); // name clashes with type name
-        Term t = Term.mkForall(xp.of(Type.Bool()), xp);
+        Term t = Term.mkForall(xp.of(Sort.Bool()), xp);
         t.typeCheck(sig);
     }
     

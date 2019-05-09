@@ -11,13 +11,13 @@ import java.util.stream.Collectors;
 
 
  // Visits a parse tree and constructs a theory
- // Only visits untyped FOL formulas; generates a typed theory
- // with a single type _UNIV
+ // Only visits unsorted FOL formulas; generates a sorted theory
+ // with a single sorted _UNIV
 public class TptpToFortress extends FOFTPTPBaseVisitor {
 
     private Theory theory;
 
-    private Type universeType = Type.mkTypeConst("_UNIV");
+    private Sort universeSort = Sort.mkSortConst("_UNIV");
     private List<Term> formulas;
     private Set<FuncDecl> functionDeclarations;
     private Set<Var> primePropositions;
@@ -33,8 +33,8 @@ public class TptpToFortress extends FOFTPTPBaseVisitor {
         return theory;
     }
     
-    public Type getUniverseType() {
-        return universeType;
+    public Sort getUniverseSort() {
+        return universeSort;
     }
     
     @Override
@@ -45,7 +45,7 @@ public class TptpToFortress extends FOFTPTPBaseVisitor {
         
         // Construct theory
         
-        theory = theory.withType(universeType);
+        theory = theory.withSort(universeSort);
         
         // Add function declarations
         for(FuncDecl f : functionDeclarations) {
@@ -54,7 +54,7 @@ public class TptpToFortress extends FOFTPTPBaseVisitor {
         
         // Add prime propositions as Bool constants
         for(Var p : primePropositions) {
-            theory = theory.withConstant(p.of(Type.Bool()));
+            theory = theory.withConstant(p.of(Sort.Bool()));
         }
         
         // Add free variables that are not prime propositions as constants of
@@ -62,7 +62,7 @@ public class TptpToFortress extends FOFTPTPBaseVisitor {
         formulas.stream()
             .flatMap(formula -> formula.freeVarConstSymbolsJava().stream())
             .filter(freeVar -> !primePropositions.contains(freeVar))
-            .forEach(freeVar -> theory = theory.withConstant(freeVar.of(universeType)));
+            .forEach(freeVar -> theory = theory.withConstant(freeVar.of(universeSort)));
 
         // Add axioms
         for(Term formula : formulas) {
@@ -96,7 +96,7 @@ public class TptpToFortress extends FOFTPTPBaseVisitor {
         List<AnnotatedVar> variables = new ArrayList<>();
         for(TerminalNode variableNode: ctx.ID()) {
             String name = variableNode.getText();
-            variables.add(Term.mkVar(name).of(universeType));
+            variables.add(Term.mkVar(name).of(universeSort));
         }
         Term body = (Term) visit(ctx.fof_formula());
         return Term.mkForall(variables, body);
@@ -107,7 +107,7 @@ public class TptpToFortress extends FOFTPTPBaseVisitor {
         List<AnnotatedVar> variables = new ArrayList<>();
         for (TerminalNode variableNode: ctx.ID()) {
             String name = variableNode.getText();
-            variables.add(Term.mkVar(name).of(universeType));
+            variables.add(Term.mkVar(name).of(universeSort));
         }
         Term body = (Term) visit(ctx.fof_formula());
         return Term.mkExists(variables, body);
@@ -168,16 +168,16 @@ public class TptpToFortress extends FOFTPTPBaseVisitor {
         String name = ctx.ID().getText();
         int numArgs = ctx.term().size();
 
-        List<Type> argTypes = new ArrayList<>();
+        List<Sort> argSorts = new ArrayList<>();
         List<Term> arguments = new ArrayList<>();
         for(int i = 0; i < numArgs; i++) {
             Term ti = (Term) visit(ctx.term(i));
             arguments.add(ti);
-            argTypes.add(universeType);
+            argSorts.add(universeSort);
         }
         
         // Remember what function signature we encountered
-        FuncDecl p = FuncDecl.mkFuncDecl(name, argTypes, Type.Bool());
+        FuncDecl p = FuncDecl.mkFuncDecl(name, argSorts, Sort.Bool());
         functionDeclarations.add(p);
         
         return Term.mkApp(name, arguments);
@@ -199,16 +199,16 @@ public class TptpToFortress extends FOFTPTPBaseVisitor {
         String name = ctx.ID().getText();
         int numArgs = ctx.term().size();
         
-        List<Type> argTypes = new ArrayList<>();
+        List<Sort> argSorts = new ArrayList<>();
         List<Term> arguments = new ArrayList<>();
         for(int i = 0; i < numArgs; i++) {
             Term ti = (Term) visit(ctx.term(i));
             arguments.add(ti);
-            argTypes.add(universeType);
+            argSorts.add(universeSort);
         }
         
         // Remember what function signature we encountered
-        FuncDecl f = FuncDecl.mkFuncDecl(name, argTypes, universeType);
+        FuncDecl f = FuncDecl.mkFuncDecl(name, argSorts, universeSort);
         functionDeclarations.add(f);
         
         return Term.mkApp(name, arguments);

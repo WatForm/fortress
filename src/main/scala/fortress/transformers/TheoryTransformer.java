@@ -17,5 +17,5 @@ public interface TheoryTransformer {
     */
     public Theory apply(Theory theory);
     
-    public String getName();
+    public String name();
 }

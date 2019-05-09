@@ -10,28 +10,28 @@ import scala.collection.immutable.Seq
 @RunWith(classOf[JUnitRunner])
 class DomainInstantiationTests extends FunSuite with Matchers {
     
-    val A = Type.mkTypeConst("A")
-    val B = Type.mkTypeConst("B")
-    val C = Type.mkTypeConst("C")
+    val A = Sort.mkSortConst("A")
+    val B = Sort.mkSortConst("B")
+    val C = Sort.mkSortConst("C")
     val x = Var("x")
     val y = Var("y")
     val z = Var("z")
     val b = Var("b")
-    val P = FuncDecl("P", A, Type.Bool)
-    val Q = FuncDecl("Q", B, Type.Bool)
-    val R = FuncDecl("R", A, B, Type.Bool)
+    val P = FuncDecl("P", A, Sort.Bool)
+    val Q = FuncDecl("Q", B, Sort.Bool)
+    val R = FuncDecl("R", A, B, Sort.Bool)
     val f = FuncDecl("f", A, B)
     val g = FuncDecl("g", A, A)
     
     test("single variable forall") {
         val theory = Theory.empty
-            .withTypes(A, B)
+            .withSorts(A, B)
             .withFunctionDeclarations(P, Q)
             .withAxiom(Forall(x of A, App("P", x)))
             .withAxiom(Forall(y of B, App("Q", y)))
             
         val expected = Theory.empty
-            .withTypes(A, B)
+            .withSorts(A, B)
             .withFunctionDeclarations(P, Q)
             .withAxiom(And(
                 App("P", DomainElement(1, A)),
@@ -48,13 +48,13 @@ class DomainInstantiationTests extends FunSuite with Matchers {
     
     test("multivariable forall") {
         val theory = Theory.empty
-            .withTypes(A, B)
+            .withSorts(A, B)
             .withFunctionDeclarations(P, Q)
             .withAxiom(Forall(Seq(x of A, y of A, z of B),
                 (App("P", x) and App("P", y)) ==> App("Q", z) ))
         
         val expected = Theory.empty
-            .withTypes(A, B)
+            .withSorts(A, B)
             .withFunctionDeclarations(P, Q)
             .withAxiom(And(
                 (App("P", DomainElement(1, A)) and App("P", DomainElement(1, A))) ==> App("Q", DomainElement(1, B)),
@@ -77,7 +77,7 @@ class DomainInstantiationTests extends FunSuite with Matchers {
     
     test("nested foralls") {
         val theory = Theory.empty
-            .withTypes(A, B)
+            .withSorts(A, B)
             .withFunctionDeclarations(P, Q, R, g)
             .withAxiom(Forall(x of A, (App("g", x) === x) or (Forall(y of B, App("R", x, y)))))
         
@@ -88,7 +88,7 @@ class DomainInstantiationTests extends FunSuite with Matchers {
             (App("R", DomainElement(2, A), DomainElement(1, B)) and (App("R", DomainElement(2, A), DomainElement(2, B))))
         
         val expected = Theory.empty
-            .withTypes(A, B)
+            .withSorts(A, B)
             .withFunctionDeclarations(P, Q, R, g)
             .withAxiom(t1A and t2A)
         
@@ -99,13 +99,13 @@ class DomainInstantiationTests extends FunSuite with Matchers {
     
     test("constants not expanded") {
         val theory = Theory.empty
-            .withTypes(A, B)
+            .withSorts(A, B)
             .withFunctionDeclaration(f)
             .withConstant(b of B)
             .withAxiom(Forall(x of A, App("f", x) === b))
         
         val expected = Theory.empty
-            .withTypes(A, B)
+            .withSorts(A, B)
             .withFunctionDeclaration(f)
             .withConstant(b of B)
             .withAxiom(And(
@@ -119,13 +119,13 @@ class DomainInstantiationTests extends FunSuite with Matchers {
     
     test("scope of one") {
         val theory = Theory.empty
-            .withTypes(A, B)
+            .withSorts(A, B)
             .withFunctionDeclarations(P, Q)
             .withAxiom(Forall(x of A, App("P", x)))
             .withAxiom(Forall(y of B, App("Q", y)))
         
         val expected = Theory.empty
-            .withTypes(A, B)
+            .withSorts(A, B)
             .withFunctionDeclarations(P, Q)
             .withAxiom(App("P", DomainElement(1, A)))
             .withAxiom(App("Q", DomainElement(1, B)))
@@ -141,7 +141,7 @@ class DomainInstantiationTests extends FunSuite with Matchers {
     
     test("expanding a nonexistent type fails") {
         val theory = Theory.empty
-            .withTypes(A, B)
+            .withSorts(A, B)
             .withFunctionDeclarations(P, Q)
             .withAxiom(Forall(x of A, App("P", x)))
             .withAxiom(Forall(y of B, App("Q", y)))
@@ -154,12 +154,12 @@ class DomainInstantiationTests extends FunSuite with Matchers {
     
     test("boolean scope fails") {
         val theory = Theory.empty
-            .withTypes(A, B)
+            .withSorts(A, B)
             .withFunctionDeclarations(P, Q)
             .withAxiom(Forall(x of A, App("P", x)))
             .withAxiom(Forall(y of B, App("Q", y)))
         
-        val scopes = Map(A -> 2, B -> 2, Type.Bool -> 3)
+        val scopes = Map(A -> 2, B -> 2, Sort.Bool -> 3)
         val transformer = new DomainInstantiationTransformer(scopes)
         
         a [fortress.util.Errors.PreconditionException] should be thrownBy (transformer(theory))

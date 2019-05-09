@@ -16,14 +16,14 @@ public abstract class TypeCheckException extends RuntimeException {
         }
     }
     
-    public static class UnknownType extends TypeCheckException {
-        public UnknownType(String message) {
+    public static class UndeclaredSort extends TypeCheckException {
+        public UndeclaredSort(String message) {
             super(message);
         }
     }
     
-    public static class UndeterminedType extends TypeCheckException {
-        public UndeterminedType(String message) {
+    public static class UndeterminedSort extends TypeCheckException {
+        public UndeterminedSort(String message) {
             super(message);
         }
     }
@@ -34,8 +34,8 @@ public abstract class TypeCheckException extends RuntimeException {
         }
     }
     
-    public static class WrongArgType extends TypeCheckException {
-        public WrongArgType(String message) {
+    public static class WrongSort extends TypeCheckException {
+        public WrongSort(String message) {
             super(message);
         }
     }

@@ -11,7 +11,7 @@ import scala.collection.immutable.Seq // Use immutable seq by default
 
 // The constructor is private -- the only way to make theories outside of this class
 // is through the empty and withXYZ methods 
-case class Theory private (signature: Signature, scopes: Map[Type, Int], axioms: Set[Term]) {
+case class Theory private (signature: Signature, scopes: Map[Sort, Int], axioms: Set[Term]) {
     
     /** Returns a theory consisting of the current theory but with the given
       * axiom added. Note that this does not modify the current Theory object,
@@ -42,23 +42,23 @@ case class Theory private (signature: Signature, scopes: Map[Type, Int], axioms:
     }
     
     /** Returns a theory consisting of the current theory but with the given
-      * type declaration added. Note that this does not modify the current Theory object,
+      * sort declaration added. Note that this does not modify the current Theory object,
       * but rather just returns a new Theory object.
       */
-    def withType(sort: Type): Theory = Theory(signature.withType(sort), scopes, axioms)
+    def withSort(sort: Sort): Theory = Theory(signature.withSort(sort), scopes, axioms)
     
     /** Returns a theory consisting of the current theory but with the given
-      * type declarations added. Note that this does not modify the current Theory object,
+      * sort declarations added. Note that this does not modify the current Theory object,
       * but rather just returns a new Theory object.
       */
-    def withTypes(types: java.lang.Iterable[Type]) = Theory(signature.withTypes(types), scopes, axioms)
+    def withSorts(sorts: java.lang.Iterable[Sort]) = Theory(signature.withSorts(sorts), scopes, axioms)
     
     /** Returns a theory consisting of the current theory but with the given
-      * type declarations added. Note that this does not modify the current Theory object,
+      * sort declarations added. Note that this does not modify the current Theory object,
       * but rather just returns a new Theory object.
       */
     @varargs
-    def withTypes(types: Type*): Theory = withTypes(types.asJava)
+    def withSorts(sorts: Sort*): Theory = withSorts(sorts.asJava)
     
     /** Returns a theory consisting of the current theory but with the given
       * constant declaration added. Note that this does not modify the current Theory object,
@@ -93,6 +93,9 @@ case class Theory private (signature: Signature, scopes: Map[Type, Int], axioms:
       */
     def withFunctionDeclarations(fdecls: java.lang.Iterable[FuncDecl]): Theory = 
         Theory(signature.withFunctionDeclarations(fdecls), scopes, axioms)
+        
+    def withFunctionDeclarations(fdecls: Iterable[FuncDecl]): Theory =
+        Theory(signature.withFunctionDeclarations(fdecls), scopes, axioms)
     
     /** Returns a theory consisting of the current theory but with the given
       * function declarations added. Note that this does not modify the current Theory object,
@@ -101,33 +104,32 @@ case class Theory private (signature: Signature, scopes: Map[Type, Int], axioms:
     @varargs
     def withFunctionDeclarations(fdecls: FuncDecl*): Theory = withFunctionDeclarations(fdecls.asJava)
     
-    def withScope(t: Type, size: Int) = {
+    def withScope(t: Sort, size: Int) = {
         // TODO consistency checking
         Theory(signature, scopes + (t -> size), axioms)
     }
     
-    def withScopes(scopes: Map[Type, Int]) = {
+    def withScopes(scopes: Map[Sort, Int]) = {
         var theory = this
         scopes.foreach { case (sort, size) => theory = theory.withScope(sort, size) }
         theory
     }
     
-    def withEnumType(t: Type, values: Seq[EnumValue]) = {
+    def withEnumSort(t: Sort, values: Seq[EnumValue]) = {
         // TODO consistency checking
-        Theory(signature.withEnumType(t, values), scopes + (t -> values.size), axioms)
+        Theory(signature.withEnumSort(t, values), scopes + (t -> values.size), axioms)
     }
     
-    def withEnumType(t: Type, values: java.util.List[EnumValue]) = {
+    def withEnumSort(t: Sort, values: java.util.List[EnumValue]) = {
         // TODO consistency checking
-        Theory(signature.withEnumType(t, values), scopes + (t -> values.size), axioms)
+        Theory(signature.withEnumSort(t, values), scopes + (t -> values.size), axioms)
     }
     
     // End of published interface
     
     def getAxioms: java.util.Set[Term] = axioms.asJava
     
-    def types: Set[Type] = signature.types
-    def getTypes: java.util.Set[Type] = signature.getTypes
+    def sorts: Set[Sort] = signature.sorts
     
     def getConstants: java.util.Set[AnnotatedVar] = signature.getConstants
     
@@ -137,7 +139,7 @@ case class Theory private (signature: Signature, scopes: Map[Type, Int], axioms:
     def functionDeclarations: Set[FuncDecl] = signature.functionDeclarations
     def constants: Set[AnnotatedVar] = signature.constants
     
-    def enumConstants: Map[Type, Seq[EnumValue]] = signature.enumConstants
+    def enumConstants: Map[Sort, Seq[EnumValue]] = signature.enumConstants
     
     def withoutAxioms: Theory = Theory(signature, scopes, Set.empty)
     
@@ -145,7 +147,7 @@ case class Theory private (signature: Signature, scopes: Map[Type, Int], axioms:
         // Check axiom typechecks as bool
         // Note that a formula cannot typecheck if it has any free variables (that are not constants of the signature)
         val result: TypeCheckResult = axiom.typeCheck(signature)
-        Errors.precondition(result.sort == Type.Bool)
+        Errors.precondition(result.sort == BoolSort)
         result.sanitizedTerm
     }
     

@@ -7,8 +7,8 @@ import java.util.List;
 
 public class NegativeTypeCheckTest {
     
-    Type A = Type.mkTypeConst("A");
-    Type B = Type.mkTypeConst("B");
+    Sort A = Sort.mkSortConst("A");
+    Sort B = Sort.mkSortConst("B");
     
     Var x = Term.mkVar("x");
     Var y = Term.mkVar("y");
@@ -16,33 +16,33 @@ public class NegativeTypeCheckTest {
     Var p = Term.mkVar("p");
     Var q = Term.mkVar("q");
     
-    FuncDecl P = FuncDecl.mkFuncDecl("P", A, Type.Bool());
-    FuncDecl Q = FuncDecl.mkFuncDecl("Q", B, Type.Bool());
+    FuncDecl P = FuncDecl.mkFuncDecl("P", A, Sort.Bool());
+    FuncDecl Q = FuncDecl.mkFuncDecl("Q", B, Sort.Bool());
     FuncDecl f = FuncDecl.mkFuncDecl("f", A, B);
     FuncDecl g = FuncDecl.mkFuncDecl("g", B, A);
-    FuncDecl h = FuncDecl.mkFuncDecl("h", Type.Bool(), Type.Bool());
-    FuncDecl R = FuncDecl.mkFuncDecl("R", A, A, Type.Bool());
+    FuncDecl h = FuncDecl.mkFuncDecl("h", Sort.Bool(), Sort.Bool());
+    FuncDecl R = FuncDecl.mkFuncDecl("R", A, A, Sort.Bool());
     
-    FuncDecl transitionRelation = FuncDecl.mkFuncDecl("transition", A, A, Type.Bool());
-    FuncDecl transitionFunction = FuncDecl.mkFuncDecl("transition", A, Type.Bool());
+    FuncDecl transitionRelation = FuncDecl.mkFuncDecl("transition", A, A, Sort.Bool());
+    FuncDecl transitionFunction = FuncDecl.mkFuncDecl("transition", A, Sort.Bool());
     
     
-    @Test(expected = fortress.data.TypeCheckException.UndeterminedType.class)
+    @Test(expected = fortress.data.TypeCheckException.UndeterminedSort.class)
     public void freeVar() {
         // A free var should fail typechecking
         Signature sig = Signature.empty()
-            .withType(A)
+            .withSort(A)
             .withConstants()
             .withFunctionDeclarations();
         
         x.typeCheck(sig);
     }
     
-    @Test(expected = fortress.data.TypeCheckException.WrongArgType.class)
+    @Test(expected = fortress.data.TypeCheckException.WrongSort.class)
     public void functionAppConstWrongArg() {
         // Application of a function to a constant of the wrong argument type
         Signature sig = Signature.empty()
-            .withTypes(A, B)
+            .withSorts(A, B)
             .withConstants(x.of(A))
             .withFunctionDeclarations(g);
         Term app = Term.mkApp("g", x);
@@ -53,37 +53,37 @@ public class NegativeTypeCheckTest {
     public void functionAppConstMissingDecl() {
         // Use of a function that is missing a declaration
         Signature sig = Signature.empty()
-            .withTypes(A)
+            .withSorts(A)
             .withConstants(x.of(A))
             .withFunctionDeclarations();
         Term app = Term.mkApp("f", x);
         app.typeCheck(sig);
     }
     
-    @Test(expected = fortress.data.TypeCheckException.WrongArgType.class)
+    @Test(expected = fortress.data.TypeCheckException.WrongSort.class)
     public void predicateAppForallVarWrongArg() {
         Signature sig = Signature.empty()
-            .withTypes(A, B)
+            .withSorts(A, B)
             .withConstants()
             .withFunctionDeclarations(P);
         Term app = Term.mkForall(y.of(B), Term.mkApp("P", y));
         app.typeCheck(sig);
     }
     
-    @Test(expected = fortress.data.TypeCheckException.WrongArgType.class)
+    @Test(expected = fortress.data.TypeCheckException.WrongSort.class)
     public void predicateAppExistsVarWrongArg() {
         Signature sig = Signature.empty()
-            .withTypes(A, B)
+            .withSorts(A, B)
             .withConstants()
             .withFunctionDeclarations(P);
         Term app = Term.mkExists(y.of(B), Term.mkApp("P", y));
         app.typeCheck(sig);
     }
     
-    @Test(expected = fortress.data.TypeCheckException.WrongArgType.class)
+    @Test(expected = fortress.data.TypeCheckException.WrongSort.class)
     public void nestedAppWrongArg1() {
         Signature sig = Signature.empty()
-            .withTypes(A, B)
+            .withSorts(A, B)
             .withConstants(x.of(A))
             .withFunctionDeclarations(g, f, P);
         Term fx = Term.mkApp("f", x);
@@ -92,10 +92,10 @@ public class NegativeTypeCheckTest {
         ffx.typeCheck(sig);
     }
     
-    @Test(expected = fortress.data.TypeCheckException.WrongArgType.class)
+    @Test(expected = fortress.data.TypeCheckException.WrongSort.class)
     public void nestedAppWrongArg2() {
         Signature sig = Signature.empty()
-            .withTypes(A, B)
+            .withSorts(A, B)
             .withConstants(x.of(A))
             .withFunctionDeclarations(g, f, P);
         Term fx = Term.mkApp("f", x);
@@ -105,11 +105,11 @@ public class NegativeTypeCheckTest {
         pffx.typeCheck(sig);
     }
     
-    @Test(expected = fortress.data.TypeCheckException.WrongArgType.class)
+    @Test(expected = fortress.data.TypeCheckException.WrongSort.class)
     public void andWrongArg() {
         Signature sig = Signature.empty()
-            .withTypes(A, B)
-            .withConstants(x.of(A), y.of(Type.Bool()))
+            .withSorts(A, B)
+            .withConstants(x.of(A), y.of(Sort.Bool()))
             .withFunctionDeclarations(f);
         Term arg1 = Term.mkApp("f", x);
         Term arg2 = y;
@@ -117,11 +117,11 @@ public class NegativeTypeCheckTest {
         and.typeCheck(sig);
     }
     
-    @Test(expected = fortress.data.TypeCheckException.WrongArgType.class)
+    @Test(expected = fortress.data.TypeCheckException.WrongSort.class)
     public void orWrongArg() {
         Signature sig = Signature.empty()
-            .withTypes(A, B)
-            .withConstants(x.of(A), y.of(Type.Bool()))
+            .withSorts(A, B)
+            .withConstants(x.of(A), y.of(Sort.Bool()))
             .withFunctionDeclarations(f);
         Term arg1 = Term.mkApp("f", x);
         Term arg2 = y;
@@ -129,11 +129,11 @@ public class NegativeTypeCheckTest {
         or.typeCheck(sig);
     }
     
-    @Test(expected = fortress.data.TypeCheckException.WrongArgType.class)
+    @Test(expected = fortress.data.TypeCheckException.WrongSort.class)
     public void impWrongArg() {
         Signature sig = Signature.empty()
-            .withTypes(A, B)
-            .withConstants(x.of(A), y.of(Type.Bool()))
+            .withSorts(A, B)
+            .withConstants(x.of(A), y.of(Sort.Bool()))
             .withFunctionDeclarations(f);
         Term arg1 = Term.mkApp("f", x);
         Term arg2 = y;
@@ -141,10 +141,10 @@ public class NegativeTypeCheckTest {
         imp.typeCheck(sig);
     }
     
-    @Test(expected = fortress.data.TypeCheckException.WrongArgType.class)
+    @Test(expected = fortress.data.TypeCheckException.WrongSort.class)
     public void distinctWrongArg() {
         Signature sig = Signature.empty()
-            .withTypes(A, B)
+            .withSorts(A, B)
             .withConstants(x.of(A), y.of(B))
             .withFunctionDeclarations(f, g);
         Term arg1 = Term.mkApp("f", x);
@@ -154,10 +154,10 @@ public class NegativeTypeCheckTest {
         distinct.typeCheck(sig);
     }
     
-    @Test(expected = fortress.data.TypeCheckException.WrongArgType.class)
+    @Test(expected = fortress.data.TypeCheckException.WrongSort.class)
     public void eqWrongArg1() {
         Signature sig = Signature.empty()
-            .withTypes(A, B)
+            .withSorts(A, B)
             .withConstants(x.of(A), y.of(B))
             .withFunctionDeclarations(f, g);
         Term arg1 = Term.mkApp("f", x);
@@ -168,10 +168,10 @@ public class NegativeTypeCheckTest {
         eq1.typeCheck(sig);
     }
     
-    @Test(expected = fortress.data.TypeCheckException.WrongArgType.class)
+    @Test(expected = fortress.data.TypeCheckException.WrongSort.class)
     public void eqWrongArg2() {
         Signature sig = Signature.empty()
-            .withTypes(A, B)
+            .withSorts(A, B)
             .withConstants(x.of(A), y.of(B))
             .withFunctionDeclarations(f, g);
         Term arg1 = Term.mkApp("f", x);
@@ -181,30 +181,30 @@ public class NegativeTypeCheckTest {
         eq2.typeCheck(sig);
     }
     
-    @Test(expected = fortress.data.TypeCheckException.WrongArgType.class)
+    @Test(expected = fortress.data.TypeCheckException.WrongSort.class)
     public void notWrongArg() {
         Signature sig = Signature.empty()
-            .withTypes(A, B)
+            .withSorts(A, B)
             .withConstants(x.of(A))
             .withFunctionDeclarations(f);
         Term not = Term.mkNot(Term.mkApp("f", x));
         not.typeCheck(sig);
     }
     
-    @Test(expected = fortress.data.TypeCheckException.WrongArgType.class)
+    @Test(expected = fortress.data.TypeCheckException.WrongSort.class)
     public void forallWrongArg() {
         Signature sig = Signature.empty()
-            .withTypes(A, B)
+            .withSorts(A, B)
             .withConstants()
             .withFunctionDeclarations(f, g);
         Term forall = Term.mkForall(x.of(A), Term.mkApp("f", x));
         forall.typeCheck(sig);
     }
     
-    @Test(expected = fortress.data.TypeCheckException.UndeterminedType.class)
+    @Test(expected = fortress.data.TypeCheckException.UndeterminedSort.class)
     public void unbound() {
         Signature sig = Signature.empty()
-            .withTypes(A, B)
+            .withSorts(A, B)
             .withConstants()
             .withFunctionDeclarations(P, Q);
         Term forall = Term.mkForall(x.of(A), Term.mkApp("Q", y));
@@ -212,10 +212,10 @@ public class NegativeTypeCheckTest {
     }
     
     // Check that errors percolate upwards
-    @Test(expected = fortress.data.TypeCheckException.WrongArgType.class)
+    @Test(expected = fortress.data.TypeCheckException.WrongSort.class)
     public void nestedError1() {
         Signature sig = Signature.empty()
-            .withTypes(A, B)
+            .withSorts(A, B)
             .withConstants(x.of(A), y.of(B))
             .withFunctionDeclarations(f);
         Term bad1 = Term.mkOr(x, Term.mkTop());
@@ -223,10 +223,10 @@ public class NegativeTypeCheckTest {
         t1.typeCheck(sig);
     }
     
-    @Test(expected = fortress.data.TypeCheckException.WrongArgType.class)
+    @Test(expected = fortress.data.TypeCheckException.WrongSort.class)
     public void nestedError2() {
         Signature sig = Signature.empty()
-            .withTypes(A, B)
+            .withSorts(A, B)
             .withConstants(x.of(A), y.of(B))
             .withFunctionDeclarations(f);
         Term bad2 = Term.mkApp("f", y);
@@ -235,10 +235,10 @@ public class NegativeTypeCheckTest {
     }
     
     // Former bug
-    @Test(expected = fortress.data.TypeCheckException.UndeterminedType.class)
+    @Test(expected = fortress.data.TypeCheckException.UndeterminedSort.class)
     public void halfQuantified() {
         Signature sig = Signature.empty()
-            .withTypes(A)
+            .withSorts(A)
             .withConstants()
             .withFunctionDeclarations(P);
         
@@ -252,10 +252,10 @@ public class NegativeTypeCheckTest {
     }
     
     // Former bug
-    @Test(expected = fortress.data.TypeCheckException.UndeterminedType.class)
+    @Test(expected = fortress.data.TypeCheckException.UndeterminedSort.class)
     public void halfQuantifiedMultiple() {
         Signature sig = Signature.empty()
-            .withTypes(A)
+            .withSorts(A)
             .withConstants()
             .withFunctionDeclarations(P);
         
@@ -269,8 +269,8 @@ public class NegativeTypeCheckTest {
     }
     
     // Former bug
-    @Test(expected = fortress.data.TypeCheckException.UnknownType.class)
-    public void nonExistentTypeQuantifier() {
+    @Test(expected = fortress.data.TypeCheckException.UndeclaredSort.class)
+    public void nonExistentSortQuantifier() {
         Signature sig = Signature.empty();
         Term t = Term.mkForall(x.of(A), Term.mkTop());
         t.typeCheck(sig);
@@ -280,27 +280,27 @@ public class NegativeTypeCheckTest {
     public void functionWrongArity() {
         // Application of function to wrong number of arguments
         Signature sig = Signature.empty()
-            .withType(A)
+            .withSort(A)
             .withConstant(x.of(A));
         Term t = Term.mkApp("f", x, x);
         t.typeCheck(sig);
     }
     
-    @Test(expected = fortress.data.TypeCheckException.UnknownType.class)
-    public void domainElementUnknownType() {
+    @Test(expected = fortress.data.TypeCheckException.UndeclaredSort.class)
+    public void domainElementUnknownSort() {
         // Use a domain element of an undeclared type
         Signature sig = Signature.empty()
-            .withTypes(A);
+            .withSorts(A);
         Term t = Term.mkDomainElement(2, B);
         t.typeCheck(sig);
     }
     
-    @Test(expected = fortress.data.TypeCheckException.WrongArgType.class)
-    public void domainElementTypeBool() {
+    @Test(expected = fortress.data.TypeCheckException.WrongSort.class)
+    public void domainElementSortBool() {
         // Use a domain element of type Bool
         Signature sig = Signature.empty()
-            .withType(A);
-        Term t = Term.mkDomainElement(2, Type.Bool());
+            .withSort(A);
+        Term t = Term.mkDomainElement(2, Sort.Bool());
         t.typeCheck(sig);
     }
     

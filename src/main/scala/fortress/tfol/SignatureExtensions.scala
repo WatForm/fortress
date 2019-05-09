@@ -18,29 +18,29 @@ object IntegerExtension extends SignatureExtension {
     val GE = ">="
     val GT = ">"
     
-    override def hasType(sort: Type): Boolean = sort == IntType
+    override def hasSort(sort: Sort): Boolean = (sort == IntSort)
     
-    override def hasTypeWithName(name: String): Boolean = name == IntType.name
+    override def hasSortWithName(name: String): Boolean = (name == IntSort.name)
     
     override def hasFunctionWithName(name: String): Boolean = 
         Set(plus, minus, times, div, mod, LE, LT, GE, GT) contains name
     
-    override def queryFunction(name: String, argTypes: Seq[Type]): Option[FuncDecl] = (name, argTypes) match {
-        case (`plus`, sorts) if sorts.length > 1 && sorts.forall(_ == IntType) => Some(FuncDecl(plus, sorts, IntType))
-        case (`minus`, Seq(IntType, IntType)) => Some(FuncDecl(minus, IntType, IntType, IntType)) // Binary minus
-        case (`minus`, Seq(IntType)) => Some(FuncDecl(minus, IntType, IntType)) // Unary minus
-        case (`times`, Seq(IntType, IntType)) => Some(FuncDecl(times, IntType, IntType, IntType))
-        case (`div`, Seq(IntType, IntType)) => Some(FuncDecl(div, IntType, IntType, IntType))
-        case (`mod`, Seq(IntType, IntType)) => Some(FuncDecl(mod, IntType, IntType))
-        case (`LE`, Seq(IntType, IntType)) => Some(FuncDecl(LE, IntType, IntType, BoolType))
-        case (`LT`, Seq(IntType, IntType)) => Some(FuncDecl(LT, IntType, IntType, BoolType))
-        case (`GE`, Seq(IntType, IntType)) => Some(FuncDecl(GE, IntType, IntType, BoolType))
-        case (`GT`, Seq(IntType, IntType)) => Some(FuncDecl(GT, IntType, IntType, BoolType))
+    override def queryFunction(name: String, argSorts: Seq[Sort]): Option[FuncDecl] = (name, argSorts) match {
+        case (`plus`, sorts) if sorts.length > 1 && sorts.forall(_ == IntSort) => Some(FuncDecl(plus, sorts, IntSort))
+        case (`minus`, Seq(IntSort, IntSort)) => Some(FuncDecl(minus, IntSort, IntSort, IntSort)) // Binary minus
+        case (`minus`, Seq(IntSort)) => Some(FuncDecl(minus, IntSort, IntSort)) // Unary minus
+        case (`times`, Seq(IntSort, IntSort)) => Some(FuncDecl(times, IntSort, IntSort, IntSort))
+        case (`div`, Seq(IntSort, IntSort)) => Some(FuncDecl(div, IntSort, IntSort, IntSort))
+        case (`mod`, Seq(IntSort, IntSort)) => Some(FuncDecl(mod, IntSort, IntSort))
+        case (`LE`, Seq(IntSort, IntSort)) => Some(FuncDecl(LE, IntSort, IntSort, BoolSort))
+        case (`LT`, Seq(IntSort, IntSort)) => Some(FuncDecl(LT, IntSort, IntSort, BoolSort))
+        case (`GE`, Seq(IntSort, IntSort)) => Some(FuncDecl(GE, IntSort, IntSort, BoolSort))
+        case (`GT`, Seq(IntSort, IntSort)) => Some(FuncDecl(GT, IntSort, IntSort, BoolSort))
         case _ => None
     }
         
     override def queryConstant(v: Var): Option[AnnotatedVar] = None
-    override def queryEnum(e: EnumValue): Option[Type] = None
+    override def queryEnum(e: EnumValue): Option[Sort] = None
     override def queryUninterpretedFunction(name: String): Option[FuncDecl] = None
     
     override def toString: String = "Integer Extension"
@@ -87,17 +87,17 @@ object BitVectorExtension extends SignatureExtension {
         bvslt, bvsle, bvsgt, bvsge
     )
     
-    def hasType(sort: Type):Boolean = sort match {
-        case BitVectorType(_) => true
+    def hasSort(sort: Sort):Boolean = sort match {
+        case BitVectorSort(_) => true
         case _ => false
     }
     
-    def hasTypeWithName(name: String): Boolean = BitVectorType.namingPattern.findFirstIn(name).nonEmpty
+    def hasSortWithName(name: String): Boolean = BitVectorSort.namingPattern.findFirstIn(name).nonEmpty
     
-    def queryFunction(name: String, argTypes: Seq[Type]): Option[FuncDecl] = (name, argTypes) match {
-        case (binop, Seq(BitVectorType(n), BitVectorType(m)))
-            if (binaryOperations contains binop) && (n == m) => Some( FuncDecl(binop, BitVectorType(n), BitVectorType(n), BitVectorType(n)) )
-        case (unop, Seq(BitVectorType(n))) if (unaryOperations contains unop) => Some( FuncDecl(unop, BitVectorType(n), BitVectorType(n)) )
+    def queryFunction(name: String, argSorts: Seq[Sort]): Option[FuncDecl] = (name, argSorts) match {
+        case (binop, Seq(BitVectorSort(n), BitVectorSort(m)))
+            if (binaryOperations contains binop) && (n == m) => Some( FuncDecl(binop, BitVectorSort(n), BitVectorSort(n), BitVectorSort(n)) )
+        case (unop, Seq(BitVectorSort(n))) if (unaryOperations contains unop) => Some( FuncDecl(unop, BitVectorSort(n), BitVectorSort(n)) )
         case _ => None
     }
     
@@ -105,6 +105,6 @@ object BitVectorExtension extends SignatureExtension {
         ((binaryOperations union unaryOperations) union comparisonOperations) contains name
     
     def queryConstant(v: Var): Option[AnnotatedVar] = None
-    def queryEnum(e: EnumValue): Option[Type] = None
+    def queryEnum(e: EnumValue): Option[Sort] = None
     def queryUninterpretedFunction(name: String): Option[FuncDecl] = None
 }

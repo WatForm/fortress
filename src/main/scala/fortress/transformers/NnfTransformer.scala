@@ -11,5 +11,5 @@ class NnfTransformer extends TheoryTransformer {
             .withAxioms(newAxioms)
     }
     
-    override def getName: String = "Negation Normal Form Transformer"
+    override def name: String = "Negation Normal Form Transformer"
 }

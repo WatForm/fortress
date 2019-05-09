@@ -3,8 +3,6 @@ package fortress.tfol
 import fortress.util.Errors
 import fortress.tfol.operations._
 import fortress.data._
-import fortress.outputs._
-import fortress.sexpr._
 import scala.collection.JavaConverters._
 import scala.annotation.varargs // So we can call Scala varargs methods from Java
 import scala.collection.immutable.Seq // Default to immutable Seqs
@@ -23,15 +21,16 @@ sealed abstract class Term {
     /** Returns the set of free variables of this term with respect
       * to the given signature. Constants of the signature are not included.
       */ 
-    def freeVars(signature: Signature): java.util.Set[Var] = {
+    def freeVars(signature: Signature): Set[Var] = {
         val constants = signature.constants.map(_.variable)
-        (FreeVariables(this) diff constants).asJava
+        FreeVariables(this) diff constants
     }
+    def freeVarsJava(signature: Signature): java.util.Set[Var] = freeVars(signature).asJava
     
     /** Given a signature, typechecks the term with respect to the signature.
-      * Returns a TypeCheckResult containing the type of the term, AND a new term
+      * Returns a TypeCheckResult containing the sort of the term, AND a new term
       * that is equal to the old term but with instances of Eq replaced with Iff
-      * when comparing Bool types. Such a term is called "sanitized".
+      * when comparing Bool sorts. Such a term is called "sanitized".
       */
     def typeCheck(signature: Signature): TypeCheckResult = (new TypeChecker(signature)).visit(this)
     
@@ -39,9 +38,6 @@ sealed abstract class Term {
       * The term must be sanitized to call this method.
       */
     def nnf: Term = NegationNormalizer(this)
-    
-    /** Returns an SExpr representing this term as it would appear in SMT-LIB. */
-    def toSmtExpr: SExpr = new SmtExprVisitor().visit(this)
     
     /** Returns a term that is alpha-equivalent to this one but whose quantified
       * variables are instead De Bruijn indices. Note that these indices are prefixed
@@ -67,8 +63,8 @@ sealed abstract class Term {
     def recklessSubstituteJava(substitutions: java.util.Map[Var, Term]): Term =
         RecklessSubstituter(substitutions.asScala.toMap, this)
     
-    def recklessUnivInstantiate(typeInstantiations: java.util.Map[Type, java.util.List[Term]]): Term =
-        new RecklessUnivInstantiationVisitor(typeInstantiations).visit(this)
+    def recklessUnivInstantiate(sortInstantiations: java.util.Map[Sort, java.util.List[Term]]): Term =
+        new RecklessUnivInstantiationVisitor(sortInstantiations).visit(this)
     
     def simplify: Term = Simplifier(this)
     
@@ -80,7 +76,7 @@ sealed abstract class Term {
     
     /** Returns the set of all symbol names used in the term, including:
       * free variables and constants, bound variables (even those that aren't used),
-      * function names, and type names that appear on variable bindings.
+      * function names, and sort names that appear on variable bindings.
       */
     def allSymbols: Set[String] = AllSymbols(this)
     def allSymbolsJava: java.util.Set[String] = allSymbols.asJava
@@ -122,9 +118,9 @@ case class Var(name: String) extends Term with LeafTerm {
     override def accept[T](visitor: TermVisitor[T]): T = visitor.visitVar(this)
     
     /** Returns an AnnotatedVar that represents this variable annotated with
-      * with a Type.
+      * with a sort.
       */
-    def of(sort: Type) = AnnotatedVar(this, sort)
+    def of(sort: Sort) = AnnotatedVar(this, sort)
 }
 
 case class EnumValue(name: String) extends Term with LeafTerm with Value {
@@ -136,16 +132,14 @@ case class EnumValue(name: String) extends Term with LeafTerm with Value {
     override def accept[T](visitor: TermVisitor[T]): T = visitor.visitEnumValue(this)
 }
 
-/** Represents a variable together with a Type annotation.
+/** Represents a variable together with a sort annotation.
   * Used when quantifying a variable, or when declaring a Var to be a constant
-  * of a given Type.
+  * of a given Sort.
   * AnnotatedVar is not a subclass of Term.
   * Inside a Term it is only possible (and required) to annotate a Var when
   * a quantifier declares it bound.
   */
-case class AnnotatedVar(variable: Var, sort: Type) {
-    def getVar: Var = variable
-    def getType: Type = sort
+case class AnnotatedVar(variable: Var, sort: Sort) {
     def getName: String = variable.name
     def name: String = variable.name
     
@@ -333,11 +327,9 @@ object Forall {
   * For example, DomainElement(2, A) represents the domain element at index 2
   * for sort A, written as 2A.
   * DomainElements are indexed starting with 1.*/
-case class DomainElement(index: Int, sort: Type) extends Term with LeafTerm with Value {
+case class DomainElement(index: Int, sort: Sort) extends Term with LeafTerm with Value {
     Errors.precondition(index >= 1)
     
-    def getIndex: Int = index
-    def getType: Type = sort
     override def accept[T](visitor: TermVisitor[T]): T = visitor.visitDomainElement(this)
     
     // TODO need to restrict any other code from using this naming convention
@@ -495,5 +487,5 @@ object Term {
     def mkIff(t1: Term, t2: Term): Term = Iff(t1, t2)
     
     /** Internal method for creating Domain Elements. */
-    def mkDomainElement(index: Int, sort: Type) = DomainElement(index, sort)
+    def mkDomainElement(index: Int, sort: Sort) = DomainElement(index, sort)
 }

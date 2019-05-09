@@ -12,8 +12,8 @@ public class NnfTransformerTest {
     
     TheoryTransformer nnf = new NnfTransformer();
     
-    Type A = Type.mkTypeConst("A");
-    Type B = Type.mkTypeConst("B");
+    Sort A = Sort.mkSortConst("A");
+    Sort B = Sort.mkSortConst("B");
     
     Var p = Term.mkVar("p");
     Var q = Term.mkVar("q");
@@ -21,13 +21,13 @@ public class NnfTransformerTest {
     Var y = Term.mkVar("y");
     
     FuncDecl f = FuncDecl.mkFuncDecl("f", A, A);
-    FuncDecl P = FuncDecl.mkFuncDecl("P", A, Type.Bool());
+    FuncDecl P = FuncDecl.mkFuncDecl("P", A, Sort.Bool());
     
     Theory baseTheory = Theory.empty()
-        .withType(A)
-        .withType(B)
-        .withConstant(p.of(Type.Bool()))
-        .withConstant(q.of(Type.Bool()))
+        .withSort(A)
+        .withSort(B)
+        .withConstant(p.of(Sort.Bool()))
+        .withConstant(q.of(Sort.Bool()))
         .withFunctionDeclaration(f)
         .withFunctionDeclaration(P);
     
@@ -241,11 +241,11 @@ public class NnfTransformerTest {
     
     @Test // Former bug
     public void distinct() {
-        Type U = Type.mkTypeConst("U");
+        Sort U = Sort.mkSortConst("U");
         Var x = Term.mkVar("x");
         Var y = Term.mkVar("y");
         Var z = Term.mkVar("z");
-        FuncDecl P = FuncDecl.mkFuncDecl("P", U, U, U, Type.Bool());
+        FuncDecl P = FuncDecl.mkFuncDecl("P", U, U, U, Sort.Bool());
         
         Term t = Term.mkForall(List.of(x.of(U), y.of(U), z.of(U)),
             Term.mkImp(Term.mkApp("P", x, y, z), Term.mkDistinct(x, y, z)));
@@ -259,7 +259,7 @@ public class NnfTransformerTest {
                     Term.mkNot(Term.mkEq(y, z)))));
                     
         Theory base = Theory.empty()
-            .withType(U)
+            .withSort(U)
             .withFunctionDeclaration(P);
         Theory theory = base.withAxiom(t);
         Theory expected = base.withAxiom(e);
@@ -269,8 +269,8 @@ public class NnfTransformerTest {
     
     @Test // Former bug
     public void distinct2() {
-        Type V = Type.mkTypeConst("V");
-        FuncDecl adj = FuncDecl.mkFuncDecl("adj", V, V, Type.Bool());
+        Sort V = Sort.mkSortConst("V");
+        FuncDecl adj = FuncDecl.mkFuncDecl("adj", V, V, Sort.Bool());
         Var x1 = Term.mkVar("x1");
         Var x2 = Term.mkVar("x2");
         Var x3 = Term.mkVar("x3");
@@ -293,7 +293,7 @@ public class NnfTransformerTest {
                     Term.mkApp("adj", x2, x3)))));
         
         Theory base = Theory.empty()
-            .withType(V)
+            .withSort(V)
             .withFunctionDeclaration(adj);
         
         Theory theory1 = base.withAxiom(t1);
@@ -304,8 +304,8 @@ public class NnfTransformerTest {
     
     @Test
     public void distinct3() {
-        Type V = Type.mkTypeConst("V");
-        FuncDecl adj = FuncDecl.mkFuncDecl("adj", V, V, Type.Bool());
+        Sort V = Sort.mkSortConst("V");
+        FuncDecl adj = FuncDecl.mkFuncDecl("adj", V, V, Sort.Bool());
         Var x1 = Term.mkVar("x1");
         Var x2 = Term.mkVar("x2");
         Var x3 = Term.mkVar("x3");
@@ -328,7 +328,7 @@ public class NnfTransformerTest {
                     Term.mkApp("adj", x2, x3)))));
         
         Theory base = Theory.empty()
-            .withType(V)
+            .withSort(V)
             .withFunctionDeclaration(adj);
         
         Theory theory1 = base.withAxiom(t1);

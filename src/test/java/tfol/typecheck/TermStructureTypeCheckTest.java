@@ -7,8 +7,8 @@ import java.util.List;
 
 public class TermStructureTypeCheckTest {
     
-    Type A = Type.mkTypeConst("A");
-    Type B = Type.mkTypeConst("B");
+    Sort A = Sort.mkSortConst("A");
+    Sort B = Sort.mkSortConst("B");
     
     Var x = Term.mkVar("x");
     Var y = Term.mkVar("y");
@@ -16,12 +16,12 @@ public class TermStructureTypeCheckTest {
     Var p = Term.mkVar("p");
     Var q = Term.mkVar("q");
     
-    FuncDecl P = FuncDecl.mkFuncDecl("P", A, Type.Bool());
-    FuncDecl Q = FuncDecl.mkFuncDecl("Q", B, Type.Bool());
+    FuncDecl P = FuncDecl.mkFuncDecl("P", A, Sort.Bool());
+    FuncDecl Q = FuncDecl.mkFuncDecl("Q", B, Sort.Bool());
     FuncDecl f = FuncDecl.mkFuncDecl("f", A, B);
     FuncDecl g = FuncDecl.mkFuncDecl("g", B, A);
-    FuncDecl h = FuncDecl.mkFuncDecl("h", Type.Bool(), Type.Bool());
-    FuncDecl R = FuncDecl.mkFuncDecl("R", A, A, Type.Bool());
+    FuncDecl h = FuncDecl.mkFuncDecl("h", Sort.Bool(), Sort.Bool());
+    FuncDecl R = FuncDecl.mkFuncDecl("R", A, A, Sort.Bool());
     
     // Term structure
     
@@ -29,7 +29,7 @@ public class TermStructureTypeCheckTest {
     public void forallInsideApp() {
         // Forall is not allowed inside an application
         Signature sig = Signature.empty()
-            .withTypes(A)
+            .withSorts(A)
             .withFunctionDeclarations(h);
         Term t = Term.mkApp("h", Term.mkForall(x.of(A), Term.mkTop()));
         t.typeCheck(sig);
@@ -39,7 +39,7 @@ public class TermStructureTypeCheckTest {
     public void existsInsideApp() {
         // Exists is not allowed inside an application
         Signature sig = Signature.empty()
-            .withTypes(A)
+            .withSorts(A)
             .withFunctionDeclarations(h);
         Term t = Term.mkApp("h", Term.mkExists(x.of(A), Term.mkTop()));
         t.typeCheck(sig);
@@ -68,7 +68,7 @@ public class TermStructureTypeCheckTest {
     public void equalsInsideApp() {
         // = is not allowed inside an application
         Signature sig = Signature.empty()
-            .withType(A)
+            .withSort(A)
             .withConstant(x.of(A))
             .withFunctionDeclaration(h);
         Term t = Term.mkApp("h", Term.mkEq(x, x));
@@ -79,7 +79,7 @@ public class TermStructureTypeCheckTest {
     public void distinctInsideApp() {
         // distinct is not allowed inside an application
         Signature sig = Signature.empty()
-            .withType(A)
+            .withSort(A)
             .withConstant(x.of(A))
             .withFunctionDeclaration(h);
         Term t = Term.mkApp("h", Term.mkDistinct(x, x));

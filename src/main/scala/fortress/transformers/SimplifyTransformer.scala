@@ -12,5 +12,5 @@ class SimplifyTransformer extends TheoryTransformer {
             .withAxioms(newAxioms)
     }
     
-    override def getName: String = "Simplify Transformer"
+    override def name: String = "Simplify Transformer"
 }

@@ -14,14 +14,14 @@ public class TypeCheckSanitizeTest {
     @Test
     // Instances of = between booleans should be replaced with iff
     public void boolEqReplacedIff() {
-        Type A = Type.mkTypeConst("A");
+        Sort A = Sort.mkSortConst("A");
         Var x = Term.mkVar("x");
         Var p = Term.mkVar("p");
         
         Signature sig = Signature.empty()
-            .withType(A)
+            .withSort(A)
             .withConstant(x.of(A))
-            .withConstant(p.of(Type.Bool()));
+            .withConstant(p.of(Sort.Bool()));
             
         Term t = Term.mkAnd(
             Term.mkEq(x, x),
@@ -34,7 +34,7 @@ public class TypeCheckSanitizeTest {
         );
         
         TypeCheckResult result = t.typeCheck(sig);
-        assertEquals(Type.Bool(), result.sort());
+        assertEquals(Sort.Bool(), result.sort());
         assertEquals(expected, result.sanitizedTerm());
     }
 }

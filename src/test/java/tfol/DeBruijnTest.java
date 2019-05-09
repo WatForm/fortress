@@ -14,7 +14,7 @@ import fortress.util.Errors;
 
 public class DeBruijnTest {
     
-    Type A = Type.mkTypeConst("A");
+    Sort A = Sort.mkSortConst("A");
     
     Var x = Term.mkVar("x");
     Var y = Term.mkVar("y");

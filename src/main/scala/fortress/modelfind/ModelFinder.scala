@@ -31,7 +31,7 @@ object ModelFinderResult {
 /** Invoked to search for satisfying models to theories. */
 trait ModelFinder {
     def setTheory(theory: Theory): Unit
-    def setAnalysisScope(t: Type, size: Int): Unit
+    def setAnalysisScope(t: Sort, size: Int): Unit
     def setTimeout(milliseconds: Int): Unit
     // Parantheses are used rather than zero parameters to indicate that state may change.
     def checkSat(): ModelFinderResult

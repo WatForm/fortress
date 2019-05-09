@@ -7,8 +7,8 @@ import fortress.transformers._
 
 @RunWith(classOf[JUnitRunner])
 class DomainEliminationTests extends FunSuite with Matchers {
-    val A = Type.mkTypeConst("A")
-    val B = Type.mkTypeConst("B")
+    val A = Sort.mkSortConst("A")
+    val B = Sort.mkSortConst("B")
     
     val c = Var("c")
     val d = Var("d")
@@ -16,7 +16,7 @@ class DomainEliminationTests extends FunSuite with Matchers {
     
     test("standard domain elimination") {
         val theory = Theory.empty
-            .withTypes(A, B)
+            .withSorts(A, B)
             .withConstants(c of A, d of B)
             .withFunctionDeclaration(FuncDecl("f", A, A, B))
             .withAxiom(App("f", c, DomainElement(1, A)) === DomainElement(3, B))
@@ -28,7 +28,7 @@ class DomainEliminationTests extends FunSuite with Matchers {
         val _2A = Var("@2A")
         
         val expected = Theory.empty
-            .withTypes(A, B)
+            .withSorts(A, B)
             .withConstants(c of A, d of B)
             .withFunctionDeclaration(FuncDecl("f", A, A, B))
             .withConstants(
@@ -55,12 +55,12 @@ class DomainEliminationTests extends FunSuite with Matchers {
     
     test("scope of one") {
         val theory = Theory.empty
-            .withTypes(A, B)
+            .withSorts(A, B)
             .withConstants(c of A, d of B)
             .withAxiom(c === DomainElement(1, A))
             .withAxiom(d === DomainElement(1, B))
         val expected =  Theory.empty
-            .withTypes(A, B)
+            .withSorts(A, B)
             .withConstants(c of A, d of B)
             .withConstants(Var("@1A") of A, Var("@1B") of B)
             .withAxiom(c === Var("@1A"))

@@ -18,35 +18,35 @@ public class TptpParserTest {
         FileInputStream fileStream = new FileInputStream(file);
         
         Theory resultTheory = new TptpFofParser().parse(fileStream);
-        Type universeType = Type.mkTypeConst("_UNIV");
+        Sort universeSort = Sort.mkSortConst("_UNIV");
         
         Var A = Term.mkVar("A");
         Var B = Term.mkVar("B");
         Var C = Term.mkVar("C");
         Var e = Term.mkVar("e");
-        FuncDecl f = FuncDecl.mkFuncDecl("f", universeType, universeType, universeType);
+        FuncDecl f = FuncDecl.mkFuncDecl("f", universeSort, universeSort, universeSort);
         
-        Term associative = Term.mkForall(List.of(A.of(universeType), B.of(universeType), C.of(universeType)),
+        Term associative = Term.mkForall(List.of(A.of(universeSort), B.of(universeSort), C.of(universeSort)),
             Term.mkEq(
                 Term.mkApp("f", Term.mkApp("f", A, B), C),
                 Term.mkApp("f", A, Term.mkApp("f", B, C))));
         
-        Term identity = Term.mkForall(A.of(universeType),
+        Term identity = Term.mkForall(A.of(universeSort),
             Term.mkAnd(
                 Term.mkEq(Term.mkApp("f", A, e), A),
                 Term.mkEq(Term.mkApp("f", e, A), A)));
         
-        Term inverse = Term.mkForall(A.of(universeType), Term.mkExists(B.of(universeType), 
+        Term inverse = Term.mkForall(A.of(universeSort), Term.mkExists(B.of(universeSort), 
             Term.mkAnd(
                 Term.mkEq(Term.mkApp("f", A, B), e),
                 Term.mkEq(Term.mkApp("f", B, A), e))));
         
-        Term notAbelian = Term.mkNot(Term.mkForall(List.of(A.of(universeType), B.of(universeType)),
+        Term notAbelian = Term.mkNot(Term.mkForall(List.of(A.of(universeSort), B.of(universeSort)),
             Term.mkEq(Term.mkApp("f", A, B), Term.mkApp("f", B, A))));
         
         Theory expectedTheory = Theory.empty()
-            .withType(universeType)
-            .withConstant(e.of(universeType))
+            .withSort(universeSort)
+            .withConstant(e.of(universeSort))
             .withFunctionDeclaration(f)
             .withAxiom(associative)
             .withAxiom(identity)

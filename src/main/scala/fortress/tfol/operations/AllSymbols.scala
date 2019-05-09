@@ -4,7 +4,7 @@ import fortress.tfol._
 
 /** Accumulates the set of all symbol names used in the term, including free
   * variables and constants, bound variables (even useless ones that aren't
-  * used in the body of the quantifier), function names, and type names that
+  * used in the body of the quantifier), function names, and sort names that
   * appear on variable bindings. */
 object AllSymbols {
     def apply(term: Term): Set[String] = {

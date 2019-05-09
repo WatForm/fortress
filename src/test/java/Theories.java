@@ -18,7 +18,7 @@ public class Theories {
     
     // Group theory axioms
     
-    static Type G = Type.mkTypeConst("G"); // group type
+    static Sort G = Sort.mkSortConst("G"); // group type
     static Var e = Term.mkVar("e"); // identity element
     static FuncDecl f = FuncDecl.mkFuncDecl("f", G, G, G); // group operation
     
@@ -46,7 +46,7 @@ public class Theories {
                 Term.mkEq(Term.mkApp("f", y, x), e))));
                 
         return Theory.empty()
-            .withType(G)
+            .withSort(G)
             .withConstant(e.of(G))
             .withFunctionDeclaration(f)
             .withAxiom(associativeAxiom)

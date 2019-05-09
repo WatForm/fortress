@@ -20,13 +20,13 @@ class IntToSignedBitVector(bitwidth: Int) extends NaturalTermRecursion {
         case App(`GT`, args) => App(bvsgt, args map naturalRecur)
         case Exists(vars, body) => {
             val newVars = vars.map(
-                v => if (v.sort == IntType) { v.variable of BitVectorType(bitwidth) } else v
+                v => if (v.sort == IntSort) { v.variable of BitVectorSort(bitwidth) } else v
             )
             Exists(newVars, naturalRecur(body))
         }
         case Forall(vars, body) => {
             val newVars = vars.map(
-                v => if (v.sort == IntType) { v.variable of BitVectorType(bitwidth) } else v
+                v => if (v.sort == IntSort) { v.variable of BitVectorSort(bitwidth) } else v
             )
             Forall(newVars, naturalRecur(body))
         }

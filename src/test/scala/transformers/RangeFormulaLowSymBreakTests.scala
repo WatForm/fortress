@@ -8,9 +8,9 @@ import fortress.transformers._
 @RunWith(classOf[JUnitRunner])
 class RangeFormulaLowSymBreakTests extends FunSuite with Matchers {
     
-    val A = Type.mkTypeConst("A")
-    val B = Type.mkTypeConst("B")
-    val C = Type.mkTypeConst("C")
+    val A = Sort.mkSortConst("A")
+    val B = Sort.mkSortConst("B")
+    val C = Sort.mkSortConst("C")
     
     val x = Var("x")
     val y = Var("y")
@@ -27,11 +27,11 @@ class RangeFormulaLowSymBreakTests extends FunSuite with Matchers {
     
     test("constants") {
         val theory = Theory.empty
-            .withTypes(A, B)
+            .withSorts(A, B)
             .withConstants(c1 of A, c2 of A, d1 of B)
         
         val expected = Theory.empty
-            .withTypes(A, B)
+            .withSorts(A, B)
             .withConstants(c1 of A, c2 of A, d1 of B)
             .withAxiom(c1 === DomainElement(1, A))
             .withAxiom(Or(c2 === DomainElement(1, A), c2 === DomainElement(2, A)))
@@ -44,13 +44,13 @@ class RangeFormulaLowSymBreakTests extends FunSuite with Matchers {
     
     test("function arity 1") {
         val theory = Theory.empty
-            .withTypes(A, B)
+            .withSorts(A, B)
             .withConstants(c1 of A, d1 of B)
             .withFunctionDeclaration(FuncDecl("f", A, B))
             .withFunctionDeclaration(FuncDecl("g", B, A))
         
         val expected = Theory.empty
-            .withTypes(A, B)
+            .withSorts(A, B)
             .withConstants(c1 of A, d1 of B)
             .withFunctionDeclaration(FuncDecl("f", A, B))
             .withFunctionDeclaration(FuncDecl("g", B, A))
@@ -81,11 +81,11 @@ class RangeFormulaLowSymBreakTests extends FunSuite with Matchers {
     
     test("function arity 2") {
         val theory = Theory.empty
-            .withTypes(A, B, C)
+            .withSorts(A, B, C)
             .withFunctionDeclaration(FuncDecl("f", A, B, C))
         
         val expected = Theory.empty
-            .withTypes(A, B, C)
+            .withSorts(A, B, C)
             .withFunctionDeclaration(FuncDecl("f", A, B, C))
             .withAxiom(Or(
                 App("f", DomainElement(1, A), DomainElement(1, B)) === DomainElement(1, C),
@@ -114,7 +114,7 @@ class RangeFormulaLowSymBreakTests extends FunSuite with Matchers {
     // TODO replace this with property check?
     test("function arity 3") {
         val theory = Theory.empty
-            .withTypes(A, B, C)
+            .withSorts(A, B, C)
             .withFunctionDeclaration(FuncDecl("f", A, B, A, C))
         
         val argumentTuples: Seq[Tuple3[Term, Term, Term]] = 
@@ -126,7 +126,7 @@ class RangeFormulaLowSymBreakTests extends FunSuite with Matchers {
                App("f", arg1, arg2, arg3) === DomainElement(2, C)) }
         
         val expected = Theory.empty
-            .withTypes(A, B, C)
+            .withSorts(A, B, C)
             .withFunctionDeclaration(FuncDecl("f", A, B, A, C))
             .withAxioms(rangeFormulas)
         
@@ -137,7 +137,7 @@ class RangeFormulaLowSymBreakTests extends FunSuite with Matchers {
     
     test("more constants than scope (symmetry)") {
         val theory = Theory.empty
-            .withType(A)
+            .withSort(A)
             .withConstants(c1 of A, c2 of A, c3 of A, c4 of A)
             .withFunctionDeclaration(FuncDecl("f", A, A))
             
@@ -158,10 +158,10 @@ class RangeFormulaLowSymBreakTests extends FunSuite with Matchers {
     
     test("boolean constants/predicates not restricted") {
         val theory = Theory.empty
-            .withType(A)
+            .withSort(A)
             .withConstant(c1 of A)
-            .withConstants(p of Type.Bool, q of Type.Bool)
-            .withFunctionDeclaration(FuncDecl("P", A, Type.Bool))
+            .withConstants(p of Sort.Bool, q of Sort.Bool)
+            .withFunctionDeclaration(FuncDecl("P", A, Sort.Bool))
             .withAxiom(p === q)
             .withAxiom(App("P", c1))
         
@@ -176,21 +176,21 @@ class RangeFormulaLowSymBreakTests extends FunSuite with Matchers {
     
     test("boolean scope fails") {
         val theory = Theory.empty
-            .withType(A)
+            .withSort(A)
             .withConstant(c1 of A)
-            .withConstants(p of Type.Bool, q of Type.Bool)
-            .withFunctionDeclaration(FuncDecl("P", A, Type.Bool))
+            .withConstants(p of Sort.Bool, q of Sort.Bool)
+            .withFunctionDeclaration(FuncDecl("P", A, Sort.Bool))
             .withAxiom(p === q)
             .withAxiom(App("P", c1))
         
-        val scopes = Map(A -> 2, Type.Bool -> 3)
+        val scopes = Map(A -> 2, Sort.Bool -> 3)
         val transformer = new RangeFormulaTransformerLowSymBreak(scopes)
         a [fortress.util.Errors.PreconditionException] should be thrownBy (transformer(theory))
     }
     
     test("scope of one") {
         val theory = Theory.empty
-            .withTypes(A, B)
+            .withSorts(A, B)
             .withConstants(c1 of A, c2 of A, c3 of A, d1 of B, d2 of B)
             .withFunctionDeclaration(FuncDecl("f", A, B))
             .withFunctionDeclaration(FuncDecl("g", B, A))
@@ -211,7 +211,7 @@ class RangeFormulaLowSymBreakTests extends FunSuite with Matchers {
     
     test("non existant type errors") {
         val theory = Theory.empty
-            .withType(A)
+            .withSort(A)
             .withConstant(c1 of A)
         
         val scopes = Map(A -> 2, B -> 1)

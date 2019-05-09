@@ -34,9 +34,9 @@ public class TheoryToZ3JavaTest {
         Theory theory = Theories.groupTheory;
         
         TheoryToZ3Java converter = new TheoryToZ3Java(theory);
-        Pair<Context, Solver> result = converter.convert();
-        Context context = result.left;
-        Solver solver = result.right;
+        var result = converter.convert();
+        Context context = result._1();
+        Solver solver = result._2();
         
         Set<String> exprs = Arrays.asList(solver.getAssertions()).stream().map(e -> e.toString()).collect(Collectors.toSet());
         Set<String> expectedExprs = Set.of(
