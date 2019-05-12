@@ -1,12 +1,12 @@
-package fortress.data;
+package fortress.data
 
-public interface NameGenerator {
+trait NameGenerator {
     
     // This method is expected to mutate the name generator
     // and forbid the resulting name from being used in the future
-    public String freshName(String base);
+    def freshName(base: String): String
     
     // This method is expected to mutate the name generator
     // and prevent the given name from being used in the future
-    public void forbidName(String name);
+    def forbidName(name: String): Unit
 }

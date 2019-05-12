@@ -13,11 +13,10 @@ import java.io.*;
 import fortress.util.Errors;
 import java.util.Optional;
 import fortress.msfol.operations.*;
-import fortress.util.Pair;
 import java.util.stream.Collectors;
 import java.util.Arrays;
 
-import fortress.outputs.*;
+import fortress.solverinterface.*;
 
 import com.microsoft.z3.*;
 

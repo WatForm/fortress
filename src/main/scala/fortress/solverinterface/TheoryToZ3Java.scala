@@ -1,4 +1,4 @@
-package fortress.outputs
+package fortress.solverinterface
 
 import com.microsoft.z3.{
     Context => Z3Context,
@@ -63,9 +63,9 @@ class TheoryToZ3Java(theory: Theory) {
     
     class TermToZ3Visitor extends TermVisitorWithTypeContext[Z3Expr](theory.signature) {
         
-        override def visitTop: Z3Expr = context.mkTrue()
+        override def visitTop(): Z3Expr = context.mkTrue()
         
-        override def visitBottom: Z3Expr = context.mkFalse()
+        override def visitBottom(): Z3Expr = context.mkFalse()
         
         override def visitVar(variable: Var): Z3Expr = {
             val z3Sort = sortConversions(lookupSort(variable).get)

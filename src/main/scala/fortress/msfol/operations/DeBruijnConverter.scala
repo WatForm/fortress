@@ -13,9 +13,9 @@ class DeBruijnConverter {
     
     class DeBruijnVisitor extends TermVisitor[Term] {
         
-        override def visitTop: Term = Top
+        override def visitTop(): Term = Top
         
-        override def visitBottom: Term = Bottom
+        override def visitBottom(): Term = Bottom
         
         override def visitVar(variable: Var): Term = {
             for(m <- mappingStack) {

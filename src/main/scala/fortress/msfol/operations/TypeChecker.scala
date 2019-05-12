@@ -18,10 +18,10 @@ case class TypeCheckResult(
  * that is equal to the old term but with instances of Eq replaced with Iff
  * when comparing Bool sorts. Such a term is called "sanitized". */
 class TypeChecker(signature: Signature) extends TermVisitorWithTypeContext[TypeCheckResult](signature) {
-    override def visitTop: TypeCheckResult =
+    override def visitTop(): TypeCheckResult =
         TypeCheckResult(sanitizedTerm = Top, sort = BoolSort, containsConnectives = false, containsQuantifiers = false)
         
-    override def visitBottom: TypeCheckResult =
+    override def visitBottom(): TypeCheckResult =
         TypeCheckResult(sanitizedTerm = Bottom, sort = BoolSort, containsConnectives = false, containsQuantifiers = false)
     
     override def visitVar(variable: Var): TypeCheckResult = {
