@@ -255,6 +255,8 @@ case class App(functionName: String, arguments: Seq[Term]) extends Term {
     Errors.precondition(functionName.length >= 1, "Empty function name")
     Errors.precondition(arguments.size >= 1, "Nullary function application " + functionName + " should be a Var")
     
+    def getArguments: java.util.List[Term] = arguments.asJava
+    def getFunctionName: String = functionName
     override def accept[T](visitor: TermVisitor[T]): T  = visitor.visitApp(this)
     def mapArguments(mapping: Term => Term): Term =
         App(functionName, arguments.map(mapping))

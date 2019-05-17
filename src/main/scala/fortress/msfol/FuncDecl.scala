@@ -11,6 +11,12 @@ case class FuncDecl(name: String, argSorts: Seq[Sort], resultSort: Sort) {
     Errors.precondition(name.length > 0, "Cannot create function with empty name")
     
     def getArity: Int = argSorts.size
+
+    def getName: String = name
+
+    def getArgSorts: java.util.List[Sort] = argSorts.asJava
+
+    def getResultSort: Sort = resultSort
     
     override def toString: String = name + ": (" + argSorts.mkString(", ") + ") -> " + resultSort.toString
 }
