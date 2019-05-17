@@ -7,6 +7,7 @@ import fortress.modelfind.*;
 import java.util.List;
 import java.io.*;
 
+/* Implementation of 4 x 4 Sudoku in Fortress */
 public class Sudoku {
 
     public static void main(String[] args) {
