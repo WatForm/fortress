@@ -113,6 +113,7 @@ case class Var(name: String) extends Term with LeafTerm {
     Errors.precondition(! Names.isIllegal(name), "Illegal variable name " + name)
     
     override def toString: String = name
+    def getName: String = name
     override def accept[T](visitor: TermVisitor[T]): T = visitor.visitVar(this)
     
     /** Returns an AnnotatedVar that represents this variable annotated with
