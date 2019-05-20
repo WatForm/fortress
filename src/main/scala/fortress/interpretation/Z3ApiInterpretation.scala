@@ -29,8 +29,16 @@ class Z3ApiInterpretation(model: Z3Model, sig: Signature, sortMappings: Map[Z3Ex
     var constantInterpretations: Map[AnnotatedVar, Value] = (
         for {
             z3Decl <- model.getConstDecls
-            v = sig.queryConstant(Term.mkVar(z3Decl.getName.toString)) if v.isDefined
-        } yield v.get -> sortMappings(model.getConstInterp(z3Decl))
+            v = sig.queryConstant(Term.mkVar(z3Decl.getName.toString))
+            expr = model.getConstInterp(z3Decl) if v.isDefined
+        } yield v.get -> {
+            var t: Value = Term.mkTop
+            if (z3Decl.getRange.isInstanceOf[Z3BoolSort])
+                t = if (expr.isTrue) Term.mkTop else Term.mkBottom
+            else
+                t = sortMappings(expr)
+            t
+        }
     ).toMap
 
     var sortInterpretations: Map[Sort, Seq[Value]] = (
