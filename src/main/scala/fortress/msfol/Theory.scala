@@ -1,9 +1,11 @@
 package fortress.msfol
 
+import fortress.interpretation.Interpretation
 import fortress.util.Errors
 import fortress.msfol.operations.TypeCheckResult
+
 import scala.collection.JavaConverters._
-import scala.annotation.varargs // So we can call Scala varargs methods from Java
+import scala.annotation.varargs
 import scala.collection.immutable.Seq // Use immutable seq by default
 
 // TODO Theory needs to check for inconsistencies when adding functions as well.
@@ -124,6 +126,58 @@ case class Theory private (signature: Signature, scopes: Map[Sort, Int], axioms:
         // TODO consistency checking
         Theory(signature.withEnumSort(t, values), scopes + (t -> values.size), axioms)
     }
+
+    /** Given an interpretation, verify whether it satisfies all axioms of the original theory
+      */
+    def verifyInterpretation(interpretation: Interpretation): Boolean = {
+        // TODO maybe coalesce into object for all interpretations
+        val constInterpretations: Map[AnnotatedVar, Value] = interpretation.constantInterpretations
+        // TODO update this to work with more than just constants
+        val varToAnnotated: Map[Var, AnnotatedVar] = signature.constants.map(
+            annotatedVar => annotatedVar.variable -> annotatedVar
+        ).toMap
+
+        def evaluate(term: Term): Either[Term, Boolean] = term match{
+            case Top => Right(true)
+            case Bottom => Right(false)
+            case DomainElement(_, _) => ???
+            case IntegerLiteral(_) => ???
+            case BitVectorLiteral(_, _) => ???
+            // Is there a better way than asInstanceOf since we already know it's a Var?
+            case Var(_) => evaluate(constInterpretations(varToAnnotated(term.asInstanceOf[Var])))
+            case EnumValue(x) => ???
+            case Not(p) => evaluate(p) match{
+                case Left(_) => ??? // Shouldn't happen
+                case Right(b) => Right(!b)
+            }
+            case AndList(args) => Right(args
+                .map(arg => evaluate(arg) match{
+                    case Left(_) => ??? // Shouldn't happen
+                    case Right(b) => b
+                })
+                .reduce((a1, a2) => a1 && a2)
+            )
+            case OrList(args) => Right(args
+                .map(arg => evaluate(arg) match{
+                    case Left(_) => ??? // Shouldn't happen
+                    case Right(b) => b
+                })
+                .reduce((a1, a2) => a1 || a2)
+            )
+            case Distinct(args) => ???
+            case Implication(p, q) => ???
+            case Iff(p, q) => ???
+            case Eq(l, r) => Right(evaluate(l) == evaluate(r))
+            case App(fname, args) => ???
+            case Forall(vars, body) => ???
+            case Exists(vars, body) => ???
+        }
+        for(axiom <- axioms){
+            val result = evaluate(axiom)
+            println(axiom + " evaluated to " + result)
+        }
+        true
+    }
     
     // End of published interface
     
@@ -141,7 +195,7 @@ case class Theory private (signature: Signature, scopes: Map[Sort, Int], axioms:
         Errors.precondition(result.sort == BoolSort)
         result.sanitizedTerm
     }
-    
+
     override def toString: String = "\n" + signature.toString + " Axioms <<\n" + axioms.mkString("\n") + ">>\n"
     
 }
