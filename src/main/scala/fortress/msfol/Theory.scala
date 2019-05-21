@@ -170,7 +170,10 @@ case class Theory private (signature: Signature, scopes: Map[Sort, Int], axioms:
                 .reduce((a1, a2) => a1 || a2)
             )
             case Distinct(args) => ???
-            case Implication(p, q) => ???
+            case Implication(p, q) => (evaluate(p), evaluate(q)) match{
+                case (Right(p), Right(q)) => Right(!p || q)
+                case _ => ??? // If we have a type mismatch we really messed up
+            }
             case Iff(p, q) => (evaluate(p), evaluate(q)) match{
                 case (Right(p), Right(q)) => Right(p == q)
                 case _ => ??? // If we have a type mismatch we really messed up
