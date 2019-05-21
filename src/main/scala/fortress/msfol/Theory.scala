@@ -204,5 +204,8 @@ object Theory {
     /**  Returns a theory with an empty signature and no axioms. */
     def empty: Theory = Theory(Signature.empty, Map.empty, Set.empty)
     
-    def mkTheoryWithSignature(signature: Signature): Theory = Theory(signature, Map.empty, Set.empty)
+    def mkTheoryWithSignature(signature: Signature): Theory = {
+      val scopes = (for ((sort, enumValues) <- signature.enumConstants) yield sort -> enumValues.size).toMap
+      Theory(signature, scopes, Set.empty)
+    }
 }

@@ -24,6 +24,7 @@ class DomainInstantiationTransformer(additionalScopes: Map[Sort, Int]) extends T
     override def apply(theory: Theory): Theory = {
         Errors.precondition(fortress.util.Maps.noConflict(additionalScopes, theory.scopes))
         val scopes = additionalScopes ++ theory.scopes
+        println(scopes);
         Errors.precondition(!scopes.contains(BoolSort))
         Errors.precondition(scopes.keySet == theory.sorts.filter(!_.isBuiltin), scopes.keySet.toString)
         Errors.precondition(scopes.values.forall(_ > 0))
