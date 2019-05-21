@@ -127,7 +127,7 @@ case class Theory private (signature: Signature, scopes: Map[Sort, Int], axioms:
         Theory(signature.withEnumSort(t, values), scopes + (t -> values.size), axioms)
     }
 
-    /** Given an interpretation, verify whether it satisfies all axioms of the original theory
+    /** Given an interpretation, return whether it satisfies all axioms of the original theory
       */
     def verifyInterpretation(interpretation: Interpretation): Boolean = {
         // TODO maybe coalesce into object for all interpretations
@@ -171,19 +171,19 @@ case class Theory private (signature: Signature, scopes: Map[Sort, Int], axioms:
             )
             case Distinct(args) => ???
             case Implication(p, q) => (evaluate(p), evaluate(q)) match{
-                case (Right(p), Right(q)) => Right(!p || q)
+                case (Right(b1), Right(b2)) => Right(!b1 || b2)
                 case _ => ??? // If we have a type mismatch we really messed up
             }
             case Iff(p, q) => (evaluate(p), evaluate(q)) match{
-                case (Right(p), Right(q)) => Right(p == q)
+                case (Right(b1), Right(b2)) => Right(b1 == b2)
                 case _ => ??? // If we have a type mismatch we really messed up
             }
             // This is either equality of Terms or equality of Booleans
             // I've been told that the only Term we expect (EnumValue) is a case class and hence equality
             // checks work as expected
             case Eq(l, r) => (evaluate(l), evaluate(r)) match{
-                case (Left(l), Left(r)) => Right(l == r)
-                case (Right(l), Right(r)) => Right(l == r)
+                case (Left(ll), Left(lr)) => Right(ll == lr)
+                case (Right(rl), Right(rr)) => Right(rl == rr)
                 case _ => ??? // If we have a type mismatch we really messed up
             }
             case App(fname, args) => ???
@@ -191,9 +191,16 @@ case class Theory private (signature: Signature, scopes: Map[Sort, Int], axioms:
             case Exists(vars, body) => ???
         }
         for(axiom <- axioms){
-            val result = evaluate(axiom)
+            val result = evaluate(axiom) match{
+                case Left(_) => ???
+                case Right(b) => b
+            }
             println(axiom + " evaluated to " + result)
+            if(!result){
+                return false
+            }
         }
+        println("All axioms satisfied")
         true
     }
     
