@@ -132,20 +132,25 @@ case class Theory private (signature: Signature, scopes: Map[Sort, Int], axioms:
     def verifyInterpretation(interpretation: Interpretation): Boolean = {
         // TODO maybe coalesce into object for all interpretations
         val constInterpretations: Map[AnnotatedVar, Value] = interpretation.constantInterpretations
-        // TODO update this to work with more than just constants
-        val varToAnnotated: Map[Var, AnnotatedVar] = signature.constants.map(
-            annotatedVar => annotatedVar.variable -> annotatedVar
+        // TODO update this to work with more than just constants? Maybe
+        val varToAnnotated: Map[String, AnnotatedVar] = signature.constants.map(
+            annotatedVar => annotatedVar.variable.name -> annotatedVar
         ).toMap
 
         def evaluate(term: Term): Either[Term, Boolean] = term match{
+            // true/false are "atomic" terms
             case Top => Right(true)
             case Bottom => Right(false)
             case DomainElement(_, _) => ???
             case IntegerLiteral(_) => ???
             case BitVectorLiteral(_, _) => ???
             // Is there a better way than asInstanceOf since we already know it's a Var?
-            case Var(_) => evaluate(constInterpretations(varToAnnotated(term.asInstanceOf[Var])))
-            case EnumValue(x) => ???
+            // Translates the variable **BY STRING NAME** to its interpretation (EnumValue or Boolean for now)
+            case Var(x) => evaluate(constInterpretations(varToAnnotated(x)))
+            // We treat EnumValues as "atomic" terms (not 100% sure on this)
+            case EnumValue(x) => Left(term)
+            // Since we know not/and/or *should* only take in (eventual) Booleans as arguments,
+            // can we just use eval().right.get? Does the type checker stop invalid forms?
             case Not(p) => evaluate(p) match{
                 case Left(_) => ??? // Shouldn't happen
                 case Right(b) => Right(!b)
@@ -166,8 +171,18 @@ case class Theory private (signature: Signature, scopes: Map[Sort, Int], axioms:
             )
             case Distinct(args) => ???
             case Implication(p, q) => ???
-            case Iff(p, q) => ???
-            case Eq(l, r) => Right(evaluate(l) == evaluate(r))
+            case Iff(p, q) => (evaluate(p), evaluate(q)) match{
+                case (Right(p), Right(q)) => Right(p == q)
+                case _ => ??? // If we have a type mismatch we really messed up
+            }
+            // This is either equality of Terms or equality of Booleans
+            // I've been told that the only Term we expect (EnumValue) is a case class and hence equality
+            // checks work as expected
+            case Eq(l, r) => (evaluate(l), evaluate(r)) match{
+                case (Left(l), Left(r)) => Right(l == r)
+                case (Right(l), Right(r)) => Right(l == r)
+                case _ => ??? // If we have a type mismatch we really messed up
+            }
             case App(fname, args) => ???
             case Forall(vars, body) => ???
             case Exists(vars, body) => ???
