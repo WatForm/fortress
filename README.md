@@ -27,11 +27,13 @@ Scripts are available to automate some of the setup for the following platforms:
     We have used Z3 4.8.4.
     Specifically you will need to place the following files in the corresponding locations:
     * `com.microsoft.z3.jar` in `fortress-2.0/z3/`,
-    * `libz3java.dylib` in `fortress-2.0/z3`, if running `MacOS`, and
-    * `libz3java.so` in `fortress-2.0/z3`, if running `Ubuntu`.
+    * `libz3java.dylib` in `fortress-2.0/z3`, if running `MacOS`,
+    * `libz3java.so` in `fortress-2.0/z3`, if running `Ubuntu`, and
+    * `libz3java.dll` in `fortress-2.0/z3`, if running `Windows`.
 3. Install the Microsoft Z3 command line tool, version 4.8.4 or higher. Binaries are available in the above zip file.
     * If using MacOS, I recommend using Homebrew instead: `brew install z3`.
     * If on `Ubuntu`, do not use `apt-get`. Its version of Z3 is out of date.
+    * If on `Windows`, make sure you add the directory with `libz3java.dll` to your PATH.
 
 ## Building Fortress
 Java 10 or higher is required to build Fortress.
