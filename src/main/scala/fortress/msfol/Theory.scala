@@ -130,71 +130,64 @@ case class Theory private (signature: Signature, scopes: Map[Sort, Int], axioms:
     /** Given an interpretation, return whether it satisfies all axioms of the original theory
       */
     def verifyInterpretation(interpretation: Interpretation): Boolean = {
+        // Some Terms are guaranteed to take in only Bools as args (by the typechecker?)
+        // eg. and, or. We assume that the input will be only Top/Bottom and convert to a Scala Boolean.
+        def forceTermToBool(term: Term): Boolean = term match{
+            case Top => true
+            case Bottom => false
+        }
+        def boolToTerm(b: Boolean): Term = if(b) Top else Bottom
+
         // TODO maybe coalesce into object for all interpretations
         val constInterpretations: Map[AnnotatedVar, Value] = interpretation.constantInterpretations
+        /*def getAppInterpretation(fnName: String, args: Either[Term, Boolean]*): Either[Term, Boolean] = {
+            val theoryFuncDecl: FuncDecl = signature.functionDeclarations.filter(fd => fd.name == fnName).head
+            val fnInterpretation = interpretation.functionInterpretations(theoryFuncDecl)
+            val res = fnInterpretation(args)
+        }*/
+
         // TODO update this to work with more than just constants? Maybe
         val varToAnnotated: Map[String, AnnotatedVar] = signature.constants.map(
             annotatedVar => annotatedVar.variable.name -> annotatedVar
         ).toMap
 
-        def evaluate(term: Term): Either[Term, Boolean] = term match{
-            // true/false are "atomic" terms
-            case Top => Right(true)
-            case Bottom => Right(false)
+        def evaluate(term: Term): Term = term match{
+            // Top/Bottom are "atomic" terms
+            // We also treat EnumValues as "atomic" terms (not 100% sure on this)
+            case Top | Bottom | EnumValue(_) => term
             case DomainElement(_, _) => ???
             case IntegerLiteral(_) => ???
             case BitVectorLiteral(_, _) => ???
             // Is there a better way than asInstanceOf since we already know it's a Var?
             // Translates the variable **BY STRING NAME** to its interpretation (EnumValue or Boolean for now)
             case Var(x) => evaluate(constInterpretations(varToAnnotated(x)))
-            // We treat EnumValues as "atomic" terms (not 100% sure on this)
-            case EnumValue(x) => Left(term)
             // Since we know not/and/or *should* only take in (eventual) Booleans as arguments,
             // can we just use eval().right.get? Does the type checker stop invalid forms?
-            case Not(p) => evaluate(p) match{
-                case Left(_) => ??? // Shouldn't happen
-                case Right(b) => Right(!b)
-            }
-            case AndList(args) => Right(args
-                .map(arg => evaluate(arg) match{
-                    case Left(_) => ??? // Shouldn't happen
-                    case Right(b) => b
-                })
+            case Not(p) => boolToTerm(!forceTermToBool(evaluate(p)))
+            case AndList(args) => boolToTerm(args
+                .map(arg => forceTermToBool(evaluate(arg)))
                 .reduce((a1, a2) => a1 && a2)
             )
-            case OrList(args) => Right(args
-                .map(arg => evaluate(arg) match{
-                    case Left(_) => ??? // Shouldn't happen
-                    case Right(b) => b
-                })
+            case OrList(args) => boolToTerm(args
+                .map(arg => forceTermToBool(evaluate(arg)))
                 .reduce((a1, a2) => a1 || a2)
             )
             case Distinct(args) => ???
-            case Implication(p, q) => (evaluate(p), evaluate(q)) match{
-                case (Right(b1), Right(b2)) => Right(!b1 || b2)
-                case _ => ??? // If we have a type mismatch we really messed up
-            }
-            case Iff(p, q) => (evaluate(p), evaluate(q)) match{
-                case (Right(b1), Right(b2)) => Right(b1 == b2)
-                case _ => ??? // If we have a type mismatch we really messed up
-            }
-            // This is either equality of Terms or equality of Booleans
-            // I've been told that the only Term we expect (EnumValue) is a case class and hence equality
-            // checks work as expected
-            case Eq(l, r) => (evaluate(l), evaluate(r)) match{
-                case (Left(ll), Left(lr)) => Right(ll == lr)
-                case (Right(rl), Right(rr)) => Right(rl == rr)
-                case _ => ??? // If we have a type mismatch we really messed up
-            }
+            case Implication(p, q) => boolToTerm(
+                !forceTermToBool(evaluate(p)) || forceTermToBool(evaluate(q))
+            )
+            case Iff(p, q) => boolToTerm(
+                forceTermToBool(evaluate(p)) == forceTermToBool(evaluate(q))
+            )
+            // This should be either an equality of EnumValues or equality of Top/Bottom
+            // Since these are case classes, equality checks should work as expected
+            case Eq(l, r) => boolToTerm(evaluate(l) == evaluate(r))
             case App(fname, args) => ???
             case Forall(vars, body) => ???
             case Exists(vars, body) => ???
         }
         for(axiom <- axioms){
-            val result = evaluate(axiom) match{
-                case Left(_) => ???
-                case Right(b) => b
-            }
+            val result = forceTermToBool(evaluate(axiom))
             println(axiom + " evaluated to " + result)
             if(!result){
                 return false
