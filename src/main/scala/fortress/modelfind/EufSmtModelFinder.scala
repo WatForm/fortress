@@ -53,21 +53,27 @@ class EufSmtModelFinder(var solverStrategy: SolverStrategy) extends ModelFinder 
         
         totalTimer.startFresh()
         
+        val enumScopes: Map[Sort, Int] = theory.signature.enumConstants.map {
+            case (sort, enumValues) => sort -> enumValues.size
+        }.toMap
+        
+        Errors.precondition(fortress.util.Maps.noConflict(enumScopes, analysisScopes))
+        
         val enumEliminationTransformer = new EnumEliminationTransformer
         enumSortMapping = enumEliminationTransformer.computeEnumSortMapping(theory)
         
         val rangeFormulaTransformer =
-            if (usesEnumSort(theory)) { new RangeFormulaTransformerNoSymBreak(analysisScopes ++ theory.scopes) }
-            else { new RangeFormulaTransformerLowSymBreak(analysisScopes ++ theory.scopes) }
+            if (usesEnumSort(theory)) { new RangeFormulaTransformerNoSymBreak(analysisScopes ++ enumScopes) }
+            else { new RangeFormulaTransformerLowSymBreak(analysisScopes ++ enumScopes) }
         
         val transformerSequence = Seq(
             enumEliminationTransformer,
             new SimplifyTransformer,
             new NnfTransformer,
             new SkolemizeTransformer,
-            new DomainInstantiationTransformer(analysisScopes),
+            new DomainInstantiationTransformer(analysisScopes ++ enumScopes),
             rangeFormulaTransformer,
-            new DomainEliminationTransformer(analysisScopes ++ theory.scopes),
+            new DomainEliminationTransformer(analysisScopes ++ enumScopes),
             new SimplifyTransformer
         )
         

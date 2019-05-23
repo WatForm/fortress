@@ -37,7 +37,6 @@ class EnumEliminationTests extends FunSuite with Matchers {
         val theory = Theory.empty
             .withEnumSort(A, Seq(EnumValue("cat"), EnumValue("dog"), EnumValue("mouse")))
             .withSort(B)
-            .withScope(B, 4)
             .withEnumSort(C, Seq(EnumValue("red"), EnumValue("blue")))
             .withFunctionDeclaration(FuncDecl("f", A, B, C))
             .withAxiom(Forall(x of B,
@@ -45,9 +44,6 @@ class EnumEliminationTests extends FunSuite with Matchers {
         
         val expected = Theory.empty
             .withSorts(A, B, C)
-            .withScope(A, 3)
-            .withScope(B, 4)
-            .withScope(C, 2)
             .withFunctionDeclaration(FuncDecl("f", A, B, C))
             .withAxiom(Forall(x of B,
                 Not(App("f", DomainElement(1, A), x) === DomainElement(2, C))))

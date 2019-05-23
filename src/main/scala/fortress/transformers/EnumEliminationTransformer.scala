@@ -19,7 +19,6 @@ class EnumEliminationTransformer() extends TheoryTransformer {
         val newSignature = theory.signature.withoutEnums
         
         Theory.mkTheoryWithSignature(newSignature)
-            .withScopes(theory.scopes)
             .withAxioms(newAxioms)
     }
     

@@ -5,26 +5,20 @@ import scala.collection.JavaConverters._
 import fortress.msfol._
 import fortress.util.Errors
 
-/** Instantiates quantifiers with domain elements.
-  * Scoped sorts within the theory are expanded.
-  * More scopes can be provided in addition to the ones in the theory.
-  * The theory's scopes, together with the additional scopes, must provide
-  * sizes for all sorts in the theory.
+/** Instantiates quantifiers with domain elements, according to the provided scopes.
+  * The scopes must provide sizes for all sorts in the theory.
   * The input theory is required to have no existential quantifiers and no enum sorts.
-  * The resulting theory has no scopes, though its signature is unchanged.
+  * The resulting theory's signature is identical to the original.
   */
-class DomainInstantiationTransformer(additionalScopes: Map[Sort, Int]) extends TheoryTransformer {
+class DomainInstantiationTransformer(scopes: Map[Sort, Int]) extends TheoryTransformer {
     
     // Ugly conversion from Java data structures
-    def this(additionalScopes: java.util.Map[Sort, Integer]) = this({
-        val scopes1: Map[Sort, Integer] = additionalScopes.asScala.toMap
+    def this(scopes: java.util.Map[Sort, Integer]) = this({
+        val scopes1: Map[Sort, Integer] = scopes.asScala.toMap
         scopes1.map { case (sort, size: Integer) => (sort, Predef.Integer2int(size)) }
     })
     
     override def apply(theory: Theory): Theory = {
-        Errors.precondition(fortress.util.Maps.noConflict(additionalScopes, theory.scopes))
-        val scopes = additionalScopes ++ theory.scopes
-        println(scopes);
         Errors.precondition(!scopes.contains(BoolSort))
         Errors.precondition(scopes.keySet == theory.sorts.filter(!_.isBuiltin), scopes.keySet.toString)
         Errors.precondition(scopes.values.forall(_ > 0))

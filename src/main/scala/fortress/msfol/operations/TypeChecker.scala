@@ -210,6 +210,9 @@ class TypeChecker(signature: Signature) extends TermVisitorWithTypeContext[TypeC
         if(! (signature hasSort d.sort)) {
             throw new TypeCheckException.UndeclaredSort("Undeclared sort " + d.sort.name + " in " + d.toString)
         }
+        if( d.sort.isBuiltin ) {
+            throw new TypeCheckException.WrongSort("Cannot make domain element of sort " + d.sort)
+        }
         TypeCheckResult(sanitizedTerm = d, sort = d.sort, containsConnectives = false, containsQuantifiers = false)
     }
     
