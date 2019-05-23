@@ -106,21 +106,24 @@ case class Theory private (signature: Signature, scopes: Map[Sort, Int], axioms:
     @varargs
     def withFunctionDeclarations(fdecls: FuncDecl*): Theory = withFunctionDeclarations(fdecls.asJava)
     
-    def withScope(t: Sort, size: Int) = {
+    def withScope(t: Sort, size: Int): Theory = {
         // TODO consistency checking
         Theory(signature, scopes + (t -> size), axioms)
     }
     
-    def withScopes(scopes: Map[Sort, Int]) = {
+    def withScopes(scopes: Map[Sort, Int]): Theory = {
         var theory = this
         scopes.foreach { case (sort, size) => theory = theory.withScope(sort, size) }
         theory
     }
     
-    def withEnumSort(t: Sort, values: Seq[EnumValue]) = {
+    def withEnumSort(t: Sort, values: Seq[EnumValue]): Theory = {
         // TODO consistency checking
         Theory(signature.withEnumSort(t, values), scopes + (t -> values.size), axioms)
     }
+    
+    @varargs
+    def withEnumSort(t: Sort, values: EnumValue*): Theory = withEnumSort(t, values.toList)
     
     def withEnumSort(t: Sort, values: java.util.List[EnumValue]) = {
         // TODO consistency checking

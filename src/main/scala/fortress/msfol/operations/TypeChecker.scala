@@ -234,7 +234,7 @@ class TypeChecker(signature: Signature) extends TermVisitorWithTypeContext[TypeC
     }
     
     override def visitEnumValue(e: EnumValue) = signature.queryEnum(e) match {
-        case Some(eSort: Sort) => TypeCheckResult(sanitizedTerm = e, sort = eSort, containsConnectives = false, containsQuantifiers = true)
+        case Some(eSort: Sort) => TypeCheckResult(sanitizedTerm = e, sort = eSort, containsConnectives = false, containsQuantifiers = false)
         case None => throw new TypeCheckException.UndeterminedSort("Could not determine sort of enum " + e.name)
     }
     
