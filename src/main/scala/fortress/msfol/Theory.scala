@@ -127,21 +127,27 @@ case class Theory private (signature: Signature, axioms: Set[Term]) {
         def forceTermToBool(term: Term): Boolean = term match{
             case Top => true
             case Bottom => false
+            case _ => ???
         }
         def boolToTerm(b: Boolean): Term = if(b) Top else Bottom
 
+        // Converts Var to AnnotatedVar based on the constants in the theory's signature
+        val varToAnnotated: Map[Var, AnnotatedVar] = signature.constants.map(
+            annotatedVar => annotatedVar.variable -> annotatedVar
+        ).toMap
+
         // TODO maybe coalesce into object for all interpretations
         val constInterpretations: Map[AnnotatedVar, Value] = interpretation.constantInterpretations
-        /*def getAppInterpretation(fnName: String, args: Either[Term, Boolean]*): Either[Term, Boolean] = {
-            val theoryFuncDecl: FuncDecl = signature.functionDeclarations.filter(fd => fd.name == fnName).head
-            val fnInterpretation = interpretation.functionInterpretations(theoryFuncDecl)
-            val res = fnInterpretation(args)
-        }*/
-
-        // TODO update this to work with more than just constants? Maybe
-        val varToAnnotated: Map[String, AnnotatedVar] = signature.constants.map(
-            annotatedVar => annotatedVar.variable.name -> annotatedVar
-        ).toMap
+        def appInterpretations(fnName: String, args: Seq[Term]): Term = {
+            // This assumes the args are all Vars which can be converted into AnnotatedVars
+            // (probably untrue, eg Bool, but need more data)
+            val argsInterpretation = args.map(a => constInterpretations(varToAnnotated(a.asInstanceOf[Var])))
+            // Retrieve FuncDecl signature from the theory, to index the interpretation
+            // Assumes there will only be one FuncDecl with a given function name (should be safe)
+            val fnSignature = signature.functionDeclarations.filter(fd => fd.name == fnName).head
+            val fnInterpretation = interpretation.functionInterpretations(fnSignature)
+            fnInterpretation(argsInterpretation)
+        }
 
         def evaluate(term: Term): Term = term match{
             // Top/Bottom are "atomic" terms
@@ -152,19 +158,30 @@ case class Theory private (signature: Signature, axioms: Set[Term]) {
             case BitVectorLiteral(_, _) => ???
             // Is there a better way than asInstanceOf since we already know it's a Var?
             // Translates the variable **BY STRING NAME** to its interpretation (EnumValue or Boolean for now)
-            case Var(x) => evaluate(constInterpretations(varToAnnotated(x)))
+            case Var(x) => evaluate(constInterpretations(varToAnnotated(term.asInstanceOf[Var])))
             // Since we know not/and/or *should* only take in (eventual) Booleans as arguments,
             // can we just use eval().right.get? Does the type checker stop invalid forms?
             case Not(p) => boolToTerm(!forceTermToBool(evaluate(p)))
-            case AndList(args) => boolToTerm(args
-                .map(arg => forceTermToBool(evaluate(arg)))
-                .reduce((a1, a2) => a1 && a2)
+            case AndList(args) => {
+                for(arg <- args){
+                    if(!forceTermToBool(evaluate(arg))){
+                        return Bottom
+                    }
+                }
+                Top
+            }
+            case OrList(args) => {
+                for(arg <- args){
+                    if(forceTermToBool(evaluate(arg))){
+                        return Top
+                    }
+                }
+                Bottom
+            }
+            case Distinct(args) => boolToTerm(
+                args.size ==
+                args.map(a => constInterpretations(varToAnnotated(a.asInstanceOf[Var]))).distinct.size
             )
-            case OrList(args) => boolToTerm(args
-                .map(arg => forceTermToBool(evaluate(arg)))
-                .reduce((a1, a2) => a1 || a2)
-            )
-            case Distinct(args) => ???
             case Implication(p, q) => boolToTerm(
                 !forceTermToBool(evaluate(p)) || forceTermToBool(evaluate(q))
             )
@@ -174,7 +191,7 @@ case class Theory private (signature: Signature, axioms: Set[Term]) {
             // This should be either an equality of EnumValues or equality of Top/Bottom
             // Since these are case classes, equality checks should work as expected
             case Eq(l, r) => boolToTerm(evaluate(l) == evaluate(r))
-            case App(fname, args) => ???
+            case App(fname, args) => appInterpretations(fname, args)
             case Forall(vars, body) => ???
             case Exists(vars, body) => ???
         }

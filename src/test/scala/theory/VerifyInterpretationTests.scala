@@ -1,8 +1,8 @@
+import fortress.inputs.SmtLibSubsetParser.DistinctContext
 import org.scalatest._
 import org.junit.Assert._
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
-
 import fortress.msfol._
 import fortress.modelfind._
 import fortress.interpretation._
@@ -96,16 +96,21 @@ class VerifyInterpretationTests extends FunSuite with Matchers {
         )
 
         val identity: FuncDecl = FuncDecl.mkFuncDecl("identity", fruit, fruit)
+        val doubleIdentity: FuncDecl = FuncDecl.mkFuncDecl("doubleIdentity", fruit, fruit, fruit)
+        val tripleIdentity: FuncDecl = FuncDecl.mkFuncDecl("tripleIdentity", fruit, fruit, fruit, fruit)
 
         val temp: Var = Var("temp")
         val rawSortTheory: Theory = Theory.empty
                 .withEnumSort(fruit, fruitVals)
                 .withConstants(apple of fruit, orange of fruit,
                         banana of fruit, plum of fruit, peach of fruit)
-                .withFunctionDeclaration(identity)
+                .withFunctionDeclarations(identity, doubleIdentity, tripleIdentity)
 
         val sortTheory: Theory = rawSortTheory
+                .withAxiom(Distinct(apple, orange, banana, plum, peach))
                 .withAxiom(Forall(temp of fruit, temp === App("identity", temp)))
+                .withAxiom(Forall(temp of fruit, temp === App("doubleIdentity", temp, temp)))
+                .withAxiom(Forall(temp of fruit, temp === App("tripleIdentity", temp, temp, temp)))
 
         val sortFinder: ModelFinder = ModelFinder.createDefault()
         try {
@@ -120,6 +125,29 @@ class VerifyInterpretationTests extends FunSuite with Matchers {
 
         test("sort eq"){
                 assertTrue(sortTest(apple === apple))
+                assertTrue(sortTest(orange === orange))
+                assertTrue(sortTest(plum === plum))
+                assertTrue(sortTest(peach === peach))
+                assertTrue(sortTest(banana === banana))
                 assertFalse(sortTest(apple === banana))
+                assertFalse(sortTest(plum === orange))
+                assertFalse(sortTest(peach === banana))
+        }
+
+        test("sort function application"){
+                assertTrue(sortTest(App("identity", apple) === apple))
+                assertTrue(sortTest(App("doubleIdentity", banana, banana) === banana))
+                assertTrue(sortTest(App("tripleIdentity", peach, peach, peach) === peach))
+                assertFalse(sortTest(App("identity", plum) === apple))
+                assertFalse(sortTest(App("doubleIdentity", peach, peach) === banana))
+                assertFalse(sortTest(App("tripleIdentity", banana, banana, banana) === peach))
+        }
+
+        test("sort distinct"){
+                assertTrue(sortTest(Distinct(apple, banana)))
+                assertTrue(sortTest(Distinct(apple, banana, peach, plum, orange)))
+                assertFalse(sortTest(Distinct(apple, apple)))
+                assertFalse(sortTest(Distinct(apple, banana, peach, apple)))
+                assertFalse(sortTest(Distinct(banana, banana, peach, plum, orange)))
         }
 }
