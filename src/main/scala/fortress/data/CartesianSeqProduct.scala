@@ -24,7 +24,7 @@ class CartesianSeqProduct[E](private val sequences: IndexedSeq[IndexedSeq[E]]) e
         private val currentPosition: Array[Int] = new Array(numberOfSequences)
         private var atEnd: Boolean = false
         
-        for(i <- 0 to numberOfSequences) {
+        for(i <- 0 until numberOfSequences) {
             currentPosition(i) = 0
         }
         
@@ -36,20 +36,13 @@ class CartesianSeqProduct[E](private val sequences: IndexedSeq[IndexedSeq[E]]) e
             // Get current item of counter, then increment
             
             // Get current item
-            val currentProductTuple: Seq[E] = {
-                // Ugly, but we are doing this for efficiency
-                val buffer = new scala.collection.mutable.ListBuffer[E]
-                var i = 0
-                while(i < numberOfSequences) {
-                    buffer += sequences(i)(currentPosition(i))
-                    i += 1
-                }
-                buffer.toList
-            }
+            val currentProductTuple: Seq[E] =
+                for(i <- 0 until numberOfSequences) yield
+                    sequences(i)(currentPosition(i))
             
             // Increment, counter from left to right
             var index = 0
-            while(index < numberOfSequences && currentPosition(index) == sequences(index).size - 1) {
+            while(index < numberOfSequences && currentPosition(index) == (sequences(index).size - 1)) {
                 currentPosition(index) = 0
                 index += 1
             }

@@ -37,7 +37,6 @@ public class CartesianProduct<E> implements Iterable<List<E>> {
             for(int i = 0; i < currentPosition.length; i++) {
                 this.currentPosition[i] = 0;
             }
-            this.currentPosition[0] = 0;
         }
         
         @Override
