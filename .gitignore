@@ -1,4 +1,5 @@
 build/
+examples/libs
 .gradle/
 .idea/
 .DS_Store

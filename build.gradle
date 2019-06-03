@@ -62,6 +62,31 @@ javadoc {
     options.addBooleanOption('html5', true) // Generate in HTML5
 }
 
+// Examples dir
+task('copyToExamples', type: Copy) {
+    dependsOn('distTar')
+
+    from(tarTree(file('build/distributions/fortress-2.0.tar')))
+    into(file('examples/libs'))
+}
+
+task('compileSudoku', type: JavaCompile) {
+    dependsOn('copyToExamples')
+
+    source = fileTree('examples')
+    include 'Sudoku.java'
+
+    destinationDir = file('examples/build')
+    classpath = fileTree('examples/libs/fortress-2.0/')
+}
+
+task('runSudoku', type: JavaExec) {
+    dependsOn('compileSudoku')
+
+    classpath = files('examples/build', 'examples/libs/fortress-2.0/*')
+    main = 'Sudoku'
+}
+
 // Distribution
 
 // Zip up both the main fortress jar and any runtime dependencies
