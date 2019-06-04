@@ -26,12 +26,12 @@ abstract class TermVisitorWithTypeContext[T](protected var signature: Signature)
         }
         
         // If it is not in the stack, check if is in the declared constants
-        val constMaybe: java.util.Optional[AnnotatedVar] = signature.queryConstantJava(variable)
-        if(constMaybe.isPresent) {
-            return java.util.Optional.of(constMaybe.get.sort)
+        val constMaybe: Option[AnnotatedVar] = signature.queryConstant(variable)
+        if(constMaybe.nonEmpty) {
+            java.util.Optional.of(constMaybe.get.sort)
+        } else {
+            java.util.Optional.empty()
         }
-        
-        return java.util.Optional.empty()
     }
     
     protected def visitForallInner(forall: Forall): T

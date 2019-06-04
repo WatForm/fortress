@@ -168,6 +168,25 @@ class TypeChecker(signature: Signature) extends TermVisitorWithTypeContext[TypeC
             containsConnectives = false, containsQuantifiers = false)
     }
     
+    override def visitBuiltinApp(bapp: BuiltinApp): TypeCheckResult = {
+        val results = bapp.arguments.map(visit)
+        val argSorts = results.map(_.sort)
+        
+        if(results.exists(_.containsConnectives)) {
+            throw new TypeCheckException.BadStructure("Argument of " + bapp.function.toString + " contains connective")
+        }
+        if(results.exists(_.containsQuantifiers)) {
+            throw new TypeCheckException.BadStructure("Argument of " + bapp.function.toString + " contains quantifier")
+        }
+        
+        bapp.function.resultSortFromArgSorts(argSorts) match {
+            case Some(resultSort) => TypeCheckResult(
+                sanitizedTerm = BuiltinApp(bapp.function, results.map(_.sanitizedTerm)), sort = resultSort,
+                containsConnectives = false, containsQuantifiers = false)
+            case None => throw new TypeCheckException.WrongSort("Builtin function " + bapp.function.toString + " cannot accept arguments of sorts " + argSorts.toString)
+        }
+    }
+    
     override def visitExistsInner(exists: Exists): TypeCheckResult = {
         // Check variables don't clash with function names
         // and that their sort exists
@@ -175,7 +194,7 @@ class TypeChecker(signature: Signature) extends TermVisitorWithTypeContext[TypeC
             if(signature hasFunctionWithName av.name) {
                 throw new TypeCheckException.NameConflict("Variable name " + av.name + " conflicts with existing function symbol")
             }
-            if(! (signature hasSort av.sort) ) {
+            if(!av.sort.isBuiltin && !(signature hasSort av.sort) ) {
                 throw new TypeCheckException.UndeclaredSort("Undeclared sort " + av.sort.name + " in " + exists.toString)
             }
         }
@@ -194,7 +213,7 @@ class TypeChecker(signature: Signature) extends TermVisitorWithTypeContext[TypeC
             if(signature hasFunctionWithName av.name) {
                 throw new TypeCheckException.NameConflict("Variable name " + av.name + " conflicts with existing function symbol")
             }
-            if(! (signature hasSort av.sort) ) {
+            if(!av.sort.isBuiltin && !(signature hasSort av.sort) ) {
                 throw new TypeCheckException.UndeclaredSort("Undeclared sort " + av.sort.name + " in " + forall.toString)
             }
         }
@@ -216,25 +235,13 @@ class TypeChecker(signature: Signature) extends TermVisitorWithTypeContext[TypeC
         TypeCheckResult(sanitizedTerm = d, sort = d.sort, containsConnectives = false, containsQuantifiers = false)
     }
     
-    override def visitIntegerLiteral(literal: IntegerLiteral): TypeCheckResult = {
-        // Should fail if Int is not in signature
-        if(! (signature hasSort IntSort) ) {
-            throw new TypeCheckException.UndeclaredSort("Given signature does not include integers")
-        } else {
-           TypeCheckResult(sanitizedTerm = literal, sort = IntSort,
-                containsConnectives = false, containsQuantifiers = false)
-        }
-    }
+    override def visitIntegerLiteral(literal: IntegerLiteral): TypeCheckResult =
+       TypeCheckResult(sanitizedTerm = literal, sort = IntSort,
+            containsConnectives = false, containsQuantifiers = false)
     
-    override def visitBitVectorLiteral(literal: BitVectorLiteral): TypeCheckResult = {
-        // Should fail if BitVector is not in signature
-        if(! (signature hasSort BitVectorSort(literal.bitWidth)) ) {
-            throw new TypeCheckException.UndeclaredSort("Given signature does not include bit vectors")
-        } else {
-           TypeCheckResult(sanitizedTerm = literal, sort = BitVectorSort(literal.bitWidth),
-                containsConnectives = false, containsQuantifiers = false)
-        }
-    }
+    override def visitBitVectorLiteral(literal: BitVectorLiteral): TypeCheckResult =
+       TypeCheckResult(sanitizedTerm = literal, sort = BitVectorSort(literal.bitwidth),
+            containsConnectives = false, containsQuantifiers = false)
     
     override def visitEnumValue(e: EnumValue) = signature.queryEnum(e) match {
         case Some(eSort: Sort) => TypeCheckResult(sanitizedTerm = e, sort = eSort, containsConnectives = false, containsQuantifiers = false)

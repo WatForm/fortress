@@ -1,23 +1,21 @@
 package fortress.msfol.operations
 
 import fortress.msfol._
-import fortress.msfol.IntegerExtension._
-import fortress.msfol.BitVectorExtension._
 import scala.collection.immutable.Seq // Use immutable seq
  
 class IntToSignedBitVector(bitwidth: Int) extends NaturalTermRecursion {
     override val exceptionalMappings: PartialFunction[Term, Term] = {
         case IntegerLiteral(value) => BitVectorLiteral(value, bitwidth)
-        case App(`plus`, args) => App(bvadd, args)
-        case App(`minus`, args) if args.size == 1 => App(bvneg, args map naturalRecur)
-        case App(`minus`, args) => App(bvsub, args map naturalRecur)
-        case App(`times`, args) => App(bvmul, args map naturalRecur)
-        case App(`div`, args) => App(bvsdiv, args map naturalRecur)
-        case App(`mod`, args) => App(bvsmod, args map naturalRecur)
-        case App(`LE`, args) => App(bvsle, args map naturalRecur)
-        case App(`LT`, args) => App(bvslt, args map naturalRecur)
-        case App(`GE`, args) => App(bvsge, args map naturalRecur)
-        case App(`GT`, args) => App(bvsgt, args map naturalRecur)
+        case BuiltinApp(IntPlus, args) => BuiltinApp(BvPlus, args map naturalRecur)
+        case BuiltinApp(IntNeg, args) => BuiltinApp(BvNeg, args map naturalRecur)
+        case BuiltinApp(IntSub, args) => BuiltinApp(BvSub, args map naturalRecur)
+        case BuiltinApp(IntMult, args) => BuiltinApp(BvMult, args map naturalRecur)
+        case BuiltinApp(IntDiv, args) => BuiltinApp(BvSignedDiv, args map naturalRecur)
+        case BuiltinApp(IntMod, args) => BuiltinApp(BvSignedMod, args map naturalRecur)
+        case BuiltinApp(IntLE, args) => BuiltinApp(BvSignedLE, args map naturalRecur)
+        case BuiltinApp(IntLT, args) => BuiltinApp(BvSignedLT, args map naturalRecur)
+        case BuiltinApp(IntGE, args) => BuiltinApp(BvSignedGE, args map naturalRecur)
+        case BuiltinApp(IntGT, args) => BuiltinApp(BvSignedGT, args map naturalRecur)
         case Exists(vars, body) => {
             val newVars = vars.map(
                 v => if (v.sort == IntSort) { v.variable of BitVectorSort(bitwidth) } else v

@@ -37,6 +37,7 @@ object Substituter {
             case Iff(p, q) => Iff(sub(p), sub(q))
             case Eq(l, r) => Eq(sub(l), sub(r))
             case App(f, args) => App(f, args.map(sub))
+            case BuiltinApp(function, args) => BuiltinApp(function, args map sub)
             case Exists(vars, _) if (vars.map(_.variable).contains(x)) => t
             case Forall(vars, _) if (vars.map(_.variable).contains(x)) => t
             case Exists(vars, body) => {

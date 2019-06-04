@@ -14,6 +14,8 @@ import fortress.msfol.operations.TermVisitorWithTypeContext
 
 import scala.collection.JavaConverters._
 
+import fortress.util.Errors
+
 // Precondition: theory must be typechecked and all declarations must
 // be internally consistent
 class TheoryToZ3Java(theory: Theory) {
@@ -24,14 +26,14 @@ class TheoryToZ3Java(theory: Theory) {
     )
     val context = new Z3Context(config.asJava);
     
-    val sortConversions: Map[Sort, Z3Sort] = {
-        val tuples = for(t <- theory.sorts if ! t.isBuiltin) yield {
-            (t, context.mkUninterpretedSort(t.name))
-        }
-        tuples.toMap + (BoolSort -> context.getBoolSort)
+    def sortConversions(s: Sort): Z3Sort = s match {
+        case SortConst(name) => context.mkUninterpretedSort(name)
+        case BoolSort => context.getBoolSort
+        case IntSort => context.getIntSort
+        case BitVectorSort(bitwidth) => context.mkBitVecSort(bitwidth)
     }
     
-    val constantConversions: Map[String, Z3FuncDecl] = {
+    val constantConversionsMap: Map[String, Z3FuncDecl] = {
         val tuples = for(constant <- theory.constants) yield {
             val z3Sort = sortConversions(constant.sort)
             val z3Decl = context.mkConstDecl(constant.name, z3Sort)
@@ -40,13 +42,15 @@ class TheoryToZ3Java(theory: Theory) {
         tuples.toMap
     }
     
-    val functionConversions: Map[String, Z3FuncDecl] = {
-        val tuples = for(fdecl <- theory.functionDeclarations) yield {
-            val z3ArgSorts: Array[Z3Sort] = fdecl.argSorts.map(sortConversions).toArray
-            val z3ResultSort = sortConversions(fdecl.resultSort)
-            val z3Decl = context.mkFuncDecl(fdecl.name, z3ArgSorts, z3ResultSort)
-            (fdecl.name, z3Decl)
-        }
+    def fdecltoZ3Decl(fdecl: FuncDecl): Z3FuncDecl = {
+        val z3ArgSorts: Array[Z3Sort] = fdecl.argSorts.map(sortConversions).toArray
+        val z3ResultSort = sortConversions(fdecl.resultSort)
+        val z3Decl = context.mkFuncDecl(fdecl.name, z3ArgSorts, z3ResultSort)
+        z3Decl
+    }
+    
+    val functionConversionsMap: Map[String, Z3FuncDecl] = {
+        val tuples = for(fdecl <- theory.functionDeclarations) yield (fdecl.name, fdecltoZ3Decl(fdecl))
         tuples.toMap
     }
     
@@ -79,12 +83,12 @@ class TheoryToZ3Java(theory: Theory) {
         
         override def visitAndList(term: AndList): Z3Expr = {
             val args = term.arguments.map(arg => visit(arg).asInstanceOf[Z3BoolExpr])
-            return context.mkAnd(args:_*)
+            context.mkAnd(args:_*)
         }
         
         override def visitOrList(term: OrList): Z3Expr = {
             val args = term.arguments.map(arg => visit(arg).asInstanceOf[Z3BoolExpr])
-            return context.mkOr(args:_*)
+            context.mkOr(args:_*)
         }
         
         override def visitDistinct(term: Distinct): Z3Expr = {
@@ -105,10 +109,12 @@ class TheoryToZ3Java(theory: Theory) {
             context.mkEq(visit(term.left), visit(term.right))
         
         override def visitApp(term: App): Z3Expr = {
-            val z3Decl = functionConversions(term.functionName)
+            val z3Decl = functionConversionsMap(term.functionName)
             val args = term.arguments.map(visit)
             z3Decl.apply(args:_*)
         }
+        
+        override def visitBuiltinApp(term: BuiltinApp): Z3Expr = ???
         
         override def visitExistsInner(term: Exists): Z3Expr = {
             // TODO will having no patterns change performance?
@@ -142,12 +148,12 @@ class TheoryToZ3Java(theory: Theory) {
             )
         }
         
-        override def visitDomainElement(d: DomainElement): Z3Expr = ???
+        override def visitDomainElement(d: DomainElement): Z3Expr = Errors.unreachable()
         
-        override def visitIntegerLiteral(literal: IntegerLiteral): Z3Expr = ???
+        override def visitIntegerLiteral(literal: IntegerLiteral): Z3Expr = context.mkInt(literal.value)
         
-        override def visitBitVectorLiteral(literal: BitVectorLiteral): Z3Expr = ???
+        override def visitBitVectorLiteral(literal: BitVectorLiteral): Z3Expr = context.mkBV(literal.value, literal.bitwidth)
         
-        override def visitEnumValue(e: EnumValue): Z3Expr = ???
+        override def visitEnumValue(e: EnumValue): Z3Expr = Errors.unreachable()
     }
 }

@@ -4,7 +4,9 @@ import scala.collection.JavaConverters._
 
 import fortress.msfol._
 import fortress.util.Errors
-import fortress.data.CartesianProduct
+import fortress.data.CartesianSeqProduct
+
+import scala.collection.immutable.Seq
 
 import scala.math.min
 
@@ -12,7 +14,6 @@ import scala.math.min
   * function applications and constants.
   * This transformation is parameterized by scopes mapping sorts to sizes.
   * Performs no symmetry breaking.
-  * The input theory must be quantifier-free.
   */
 class RangeFormulaTransformerNoSymBreak(scopes: Map[Sort, Int]) extends TheoryTransformer {
     // Ugly conversion from Java data structures
@@ -22,12 +23,15 @@ class RangeFormulaTransformerNoSymBreak(scopes: Map[Sort, Int]) extends TheoryTr
     })
     
     override def apply(theory: Theory): Theory = {
-        Errors.precondition(!scopes.contains(BoolSort))
+        // Builtin types have no scopes
+        Errors.precondition(scopes.forall { case (sort, size) => ! sort.isBuiltin })
+        // All scoped typed are within the theory
         Errors.precondition(scopes.keySet subsetOf theory.sorts)
+        // Each scope is strictly positive
         Errors.precondition(scopes.values.forall(_ > 0))
         
         // Generate range constraints for constants
-        val constantRangeConstraints = for(c <- theory.constants if c.sort != BoolSort) yield {
+        val constantRangeConstraints = for(c <- theory.constants if !c.sort.isBuiltin) yield {
             val possibleEqualities = 
                 for(i <- 1 to scopes(c.sort)) yield
                     { c.variable === DomainElement(i, c.sort) }
@@ -37,22 +41,39 @@ class RangeFormulaTransformerNoSymBreak(scopes: Map[Sort, Int]) extends TheoryTr
         
         // Generate range constraints for functions
         val functionRangeConstraints = new scala.collection.mutable.ListBuffer[Term]()
-        for(f <- theory.functionDeclarations if f.resultSort != BoolSort) {
+        for(f <- theory.functionDeclarations if !f.resultSort.isBuiltin) {
             val possibleRangeValues = for(i <- 1 to scopes(f.resultSort)) yield DomainElement(i, f.resultSort)
-            // if f: A_1 x ... x A_n -> B
+            
+            //  f: A_1 x ... x A_n -> B
             // and each A_i has generated domain D_i
             // get the list [D_1, ..., D_n]
-            val seqOfDomainSeqs: Seq[Seq[Term]] = f.argSorts.map (sort => 
-                for(i <- 1 to scopes(sort)) yield DomainElement(i, sort))
-            // Take the product D_1 x ... x D_n
-            val seqOfDomainSeqsJava = seqOfDomainSeqs.map(domainSeq => domainSeq.asJava).asJava
-            val argumentLists: java.lang.Iterable[java.util.List[Term]] = new CartesianProduct[Term](seqOfDomainSeqsJava)
-            // For each tuple of arguments, add a range constraint
-            argumentLists.forEach ( argumentList => {
-                val possibleEqualities = for(rangeValue <- possibleRangeValues) yield {
-                    Term.mkApp(f.name, argumentList) === rangeValue
+            // If some A_i is builtin, instead make a variable x_i and quantify 
+            // over it, and make the list D_i = (x_i)
+            val quantifiedVarsBuffer = new scala.collection.mutable.ListBuffer[AnnotatedVar]()
+            val seqOfDomainSeqs: IndexedSeq[IndexedSeq[Term]] = f.argSorts.toIndexedSeq.map (sort => {
+                val Di: IndexedSeq[Term] = if (sort.isBuiltin) {
+                    val annotatedVar = Var("@x_" + sort.toString) of sort
+                    quantifiedVarsBuffer += annotatedVar
+                    IndexedSeq(annotatedVar.variable)
+                } else {
+                    for(j <- 1 to scopes(sort)) yield DomainElement(j, sort)
                 }
-                functionRangeConstraints += Or(possibleEqualities)
+                Di
+            })
+            val quantifiedVars = quantifiedVarsBuffer.toList
+            
+            // Take the product D_1 x ... x D_n
+            val argumentLists: Iterable[Seq[Term]] = new CartesianSeqProduct[Term](seqOfDomainSeqs)
+            // For each tuple of arguments, add a range constraint
+            argumentLists.foreach ( argumentList => {
+                val possibleEqualities = for(rangeValue <- possibleRangeValues) yield {
+                    App(f.name, argumentList) === rangeValue
+                }
+                if(quantifiedVarsBuffer.nonEmpty) {
+                    functionRangeConstraints += Forall(quantifiedVars, Or(possibleEqualities))
+                } else {
+                    functionRangeConstraints += Or(possibleEqualities)
+                }
             })
         }
         

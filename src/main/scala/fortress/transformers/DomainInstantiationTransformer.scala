@@ -4,6 +4,7 @@ import scala.collection.JavaConverters._
 
 import fortress.msfol._
 import fortress.util.Errors
+import scala.collection.immutable.Seq
 
 /** Instantiates quantifiers with domain elements, according to the provided scopes.
   * The scopes must provide sizes for all sorts in the theory.
@@ -27,12 +28,8 @@ class DomainInstantiationTransformer(scopes: Map[Sort, Int]) extends TheoryTrans
             case (sort, size) => (sort, for(i <- 1 to size) yield DomainElement(i, sort))
         }
         
-        val domainElemsMapJava: java.util.Map[Sort, java.util.List[Term]] = domainElemsMap.map{
-            case (sort, domainElems) => (sort, domainElems.asJava)
-        }.asJava
-        
         val newAxioms = theory.axioms.map(
-            axiom => axiom.recklessUnivInstantiate(domainElemsMapJava)
+            axiom => axiom.recklessUnivInstantiate(domainElemsMap)
         )
         
         val newTheory = Theory.mkTheoryWithSignature(theory.signature).withAxioms(newAxioms)

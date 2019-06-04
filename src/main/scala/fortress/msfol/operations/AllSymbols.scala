@@ -21,6 +21,7 @@ object AllSymbols {
             case Iff(p, q) => symbols(p) union symbols(q)
             case Eq(l, r) => symbols(l) union symbols(r)
             case App(fname, args) => args.map(symbols).reduce((a, b) => a union b) + fname
+            case BuiltinApp(function, args) => args.map(symbols).reduce((a, b) => a union b)
             case Forall(vars, body) => symbols(body) union vars.map(_.variable.name).toSet union vars.map(_.sort.name).toSet
             case Exists(vars, body) => symbols(body) union vars.map(_.variable.name).toSet union vars.map(_.sort.name).toSet
         }

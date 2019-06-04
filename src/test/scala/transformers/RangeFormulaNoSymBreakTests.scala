@@ -145,7 +145,7 @@ class RangeFormulaNoSymBreakTests extends FunSuite with Matchers {
             .withAxiom(App("P", c1))
         
         val expected = theory
-            .withAxiom(Or(c1 === DomainElement(1, A), c1 === DomainElement(1, A)))
+            .withAxiom(Or(c1 === DomainElement(1, A), c1 === DomainElement(2, A)))
             // Nothing about p, q, P
         
         val scopes = Map(A -> 2)

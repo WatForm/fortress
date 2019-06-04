@@ -135,8 +135,26 @@ class DomainInstantiationTests extends FunSuite with Matchers {
         transformer(theory) should be (expected)
     }
     
-    test("unspecified type ???") {
-        pending
+    test("Builtin types not expanded") {
+        val A = SortConst("A")
+        val x = Var("x")
+        val y = Var("y")
+        val z = Var("z")
+        
+        val theory = Theory.empty
+            .withSort(A)
+            .withFunctionDeclaration(FuncDecl("P", A, IntSort, BoolSort, BoolSort))
+            .withAxiom(Forall( Seq(x of A, y of IntSort, z of BoolSort), App("P", x, y, z)))
+        
+        val expected = Theory.empty
+            .withSort(A)
+            .withFunctionDeclaration(FuncDecl("P", A, IntSort, BoolSort, BoolSort))
+            .withAxiom(Forall( Seq(y of IntSort, z of BoolSort),
+                App("P", DomainElement(1, A), y, z) and App("P", DomainElement(2, A), y, z)))
+        
+        val scopes: Map[Sort, Int] = Map(A -> 2)
+        val transformer = new DomainInstantiationTransformer(scopes)
+        transformer(theory) should be (expected)
     }
     
     test("expanding a nonexistent type fails") {

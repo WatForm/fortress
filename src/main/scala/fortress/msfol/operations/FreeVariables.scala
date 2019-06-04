@@ -19,7 +19,8 @@ object FreeVariables {
             case Implication(p, q) => fv(p) union fv(q)
             case Iff(p, q) => fv(p) union fv(q)
             case Eq(l, r) => fv(l) union fv(r)
-            case App(f, args) => args.map(fv).reduce((a, b) => a union b)
+            case App(fname, args) => args.map(fv).reduce((a, b) => a union b)
+            case BuiltinApp(function, args) => args.map(fv).reduce((a, b) => a union b)
             case Exists(vars, body) => fv(body) diff vars.map(_.variable).toSet
             case Forall(vars, body) => fv(body) diff vars.map(_.variable).toSet
         }

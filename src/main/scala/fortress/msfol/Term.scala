@@ -63,8 +63,8 @@ sealed abstract class Term {
     def recklessSubstituteJava(substitutions: java.util.Map[Var, Term]): Term =
         RecklessSubstituter(substitutions.asScala.toMap, this)
     
-    def recklessUnivInstantiate(sortInstantiations: java.util.Map[Sort, java.util.List[Term]]): Term =
-        new RecklessUnivInstantiationVisitor(sortInstantiations).visit(this)
+    def recklessUnivInstantiate(sortInstantiations: Map[Sort, Seq[Term]]): Term =
+        RecklessUnivInstantiator(this, sortInstantiations)
     
     def simplify: Term = Simplifier(this)
     
@@ -73,6 +73,8 @@ sealed abstract class Term {
     def eliminateEnumValues(eliminationMapping: Map[EnumValue, DomainElement]): Term = EnumValueEliminator(eliminationMapping)(this)
     
     def allEnumValues: Set[EnumValue] = EnumValueAccumulator(this)
+    
+    def finitizeIntegers(bitwidth: Int): Term = (new IntToSignedBitVector(bitwidth)).apply(this)
     
     /** Returns the set of all symbol names used in the term, including:
       * free variables and constants, bound variables (even those that aren't used),
@@ -272,6 +274,19 @@ object App {
     def apply(functionName: String, arguments: Term*): App = App(functionName, arguments.toList)
 }
 
+case class BuiltinApp(function: BuiltinFunction, arguments: Seq[Term]) extends Term {
+    Errors.precondition(arguments.size >= 1, "Nullary builtin function application " + function)
+    
+    override def accept[T](visitor: TermVisitor[T]): T = visitor.visitBuiltinApp(this)
+    
+    def mapArguments(mapping: Term => Term): Term =
+        BuiltinApp(function, arguments.map(mapping))
+}
+
+object BuiltinApp {
+    def apply(function: BuiltinFunction, arguments: Term*): BuiltinApp = BuiltinApp(function, arguments.toList)
+}
+
 sealed abstract class Quantifier extends Term {
     def vars: Seq[AnnotatedVar]
     def body: Term
@@ -305,7 +320,7 @@ case class Forall(vars: Seq[AnnotatedVar], body: Term) extends Quantifier {
     override def accept[T](visitor: TermVisitor[T]): T = visitor.visitForall(this)
     def mapBody(mapping: Term => Term): Term = Forall(vars, mapping(body))
     
-    override def toString: String = "exists " + vars.mkString(", ") + " . " + body.toString
+    override def toString: String = "forall " + vars.mkString(", ") + " . " + body.toString
     
     def varsJava: java.util.List[AnnotatedVar] = vars.asJava
 }
@@ -331,8 +346,8 @@ case class IntegerLiteral(value: Int) extends Term with LeafTerm with Value {
     override def accept[T](visitor: TermVisitor[T]): T = visitor.visitIntegerLiteral(this)
 }
 
-case class BitVectorLiteral(value: Int, bitWidth: Int) extends Term with LeafTerm with Value {
-    Errors.precondition(bitWidth > 0)
+case class BitVectorLiteral(value: Int, bitwidth: Int) extends Term with LeafTerm with Value {
+    Errors.precondition(bitwidth > 0)
     override def accept[T](visitor: TermVisitor[T]): T = visitor.visitBitVectorLiteral(this)
 }
 
@@ -476,6 +491,17 @@ object Term {
     
     /** Returns a term representing the bi-equivalence "t1 iff t2". */
     def mkIff(t1: Term, t2: Term): Term = Iff(t1, t2)
+    
+    def mkPlus(t1: Term, t2: Term): Term = BuiltinApp(IntPlus, Seq(t1, t2))
+    def mkNeg(t: Term): Term = BuiltinApp(IntNeg, Seq(t))
+    def mkSub(t1: Term, t2: Term): Term = BuiltinApp(IntSub, Seq(t1, t2))
+    def mkMult(t1: Term, t2: Term): Term = BuiltinApp(IntMult, Seq(t1, t2))
+    def mkDiv(t1: Term, t2: Term): Term = BuiltinApp(IntDiv, Seq(t1, t2))
+    def mkMod(t1: Term, t2: Term): Term = BuiltinApp(IntMod, Seq(t1, t2))
+    def mkLE(t1: Term, t2: Term): Term = BuiltinApp(IntLE, Seq(t1, t2))
+    def mkLT(t1: Term, t2: Term): Term = BuiltinApp(IntLT, Seq(t1, t2))
+    def mkGE(t1: Term, t2: Term): Term = BuiltinApp(IntGE, Seq(t1, t2))
+    def mkGT(t1: Term, t2: Term): Term = BuiltinApp(IntGT, Seq(t1, t2))
     
     /** Internal method for creating Domain Elements. */
     def mkDomainElement(index: Int, sort: Sort) = DomainElement(index, sort)

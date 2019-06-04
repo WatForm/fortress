@@ -14,6 +14,7 @@ object DomainElementEliminator {
             case Iff(l, r) => Iff(eliminateDomainElements(l), eliminateDomainElements(r))
             case Eq(l, r) => Eq(eliminateDomainElements(l), eliminateDomainElements(r))
             case App(fname, args) => App(fname, args.map(eliminateDomainElements))
+            case BuiltinApp(function, args) => BuiltinApp(function, args map eliminateDomainElements)
             case Exists(vars, body) => Exists(vars, eliminateDomainElements(body))
             case Forall(vars, body) => Forall(vars, eliminateDomainElements(body))
             case Top | Bottom | Var(_) | EnumValue(_)

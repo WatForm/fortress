@@ -18,6 +18,7 @@ trait TermVisitor[T] {
     def visitIff(term: Iff): T
     def visitEq(term: Eq): T
     def visitApp(term: App): T
+    def visitBuiltinApp(term: BuiltinApp): T
     def visitExists(term: Exists): T
     def visitForall(term: Forall): T
     def visitIntegerLiteral(term: IntegerLiteral): T

@@ -90,6 +90,11 @@ public class Errors {
         assertion(false, "Code should be unreachable");
     }
     
+    public static <T> T unreachable() {
+        assertion(false, "Code should be unreachable");
+        return null;
+    }
+    
     public static <T> T notImplemented() {
         throw new scala.NotImplementedError();
     }

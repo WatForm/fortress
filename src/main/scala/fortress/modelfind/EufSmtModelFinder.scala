@@ -62,17 +62,13 @@ class EufSmtModelFinder(var solverStrategy: SolverStrategy) extends ModelFinder 
         val enumEliminationTransformer = new EnumEliminationTransformer
         enumSortMapping = enumEliminationTransformer.computeEnumSortMapping(theory)
         
-        val rangeFormulaTransformer =
-            if (usesEnumSort(theory)) { new RangeFormulaTransformerNoSymBreak(analysisScopes ++ enumScopes) }
-            else { new RangeFormulaTransformerLowSymBreak(analysisScopes ++ enumScopes) }
-        
         val transformerSequence = Seq(
             enumEliminationTransformer,
             new SimplifyTransformer,
             new NnfTransformer,
             new SkolemizeTransformer,
             new DomainInstantiationTransformer(analysisScopes ++ enumScopes),
-            rangeFormulaTransformer,
+            new RangeFormulaTransformerNoSymBreak(analysisScopes ++ enumScopes),
             new DomainEliminationTransformer(analysisScopes ++ enumScopes),
             new SimplifyTransformer
         )
