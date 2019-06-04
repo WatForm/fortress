@@ -1,7 +1,7 @@
 package fortress.interpretation
 
 import fortress.msfol._
-import fortress.data.CartesianProduct
+import fortress.data.CartesianSeqProduct
 
 import scala.collection.immutable.ListMap
 import scala.collection.JavaConverters._
@@ -53,18 +53,18 @@ class Z3ApiInterpretation(model: Z3Model, sig: Signature, sortMappings: Map[Z3Ex
             z3Decl <- model.getFuncDecls
             fdecl = sig.queryUninterpretedFunction(z3Decl.getName.toString) if fdecl.isDefined
         } yield fdecl.get -> {
-            val seqOfDomainSeqs = fdecl.get.argSorts.map (sort => sortInterpretations(sort).asJava).asJava
-            val argumentLists = new CartesianProduct[Value](seqOfDomainSeqs)
+            val seqOfDomainSeqs = fdecl.get.argSorts.map (sort => sortInterpretations(sort).toIndexedSeq).toIndexedSeq
+            val argumentLists = new CartesianSeqProduct[Value](seqOfDomainSeqs)
             val inverseSortMappings: Map[Value, Z3Expr] = sortMappings.map(_.swap)
             var argumentMapping: ListMap[Seq[Value], Value] = ListMap.empty
-            argumentLists.forEach (args => {
-                val returnExpr = model.evaluate(z3Decl.apply(args.asScala.map(a => inverseSortMappings(a)):_*), true)
+            argumentLists.foreach (args => {
+                val returnExpr = model.evaluate(z3Decl.apply(args.map(a => inverseSortMappings(a)):_*), true)
                 var v: Value = Term.mkTop
                 if (z3Decl.getRange.isInstanceOf[Z3BoolSort])
                     v = if (returnExpr.isTrue) Term.mkTop else Term.mkBottom
                 else
                     v = sortMappings(returnExpr)
-                argumentMapping += (args.asScala -> v)
+                argumentMapping += (args -> v)
             })
             argumentMapping
         }
