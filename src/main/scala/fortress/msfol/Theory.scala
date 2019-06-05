@@ -6,7 +6,8 @@ import fortress.msfol.operations.TypeCheckResult
 
 import scala.collection.JavaConverters._
 import scala.annotation.varargs
-import scala.collection.immutable.Seq // Use immutable seq by default
+import scala.collection.immutable.Seq
+import scala.collection.mutable.ListBuffer // Use immutable seq by default
 
 // TODO Theory needs to check for inconsistencies when adding functions as well.
 // e.g. If some term already uses "f" as a variable and we add "f : A -> B".
@@ -137,16 +138,20 @@ case class Theory private (signature: Signature, axioms: Set[Term]) {
         ).toMap
 
         // TODO maybe coalesce into object for all interpretations
-        val constInterpretations: Map[AnnotatedVar, Value] = interpretation.constantInterpretations
+        val context: Map[Var, ListBuffer[Term]] = interpretation.constantInterpretations.map{
+            case (key, value) => (key.variable, ListBuffer[Term](value))
+        }.withDefaultValue(ListBuffer[Term]())
+
         def appInterpretations(fnName: String, args: Seq[Term]): Term = {
             // This assumes the args are all Vars which can be converted into AnnotatedVars
             // (probably untrue, eg Bool, but need more data)
-            val argsInterpretation = args.map(a => constInterpretations(varToAnnotated(a.asInstanceOf[Var])))
+            val argsInterpretation = args.map(a => context(a.asInstanceOf[Var]).head)
             // Retrieve FuncDecl signature from the theory, to index the interpretation
             // Assumes there will only be one FuncDecl with a given function name (should be safe)
             val fnSignature = signature.functionDeclarations.filter(fd => fd.name == fnName).head
             val fnInterpretation = interpretation.functionInterpretations(fnSignature)
-            fnInterpretation(argsInterpretation)
+            // Below type conversion is a lil sketch
+            fnInterpretation(argsInterpretation.asInstanceOf[Seq[Value]])
         }
 
         def evaluate(term: Term): Term = term match{
@@ -158,7 +163,7 @@ case class Theory private (signature: Signature, axioms: Set[Term]) {
             case BitVectorLiteral(_, _) => ???
             // Is there a better way than asInstanceOf since we already know it's a Var?
             // Translates the variable **BY STRING NAME** to its interpretation (EnumValue or Boolean for now)
-            case Var(x) => evaluate(constInterpretations(varToAnnotated(term.asInstanceOf[Var])))
+            case Var(x) => evaluate(context(term.asInstanceOf[Var]).head)
             // Since we know not/and/or *should* only take in (eventual) Booleans as arguments,
             // can we just use eval().right.get? Does the type checker stop invalid forms?
             case Not(p) => boolToTerm(!forceTermToBool(evaluate(p)))
@@ -180,7 +185,7 @@ case class Theory private (signature: Signature, axioms: Set[Term]) {
             }
             case Distinct(args) => boolToTerm(
                 args.size ==
-                args.map(a => constInterpretations(varToAnnotated(a.asInstanceOf[Var]))).distinct.size
+                args.map(a => context(a.asInstanceOf[Var]).head).distinct.size
             )
             case Implication(p, q) => boolToTerm(
                 !forceTermToBool(evaluate(p)) || forceTermToBool(evaluate(q))
@@ -192,7 +197,21 @@ case class Theory private (signature: Signature, axioms: Set[Term]) {
             // Since these are case classes, equality checks should work as expected
             case Eq(l, r) => boolToTerm(evaluate(l) == evaluate(r))
             case App(fname, args) => appInterpretations(fname, args)
-            case Forall(vars, body) => ???
+            case BuiltinApp(fname, args) => ???
+            case Forall(vars, body) => {
+                // TODO assuming one var for now
+                // generate a list of all possible values for the var (in this case EnumValues)
+                val possibleValues = signature.enumConstants(vars.head.sort)
+                for(value <- possibleValues){
+                    value +=: context(vars.head.variable)
+                    val res = forceTermToBool(evaluate(body))
+                    context(vars.head.variable).remove(0)
+                    if(!res){
+                        return Bottom
+                    }
+                }
+                Top
+            }
             case Exists(vars, body) => ???
         }
         for(axiom <- axioms){
