@@ -6,7 +6,10 @@ import com.microsoft.z3.{
     Sort => Z3Sort,
     FuncDecl => Z3FuncDecl,
     Expr => Z3Expr,
-    BoolExpr => Z3BoolExpr
+    BoolExpr => Z3BoolExpr,
+    ArithExpr => Z3ArithExpr,
+    BitVecExpr => Z3BitVecExpr,
+    IntExpr => Z3IntExpr
 }
 
 import fortress.msfol._
@@ -114,7 +117,112 @@ class TheoryToZ3Java(theory: Theory) {
             z3Decl.apply(args:_*)
         }
         
-        override def visitBuiltinApp(term: BuiltinApp): Z3Expr = ???
+        override def visitBuiltinApp(term: BuiltinApp): Z3Expr = {
+            (term.function, term.arguments) match {
+                case (IntPlus, Seq(arg1, arg2)) => {
+                    context.mkAdd(
+                        visit(arg1).asInstanceOf[Z3IntExpr],
+                        visit(arg2).asInstanceOf[Z3IntExpr])
+                }
+                case (IntNeg, Seq(arg)) => {
+                    context.mkUnaryMinus(visit(arg).asInstanceOf[Z3IntExpr])
+                }
+                case (IntSub, Seq(arg1, arg2)) => {
+                    context.mkSub(
+                        visit(arg1).asInstanceOf[Z3IntExpr],
+                        visit(arg2).asInstanceOf[Z3IntExpr])
+                }
+                case (IntMult, Seq(arg1, arg2)) => {
+                    context.mkMul(
+                        visit(arg1).asInstanceOf[Z3IntExpr],
+                        visit(arg2).asInstanceOf[Z3IntExpr])
+                }
+                case (IntDiv, Seq(arg1, arg2)) => {
+                    context.mkDiv(
+                        visit(arg1).asInstanceOf[Z3IntExpr],
+                        visit(arg2).asInstanceOf[Z3IntExpr])
+                }
+                case (IntMod, Seq(arg1, arg2)) => {
+                    context.mkMod(
+                        visit(arg1).asInstanceOf[Z3IntExpr],
+                        visit(arg2).asInstanceOf[Z3IntExpr])
+                }
+                case (IntLE, Seq(arg1, arg2)) => {
+                    context.mkLe(
+                        visit(arg1).asInstanceOf[Z3IntExpr],
+                        visit(arg2).asInstanceOf[Z3IntExpr])
+                }
+                case (IntLT, Seq(arg1, arg2)) => {
+                    context.mkLt(
+                        visit(arg1).asInstanceOf[Z3IntExpr],
+                        visit(arg2).asInstanceOf[Z3IntExpr])
+                }
+                case (IntGE, Seq(arg1, arg2)) => {
+                    context.mkGe(
+                        visit(arg1).asInstanceOf[Z3IntExpr],
+                        visit(arg2).asInstanceOf[Z3IntExpr])
+                }
+                case (IntGT, Seq(arg1, arg2)) => {
+                    context.mkGt(
+                        visit(arg1).asInstanceOf[Z3IntExpr],
+                        visit(arg2).asInstanceOf[Z3IntExpr])
+                }
+                case (BvPlus, Seq(arg1, arg2)) => {
+                    context.mkBVAdd(
+                        visit(arg1).asInstanceOf[Z3BitVecExpr],
+                        visit(arg2).asInstanceOf[Z3BitVecExpr])
+                }
+                case (BvNeg, Seq(arg)) => {
+                    context.mkBVNeg(visit(arg).asInstanceOf[Z3BitVecExpr])
+                }
+                case (BvSub, Seq(arg1, arg2)) => {
+                    context.mkBVSub(
+                        visit(arg1).asInstanceOf[Z3BitVecExpr],
+                        visit(arg2).asInstanceOf[Z3BitVecExpr])
+                }
+                case (BvMult, Seq(arg1, arg2)) => {
+                    context.mkBVMul(
+                        visit(arg1).asInstanceOf[Z3BitVecExpr],
+                        visit(arg2).asInstanceOf[Z3BitVecExpr])
+                }
+                case (BvSignedDiv, Seq(arg1, arg2)) => {
+                    context.mkBVSDiv(
+                        visit(arg1).asInstanceOf[Z3BitVecExpr],
+                        visit(arg2).asInstanceOf[Z3BitVecExpr])
+                }
+                case (BvSignedRem, Seq(arg1, arg2)) => {
+                    context.mkBVSRem(
+                        visit(arg1).asInstanceOf[Z3BitVecExpr],
+                        visit(arg2).asInstanceOf[Z3BitVecExpr])
+                }
+                case (BvSignedMod, Seq(arg1, arg2)) => {
+                    context.mkBVSMod(
+                        visit(arg1).asInstanceOf[Z3BitVecExpr],
+                        visit(arg2).asInstanceOf[Z3BitVecExpr])
+                }
+                case (BvSignedLE, Seq(arg1, arg2)) => {
+                    context.mkBVSLE(
+                        visit(arg1).asInstanceOf[Z3BitVecExpr],
+                        visit(arg2).asInstanceOf[Z3BitVecExpr])
+                }
+                case (BvSignedLT, Seq(arg1, arg2)) => {
+                    context.mkBVSLT(
+                        visit(arg1).asInstanceOf[Z3BitVecExpr],
+                        visit(arg2).asInstanceOf[Z3BitVecExpr])
+                }
+                case (BvSignedGE, Seq(arg1, arg2)) => {
+                    context.mkBVSGE(
+                        visit(arg1).asInstanceOf[Z3BitVecExpr],
+                        visit(arg2).asInstanceOf[Z3BitVecExpr])
+                }
+                case (BvSignedGT, Seq(arg1, arg2)) => {
+                    context.mkBVSGT(
+                        visit(arg1).asInstanceOf[Z3BitVecExpr],
+                        visit(arg2).asInstanceOf[Z3BitVecExpr])
+                }
+                case _ => Errors.unreachable()
+            }
+        }
         
         override def visitExistsInner(term: Exists): Z3Expr = {
             // TODO will having no patterns change performance?

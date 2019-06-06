@@ -5,6 +5,8 @@ import org.scalatest.junit.JUnitRunner
 import fortress.msfol._
 import fortress.transformers._
 
+import scala.collection.immutable.Seq
+
 @RunWith(classOf[JUnitRunner])
 class RangeFormulaNoSymBreakTests extends FunSuite with Matchers {
     
@@ -198,8 +200,33 @@ class RangeFormulaNoSymBreakTests extends FunSuite with Matchers {
         a [fortress.util.Errors.PreconditionException] should be thrownBy (transformer(theory))
     }
     
-    test("unspecified types ???") {
-        // What to do if unspecified scope?
-        pending
+    test("builtin types universally quantified") {
+         val theory = Theory.empty
+            .withSort(A)
+            .withConstants(c1 of IntSort, c2 of A, c3 of BoolSort)
+            .withFunctionDeclaration(FuncDecl("f", BoolSort, A, IntSort, A))
+            .withFunctionDeclaration(FuncDecl("g", IntSort, A, BoolSort, A))
+         
+         val x0 = Var("@x_0")
+         val x1 = Var("@x_1")
+         
+         val expected = theory
+            .withAxiom((c2 === DomainElement(1, A)) or (c2 === DomainElement(2, A)))
+            .withAxiom(Forall(Seq(x0 of BoolSort, x1 of IntSort), Or(
+                App("f", x0, DomainElement(1, A), x1) === DomainElement(1, A),
+                App("f", x0, DomainElement(1, A), x1) === DomainElement(2, A))))
+            .withAxiom(Forall(Seq(x0 of BoolSort, x1 of IntSort), Or(
+                App("f", x0, DomainElement(2, A), x1) === DomainElement(1, A),
+                App("f", x0, DomainElement(2, A), x1) === DomainElement(2, A))))
+            .withAxiom(Forall(Seq(x0 of IntSort, x1 of BoolSort), Or(
+                App("g", x0, DomainElement(1, A), x1) === DomainElement(1, A),
+                App("g", x0, DomainElement(1, A), x1) === DomainElement(2, A))))
+            .withAxiom(Forall(Seq(x0 of IntSort, x1 of BoolSort), Or(
+                App("g", x0, DomainElement(2, A), x1) === DomainElement(1, A),
+                App("g", x0, DomainElement(2, A), x1) === DomainElement(2, A))))
+        
+        val scopes = Map(A -> 2)
+        val transformer = new RangeFormulaTransformerNoSymBreak(scopes)
+        transformer(theory) should be (expected)
     }
 }

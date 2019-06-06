@@ -50,9 +50,11 @@ class RangeFormulaTransformerNoSymBreak(scopes: Map[Sort, Int]) extends TheoryTr
             // If some A_i is builtin, instead make a variable x_i and quantify 
             // over it, and make the list D_i = (x_i)
             val quantifiedVarsBuffer = new scala.collection.mutable.ListBuffer[AnnotatedVar]()
+            var counter = 0
             val seqOfDomainSeqs: IndexedSeq[IndexedSeq[Term]] = f.argSorts.toIndexedSeq.map (sort => {
                 val Di: IndexedSeq[Term] = if (sort.isBuiltin) {
-                    val annotatedVar = Var("@x_" + sort.toString) of sort
+                    val annotatedVar = Var("@x_" + counter.toString) of sort
+                    counter += 1
                     quantifiedVarsBuffer += annotatedVar
                     IndexedSeq(annotatedVar.variable)
                 } else {
