@@ -33,6 +33,7 @@ trait ModelFinder {
     def setTheory(theory: Theory): Unit
     def setAnalysisScope(t: Sort, size: Int): Unit
     def setTimeout(milliseconds: Int): Unit
+    def setBoundedIntegers(semantics: IntegerSemantics): Unit
     // Parantheses are used rather than zero parameters to indicate that state may change.
     def checkSat(): ModelFinderResult
     def viewModel(): Interpretation
@@ -44,4 +45,13 @@ trait ModelFinder {
 
 object ModelFinder {
     def createDefault(): ModelFinder = new EufSmtModelFinder(new Z3ApiSolver())
+}
+
+sealed trait IntegerSemantics
+case object Unbounded extends IntegerSemantics
+case class ModularSigned(bitwidth: Int) extends IntegerSemantics
+
+object IntegerSemantics {
+    val UnboundedSemantics: IntegerSemantics = Unbounded
+    def ModularSignedSemantics(bitwidth: Int): IntegerSemantics = ModularSigned(bitwidth)
 }

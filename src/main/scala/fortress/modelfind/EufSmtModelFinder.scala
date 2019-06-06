@@ -17,6 +17,7 @@ class EufSmtModelFinder(var solverStrategy: SolverStrategy) extends ModelFinder 
     var debug: Boolean = false
     var theory: Theory = Theory.empty
     var enumSortMapping: Map[EnumValue, DomainElement] = Map.empty
+    var integerSemantics: IntegerSemantics = Unbounded
     
     override def setTheory(newTheory: Theory): Unit = {
         theory = newTheory
@@ -32,6 +33,10 @@ class EufSmtModelFinder(var solverStrategy: SolverStrategy) extends ModelFinder 
         analysisScopes = analysisScopes + (t -> size)
     }
     
+    def setBoundedIntegers(semantics: IntegerSemantics): Unit = {
+        integerSemantics = semantics
+    }
+    
     override def setDebug(enableDebug: Boolean): Unit = {
         debug = enableDebug
     }
@@ -45,11 +50,11 @@ class EufSmtModelFinder(var solverStrategy: SolverStrategy) extends ModelFinder 
     override def checkSat(): ModelFinderResult = {
         // TODO check analysis and theory scopes consistent
         
-        val timeoutNano = StopWatch.millisToNano(timeoutMilliseconds);
+        val timeoutNano = StopWatch.millisToNano(timeoutMilliseconds)
         
-        val totalTimer = new StopWatch();
+        val totalTimer = new StopWatch()
         
-        val transformationTimer = new StopWatch();
+        val transformationTimer = new StopWatch()
         
         totalTimer.startFresh()
         
@@ -59,19 +64,27 @@ class EufSmtModelFinder(var solverStrategy: SolverStrategy) extends ModelFinder 
         
         Errors.precondition(fortress.util.Maps.noConflict(enumScopes, analysisScopes))
         
+        val transformerSequence = new scala.collection.mutable.ListBuffer[TheoryTransformer]
+        
         val enumEliminationTransformer = new EnumEliminationTransformer
+        // We need to remember the enum sort mapping
         enumSortMapping = enumEliminationTransformer.computeEnumSortMapping(theory)
         
-        val transformerSequence = Seq(
-            enumEliminationTransformer,
-            new SimplifyTransformer,
-            new NnfTransformer,
-            new SkolemizeTransformer,
-            new DomainInstantiationTransformer(analysisScopes ++ enumScopes),
-            new RangeFormulaTransformerNoSymBreak(analysisScopes ++ enumScopes),
-            new DomainEliminationTransformer(analysisScopes ++ enumScopes),
-            new SimplifyTransformer
-        )
+        transformerSequence += enumEliminationTransformer
+        
+        integerSemantics match {
+            case Unbounded => ()
+            case ModularSigned(bitwidth) => {
+                transformerSequence += new IntegerFinitizationTransformer(bitwidth)
+            }
+        }
+        
+        transformerSequence += new NnfTransformer
+        transformerSequence += new SkolemizeTransformer
+        transformerSequence += new DomainInstantiationTransformer(analysisScopes ++ enumScopes)
+        transformerSequence += new RangeFormulaTransformerNoSymBreak(analysisScopes ++ enumScopes)
+        transformerSequence += new DomainEliminationTransformer(analysisScopes ++ enumScopes)
+        transformerSequence += new SimplifyTransformer
         
         def applyTransformer(transformer: TheoryTransformer, theory: Theory): Theory = {
             log.write("Applying transformer: " + transformer.name)
@@ -91,9 +104,9 @@ class EufSmtModelFinder(var solverStrategy: SolverStrategy) extends ModelFinder 
             intermediateTheory = applyTransformer(transformer, intermediateTheory)
             
             if(totalTimer.elapsedNano() >= timeoutNano) {
-                log.write("TIMEOUT within Fortress.\n");
-                log.flush();
-                return TimeoutResult;
+                log.write("TIMEOUT within Fortress.\n")
+                log.flush()
+                return TimeoutResult
             }
         }
         log.write("Total transformation time: " + StopWatch.formatNano(totalTimer.elapsedNano()) + "\n")
