@@ -1,5 +1,6 @@
 package fortress.msfol
 
+import fortress.data.CartesianSeqProduct
 import fortress.interpretation.Interpretation
 import fortress.util.Errors
 import fortress.msfol.operations.TypeCheckResult
@@ -123,50 +124,50 @@ case class Theory private (signature: Signature, axioms: Set[Term]) {
     /** Given an interpretation, return whether it satisfies all axioms of the original theory
       */
     def verifyInterpretation(interpretation: Interpretation): Boolean = {
-        // Some Terms are guaranteed to take in only Bools as args (by the typechecker?)
-        // eg. and, or. We assume that the input will be only Top/Bottom and convert to a Scala Boolean.
+        // Some Terms are guaranteed to result in only Top/Bottom (guaranteed by the typechecker?)
+        // This function will enforce this assumption and convert to a Scala Boolean
         def forceTermToBool(term: Term): Boolean = term match{
             case Top => true
             case Bottom => false
-            case _ => ???
+            case _ => ??? // This case should never be reached (throw error?)
         }
+        // Converts a Scala Boolean to Top/Bottom for intermediary steps
         def boolToTerm(b: Boolean): Term = if(b) Top else Bottom
 
-        // Converts Var to AnnotatedVar based on the constants in the theory's signature
-        val varToAnnotated: Map[Var, AnnotatedVar] = signature.constants.map(
-            annotatedVar => annotatedVar.variable -> annotatedVar
-        ).toMap
-
-        // TODO maybe coalesce into object for all interpretations
+        /** A mapping of Vars to ListBuffer[Term]s (used as a stack).
+          * The head of the ListBuffer will always hold the innermost binding of the Var,
+          * with the "default" context being the base interpretation itself.
+        */
         val context: Map[Var, ListBuffer[Term]] = interpretation.constantInterpretations.map{
+            // We map from AnnotatedVar to Var (safe since names are distinct)
+            // and Value to Term (widening conversion)
             case (key, value) => (key.variable, ListBuffer[Term](value))
         }.withDefaultValue(ListBuffer[Term]())
 
+        // Given a function, look inside the interpretation to find the result
         def appInterpretations(fnName: String, args: Seq[Term]): Term = {
-            // This assumes the args are all Vars which can be converted into AnnotatedVars
-            // (probably untrue, eg Bool, but need more data)
+            // The following line needs more testing with defaults (specifically Bools)
             val argsInterpretation = args.map(a => context(a.asInstanceOf[Var]).head)
-            // Retrieve FuncDecl signature from the theory, to index the interpretation
-            // Assumes there will only be one FuncDecl with a given function name (should be safe)
+            // Retrieve FuncDecl signature from the theory (used to index the interpretation)
             val fnSignature = signature.functionDeclarations.filter(fd => fd.name == fnName).head
             val fnInterpretation = interpretation.functionInterpretations(fnSignature)
-            // Below type conversion is a lil sketch
+            // Below type conversion is a lil sketch (narrowing conversion?)
             fnInterpretation(argsInterpretation.asInstanceOf[Seq[Value]])
         }
 
+        // Recursively evaluates a given expression to either Top or Bottom, starting from the root
         def evaluate(term: Term): Term = term match{
             // Top/Bottom are "atomic" terms
-            // We also treat EnumValues as "atomic" terms (not 100% sure on this)
+            // We also treat EnumValues as "atomic" terms, and may need to do so with more defaults
             case Top | Bottom | EnumValue(_) => term
             case DomainElement(_, _) => ???
             case IntegerLiteral(_) => ???
             case BitVectorLiteral(_, _) => ???
-            // Is there a better way than asInstanceOf since we already know it's a Var?
-            // Translates the variable **BY STRING NAME** to its interpretation (EnumValue or Boolean for now)
+            // For raw variables, we look the term up in our context
+            // (is there a better way than asInstanceOf since we already know it's a Var?)
             case Var(x) => evaluate(context(term.asInstanceOf[Var]).head)
-            // Since we know not/and/or *should* only take in (eventual) Booleans as arguments,
-            // can we just use eval().right.get? Does the type checker stop invalid forms?
             case Not(p) => boolToTerm(!forceTermToBool(evaluate(p)))
+            // And/Or are short circuited
             case AndList(args) => {
                 for(arg <- args){
                     if(!forceTermToBool(evaluate(arg))){
@@ -199,13 +200,20 @@ case class Theory private (signature: Signature, axioms: Set[Term]) {
             case App(fname, args) => appInterpretations(fname, args)
             case BuiltinApp(fname, args) => ???
             case Forall(vars, body) => {
-                // TODO assuming one var for now
-                // generate a list of all possible values for the var (in this case EnumValues)
-                val possibleValues = signature.enumConstants(vars.head.sort)
-                for(value <- possibleValues){
-                    value +=: context(vars.head.variable)
+                // is enumConstants the right place to go here? Needs to be tested with other values
+                // (eg. user doesn't supply the domain elements?)
+                val varDomains = vars.map(v => signature.enumConstants(v.sort).toIndexedSeq).toIndexedSeq
+                val allPossibleValueLists = new CartesianSeqProduct[Value](varDomains)
+                // Going through all possible combinations of the domain elements:
+                // append to the context, recurse, then remove from the context
+                for(valueList <- allPossibleValueLists){
+                    valueList.zipWithIndex.foreach {
+                        case (value, index) => value +=: context(vars(index).variable)
+                    }
                     val res = forceTermToBool(evaluate(body))
-                    context(vars.head.variable).remove(0)
+                    valueList.zipWithIndex.foreach {
+                        case (value, index) => context(vars(index).variable).remove(0)
+                    }
                     if(!res){
                         return Bottom
                     }
