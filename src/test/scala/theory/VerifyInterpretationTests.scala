@@ -150,4 +150,17 @@ class VerifyInterpretationTests extends FunSuite with Matchers {
                 assertFalse(sortTest(Distinct(apple, banana, peach, apple)))
                 assertFalse(sortTest(Distinct(banana, banana, peach, plum, orange)))
         }
+
+        test("sort forall"){
+                val temp: Var = Var("temp")
+                // Generic tests
+                assertTrue(sortTest(Forall(temp of fruit, App("identity", temp) === temp)))
+                assertTrue(sortTest(Forall(temp of fruit, App("doubleIdentity", temp, temp) === temp)))
+                assertTrue(sortTest(Forall(temp of fruit, App("tripleIdentity", temp, temp, temp) === temp)))
+                assertFalse(sortTest(Forall(temp of fruit, App("identity", temp) === apple)))
+                assertFalse(sortTest(Forall(temp of fruit, App("doubleIdentity", banana, temp) === temp)))
+                assertFalse(sortTest(Forall(temp of fruit, App("tripleIdentity", temp, peach, temp) === temp)))
+                // Double binding
+                assertTrue(sortTest(Forall(temp of fruit, Forall(temp of fruit, App("identity", temp) === temp))))
+        }
 }
