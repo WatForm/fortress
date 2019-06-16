@@ -159,10 +159,8 @@ case class Theory private (signature: Signature, axioms: Set[Term]) {
         def evaluate(term: Term): Term = term match{
             // Top/Bottom are "atomic" terms
             // We also treat EnumValues as "atomic" terms, and may need to do so with more defaults
-            case Top | Bottom | EnumValue(_) => term
-            case DomainElement(_, _) => ???
-            case IntegerLiteral(_) => ???
-            case BitVectorLiteral(_, _) => ???
+            case Top | Bottom | EnumValue(_) | DomainElement(_, _) |
+                 IntegerLiteral(_) | BitVectorLiteral(_, _) => term
             // For raw variables, we look the term up in our context
             // (is there a better way than asInstanceOf since we already know it's a Var?)
             case Var(x) => evaluate(context(term.asInstanceOf[Var]).head)
@@ -202,7 +200,9 @@ case class Theory private (signature: Signature, axioms: Set[Term]) {
             case Forall(vars, body) => {
                 // is enumConstants the right place to go here? Needs to be tested with other values
                 // (eg. user doesn't supply the domain elements?)
-                val varDomains = vars.map(v => signature.enumConstants(v.sort).toIndexedSeq).toIndexedSeq
+                val varDomains = vars.map(v =>
+                    interpretation.sortInterpretations(v.sort).toIndexedSeq
+                ).toIndexedSeq
                 val allPossibleValueLists = new CartesianSeqProduct[Value](varDomains)
                 // Going through all possible combinations of the domain elements:
                 // append to the context, recurse, then remove from the context
