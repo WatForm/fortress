@@ -126,13 +126,19 @@ case class Theory private (signature: Signature, axioms: Set[Term]) {
     def verifyInterpretation(interpretation: Interpretation): Boolean = {
         // Some Terms are guaranteed to result in only Top/Bottom (guaranteed by the typechecker?)
         // This function will enforce this assumption and convert to a Scala Boolean
-        def forceTermToBool(term: Term): Boolean = term match{
+        implicit def forceTermToBool(term: Term): Boolean = term match{
             case Top => true
             case Bottom => false
             case _ => ??? // This case should never be reached (throw error?)
         }
         // Converts a Scala Boolean to Top/Bottom for intermediary steps
-        def boolToTerm(b: Boolean): Term = if(b) Top else Bottom
+        implicit def boolToTerm(b: Boolean): Term = if(b) Top else Bottom
+
+        def forceTermToInt(term: Term): Int = term match{
+            case IntegerLiteral(value) => value
+            case _ => ???
+        }
+        def intToTerm(i: Int): Term = IntegerLiteral(i)
 
         /** A mapping of Vars to ListBuffer[Term]s (used as a stack).
           * The head of the ListBuffer will always hold the innermost binding of the Var,
@@ -145,14 +151,41 @@ case class Theory private (signature: Signature, axioms: Set[Term]) {
         }.withDefaultValue(ListBuffer[Term]())
 
         // Given a function, look inside the interpretation to find the result
-        def appInterpretations(fnName: String, args: Seq[Term]): Term = {
-            // The following line needs more testing with defaults (specifically Bools)
-            val argsInterpretation = args.map(a => context(a.asInstanceOf[Var]).head)
+        def appInterpretations(fnName: String, evaluatedArgs: Seq[Term]): Term = {
             // Retrieve FuncDecl signature from the theory (used to index the interpretation)
             val fnSignature = signature.functionDeclarations.filter(fd => fd.name == fnName).head
             val fnInterpretation = interpretation.functionInterpretations(fnSignature)
             // Below type conversion is a lil sketch (narrowing conversion?)
-            fnInterpretation(argsInterpretation.asInstanceOf[Seq[Value]])
+            fnInterpretation(evaluatedArgs.asInstanceOf[Seq[Value]])
+        }
+
+        // Given a builtin function, evaluate it
+        def evaluateBuiltIn(fn: BuiltinFunction, evaluatedArgs: Seq[Term]): Term = fn match{
+            // Integers
+            case IntPlus => ???
+            case IntNeg => ???
+            case IntSub => ???
+            case IntMult => ???
+            case IntDiv => ???
+            case IntMod => ???
+            case IntLE => ???
+            case IntLT => ???
+            case IntGE => ???
+            case IntGT => ???
+            // Bit vectors
+            case BvPlus => ???
+            case BvNeg => ???
+            case BvSub => ???
+            case BvMult => ???
+            case BvSignedDiv => ???
+            case BvSignedRem => ???
+            case BvSignedMod => ???
+            case BvSignedLE => ???
+            case BvSignedLT => ???
+            case BvSignedGE => ???
+            case BvSignedGT => ???
+
+            case _ => ???
         }
 
         // Recursively evaluates a given expression to either Top or Bottom, starting from the root
@@ -161,10 +194,9 @@ case class Theory private (signature: Signature, axioms: Set[Term]) {
             // We also treat EnumValues as "atomic" terms, and may need to do so with more defaults
             case Top | Bottom | EnumValue(_) | DomainElement(_, _) |
                  IntegerLiteral(_) | BitVectorLiteral(_, _) => term
-            // For raw variables, we look the term up in our context
-            // (is there a better way than asInstanceOf since we already know it's a Var?)
+            // TODO ensure this works properly for ints/bitvectors
             case Var(x) => evaluate(context(term.asInstanceOf[Var]).head)
-            case Not(p) => boolToTerm(!forceTermToBool(evaluate(p)))
+            case Not(p) => !evaluate(p)
             // And/Or are short circuited
             case AndList(args) => {
                 for(arg <- args){
@@ -195,11 +227,11 @@ case class Theory private (signature: Signature, axioms: Set[Term]) {
             // This should be either an equality of EnumValues or equality of Top/Bottom
             // Since these are case classes, equality checks should work as expected
             case Eq(l, r) => boolToTerm(evaluate(l) == evaluate(r))
-            case App(fname, args) => appInterpretations(fname, args)
-            case BuiltinApp(fname, args) => ???
+            case App(fname, args) => appInterpretations(fname, args.map(arg => evaluate(arg)))
+            // The evaluated arguments should only be IntegerLiterals and BitVectorLiterals
+            // More testing is needed to ensure this is actually true
+            case BuiltinApp(fn, args) => evaluateBuiltIn(fn, args.map(arg => evaluate(arg)))
             case Forall(vars, body) => {
-                // is enumConstants the right place to go here? Needs to be tested with other values
-                // (eg. user doesn't supply the domain elements?)
                 val varDomains = vars.map(v =>
                     interpretation.sortInterpretations(v.sort).toIndexedSeq
                 ).toIndexedSeq
