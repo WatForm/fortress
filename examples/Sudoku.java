@@ -40,8 +40,11 @@ public class Sudoku {
             .withConstants(n1.of(number), n2.of(number), n3.of(number), n4.of(number))
             .withFunctionDeclarations(data);
 
-        // Add axiom that all constants are assigned distinct values
-        theory = theory.withAxiom(Term.mkDistinct(n1, n2, n3, n4));
+        // Add axiom that each constant corresponds to a specific enum value
+        theory = theory.withAxiom(Term.mkEq(n1, numbers.get(0)));
+        theory = theory.withAxiom(Term.mkEq(n2, numbers.get(1)));
+        theory = theory.withAxiom(Term.mkEq(n3, numbers.get(2)));
+        theory = theory.withAxiom(Term.mkEq(n4, numbers.get(3)));
 
         // Add axiom that all numbers in a given row are distinct
         Var row = Term.mkVar("row");
@@ -84,6 +87,8 @@ public class Sudoku {
             Term.mkApp("data", n4, n3),
             Term.mkApp("data", n4, n4)));
 
+        Theory emptyTheory = theory;
+
         // Add clues as axioms
         theory = theory.withAxiom(Term.mkEq(n3, Term.mkApp("data", n1, n1)));
         theory = theory.withAxiom(Term.mkEq(n4, Term.mkApp("data", n1, n2)));
@@ -106,6 +111,10 @@ public class Sudoku {
             System.out.println(log.toString());
             // Get satisfiable instance back from the model finder 
             System.out.println(finder.viewModel());
+
+            // Count the total number of possible sudokus
+            System.out.println("Counting all valid sudokus...");
+            System.out.println("Total models found: " + finder.countValidModels(emptyTheory));
         } catch (Exception e) {
             e.printStackTrace();
         }

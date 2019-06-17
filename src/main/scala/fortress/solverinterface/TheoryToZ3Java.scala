@@ -27,7 +27,7 @@ class TheoryToZ3Java(theory: Theory) {
     val config = Map(
         "model" -> "true" // How does this affect performance?
     )
-    val context = new Z3Context(config.asJava);
+    val context = new Z3Context(config.asJava)
     
     def sortConversions(s: Sort): Z3Sort = s match {
         case SortConst(name) => context.mkUninterpretedSort(name)
@@ -66,6 +66,10 @@ class TheoryToZ3Java(theory: Theory) {
         }
         
         (context, solver)
+    }
+
+    def convertAxiom(axiom: Term): Z3BoolExpr = {
+        termVisitor.visit(axiom).asInstanceOf[Z3BoolExpr]
     }
     
     class TermToZ3Visitor extends TermVisitorWithTypeContext[Z3Expr](theory.signature) {

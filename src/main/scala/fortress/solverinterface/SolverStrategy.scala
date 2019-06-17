@@ -26,6 +26,7 @@ trait SolverStrategy {
     */
     @throws(classOf[java.io.IOException])
     def solve(theory: Theory, timeoutMillis: Int, log: java.io.Writer): ModelFinderResult
-    
+    def addAxiom(axiom: Term, timeoutMillis: Int, log: java.io.Writer): ModelFinderResult
+
     def getInstance(theory: Theory): Interpretation
 }

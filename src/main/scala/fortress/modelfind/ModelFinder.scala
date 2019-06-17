@@ -34,9 +34,13 @@ trait ModelFinder {
     def setAnalysisScope(t: Sort, size: Int): Unit
     def setTimeout(milliseconds: Int): Unit
     def setBoundedIntegers(semantics: IntegerSemantics): Unit
-    // Parantheses are used rather than zero parameters to indicate that state may change.
+    // Parentheses are used rather than zero parameters to indicate that state may change.
     def checkSat(): ModelFinderResult
     def viewModel(): Interpretation
+
+    // Used for counting valid models
+    def nextInterpretation(): ModelFinderResult
+    def countValidModels(newTheory: Theory): Int
     
     // Internal use only
     def setOutput(log: java.io.Writer): Unit

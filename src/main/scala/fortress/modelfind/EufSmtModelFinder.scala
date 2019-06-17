@@ -16,6 +16,7 @@ class EufSmtModelFinder(var solverStrategy: SolverStrategy) extends ModelFinder 
     var log: java.io.Writer = new java.io.PrintWriter(new fortress.data.NullOutputStream)
     var debug: Boolean = false
     var theory: Theory = Theory.empty
+    var constrainedTheory: Theory = Theory.empty
     var enumSortMapping: Map[EnumValue, DomainElement] = Map.empty
     var integerSemantics: IntegerSemantics = Unbounded
     
@@ -109,6 +110,9 @@ class EufSmtModelFinder(var solverStrategy: SolverStrategy) extends ModelFinder 
                 return TimeoutResult
             }
         }
+
+        constrainedTheory = intermediateTheory
+
         log.write("Total transformation time: " + StopWatch.formatNano(totalTimer.elapsedNano()) + "\n")
         log.flush()
         
@@ -133,10 +137,10 @@ class EufSmtModelFinder(var solverStrategy: SolverStrategy) extends ModelFinder 
             log.flush()
             return TimeoutResult
         }
-        
+
         log.write("Invoking solver strategy...\n")
         log.flush()
-        
+
         val remainingMillis = timeoutMilliseconds - StopWatch.nanoToMillis(totalTimer.elapsedNano)
         val r: ModelFinderResult = solverStrategy.solve(intermediateTheory, remainingMillis, log)
         
@@ -149,4 +153,61 @@ class EufSmtModelFinder(var solverStrategy: SolverStrategy) extends ModelFinder 
     }
     
     def viewModel: Interpretation = solverStrategy.getInstance(theory).viewModel(enumSortMapping.map(_.swap))
+
+    override def nextInterpretation(): ModelFinderResult = {
+        val newAxiom = Not(AndList(
+            viewModel.toConstraints.to
+        )).eliminateEnumValues(enumSortMapping).eliminateDomainElements
+
+        //solverStrategy.addAxiom(newAxiom, timeoutMilliseconds, log)
+
+        constrainedTheory = constrainedTheory.withAxiom(newAxiom)
+        solverStrategy.solve(constrainedTheory, timeoutMilliseconds, log)
+    }
+
+    override def countValidModels(newTheory: Theory): Int = {
+        theory = newTheory
+        checkSat() match {
+            case SatResult =>
+            case UnsatResult => return 0
+            case UnknownResult =>
+                log.write("Solver gave unknown result\n")
+                log.flush()
+                return 0
+            case ErrorResult =>
+                log.write("An error occurred while computing result\n")
+                log.flush()
+                return 0
+            case TimeoutResult =>
+                log.write("Solver timed out while computing result\n")
+                log.flush()
+                return 0
+        }
+
+        var count: Int = 1
+
+        var sat: Boolean = true
+        while (sat) {
+            val r: ModelFinderResult = nextInterpretation()
+
+            r match {
+                case SatResult => count += 1
+                case UnsatResult => sat = false
+                case UnknownResult =>
+                    log.write("Solver gave unknown result\n")
+                    log.flush()
+                    sat = false
+                case ErrorResult =>
+                    log.write("An error occurred while computing result\n")
+                    log.flush()
+                    sat = false
+                case TimeoutResult =>
+                    log.write("Solver timed out while computing result\n")
+                    log.flush()
+                    sat = false
+            }
+        }
+
+        count
+    }
 }

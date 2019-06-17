@@ -20,15 +20,25 @@ class Z3ApiSolver extends SolverTemplate {
     private var lastModel: Option[Z3Model] = None
     private var context: Option[Z3Context] = None
     private var solver: Option[Z3Solver] = None
+    private var converter: Option[TheoryToZ3Java] = None
     
     override def canAttemptSolving(theory: Theory): Boolean = true
     
-    override protected def convertTheory(theory: Theory, log: java.io.Writer): Unit = { 
-        val pair: (Z3Context, Z3Solver) = new TheoryToZ3Java(theory).convert
+    override protected def convertTheory(theory: Theory, log: java.io.Writer): Unit = {
+        converter = Some(new TheoryToZ3Java(theory))
+        val pair: (Z3Context, Z3Solver) = converter.get.convert
         context = Some(pair._1)
         solver = Some(pair._2)
     }
-    
+
+    override def addAxiom(axiom: Term, timeoutMillis: Int, log: java.io.Writer): ModelFinderResult = {
+        solver.get.push()
+        solver.get.add(converter.get.convertAxiom(axiom))
+
+        updateTimeout(timeoutMillis)
+        runSolver(log)
+    }
+
     override protected def updateTimeout(remainingMillis: Int): Unit = {
         Errors.assertion(context.nonEmpty)
         Errors.assertion(solver.nonEmpty)
@@ -42,13 +52,13 @@ class Z3ApiSolver extends SolverTemplate {
     override protected def runSolver(log: java.io.Writer): ModelFinderResult = {
         Errors.assertion(context.nonEmpty)
         Errors.assertion(solver.nonEmpty)
-        
-        val status: Z3Status  = solver.get.check()
+
+        val status: Z3Status = solver.get.check()
         lastModel = None
         status match {
             case Z3Status.UNKNOWN => {
                 // TODO timeout errors
-                log.write("UKNOWN (" + solver.get.getReasonUnknown() + ").\n")
+                log.write("UNKNOWN (" + solver.get.getReasonUnknown() + ").\n")
                 if(solver.get.getReasonUnknown() == "timeout"
                         || solver.get.getReasonUnknown == "canceled") {
                     return ModelFinderResult.Timeout
