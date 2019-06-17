@@ -5,6 +5,7 @@ import fortress.interpretation.Interpretation
 import fortress.util.Errors
 import fortress.msfol.operations.TypeCheckResult
 
+import scala.language.implicitConversions
 import scala.collection.JavaConverters._
 import scala.annotation.varargs
 import scala.collection.immutable.Seq
@@ -126,29 +127,40 @@ case class Theory private (signature: Signature, axioms: Set[Term]) {
     def verifyInterpretation(interpretation: Interpretation): Boolean = {
         // Some Terms are guaranteed to result in only Top/Bottom (guaranteed by the typechecker?)
         // This function will enforce this assumption and convert to a Scala Boolean
-        implicit def forceTermToBool(term: Term): Boolean = term match{
+        def forceTermToBool(term: Term): Boolean = term match{
             case Top => true
             case Bottom => false
             case _ => ??? // This case should never be reached (throw error?)
         }
         // Converts a Scala Boolean to Top/Bottom for intermediary steps
-        implicit def boolToTerm(b: Boolean): Term = if(b) Top else Bottom
-
-        def forceTermToInt(term: Term): Int = term match{
-            case IntegerLiteral(value) => value
-            case _ => ???
-        }
-        def intToTerm(i: Int): Term = IntegerLiteral(i)
+        def boolToTerm(b: Boolean): Term = if(b) Top else Bottom
 
         /** A mapping of Vars to ListBuffer[Term]s (used as a stack).
           * The head of the ListBuffer will always hold the innermost binding of the Var,
           * with the "default" context being the base interpretation itself.
         */
-        val context: Map[Var, ListBuffer[Term]] = interpretation.constantInterpretations.map{
-            // We map from AnnotatedVar to Var (safe since names are distinct)
-            // and Value to Term (widening conversion)
-            case (key, value) => (key.variable, ListBuffer[Term](value))
-        }.withDefaultValue(ListBuffer[Term]())
+        val context: scala.collection.mutable.Map[Var, ListBuffer[Term]] =
+            scala.collection.mutable.Map() ++ interpretation.constantInterpretations.map{
+                // We map from AnnotatedVar to Var (safe since names are distinct)
+                // and Value to Term (widening conversion)
+                case (key, value) => (key.variable, ListBuffer[Term](value))
+            }
+        def addToContext(key: Var, value: Term): Unit = {
+            if(context.contains(key)){
+                value +=: context(key)
+            }
+            else{
+                context(key) = ListBuffer[Term](value)
+            }
+        }
+        def popFromContext(key: Var): Unit = {
+            if(context(key).length == 1){
+                context -= key
+            }
+            else{
+                context(key).remove(0)
+            }
+        }
 
         // Given a function, look inside the interpretation to find the result
         def appInterpretations(fnName: String, evaluatedArgs: Seq[Term]): Term = {
@@ -160,32 +172,42 @@ case class Theory private (signature: Signature, axioms: Set[Term]) {
         }
 
         // Given a builtin function, evaluate it
-        def evaluateBuiltIn(fn: BuiltinFunction, evaluatedArgs: Seq[Term]): Term = fn match{
-            // Integers
-            case IntPlus => ???
-            case IntNeg => ???
-            case IntSub => ???
-            case IntMult => ???
-            case IntDiv => ???
-            case IntMod => ???
-            case IntLE => ???
-            case IntLT => ???
-            case IntGE => ???
-            case IntGT => ???
-            // Bit vectors
-            case BvPlus => ???
-            case BvNeg => ???
-            case BvSub => ???
-            case BvMult => ???
-            case BvSignedDiv => ???
-            case BvSignedRem => ???
-            case BvSignedMod => ???
-            case BvSignedLE => ???
-            case BvSignedLT => ???
-            case BvSignedGE => ???
-            case BvSignedGT => ???
+        def evaluateBuiltIn(fn: BuiltinFunction, evalArgs: Seq[Term]): Term = {
+            // Convenience conversions for integer operations
+            implicit def forceTermToInt(term: Term): Int = term match{
+                case IntegerLiteral(value) => value
+                case _ => ???
+            }
+            implicit def intToTerm(i: Int): Term = IntegerLiteral(i)
+            implicit def boolToTerm(b: Boolean): Term = if(b) Top else Bottom
 
-            case _ => ???
+            fn match{
+                // Integers
+                case IntPlus => evalArgs.head + evalArgs.last
+                case IntNeg => -1 * evalArgs.head
+                case IntSub => evalArgs.head - evalArgs.last
+                case IntMult => evalArgs.head * evalArgs.last
+                case IntDiv => evalArgs.head / evalArgs.last
+                case IntMod => evalArgs.head % evalArgs.last
+                case IntLE => evalArgs.head <= evalArgs.last
+                case IntLT => evalArgs.head < evalArgs.last
+                case IntGE => evalArgs.head >= evalArgs.last
+                case IntGT => evalArgs.head > evalArgs.last
+                // Bit vectors
+                case BvPlus => ???
+                case BvNeg => ???
+                case BvSub => ???
+                case BvMult => ???
+                case BvSignedDiv => ???
+                case BvSignedRem => ???
+                case BvSignedMod => ???
+                case BvSignedLE => ???
+                case BvSignedLT => ???
+                case BvSignedGE => ???
+                case BvSignedGT => ???
+
+                case _ => ???
+            }
         }
 
         // Recursively evaluates a given expression to either Top or Bottom, starting from the root
@@ -196,7 +218,7 @@ case class Theory private (signature: Signature, axioms: Set[Term]) {
                  IntegerLiteral(_) | BitVectorLiteral(_, _) => term
             // TODO ensure this works properly for ints/bitvectors
             case Var(x) => evaluate(context(term.asInstanceOf[Var]).head)
-            case Not(p) => !evaluate(p)
+            case Not(p) => boolToTerm(!forceTermToBool(evaluate(p)))
             // And/Or are short circuited
             case AndList(args) => {
                 for(arg <- args){
@@ -240,11 +262,11 @@ case class Theory private (signature: Signature, axioms: Set[Term]) {
                 // append to the context, recurse, then remove from the context
                 for(valueList <- allPossibleValueLists){
                     valueList.zipWithIndex.foreach {
-                        case (value, index) => value +=: context(vars(index).variable)
+                        case (value, index) => addToContext(vars(index).variable, value)
                     }
                     val res = forceTermToBool(evaluate(body))
                     valueList.zipWithIndex.foreach {
-                        case (value, index) => context(vars(index).variable).remove(0)
+                        case (value, index) => popFromContext(vars(index).variable)
                     }
                     if(!res){
                         return Bottom
@@ -252,7 +274,27 @@ case class Theory private (signature: Signature, axioms: Set[Term]) {
                 }
                 Top
             }
-            case Exists(vars, body) => ???
+            case Exists(vars, body) => {
+                val varDomains = vars.map(v =>
+                    interpretation.sortInterpretations(v.sort).toIndexedSeq
+                ).toIndexedSeq
+                val allPossibleValueLists = new CartesianSeqProduct[Value](varDomains)
+                // Going through all possible combinations of the domain elements:
+                // append to the context, recurse, then remove from the context
+                for(valueList <- allPossibleValueLists){
+                    valueList.zipWithIndex.foreach {
+                        case (value, index) => addToContext(vars(index).variable, value)
+                    }
+                    val res = forceTermToBool(evaluate(body))
+                    valueList.zipWithIndex.foreach {
+                        case (value, index) => popFromContext(vars(index).variable)
+                    }
+                    if(res){
+                        return Top
+                    }
+                }
+                Bottom
+            }
         }
         for(axiom <- axioms){
             val result = forceTermToBool(evaluate(axiom))

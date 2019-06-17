@@ -138,9 +138,16 @@ class VerifyInterpretationTests extends FunSuite with Matchers {
                 assertTrue(sortTest(App("identity", apple) === apple))
                 assertTrue(sortTest(App("doubleIdentity", banana, banana) === banana))
                 assertTrue(sortTest(App("tripleIdentity", peach, peach, peach) === peach))
+                assertTrue(sortTest(App("identity", App("identity", banana)) === banana))
+                assertTrue(sortTest(App("identity", App("identity", App("identity", banana))) === banana))
+                assertTrue(sortTest(App("identity", App("identity", banana)) === App("identity", banana)))
+                assertTrue(sortTest(App("doubleIdentity", App("identity", banana), App("identity", banana)) === App("identity", banana)))
                 assertFalse(sortTest(App("identity", plum) === apple))
                 assertFalse(sortTest(App("doubleIdentity", peach, peach) === banana))
                 assertFalse(sortTest(App("tripleIdentity", banana, banana, banana) === peach))
+                assertFalse(sortTest(App("identity", plum) === App("identity", apple)))
+                assertFalse(sortTest(App("identity", App("identity", orange)) === App("identity", apple)))
+                assertFalse(sortTest(App("doubleIdentity", App("identity", apple), App("identity", apple)) === App("identity", banana)))
         }
 
         test("sort distinct"){
@@ -153,6 +160,7 @@ class VerifyInterpretationTests extends FunSuite with Matchers {
 
         test("sort forall"){
                 val temp: Var = Var("temp")
+                val temp2: Var = Var("temp2")
                 // Generic tests
                 assertTrue(sortTest(Forall(temp of fruit, App("identity", temp) === temp)))
                 assertTrue(sortTest(Forall(temp of fruit, App("doubleIdentity", temp, temp) === temp)))
@@ -160,7 +168,23 @@ class VerifyInterpretationTests extends FunSuite with Matchers {
                 assertFalse(sortTest(Forall(temp of fruit, App("identity", temp) === apple)))
                 assertFalse(sortTest(Forall(temp of fruit, App("doubleIdentity", banana, temp) === temp)))
                 assertFalse(sortTest(Forall(temp of fruit, App("tripleIdentity", temp, peach, temp) === temp)))
+                assertFalse(sortTest(Forall(scala.collection.immutable.Seq(temp of fruit, temp2 of fruit), App("doubleIdentity", temp, temp2) === temp)))
                 // Double binding
                 assertTrue(sortTest(Forall(temp of fruit, Forall(temp of fruit, App("identity", temp) === temp))))
+        }
+
+        test("sort exists"){
+                val temp: Var = Var("temp")
+                val temp2: Var = Var("temp2")
+                // Generic tests
+                assertTrue(sortTest(Exists(temp of fruit, App("identity", temp) === temp)))
+                assertTrue(sortTest(Exists(temp of fruit, App("doubleIdentity", temp, temp) === temp)))
+                assertTrue(sortTest(Exists(temp of fruit, App("tripleIdentity", temp, temp, temp) === temp)))
+                assertTrue(sortTest(Exists(scala.collection.immutable.Seq(temp of fruit, temp2 of fruit), App("doubleIdentity", temp, temp2) === temp)))
+                assertFalse(sortTest(Exists(temp of fruit, Not(App("identity", temp) === temp))))
+                assertFalse(sortTest(Exists(temp of fruit, Not(App("doubleIdentity", temp, temp) === temp))))
+                assertFalse(sortTest(Exists(temp of fruit, Not(App("tripleIdentity", temp, temp, temp) === temp))))
+                // Double binding
+                assertTrue(sortTest(Exists(temp of fruit, Exists(temp of fruit, App("identity", temp) === temp))))
         }
 }
