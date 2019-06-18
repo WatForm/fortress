@@ -9,10 +9,11 @@ import scala.collection.JavaConverters._
 import com.microsoft.z3.{
     Model => Z3Model,
     BoolSort => Z3BoolSort,
+		IntSort => Z3IntSort,
     Sort => Z3Sort,
     Expr => Z3Expr
 }
-    
+
 
 class Z3ApiInterpretation(model: Z3Model, sig: Signature, sortMappings: Map[Z3Expr, DomainElement]) extends Interpretation {
 
@@ -35,6 +36,8 @@ class Z3ApiInterpretation(model: Z3Model, sig: Signature, sortMappings: Map[Z3Ex
             var t: Value = Term.mkTop
             if (z3Decl.getRange.isInstanceOf[Z3BoolSort])
                 t = if (expr.isTrue) Term.mkTop else Term.mkBottom
+            else if (z3Decl.getRange.isInstanceOf[Z3IntSort])
+                t = IntegerLiteral(expr.toString.toInt)
             else
                 t = sortMappings(expr)
             t
@@ -44,7 +47,7 @@ class Z3ApiInterpretation(model: Z3Model, sig: Signature, sortMappings: Map[Z3Ex
     var sortInterpretations: Map[Sort, Seq[Value]] = (
         for {
             z3Sort <- model.getSorts
-            t = Sort.mkSortConst(z3Sort.getName.toString) if sig.hasSort(t) 
+            t = Sort.mkSortConst(z3Sort.getName.toString) if sig.hasSort(t)
         } yield t -> ((1 to model.getSortUniverse(z3Sort).length) map { Term.mkDomainElement(_,t) })
     ).toMap
 
@@ -62,6 +65,8 @@ class Z3ApiInterpretation(model: Z3Model, sig: Signature, sortMappings: Map[Z3Ex
                 var v: Value = Term.mkTop
                 if (z3Decl.getRange.isInstanceOf[Z3BoolSort])
                     v = if (returnExpr.isTrue) Term.mkTop else Term.mkBottom
+                else if (z3Decl.getRange.isInstanceOf[Z3IntSort])
+                    v = IntegerLiteral(returnExpr.toString.toInt)
                 else
                     v = sortMappings(returnExpr)
                 argumentMapping += (args -> v)
