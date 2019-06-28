@@ -21,9 +21,9 @@ class Z3ApiSolver extends SolverTemplate {
     private var context: Option[Z3Context] = None
     private var solver: Option[Z3Solver] = None
     private var converter: Option[TheoryToZ3Java] = None
-    
+
     override def canAttemptSolving(theory: Theory): Boolean = true
-    
+
     override protected def convertTheory(theory: Theory, log: java.io.Writer): Unit = {
         converter = Some(new TheoryToZ3Java(theory))
         val pair: (Z3Context, Z3Solver) = converter.get.convert
@@ -42,7 +42,7 @@ class Z3ApiSolver extends SolverTemplate {
     override protected def updateTimeout(remainingMillis: Int): Unit = {
         Errors.assertion(context.nonEmpty)
         Errors.assertion(solver.nonEmpty)
-        
+
         val params: Z3Params = context.get.mkParams()
         params.add("timeout", remainingMillis)
         solver.get.setParameters(params)
@@ -80,6 +80,6 @@ class Z3ApiSolver extends SolverTemplate {
 
     def getInstance(theory: Theory): Interpretation = {
         Errors.assertion(lastModel.nonEmpty, "There is no current instance")
-        return new Z3ApiInterpretation(lastModel.get, theory.signature)
+        return new Z3ApiInterpretation(lastModel.get, theory.signature, converter.get)
     }
 }

@@ -1,6 +1,7 @@
 package fortress.interpretation
 
 import fortress.msfol._
+import fortress.solverinterface._
 import fortress.data.CartesianSeqProduct
 
 import scala.collection.immutable.ListMap
@@ -15,9 +16,9 @@ import com.microsoft.z3.{
 }
 
 
-class Z3ApiInterpretation(model: Z3Model, sig: Signature, sortMappings: Map[Z3Expr, DomainElement]) extends Interpretation {
+class Z3ApiInterpretation(model: Z3Model, sig: Signature, converter: TheoryToZ3Java, sortMappings: Map[Z3Expr, DomainElement]) extends Interpretation {
 
-    def this(model: Z3Model, sig: Signature) = this(model, sig, (
+    def this(model: Z3Model, sig: Signature, converter: TheoryToZ3Java) = this(model, sig, converter, (
         for {
             z3Decl <- model.getConstDecls
             constantName = z3Decl.getName.toString if constantName.charAt(0) == '@'
@@ -28,21 +29,21 @@ class Z3ApiInterpretation(model: Z3Model, sig: Signature, sortMappings: Map[Z3Ex
     ).toMap)
 
     var constantInterpretations: Map[AnnotatedVar, Value] = (
-        for {
-            z3Decl <- model.getConstDecls
-            v = sig.queryConstant(Term.mkVar(z3Decl.getName.toString))
-            expr = model.getConstInterp(z3Decl) if v.isDefined
-        } yield v.get -> {
-            var t: Value = Term.mkTop
-            if (z3Decl.getRange.isInstanceOf[Z3BoolSort])
-                t = if (expr.isTrue) Term.mkTop else Term.mkBottom
-            else if (z3Decl.getRange.isInstanceOf[Z3IntSort])
-                t = IntegerLiteral(expr.toString.toInt)
-            else
-                t = sortMappings(expr)
-            t
-        }
-    ).toMap
+			for {
+				(sortName, z3Decl) <- converter.constantConversionsMap
+				v = sig.queryConstant(Term.mkVar(sortName))
+				expr = model.evaluate(z3Decl.apply(), true) if v.isDefined
+			} yield v.get -> {
+				var t: Value = Term.mkTop
+				if (z3Decl.getRange.isInstanceOf[Z3BoolSort])
+					t = if (expr.isTrue) Term.mkTop else Term.mkBottom
+				else if (z3Decl.getRange.isInstanceOf[Z3IntSort])
+					t = IntegerLiteral(expr.toString.toInt)
+				else
+					t = sortMappings(expr)
+				t
+			}
+		).toMap
 
     var sortInterpretations: Map[Sort, Seq[Value]] = (
         for {
@@ -52,26 +53,26 @@ class Z3ApiInterpretation(model: Z3Model, sig: Signature, sortMappings: Map[Z3Ex
     ).toMap
 
     var functionInterpretations: Map[fortress.msfol.FuncDecl, ListMap[Seq[Value], Value]] = (
-        for {
-            z3Decl <- model.getFuncDecls
-            fdecl = sig.queryUninterpretedFunction(z3Decl.getName.toString) if fdecl.isDefined
-        } yield fdecl.get -> {
-            val seqOfDomainSeqs = fdecl.get.argSorts.map (sort => sortInterpretations(sort).toIndexedSeq).toIndexedSeq
-            val argumentLists = new CartesianSeqProduct[Value](seqOfDomainSeqs)
-            val inverseSortMappings: Map[Value, Z3Expr] = sortMappings.map(_.swap)
-            var argumentMapping: ListMap[Seq[Value], Value] = ListMap.empty
-            argumentLists.foreach (args => {
-                val returnExpr = model.evaluate(z3Decl.apply(args.map(a => inverseSortMappings(a)):_*), true)
-                var v: Value = Term.mkTop
-                if (z3Decl.getRange.isInstanceOf[Z3BoolSort])
-                    v = if (returnExpr.isTrue) Term.mkTop else Term.mkBottom
-                else if (z3Decl.getRange.isInstanceOf[Z3IntSort])
-                    v = IntegerLiteral(returnExpr.toString.toInt)
-                else
-                    v = sortMappings(returnExpr)
-                argumentMapping += (args -> v)
-            })
-            argumentMapping
-        }
-    ).toMap
+			for {
+				(functionName, z3Decl) <- converter.functionConversionsMap
+				fdecl = sig.queryUninterpretedFunction(functionName) if fdecl.isDefined
+			} yield fdecl.get -> {
+				val seqOfDomainSeqs = fdecl.get.argSorts.map (sort => sortInterpretations(sort).toIndexedSeq).toIndexedSeq
+				val argumentLists = new CartesianSeqProduct[Value](seqOfDomainSeqs)
+				val inverseSortMappings: Map[Value, Z3Expr] = sortMappings.map(_.swap)
+				var argumentMapping: ListMap[Seq[Value], Value] = ListMap.empty
+				argumentLists.foreach (args => {
+					val returnExpr = model.evaluate(z3Decl.apply(args.map(a => inverseSortMappings(a)):_*), true)
+					var v: Value = Term.mkTop
+					if (z3Decl.getRange.isInstanceOf[Z3BoolSort])
+						v = if (returnExpr.isTrue) Term.mkTop else Term.mkBottom
+					else if (z3Decl.getRange.isInstanceOf[Z3IntSort])
+						v = IntegerLiteral(returnExpr.toString.toInt)
+					else
+						v = sortMappings(returnExpr)
+					argumentMapping += (args -> v)
+				})
+				argumentMapping
+			}
+		).toMap
 }
