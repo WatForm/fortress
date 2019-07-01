@@ -9,16 +9,17 @@ import scala.collection.JavaConverters._
 
 import com.microsoft.z3.{
     Model => Z3Model,
+		Context => Z3Context,
     BoolSort => Z3BoolSort,
 		IntSort => Z3IntSort,
     Sort => Z3Sort,
-    Expr => Z3Expr
+		Expr => Z3Expr
 }
 
 
-class Z3ApiInterpretation(model: Z3Model, sig: Signature, converter: TheoryToZ3Java, sortMappings: Map[Z3Expr, DomainElement]) extends Interpretation {
+class Z3ApiInterpretation(model: Z3Model, sig: Signature, converter: TheoryToZ3Java, context: Z3Context, sortMappings: Map[Z3Expr, DomainElement]) extends Interpretation {
 
-    def this(model: Z3Model, sig: Signature, converter: TheoryToZ3Java) = this(model, sig, converter, (
+    def this(model: Z3Model, sig: Signature, converter: TheoryToZ3Java, context: Z3Context) = this(model, sig, converter, context, (
         for {
             z3Decl <- model.getConstDecls
             constantName = z3Decl.getName.toString if constantName.charAt(0) == '@'
@@ -50,7 +51,7 @@ class Z3ApiInterpretation(model: Z3Model, sig: Signature, converter: TheoryToZ3J
             z3Sort <- model.getSorts
             t = Sort.mkSortConst(z3Sort.getName.toString) if sig.hasSort(t)
         } yield t -> ((1 to model.getSortUniverse(z3Sort).length) map { Term.mkDomainElement(_,t) })
-    ).toMap
+    ).toMap + (Sort.Bool -> Seq(Term.mkTop, Term.mkBottom))
 
     var functionInterpretations: Map[fortress.msfol.FuncDecl, ListMap[Seq[Value], Value]] = (
 			for {
@@ -59,7 +60,8 @@ class Z3ApiInterpretation(model: Z3Model, sig: Signature, converter: TheoryToZ3J
 			} yield fdecl.get -> {
 				val seqOfDomainSeqs = fdecl.get.argSorts.map (sort => sortInterpretations(sort).toIndexedSeq).toIndexedSeq
 				val argumentLists = new CartesianSeqProduct[Value](seqOfDomainSeqs)
-				val inverseSortMappings: Map[Value, Z3Expr] = sortMappings.map(_.swap)
+				var inverseSortMappings: Map[Value, Z3Expr] = sortMappings.map(_.swap)
+				inverseSortMappings = inverseSortMappings + (Term.mkTop -> context.mkTrue) + (Term.mkBottom -> context.mkFalse)
 				var argumentMapping: ListMap[Seq[Value], Value] = ListMap.empty
 				argumentLists.foreach (args => {
 					val returnExpr = model.evaluate(z3Decl.apply(args.map(a => inverseSortMappings(a)):_*), true)
