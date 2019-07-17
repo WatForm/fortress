@@ -55,8 +55,6 @@ class CountModelTest extends FunSuite with Matchers {
         val r = Var("r")
 
         // Simple theory, valid interpretations are:
-        // p = true, q = false
-        // p = false, q = true
         val theory = Theory.empty
           .withConstant(p of BoolSort)
           .withConstant(q of BoolSort)

@@ -37,7 +37,7 @@ class EnumModelFindTest extends FunSuite with Matchers {
         
         val model = finder.viewModel()
         model.constantInterpretations should be (Map( (c of Colour) -> green) )
-        model.sortInterpretations should be (Map( Colour -> Seq(red, yellow, green)))
+        model.sortInterpretations should be (Map( Colour -> Seq(red, yellow, green), BoolSort -> Seq(Term.mkTop, Term.mkBottom)))
         model.functionInterpretations should be (Map(
             next -> Map(
                 Seq(red) -> green,
