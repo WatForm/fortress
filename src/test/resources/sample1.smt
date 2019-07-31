@@ -1,4 +1,4 @@
-(set-info :smt-lib-version 2.6)
+(set-info :smt-lib-version "2.6")
 (set-info :status sat)
 (set-info :category "toyExample")
 (set-info :source |
