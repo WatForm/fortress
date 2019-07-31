@@ -5,14 +5,12 @@ import fortress.solverinterface._
 import fortress.data.CartesianSeqProduct
 
 import scala.collection.immutable.ListMap
-import scala.collection.JavaConverters._
 
 import com.microsoft.z3.{
     Model => Z3Model,
 		Context => Z3Context,
     BoolSort => Z3BoolSort,
 		IntSort => Z3IntSort,
-    Sort => Z3Sort,
 		Expr => Z3Expr
 }
 
@@ -31,18 +29,18 @@ class Z3ApiInterpretation(model: Z3Model, sig: Signature, converter: TheoryToZ3J
 
     var constantInterpretations: Map[AnnotatedVar, Value] = (
 			for {
-				(sortName, z3Decl) <- converter.constantConversionsMap
-				v = sig.queryConstant(Term.mkVar(sortName))
+				(constName, z3Decl) <- converter.constantConversionsMap
+				v = sig.queryConstant(Term.mkVar(constName))
 				expr = model.evaluate(z3Decl.apply(), true) if v.isDefined
 			} yield v.get -> {
-				var t: Value = Term.mkTop
-				if (z3Decl.getRange.isInstanceOf[Z3BoolSort])
-					t = if (expr.isTrue) Term.mkTop else Term.mkBottom
-				else if (z3Decl.getRange.isInstanceOf[Z3IntSort])
-					t = IntegerLiteral(expr.toString.toInt)
-				else
-					t = sortMappings(expr)
-				t
+				v.get.sort match {
+					case BoolSort =>
+						if (expr.isTrue) Term.mkTop else Term.mkBottom
+					case IntSort =>
+						IntegerLiteral(expr.toString.toInt)
+					case _ =>
+						sortMappings(expr)
+				}
 			}
 		).toMap
 

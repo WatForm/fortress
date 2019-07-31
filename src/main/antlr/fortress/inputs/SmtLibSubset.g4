@@ -68,7 +68,7 @@ term : 'true'                                         # true
      | '(' 'bvshr' term term ')'                      # bvshr
      ;
 
-binding : '(' ID ID ')' ;
+binding : '(' ID sort ')' ;
 
 term_attribute: ':named' ID                           # namedAttribute
               | ':pattern'  '(' term+ ')'             # patternAttribute
@@ -81,10 +81,10 @@ ID: LETTER (LETTER | DIGIT | SPECIAL)* ;
 QUOTE: '|' (PRINTABLE_NOT_PIPE_BS | WS)* '|' ;
 STRING: '"' (PRINTABLE_NOT_QUOTE | WS)* '"' ;
 NUMBER: POS_NUMBER | '0' | '-' POS_NUMBER ;
-
-POS_NUMBER: NON_ZERO DIGIT* ;
 BIN_NUMBER: '#b' BIN_DIGIT+ ;
 HEX_NUMBER: '#x' HEX_DIGIT+ ;
+
+POS_NUMBER: NON_ZERO DIGIT* ;
 
 LETTER: [A-Za-z] ;
 NON_ZERO: [1-9] ;

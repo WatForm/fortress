@@ -58,8 +58,8 @@ class TheoryToZ3Java(theory: Theory) {
     }
     
     def convert: (Z3Context, Z3Solver) = {
-        val solver  = context.mkSolver("QF_UF") // How does changing the logic affect the efficiency?
-        
+        val solver  = context.mkSolver("QF_UFNIA") // How does changing the logic affect the efficiency?
+
         for(axiom <- theory.axioms) {
             val formula: Z3BoolExpr = termVisitor.visit(axiom).asInstanceOf[Z3BoolExpr]
             solver.add(formula)

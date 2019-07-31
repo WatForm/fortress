@@ -294,8 +294,8 @@ public class SmtLibVisitor extends SmtLibSubsetBaseVisitor {
 
     @Override
     public AnnotatedVar visitBinding(SmtLibSubsetParser.BindingContext ctx) {
-        Var x = Term.mkVar(ctx.ID(0).getText());
-        Sort t = Sort.mkSortConst(ctx.ID(1).getText());
+        Var x = Term.mkVar(ctx.ID().getText());
+        Sort t = (Sort) visit(ctx.sort());
         return x.of(t);
     }
 
