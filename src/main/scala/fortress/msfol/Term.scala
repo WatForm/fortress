@@ -502,7 +502,18 @@ object Term {
     def mkLT(t1: Term, t2: Term): Term = BuiltinApp(IntLT, Seq(t1, t2))
     def mkGE(t1: Term, t2: Term): Term = BuiltinApp(IntGE, Seq(t1, t2))
     def mkGT(t1: Term, t2: Term): Term = BuiltinApp(IntGT, Seq(t1, t2))
-    
+
+    def mkBvPlus(t1: Term, t2: Term): Term = BuiltinApp(BvPlus, Seq(t1, t2))
+    def mkBvNeg(t: Term): Term = BuiltinApp(BvNeg, Seq(t))
+    def mkBvSub(t1: Term, t2: Term): Term = BuiltinApp(BvSub, Seq(t1, t2))
+    def mkBvMult(t1: Term, t2: Term): Term = BuiltinApp(BvMult, Seq(t1, t2))
+    def mkBvSignedDiv(t1: Term, t2: Term): Term = BuiltinApp(BvSignedDiv, Seq(t1, t2))
+    def mkBvSignedMod(t1: Term, t2: Term): Term = BuiltinApp(BvSignedMod, Seq(t1, t2))
+    def mkBvSignedLE(t1: Term, t2: Term): Term = BuiltinApp(BvSignedLE, Seq(t1, t2))
+    def mkBvSignedLT(t1: Term, t2: Term): Term = BuiltinApp(BvSignedLT, Seq(t1, t2))
+    def mkBvSignedGE(t1: Term, t2: Term): Term = BuiltinApp(BvSignedGE, Seq(t1, t2))
+    def mkBvSignedGT(t1: Term, t2: Term): Term = BuiltinApp(BvSignedGT, Seq(t1, t2))
+
     /** Internal method for creating Domain Elements. */
     def mkDomainElement(index: Int, sort: Sort) = DomainElement(index, sort)
 }

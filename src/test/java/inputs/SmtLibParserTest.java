@@ -1,16 +1,17 @@
 import static org.junit.Assert.assertEquals;
+
+import fortress.modelfind.ModelFinder;
+import fortress.modelfind.ModelFinderResult;
 import org.junit.Test;
 import org.junit.Ignore;
 
 import fortress.inputs.*;
 import fortress.msfol.*;
-import java.util.List;
-import java.util.ArrayList;
+
+import java.util.*;
 import java.io.IOException;
 import java.io.FileInputStream;
 import java.io.File;
-import java.util.Optional;
-import java.util.Map;
 
 public class SmtLibParserTest {
     
@@ -152,5 +153,95 @@ public class SmtLibParserTest {
             .withAxiom(axiom);
         
         assertEquals(expected, resultTheory);
+    }
+
+    @Test
+    public void integer_parse_1() throws IOException {
+        ClassLoader classLoader = getClass().getClassLoader();
+        File file = new File(classLoader.getResource("integers.smt").getFile());
+        FileInputStream fileStream = new FileInputStream(file);
+
+        SmtLibParser parser = new SmtLibParser();
+        Theory resultTheory = parser.parse(fileStream);
+
+        Theory expected = Theory.empty()
+                .withAxiom(
+                        Term.mkEq(
+                                Term.mkPlus(
+                                        new IntegerLiteral(1),
+                                        new IntegerLiteral(1)),
+                                new IntegerLiteral(2)))
+                .withAxiom(Term.mkAnd(Arrays.asList(
+                        Term.mkGE(new IntegerLiteral(5), new IntegerLiteral(5)),
+                        Term.mkGE(new IntegerLiteral(5), new IntegerLiteral(1))
+                )));
+
+        assertEquals(expected, resultTheory);
+    }
+
+    @Test
+    public void integer_parse_2() throws IOException {
+        ClassLoader classLoader = getClass().getClassLoader();
+        File file = new File(classLoader.getResource("integers2.smt").getFile());
+        FileInputStream fileStream = new FileInputStream(file);
+
+        SmtLibParser parser = new SmtLibParser();
+        Theory resultTheory = parser.parse(fileStream);
+
+        ModelFinder mf = ModelFinder.createDefault();
+        mf.setTheory(resultTheory);
+        ModelFinderResult res = mf.checkSat();
+
+        assert(res == ModelFinderResult.Sat());
+    }
+
+    @Test
+    public void bv_parse_1() throws IOException {
+        ClassLoader classLoader = getClass().getClassLoader();
+        File file = new File(classLoader.getResource("bv1.smt").getFile());
+        FileInputStream fileStream = new FileInputStream(file);
+
+        SmtLibParser parser = new SmtLibParser();
+        Theory resultTheory = parser.parse(fileStream);
+
+        Sort bv5 = new BitVectorSort(5);
+
+        Theory expected = Theory.empty()
+            .withSort(bv5)
+            .withConstant((new Var("x")).of(bv5))
+            .withFunctionDeclaration(FuncDecl.mkFuncDecl("f", Arrays.asList(bv5, bv5), bv5))
+            .withFunctionDeclaration(FuncDecl.mkFuncDecl("g", Collections.singletonList(bv5), bv5))
+            .withAxiom(
+                Term.mkEq(
+                    Term.mkApp(
+                        "f",
+                        new Var("x"),
+                        new Var("x")),
+                    Term.mkBvPlus(
+                        new Var("x"),
+                        new Var("x")
+                    )))
+            .withAxiom(
+                Term.mkEq(
+                    Term.mkApp(
+                        "g",
+                        new Var("x")),
+                    Term.mkBvNeg(new Var("x"))))
+            .withAxiom(
+                Term.mkEq(
+                    Term.mkApp("f",
+                        Term.mkApp("g",
+                            new Var("x")),
+                        new Var("x")),
+                    new BitVectorLiteral(0, 5)
+                ));
+
+        assertEquals(expected, resultTheory);
+
+        ModelFinder mf = ModelFinder.createDefault();
+        mf.setTheory(resultTheory);
+        ModelFinderResult res = mf.checkSat();
+
+        assert(res == ModelFinderResult.Sat());
     }
 }
