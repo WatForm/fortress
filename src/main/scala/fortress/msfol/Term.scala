@@ -340,6 +340,8 @@ case class DomainElement(index: Int, sort: Sort) extends Term with LeafTerm with
     
     // TODO need to restrict any other code from using this naming convention
     val asSmtConstant = Var("@" + index.toString + sort.toString)
+    
+    override def toString = "@" + index.toString + sort.toString
 }
 
 case class IntegerLiteral(value: Int) extends Term with LeafTerm with Value {

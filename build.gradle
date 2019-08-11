@@ -108,3 +108,16 @@ tasks.withType(JavaCompile) {
 compileScala { // or: tasks.withType(ScalaCompile)
     scalaCompileOptions.additionalParameters = ["-feature"]
 }
+
+
+// Symmetry testing
+
+// task symRun(type: JavaExec) {
+//   classpath sourceSets.main.runtimeClasspath
+//   main = "fortress.symmetry.Runner"
+// }
+
+task symRun(type: JavaExec) {
+  classpath sourceSets.main.runtimeClasspath
+  main = "fortress.symmetry.ThesisRunner"
+}
