@@ -127,6 +127,7 @@ case class Theory private (signature: Signature, axioms: Set[Term]) {
     // End of published interface
     
     def sorts: Set[Sort] = signature.sorts
+    def sortsJava: java.util.Set[Sort] = signature.sorts.asJava
     def functionDeclarations: Set[FuncDecl] = signature.functionDeclarations
     def constants: Set[AnnotatedVar] = signature.constants
     def enumConstants: Map[Sort, Seq[EnumValue]] = signature.enumConstants

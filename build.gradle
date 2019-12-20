@@ -63,29 +63,29 @@ javadoc {
 }
 
 // Examples dir
-task('copyToExamples', type: Copy) {
-    dependsOn('distTar')
+// task('copyToExamples', type: Copy) {
+//    dependsOn('distTar')
+//
+//    from(tarTree(file('build/distributions/fortress-2.0.tar')))
+//    into(file('examples/libs'))
+//}
 
-    from(tarTree(file('build/distributions/fortress-2.0.tar')))
-    into(file('examples/libs'))
-}
+//task('compileSudoku', type: JavaCompile) {
+//    dependsOn('copyToExamples')
+//
+//    source = fileTree('examples')
+//    include 'Sudoku.java'
+//
+//    destinationDir = file('examples/build')
+//    classpath = fileTree('examples/libs/fortress-2.0/')
+//}
 
-task('compileSudoku', type: JavaCompile) {
-    dependsOn('copyToExamples')
-
-    source = fileTree('examples')
-    include 'Sudoku.java'
-
-    destinationDir = file('examples/build')
-    classpath = fileTree('examples/libs/fortress-2.0/')
-}
-
-task('runSudoku', type: JavaExec) {
-    dependsOn('compileSudoku')
-
-    classpath = files('examples/build', 'examples/libs/fortress-2.0/*')
-    main = 'Sudoku'
-}
+//task('runSudoku', type: JavaExec) {
+//    dependsOn('compileSudoku')
+//
+//    classpath = files('examples/build', 'examples/libs/fortress-2.0/*')
+//    main = 'Sudoku'
+//}
 
 // Distribution
 

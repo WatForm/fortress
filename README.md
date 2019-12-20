@@ -7,8 +7,10 @@ Fortress consists of two main parts:
 
 It was original described in the paper "Finite Model Finding Using the Logic of Equality with Uninterpreted Functions", [available here](https://cs.uwaterloo.ca/~nday/pdf/refereed/2016-VaDa-fm.pdf), and has been re-implemented to create a powerful and general tool.
 
+To use fortress, there are three steps: 1) setup (install supporting libraries); 2) build the fortress code; 3) use the fortress library in your own project.  Each of these steps are described below.
+
 ## Setup
-We currently have setup tested on `MacOS` and `Ubuntu`.
+We currently have setup scripts tested on `MacOS` and `Ubuntu`.  Otherwise, follow the manual setup sets described below.
 
 ### Setup Scripts
 Scripts are available to automate some of the setup for the following platforms:
@@ -37,9 +39,7 @@ Scripts are available to automate some of the setup for the following platforms:
 
 ## Building Fortress
 Java 10 or higher is required to build Fortress.
-Fortress uses the Gradle build system.
-If running Windows, substitute `./gradlew` for `gradle.bat` in all commands.
-Any use of `./gradlew` will automatically download the appropriate version of the build system, as well any additional dependencies for fortress.
+Fortress uses the Gradle build system through calls to gradlew as described below. If running Windows, run gradle.bat instead of `./gradlew` in the steps below.  Any use of `./gradlew` will automatically download the appropriate version of the build system, as well any additional dependencies for fortress.
 
 ### Complete Build
 Run `./gradlew build`.
@@ -57,11 +57,5 @@ Note that you may need to run `./gradlew cleanTest test` to run all of the tests
 Run `./gradlew javadoc`.
 
 ## Running Fortress in Your Project
-1. Follow the steps for building Fortress.
-2. Copy `build/distributions/fortress-2.0.tar` or `build/distributions/fortress-2.0.jar` to an appropriate location, such as a `libs` folder for your project.
-3. Unzip the archive.
-4. When compiling and running, ensure that the files from this archive are in your Java `classpath`.
-    * For example, if the files are in the `libs` directory of your project, you can add `-cp ".:libs/*"` to `javac`, which says to look for class files in current directory and also jars in the libs directory.
-5. When running, ensure that the `libz3java.dylib` or `libz3java.so` file from this archive is in your `java.library.path`.
-    * For example, if `libz3java.dylib` is in the `libs` directory, you can add `-Djava.library.path="libs/"` to your call to `java`.
-    * If this is not done correctly, a `java.lang.UnsatisfiedLinkError` may be raised at runtime.
+Follow the steps in examples/README.md
+
