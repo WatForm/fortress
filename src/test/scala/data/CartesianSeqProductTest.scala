@@ -5,7 +5,7 @@ import org.scalatest.junit.JUnitRunner
 import fortress.data.CartesianSeqProduct
 
 @RunWith(classOf[JUnitRunner])
-class CartesianSeqProductTest extends FunSuite with Matchers{
+class CartesianSeqProductTest extends FunSuite with Matchers {
     
     test("iteration") {
         val l1 = IndexedSeq(1, 2, 3)
