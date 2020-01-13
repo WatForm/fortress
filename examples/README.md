@@ -14,7 +14,7 @@ scopes (uses ?? for built-in Ints), calls default model finder
 (TPTP version 7.2.0).  The scope for the universal sort is passed as an 
 argument, calls default model finder (eufsolver/Z3) and prints result.
 
-## Automatic Compilation of Examples
+## Automatic Compilation of Examples  TODO!!!
 1. ./gradlew <name-of-example> (or gradle.bat if on windows)
 
 ## Running Fortress in Your Project (or to compile the above examples)
