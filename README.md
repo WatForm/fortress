@@ -1,81 +1,60 @@
 # Fortress
 
-This is a modified version of the Fortress library originally described in the paper "Finite Model Finding Using the Logic of Equality with Uninterpreted Functions" by Amirhossein Vakili and Nancy Day, [available here](https://cs.uwaterloo.ca/~nday/pdf/refereed/2016-VaDa-fm.pdf).
+Fortress is a library for finite model finding in typed (or "many-sorted") first order logic (TFOL) with equality.
+Fortress consists of two main parts:
+* An internal Domain Specific Language (DSL) in Java for creating TFOL formulas and theories, and
+* A tool for searching for finite models that satisfy such theories
 
-The original implementation is due to Amirhossein Vakili in 2016, with testing,
-ocumentation, and hopefully some modification by Joseph Poremba in Winter 2018.
+It was original described in the paper "Finite Model Finding Using the Logic of Equality with Uninterpreted Functions", [available here](https://cs.uwaterloo.ca/~nday/pdf/refereed/2016-VaDa-fm.pdf), and has been re-implemented to create a powerful and general tool.
 
-## Requirements
-Gradle must be installed in order to build fortress. It is recommended you enable the Gradle Daemon to speed up building times.
+To use fortress, there are three steps: 1) setup (install supporting libraries); 2) build the fortress code; 3) use the fortress library in your own project.  Each of these steps are described below.
 
-Z3's command line interface must be installed in order to run fortress (for now at least, we plan to refactor to use the Z3 Java bindings in the future).  
-It is highly recommended you use an up to date version of Z3 (4.6.0+), as memory bugs are known to appear in older versions ([a similar bug to this one appeared during one Fortress test](https://github.com/Z3Prover/z3/issues/631)).
-Note that at time of writing, Z3 4.4.1 is the version that is installed when using `apt-get` on Ubuntu. It is recommended to use the precompiled binaries distributed instead ([available here](https://github.com/Z3Prover/z3/releases)).
+## Setup
+We currently have setup scripts tested on `MacOS` and `Ubuntu`.  Otherwise, follow the manual setup sets described below.
 
-## Building
-#### Complete Build
-Run `gradle build` to completely build fortress.
-This includes:  
-* Compilation
-* Packaging zip and tar files for distribution
-* Static analyzer (PMD)
-* Unit Tests (JUnit)
-* Coverage analyzer (Jacoco)
-* Documentation (Javadoc)
+### Setup Scripts
+Scripts are available to automate some of the setup for the following platforms:
+* MacOS (`setup_macos.sh`)
+* Ubuntu 16.04 (`setup_ubuntu_16.04.sh`)
+* Ubuntu 14.04 (`setup_ubuntu_14.04.sh`)
 
-#### Compilation
-Run `gradle compileJava`.
+1. Run the appropriate setup script for your platform.
+2. Install the Z3 command line tool, version 4.8.4 or higher. Binaries are [available here](https://github.com/Z3Prover/z3/releases).
+    * If using MacOS, I recommend using Homebrew instead: `brew install z3`.
+    * If on `Ubuntu`, do not use `apt-get`. Its version of Z3 is out of date.
 
-#### Packaging
-Run `gradle distZip` or `gradle distTar`.
-This will create a zip or tar file respectively in the `build/distributions` directory.
-`gradle assemble` will do both.
-The archive will contain both the fortress jar and any runtime dependencies, such as ANTLR.
+### Manual Setup
+1. Clone the `fortress-2.0` repository.
+2. Download all required files for the Microsoft Z3 SMT solver. These can be found in a zip file, [available here](https://github.com/Z3Prover/z3/releases).
+    We have used Z3 4.8.4.
+    Specifically you will need to place the following files in the corresponding locations:
+    * `com.microsoft.z3.jar` in `fortress-2.0/z3/`,
+    * `libz3java.dylib` in `fortress-2.0/z3`, if running `MacOS`,
+    * `libz3java.so` in `fortress-2.0/z3`, if running `Ubuntu`, and
+    * `libz3java.dll` in `fortress-2.0/z3`, if running `Windows`.
+3. Install the Microsoft Z3 command line tool, version 4.8.4 or higher. Binaries are available in the above zip file.
+    * If using MacOS, we recommend using Homebrew instead: `brew install z3`.
+    * If on `Ubuntu`, do not use `apt-get`. Its version of Z3 is out of date.
+    * If on `Windows`, make sure you add the directory with `libz3java.dll` to your PATH.
 
-#### Static Analysis (PMD)
-Run `gradle check`.
-A report will be available in `build/reports/pmd/main.html` and `build/reports/findbugs/test.html`.
+## Building Fortress
+Java 10 or higher is required to build Fortress.
+Fortress uses the Gradle build system through calls to gradlew as described below. If running Windows, run gradle.bat instead of `./gradlew` in the steps below.  Any use of `./gradlew` will automatically download the appropriate version of the build system, as well any additional dependencies for fortress.
 
-#### Unit Tests and Coverage
-Run `gradle test`.
-An HTML version of the test results will be avaiable at `build/reports/tests/index.html`.  
-`gradle jacoco` will generate a coverage report in `build/reports/jacoco/test/html/index.html`.
+### Complete Build
+Run `./gradlew build`.
+This will compile the code, run unit tests, and produce archive files in both zip and tar formats that contain a Fortress jar and all of its runtime dependencies.
+The archives will be located in `build/distributions`.
 
-Note: Gradle may not rerun tests that have already passed since the last change. To force it to rerun the tests, run `gradle cleanTest test`.
+### Compiling
+Run `./gradlew compileJava`.
 
-Note: There is another repository, fortress-tests, which runs tests on files (e.g. TPTP files).
+### Running Unit Tests
+Run `./gradlew test`.
+Note that you may need to run `./gradlew cleanTest test` to run all of the tests, since Gradle may not run tests that are up to date.
 
-#### Building Documentation
-Run `gradle javadoc`.
-The documentation can then be viewed in `build/docs/javadoc/index.html`.
+### Building Documentation
+Run `./gradlew javadoc`.
 
-## Plan for improvements
-1. Make any superficial tweaks to the output interface that needed to automate file level tests for efficiency and correctness
-2. Add some unit tests and documentation. Some unit tests should fail because of the bug
-3. Make Java class interface tweaks; test them for efficiency to make sure I didn't slow anything down. This includes separating out the parser, adding abstraction layers, etc.
-4. Allow Fortress to call Z3 through it's Java interface rather than the command line (but still allow the command line if wanted). This will probably require a change to the build system too since we need the Z3 Java library
-5. Apply the bug fix, make sure unit tests pass; assess the damage to efficiency
-6. Remove the lambda calculus layer; perform unit tests and efficiency tests
-7. Search for other optimizations
-
-## Implementation Notes
-input -> `ANTLRInputStream` -> `FOFTPTPLexer` -> `CommonTokenStream`
--> `FOFTPTPParser` -> `ParseTree`
-
-`FOF2Fortress` is a visitor for the parse tree.
-It visits the nodes of the parse tree, which represent first order logic connectives (e.g. and, or, imp, pred).
-At each node, it largely delegates to the `FOL` class (e.g. `FOL.mkForall`, `FOL.mkAnd`).
-
-Rather than construct a first order logic formula directly, the `FOL` class constructs
-each of these first order logic formulas by encoding it in the typed lambda calculus (the `Term` hierarchy).
-`FOL` also contains static methods that accept a term and decide if it describes a
-particular first order logic formula (e.g. `FOL.isNot`, `FOL.isEq`).
-
-After visiting the parse tree and constructing the `Term`, `FOF2Fortress`
-generates a new `Theory` object. This theory object uses the `Theory.ARITH_THEORY`
-as a base, and adds the generated `Term` as an axiom.
-(Question: it likely visits multiple formulas).
-
-
-The `Formula` class has a static `fromTerm` method which takes a typed lambda calculus `Term`
-and produces an explicit first order logic formula, using the `Formula` hierarchy.
+## Running Fortress in Your Project
+Follow the steps in examples/README.md

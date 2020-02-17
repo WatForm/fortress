@@ -1,9 +1,0 @@
-+ This the newest version of Fortress. 2018-01-17 Nancy Day
-    + It started from code in the fm-fortress repo by Amirhossein Vakili
-
-+ To build, run "gradle build"
-
-+ To learn about the APT, the following two files are great places to start:
-    + src/main/java/fortress/formats/tptp/FOF2Fortress.java
-    + src/main/java/fortress/Main.java
-

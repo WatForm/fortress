@@ -1,4 +1,10 @@
 build/
+examples/libs
 .gradle/
 .idea/
 .DS_Store
+z3/com.microsoft.z3.jar
+z3/libz3java.dylib
+z3/libz3java.so
+out/
+.metals/
