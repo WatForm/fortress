@@ -2,12 +2,19 @@
 
 Fortress is a library for finite model finding in typed (or "many-sorted") first order logic (TFOL) with equality.
 Fortress consists of two main parts:
-* An internal Domain Specific Language (DSL) in Java for creating TFOL formulas and theories, and
+* An internal Domain Specific Language (DSL) in Java for creating TFOL formulas and theories
 * A tool for searching for finite models that satisfy such theories
+
+Fortress is written in Scala, but is intended to be used by Java users and not Scala users.
 
 It was original described in the paper "Finite Model Finding Using the Logic of Equality with Uninterpreted Functions", [available here](https://cs.uwaterloo.ca/~nday/pdf/refereed/2016-VaDa-fm.pdf), and has been re-implemented to create a powerful and general tool.
 
-To use fortress, there are three steps: 1) setup (install supporting libraries); 2) build the fortress code; 3) use the fortress library in your own project.  Each of these steps are described below.
+To use Fortress, there are three steps:
+1. Setup (install supporting libraries)
+2. Build the fortress code
+3. Use the fortress library in your own project
+
+Each of these steps are described below.
 
 ## Setup
 We currently have setup scripts tested on `MacOS` and `Ubuntu`.  Otherwise, follow the manual setup sets described below.
@@ -20,7 +27,7 @@ Scripts are available to automate some of the setup for the following platforms:
 
 1. Run the appropriate setup script for your platform.
 2. Install the Z3 command line tool, version 4.8.4 or higher. Binaries are [available here](https://github.com/Z3Prover/z3/releases).
-    * If using MacOS, I recommend using Homebrew instead: `brew install z3`.
+    * If using MacOS, we recommend using Homebrew instead: `brew install z3`.
     * If on `Ubuntu`, do not use `apt-get`. Its version of Z3 is out of date.
 
 ### Manual Setup
