@@ -9,14 +9,16 @@ Fortress is written in Scala, but is intended to be used by Java users and not S
 
 It was original described in the paper "Finite Model Finding Using the Logic of Equality with Uninterpreted Functions", [available here](https://cs.uwaterloo.ca/~nday/pdf/refereed/2016-VaDa-fm.pdf), and has been re-implemented to create a powerful and general tool.
 
+## System Requirements
+Fortress requires Java 10 higher to compile and run.
+
+## Setup
+
 To use Fortress, there are three steps:
 1. Setup (install supporting libraries)
 2. Build the fortress code
 3. Use the fortress library in your own project
 
-Each of these steps are described below.
-
-## Setup
 We currently have setup scripts tested on `MacOS` and `Ubuntu`.  Otherwise, follow the manual setup sets described below.
 
 ### Setup Scripts
@@ -54,7 +56,7 @@ This will compile the code, run unit tests, and produce archive files in both zi
 The archives will be located in `build/distributions`.
 
 ### Compiling
-Run `./gradlew compileJava`.
+Run `./gradlew compileScala`.
 
 ### Running Unit Tests
 Run `./gradlew test`.
@@ -64,4 +66,14 @@ Note that you may need to run `./gradlew cleanTest test` to run all of the tests
 Run `./gradlew javadoc`.
 
 ## Running Fortress in Your Project
-Follow the steps in examples/README.md
+Follow the below instructions.
+Check out the `examples/` directory for some examples of this.
+
+1. Follow the steps for building Fortress.
+2. Copy `build/distributions/fortress-2.0.tar` or `build/distributions/fortress-2.0.zip` (both archives contain the same files) to an appropriate location, such as a `libs` folder for your project. 
+3. Unzip the archive.
+4. When compiling and running, ensure that the files from this archive are in your Java `classpath`.
+    * For example, if the files are in the `libs` directory of your project, you can add `-cp ".:libs/*"` to `javac`, which says to look for class files in current directory and also jars in the libs directory. 
+5. When running, ensure that the `libz3java.dylib` or `libz3java.so` file from this archive (usually in the z3 directory) is in your `java.library.path`.
+    * For example, if `libz3java.dylib` is in the `libs` directory, you can add `-Djava.library.path="libs/"` to your call to `java`.
+    * If this is not done correctly, a `java.lang.UnsatisfiedLinkError` may be raised at runtime.

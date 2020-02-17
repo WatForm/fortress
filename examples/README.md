@@ -14,17 +14,28 @@ scopes (uses ?? for built-in Ints), calls default model finder
 (TPTP version 7.2.0).  The scope for the universal sort is passed as an 
 argument, calls default model finder (eufsolver/Z3) and prints result.
 
-## Automatic Compilation of Examples  TODO!!!
-1. ./gradlew <name-of-example> (or gradle.bat if on windows)
-
-## Running Fortress in Your Project (or to compile the above examples)
+## Setup
 1. Follow the steps for building Fortress.
-2. Copy `build/distributions/fortress-2.0.tar` or `build/distributions/fortress-2.0.zip` (both archives contain the same files) to an appropriate location, such as a `libs` folder for your project. 
-3. Unzip the archive.
-4. When compiling and running, ensure that the files from this archive are in your Java `classpath`.
-    * For example, if the files are in the `libs` directory of your project, you can add `-cp ".:libs/fortress-2.0/*"` to `javac`, which says to look for class files in current directory and also jars in the libs directory. 
-5. When running, ensure that the `libz3java.dylib` or `libz3java.so` file from this archive (usually in the z3 directory) is in your `java.library.path`.
-    * For example, if `libz3java.dylib` is in the `libs` directory, you can add `-Djava.library.path="libs/fortress-2.0"` to your call to `java`.
-    * If this is not done correctly, a `java.lang.UnsatisfiedLinkError` may be raised at runtime.
+2. Copy and unzip the contents of `build/distributions/fortress-2.0.zip` into the `examples/libs` directory.
+For example, the following shell code can be run from the `examples/` directory.
+```
+# Copy and unzip Fortress files into libs/ directory
+rm -rf libs/fortress-2.0.zip libs/fortress-2.0.zip
+cp ../build/distributions/fortress-2.0.zip libs/
+unzip -oj libs/fortress-2.0.zip -d libs/
+```
 
+## Compiling and Running Examples
+Change to the `examples/` directory before running the following code.
+Make sure the `libs/` directory has been setup correctly.
 
+### Pigeonhole
+Run the following code to compile and run the Pigeonhole example.
+The numbers can be changed to change the number of pigeons and holes.
+```
+# Compile
+javac -cp ".:libs/*" Pigeonhole.java
+
+# Run
+java -cp ".:libs/*" -Djava.library.path="libs" Pigeonhole 10 10
+```

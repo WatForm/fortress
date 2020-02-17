@@ -1,5 +1,4 @@
 build/
-examples/libs
 .gradle/
 .idea/
 .DS_Store
@@ -8,3 +7,9 @@ z3/libz3java.dylib
 z3/libz3java.so
 out/
 .metals/
+examples/*.class
+examples/libs/*.jar
+examples/libs/*.zip
+examples/libs/*.dylib
+examples/libs/*.so
+examples/libs/*.dll
