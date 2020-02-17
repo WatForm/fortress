@@ -1,6 +1,6 @@
 package fortress.transformers
 
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 
 import fortress.msfol._
 import fortress.util.Errors

@@ -2,10 +2,10 @@ package fortress.transformers
 
 import fortress.msfol._
 import fortress.data.NameGenerator
-import fortress.data.SubIntNameGenerator
+import fortress.data.IntSuffixNameGenerator
 import fortress.msfol.operations.Skolemizer
 
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 
 /** Takes a theory, whose formulas are all in negation normal form, and produces
 * an equisatisfiable theory whose formulas are still in negation normal form and
@@ -34,7 +34,7 @@ class SkolemizeTransformer extends TheoryTransformer {
             forbiddenNames ++= axiom.allSymbols
         }
         
-        val nameGenerator = new SubIntNameGenerator(forbiddenNames.asJava, 0)
+        val nameGenerator = new IntSuffixNameGenerator(forbiddenNames.toSet, 0)
         
         var result = theory.withoutAxioms
         for(axiom <- theory.axioms) {

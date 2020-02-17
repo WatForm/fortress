@@ -1,7 +1,7 @@
 package fortress.msfol
 
 import fortress.util.Errors
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 import scala.collection.immutable.Seq // Default to immutable Seqs
 import scala.annotation.varargs // So we can call Scala varargs methods from Java
 

@@ -6,6 +6,8 @@ import fortress.data.CartesianSeqProduct
 
 import scala.collection.immutable.ListMap
 
+import scala.collection.immutable.Seq
+
 import com.microsoft.z3.{
     Model => Z3Model,
 		Context => Z3Context,

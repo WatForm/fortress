@@ -43,9 +43,9 @@ object Sort {
     
     val Bool: Sort = BoolSort
     val Int: Sort = IntSort
-    def BitVector(bitwidth: Int) = BitVectorSort(bitwidth)
+    def BitVector(bitwidth: Int): Sort = BitVectorSort(bitwidth)
     
-    def nameMimicsBuiltin(name: String) = {
+    def nameMimicsBuiltin(name: String): Boolean = {
         name == "Bool" || name == "Int" || name == "Real" || name.startsWith("BitVec")
     }
 }

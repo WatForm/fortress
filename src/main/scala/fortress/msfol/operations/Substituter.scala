@@ -3,7 +3,7 @@ package fortress.msfol.operations
 import fortress.msfol._
 import fortress.data.NameGenerator;
 
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 import scala.collection.immutable.Seq // Use immutable seq
 
 /** Applies the substitution [x -> s] in term t. will perform alpha-renaming to
@@ -108,14 +108,14 @@ object RecklessSubstituter {
                     // Substitute x->t in (exists x . phi) becomes (exists x . phi)
                     // Remove these from the substitution before recursive call
                     val variables = vars.map(_.variable)
-                    val sigmaPrime = sigma.filterKeys(!variables.contains(_))
+                    val sigmaPrime: Map[Var, Term] = sigma.view.filterKeys(!variables.contains(_)).toMap
                     Exists(vars, sub(sigmaPrime, body))
                 }
                 case Forall(vars, body) => {
                     // Substitute x->t in (forall x . phi) becomes (forall x . phi)
                     // Remove these from the substitution before recursive call
                     val variables = vars.map(_.variable)
-                    val sigmaPrime = sigma.filterKeys(!variables.contains(_))
+                    val sigmaPrime: Map[Var, Term] = sigma.view.filterKeys(!variables.contains(_)).toMap
                     Forall(vars, sub(sigmaPrime, body))
                 }
                 case EnumValue(_) => ???

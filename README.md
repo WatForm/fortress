@@ -33,7 +33,7 @@ Scripts are available to automate some of the setup for the following platforms:
     * `libz3java.so` in `fortress-2.0/z3`, if running `Ubuntu`, and
     * `libz3java.dll` in `fortress-2.0/z3`, if running `Windows`.
 3. Install the Microsoft Z3 command line tool, version 4.8.4 or higher. Binaries are available in the above zip file.
-    * If using MacOS, I recommend using Homebrew instead: `brew install z3`.
+    * If using MacOS, we recommend using Homebrew instead: `brew install z3`.
     * If on `Ubuntu`, do not use `apt-get`. Its version of Z3 is out of date.
     * If on `Windows`, make sure you add the directory with `libz3java.dll` to your PATH.
 
@@ -58,4 +58,3 @@ Run `./gradlew javadoc`.
 
 ## Running Fortress in Your Project
 Follow the steps in examples/README.md
-

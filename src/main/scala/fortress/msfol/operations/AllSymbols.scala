@@ -28,3 +28,41 @@ object AllSymbols {
         symbols(term)
     }
 }
+
+object SymbolAccumulator {
+    def functionsIn(term: Term): Set[String] = term match {
+        case Top | Bottom | Var(_) | EnumValue(_) | DomainElement(_, _)
+            | IntegerLiteral(_) | BitVectorLiteral(_, _) => Set()
+        case Not(p) => functionsIn(p)
+        case AndList(args) => args.map(functionsIn).reduce((a, b) => a union b)
+        case OrList(args) => args.map(functionsIn).reduce((a, b) => a union b)
+        case Distinct(args) => args.map(functionsIn).reduce((a, b) => a union b)
+        case Implication(p, q) => functionsIn(p) union functionsIn(q)
+        case Iff(p, q) => functionsIn(p) union functionsIn(q)
+        case Eq(l, r) => functionsIn(l) union functionsIn(r)
+        case App(fname, args) => args.map(functionsIn).reduce((a, b) => a union b) + fname
+        case BuiltinApp(function, args) => args.map(functionsIn).reduce((a, b) => a union b)
+        case Forall(vars, body) => functionsIn(body)
+        case Exists(vars, body) => functionsIn(body)
+    }
+    def constantsIn(term: Term): Set[String] = {
+        def recur(t: Term, variables: Set[String]): Set[String] = t match {
+            case Top | Bottom | DomainElement(_, _) | EnumValue(_)
+                | IntegerLiteral(_) | BitVectorLiteral(_, _) => Set.empty
+            case Var(x) if (! (variables contains x)) => Set(x)
+            case Var(x) => Set.empty
+            case Not(p) => recur(p, variables)
+            case AndList(args) => args.map(arg => recur(arg, variables)).reduce((a, b) => a union b)
+            case OrList(args) => args.map(arg => recur(arg, variables)).reduce((a, b) => a union b)
+            case Distinct(args) => args.map(arg => recur(arg, variables)).reduce((a, b) => a union b)
+            case Implication(p, q) => recur(p, variables) union recur(q, variables)
+            case Iff(p, q) => recur(p, variables) union recur(q, variables)
+            case Eq(l, r) => recur(l, variables) union recur(r, variables)
+            case App(fname, args) => args.map(arg => recur(arg, variables)).reduce((a, b) => a union b)
+            case BuiltinApp(function, args) => args.map(arg => recur(arg, variables)).reduce((a, b) => a union b)
+            case Forall(vars, body) => recur(body, variables ++ vars.map(_.name))
+            case Exists(vars, body) => recur(body, variables ++ vars.map(_.name))
+        }
+        recur(term, Set.empty)
+    }
+}

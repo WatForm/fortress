@@ -1,6 +1,6 @@
 package fortress.transformers
 
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 import scala.collection.immutable.Seq // By default use immutable Seq
 
 import fortress.msfol._

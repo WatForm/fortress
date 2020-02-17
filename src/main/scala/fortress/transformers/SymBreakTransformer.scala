@@ -44,7 +44,7 @@ class SymBreakTransformer(scopes: Map[Sort, Int]) extends TheoryTransformer {
                 if(possibleEqualities.size == 1) {
                     constraints += possibleEqualities.head
                 } else {
-                    constraints += Or(possibleEqualities)
+                    constraints += OrList(possibleEqualities)
                 }
                 
                 maxUsedSortVal(sort) += 1
@@ -72,7 +72,7 @@ class SymBreakTransformer(scopes: Map[Sort, Int]) extends TheoryTransformer {
                         if(possibleEqualities.size == 1) {
                             constraints += possibleEqualities.head
                         } else {
-                            constraints += Or(possibleEqualities)
+                            constraints += OrList(possibleEqualities)
                         }
                         
                         maxUsedSortVal(resultSort) += 1

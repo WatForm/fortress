@@ -5,7 +5,7 @@ import fortress.util.Errors
 import fortress.msfol.operations.TypeCheckResult
 
 import scala.language.implicitConversions
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 import scala.annotation.varargs
 import scala.collection.immutable.Seq
 import fortress.msfol.operations.InterpretationVerifier
@@ -108,13 +108,11 @@ case class Theory private (signature: Signature, axioms: Set[Term]) {
     @varargs
     def withFunctionDeclarations(fdecls: FuncDecl*): Theory = withFunctionDeclarations(fdecls.asJava)
     
-    def withEnumSort(t: Sort, values: Seq[EnumValue]): Theory = {
+    @varargs
+    def withEnumSort(t: Sort, values: EnumValue*): Theory = {
         // TODO consistency checking
         Theory(signature.withEnumSort(t, values), axioms)
     }
-    
-    @varargs
-    def withEnumSort(t: Sort, values: EnumValue*): Theory = withEnumSort(t, values.toList)
     
     def withEnumSort(t: Sort, values: java.util.List[EnumValue]) = {
         // TODO consistency checking

@@ -1,12 +1,13 @@
 package fortress.interpretation
 
-import scala.collection.immutable.ListMap
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
+
+import scala.collection.immutable.Seq
 
 import fortress.msfol._
 
 trait Interpretation {
-    def functionInterpretations: Map[FuncDecl, ListMap[Seq[Value], Value]]
+    def functionInterpretations: Map[FuncDecl, Map[Seq[Value], Value]]
     def constantInterpretations: Map[AnnotatedVar, Value]
     def sortInterpretations: Map[Sort, Seq[Value]]
 
@@ -32,7 +33,11 @@ trait Interpretation {
         constraints
     }
 
-    override def toString: String = "Sorts <<\n" + sortInterpretations.map{ case(sort, values) => sort + ": " + values.mkString(", ")}.mkString("\n") + ">>\nConstants <<\n" + constantInterpretations.map(_.productIterator.mkString(": ")).mkString("\n") + ">>\nFunctions <<\n" + functionInterpretations.map{ case(fdecl, values) => fdecl + "\n" + values.map{ case(args, ret) => "\t" + args.mkString(", ") + " -> " + ret }.mkString("\n") }.mkString("\n") + ">>"
+    override def toString: String =
+        "Sorts <<\n" + sortInterpretations.map{ case(sort, values) => sort.toString + ": " + values.mkString(", ")}.mkString("\n") +
+        ">>\nConstants <<\n" + constantInterpretations.map(_.productIterator.mkString(": ")).mkString("\n") +
+        ">>\nFunctions <<\n" + functionInterpretations.map{ case(fdecl, values) => fdecl.toString + "\n" + values.map{ case(args, ret) => "\t" + args.mkString(", ") + " -> " + ret }.mkString("\n") }.mkString("\n") +
+        ">>"
     
     // Java methods
     
@@ -49,8 +54,14 @@ trait Interpretation {
     }.asJava
 }
 
-class EnumInterpretation(t: Map[Sort, Seq[Value]], c: Map[AnnotatedVar, Value], f: Map[FuncDecl, ListMap[Seq[Value], Value]]) extends Interpretation {
+class EnumInterpretation(t: Map[Sort, Seq[Value]], c: Map[AnnotatedVar, Value], f: Map[FuncDecl, Map[Seq[Value], Value]]) extends Interpretation {
     def sortInterpretations = t
     def constantInterpretations = c
     def functionInterpretations = f
 }
+
+class BasicInterpretation(
+    val functionInterpretations: Map[FuncDecl, Map[Seq[Value], Value]],
+    val constantInterpretations: Map[AnnotatedVar, Value],
+    val sortInterpretations: Map[Sort, Seq[Value]]
+) extends Interpretation

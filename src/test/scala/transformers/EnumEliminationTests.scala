@@ -18,9 +18,9 @@ class EnumEliminationTests extends FunSuite with Matchers {
     
     test("compute appropriate mapping") {
         val theory = Theory.empty
-            .withEnumSort(A, Seq(EnumValue("cat"), EnumValue("dog"), EnumValue("mouse")))
+            .withEnumSort(A, EnumValue("cat"), EnumValue("dog"), EnumValue("mouse"))
             .withSort(B)
-            .withEnumSort(C, Seq(EnumValue("red"), EnumValue("blue")))
+            .withEnumSort(C, EnumValue("red"), EnumValue("blue"))
         
         val mapping = ( new EnumEliminationTransformer ).computeEnumSortMapping(theory)
         val expected = Map(
@@ -35,9 +35,9 @@ class EnumEliminationTests extends FunSuite with Matchers {
     
     test("elimination") {
         val theory = Theory.empty
-            .withEnumSort(A, Seq(EnumValue("cat"), EnumValue("dog"), EnumValue("mouse")))
+            .withEnumSort(A, EnumValue("cat"), EnumValue("dog"), EnumValue("mouse"))
             .withSort(B)
-            .withEnumSort(C, Seq(EnumValue("red"), EnumValue("blue")))
+            .withEnumSort(C, EnumValue("red"), EnumValue("blue"))
             .withFunctionDeclaration(FuncDecl("f", A, B, C))
             .withAxiom(Forall(x of B,
                 Not(App("f", EnumValue("cat"), x) === EnumValue("blue"))))

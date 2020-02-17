@@ -1,6 +1,6 @@
 package fortress.transformers
 
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 
 import fortress.msfol._
 import fortress.util.Errors
@@ -35,7 +35,7 @@ class RangeFormulaTransformerNoSymBreak(scopes: Map[Sort, Int]) extends TheoryTr
             val possibleEqualities = 
                 for(i <- 1 to scopes(c.sort)) yield
                     { c.variable === DomainElement(i, c.sort) }
-            val rangeFormula = Or(possibleEqualities)
+            val rangeFormula = OrList(possibleEqualities)
             rangeFormula
         }
         
@@ -72,9 +72,9 @@ class RangeFormulaTransformerNoSymBreak(scopes: Map[Sort, Int]) extends TheoryTr
                     App(f.name, argumentList) === rangeValue
                 }
                 if(quantifiedVarsBuffer.nonEmpty) {
-                    functionRangeConstraints += Forall(quantifiedVars, Or(possibleEqualities))
+                    functionRangeConstraints += Forall(quantifiedVars, OrList(possibleEqualities))
                 } else {
-                    functionRangeConstraints += Or(possibleEqualities)
+                    functionRangeConstraints += OrList(possibleEqualities)
                 }
             })
         }

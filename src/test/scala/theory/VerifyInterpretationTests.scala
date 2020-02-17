@@ -252,7 +252,7 @@ class VerifyInterpretationTests extends FunSuite with Matchers {
 
                 val temp: Var = Var("temp")
                 val rawTheory: Theory = Theory.empty
-                    .withEnumSort(fruit, fruitVals)
+                    .withEnumSort(fruit, fruitVals : _*)
                     .withConstants(apple of fruit, orange of fruit,
                             banana of fruit, plum of fruit, peach of fruit)
                     .withFunctionDeclarations(identity, doubleIdentity, tripleIdentity)

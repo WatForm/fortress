@@ -13,7 +13,7 @@ object Simplifier {
                     Bottom
                 else {
                     val newArgs = args.filter(t => t != Top)
-                    if (newArgs.size == 0) Top else And(newArgs)
+                    if (newArgs.size == 0) Top else AndList(newArgs)
                 }
             }
             case OrList(args) => {
@@ -21,7 +21,7 @@ object Simplifier {
                     Top
                 else {
                     val newArgs = args.filter(t => t != Bottom)
-                    if (newArgs.size == 0) Bottom else Or(newArgs)
+                    if (newArgs.size == 0) Bottom else OrList(newArgs)
                 }
             }
             case Implication(Bottom, _) => Top

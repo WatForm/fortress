@@ -8,7 +8,7 @@ import fortress.util._
 import fortress.interpretation._
 import fortress.solverinterface._
 
-class EufSmtModelFinder(var solverStrategy: SolverStrategy) extends ModelFinder {
+class SymBreakingModelFinder(var solverStrategy: SolverStrategy) extends ModelFinder {
     
     var timeoutMilliseconds: Int = 60000
     var analysisScopes: Map[Sort, Int] = Map.empty
@@ -82,6 +82,7 @@ class EufSmtModelFinder(var solverStrategy: SolverStrategy) extends ModelFinder 
         
         transformerSequence += new NnfTransformer
         transformerSequence += new SkolemizeTransformer
+        transformerSequence += new SymBreakTransformer2(analysisScopes ++ enumScopes)
         transformerSequence += new DomainInstantiationTransformer(analysisScopes ++ enumScopes)
         transformerSequence += new RangeFormulaTransformerNoSymBreak(analysisScopes ++ enumScopes)
         transformerSequence += new DomainEliminationTransformer(analysisScopes ++ enumScopes)

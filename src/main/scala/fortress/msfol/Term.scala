@@ -3,7 +3,7 @@ package fortress.msfol
 import fortress.util.Errors
 import fortress.msfol.operations._
 import fortress.data._
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 import scala.annotation.varargs // So we can call Scala varargs methods from Java
 import scala.collection.immutable.Seq // Default to immutable Seqs
 
@@ -52,7 +52,7 @@ sealed abstract class Term {
         Substituter(toSub, subWith, this, nameGenerator)
     
     def substitute(toSub: Var, subWith: Term): Term =
-        substitute(toSub, subWith, new SubIntNameGenerator(java.util.Set.of[String], 0))
+        substitute(toSub, subWith, new IntSuffixNameGenerator(Set.empty[String], 0))
     
     /** Does not account for variable capture.
       * If in doubt do not use this function.
@@ -81,6 +81,9 @@ sealed abstract class Term {
       * function names, and sort names that appear on variable bindings.
       */
     def allSymbols: Set[String] = AllSymbols(this)
+    
+    /** Returns the set of all domain elements occuring within this term. */
+    def domainElements: Set[DomainElement] = DomainElementsWithinTerm(this)
     
     // Be aware if you chain this method together, you will get several nested AndLists
     def and(other: Term): Term = AndList(Seq(this, other))
@@ -172,7 +175,6 @@ object AndList {
 
 object And {
     def apply(args: Term*): Term = AndList(args.toList)
-    def apply(args: Seq[Term]) = if(args.size == 1) args(0) else AndList(args)
 }
 
 /** Represents a disjunction. */
@@ -191,8 +193,7 @@ object OrList {
 }
 
 object Or {
-    def apply(args: Term*): Term = Or(args.toList)
-    def apply(args: Seq[Term]) = if(args.size == 1) args(0) else OrList(args)
+    def apply(args: Term*): Term = OrList(args.toList)
 }
 
 /** Represents a formula signifying whether its arguments have distinct values. */
@@ -257,7 +258,7 @@ case class Eq(left: Term, right: Term) extends Term {
 }
 
 /** Represents a function or predicate application. */
-case class App(functionName: String, arguments: Seq[Term]) extends Term {
+case class App private (functionName: String, arguments: Seq[Term]) extends Term {
     Errors.precondition(functionName.length >= 1, "Empty function name")
     Errors.precondition(arguments.size >= 1, "Nullary function application " + functionName + " should be a Var")
     
@@ -271,10 +272,10 @@ case class App(functionName: String, arguments: Seq[Term]) extends Term {
 }
 
 object App {
-    def apply(functionName: String, arguments: Term*): App = App(functionName, arguments.toList)
+    def apply(functionName: String, args: Term*): Term = App(functionName, args.toList)
 }
 
-case class BuiltinApp(function: BuiltinFunction, arguments: Seq[Term]) extends Term {
+case class BuiltinApp private (function: BuiltinFunction, arguments: Seq[Term]) extends Term {
     Errors.precondition(arguments.size >= 1, "Nullary builtin function application " + function)
     
     override def accept[T](visitor: TermVisitor[T]): T = visitor.visitBuiltinApp(this)
@@ -284,7 +285,7 @@ case class BuiltinApp(function: BuiltinFunction, arguments: Seq[Term]) extends T
 }
 
 object BuiltinApp {
-    def apply(function: BuiltinFunction, arguments: Term*): BuiltinApp = BuiltinApp(function, arguments.toList)
+    def apply(function: BuiltinFunction, args: Term*): Term = BuiltinApp(function, args.toList)
 }
 
 sealed abstract class Quantifier extends Term {

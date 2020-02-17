@@ -10,10 +10,10 @@ class InsertionOrderedSet[E](
     override def iterator: Iterator[E] = implQueue.iterator
 
     // Members declared in scala.collection.SetLike
-    def -(elem: E): scala.collection.immutable.Set[E] = 
-        throw new java.lang.UnsupportedOperationException("InsertionOrderedSet[E] does not support the - operation");
+    def excl(elem: E): scala.collection.immutable.Set[E] = 
+        throw new java.lang.UnsupportedOperationException("InsertionOrderedSet[E] does not support the excl operation");
         
-    def +(elem: E): InsertionOrderedSet[E] = 
+    def incl(elem: E): InsertionOrderedSet[E] = 
         if(contains(elem)) this
         else new InsertionOrderedSet(implSet + elem, implQueue :+ elem)
         
@@ -27,5 +27,5 @@ object InsertionOrderedSet {
     def empty[T]: InsertionOrderedSet[T] = new InsertionOrderedSet(Set.empty, scala.collection.immutable.Queue.empty)
     
     // Generate an InsertionOrderedSet from a Sequence.
-    def fromSeq[T](seq: Seq[T]): InsertionOrderedSet[T] = seq.foldLeft(empty[T])((set, elem) => set + elem)
+    def fromSeq[T](seq: Seq[T]): InsertionOrderedSet[T] = seq.foldLeft(empty[T])((set, elem) => set incl elem)
 }

@@ -15,7 +15,7 @@ import com.microsoft.z3.{
 import fortress.msfol._
 import fortress.msfol.operations.TermVisitorWithTypeContext
 
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 
 import fortress.util.Errors
 
