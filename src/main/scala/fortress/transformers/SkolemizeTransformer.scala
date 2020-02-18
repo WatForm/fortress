@@ -3,7 +3,7 @@ package fortress.transformers
 import fortress.msfol._
 import fortress.data.NameGenerator
 import fortress.data.IntSuffixNameGenerator
-import fortress.msfol.operations.Skolemizer
+import fortress.operations.Skolemizer
 
 import scala.jdk.CollectionConverters._
 

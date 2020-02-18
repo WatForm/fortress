@@ -12,7 +12,7 @@ import java.util.ArrayList;
 import java.io.*;
 import fortress.util.Errors;
 import java.util.Optional;
-import fortress.msfol.operations.*;
+import fortress.operations.*;
 import java.util.stream.Collectors;
 import java.util.Arrays;
 

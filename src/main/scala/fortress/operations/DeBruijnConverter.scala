@@ -1,4 +1,4 @@
-package fortress.msfol.operations
+package fortress.operations
 
 import fortress.msfol._
 

@@ -13,7 +13,7 @@ import com.microsoft.z3.{
 }
 
 import fortress.msfol._
-import fortress.msfol.operations.TermVisitorWithTypeContext
+import fortress.operations.TermVisitorWithTypeContext
 
 import scala.jdk.CollectionConverters._
 

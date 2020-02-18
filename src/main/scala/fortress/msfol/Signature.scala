@@ -2,7 +2,7 @@ package fortress.msfol
 
 import fortress.data.InsertionOrderedSet
 import fortress.util.Errors
-import fortress.msfol.operations.TypeCheckResult
+import fortress.operations.TypeCheckResult
 import scala.jdk.CollectionConverters._
 import scala.annotation.varargs // So we can call Scala varargs methods from Java
 import scala.collection.immutable.Seq // Use immutable seq by default

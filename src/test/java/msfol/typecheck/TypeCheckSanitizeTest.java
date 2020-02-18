@@ -3,7 +3,7 @@ import org.junit.Test;
 import org.junit.Ignore;
 
 import fortress.msfol.*;
-import fortress.msfol.operations.TypeCheckResult;
+import fortress.operations.TypeCheckResult;
 import java.util.List;
 
 public class TypeCheckSanitizeTest {

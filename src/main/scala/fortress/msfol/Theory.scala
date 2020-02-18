@@ -2,13 +2,13 @@ package fortress.msfol
 
 import fortress.interpretation.Interpretation
 import fortress.util.Errors
-import fortress.msfol.operations.TypeCheckResult
+import fortress.operations.TypeCheckResult
 
 import scala.language.implicitConversions
 import scala.jdk.CollectionConverters._
 import scala.annotation.varargs
 import scala.collection.immutable.Seq
-import fortress.msfol.operations.InterpretationVerifier
+import fortress.operations.InterpretationVerifier
 
 // TODO Theory needs to check for inconsistencies when adding functions as well.
 // e.g. If some term already uses "f" as a variable and we add "f : A -> B".

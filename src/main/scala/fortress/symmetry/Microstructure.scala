@@ -159,11 +159,11 @@ class MicrostructureComplement(theory: Theory, scopes: Map[Sort, Int]) extends H
             val hyperEdgesForAxiom = new scala.collection.mutable.ListBuffer[HyperEdge]
             
             val constSymbolsOfAxiom: Set[AnnotatedVar] =  {
-                val constantsIn = fortress.msfol.operations.SymbolAccumulator.constantsIn(axiom)
+                val constantsIn = fortress.operations.SymbolAccumulator.constantsIn(axiom)
                 constantsIn.map(x => theory.signature.queryConstant(Var(x)).get)
             }
             val funcSymbolsOfAxiom: Set[FuncDecl] = {
-                val functionsIn = fortress.msfol.operations.SymbolAccumulator.functionsIn(axiom)
+                val functionsIn = fortress.operations.SymbolAccumulator.functionsIn(axiom)
                 functionsIn.map(theory.signature.queryUninterpretedFunction(_).get)
             }
             

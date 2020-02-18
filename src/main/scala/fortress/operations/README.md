@@ -1,6 +1,6 @@
-# `fortress.msfol.operations` Package
+# `fortress.operations` Package
 
-The `fortress.msfol.operations` package contains operations on `Term`s, such as quantifier instantiation and type checking.
+The `fortress.operations` package contains operations on `Term`s, such as quantifier instantiation and type checking.
 
 ## Implementation Notes
 
