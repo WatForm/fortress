@@ -3,14 +3,11 @@
 This directory contains examples of main programs that use the fortress library.
 
 ## Included examples
-1. Sudoko.java: Uses Fortress API to create a 4x4 Suduko puzzle using a 
-set of four enumerated values (so no scope has to be set), calls 
-default model finder (eufsolver/Z3) and prints result.
-2. Smtlibparsemain.java: Uses Fortress Smtlibparser to parse an 
+1. Smtlibparsemain.java: Uses Fortress Smtlibparser to parse an 
 SMT-lIB file passed as an argument. Sets default scopes for all 
 scopes (uses ?? for built-in Ints), calls default model finder 
 (eufsolver/Z3) and prints result.
-3. alg212.java: Uses Fortress API to create TPTP problem ALG212+1.p 
+2. alg212.java: Uses Fortress API to create TPTP problem ALG212+1.p 
 (TPTP version 7.2.0).  The scope for the universal sort is passed as an 
 argument, calls default model finder (eufsolver/Z3) and prints result.
 
