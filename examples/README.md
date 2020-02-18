@@ -39,3 +39,14 @@ javac -cp ".:libs/*" Pigeonhole.java
 # Run
 java -cp ".:libs/*" -Djava.library.path="libs" Pigeonhole 10 10
 ```
+
+### Latin Squares
+Run the following code to compile and run the Latin Squares example.
+The number can be changed to change the grid size.
+```
+# Compile
+javac -cp ".:libs/*" LatinSquare.java
+
+# Run
+java -cp ".:libs/*" -Djava.library.path="libs" LatinSquare 3
+```
