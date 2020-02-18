@@ -31,18 +31,19 @@ Make sure the `libs/` directory has been setup correctly.
 
 ### Pigeonhole
 Run the following code to compile and run the Pigeonhole example.
-The numbers can be changed to change the number of pigeons and holes.
 ```
 # Compile
 javac -cp ".:libs/*" Pigeonhole.java
 
 # Run
-java -cp ".:libs/*" -Djava.library.path="libs" Pigeonhole 10 10
+java -cp ".:libs/*" -Djava.library.path="libs" Pigeonhole 7 6
 ```
+This example answers the question "Can you stuff 7 pigeons into 6 holes so that no hole has more than one pigeon in it?".
+The numbers provided can be changed to change the number of pigeons and holes.
+It will be satisfiable if and only if the number of pigeons is less than or equal to the number of holes.
 
-### Latin Squares
-Run the following code to compile and run the Latin Squares example.
-The number can be changed to change the grid size.
+### Latin Square
+Run the following code to compile and run the Latin Square example.
 ```
 # Compile
 javac -cp ".:libs/*" LatinSquare.java
@@ -50,3 +51,26 @@ javac -cp ".:libs/*" LatinSquare.java
 # Run
 java -cp ".:libs/*" -Djava.library.path="libs" LatinSquare 3
 ```
+This example finds a Latin Square of size 3.
+Afterwards, it counts the number of Latin Squares of that size.
+The number provided can be changed to change the grid size.
+
+### Latin Square with Clues
+Run the following code to compile and run the Latin Square with Clues example.
+```
+# Compile
+javac -cp ".:libs/*" LatinSquareClue.java
+
+# Run
+java -cp ".:libs/*" -Djava.library.path="libs" LatinSquareClue
+```
+This example finds a Latin Square of size 4 with the following entries already filled in.
+
+|    | C1 | C2 | C3 | C4 |
+|----|----|----|----|----|
+| R1 |    |    |    | 1  |
+| R2 | 3  |    |    |    |
+| R3 |    |    | 2  |    |
+| R4 |    | 4  |    |    |
+
+Afterwards, it counts the number of Latin Squares of size 4 that have those entries.
