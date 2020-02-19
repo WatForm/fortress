@@ -71,7 +71,7 @@ public class LatinSquare {
         ModelFinderResult result = finder.checkSat();
         
         System.out.println("Grid Size: " + gridLength);
-        System.out.println("satisiable?: " + result.toString());
+        System.out.println("Satisiable?: " + result.toString());
         
         // Print out model if it exists
         if(result.equals(ModelFinderResult.Sat())) {
