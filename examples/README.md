@@ -71,3 +71,19 @@ This example finds a Latin Square of size 4 with the following entries already f
 | R4 |    | 4  |    |    |
 
 Afterwards, it counts the number of Latin Squares of size 4 that have those entries.
+
+### N Rooks - Relational Encoding
+Run the following code to compile and run the relational N Rooks example.
+```
+# Compile
+javac -cp ".:libs/*" RooksRelational.java
+
+# Run
+java -cp ".:libs/*" -Djava.library.path="libs" RooksRelational 5
+```
+This example finds a way to place 5 rooks on a 5 x 5 chessboard so that none of
+the rooks are attacking each other (i.e. they are in different columns and
+different rows).
+This problem essentially boils down to finding a bijection between rows and columns.
+In this example, the problem is encoded using a binary relation that says which
+(row, column) pairs have rooks in them.
