@@ -23,6 +23,9 @@ trait NaturalTermRecursion {
     }
 }
 
+/** Helper trait for implementing recursive accumulation of sets.
+  * Currently it only produces the empty set, but if you override the exceptionalMappings
+  * you can customize the output. */
 trait NaturalSetAccumulation[A] {
     val exceptionalMappings: PartialFunction[Term, Set[A]]
     

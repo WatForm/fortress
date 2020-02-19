@@ -15,15 +15,15 @@ sealed abstract class Term {
       * This only looks at syntax without respect to a given signature,
       * so it could also include what are intended to be constants.
       */ 
-    def freeVarConstSymbols: Set[Var] = FreeVariables(this)
-    def freeVarConstSymbolsJava: java.util.Set[Var] = FreeVariables(this).asJava
+    def freeVarConstSymbols: Set[Var] = RecursiveAccumulator.freeVariablesIn(this)
+    def freeVarConstSymbolsJava: java.util.Set[Var] = RecursiveAccumulator.freeVariablesIn(this).asJava
     
     /** Returns the set of free variables of this term with respect
       * to the given signature. Constants of the signature are not included.
       */ 
     def freeVars(signature: Signature): Set[Var] = {
         val constants = signature.constants.map(_.variable)
-        FreeVariables(this) diff constants
+        RecursiveAccumulator.freeVariablesIn(this) diff constants
     }
     def freeVarsJava(signature: Signature): java.util.Set[Var] = freeVars(signature).asJava
     
@@ -72,7 +72,7 @@ sealed abstract class Term {
     
     def eliminateEnumValues(eliminationMapping: Map[EnumValue, DomainElement]): Term = EnumValueEliminator(eliminationMapping)(this)
     
-    def allEnumValues: Set[EnumValue] = EnumValueAccumulator(this)
+    def allEnumValues: Set[EnumValue] = RecursiveAccumulator.enumValuesIn(this)
     
     def finitizeIntegers(bitwidth: Int): Term = (new IntToSignedBitVector(bitwidth)).apply(this)
     
@@ -80,10 +80,10 @@ sealed abstract class Term {
       * free variables and constants, bound variables (even those that aren't used),
       * function names, and sort names that appear on variable bindings.
       */
-    def allSymbols: Set[String] = AllSymbols(this)
+    def allSymbols: Set[String] = RecursiveAccumulator.allSymbolsIn(this)
     
     /** Returns the set of all domain elements occuring within this term. */
-    def domainElements: Set[DomainElement] = DomainElementsWithinTerm(this)
+    def domainElements: Set[DomainElement] = RecursiveAccumulator.domainElementsIn(this)
     
     // Be aware if you chain this method together, you will get several nested AndLists
     def and(other: Term): Term = AndList(Seq(this, other))
