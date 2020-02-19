@@ -78,10 +78,6 @@ public class RooksRelational {
         // Print out model if it exists
         if(result.equals(ModelFinderResult.Sat())) {
             System.out.println(finder.viewModel());
-
-            // Count the total number of models
-            System.out.println("Counting all valid solutions...");
-            System.out.println("Total models found: " + finder.countValidModels(rookTheory));
         }
     }
 }

@@ -65,6 +65,6 @@ public class Pigeonhole {
         
         System.out.println("numPigeons:  " + numPigeons);
         System.out.println("numHoles:    " + numHoles);
-        System.out.println("satisiable?: " + result.toString());
+        System.out.println("Satisiable?: " + result.toString());
     }
 }

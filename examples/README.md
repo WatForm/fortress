@@ -49,7 +49,6 @@ javac -cp ".:libs/*" LatinSquare.java
 java -cp ".:libs/*" -Djava.library.path="libs" LatinSquare 3
 ```
 This example finds a Latin Square of size 3.
-Afterwards, it counts the number of Latin Squares of that size.
 The number provided can be changed to change the grid size.
 
 ### Latin Square with Clues
@@ -70,8 +69,6 @@ This example finds a Latin Square of size 4 with the following entries already f
 | R3 |    |    | 2  |    |
 | R4 |    | 4  |    |    |
 
-Afterwards, it counts the number of Latin Squares of size 4 that have those entries.
-
 ### N Rooks - Relational Encoding
 Run the following code to compile and run the relational N Rooks example.
 ```
@@ -87,3 +84,4 @@ different rows).
 This problem essentially boils down to finding a bijection between rows and columns.
 In this example, the problem is encoded using a binary relation that says which
 (row, column) pairs have rooks in them.
+The number provided can be changed to change the number of rooks and grid size.
