@@ -102,3 +102,18 @@ This problem essentially boils down to finding a bijection between rows and colu
 In this example, the problem is encoded using a function from rows to columns.
 If `rook(i) = j` then there is a rook in row i, column j.
 The number provided can be changed to change the number of rooks and grid size.
+
+### Non-Abelian Groups
+Run the following code to compile and run the relational N Rooks example.
+```
+# Compile
+javac -cp ".:libs/*" NonAbelianGroup.java
+
+# Run
+java -cp ".:libs/*" -Djava.library.path="libs" NonAbelianGroup 5
+```
+This example determines if there exists a non-abelian group of size 5.
+The number provided can be changed to change the group size.
+The problem is satisfiable if and only if there exists a non-abelian group of the given size.
+Note that any prime sized group will yield UNSAT, since such groups are cyclic and cyclic groups are abelian.
+[This link](https://en.wikipedia.org/wiki/List_of_small_groups#List_of_small_non-abelian_groups) describes for which sizes non-abelian groups exist.
