@@ -37,7 +37,7 @@ sealed abstract class Term {
     /** Returns the negation normal form version of this term.
       * The term must be sanitized to call this method.
       */
-    def nnf: Term = NegationNormalizer(this)
+    def nnf: Term = TermConverter.nnf(this)
     
     /** Returns a term that is alpha-equivalent to this one but whose quantified
       * variables are instead De Bruijn indices. Note that these indices are prefixed
@@ -66,7 +66,7 @@ sealed abstract class Term {
     def recklessUnivInstantiate(sortInstantiations: Map[Sort, Seq[Term]]): Term =
         RecklessUnivInstantiator(this, sortInstantiations)
     
-    def simplify: Term = Simplifier(this)
+    def simplify: Term = TermConverter.simplify(this)
     
     def eliminateDomainElements: Term = DomainElementEliminator(this)
     
@@ -74,7 +74,7 @@ sealed abstract class Term {
     
     def allEnumValues: Set[EnumValue] = RecursiveAccumulator.enumValuesIn(this)
     
-    def finitizeIntegers(bitwidth: Int): Term = (new IntToSignedBitVector(bitwidth)).apply(this)
+    def finitizeIntegers(bitwidth: Int): Term = TermConverter.intToSignedBitVector(this, bitwidth)
     
     /** Returns the set of all symbol names used in the term, including:
       * free variables and constants, bound variables (even those that aren't used),
@@ -492,7 +492,7 @@ object Term {
     def mkExists(x: AnnotatedVar, body: Term): Term = 
         Exists(List(x), body)
     
-    /** Returns a term representing the bi-equivalence "t1 iff t2". */
+    /** Returns a term representing the bi-implication "t1 iff t2". */
     def mkIff(t1: Term, t2: Term): Term = Iff(t1, t2)
     
     def mkPlus(t1: Term, t2: Term): Term = BuiltinApp(IntPlus, Seq(t1, t2))

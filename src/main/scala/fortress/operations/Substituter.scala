@@ -6,7 +6,7 @@ import fortress.data.NameGenerator;
 import scala.jdk.CollectionConverters._
 import scala.collection.immutable.Seq // Use immutable seq
 
-/** Applies the substitution [x -> s] in term t. will perform alpha-renaming to
+/** Applies the substitution [x -> s] in term t. Will perform alpha-renaming to
   * avoid variable capture when necessary.
   * When creating new variables for alpha-renaming, it will use the given name
   * generator.

@@ -4,6 +4,9 @@ import fortress.msfol._
 
 case class DeBruijnMapping(index: Int, variable: Var)
 
+/** Converts the variables in a term into a standardized DeBruijn Form.
+  * We use this to check that substitution works correctly, but don't actually
+  * use DeBruijn form within Fortress. */
 class DeBruijnConverter {
     private var counter: Int = 0;
     private var mappingStack = List.empty[DeBruijnMapping]
