@@ -117,3 +117,19 @@ The number provided can be changed to change the group size.
 The problem is satisfiable if and only if there exists a non-abelian group of the given size.
 Note that any prime sized group will yield UNSAT, since such groups are cyclic and cyclic groups are abelian.
 [This link](https://en.wikipedia.org/wiki/List_of_small_groups#List_of_small_non-abelian_groups) describes for which sizes non-abelian groups exist.
+
+### Infinite Ray
+Run the following code to compile and run the Infinite Ray example.
+```
+# Compile
+javac -cp ".:libs/*" InfiniteRay.java
+
+# Run
+java -cp ".:libs/*" -Djava.library.path="libs" InfiniteRay 5
+```
+This example asks if there exists a graph on 5 vertices so that:
+* there is exactly one vertex `w` of degree exactly one, and
+* every other vertex has degree exactly two.
+This breaks the handshake lemma for finite graphs (that there is an even number 
+of odd-degree vertices), and so for finite scopes is unsatisfiable.
+It is satisfiable for infinite graphs (an infinite ray is an example).
