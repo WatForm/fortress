@@ -37,7 +37,8 @@ class SymmetryBreakTests extends FunSuite with Matchers {
         val unusedValues = IndexedSeq(
             DE(2, B),
             DE(4, B),
-            DE(6, B)
+            DE(6, B),
+            DE(7, B)
         )
         
         Symmetry.csConstantEqualities(B, constants, unusedValues, usedValues) should be (
@@ -45,6 +46,40 @@ class SymmetryBreakTests extends FunSuite with Matchers {
                 Or(c1 === DE(1, B), c1 === DE(3, B), c1 === DE(5, B), c1 === DE(2, B)),
                 Or(c2 === DE(1, B), c2 === DE(3, B), c2 === DE(5, B), c2 === DE(2, B), c2 === DE(4, B)),
                 Or(c3 === DE(1, B), c3 === DE(3, B), c3 === DE(5, B), c3 === DE(2, B), c3 === DE(4, B), c3 === DE(6, B)),
+                Or(c4 === DE(1, B), c4 === DE(3, B), c4 === DE(5, B), c4 === DE(2, B), c4 === DE(4, B), c4 === DE(6, B), c4 === DE(7, B)),
+            )
+        )
+    }
+    
+    test("CS Constant Implications") {
+        val constants = IndexedSeq(
+            c1 of B,
+            c2 of B,
+            c3 of B,
+            c4 of B,
+            c5 of B)
+        
+        val usedValues = IndexedSeq(
+            DE(1, B),
+            DE(3, B),
+            DE(5, B),
+        )
+        
+        val unusedValues = IndexedSeq(
+            DE(2, B),
+            DE(4, B),
+            DE(6, B),
+            DE(7, B)
+        )
+        
+        Symmetry.csConstantImplications(B, constants, unusedValues, usedValues) should be (
+            Set(
+                (c2 === DE(4, B)) ==> (c1 === DE(2, B)),
+                (c3 === DE(4, B)) ==> Or(c1 === DE(2, B), c2 === DE(2, B)),
+                (c3 === DE(6, B)) ==> Or(c1 === DE(4, B), c2 === DE(4, B)),
+                (c4 === DE(4, B)) ==> Or(c1 === DE(2, B), c2 === DE(2, B), c3 === DE(2, B)),
+                (c4 === DE(6, B)) ==> Or(c1 === DE(4, B), c2 === DE(4, B), c3 === DE(4, B)),
+                (c4 === DE(7, B)) ==> Or(c1 === DE(6, B), c2 === DE(6, B), c3 === DE(6, B))
             )
         )
     }
