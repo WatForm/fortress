@@ -109,4 +109,38 @@ object Symmetry {
         
         constraints.toSet
     }
+    
+    // I think better symmetry breaking can be done on predicates.
+    // This is about as good as we can do for predicates of the form P: A -> Bool
+    // Or P: A x A -> Bool, but I think more can be done for e.g. P: A x B x A -> Bool
+    // The issue is the smallest element comment below.
+    def predicateImplications(P: FuncDecl, scopes: Map[Sort, Int],
+        usedValues: Map[Sort, IndexedSeq[DomainElement]]): Set[Term] = {
+        Errors.precondition(P.resultSort == BoolSort)
+        Errors.precondition(P.argSorts.forall(!_.isBuiltin))
+        Errors.precondition(P.argSorts.forall(sort => usedValues(sort).size <= scopes(sort)))
+        
+        val unusedValues: Map[Sort, IndexedSeq[DomainElement]] = usedValues.map {
+            case (sort, usedVals) => {
+                val unusedVals = (for(i <- 1 to scopes(sort)) yield DomainElement(i, sort)) diff usedVals
+                (sort, unusedVals)
+            }
+        }
+        
+        val r = (unusedValues.values map (_.size)).min // Smallest number of unused values
+        
+        // Generate lists of arguments in the order we will use them for symmetry breaking
+        // If P: A x B x A -> Bool, gives (a1, b1, a1), (a2, b2, a2), ...
+        type ArgList = Seq[DomainElement]
+        val argLists: IndexedSeq[ArgList] = for(i <- 0 to (r - 1)) yield {
+            P.argSorts map (sort => unusedValues(sort)(i))
+        }
+        
+        val implications = for(i <- 1 to (argLists.size - 1)) yield {
+            App(P.name, argLists(i)) ==> App(P.name, argLists(i - 1))
+        }
+        
+        implications.toSet
+    }
+    
 }

@@ -9,9 +9,9 @@ import scala.collection.immutable.Seq
 @RunWith(classOf[JUnitRunner])
 class SymmetryBreakTests extends FunSuite with Matchers {
     
-    val A = SortConst("A")
-    val B = SortConst("B")
-    val D = SortConst("D")
+    val A: Sort = SortConst("A")
+    val B: Sort = SortConst("B")
+    val D: Sort = SortConst("D")
     
     val c1 = Var("c1")
     val c2 = Var("c2")
@@ -110,7 +110,7 @@ class SymmetryBreakTests extends FunSuite with Matchers {
             DE(5, B),
         )
         
-        val scopes: Map[Sort, Int] = Map(A -> 2, D -> 2, B -> 9)
+        val scopes = Map(A -> 2, D -> 2, B -> 9)
         
         val f111 = for (i <- Seq(2, 3, 5, 1)) yield {App("f", DE(1, A), DE(1, D), DE(1, A)) === DE(i, B)}
         val f211 = for (i <- Seq(2, 3, 5, 1, 4)) yield {App("f", DE(2, A), DE(1, D), DE(1, A)) === DE(i, B)}
@@ -127,5 +127,52 @@ class SymmetryBreakTests extends FunSuite with Matchers {
         constraints should contain (OrList(f221))
         constraints should contain (OrList(f112))
         constraints should contain (OrList(f212))
+    }
+    
+    test("Predicates - Unary") {
+        val P = FuncDecl("P", A, BoolSort)
+        
+        val usedValsA = IndexedSeq(
+            DE(1, A),
+            DE(2, A),
+            DE(5, A)
+        ) // Unused 3, 4, 6, 7, 8, 9
+        
+        val usedValues = Map(A -> usedValsA)
+        val scopes = Map(A -> 9)
+        
+        val constraints = Symmetry.predicateImplications(P, scopes, usedValues)
+        constraints should have size 5
+        constraints should contain (App("P", DE(4, A)) ==> App("P", DE(3, A)))
+        constraints should contain (App("P", DE(6, A)) ==> App("P", DE(4, A)))
+        constraints should contain (App("P", DE(7, A)) ==> App("P", DE(6, A)))
+        constraints should contain (App("P", DE(8, A)) ==> App("P", DE(7, A)))
+        constraints should contain (App("P", DE(9, A)) ==> App("P", DE(8, A)))
+    }
+    
+    test("Predicates - Ternary, MultiSort") {
+        val P = FuncDecl("P", A, B, A, BoolSort)
+        
+        val usedValsA = IndexedSeq(
+            DE(1, A),
+            DE(2, A),
+            DE(5, A)
+        ) // Unused 3, 4, 6, 7, 8, 9
+        
+        val usedValsB = IndexedSeq(
+            DE(2, B),
+            DE(3, B),
+            DE(4, B)
+        ) // Unused 1, 5, 6, 7, 8
+        
+        val usedValues = Map(A -> usedValsA, B -> usedValsB)
+        val scopes = Map(A -> 9, B -> 8)
+        
+        val constraints = Symmetry.predicateImplications(P, scopes, usedValues)
+        constraints should have size 4
+        constraints should contain (App("P", DE(4, A), DE(5, B), DE(4, A)) ==> (App("P", DE(3, A), DE(1, B), DE(3, A)))) 
+        constraints should contain (App("P", DE(6, A), DE(6, B), DE(6, A)) ==> (App("P", DE(4, A), DE(5, B), DE(4, A)))) 
+        constraints should contain (App("P", DE(7, A), DE(7, B), DE(7, A)) ==> (App("P", DE(6, A), DE(6, B), DE(6, A)))) 
+        constraints should contain (App("P", DE(8, A), DE(8, B), DE(8, A)) ==> (App("P", DE(7, A), DE(7, B), DE(7, A))))
     }
 }
