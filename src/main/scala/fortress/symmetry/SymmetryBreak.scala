@@ -81,6 +81,7 @@ object Symmetry {
         Errors.precondition(usedResultValues.forall(_.sort == f.resultSort))
         Errors.precondition(usedResultValues.forall(_.index <= scopes(f.resultSort)))
         Errors.precondition(usedResultValues.size < scopes(f.resultSort))
+        Errors.precondition(!(f.argSorts contains f.resultSort))
         
         val unusedResultValues: IndexedSeq[DomainElement] = (for(i <- 1 to scopes(f.resultSort)) yield DomainElement(i, f.resultSort)) diff usedResultValues
         
@@ -130,7 +131,7 @@ object Symmetry {
         val r = (unusedValues.values map (_.size)).min // Smallest number of unused values
         
         // Generate lists of arguments in the order we will use them for symmetry breaking
-        // If P: A x B x A -> Bool, gives (a1, b1, a1), (a2, b2, a2), ...
+        // e.g. If P: A x B x A -> Bool, gives Seq[(a1, b1, a1), (a2, b2, a2), ...]
         type ArgList = Seq[DomainElement]
         val argLists: IndexedSeq[ArgList] = for(i <- 0 to (r - 1)) yield {
             P.argSorts map (sort => unusedValues(sort)(i))
@@ -142,5 +143,51 @@ object Symmetry {
         
         implications.toSet
     }
+    
+    // Only need scope for result value
+    def csFunctionExtEqualities(f: FuncDecl, resultScope: Int,
+        usedResultValues: IndexedSeq[DomainElement]): Set[Term] = {
+            Errors.precondition(f.argSorts.forall(!_.isBuiltin))
+            Errors.precondition(!f.resultSort.isBuiltin)
+            Errors.precondition(usedResultValues.forall(_.sort == f.resultSort))
+            Errors.precondition(usedResultValues.forall(_.index <= resultScope))
+            Errors.precondition(usedResultValues.size < resultScope)
+            Errors.precondition(f.argSorts contains f.resultSort)
+            
+            val unusedResultValues: IndexedSeq[DomainElement] = (for(i <- 1 to resultScope) yield DomainElement(i, f.resultSort)) diff usedResultValues
+            
+            // We fix particular values for the sorts not in the output
+            // These stay the same for all argument lists we symmetry break using
+            // (you don't have to fix particular values, but you can)
+            
+            // Construct an argument list given the result value we are using
+            // e.g. if f: A x B x A x D -> A,
+            // given a2 it will yield: (a2, b1, a2, d1)
+            // given a3 it will yield: (a3, b1, a3, d1)
+            def constructArgList(resVal: DomainElement): Seq[DomainElement] = {
+                Errors.precondition(resVal.sort == f.resultSort)
+                f.argSorts map (sort => {
+                    if(sort == f.resultSort) resVal
+                    else DomainElement(1, sort)
+                })
+            }
+            
+            val m = unusedResultValues.size
+            val constraints = for(i <- 0 to (m - 2)) yield {
+                val resVal = unusedResultValues(i)
+                val argList = constructArgList(resVal)
+                val app = App(f.name, argList)
+                val possibleUsedEqualities = for(v <- usedResultValues) yield {
+                    app === v
+                }
+                val possibleUnusedEqualities = for(j <- 0 to (i + 1)) yield { // i + 1 necessary
+                    app === unusedResultValues(j)
+                }
+                val possibleEqualities = possibleUsedEqualities ++ possibleUnusedEqualities
+                smartOr(possibleEqualities)
+            }
+            
+            constraints.toSet
+        }
     
 }
