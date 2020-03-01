@@ -1,6 +1,6 @@
 # Overview
 
-This directory contains examples of main programs that use the fortress library.
+This directory contains examples of main programs that use the Fortress library.
 
 ## Included examples
 1. Smtlibparsemain.java: Uses Fortress Smtlibparser to parse an 
@@ -125,7 +125,8 @@ Run the following code to compile and run the Infinite Ray example.
 javac -cp ".:libs/*" InfiniteRay.java
 
 # Run
-java -cp ".:libs/*" -Djava.library.path="libs" InfiniteRay 5
+# Note that -ea turns on assertions
+java -ea -cp ".:libs/*" -Djava.library.path="libs" InfiniteRay 5
 ```
 This example asks if there exists a graph on 5 vertices so that:
 * there is exactly one vertex `w` of degree exactly one, and

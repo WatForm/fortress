@@ -43,6 +43,8 @@ object Symmetry {
         equalityConstraints.toSet
     }
     
+    // Produces matching output to csConstantEqualities - meant to be used at same
+    // time with same input
     def csConstantImplications(sort: Sort, constants: IndexedSeq[AnnotatedVar], scope: Int,
         usedValues: IndexedSeq[DomainElement]): Set[Term] = {
         Errors.precondition(!sort.isBuiltin)

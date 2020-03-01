@@ -34,6 +34,12 @@ public class Errors {
         }
     }
     
+    public static class UnsupportedException extends RuntimeException {
+        public UnsupportedException(String message) {
+            super(message);
+        }
+    }
+    
     // Precondition: if failed, the method caller messed up
     public static void precondition(boolean condition) {
         if(!condition) {
@@ -97,5 +103,9 @@ public class Errors {
     
     public static <T> T notImplemented() {
         throw new scala.NotImplementedError();
+    }
+    
+    public static void unsupported(String message) {
+        throw new UnsupportedException("Unuspported: " + message);
     }
 }

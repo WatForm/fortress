@@ -5,12 +5,12 @@ Fortress consists of two main parts:
 * An internal Domain Specific Language (DSL) in Java for creating TFOL formulas and theories
 * A tool for searching for finite models that satisfy such theories
 
-Fortress is written in Scala, but is intended to be used by Java users and not Scala users.
+Fortress is written in Scala, but is intended to be used by Java users and *not* Scala users.
 
 It was original described in the paper "Finite Model Finding Using the Logic of Equality with Uninterpreted Functions", [available here](https://cs.uwaterloo.ca/~nday/pdf/refereed/2016-VaDa-fm.pdf), and has been re-implemented to create a powerful and general tool.
 
 ## System Requirements
-Fortress requires Java 10 higher to compile and run.
+Fortress requires Java 10 or higher to compile and run.
 
 ## Setup
 
