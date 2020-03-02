@@ -11,7 +11,7 @@ class SymmetryBreakingTransformerTWO(scopes: Map[Sort, Int]) extends TheoryTrans
         
         // Note this an immutable map of mutable sets
         val usedDomainElements: Map[Sort, mutable.Set[DomainElement]] = {
-            val allUsedDomainElements: Set[DomainElement] = theory.axioms.map(_.domainElements).reduce(_ union _)
+            val allUsedDomainElements: Set[DomainElement] = theory.axioms flatMap (_.domainElements)
             val mapTuples = for (sort <- theory.sorts) yield {
                 val set = allUsedDomainElements filter (_.sort == sort)
                 val mutableSet = mutable.Set(set.toSeq: _*) // Annoying conversion
