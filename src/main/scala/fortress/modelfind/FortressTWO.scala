@@ -8,7 +8,7 @@ import fortress.util._
 import fortress.interpretation._
 import fortress.solverinterface._
 
-class SymBreakingModelFinder(var solverStrategy: SolverStrategy) extends ModelFinder {
+class FortressTWO extends ModelFinder {
     
     var timeoutMilliseconds: Int = 60000
     var analysisScopes: Map[Sort, Int] = Map.empty
@@ -17,8 +17,7 @@ class SymBreakingModelFinder(var solverStrategy: SolverStrategy) extends ModelFi
     var debug: Boolean = false
     var theory: Theory = Theory.empty
     var constrainedTheory: Theory = Theory.empty
-    var enumSortMapping: Map[EnumValue, DomainElement] = Map.empty
-    var integerSemantics: IntegerSemantics = Unbounded
+    var solverStrategy: SolverStrategy = new Z3ApiSolver
     
     override def setTheory(newTheory: Theory): Unit = {
         theory = newTheory
@@ -35,7 +34,7 @@ class SymBreakingModelFinder(var solverStrategy: SolverStrategy) extends ModelFi
     }
     
     def setBoundedIntegers(semantics: IntegerSemantics): Unit = {
-        integerSemantics = semantics
+        Errors.unsupported("Integer semnatics not supported with FortressTWO");
     }
     
     override def setDebug(enableDebug: Boolean): Unit = {
@@ -45,8 +44,6 @@ class SymBreakingModelFinder(var solverStrategy: SolverStrategy) extends ModelFi
     override def setOutput(logWriter: java.io.Writer) = {
         log = logWriter
     }
-    
-    private def usesEnumSort(theory: Theory): Boolean = theory.axioms.exists(_.allEnumValues.nonEmpty)
     
     override def checkSat(): ModelFinderResult = {
         // TODO check analysis and theory scopes consistent
@@ -59,33 +56,18 @@ class SymBreakingModelFinder(var solverStrategy: SolverStrategy) extends ModelFi
         
         totalTimer.startFresh()
         
-        val enumScopes: Map[Sort, Int] = theory.signature.enumConstants.map {
-            case (sort, enumValues) => sort -> enumValues.size
-        }.toMap
-        
-        Errors.precondition(fortress.util.Maps.noConflict(enumScopes, analysisScopes))
+        if(theory.signature.enumConstants.nonEmpty) {
+            Errors.unsupported("Enum Values not supported with FortressONE")
+        }
         
         val transformerSequence = new scala.collection.mutable.ListBuffer[TheoryTransformer]
         
-        val enumEliminationTransformer = new EnumEliminationTransformer
-        // We need to remember the enum sort mapping
-        enumSortMapping = enumEliminationTransformer.computeEnumSortMapping(theory)
-        
-        transformerSequence += enumEliminationTransformer
-        
-        integerSemantics match {
-            case Unbounded => ()
-            case ModularSigned(bitwidth) => {
-                transformerSequence += new IntegerFinitizationTransformer(bitwidth)
-            }
-        }
-        
         transformerSequence += new NnfTransformer
         transformerSequence += new SkolemizeTransformer
-        transformerSequence += new SymBreakTransformer2(analysisScopes ++ enumScopes)
-        transformerSequence += new DomainInstantiationTransformer(analysisScopes ++ enumScopes)
-        transformerSequence += new RangeFormulaTransformerNoSymBreak(analysisScopes ++ enumScopes)
-        transformerSequence += new DomainEliminationTransformer(analysisScopes ++ enumScopes)
+        transformerSequence += new SymmetryBreakingTransformerTWO(analysisScopes)
+        transformerSequence += new DomainInstantiationTransformer(analysisScopes)
+        transformerSequence += new RangeFormulaTransformerNoSymBreak(analysisScopes)
+        transformerSequence += new DomainEliminationTransformer(analysisScopes)
         transformerSequence += new SimplifyTransformer
         
         def applyTransformer(transformer: TheoryTransformer, theory: Theory): Theory = {
@@ -153,12 +135,12 @@ class SymBreakingModelFinder(var solverStrategy: SolverStrategy) extends ModelFi
         r
     }
     
-    def viewModel: Interpretation = solverStrategy.getInstance(theory).viewModel(enumSortMapping.map(_.swap))
+    def viewModel: Interpretation = solverStrategy.getInstance(theory).viewModel(Map.empty)
 
     override def nextInterpretation(): ModelFinderResult = {
         val newAxiom = Not(AndList(
             viewModel.toConstraints.toList
-        )).eliminateEnumValues(enumSortMapping).eliminateDomainElements
+        )).eliminateDomainElements
 
         //solverStrategy.addAxiom(newAxiom, timeoutMilliseconds, log)
 
