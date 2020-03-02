@@ -34,7 +34,7 @@ class FortressZERO extends ModelFinder {
     }
     
     def setBoundedIntegers(semantics: IntegerSemantics): Unit = {
-        Errors.unsupported("Integer semnatics not supported with FortressONE");
+        Errors.unsupported("Integer semnatics not supported with FortressZERO");
     }
     
     override def setDebug(enableDebug: Boolean): Unit = {
