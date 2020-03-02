@@ -57,7 +57,7 @@ class FortressTWO extends ModelFinder {
         totalTimer.startFresh()
         
         if(theory.signature.enumConstants.nonEmpty) {
-            Errors.unsupported("Enum Values not supported with FortressONE")
+            Errors.unsupported("Enum Values not supported with FortressTWO")
         }
         
         val transformerSequence = new scala.collection.mutable.ListBuffer[TheoryTransformer]

@@ -31,7 +31,7 @@ class SymmetryBreakingTransformerONE(scopes: Map[Sort, Int]) extends TheoryTrans
         val constraints = new mutable.ListBuffer[Term]
         
         // Symmetry break on constants first
-        for(sort <- theory.sorts) {
+        for(sort <- theory.sorts if !sort.isBuiltin) {
             val constants = theory.constants.filter(_.sort == sort).toIndexedSeq
             val usedVals = usedDomainElements(sort).toIndexedSeq
             val scope = scopes(sort)
