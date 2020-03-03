@@ -49,7 +49,9 @@ object TermConverter {
                     Bottom
                 else {
                     val newArgs = args.filter(t => t != Top)
-                    if (newArgs.size == 0) Top else AndList(newArgs)
+                    if (newArgs.size == 0) Top
+                    else if (newArgs.size == 1) newArgs.head
+                    else AndList(newArgs)
                 }
             }
             case OrList(args) => {
@@ -57,7 +59,9 @@ object TermConverter {
                     Top
                 else {
                     val newArgs = args.filter(t => t != Bottom)
-                    if (newArgs.size == 0) Bottom else OrList(newArgs)
+                    if (newArgs.size == 0) Bottom
+                    else if (newArgs.size == 1) newArgs.head
+                    else OrList(newArgs)
                 }
             }
             case Implication(Bottom, _) => Top
