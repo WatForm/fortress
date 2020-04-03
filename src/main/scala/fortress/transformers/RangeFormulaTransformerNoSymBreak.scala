@@ -35,7 +35,7 @@ class RangeFormulaTransformerNoSymBreak(scopes: Map[Sort, Int]) extends TheoryTr
             val possibleEqualities = 
                 for(i <- 1 to scopes(c.sort)) yield
                     { c.variable === DomainElement(i, c.sort) }
-            val rangeFormula = OrList(possibleEqualities)
+            val rangeFormula = if (possibleEqualities.size > 1) OrList(possibleEqualities) else possibleEqualities(0)
             rangeFormula
         }
         
@@ -71,10 +71,11 @@ class RangeFormulaTransformerNoSymBreak(scopes: Map[Sort, Int]) extends TheoryTr
                 val possibleEqualities = for(rangeValue <- possibleRangeValues) yield {
                     App(f.name, argumentList) === rangeValue
                 }
+                val constraints = if (possibleEqualities.size > 1) OrList(possibleEqualities) else possibleEqualities(0)
                 if(quantifiedVarsBuffer.nonEmpty) {
-                    functionRangeConstraints += Forall(quantifiedVars, OrList(possibleEqualities))
+                    functionRangeConstraints += Forall(quantifiedVars, constraints)
                 } else {
-                    functionRangeConstraints += OrList(possibleEqualities)
+                    functionRangeConstraints += constraints
                 }
             })
         }
