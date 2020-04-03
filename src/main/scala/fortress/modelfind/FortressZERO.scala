@@ -18,6 +18,7 @@ class FortressZERO extends ModelFinder {
     var theory: Theory = Theory.empty
     var constrainedTheory: Theory = Theory.empty
     var solverStrategy: SolverStrategy = new Z3ApiSolver
+    var skolemConstantMapping: Map[String, AnnotatedVar] = Map.empty
     
     override def setTheory(newTheory: Theory): Unit = {
         theory = newTheory
@@ -127,6 +128,11 @@ class FortressZERO extends ModelFinder {
         val remainingMillis = timeoutMilliseconds - StopWatch.nanoToMillis(totalTimer.elapsedNano)
         val r: ModelFinderResult = solverStrategy.solve(intermediateTheory, remainingMillis, log)
         
+        for(transformer <- transformerSequence) {
+            if (transformer.isInstanceOf[SkolemizeTransformer])
+                skolemConstantMapping = skolemConstantMapping.++(transformer.asInstanceOf[SkolemizeTransformer].skolemConstantMapping)
+        }
+
         log.write("Done. Result was " + r.toString + ".\n")
         
         log.write("TOTAL time: " + StopWatch.formatNano(totalTimer.elapsedNano) + "\n")
@@ -135,7 +141,7 @@ class FortressZERO extends ModelFinder {
         r
     }
     
-    def viewModel: Interpretation = solverStrategy.getInstance(theory).viewModel(Map.empty)
+    def viewModel: Interpretation = solverStrategy.getInstance(theory, skolemConstantMapping).viewModel(Map.empty)
 
     override def nextInterpretation(): ModelFinderResult = {
         val newAxiom = Not(AndList(

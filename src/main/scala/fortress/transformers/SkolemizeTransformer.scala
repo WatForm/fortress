@@ -13,7 +13,8 @@ import scala.jdk.CollectionConverters._
 * Prenex normal form is preserved.
 * Scopes are preserved. */
 class SkolemizeTransformer extends TheoryTransformer {
-    
+    var skolemConstantMapping: Map[String, AnnotatedVar] = Map.empty
+
     override def apply(theory: Theory): Theory = {
         val forbiddenNames = scala.collection.mutable.Set[String]()
         
@@ -43,6 +44,7 @@ class SkolemizeTransformer extends TheoryTransformer {
             result = result.withFunctionDeclarations(skolemizer.getSkolemFunctions.toList)
             result = result.withConstants(skolemizer.getSkolemConstants.toList)
             result = result.withAxiom(newAxiom)
+            skolemConstantMapping = skolemConstantMapping.++(skolemizer.skolemConstantMapping)
         }
         
         result;

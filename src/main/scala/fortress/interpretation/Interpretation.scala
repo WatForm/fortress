@@ -9,6 +9,7 @@ import fortress.msfol._
 trait Interpretation {
     def functionInterpretations: Map[FuncDecl, Map[Seq[Value], Value]]
     def constantInterpretations: Map[AnnotatedVar, Value]
+    def skolemConstantInterpretations: Map[AnnotatedVar, Value]
     def sortInterpretations: Map[Sort, Seq[Value]]
 
     def viewModel(enumMapping: Map[Value, EnumValue]): Interpretation = {
@@ -16,6 +17,7 @@ trait Interpretation {
         new EnumInterpretation(
             sortInterpretations.map{ case(sort, values) => sort -> values.map(getMapping) }, 
             constantInterpretations.map{ case(av, value) => av -> getMapping(value) }, 
+            skolemConstantInterpretations.map{ case(av, value) => av -> getMapping(value) },
             functionInterpretations.map{ case(fdecl, values) => fdecl -> (values.map{ 
                 case(args, values) => args.map(getMapping) -> getMapping(values) } 
             )}
@@ -36,6 +38,7 @@ trait Interpretation {
     override def toString: String =
         "Sorts <<\n" + sortInterpretations.map{ case(sort, values) => sort.toString + ": " + values.mkString(", ")}.mkString("\n") +
         ">>\nConstants <<\n" + constantInterpretations.map(_.productIterator.mkString(": ")).mkString("\n") +
+        ">>\nSkolem Constants <<\n" + skolemConstantInterpretations.map(_.productIterator.mkString(": ")).mkString("\n") +
         ">>\nFunctions <<\n" + functionInterpretations.map{ case(fdecl, values) => fdecl.toString + "\n" + values.map{ case(args, ret) => "\t" + args.mkString(", ") + " -> " + ret }.mkString("\n") }.mkString("\n") +
         ">>"
     
@@ -49,19 +52,23 @@ trait Interpretation {
     
     def constantInterpretationsJava: java.util.Map[AnnotatedVar, Value] = constantInterpretations.asJava
     
+    def skolemConstantInterpretationsJava: java.util.Map[AnnotatedVar, Value] = skolemConstantInterpretations.asJava
+
     def sortInterpretationsJava: java.util.Map[Sort, java.util.List[Value]] = sortInterpretations.map {
         case (sort, values) => sort -> values.asJava
     }.asJava
 }
 
-class EnumInterpretation(t: Map[Sort, Seq[Value]], c: Map[AnnotatedVar, Value], f: Map[FuncDecl, Map[Seq[Value], Value]]) extends Interpretation {
+class EnumInterpretation(t: Map[Sort, Seq[Value]], c: Map[AnnotatedVar, Value], sc: Map[AnnotatedVar, Value], f: Map[FuncDecl, Map[Seq[Value], Value]]) extends Interpretation {
     def sortInterpretations = t
     def constantInterpretations = c
+    def skolemConstantInterpretations = sc
     def functionInterpretations = f
 }
 
 class BasicInterpretation(
     val functionInterpretations: Map[FuncDecl, Map[Seq[Value], Value]],
     val constantInterpretations: Map[AnnotatedVar, Value],
+    val skolemConstantInterpretations: Map[AnnotatedVar, Value],
     val sortInterpretations: Map[Sort, Seq[Value]]
 ) extends Interpretation

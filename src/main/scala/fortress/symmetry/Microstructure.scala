@@ -146,6 +146,7 @@ class MicrostructureComplement(theory: Theory, scopes: Map[Sort, Int]) extends H
             new BasicInterpretation(
                 interpretationForFunctions,
                 interpretationForConstants,
+                Map.empty,
                 sortInterpretations
             )
     }

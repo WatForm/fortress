@@ -18,6 +18,7 @@ class EufSmtModelFinder(var solverStrategy: SolverStrategy) extends ModelFinder 
     var theory: Theory = Theory.empty
     var constrainedTheory: Theory = Theory.empty
     var enumSortMapping: Map[EnumValue, DomainElement] = Map.empty
+    var skolemConstantMapping: Map[String, AnnotatedVar] = Map.empty
     var integerSemantics: IntegerSemantics = Unbounded
     
     override def setTheory(newTheory: Theory): Unit = {
@@ -144,6 +145,11 @@ class EufSmtModelFinder(var solverStrategy: SolverStrategy) extends ModelFinder 
         val remainingMillis = timeoutMilliseconds - StopWatch.nanoToMillis(totalTimer.elapsedNano)
         val r: ModelFinderResult = solverStrategy.solve(intermediateTheory, remainingMillis, log)
         
+        for(transformer <- transformerSequence) {
+            if (transformer.isInstanceOf[SkolemizeTransformer])
+                skolemConstantMapping = skolemConstantMapping.++(transformer.asInstanceOf[SkolemizeTransformer].skolemConstantMapping)
+        }
+
         log.write("Done. Result was " + r.toString + ".\n")
         
         log.write("TOTAL time: " + StopWatch.formatNano(totalTimer.elapsedNano) + "\n")
@@ -152,7 +158,7 @@ class EufSmtModelFinder(var solverStrategy: SolverStrategy) extends ModelFinder 
         r
     }
     
-    def viewModel: Interpretation = solverStrategy.getInstance(theory).viewModel(enumSortMapping.map(_.swap))
+    def viewModel: Interpretation = solverStrategy.getInstance(theory, skolemConstantMapping).viewModel(enumSortMapping.map(_.swap))
 
     override def nextInterpretation(): ModelFinderResult = {
         val newAxiom = Not(AndList(

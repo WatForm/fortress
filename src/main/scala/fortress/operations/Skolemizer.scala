@@ -18,6 +18,7 @@ import fortress.util.Errors
 class Skolemizer(topLevelTerm: Term, signature: Signature, nameGen: NameGenerator) {
     val skolemFunctions = scala.collection.mutable.Set[FuncDecl]()
     val skolemConstants = scala.collection.mutable.Set[AnnotatedVar]()
+    var skolemConstantMapping: Map[String, AnnotatedVar] = Map.empty
     val visitor = new SkolemVisitor
     
     /**
@@ -75,6 +76,7 @@ class Skolemizer(topLevelTerm: Term, signature: Signature, nameGen: NameGenerato
                     
                     val skolemConstant = Var(skolemConstantName) of av.sort
                     skolemConstants += skolemConstant
+                    skolemConstantMapping = skolemConstantMapping + (skolemConstantName -> av)
                     
                     temporaryBody = temporaryBody.substitute(av.variable, skolemConstant.variable)
                     

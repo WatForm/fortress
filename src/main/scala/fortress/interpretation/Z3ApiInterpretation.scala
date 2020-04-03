@@ -17,9 +17,9 @@ import com.microsoft.z3.{
 }
 
 
-class Z3ApiInterpretation(model: Z3Model, sig: Signature, converter: TheoryToZ3Java, context: Z3Context, sortMappings: Map[Z3Expr, DomainElement]) extends Interpretation {
+class Z3ApiInterpretation(model: Z3Model, sig: Signature, skolemConstantMapping: Map[String, AnnotatedVar], converter: TheoryToZ3Java, context: Z3Context, sortMappings: Map[Z3Expr, DomainElement]) extends Interpretation {
 
-    def this(model: Z3Model, sig: Signature, converter: TheoryToZ3Java, context: Z3Context) = this(model, sig, converter, context, (
+    def this(model: Z3Model, sig: Signature, skolemConstantMapping: Map[String, AnnotatedVar], converter: TheoryToZ3Java, context: Z3Context) = this(model, sig, skolemConstantMapping, converter, context, (
         for {
             z3Decl <- model.getConstDecls
             constantName = z3Decl.getName.toString if constantName.charAt(0) == '@'
@@ -33,6 +33,23 @@ class Z3ApiInterpretation(model: Z3Model, sig: Signature, converter: TheoryToZ3J
 			for {
 				(constName, z3Decl) <- converter.constantConversionsMap
 				v = sig.queryConstant(Term.mkVar(constName))
+				expr = model.evaluate(z3Decl.apply(), true) if v.isDefined
+			} yield v.get -> {
+				v.get.sort match {
+					case BoolSort =>
+						if (expr.isTrue) Term.mkTop else Term.mkBottom
+					case IntSort =>
+						IntegerLiteral(expr.toString.toInt)
+					case _ =>
+						sortMappings(expr)
+				}
+			}
+		).toMap
+
+    var skolemConstantInterpretations: Map[AnnotatedVar, Value] = (
+			for {
+				(constName, z3Decl) <- converter.constantConversionsMap
+				v = skolemConstantMapping.get(constName)
 				expr = model.evaluate(z3Decl.apply(), true) if v.isDefined
 			} yield v.get -> {
 				v.get.sort match {
