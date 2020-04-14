@@ -304,5 +304,183 @@ public class NegativeTypeCheckTest {
         t.typeCheck(sig);
     }
     
+    @Test(expected = fortress.data.TypeCheckException.WrongSort.class)
+    public void transitiveClosureRelationWrongArg1() {
+         // ^P(x, y) where P: A x A -> Bool but x: B
+         Signature sig = Signature.empty()
+            .withSorts(A, B)
+            .withConstants(x.of(B), y.of(A))
+            .withFunctionDeclaration(transitionRelation);
+         Term t = Term.mkClosure("transition", x, y);
+         t.typeCheck(sig);
+    }
     
+    @Test(expected = fortress.data.TypeCheckException.WrongSort.class)
+    public void transitiveClosureRelationWrongArg2() {
+        // ^P(x, y) where P: A x A -> Bool but y: B
+        Signature sig = Signature.empty()
+            .withSorts(A, B)
+            .withConstants(x.of(A), y.of(B))
+            .withFunctionDeclaration(transitionRelation);
+         Term t = Term.mkClosure("transition", x, y);
+         t.typeCheck(sig);
+    }
+    
+    @Test(expected = fortress.data.TypeCheckException.WrongSort.class)
+    public void transitiveClosureFunctionWrongArg1() {
+        // ^P(x, y) where P: A -> A but x: B
+        Signature sig = Signature.empty()
+            .withSorts(A, B)
+           .withConstants(x.of(B), y.of(A))
+           .withFunctionDeclaration(transitionFunction);
+        Term t = Term.mkClosure("transition", x, y);
+        t.typeCheck(sig);
+    }
+    
+    @Test(expected = fortress.data.TypeCheckException.WrongSort.class)
+    public void transitiveClosureFunctionWrongArg2() {
+        // ^P(x, y) where P: A -> A but y: B
+        Signature sig = Signature.empty()
+            .withSorts(A, B)
+            .withConstants(x.of(A), y.of(B))
+            .withFunctionDeclaration(transitionFunction);
+         Term t = Term.mkClosure("transition", x, y);
+         t.typeCheck(sig);
+    }
+    
+    @Test(expected = fortress.data.TypeCheckException.UnknownFunction.class)
+    public void transitiveClosureUnknownRelation() {
+        // Transitive closure taken of undeclared relation/function
+        Signature sig = Signature.empty()
+            .withSort(A)
+            .withConstants(x.of(A), y.of(A));
+        Term t = Term.mkClosure("transition", x, y);
+        t.typeCheck(sig);
+    }
+    
+    @Test(expected = fortress.data.TypeCheckException.UnknownFunction.class)
+    public void transitiveClosureWrongRelationType1() {
+        FuncDecl transition = FuncDecl.mkFuncDecl("transition", A, B, Sort.Bool());
+        // Transitive colosure of A x B -> Bool, not A x A -> Bool or A -> A
+        Signature sig = Signature.empty()
+            .withSorts(A, B)
+            .withConstants(x.of(A), y.of(A))
+            .withFunctionDeclaration(transition);
+        Term t = Term.mkClosure("transition", x, y);
+        t.typeCheck(sig);
+    }
+    
+    @Test(expected = fortress.data.TypeCheckException.UnknownFunction.class)
+    public void transitiveClosureWrongRelationType2() {
+        FuncDecl transition = FuncDecl.mkFuncDecl("transition", A, A, A, Sort.Bool());
+        // Transitive colosure of A x A x A -> Bool, not A x A -> Bool or A -> A
+        Signature sig = Signature.empty()
+            .withSorts(A, B)
+            .withConstants(x.of(A), y.of(A))
+            .withFunctionDeclaration(transition);
+        Term t = Term.mkClosure("transition", x, y);
+        t.typeCheck(sig);
+    }
+    
+    @Test(expected = fortress.data.TypeCheckException.UnknownFunction.class)
+    public void transitiveClosureWrongRelationType3() {
+        FuncDecl transition = FuncDecl.mkFuncDecl("transition", A, B);
+        // Transitive colosure of A -> B, not A x A -> Bool or A -> A
+        Signature sig = Signature.empty()
+            .withSorts(A, B)
+            .withConstants(x.of(A), y.of(A))
+            .withFunctionDeclaration(transition);
+        Term t = Term.mkClosure("transition", x, y);
+        t.typeCheck(sig);
+    }
+
+    @Test(expected = fortress.data.TypeCheckException.WrongSort.class)
+    public void reflexiveTransitiveClosureRelationWrongArg1() {
+         // *P(x, y) where P: A x A -> Bool but x: B
+         Signature sig = Signature.empty()
+            .withSorts(A, B)
+            .withConstants(x.of(B), y.of(A))
+            .withFunctionDeclaration(transitionRelation);
+         Term t = Term.mkReflexiveClosure("transition", x, y);
+         t.typeCheck(sig);
+    }
+    
+    @Test(expected = fortress.data.TypeCheckException.WrongSort.class)
+    public void reflexiveTransitiveClosureRelationWrongArg2() {
+        // *P(x, y) where P: A x A -> Bool but y: B
+        Signature sig = Signature.empty()
+            .withSorts(A, B)
+            .withConstants(x.of(A), y.of(B))
+            .withFunctionDeclaration(transitionRelation);
+         Term t = Term.mkReflexiveClosure("transition", x, y);
+         t.typeCheck(sig);
+    }
+    
+    @Test(expected = fortress.data.TypeCheckException.WrongSort.class)
+    public void reflexiveTransitiveClosureFunctionWrongArg1() {
+        // *P(x, y) where P: A -> A but x: B
+        Signature sig = Signature.empty()
+            .withSorts(A, B)
+           .withConstants(x.of(B), y.of(A))
+           .withFunctionDeclaration(transitionFunction);
+        Term t = Term.mkReflexiveClosure("transition", x, y);
+        t.typeCheck(sig);
+    }
+    
+    @Test(expected = fortress.data.TypeCheckException.WrongSort.class)
+    public void reflexiveTransitiveClosureFunctionWrongArg2() {
+        // *P(x, y) where P: A -> A but y: B
+        Signature sig = Signature.empty()
+            .withSorts(A, B)
+            .withConstants(x.of(A), y.of(B))
+            .withFunctionDeclaration(transitionFunction);
+         Term t = Term.mkReflexiveClosure("transition", x, y);
+         t.typeCheck(sig);
+    }
+    
+    @Test(expected = fortress.data.TypeCheckException.UnknownFunction.class)
+    public void reflexiveTransitiveClosureUnknownRelation() {
+        // Reflexive transitive closure taken of undeclared relation/function
+        Signature sig = Signature.empty()
+            .withSort(A)
+            .withConstants(x.of(A), y.of(A));
+        Term t = Term.mkReflexiveClosure("transition", x, y);
+        t.typeCheck(sig);
+    }
+    
+    @Test(expected = fortress.data.TypeCheckException.UnknownFunction.class)
+    public void reflexiveTransitiveClosureWrongRelationType1() {
+        FuncDecl transition = FuncDecl.mkFuncDecl("transition", A, B, Sort.Bool());
+        // Reflexive transitive colosure of A x B -> Bool, not A x A -> Bool or A -> A
+        Signature sig = Signature.empty()
+            .withSorts(A, B)
+            .withConstants(x.of(A), y.of(A))
+            .withFunctionDeclaration(transition);
+        Term t = Term.mkReflexiveClosure("transition", x, y);
+        t.typeCheck(sig);
+    }
+    
+    @Test(expected = fortress.data.TypeCheckException.UnknownFunction.class)
+    public void reflexiveTransitiveClosureWrongRelationType2() {
+        FuncDecl transition = FuncDecl.mkFuncDecl("transition", A, A, A, Sort.Bool());
+        // Reflexive transitive colosure of A x A x A -> Bool, not A x A -> Bool or A -> A
+        Signature sig = Signature.empty()
+            .withSorts(A, B)
+            .withConstants(x.of(A), y.of(A))
+            .withFunctionDeclaration(transition);
+        Term t = Term.mkReflexiveClosure("transition", x, y);
+        t.typeCheck(sig);
+    }
+    
+    @Test(expected = fortress.data.TypeCheckException.UnknownFunction.class)
+    public void reflexiveTransitiveClosureWrongRelationType3() {
+        FuncDecl transition = FuncDecl.mkFuncDecl("transition", A, B);
+        // Reflexive transitive colosure of A -> B, not A x A -> Bool or A -> A
+        Signature sig = Signature.empty()
+            .withSorts(A, B)
+            .withConstants(x.of(A), y.of(A))
+            .withFunctionDeclaration(transition);
+        Term t = Term.mkReflexiveClosure("transition", x, y);
+        t.typeCheck(sig);
+    }
 }

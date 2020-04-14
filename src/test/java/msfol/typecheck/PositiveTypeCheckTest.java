@@ -22,7 +22,6 @@ public class PositiveTypeCheckTest {
     FuncDecl g = FuncDecl.mkFuncDecl("g", B, A);
     FuncDecl h = FuncDecl.mkFuncDecl("h", Sort.Bool(), Sort.Bool());
     FuncDecl R = FuncDecl.mkFuncDecl("R", A, A, Sort.Bool());
-    FuncDecl next = FuncDecl.mkFuncDecl("next", A, A);
     
     @Test
     public void constant() {
@@ -192,4 +191,25 @@ public class PositiveTypeCheckTest {
         assertEquals(A, t.typeCheck(sig).sort());
     }
     
+    @Test
+    public void transitiveClosure() {
+        Signature sig = Signature.empty()
+            .withSort(A)
+            .withFunctionDeclaration(R)
+            .withConstants(x.of(A), y.of(A));
+        Term t = Term.mkClosure("R", x, y);
+        
+        assertEquals(Sort.Bool(), t.typeCheck(sig).sort());
+    }
+
+    @Test
+    public void reflexiveTransitiveClosure() {
+        Signature sig = Signature.empty()
+            .withSort(A)
+            .withFunctionDeclaration(R)
+            .withConstants(x.of(A), y.of(A));
+        Term t = Term.mkReflexiveClosure("R", x, y);
+        
+        assertEquals(Sort.Bool(), t.typeCheck(sig).sort());
+    }
 }
