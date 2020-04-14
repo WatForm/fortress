@@ -11,6 +11,7 @@ import fortress.solverinterface._
 class FortressONE extends ModelFinder {
     
     var timeoutMilliseconds: Int = 60000
+    var transformationTime: Long = -1
     var analysisScopes: Map[Sort, Int] = Map.empty
     var instance: Option[Interpretation] = None
     var log: java.io.Writer = new java.io.PrintWriter(new fortress.data.NullOutputStream)
@@ -96,8 +97,9 @@ class FortressONE extends ModelFinder {
         }
 
         constrainedTheory = intermediateTheory
+        transformationTime = totalTimer.elapsedNano()
 
-        log.write("Total transformation time: " + StopWatch.formatNano(totalTimer.elapsedNano()) + "\n")
+        log.write("Total transformation time: " + StopWatch.formatNano(transformationTime) + "\n")
         log.flush()
         
         if(debug) {
@@ -140,6 +142,8 @@ class FortressONE extends ModelFinder {
 
         r
     }
+
+    def solverTime: Long = solverStrategy.solverTime()
     
     def viewModel: Interpretation = solverStrategy.getInstance(theory, skolemConstantMapping).viewModel(Map.empty)
 

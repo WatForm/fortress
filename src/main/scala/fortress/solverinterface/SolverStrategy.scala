@@ -29,4 +29,5 @@ trait SolverStrategy {
     def addAxiom(axiom: Term, timeoutMillis: Int, log: java.io.Writer): ModelFinderResult
 
     def getInstance(theory: Theory, skolemConstantMapping: Map[String, AnnotatedVar]): Interpretation
+    def solverTime(): Long
 }

@@ -37,6 +37,8 @@ trait ModelFinder {
     // Parentheses are used rather than zero parameters to indicate that state may change.
     def checkSat(): ModelFinderResult
     def viewModel(): Interpretation
+    def transformationTime(): Long
+    def solverTime(): Long
 
     // Used for counting valid models
     def nextInterpretation(): ModelFinderResult

@@ -267,5 +267,9 @@ class TheoryToZ3Java(theory: Theory) {
         override def visitBitVectorLiteral(literal: BitVectorLiteral): Z3Expr = context.mkBV(literal.value, literal.bitwidth)
         
         override def visitEnumValue(e: EnumValue): Z3Expr = Errors.unreachable()
+        
+        override def visitClosure(c: Closure): Z3Expr = Errors.unreachable()
+        
+        override def visitReflexiveClosure(rc: ReflexiveClosure): Z3Expr = Errors.unreachable()
     }
 }

@@ -11,6 +11,7 @@ import fortress.solverinterface._
 class EufSmtModelFinder(var solverStrategy: SolverStrategy) extends ModelFinder {
     
     var timeoutMilliseconds: Int = 60000
+    var transformationTime: Long = -1
     var analysisScopes: Map[Sort, Int] = Map.empty
     var instance: Option[Interpretation] = None
     var log: java.io.Writer = new java.io.PrintWriter(new fortress.data.NullOutputStream)
@@ -82,6 +83,8 @@ class EufSmtModelFinder(var solverStrategy: SolverStrategy) extends ModelFinder 
         }
         
         transformerSequence += new NnfTransformer
+        transformerSequence += new ClosureEliminationTransformer(analysisScopes ++ enumScopes)
+        transformerSequence += new NnfTransformer
         transformerSequence += new SkolemizeTransformer
         transformerSequence += new DomainInstantiationTransformer(analysisScopes ++ enumScopes)
         transformerSequence += new RangeFormulaTransformerNoSymBreak(analysisScopes ++ enumScopes)
@@ -113,8 +116,9 @@ class EufSmtModelFinder(var solverStrategy: SolverStrategy) extends ModelFinder 
         }
 
         constrainedTheory = intermediateTheory
+        transformationTime = totalTimer.elapsedNano()
 
-        log.write("Total transformation time: " + StopWatch.formatNano(totalTimer.elapsedNano()) + "\n")
+        log.write("Total transformation time: " + StopWatch.formatNano(transformationTime) + "\n")
         log.flush()
         
         if(debug) {
@@ -157,7 +161,9 @@ class EufSmtModelFinder(var solverStrategy: SolverStrategy) extends ModelFinder 
 
         r
     }
-    
+
+    def solverTime: Long = solverStrategy.solverTime()
+
     def viewModel: Interpretation = solverStrategy.getInstance(theory, skolemConstantMapping).viewModel(enumSortMapping.map(_.swap))
 
     override def nextInterpretation(): ModelFinderResult = {

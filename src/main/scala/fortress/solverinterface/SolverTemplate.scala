@@ -5,6 +5,8 @@ import fortress.util.StopWatch
 import fortress.modelfind._
 
 abstract class SolverTemplate extends SolverStrategy {
+
+    var solverTime: Long = -1
     
     @throws(classOf[java.io.IOException])
     override def solve(theory: Theory, timeoutMillis: Int, log: java.io.Writer): ModelFinderResult = {
@@ -37,8 +39,9 @@ abstract class SolverTemplate extends SolverStrategy {
         solverTimer.startFresh()
         
         val result: ModelFinderResult = runSolver(log)
-        
-        log.write("Z3 solver time: " + StopWatch.formatNano(solverTimer.elapsedNano()) + "\n")
+        solverTime = solverTimer.elapsedNano()
+
+        log.write("Z3 solver time: " + StopWatch.formatNano(solverTime) + "\n")
         
         result
     }
