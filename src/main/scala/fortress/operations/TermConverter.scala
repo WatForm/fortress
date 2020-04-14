@@ -34,7 +34,8 @@ object TermConverter {
         case Not(Exists(vars, body)) => Forall(vars, nnf(Not(body)))
         case Top | Bottom | Var(_) | App(_, _) | BuiltinApp(_, _) | Eq(_, _) | DomainElement(_, _)
             | IntegerLiteral(_) | BitVectorLiteral(_, _) | EnumValue(_)
-            | Not(Var(_)) | Not(App(_, _)) | Not(BuiltinApp(_, _)) | Not(Eq(_, _)) => term
+            | Not(Var(_)) | Not(App(_, _)) | Not(BuiltinApp(_, _)) | Not(Eq(_, _))
+            | Closure(_, _, _, _) | ReflexiveClosure(_, _, _, _) | Not(Closure(_, _, _, _)) | Not(ReflexiveClosure(_, _, _, _)) => term
         case Not(DomainElement(_, _)) | Not(IntegerLiteral(_))
             |  Not(BitVectorLiteral(_, _)) | Not(EnumValue(_)) => ???
     }
@@ -109,7 +110,7 @@ object TermConverter {
             case Forall(vars, body) => simplifyStep(Forall(vars, simplifyFull(body)))
             // We consider applications and equals to be atomic and have non-Boolean arguments
             // so we need not recurse on their arguments
-            case Eq(_, _) | App(_, _) | BuiltinApp(_, _) => simplifyStep(term)
+            case Eq(_, _) | App(_, _) | BuiltinApp(_, _) | Closure(_, _, _, _) | ReflexiveClosure(_, _, _, _) => simplifyStep(term)
             case Top | Bottom | Var(_) | EnumValue(_) | DomainElement(_, _)
                 | IntegerLiteral(_) | BitVectorLiteral(_, _) => term
         }

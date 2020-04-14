@@ -21,6 +21,8 @@ object RecursiveAccumulator {
         case Eq(l, r) => allSymbolsIn(l) union allSymbolsIn(r)
         case App(fname, args) => ( (args map allSymbolsIn) reduce (_ union _) ) + fname
         case BuiltinApp(function, args) => (args map allSymbolsIn) reduce (_ union _)
+        case Closure(fname, args, _, _) => ( (args map allSymbolsIn) reduce (_ union _) ) + fname 
+        case ReflexiveClosure(fname, args, _, _) => ( (args map allSymbolsIn) reduce (_ union _) ) + fname 
         case Forall(vars, body) => allSymbolsIn(body) union (vars map (_.variable.name)).toSet union (vars map (_.sort.name)).toSet
         case Exists(vars, body) => allSymbolsIn(body) union (vars map (_.variable.name)).toSet union (vars map (_.sort.name)).toSet
     }
@@ -43,6 +45,8 @@ object RecursiveAccumulator {
         case Eq(l, r) => domainElementsIn(l) union domainElementsIn(r)
         case App(fname, args) => args.map(domainElementsIn).reduce((a, b) => a union b)
         case BuiltinApp(function, args) => args.map(domainElementsIn).reduce((a, b) => a union b)
+        case Closure(fname, args, _, _) => args.map(domainElementsIn).reduce((a, b) => a union b)
+        case ReflexiveClosure(fname, args, _, _) => args.map(domainElementsIn).reduce((a, b) => a union b)
         case Forall(vars, body) => domainElementsIn(body)
         case Exists(vars, body) => domainElementsIn(body)
     }
@@ -70,6 +74,8 @@ object RecursiveAccumulator {
         case Eq(l, r) => functionsIn(l) union functionsIn(r)
         case App(fname, args) => args.map(functionsIn).reduce((a, b) => a union b) + fname
         case BuiltinApp(function, args) => args.map(functionsIn).reduce((a, b) => a union b)
+        case Closure(fname, args, _, _) => args.map(functionsIn).reduce((a, b) => a union b) + fname
+        case ReflexiveClosure(fname, args, _, _) => args.map(functionsIn).reduce((a, b) => a union b) + fname
         case Forall(vars, body) => functionsIn(body)
         case Exists(vars, body) => functionsIn(body)
     }
@@ -89,6 +95,8 @@ object RecursiveAccumulator {
             case Eq(l, r) => recur(l, variables) union recur(r, variables)
             case App(fname, args) => args.map(arg => recur(arg, variables)).reduce((a, b) => a union b)
             case BuiltinApp(function, args) => args.map(arg => recur(arg, variables)).reduce((a, b) => a union b)
+            case Closure(fname, args, _, _) => args.map(arg => recur(arg, variables)).reduce((a, b) => a union b)
+            case ReflexiveClosure(fname, args, _, _) => args.map(arg => recur(arg, variables)).reduce((a, b) => a union b)
             case Forall(vars, body) => recur(body, variables ++ vars.map(_.name))
             case Exists(vars, body) => recur(body, variables ++ vars.map(_.name))
         }
@@ -111,6 +119,8 @@ object RecursiveAccumulator {
         case Eq(l, r) => freeVariablesIn(l) union freeVariablesIn(r)
         case App(fname, args) => (args map freeVariablesIn) reduce (_ union _)
         case BuiltinApp(function, args) => (args map freeVariablesIn) reduce (_ union _)
+        case Closure(fname, args, _, _) => (args map freeVariablesIn) reduce (_ union _)
+        case ReflexiveClosure(fname, args, _, _) => (args map freeVariablesIn) reduce (_ union _)
         case Exists(vars, body) => freeVariablesIn(body) diff (vars map (_.variable)).toSet
         case Forall(vars, body) => freeVariablesIn(body) diff (vars map (_.variable)).toSet
     }

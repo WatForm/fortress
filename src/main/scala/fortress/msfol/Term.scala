@@ -354,6 +354,30 @@ case class BitVectorLiteral(value: Int, bitwidth: Int) extends Term with LeafTer
     override def accept[T](visitor: TermVisitor[T]): T = visitor.visitBitVectorLiteral(this)
 }
 
+case class Closure(relationName: String, arguments: Seq[Term], arg1: Term, arg2: Term) extends Term {     
+    Errors.precondition(relationName.length >= 1, "Empty relation name in transitive closure")
+    Errors.precondition(arguments.size >= 2, "Function application ^" + relationName + " should have at least 2 arguments")
+
+    def getArguments: java.util.List[Term] = arguments.asJava
+    def getFunctionName: String = relationName
+    override def accept[T](visitor: TermVisitor[T]): T = visitor.visitClosure(this)     
+    def mapArguments(mapping: Term => Term) = Closure(relationName, arguments.map(mapping), mapping(arg1), mapping(arg2))
+
+    override def toString: String = "^" + relationName + "(" + arguments.mkString(", ") + ")"
+}
+
+case class ReflexiveClosure(relationName: String, arguments: Seq[Term], arg1: Term, arg2: Term) extends Term {     
+    Errors.precondition(relationName.length >= 1, "Empty relation name in reflexive transitive closure")
+    Errors.precondition(arguments.size >= 2, "Function application *" + relationName + " should have at least 2 arguments")
+    
+    def getArguments: java.util.List[Term] = arguments.asJava
+    def getFunctionName: String = relationName
+    override def accept[T](visitor: TermVisitor[T]): T = visitor.visitReflexiveClosure(this)     
+    def mapArguments(mapping: Term => Term) = ReflexiveClosure(relationName, arguments.map(mapping), mapping(arg1), mapping(arg2))
+
+    override def toString: String = "*" + relationName + "(" + arguments.mkString(", ") + ")"
+}
+
 /** Companion object for Term. */
 object Term {
     /** Returns a Term representing Top/Verum */
@@ -519,4 +543,10 @@ object Term {
 
     /** Internal method for creating Domain Elements. */
     def mkDomainElement(index: Int, sort: Sort) = DomainElement(index, sort)
+
+    def mkClosure(relName: String, t1: Term, t2: Term): Term = Closure(relName, Seq(t1, t2), t1, t2)
+    def mkClosure(app: App, t1: Term, t2: Term): Term = Closure(app.functionName, app.arguments, t1, t2)
+
+    def mkReflexiveClosure(relName: String, t1: Term, t2: Term): Term = ReflexiveClosure(relName, Seq(t1, t2), t1, t2)
+    def mkReflexiveClosure(app: App, t1: Term, t2: Term): Term = ReflexiveClosure(app.functionName, app.arguments, t1, t2)
 }

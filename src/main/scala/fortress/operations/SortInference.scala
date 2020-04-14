@@ -71,7 +71,7 @@ object SortInference {
                 val newVars = avars map {avar => Var(avar.name) of sortVar(freshInt())}
                 Forall(newVars, replace(body))
             }
-            case EnumValue(_) | DomainElement(_, _) | BuiltinApp(_, _) | IntegerLiteral(_) | BitVectorLiteral(_, _) => ???
+            case EnumValue(_) | DomainElement(_, _) | BuiltinApp(_, _) | IntegerLiteral(_) | BitVectorLiteral(_, _) | Closure(_, _, _, _) | ReflexiveClosure(_, _, _, _) => ???
         }
         
         // Gather equations
@@ -177,6 +177,8 @@ object SortInference {
             case BuiltinApp(_, _) => ???
             case IntegerLiteral(_) => ???
             case BitVectorLiteral(_, _) => ???
+            case Closure(_, _, _, _) => ???
+            case ReflexiveClosure(_, _, _, _) => ???
         }
         
         val recurInfo = theory.axioms map {recur(_, Nil)}
@@ -237,7 +239,7 @@ object SortInference {
                 val newVars = avars map {avar => Var(avar.name) of subSort(avar.sort)}
                 Forall(newVars, subTerm(body))
             }
-            case EnumValue(_) | DomainElement(_, _) | BuiltinApp(_, _) | IntegerLiteral(_) | BitVectorLiteral(_, _) => ???
+            case EnumValue(_) | DomainElement(_, _) | BuiltinApp(_, _) | IntegerLiteral(_) | BitVectorLiteral(_, _) | Closure(_, _, _, _) | ReflexiveClosure(_, _, _, _) => ???
         }
         
         val newAxioms: Set[Term] = theory.axioms map subTerm

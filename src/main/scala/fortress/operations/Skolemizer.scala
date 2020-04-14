@@ -66,6 +66,10 @@ class Skolemizer(topLevelTerm: Term, signature: Signature, nameGen: NameGenerato
         
         override def visitBuiltinApp(term: BuiltinApp): Term = term.mapArguments(visit)
         
+        override def visitClosure(term: Closure): Term = term.mapArguments(visit)
+
+        override def visitReflexiveClosure(term: ReflexiveClosure): Term = term.mapArguments(visit)
+
         override def visitExistsInner(term: Exists): Term = {
             var temporaryBody = term.body
             for(av <- term.vars) {

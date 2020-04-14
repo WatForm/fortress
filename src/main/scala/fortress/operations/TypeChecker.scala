@@ -247,5 +247,86 @@ class TypeChecker(signature: Signature) extends TermVisitorWithTypeContext[TypeC
         case Some(eSort: Sort) => TypeCheckResult(sanitizedTerm = e, sort = eSort, containsConnectives = false, containsQuantifiers = false)
         case None => throw new TypeCheckException.UndeterminedSort("Could not determine sort of enum " + e.name)
     }
-    
+
+    override def visitClosure(c: Closure): TypeCheckResult = {
+        val relationName = c.relationName
+        if(! (signature hasFunctionWithName relationName) ) {
+            throw new TypeCheckException.UnknownFunction("Unkown relation " + relationName + " in " + c.toString)
+        }
+
+        if (c.arguments.size < 2) {
+            throw new TypeCheckException.BadStructure("Closure in " + c.toString + " needs at least 2 arguments.")
+        }
+
+        if (!(c.arguments.contains(c.arg1) && c.arguments.contains(c.arg2))) {
+            throw new TypeCheckException.BadStructure("The two given closure arguments in " + c.toString + " must also be included in the arguments list.")
+        }
+        
+        val results = c.arguments.map(visit)
+        val idx = c.arguments.indexOf(c.arg1)
+        if(results.exists(_.containsConnectives)) {
+            throw new TypeCheckException.BadStructure("Argument of " + c.toString + " contains connective")
+        }
+        if(results.exists(_.containsQuantifiers)) {
+            throw new TypeCheckException.BadStructure("Argument of " + c.toString + " contains quantifier")
+        }
+        if(results(idx).sort != results(idx+1).sort) {
+            throw new TypeCheckException.WrongSort("Arguments at index " + idx + " and " + (idx+1) + " of different sorts in " + c.toString)
+        }
+        
+        val argSorts = results.map(_.sort)
+        val argSort = argSorts(idx)
+        
+        // Look for a relation A * A -> Bool
+        val relationMaybe: Option[FuncDecl] = signature.queryFunction(relationName, argSorts)
+        
+        if( relationMaybe.nonEmpty && relationMaybe.get.resultSort == BoolSort ) {
+            TypeCheckResult(sanitizedTerm = Closure(relationName, results.map(_.sanitizedTerm), c.arg1, c.arg2), sort = BoolSort,
+                containsConnectives = false, containsQuantifiers = false)
+        } else {
+            throw new TypeCheckException.UnknownFunction("Cannot find relation " + FuncDecl(relationName, argSorts, BoolSort).toString
+                + " to take transitive closure of")
+        }
+    }
+
+    override def visitReflexiveClosure(rc: ReflexiveClosure): TypeCheckResult = {
+        val relationName = rc.relationName
+        if(! (signature hasFunctionWithName relationName) ) {
+            throw new TypeCheckException.UnknownFunction("Unkown relation " + relationName + " in " + rc.toString)
+        }
+
+        if (rc.arguments.size < 2) {
+            throw new TypeCheckException.BadStructure("Closure in " + rc.toString + " needs at least 2 arguments.")
+        }
+
+        if (!(rc.arguments.contains(rc.arg1) && rc.arguments.contains(rc.arg2))) {
+            throw new TypeCheckException.BadStructure("The two given closure arguments in " + rc.toString + " must also be included in the arguments list.")
+        }
+        
+        val results = rc.arguments.map(visit)
+        val idx = rc.arguments.indexOf(rc.arg1)
+        if(results.exists(_.containsConnectives)) {
+            throw new TypeCheckException.BadStructure("Argument of " + rc.toString + " contains connective")
+        }
+        if(results.exists(_.containsQuantifiers)) {
+            throw new TypeCheckException.BadStructure("Argument of " + rc.toString + " contains quantifier")
+        }
+        if(results(idx).sort != results(idx+1).sort) {
+            throw new TypeCheckException.WrongSort("Arguments at index " + idx + " and " + (idx+1) + " of different sorts in " + rc.toString)
+        }
+        
+        val argSorts = results.map(_.sort)
+        val argSort = argSorts(idx)
+        
+        // Look for a relation A * A -> Bool
+        val relationMaybe: Option[FuncDecl] = signature.queryFunction(relationName, argSorts)
+        
+        if( (relationMaybe.nonEmpty && relationMaybe.get.resultSort == BoolSort) ) {
+            TypeCheckResult(sanitizedTerm = ReflexiveClosure(relationName, results.map(_.sanitizedTerm), rc.arg1, rc.arg2), sort = BoolSort,
+                containsConnectives = false, containsQuantifiers = false)
+        } else {
+            throw new TypeCheckException.UnknownFunction("Cannot find relation " + FuncDecl(relationName, argSorts, BoolSort).toString
+                + " to take transitive closure of")
+        }
+    }
 }

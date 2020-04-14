@@ -94,6 +94,9 @@ class DeBruijnConverter {
         
         override def visitEnumValue(e: EnumValue): Term = ???
         
+        override def visitClosure(c: Closure): Term = ???
+
+        override def visitReflexiveClosure(rc: ReflexiveClosure): Term = ???
     }
     
 }
