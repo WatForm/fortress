@@ -175,6 +175,12 @@ object AndList {
 
 object And {
     def apply(args: Term*): Term = AndList(args.toList)
+    
+    def smart(args: Seq[Term]): Term = {
+        if (args.size == 0) Top
+        else if (args.size == 1) args.head
+        else AndList(args)
+    }
 }
 
 /** Represents a disjunction. */
@@ -194,6 +200,12 @@ object OrList {
 
 object Or {
     def apply(args: Term*): Term = OrList(args.toList)
+    
+    def smart(args: Seq[Term]): Term = {
+        if (args.size == 0) Bottom
+        else if (args.size == 1) args.head
+        else OrList(args)
+    }
 }
 
 /** Represents a formula signifying whether its arguments have distinct values. */

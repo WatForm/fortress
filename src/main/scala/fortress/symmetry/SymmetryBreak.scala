@@ -4,11 +4,6 @@ import fortress.msfol._
 import fortress.util.Errors
 
 object Symmetry {
-    def smartOr(terms: Seq[Term]): Term = {
-        Errors.precondition(terms.nonEmpty)
-        if(terms.size == 1) terms.head
-        else OrList(terms)
-    }
     
     def csConstantEqualities(sort: Sort, constants: IndexedSeq[AnnotatedVar], scope: Int,
         usedValues: IndexedSeq[DomainElement]): Set[Term] = {
@@ -37,7 +32,7 @@ object Symmetry {
             
             val possibleEqualities: Seq[Term] = possibleUsedEqualities ++ possibleUnusedEqualities
             
-            smartOr(possibleEqualities)
+            Or.smart(possibleEqualities)
         }
         
         equalityConstraints.toSet
@@ -69,7 +64,7 @@ object Symmetry {
             
             Implication(
                 constants(k).variable === unusedValues(d),
-                smartOr(possibleEqualities)
+                Or.smart(possibleEqualities)
             )
         }
         
@@ -77,7 +72,7 @@ object Symmetry {
     }
     
     def drdFunctionEqualities(f: FuncDecl, scopes: Map[Sort, Int],
-        usedResultValues: IndexedSeq[DomainElement]): Set[Term]= {
+        usedResultValues: IndexedSeq[DomainElement]): Set[Term] = {
         Errors.precondition(f.argSorts.forall(!_.isBuiltin))
         Errors.precondition(!f.resultSort.isBuiltin)
         Errors.precondition(usedResultValues.forall(_.sort == f.resultSort))
@@ -88,6 +83,9 @@ object Symmetry {
         val unusedResultValues: IndexedSeq[DomainElement] = (for(i <- 1 to scopes(f.resultSort)) yield DomainElement(i, f.resultSort)) diff usedResultValues
         
         val argumentLists = new fortress.util.ArgumentListGenerator(scopes).allArgumentListsOfFunction(f)
+        
+        // Use TAKE
+        
         // For the sake of efficiency, the argument list generator does not generate arguments
         // until they are needed
         // Therefore we don't know how many argument tuples there are yet, and have to generate the constraints
@@ -105,13 +103,18 @@ object Symmetry {
                 for(i <- 0 to k) yield {app === unusedResultValues(i)}
             val possibleEqualities = possibleUsedEqualities ++ possibleUnusedEqualities
             
-            constraints += smartOr(possibleEqualities)
+            constraints += Or.smart(possibleEqualities)
             
             k += 1
         }
         
         constraints.toSet
     }
+    
+    // Produces matching output to drdFunctionEqualities - meant to be used at same
+    // time with same input
+    def drdFunctionImplications(f: FuncDecl, scopes: Map[Sort, Int],
+        usedResultValues: IndexedSeq[DomainElement]): Set[Term] = ???
     
     // I think better symmetry breaking can be done on predicates.
     // This is about as good as we can do for predicates of the form P: A -> Bool
@@ -186,7 +189,7 @@ object Symmetry {
                     app === unusedResultValues(j)
                 }
                 val possibleEqualities = possibleUsedEqualities ++ possibleUnusedEqualities
-                smartOr(possibleEqualities)
+                Or.smart(possibleEqualities)
             }
             
             constraints.toSet
