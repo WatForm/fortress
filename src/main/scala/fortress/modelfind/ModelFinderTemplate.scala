@@ -20,7 +20,7 @@ abstract class ModelFinderTemplate(var solverStrategy: SolverStrategy) extends M
         
         preTransformationPhase()
         
-        val finalTheory: Theory = transformationPhase(theory) match {
+        val finalTheory: Theory = transformationPhase() match {
             case None => return TimeoutResult
             case Some(fTheory) => fTheory
         }
@@ -61,10 +61,10 @@ abstract class ModelFinderTemplate(var solverStrategy: SolverStrategy) extends M
     }
     
     // If times out, returns None. Otherwise, returns the final transformed theory.
-    private def transformationPhase(theory: Theory): Option[Theory] = {
+    private def transformationPhase(): Option[Theory] = {
         val transformerSeq = transformerSequence()
         
-        var intermediateProblem = Problem(theory, Map.empty)
+        var intermediateProblem = Problem(theory, analysisScopes ++ enumScopes)
         for(transformer <- transformerSeq) {
             intermediateProblem = applyTransformer(transformer, intermediateProblem)
             

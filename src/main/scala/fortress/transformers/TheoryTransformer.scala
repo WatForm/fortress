@@ -1,5 +1,6 @@
 package fortress.transformers
 
+import scala.language.implicitConversions
 import fortress.msfol.{Theory, Problem}
 
 /** An abstraction of a function from Theory to Theory. */
