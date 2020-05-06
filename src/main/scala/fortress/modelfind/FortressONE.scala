@@ -66,7 +66,7 @@ class FortressONE extends ModelFinder {
         transformerSequence += new SkolemizeTransformer
         transformerSequence += new SymmetryBreakingTransformerONE(analysisScopes)
         transformerSequence += new DomainInstantiationTransformer(analysisScopes)
-        transformerSequence += new RangeFormulaTransformerNoSymBreak(analysisScopes)
+        transformerSequence += new RangeFormulaTransformer(analysisScopes)
         transformerSequence += new DomainEliminationTransformer(analysisScopes)
         transformerSequence += new SimplifyTransformer
         

@@ -13,9 +13,9 @@ import scala.math.min
 /** Introduces (quantifier-free) range formulas restricting the ranges of
   * function applications and constants.
   * This transformation is parameterized by scopes mapping sorts to sizes.
-  * Performs no symmetry breaking.
+  * Note: performs no symmetry breaking.
   */
-class RangeFormulaTransformerNoSymBreak(scopes: Map[Sort, Int]) extends TheoryTransformer {
+class RangeFormulaTransformer(scopes: Map[Sort, Int]) extends TheoryTransformer {
     // Ugly conversion from Java data structures
     def this(scopes: java.util.Map[Sort, Integer]) = this({
         val scopes1: Map[Sort, Integer] = scopes.asScala.toMap

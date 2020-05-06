@@ -83,7 +83,7 @@ class EufSmtModelFinder(var solverStrategy: SolverStrategy) extends ModelFinder 
         transformerSequence += new NnfTransformer
         transformerSequence += new SkolemizeTransformer
         transformerSequence += new DomainInstantiationTransformer(analysisScopes ++ enumScopes)
-        transformerSequence += new RangeFormulaTransformerNoSymBreak(analysisScopes ++ enumScopes)
+        transformerSequence += new RangeFormulaTransformer(analysisScopes ++ enumScopes)
         transformerSequence += new DomainEliminationTransformer(analysisScopes ++ enumScopes)
         transformerSequence += new SimplifyTransformer
         

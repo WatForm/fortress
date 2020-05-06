@@ -66,7 +66,7 @@ class FortressTWO extends ModelFinder {
         transformerSequence += new SkolemizeTransformer
         transformerSequence += new SymmetryBreakingTransformerTWO(analysisScopes)
         transformerSequence += new DomainInstantiationTransformer(analysisScopes)
-        transformerSequence += new RangeFormulaTransformerNoSymBreak(analysisScopes)
+        transformerSequence += new RangeFormulaTransformer(analysisScopes)
         transformerSequence += new DomainEliminationTransformer(analysisScopes)
         transformerSequence += new SimplifyTransformer
         

@@ -66,7 +66,7 @@ class FortressZERO extends ModelFinder {
         transformerSequence += new SkolemizeTransformer
         // No symmetry breaking
         transformerSequence += new DomainInstantiationTransformer(analysisScopes)
-        transformerSequence += new RangeFormulaTransformerNoSymBreak(analysisScopes)
+        transformerSequence += new RangeFormulaTransformer(analysisScopes)
         transformerSequence += new DomainEliminationTransformer(analysisScopes)
         transformerSequence += new SimplifyTransformer
         
