@@ -128,15 +128,6 @@ class EufSmtModelFinder(var solverStrategy: SolverStrategy) extends ModelFinder 
             log.flush()
         }
         
-        log.write("Checking if solver can attempt...")
-        log.flush()
-        if(!solverStrategy.canAttemptSolving(intermediateTheory)) {
-            log.write("solver cannot attempt.\n")
-            log.flush()
-            throw new java.lang.RuntimeException("Provided SolverStrategy cannot attempt to solve the theory.")
-        }
-        log.write("solver can attempt.\n")
-        
         if(totalTimer.elapsedNano() > timeoutNano) {
             log.write("TIMEOUT within Fortress.\n")
             log.flush()

@@ -22,8 +22,6 @@ class Z3ApiSolver extends SolverTemplate {
     private var solver: Option[Z3Solver] = None
     private var converter: Option[TheoryToZ3Java] = None
 
-    override def canAttemptSolving(theory: Theory): Boolean = true
-
     override protected def convertTheory(theory: Theory, log: java.io.Writer): Unit = {
         converter = Some(new TheoryToZ3Java(theory))
         val pair: (Z3Context, Z3Solver) = converter.get.convert
