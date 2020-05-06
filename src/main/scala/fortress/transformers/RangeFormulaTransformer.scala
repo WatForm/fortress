@@ -35,7 +35,7 @@ class RangeFormulaTransformer(scopes: Map[Sort, Int]) extends TheoryTransformer 
             val possibleEqualities = 
                 for(i <- 1 to scopes(c.sort)) yield
                     { c.variable === DomainElement(i, c.sort) }
-            val rangeFormula = OrList(possibleEqualities)
+            val rangeFormula = Or.smart(possibleEqualities)
             rangeFormula
         }
         
@@ -72,9 +72,9 @@ class RangeFormulaTransformer(scopes: Map[Sort, Int]) extends TheoryTransformer 
                     App(f.name, argumentList) === rangeValue
                 }
                 if(quantifiedVarsBuffer.nonEmpty) {
-                    functionRangeConstraints += Forall(quantifiedVars, OrList(possibleEqualities))
+                    functionRangeConstraints += Forall(quantifiedVars, Or.smart(possibleEqualities))
                 } else {
-                    functionRangeConstraints += OrList(possibleEqualities)
+                    functionRangeConstraints += Or.smart(possibleEqualities)
                 }
             })
         }
