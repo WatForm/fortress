@@ -11,6 +11,7 @@ import scala.collection.immutable.Seq
   * The input theory is required to have no existential quantifiers and no enum sorts.
   * The resulting theory's signature is identical to the original.
   * The scopes are not changed.
+  * The resulting problem is equivalent to the original.
   */
   
 // TODO it seems like we could remove the requirement to ahve no enum sorts or existential quantifiers
