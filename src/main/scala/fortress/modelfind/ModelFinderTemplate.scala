@@ -14,20 +14,36 @@ abstract class ModelFinderTemplate(var solverStrategy: SolverStrategy) extends M
     protected var enumSortMapping: Map[EnumValue, DomainElement] = Map.empty
     protected var enumScopes: Map[Sort, Int] = Map.empty
     
-    protected def transformerSequence(): Seq[TheoryTransformer]
+    override def checkSat(): ModelFinderResult = {
+        // Restart the timer
+        totalTimer.startFresh()
+        
+        preTransformationPhase()
+        
+        val finalTheory: Theory = transformationPhase(theory) match {
+            case None => return TimeoutResult
+            case Some(fTheory) => fTheory
+        }
+
+        val finalResult: ModelFinderResult = solverPhase(finalTheory)
+
+        finalResult
+    }
     
-    private def applyTransformer(transformer: TheoryTransformer, theory: Theory): Theory = {
+    protected def transformerSequence(): Seq[ProblemTransformer]
+    
+    private def applyTransformer(transformer: ProblemTransformer, problem: Problem): Problem = {
         log.write("Applying transformer: " + transformer.name)
         log.write("... ")
         log.flush()
         val transformationTimer = new StopWatch()
         transformationTimer.startFresh()
         
-        val resultingTheory = transformer(theory)
+        val resultingProblem = transformer(problem)
         
         val elapsed = transformationTimer.elapsedNano()
         log.write(StopWatch.formatNano(elapsed) + "\n")
-        resultingTheory
+        resultingProblem
     }
     
     private def preTransformationPhase(): Unit = {
@@ -48,9 +64,9 @@ abstract class ModelFinderTemplate(var solverStrategy: SolverStrategy) extends M
     private def transformationPhase(theory: Theory): Option[Theory] = {
         val transformerSeq = transformerSequence()
         
-        var intermediateTheory = theory
+        var intermediateProblem = Problem(theory, Map.empty)
         for(transformer <- transformerSeq) {
-            intermediateTheory = applyTransformer(transformer, intermediateTheory)
+            intermediateProblem = applyTransformer(transformer, intermediateProblem)
             
             if(totalTimer.elapsedNano() >= timeoutNano) {
                 log.write("TIMEOUT within Fortress.\n")
@@ -58,15 +74,19 @@ abstract class ModelFinderTemplate(var solverStrategy: SolverStrategy) extends M
                 return None
             }
         }
+        
+        val finalTheory = intermediateProblem match {
+            case Problem(thry, scopes) => thry
+        }
 
-        constrainedTheory = intermediateTheory
+        constrainedTheory = finalTheory
 
         log.write("Total transformation time: " + StopWatch.formatNano(totalTimer.elapsedNano()) + "\n")
         log.flush()
         
         if(debug) {
             log.write("Resulting theory:\n")
-            log.write(intermediateTheory.toString)
+            log.write(finalTheory.toString)
             log.write("\n")
             log.flush()
         }
@@ -77,7 +97,7 @@ abstract class ModelFinderTemplate(var solverStrategy: SolverStrategy) extends M
             return None
         }
         
-        Some(intermediateTheory)
+        Some(finalTheory)
     }
     
     // Returns the final ModelFinderResult
@@ -93,22 +113,6 @@ abstract class ModelFinderTemplate(var solverStrategy: SolverStrategy) extends M
         log.write("TOTAL time: " + StopWatch.formatNano(totalTimer.elapsedNano) + "\n")
         log.flush()
         
-        finalResult
-    }
-    
-    override def checkSat(): ModelFinderResult = {
-        // Restart the timer
-        totalTimer.startFresh()
-        
-        preTransformationPhase()
-        
-        val finalTheory: Theory = transformationPhase(theory) match {
-            case None => return TimeoutResult
-            case Some(fTheory) => fTheory
-        }
-
-        val finalResult: ModelFinderResult = solverPhase(finalTheory)
-
         finalResult
     }
     
