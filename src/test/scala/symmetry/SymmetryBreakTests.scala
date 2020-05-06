@@ -3,8 +3,7 @@ import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
 import fortress.msfol._
-import fortress.symmetry._
-import scala.collection.immutable.Seq
+import fortress.symmetry._ 
 
 @RunWith(classOf[JUnitRunner])
 class SymmetryBreakTests extends FunSuite with Matchers {
