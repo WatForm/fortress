@@ -6,48 +6,13 @@ import fortress.util._
 import fortress.interpretation._
 import fortress.solverinterface._
 
-abstract class ModelFinderTemplate(var solverStrategy: SolverStrategy) extends ModelFinder {
-    private var timeoutMilliseconds: Int = 60000
-    protected var analysisScopes: Map[Sort, Int] = Map.empty
+abstract class ModelFinderTemplate(var solverStrategy: SolverStrategy) extends ModelFinder with StdModelFindConfig {
     private var instance: Option[Interpretation] = None
-    private var log: java.io.Writer = new java.io.PrintWriter(new fortress.data.NullOutputStream)
-    private var debug: Boolean = false
-    protected var theory: Theory = Theory.empty
     private var constrainedTheory: Theory = Theory.empty
-    protected var integerSemantics: IntegerSemantics = Unbounded
     // A timer to count how much total time has elapsed
     private val totalTimer: StopWatch = new StopWatch()
     protected var enumSortMapping: Map[EnumValue, DomainElement] = Map.empty
     protected var enumScopes: Map[Sort, Int] = Map.empty
-    
-    override def setTheory(newTheory: Theory): Unit = {
-        theory = newTheory
-    }
-    
-    override def setTimeout(milliseconds: Int): Unit = {
-        Errors.precondition(milliseconds >= 0)
-        timeoutMilliseconds = milliseconds
-    }
-    
-    override def setAnalysisScope(t: Sort, size: Int): Unit = {
-        Errors.precondition(size >= 0)
-        analysisScopes = analysisScopes + (t -> size)
-    }
-    
-    override def setBoundedIntegers(semantics: IntegerSemantics): Unit = {
-        integerSemantics = semantics
-    }
-    
-    override def setDebug(enableDebug: Boolean): Unit = {
-        debug = enableDebug
-    }
-    
-    override def setOutput(logWriter: java.io.Writer) = {
-        log = logWriter
-    }
-    
-    // Calculate the number of nanoseconds until we must output TIMEOUT
-    private def timeoutNano: Long = StopWatch.millisToNano(timeoutMilliseconds)
     
     protected def transformerSequence(): Seq[TheoryTransformer]
     
