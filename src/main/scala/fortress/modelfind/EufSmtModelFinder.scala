@@ -10,15 +10,15 @@ import fortress.solverinterface._
 
 class EufSmtModelFinder(var solverStrategy: SolverStrategy) extends ModelFinder {
     
-    var timeoutMilliseconds: Int = 60000
-    var analysisScopes: Map[Sort, Int] = Map.empty
-    var instance: Option[Interpretation] = None
-    var log: java.io.Writer = new java.io.PrintWriter(new fortress.data.NullOutputStream)
-    var debug: Boolean = false
-    var theory: Theory = Theory.empty
-    var constrainedTheory: Theory = Theory.empty
-    var enumSortMapping: Map[EnumValue, DomainElement] = Map.empty
-    var integerSemantics: IntegerSemantics = Unbounded
+    private var timeoutMilliseconds: Int = 60000
+    private var analysisScopes: Map[Sort, Int] = Map.empty
+    private var instance: Option[Interpretation] = None
+    private var log: java.io.Writer = new java.io.PrintWriter(new fortress.data.NullOutputStream)
+    private var debug: Boolean = false
+    private var theory: Theory = Theory.empty
+    private var constrainedTheory: Theory = Theory.empty
+    private var enumSortMapping: Map[EnumValue, DomainElement] = Map.empty
+    private var integerSemantics: IntegerSemantics = Unbounded
     
     override def setTheory(newTheory: Theory): Unit = {
         theory = newTheory
@@ -34,7 +34,7 @@ class EufSmtModelFinder(var solverStrategy: SolverStrategy) extends ModelFinder 
         analysisScopes = analysisScopes + (t -> size)
     }
     
-    def setBoundedIntegers(semantics: IntegerSemantics): Unit = {
+    override def setBoundedIntegers(semantics: IntegerSemantics): Unit = {
         integerSemantics = semantics
     }
     
@@ -48,60 +48,65 @@ class EufSmtModelFinder(var solverStrategy: SolverStrategy) extends ModelFinder 
     
     private def usesEnumSort(theory: Theory): Boolean = theory.axioms.exists(_.allEnumValues.nonEmpty)
     
-    override def checkSat(): ModelFinderResult = {
-        // TODO check analysis and theory scopes consistent
-        
-        val timeoutNano = StopWatch.millisToNano(timeoutMilliseconds)
-        
-        val totalTimer = new StopWatch()
-        
-        val transformationTimer = new StopWatch()
-        
-        totalTimer.startFresh()
-        
-        val enumScopes: Map[Sort, Int] = theory.signature.enumConstants.map {
-            case (sort, enumValues) => sort -> enumValues.size
-        }.toMap
-        
-        Errors.precondition(fortress.util.Maps.noConflict(enumScopes, analysisScopes))
-        
+    private def transformerSequence(enumScopes: Map[Sort, Int]): Seq[TheoryTransformer] = {
         val transformerSequence = new scala.collection.mutable.ListBuffer[TheoryTransformer]
-        
-        val enumEliminationTransformer = new EnumEliminationTransformer
-        // We need to remember the enum sort mapping
-        enumSortMapping = enumEliminationTransformer.computeEnumSortMapping(theory)
-        
-        transformerSequence += enumEliminationTransformer
-        
+        transformerSequence += new EnumEliminationTransformer
         integerSemantics match {
             case Unbounded => ()
             case ModularSigned(bitwidth) => {
                 transformerSequence += new IntegerFinitizationTransformer(bitwidth)
             }
         }
-        
         transformerSequence += new NnfTransformer
         transformerSequence += new SkolemizeTransformer
         transformerSequence += new DomainInstantiationTransformer(analysisScopes ++ enumScopes)
         transformerSequence += new RangeFormulaTransformer(analysisScopes ++ enumScopes)
         transformerSequence += new DomainEliminationTransformer(analysisScopes ++ enumScopes)
         transformerSequence += new SimplifyTransformer
+        transformerSequence.toList
+    }
+    
+    private def applyTransformer(transformer: TheoryTransformer, theory: Theory): Theory = {
+        log.write("Applying transformer: " + transformer.name)
+        log.write("... ")
+        log.flush()
+        val transformationTimer = new StopWatch()
+        transformationTimer.startFresh()
         
-        def applyTransformer(transformer: TheoryTransformer, theory: Theory): Theory = {
-            log.write("Applying transformer: " + transformer.name)
-            log.write("... ")
-            log.flush()
-            transformationTimer.startFresh()
-            
-            val resultingTheory = transformer(theory)
-            
-            val elapsed = transformationTimer.elapsedNano()
-            log.write(StopWatch.formatNano(elapsed) + "\n")
-            resultingTheory
-        }
+        val resultingTheory = transformer(theory)
+        
+        val elapsed = transformationTimer.elapsedNano()
+        log.write(StopWatch.formatNano(elapsed) + "\n")
+        resultingTheory
+    }
+    
+    override def checkSat(): ModelFinderResult = {
+        // TODO check analysis and theory scopes consistent
+        
+        // Start the timer
+        // A timer to count how much total time has elapsed
+        val totalTimer = new StopWatch()
+        totalTimer.startFresh()
+        
+        // Calculate the number of nanoseconds until we must output TIMEOUT
+        val timeoutNano = StopWatch.millisToNano(timeoutMilliseconds)
+        
+        // Compute the scopes for enum sorts
+        val enumScopes: Map[Sort, Int] = theory.signature.enumConstants.map {
+            case (sort, enumValues) => sort -> enumValues.size
+        }.toMap
+        
+        // Check there is no conflict between the enum scopes and the analysis scopes
+        Errors.precondition(fortress.util.Maps.noConflict(enumScopes, analysisScopes))
+        
+        // We need to remember the enum sort mapping
+        // TODO this is a little bit clunky
+        enumSortMapping = (new EnumEliminationTransformer).computeEnumSortMapping(theory)
+        
+        val transformerSeq = transformerSequence(enumScopes)
         
         var intermediateTheory = theory
-        for(transformer <- transformerSequence) {
+        for(transformer <- transformerSeq) {
             intermediateTheory = applyTransformer(transformer, intermediateTheory)
             
             if(totalTimer.elapsedNano() >= timeoutNano) {
