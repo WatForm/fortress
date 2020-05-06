@@ -18,7 +18,10 @@ class EufSmtModelFinder(var solverStrategy: SolverStrategy) extends ModelFinder 
     private var theory: Theory = Theory.empty
     private var constrainedTheory: Theory = Theory.empty
     private var enumSortMapping: Map[EnumValue, DomainElement] = Map.empty
+    private var enumScopes: Map[Sort, Int] = Map.empty
     private var integerSemantics: IntegerSemantics = Unbounded
+    // A timer to count how much total time has elapsed
+    private val totalTimer: StopWatch = new StopWatch()
     
     override def setTheory(newTheory: Theory): Unit = {
         theory = newTheory
@@ -45,6 +48,9 @@ class EufSmtModelFinder(var solverStrategy: SolverStrategy) extends ModelFinder 
     override def setOutput(logWriter: java.io.Writer) = {
         log = logWriter
     }
+    
+    // Calculate the number of nanoseconds until we must output TIMEOUT
+    private def timeoutNano: Long = StopWatch.millisToNano(timeoutMilliseconds)
     
     private def usesEnumSort(theory: Theory): Boolean = theory.axioms.exists(_.allEnumValues.nonEmpty)
     
@@ -80,19 +86,9 @@ class EufSmtModelFinder(var solverStrategy: SolverStrategy) extends ModelFinder 
         resultingTheory
     }
     
-    override def checkSat(): ModelFinderResult = {
-        // TODO check analysis and theory scopes consistent
-        
-        // Start the timer
-        // A timer to count how much total time has elapsed
-        val totalTimer = new StopWatch()
-        totalTimer.startFresh()
-        
-        // Calculate the number of nanoseconds until we must output TIMEOUT
-        val timeoutNano = StopWatch.millisToNano(timeoutMilliseconds)
-        
+    private def preTransformationPhase(): Unit = {
         // Compute the scopes for enum sorts
-        val enumScopes: Map[Sort, Int] = theory.signature.enumConstants.map {
+        enumScopes = theory.signature.enumConstants.map {
             case (sort, enumValues) => sort -> enumValues.size
         }.toMap
         
@@ -102,7 +98,10 @@ class EufSmtModelFinder(var solverStrategy: SolverStrategy) extends ModelFinder 
         // We need to remember the enum sort mapping
         // TODO this is a little bit clunky
         enumSortMapping = (new EnumEliminationTransformer).computeEnumSortMapping(theory)
-        
+    }
+    
+    // If times out, returns None. Otherwise, returns the final transformed theory.
+    private def transformationPhase(theory: Theory): Option[Theory] = {
         val transformerSeq = transformerSequence(enumScopes)
         
         var intermediateTheory = theory
@@ -112,7 +111,7 @@ class EufSmtModelFinder(var solverStrategy: SolverStrategy) extends ModelFinder 
             if(totalTimer.elapsedNano() >= timeoutNano) {
                 log.write("TIMEOUT within Fortress.\n")
                 log.flush()
-                return TimeoutResult
+                return None
             }
         }
 
@@ -131,21 +130,42 @@ class EufSmtModelFinder(var solverStrategy: SolverStrategy) extends ModelFinder 
         if(totalTimer.elapsedNano() > timeoutNano) {
             log.write("TIMEOUT within Fortress.\n")
             log.flush()
-            return TimeoutResult
+            return None
         }
-
+        
+        Some(intermediateTheory)
+    }
+    
+    // Returns the final ModelFinderResult
+    private def solverPhase(finalTheory: Theory): ModelFinderResult = {
         log.write("Invoking solver strategy...\n")
         log.flush()
 
         val remainingMillis = timeoutMilliseconds - StopWatch.nanoToMillis(totalTimer.elapsedNano)
-        val r: ModelFinderResult = solverStrategy.solve(intermediateTheory, remainingMillis, log)
+        val finalResult: ModelFinderResult = solverStrategy.solve(finalTheory, remainingMillis, log)
         
-        log.write("Done. Result was " + r.toString + ".\n")
+        log.write("Done. Result was " + finalResult.toString + ".\n")
         
         log.write("TOTAL time: " + StopWatch.formatNano(totalTimer.elapsedNano) + "\n")
         log.flush()
+        
+        finalResult
+    }
+    
+    override def checkSat(): ModelFinderResult = {
+        // Restart the timer
+        totalTimer.startFresh()
+        
+        preTransformationPhase()
+        
+        val finalTheory: Theory = transformationPhase(theory) match {
+            case None => return TimeoutResult
+            case Some(fTheory) => fTheory
+        }
 
-        r
+        val finalResult: ModelFinderResult = solverPhase(finalTheory)
+
+        finalResult
     }
     
     def viewModel: Interpretation = solverStrategy.getInstance(theory).viewModel(enumSortMapping.map(_.swap))
