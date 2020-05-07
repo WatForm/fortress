@@ -5,6 +5,7 @@ import scala.collection.immutable.Seq // By default use immutable Seq
 
 import fortress.msfol._
 import fortress.util.Errors
+import fortress.operations.TermOps._
 
 /** Replaces occurences of domain elements in axioms with distinct constants 
   * that simulate them.

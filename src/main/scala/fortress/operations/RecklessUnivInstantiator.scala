@@ -3,6 +3,7 @@ package fortress.operations
 import fortress.msfol._
 import fortress.data.CartesianSeqProduct
 import fortress.util.Errors
+import fortress.operations.TermOps._
 
 // TODO this is probably an efficiency bottleneck, and can be made much faster
 // by not directly substituting

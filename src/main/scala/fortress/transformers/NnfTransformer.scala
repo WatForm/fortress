@@ -1,6 +1,7 @@
 package fortress.transformers
 
 import fortress.msfol._
+import fortress.operations.TermOps._
 
 /** Changes each axiom of the theory into negation normal form.
   * All other aspects of the theory remain unchanged. */

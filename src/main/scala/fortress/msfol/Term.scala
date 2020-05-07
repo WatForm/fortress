@@ -5,17 +5,13 @@ import fortress.operations._
 import fortress.data._
 import scala.jdk.CollectionConverters._
 import scala.annotation.varargs // So we can call Scala varargs methods from Java
-import scala.collection.immutable.Seq // Default to immutable Seqs
+
+import fortress.operations.TermOps._
 
 /** Representation of a syntactic Term. */
 sealed abstract class Term {
     def accept[T](visitor: TermVisitor[T]): T
     
-    /** Returns the set of Vars that appear unquantified in this term.
-      * This only looks at syntax without respect to a given signature,
-      * so it could also include what are intended to be constants.
-      */ 
-    def freeVarConstSymbols: Set[Var] = RecursiveAccumulator.freeVariablesIn(this)
     def freeVarConstSymbolsJava: java.util.Set[Var] = RecursiveAccumulator.freeVariablesIn(this).asJava
     
     /** Returns the set of free variables of this term with respect
@@ -25,6 +21,7 @@ sealed abstract class Term {
         val constants = signature.constants.map(_.variable)
         RecursiveAccumulator.freeVariablesIn(this) diff constants
     }
+    
     def freeVarsJava(signature: Signature): java.util.Set[Var] = freeVars(signature).asJava
     
     /** Given a signature, typechecks the term with respect to the signature.
@@ -33,11 +30,6 @@ sealed abstract class Term {
       * when comparing Bool sorts. Such a term is called "sanitized".
       */
     def typeCheck(signature: Signature): TypeCheckResult = (new TypeChecker(signature)).visit(this)
-    
-    /** Returns the negation normal form version of this term.
-      * The term must be sanitized to call this method.
-      */
-    def nnf: Term = TermConverter.nnf(this)
     
     /** Returns a term that is alpha-equivalent to this one but whose quantified
       * variables are instead De Bruijn indices. Note that these indices are prefixed
@@ -52,38 +44,10 @@ sealed abstract class Term {
         Substituter(toSub, subWith, this, nameGenerator)
     
     def substitute(toSub: Var, subWith: Term): Term =
-        substitute(toSub, subWith, new IntSuffixNameGenerator(Set.empty[String], 0))
-    
-    /** Does not account for variable capture.
-      * If in doubt do not use this function.
-      */
-    def recklessSubstitute(substitutions: Map[Var, Term]): Term =
-        RecklessSubstituter(substitutions, this)
+            substitute(toSub, subWith, new IntSuffixNameGenerator(Set.empty[String], 0))
     
     def recklessSubstituteJava(substitutions: java.util.Map[Var, Term]): Term =
         RecklessSubstituter(substitutions.asScala.toMap, this)
-    
-    def recklessUnivInstantiate(sortInstantiations: Map[Sort, Seq[Term]]): Term =
-        RecklessUnivInstantiator(this, sortInstantiations)
-    
-    def simplify: Term = TermConverter.simplify(this)
-    
-    def eliminateDomainElements: Term = DomainElementEliminator(this)
-    
-    def eliminateEnumValues(eliminationMapping: Map[EnumValue, DomainElement]): Term = EnumValueEliminator(eliminationMapping)(this)
-    
-    def allEnumValues: Set[EnumValue] = RecursiveAccumulator.enumValuesIn(this)
-    
-    def finitizeIntegers(bitwidth: Int): Term = TermConverter.intToSignedBitVector(this, bitwidth)
-    
-    /** Returns the set of all symbol names used in the term, including:
-      * free variables and constants, bound variables (even those that aren't used),
-      * function names, and sort names that appear on variable bindings.
-      */
-    def allSymbols: Set[String] = RecursiveAccumulator.allSymbolsIn(this)
-    
-    /** Returns the set of all domain elements occuring within this term. */
-    def domainElements: Set[DomainElement] = RecursiveAccumulator.domainElementsIn(this)
     
     // Be aware if you chain this method together, you will get several nested AndLists
     def and(other: Term): Term = AndList(Seq(this, other))

@@ -5,6 +5,7 @@ import fortress.transformers._
 import fortress.util._
 import fortress.interpretation._
 import fortress.solverinterface._
+import fortress.operations.TermOps._
 
 abstract class ModelFinderTemplate(var solverStrategy: SolverStrategy) extends ModelFinder with StdModelFindConfig {
     private var instance: Option[Interpretation] = None

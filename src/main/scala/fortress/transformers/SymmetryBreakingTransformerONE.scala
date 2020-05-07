@@ -4,6 +4,7 @@ import fortress.msfol._
 
 import scala.collection.mutable
 import fortress.symmetry._
+import fortress.operations.TermOps._
 
 class SymmetryBreakingTransformerONE(scopes: Map[Sort, Int]) extends TheoryTransformer {
         
