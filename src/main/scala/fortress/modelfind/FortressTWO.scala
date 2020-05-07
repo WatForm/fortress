@@ -23,7 +23,7 @@ class FortressTWO extends ModelFinderTemplate(new Z3ApiSolver) {
         transformerSequence += new SymmetryBreakingTransformerTWO(analysisScopes)
         transformerSequence += new DomainInstantiationTransformer
         transformerSequence += new RangeFormulaTransformer(analysisScopes ++ enumScopes)
-        transformerSequence += new DomainEliminationTransformer(analysisScopes ++ enumScopes)
+        transformerSequence += new DomainEliminationTransformer
         transformerSequence += new SimplifyTransformer
         transformerSequence.toList
     }

@@ -10,19 +10,9 @@ import fortress.util.Errors
   * that simulate them.
   * Leaves all other aspects of the theory unchanged.
   */
-class DomainEliminationTransformer(scopes: Map[Sort, Int]) extends TheoryTransformer {
-    
-    // Ugly conversion from Java data structures
-    def this(scopes: java.util.Map[Sort, Integer]) = this({
-        val scopes1: Map[Sort, Integer] = scopes.asScala.toMap
-        scopes1.map { case (sort, size: Integer) => (sort, Predef.Integer2int(size)) }
-    })
+class DomainEliminationTransformer extends TheoryTransformer {
     
     override def apply(theory: Theory): Theory =  {
-        Errors.precondition(!scopes.contains(BoolSort))
-        Errors.precondition(scopes.keySet subsetOf theory.sorts)
-        Errors.precondition(scopes.values.forall(_ > 0))
-        
         val domainElements: Set[DomainElement] = theory.axioms.flatMap(_.domainElements)
         
         val domainConstants: Set[AnnotatedVar] = domainElements.map(de => de.asSmtConstant of de.sort)

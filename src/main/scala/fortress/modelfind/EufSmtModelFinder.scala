@@ -22,7 +22,7 @@ class EufSmtModelFinder(solverStrategy: SolverStrategy) extends ModelFinderTempl
         transformerSequence += new SkolemizeTransformer
         transformerSequence += new DomainInstantiationTransformer
         transformerSequence += new RangeFormulaTransformer(analysisScopes ++ enumScopes)
-        transformerSequence += new DomainEliminationTransformer(analysisScopes ++ enumScopes)
+        transformerSequence += new DomainEliminationTransformer
         transformerSequence += new SimplifyTransformer
         transformerSequence.toList
     }
