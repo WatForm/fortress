@@ -23,23 +23,19 @@ class DomainEliminationTransformer(scopes: Map[Sort, Int]) extends TheoryTransfo
         Errors.precondition(scopes.keySet subsetOf theory.sorts)
         Errors.precondition(scopes.values.forall(_ > 0))
         
-        // Generate the constants that simulate the domain elements
-        val domainConstantsMap: Map[Sort, Seq[Var]] = for(
-            (sort, size) <- scopes
-        ) yield { 
-            val domainElements = for(i <- 1 to size) yield { DomainElement(i, sort).asSmtConstant }
-            (sort, domainElements)
-        }
+        val domainElements: Set[DomainElement] = theory.axioms.flatMap(_.domainElements)
         
-        val domainConstants = for(
-            (sort, domainConstantVars) <- domainConstantsMap;
-            variable <- domainConstantVars
-        ) yield { variable of sort }
+        val domainConstants: Set[AnnotatedVar] = domainElements.map(de => de.asSmtConstant of de.sort)
+        
+        val domainElemsMap: Map[Sort, Seq[DomainElement]] = theory.sorts.map(sort => {
+            val domElems = domainElements.filter(_.sort == sort).toSeq.sortWith(_.index < _.index) // Sort the domain elements for testing consistency
+            (sort, domElems)
+        }).toMap
         
         // Assert the constants are distinct
         val distinctConstraints = for(
-            (sort, domainConstantVars) <- domainConstantsMap if (domainConstantVars.size > 1)
-        ) yield Distinct(domainConstantVars)
+            (sort, domainElems) <- domainElemsMap if (domainElems.size > 1)
+        ) yield Distinct(domainElems.map(_.asSmtConstant))
         
         // Eliminate domain elements in existing axioms
         val convertedAxioms = theory.axioms.map(
