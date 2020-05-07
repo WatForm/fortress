@@ -23,7 +23,7 @@ class FortressZERO extends ModelFinderTemplate(new Z3ApiSolver) {
         transformerSequence += new SkolemizeTransformer
         // No symmetry breaking
         transformerSequence += new DomainInstantiationTransformer
-        transformerSequence += new RangeFormulaTransformer(analysisScopes ++ enumScopes)
+        transformerSequence += new RangeFormulaTransformer
         transformerSequence += new DomainEliminationTransformer
         transformerSequence += new SimplifyTransformer
         transformerSequence.toList

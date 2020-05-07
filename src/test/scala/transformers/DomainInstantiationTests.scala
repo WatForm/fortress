@@ -183,20 +183,4 @@ class DomainInstantiationTests extends FunSuite with Matchers {
         val transformer = new DomainInstantiationTransformer
         transformer(problem) should be (Problem(expectedTheory, scopes))
     }
-    
-    test("expanding a nonexistent type fails") {
-        val theory = Theory.empty
-            .withSorts(A, B)
-            .withFunctionDeclarations(P, Q)
-            .withAxiom(Forall(x of A, App("P", x)))
-            .withAxiom(Forall(y of B, App("Q", y)))
-        
-        val scopes = Map(A -> 2, B -> 2, C -> 2)
-        
-        val problem = Problem(theory, scopes)
-        
-        val transformer = new DomainInstantiationTransformer
-        
-        a [fortress.util.Errors.PreconditionException] should be thrownBy (transformer(problem))
-    }
 }

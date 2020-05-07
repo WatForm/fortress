@@ -21,7 +21,7 @@ class EufSmtModelFinder(solverStrategy: SolverStrategy) extends ModelFinderTempl
         transformerSequence += new NnfTransformer
         transformerSequence += new SkolemizeTransformer
         transformerSequence += new DomainInstantiationTransformer
-        transformerSequence += new RangeFormulaTransformer(analysisScopes ++ enumScopes)
+        transformerSequence += new RangeFormulaTransformer
         transformerSequence += new DomainEliminationTransformer
         transformerSequence += new SimplifyTransformer
         transformerSequence.toList
