@@ -7,19 +7,24 @@ import fortress.util.Errors
 
 /** Replaces enum values with domain elements, following the mapping from the
   * computeEnumSortMapping method. */
-class EnumEliminationTransformer() extends TheoryTransformer {
-    override def apply(theory: Theory): Theory = {
-        val mapping = computeEnumSortMapping(theory)
-        
-        // Since we are replacing with domain elements, which cannot be in
-        // quantifiers, we do not need to worry about variable capture in
-        // substitution and can use the faster substituter.
-        val newAxioms = theory.axioms.map(axiom => axiom.eliminateEnumValues(mapping))
-        
-        val newSignature = theory.signature.withoutEnums
-        
-        Theory.mkTheoryWithSignature(newSignature)
-            .withAxioms(newAxioms)
+class EnumEliminationTransformer extends ProblemTransformer {
+    override def apply(problem: Problem): Problem = problem match {
+        case Problem(theory, scopes) => {
+            val mapping = computeEnumSortMapping(theory)
+            
+            // Since we are replacing with domain elements, which cannot be in
+            // quantifiers, we do not need to worry about variable capture in
+            // substitution and can use the faster substituter.
+            val newAxioms = theory.axioms.map(_.eliminateEnumValues(mapping))
+            
+            val newSignature = theory.signature.withoutEnums
+            
+            val newTheory = Theory.mkTheoryWithSignature(newSignature)
+                .withAxioms(newAxioms)
+            
+            // The problem contain scopes for the enums, which should remain the same
+            Problem(newTheory, scopes)
+        }
     }
     
     def computeEnumSortMapping(theory: Theory): Map[EnumValue, DomainElement] = {
