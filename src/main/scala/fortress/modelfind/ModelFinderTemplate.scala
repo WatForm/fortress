@@ -12,7 +12,6 @@ abstract class ModelFinderTemplate(var solverStrategy: SolverStrategy) extends M
     // A timer to count how much total time has elapsed
     private val totalTimer: StopWatch = new StopWatch()
     protected var enumSortMapping: Map[EnumValue, DomainElement] = Map.empty
-    protected var enumScopes: Map[Sort, Int] = Map.empty
     
     override def checkSat(): ModelFinderResult = {
         // Restart the timer
@@ -47,14 +46,6 @@ abstract class ModelFinderTemplate(var solverStrategy: SolverStrategy) extends M
     }
     
     private def preTransformationPhase(): Unit = {
-        // Compute the scopes for enum sorts
-        enumScopes = theory.signature.enumConstants.map {
-            case (sort, enumValues) => sort -> enumValues.size
-        }.toMap
-        
-        // Check there is no conflict between the enum scopes and the analysis scopes
-        Errors.precondition(fortress.util.Maps.noConflict(enumScopes, analysisScopes))
-        
         // We need to remember the enum sort mapping
         // TODO this is a little bit clunky
         enumSortMapping = (new EnumEliminationTransformer).computeEnumSortMapping(theory)
@@ -64,7 +55,7 @@ abstract class ModelFinderTemplate(var solverStrategy: SolverStrategy) extends M
     private def transformationPhase(): Option[Theory] = {
         val transformerSeq = transformerSequence()
         
-        var intermediateProblem = Problem(theory, analysisScopes ++ enumScopes)
+        var intermediateProblem = Problem(theory, analysisScopes)
         for(transformer <- transformerSeq) {
             intermediateProblem = applyTransformer(transformer, intermediateProblem)
             
