@@ -43,6 +43,10 @@ case class TermOps(term: Term) {
     
     /** Returns the set of all domain elements occuring within the term. */
     def domainElements: Set[DomainElement] = RecursiveAccumulator.domainElementsIn(term)
+    
+    def equalsOneOf(terms: Seq[Term]): Term = Or.smart(terms map (term === _))
+    
+    def equalsOneOfFlip(terms: Seq[Term]): Term = Or.smart(terms map (_ === term))
 }
 
 object TermOps {

@@ -1,6 +1,7 @@
 package fortress.symmetry
 
 import fortress.msfol._
+import fortress.operations.TermOps._
 import fortress.util.Errors
 
 object Symmetry {
@@ -19,21 +20,17 @@ object Symmetry {
         val m = unusedValues.size
         val r = scala.math.min(n, m)
         
-        val equalityConstraints = for {
-            k <- 0 to (r - 1) // Enumerate constants
-        } yield {
-            val possibleUnusedEqualities: Seq[Term] = for {
-                i <- 0 to k // Enumerate unused values
-            } yield {constants(k).variable === unusedValues(i)}
+        val equalityConstraints: Seq[Term] =
+            for (k <- 0 to (r - 1)) // Enumerate constants
+            yield {
+                val c_k = constants(k).variable
             
-            val possibleUsedEqualities: Seq[Term] = for {
-                v <- usedValues
-            } yield {constants(k).variable === v}
+                val possibleValues: Seq[Term] =
+                    usedValues ++ // Could be any of the used values
+                    unusedValues.take(k + 1) // One of the first k + 1 unused values (recall, k starts at 0)
             
-            val possibleEqualities: Seq[Term] = possibleUsedEqualities ++ possibleUnusedEqualities
-            
-            Or.smart(possibleEqualities)
-        }
+                c_k equalsOneOf possibleValues
+            }
         
         equalityConstraints.toSet
     }
@@ -55,17 +52,14 @@ object Symmetry {
         val r = scala.math.min(n, m)
         
         val implications = for(
-            k <- 1 to (r - 1); // Enumerates constants
+            k <- 1 to (r - 1); // Enumerates constants, except first
             d <- 1 to k // Enumerates values
         ) yield {
-            val possibleEqualities = for {
-                i <- 0 to k - 1
-            } yield {constants(i).variable === unusedValues(d - 1)}
+            val c_k = constants(k).variable
             
-            Implication(
-                constants(k).variable === unusedValues(d),
-                Or.smart(possibleEqualities)
-            )
+            val precedingConstants = constants.take(k) map (_.variable) // Recall indexing starts at 0
+            
+            (c_k === unusedValues(d)) ==> (unusedValues(d - 1) equalsOneOfFlip precedingConstants)
         }
         
         implications.toSet
@@ -82,33 +76,31 @@ object Symmetry {
         
         val unusedResultValues: IndexedSeq[DomainElement] = (for(i <- 1 to scopes(f.resultSort)) yield DomainElement(i, f.resultSort)) diff usedResultValues
         
-        val argumentLists = new fortress.util.ArgumentListGenerator(scopes).allArgumentListsOfFunction(f)
+        val m = unusedResultValues.size
         
-        // Use TAKE
+        val argumentListsIterable: Iterable[Seq[DomainElement]] =
+            new fortress.util.ArgumentListGenerator(scopes)
+            .allArgumentListsOfFunction(f)
+            .take(m) // Take up to m of them,  for efficiency since we won't need more than this - the argument list generator does not generate arguments
+            // until they are needed
         
-        // For the sake of efficiency, the argument list generator does not generate arguments
-        // until they are needed
-        // Therefore we don't know how many argument tuples there are yet, and have to generate the constraints
-        // imperatively rather than functionally
-        val constraints = new scala.collection.mutable.ListBuffer[Term]
-        var k = 0
-        val argListIterator = argumentLists.iterator
-        while(k < unusedResultValues.size && argListIterator.hasNext) {
-            val argList = argListIterator.next
-            
-            val app = App(f.name, argList)
-            val possibleUsedEqualities =
-                for(v <- usedResultValues) yield {app === v}
-            val possibleUnusedEqualities =
-                for(i <- 0 to k) yield {app === unusedResultValues(i)}
-            val possibleEqualities = possibleUsedEqualities ++ possibleUnusedEqualities
-            
-            constraints += Or.smart(possibleEqualities)
-            
-            k += 1
-        }
+        val argumentLists = argumentListsIterable.toIndexedSeq
         
-        constraints.toSet
+        val n = argumentLists.size
+        
+        val r = scala.math.min(m, n)
+        
+        val equalityConstraints: Seq[Term] =
+            for (k <- 0 to (r - 1)) // Enumerate argument vectors
+            yield {
+                val argList = argumentLists(k)
+                val possibleResultValues: Seq[Term] = 
+                    usedResultValues ++ // Could be any of the used values
+                    unusedResultValues.take(k + 1) // One of the first k + 1 unused values (recall, k starts at 0)
+                App(f.name, argList) equalsOneOf possibleResultValues
+            }
+        
+        equalityConstraints.toSet
     }
     
     // Produces matching output to drdFunctionEqualities - meant to be used at same
@@ -150,6 +142,7 @@ object Symmetry {
     }
     
     // Only need scope for result value
+    // I think more symmetry breaking can be done here
     def csFunctionExtEqualities(f: FuncDecl, resultScope: Int,
         usedResultValues: IndexedSeq[DomainElement]): Set[Term] = {
             Errors.precondition(f.argSorts.forall(!_.isBuiltin))
@@ -173,26 +166,23 @@ object Symmetry {
                 Errors.precondition(resVal.sort == f.resultSort)
                 f.argSorts map (sort => {
                     if(sort == f.resultSort) resVal
-                    else DomainElement(1, sort)
+                    else DomainElement(1, sort) // for other sorts, doesn't matter what values we choose
                 })
             }
             
             val m = unusedResultValues.size
-            val constraints = for(i <- 0 to (m - 2)) yield {
+            val equalityConstraints: Seq[Term] = for(i <- 0 to (m - 2)) yield {
                 val resVal = unusedResultValues(i)
                 val argList = constructArgList(resVal)
-                val app = App(f.name, argList)
-                val possibleUsedEqualities = for(v <- usedResultValues) yield {
-                    app === v
-                }
-                val possibleUnusedEqualities = for(j <- 0 to (i + 1)) yield { // i + 1 necessary
-                    app === unusedResultValues(j)
-                }
-                val possibleEqualities = possibleUsedEqualities ++ possibleUnusedEqualities
-                Or.smart(possibleEqualities)
+                
+                val possibleResultValues =
+                    usedResultValues ++
+                    unusedResultValues.take(i + 2)
+                
+                App(f.name, argList) equalsOneOf possibleResultValues
             }
             
-            constraints.toSet
+            equalityConstraints.toSet
         }
     
 }
