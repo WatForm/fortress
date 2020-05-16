@@ -5,6 +5,7 @@ import fortress.operations.TermOps._
 import fortress.util.Errors
 
 object Symmetry {
+    private[this] type ArgList = Seq[DomainElement]
     
     def csConstantEqualities(sort: Sort, constants: IndexedSeq[AnnotatedVar], scope: Int,
         usedValues: IndexedSeq[DomainElement]): Set[Term] = {
@@ -74,11 +75,14 @@ object Symmetry {
         Errors.precondition(usedResultValues.size < scopes(f.resultSort))
         Errors.precondition(!(f.argSorts contains f.resultSort))
         
-        val unusedResultValues: IndexedSeq[DomainElement] = (for(i <- 1 to scopes(f.resultSort)) yield DomainElement(i, f.resultSort)) diff usedResultValues
+        val unusedResultValues: IndexedSeq[DomainElement] = {
+            val allResultValues = for(i <- 1 to scopes(f.resultSort)) yield DomainElement(i, f.resultSort)
+            allResultValues diff usedResultValues
+        }
         
         val m = unusedResultValues.size
         
-        val argumentListsIterable: Iterable[Seq[DomainElement]] =
+        val argumentListsIterable: Iterable[ArgList] =
             new fortress.util.ArgumentListGenerator(scopes)
             .allArgumentListsOfFunction(f)
             .take(m) // Take up to m of them,  for efficiency since we won't need more than this - the argument list generator does not generate arguments
@@ -106,7 +110,53 @@ object Symmetry {
     // Produces matching output to drdFunctionEqualities - meant to be used at same
     // time with same input
     def drdFunctionImplications(f: FuncDecl, scopes: Map[Sort, Int],
-        usedResultValues: IndexedSeq[DomainElement]): Set[Term] = ???
+        usedResultValues: IndexedSeq[DomainElement]): Set[Term] = {
+        Errors.precondition(f.argSorts.forall(!_.isBuiltin))
+        Errors.precondition(!f.resultSort.isBuiltin)
+        Errors.precondition(usedResultValues.forall(_.sort == f.resultSort))
+        Errors.precondition(usedResultValues.forall(_.index <= scopes(f.resultSort)))
+        Errors.precondition(usedResultValues.size < scopes(f.resultSort))
+        Errors.precondition(!(f.argSorts contains f.resultSort))
+        
+        val unusedResultValues: IndexedSeq[DomainElement] = {
+            val allResultValues = for(i <- 1 to scopes(f.resultSort)) yield DomainElement(i, f.resultSort)
+            allResultValues diff usedResultValues
+        }
+        
+        val m = unusedResultValues.size
+        
+        val argumentListsIterable: Iterable[ArgList] =
+            new fortress.util.ArgumentListGenerator(scopes)
+            .allArgumentListsOfFunction(f)
+            .take(m) // Take up to m of them,  for efficiency since we won't need more than this - the argument list generator does not generate arguments
+            // until they are needed
+        
+        val argumentLists = argumentListsIterable.toIndexedSeq
+        val applications: IndexedSeq[Term] = argumentLists map (App(f.name, _))
+        
+        val n = applications.size
+        
+        val r = scala.math.min(m, n)
+        
+        val implications = for(
+            k <- 1 to (r - 1); // Enumerates argVectors, except first
+            d <- 1 to k // Enumerates result values
+        ) yield {
+            val app_k = applications(k)
+            
+            val precedingApps = applications.take(k) // Recall indexing starts at 0
+            
+            (app_k === unusedResultValues(d)) ==> (unusedResultValues(d - 1) equalsOneOfFlip precedingApps)
+        }
+        
+        implications.toSet
+    }
+    
+    private[this] def predicateImplicationChain(P: FuncDecl, argLists: IndexedSeq[ArgList]): Seq[Term] = {
+        for(i <- 1 to (argLists.size - 1)) yield {
+            App(P.name, argLists(i)) ==> App(P.name, argLists(i - 1))
+        }
+    }
     
     // I think better symmetry breaking can be done on predicates.
     // This is about as good as we can do for predicates of the form P: A -> Bool
@@ -129,16 +179,12 @@ object Symmetry {
         
         // Generate lists of arguments in the order we will use them for symmetry breaking
         // e.g. If P: A x B x A -> Bool, gives Seq[(a1, b1, a1), (a2, b2, a2), ...]
-        type ArgList = Seq[DomainElement]
+        
         val argLists: IndexedSeq[ArgList] = for(i <- 0 to (r - 1)) yield {
             P.argSorts map (sort => unusedValues(sort)(i))
         }
         
-        val implications = for(i <- 1 to (argLists.size - 1)) yield {
-            App(P.name, argLists(i)) ==> App(P.name, argLists(i - 1))
-        }
-        
-        implications.toSet
+        predicateImplicationChain(P, argLists).toSet
     }
     
     // Only need scope for result value
