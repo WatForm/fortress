@@ -34,18 +34,14 @@ class DomainEliminationTests extends FunSuite with Matchers {
             .withConstants(
                 Var("@1A") of A,
                 Var("@2A") of A,
-                Var("@3A") of A,
-                Var("@1B") of B,
-                Var("@2B") of B,
                 Var("@3B") of B,
                 Var("@4B") of B)
-            .withAxiom(Distinct(Var("@1A"), Var("@2A"), Var("@3A")))
-            .withAxiom(Distinct(Var("@1B"), Var("@2B"), Var("@3B"), Var("@4B")))
+            .withAxiom(Distinct(Var("@1A"), Var("@2A")))
+            .withAxiom(Distinct(Var("@3B"), Var("@4B")))
             .withAxiom(App("f", c, _1A) === _3B)
             .withAxiom(Not(d === _4B) ==> Exists(x of A, x === _2A))
         
-        val scopes = Map(A -> 3, B -> 4)
-        val transformer = new DomainEliminationTransformer(scopes)
+        val transformer = new DomainEliminationTransformer
         transformer(theory) should be (expected)
     }
     
@@ -66,8 +62,7 @@ class DomainEliminationTests extends FunSuite with Matchers {
             .withAxiom(c === Var("@1A"))
             .withAxiom(d === Var("@1B"))
         
-        val scopes = Map(A -> 1, B -> 1)
-        val transformer = new DomainEliminationTransformer(scopes)
+        val transformer = new DomainEliminationTransformer
         transformer(theory) should be (expected)
     }
 }

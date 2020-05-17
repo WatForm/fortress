@@ -4,6 +4,7 @@ import scala.jdk.CollectionConverters._
 
 import fortress.msfol._
 import fortress.util.Errors
+import fortress.operations.TermOps._
 
 class IntegerFinitizationTransformer(bitwidth: Int) extends TheoryTransformer {
     

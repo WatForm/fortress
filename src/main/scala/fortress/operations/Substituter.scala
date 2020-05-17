@@ -1,7 +1,8 @@
 package fortress.operations
 
 import fortress.msfol._
-import fortress.data.NameGenerator;
+import fortress.data.NameGenerator
+import fortress.operations.TermOps._
 
 import scala.jdk.CollectionConverters._
 import scala.collection.immutable.Seq // Use immutable seq

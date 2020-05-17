@@ -9,18 +9,6 @@ import fortress.modelfind._
 
 //TODO Memory out errors
 trait SolverStrategy {
-    /** Returns true if and only if the solver can attempt to solve the given theory.
-    * For example, a SolverStrategy that invokes a SAT solver will reject a theory
-    * containing quantifiers, since another TheoryTransformer should be invoked to
-    * map it down into propositional logic.
-    * Note that just because a solver can attempt to solve a theory does not mean
-    * it will succeed.
-    * For example, a SolverStrategy that invokes an SMT solver may still timeout
-    * or give up partway through a solving attempt if the theory is from an
-    * undecidable logic.
-    */
-    def canAttemptSolving(theory: Theory): Boolean
-    
     /**
     * Attempts to solve the given theory, searching for a satisfying instance.
     */

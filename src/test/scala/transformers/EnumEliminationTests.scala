@@ -49,7 +49,7 @@ class EnumEliminationTests extends FunSuite with Matchers {
                 Not(App("f", DomainElement(1, A), x) === DomainElement(2, C))))
         
         val transformer = new EnumEliminationTransformer
-        transformer(theory) should be (expected)
+        transformer(Problem(theory, Map.empty)) should be (Problem(expected, Map(A -> 3, C -> 2)))
     }
     
 }

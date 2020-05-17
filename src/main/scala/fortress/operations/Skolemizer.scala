@@ -2,6 +2,7 @@ package fortress.operations
 
 import fortress.msfol._
 import fortress.data.NameGenerator
+import fortress.operations.TermOps._
 import java.lang.IllegalArgumentException
 import fortress.util.Errors
 
