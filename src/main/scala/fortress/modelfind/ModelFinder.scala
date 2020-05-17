@@ -48,7 +48,7 @@ trait ModelFinder {
 }
 
 object ModelFinder {
-    def createDefault(): ModelFinder = new EufSmtModelFinder(new Z3ApiSolver())
+    def createDefault(): ModelFinder = new FortressZERO
 }
 
 sealed trait IntegerSemantics

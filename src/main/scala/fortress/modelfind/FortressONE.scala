@@ -8,23 +8,8 @@ import fortress.util._
 import fortress.interpretation._
 import fortress.solverinterface._
 
-class FortressONE extends ModelFinderTemplate(new Z3ApiSolver) {
-    override def transformerSequence(): Seq[ProblemTransformer] = {
-        val transformerSequence = new scala.collection.mutable.ListBuffer[ProblemTransformer]
-        transformerSequence += new EnumEliminationTransformer
-        integerSemantics match {
-            case Unbounded => ()
-            case ModularSigned(bitwidth) => {
-                transformerSequence += new IntegerFinitizationTransformer(bitwidth)
-            }
-        }
-        transformerSequence += new NnfTransformer
-        transformerSequence += new SkolemizeTransformer
-        transformerSequence += new SymmetryBreakingTransformerONE(analysisScopes)
-        transformerSequence += new DomainInstantiationTransformer
-        transformerSequence += new RangeFormulaTransformer
-        transformerSequence += new DomainEliminationTransformer
-        transformerSequence += new SimplifyTransformer
-        transformerSequence.toList
-    }
+class FortressONE extends BaseFortress {
+    override def symmetryBreakingTransformers(): Seq[ProblemTransformer] = Seq(
+        new SymmetryBreakingTransformerONE(analysisScopes)
+    )
 }
