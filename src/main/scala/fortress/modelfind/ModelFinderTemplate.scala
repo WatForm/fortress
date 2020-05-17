@@ -9,10 +9,12 @@ import fortress.operations.TermOps._
 
 abstract class ModelFinderTemplate(var solverStrategy: SolverStrategy) extends ModelFinder with StdModelFindConfig {
     private var instance: Option[Interpretation] = None
+    private var skolemConstantMapping: Map[String, AnnotatedVar] = Map.empty
     private var constrainedTheory: Theory = Theory.empty
     // A timer to count how much total time has elapsed
     private val totalTimer: StopWatch = new StopWatch()
     protected var enumSortMapping: Map[EnumValue, DomainElement] = Map.empty
+    var transformationTime: Long = -1
     
     override def checkSat(): ModelFinderResult = {
         // Restart the timer
@@ -73,7 +75,8 @@ abstract class ModelFinderTemplate(var solverStrategy: SolverStrategy) extends M
 
         constrainedTheory = finalTheory
 
-        log.write("Total transformation time: " + StopWatch.formatNano(totalTimer.elapsedNano()) + "\n")
+        transformationTime = totalTimer.elapsedNano()
+        log.write("Total transformation time: " + StopWatch.formatNano(transformationTime) + "\n")
         log.flush()
         
         if(debug) {
@@ -87,6 +90,11 @@ abstract class ModelFinderTemplate(var solverStrategy: SolverStrategy) extends M
             log.write("TIMEOUT within Fortress.\n")
             log.flush()
             return None
+        }
+
+        for(transformer <- transformerSeq) {
+            if (transformer.isInstanceOf[SkolemizeTransformer])
+                skolemConstantMapping = skolemConstantMapping.++(transformer.asInstanceOf[SkolemizeTransformer].skolemConstantMapping)
         }
         
         Some(finalTheory)
@@ -108,7 +116,9 @@ abstract class ModelFinderTemplate(var solverStrategy: SolverStrategy) extends M
         finalResult
     }
     
-    def viewModel: Interpretation = solverStrategy.getInstance(theory).viewModel(enumSortMapping.map(_.swap))
+    def viewModel: Interpretation = solverStrategy.getInstance(theory, skolemConstantMapping).viewModel(enumSortMapping.map(_.swap))
+
+    def solverTime: Long = solverStrategy.solverTime()
 
     override def nextInterpretation(): ModelFinderResult = {
         val newAxiom = Not(AndList(
