@@ -15,14 +15,18 @@ import fortress.operations.TermOps._
   */
   
 // TODO it seems like we could remove the requirement to ahve no enum sorts or existential quantifiers
-class DomainInstantiationTransformer extends ProblemTransformer {
+class DomainInstantiationTransformer private (useConstForDomElem: Boolean) extends ProblemTransformer {
+    
+    private def DE(index: Integer, sort: Sort): Term =
+        if (useConstForDomElem) DomainElement(index, sort).asSmtConstant
+        else DomainElement(index, sort)
     
     override def apply(problem: Problem): Problem = problem match {
         case Problem(theory, scopes) => {
             Errors.precondition(scopes.keySet == theory.sorts.filter(!_.isBuiltin), scopes.keySet.toString)
         
             val domainElemsMap: Map[Sort, Seq[Term]] = scopes.map {
-                case (sort, size) => (sort, for(i <- 1 to size) yield DomainElement(i, sort))
+                case (sort, size) => (sort, for(i <- 1 to size) yield DE(i, sort))
             }
         
             val newAxioms = theory.axioms.map(
@@ -35,4 +39,9 @@ class DomainInstantiationTransformer extends ProblemTransformer {
     }
     
     override def name: String = "Domain Instantiation Transformer"
+}
+
+object DomainInstantiationTransformer {
+    def create(): DomainInstantiationTransformer = new DomainInstantiationTransformer(false)
+    def createWithDomElemsAsConstants(): DomainInstantiationTransformer = new DomainInstantiationTransformer(true)
 }

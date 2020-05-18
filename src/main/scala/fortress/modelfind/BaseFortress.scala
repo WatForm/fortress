@@ -22,9 +22,9 @@ abstract class BaseFortress extends ModelFinderTemplate(new Z3ApiSolver) {
         transformerSequence += new NnfTransformer
         transformerSequence += new SkolemizeTransformer
         transformerSequence ++= symmetryBreakingTransformers
-        transformerSequence += new DomainInstantiationTransformer
-        transformerSequence += new RangeFormulaTransformer
-        transformerSequence += new DomainEliminationTransformer
+        transformerSequence += new DomainEliminationTransformer2
+        transformerSequence += DomainInstantiationTransformer.createWithDomElemsAsConstants()
+        transformerSequence += RangeFormulaTransformer.createWithDomElemsAsConstants()
         transformerSequence += new SimplifyTransformer
         transformerSequence.toList
     }
