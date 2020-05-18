@@ -11,7 +11,7 @@ import scala.collection.immutable.Seq
 
 import scala.math.min
 
-/** Introduces (quantifier-free) range formulas restricting the ranges of
+/** Introduces range formulas restricting the ranges of
   * function applications and constants.
   * The resulting problem has no scopes (unbounded), and is equisatisfiable to the original. 
   * This transformation is parameterized by scopes mapping sorts to sizes.
