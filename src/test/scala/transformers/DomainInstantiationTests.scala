@@ -49,7 +49,7 @@ class DomainInstantiationTests extends FunSuite with Matchers {
         
         val expected = Problem(expectedTheory, expectedScopes)
         
-        val transformer = new DomainInstantiationTransformer
+        val transformer = DomainInstantiationTransformer.create()
         transformer(problem) should be (expected)
     }
     
@@ -85,7 +85,7 @@ class DomainInstantiationTests extends FunSuite with Matchers {
         
         val expected = Problem(expectedTheory, expectedScopes)
         
-        val transformer = new DomainInstantiationTransformer
+        val transformer = DomainInstantiationTransformer.create()
         transformer(problem) should be (expected)
     }
     
@@ -111,7 +111,7 @@ class DomainInstantiationTests extends FunSuite with Matchers {
             .withFunctionDeclarations(P, Q, R, g)
             .withAxiom(t1A and t2A)
         
-        val transformer = new DomainInstantiationTransformer
+        val transformer = DomainInstantiationTransformer.create()
         transformer(problem) should be (Problem(expectedTheory, scopes))
     }
     
@@ -134,7 +134,7 @@ class DomainInstantiationTests extends FunSuite with Matchers {
                 App("f", DomainElement(1, A)) === b,
                 App("f", DomainElement(2, A)) === b))
         
-        val transformer = new DomainInstantiationTransformer
+        val transformer = DomainInstantiationTransformer.create()
         transformer(problem) should be (Problem(expectedTheory, scopes))
     }
     
@@ -155,7 +155,7 @@ class DomainInstantiationTests extends FunSuite with Matchers {
             .withAxiom(App("P", DomainElement(1, A)))
             .withAxiom(App("Q", DomainElement(1, B)))
         
-        val transformer = new DomainInstantiationTransformer
+        val transformer = DomainInstantiationTransformer.create()
         transformer(problem) should be (Problem(expectedTheory, scopes))
     }
     
@@ -180,7 +180,7 @@ class DomainInstantiationTests extends FunSuite with Matchers {
             .withAxiom(Forall( Seq(y of IntSort, z of BoolSort),
                 App("P", DomainElement(1, A), y, z) and App("P", DomainElement(2, A), y, z)))
         
-        val transformer = new DomainInstantiationTransformer
+        val transformer = DomainInstantiationTransformer.create()
         transformer(problem) should be (Problem(expectedTheory, scopes))
     }
 }

@@ -3,6 +3,7 @@ package fortress.transformers
 import scala.jdk.CollectionConverters._
 
 import fortress.msfol._
+import fortress.operations.TermOps._
 import fortress.util.Errors
 import fortress.data.CartesianSeqProduct
 
@@ -16,23 +17,25 @@ import scala.math.min
   * This transformation is parameterized by scopes mapping sorts to sizes.
   * Note: performs no symmetry breaking.
   */
-class RangeFormulaTransformer extends ProblemTransformer {
+class RangeFormulaTransformer private (useConstForDomElem: Boolean) extends ProblemTransformer {
+    
+    private def DE(index: Integer, sort: Sort): Term =
+        if (useConstForDomElem) DomainElement(index, sort).asSmtConstant
+        else DomainElement(index, sort)
     
     override def apply(problem: Problem): Problem = problem match {
         case Problem(theory, scopes) => {
             // Generate range constraints for constants
             val constantRangeConstraints = for(c <- theory.constants if !c.sort.isBuiltin) yield {
-                val possibleEqualities = 
-                    for(i <- 1 to scopes(c.sort)) yield
-                        { c.variable === DomainElement(i, c.sort) }
-                val rangeFormula = Or.smart(possibleEqualities)
+                val possibleValues = for(i <- 1 to scopes(c.sort)) yield DE(i, c.sort)
+                val rangeFormula = c.variable equalsOneOf possibleValues
                 rangeFormula
             }
             
             // Generate range constraints for functions
             val functionRangeConstraints = new scala.collection.mutable.ListBuffer[Term]()
             for(f <- theory.functionDeclarations if !f.resultSort.isBuiltin) {
-                val possibleRangeValues = for(i <- 1 to scopes(f.resultSort)) yield DomainElement(i, f.resultSort)
+                val possibleRangeValues = for(i <- 1 to scopes(f.resultSort)) yield DE(i, f.resultSort)
                 
                 //  f: A_1 x ... x A_n -> B
                 // and each A_i has generated domain D_i
@@ -48,7 +51,7 @@ class RangeFormulaTransformer extends ProblemTransformer {
                         quantifiedVarsBuffer += annotatedVar
                         IndexedSeq(annotatedVar.variable)
                     } else {
-                        for(j <- 1 to scopes(sort)) yield DomainElement(j, sort)
+                        for(j <- 1 to scopes(sort)) yield DE(j, sort)
                     }
                     Di
                 })
@@ -57,16 +60,14 @@ class RangeFormulaTransformer extends ProblemTransformer {
                 // Take the product D_1 x ... x D_n
                 val argumentLists: Iterable[Seq[Term]] = new CartesianSeqProduct[Term](seqOfDomainSeqs)
                 // For each tuple of arguments, add a range constraint
-                argumentLists.foreach ( argumentList => {
-                    val possibleEqualities = for(rangeValue <- possibleRangeValues) yield {
-                        App(f.name, argumentList) === rangeValue
-                    }
+                for(argumentList <- argumentLists) {
+                    val app = App(f.name, argumentList)
                     if(quantifiedVarsBuffer.nonEmpty) {
-                        functionRangeConstraints += Forall(quantifiedVars, Or.smart(possibleEqualities))
+                        functionRangeConstraints += Forall(quantifiedVars, app equalsOneOf possibleRangeValues)
                     } else {
-                        functionRangeConstraints += Or.smart(possibleEqualities)
+                        functionRangeConstraints += app equalsOneOf possibleRangeValues
                     }
-                })
+                }
             }
             
             val newTheory = theory.withAxioms(constantRangeConstraints).withAxioms(functionRangeConstraints.toList)
@@ -75,4 +76,9 @@ class RangeFormulaTransformer extends ProblemTransformer {
     }
     
     override def name: String = "Range Formula Transformer"
+}
+
+object RangeFormulaTransformer {
+    def create(): RangeFormulaTransformer = new RangeFormulaTransformer(false)
+    def createWithDomElemsAsConstants(): RangeFormulaTransformer = new RangeFormulaTransformer(true)
 }
