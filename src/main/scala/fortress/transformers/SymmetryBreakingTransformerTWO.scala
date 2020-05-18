@@ -10,8 +10,11 @@ class SymmetryBreakingTransformerTWO(scopes: Map[Sort, Int]) extends TheoryTrans
         
     def apply(theory: Theory): Theory = {
         
+        // Contains all used domain elements in the theory
+        // This data structure is updated over time
         // Note this an immutable map of mutable sets
         val usedDomainElements: Map[Sort, mutable.Set[DomainElement]] = {
+            // Determine which domain elements have been used in the original theory
             val allUsedDomainElements: Set[DomainElement] = theory.axioms flatMap (_.domainElements)
             val mapTuples = for (sort <- theory.sorts if !sort.isBuiltin) yield {
                 val set = allUsedDomainElements filter (_.sort == sort)
@@ -21,15 +24,19 @@ class SymmetryBreakingTransformerTWO(scopes: Map[Sort, Int]) extends TheoryTrans
             mapTuples.toMap
         }
         
+        // Marks domain elements as used
         def markUsed(domainElements: Iterable[DomainElement]): Unit = {
             for(de <- domainElements) {
                 usedDomainElements(de.sort) += de
             }
         }
         
+        // Determines whether this sort has any unused domain elements
         def stillUnusedDomainElements(sort: Sort): Boolean = usedDomainElements(sort).size < scopes(sort)
+        // Determines how many unused domain elements this sort has
         def numUnusedDomainElements(sort: Sort): Int = scopes(sort) - usedDomainElements(sort).size
         
+        // Accumulates the symmetry breaking constraints
         val constraints = new mutable.ListBuffer[Term]
         
         // Symmetry break on constants first
@@ -48,17 +55,25 @@ class SymmetryBreakingTransformerTWO(scopes: Map[Sort, Int]) extends TheoryTrans
             markUsed(constantImplications flatMap (_.domainElements))
         }
         
-        // Functions first
+        // After constants, do all of the functions
+        
+        // Comparison operation for functions to determine which order
+        // to perform symmetry breaking
         def fnLessThan(f1: FuncDecl, f2: FuncDecl): Boolean = {
             // Lowest arity, then largest # of unused result values
             if (f1.arity < f2.arity) true
             else if (f1.arity > f2.arity) false
             else (numUnusedDomainElements(f1.resultSort)
                 > numUnusedDomainElements(f2.resultSort))
-        } 
+        }
         
-        val functions = theory.functionDeclarations.filter(! _.resultSort.isBuiltin)
+        // Only perform symmetry breaking on functions that don't consume or produce
+        // builtin types (this also filters out predicates)
+        val functions = theory.functionDeclarations filter { fn => {
+            (!fn.resultSort.isBuiltin) && (fn.argSorts forall (!_.isBuiltin))
+        }}
         
+        // Apply symmetry breaking to the functions
         for(f <- functions) {
             val resultSort = f.resultSort
             val scope = scopes(resultSort)
@@ -86,14 +101,22 @@ class SymmetryBreakingTransformerTWO(scopes: Map[Sort, Int]) extends TheoryTrans
             }
         }
          
-        // Predicates next
+        // After functions, do the predicates
+        
+        // Comparison operation for functions to determine which order
+        // to perform symmetry breaking
         def predLessThan(P1: FuncDecl, P2: FuncDecl): Boolean = {
             // Lowest arity
             P1.arity < P2.arity
         }
         
-        val predicates = theory.functionDeclarations.filter(_.resultSort == BoolSort)
+        // Filter function declarations to take only the predicates
+        // Additionally, do not take predicates that operate on builtin sorts 
+        val predicates = theory.functionDeclarations.filter { fn => {
+            (fn.resultSort == BoolSort) && (fn.argSorts forall (!_.isBuiltin))
+        }}
         
+        // Apply symmetry breaking to the predicates
         for(P <- predicates) {
             if(P.argSorts forall stillUnusedDomainElements) {
                 val usedValues: Map[Sort, IndexedSeq[DomainElement]] = usedDomainElements map {
