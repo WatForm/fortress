@@ -118,7 +118,7 @@ class SymmetryBreakingTransformerTWO(scopes: Map[Sort, Int]) extends TheoryTrans
         
         // Apply symmetry breaking to the predicates
         for(P <- predicates) {
-            if(P.argSorts forall stillUnusedDomainElements) {
+            if(P.argSorts forall (numUnusedDomainElements(_) >= 2)) { // Need at least 2 unused values to do any symmetry breaking
                 val usedValues: Map[Sort, IndexedSeq[DomainElement]] = usedDomainElements map {
                     case (sort, setOfVals) => (sort, setOfVals.toIndexedSeq)
                 }

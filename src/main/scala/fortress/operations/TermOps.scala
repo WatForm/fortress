@@ -19,8 +19,8 @@ case class TermOps(term: Term) {
     /** Does not account for variable capture.
       * If in doubt do not use this function.
       */
-    def recklessSubstitute(substitutions: Map[Var, Term]): Term =
-        RecklessSubstituter(substitutions, term)
+    def fastSubstitute(substitutions: Map[Var, Term]): Term =
+        FastSubstituter(substitutions, term)
     
     def recklessUnivInstantiate(sortInstantiations: Map[Sort, Seq[Term]]): Term =
         RecklessUnivInstantiator(term, sortInstantiations)
