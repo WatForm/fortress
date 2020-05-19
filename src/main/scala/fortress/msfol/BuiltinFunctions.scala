@@ -20,6 +20,8 @@ case object IntPlus extends BuiltinFunction {
         case _ => None
     }
 }
+
+// Unary minus
 case object IntNeg extends BuiltinFunction {
     override def resultSortFromArgSorts(sorts: Seq[Sort]): Option[Sort] = sorts match {
         case Seq(IntSort) => Some(IntSort)

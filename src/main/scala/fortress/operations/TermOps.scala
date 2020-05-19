@@ -61,6 +61,14 @@ case class TermOps(term: Term) {
         SmtlibConverter.write(term, writer)
         writer.toString
     }
+    
+    def smtlibAssertion: String = {
+        val writer = new java.io.StringWriter
+        writer.write("(assert ")
+        SmtlibConverter.write(term, writer)
+        writer.write(')')
+        writer.toString
+    }
 }
 
 object TermOps {

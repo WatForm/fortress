@@ -17,9 +17,9 @@ import com.microsoft.z3.{
 }
 
 
-class Z3ApiInterpretation(model: Z3Model, sig: Signature, converter: TheoryToZ3, context: Z3Context, sortMappings: Map[Z3Expr, DomainElement]) extends Interpretation {
+class Z3ApiInterpretation(model: Z3Model, sig: Signature, converter: TheoryToZ3_StringParse, context: Z3Context, sortMappings: Map[Z3Expr, DomainElement]) extends Interpretation {
 
-    def this(model: Z3Model, sig: Signature, converter: TheoryToZ3, context: Z3Context) = this(model, sig, converter, context, (
+    def this(model: Z3Model, sig: Signature, converter: TheoryToZ3_StringParse, context: Z3Context) = this(model, sig, converter, context, (
         for {
             z3Decl <- model.getConstDecls
             constantName = z3Decl.getName.toString if constantName.charAt(0) == '@'
