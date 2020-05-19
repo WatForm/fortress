@@ -30,7 +30,7 @@ class DomainInstantiationTransformer private (useConstForDomElem: Boolean) exten
             }
         
             val newAxioms = theory.axioms.map(
-                axiom => axiom.recklessUnivInstantiate(domainElemsMap)
+                axiom => axiom.univInstantiate(domainElemsMap)
             )
         
             val newTheory = Theory.mkTheoryWithSignature(theory.signature).withAxioms(newAxioms)

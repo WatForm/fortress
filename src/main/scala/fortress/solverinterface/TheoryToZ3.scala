@@ -76,19 +76,11 @@ class TheoryToZ3(theory: Theory) {
         // e.g. in (forall v: A, forall v : B, p(v)), the context will look like
         // List[v: B, v: A], and the term will fail to typecheck if p : A -> Bool
         // since the use of v will have type B
-        for(av <- ctxStack) {
-            if(av.name == variable.name) {
-                return Some(av.sort)
-            }
-        }
-        
+        ctxStack.find(_.name == variable.name)
         // If it is not in the stack, check if is in the declared constants
-        val constMaybe: Option[AnnotatedVar] = theory.signature.queryConstant(variable)
-        if(constMaybe.nonEmpty) {
-            Some(constMaybe.get.sort)
-        } else {
-            None
-        }
+            .orElse(theory.signature.queryConstant(variable))
+            // Gives Option[AnnotatedVar] so far. Take .sort
+            .map(_.sort)
     }
     
     def recur(term: Term, ctxStack: List[AnnotatedVar]): Z3Expr = term match {

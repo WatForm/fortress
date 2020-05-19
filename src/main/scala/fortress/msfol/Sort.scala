@@ -5,7 +5,6 @@ import fortress.util.Errors
 /** Represents a sort. */
 sealed abstract class Sort {
     def name: String
-    def getName: String = name
     def isBuiltin: Boolean
     override def toString: String = name
 }

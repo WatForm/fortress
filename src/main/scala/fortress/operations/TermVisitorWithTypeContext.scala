@@ -12,26 +12,18 @@ abstract class TermVisitorWithTypeContext[T](protected var signature: Signature)
     // }
     
     // Looks up variable sort in context first, then tries constants
-    protected def lookupSort(variable: Var): java.util.Optional[Sort] = {
+    protected def lookupSort(variable: Var): Option[Sort] = {
         // Check if it is in the Context
         // Note that the context is used as a stack, so we just need to iterate
         // from front to back and not have to worry about shadowed variables.
         // e.g. in (forall v: A, forall v : B, p(v)), the context will look like
         // List[v: B, v: A], and the term will fail to typecheck if p : A -> Bool
         // since the use of v will have type B
-        for(av <- typeContextStack) {
-            if(av.name == variable.name) {
-                return java.util.Optional.of(av.sort)
-            }
-        }
-        
+        typeContextStack.find(_.name == variable.name)
         // If it is not in the stack, check if is in the declared constants
-        val constMaybe: Option[AnnotatedVar] = signature.queryConstant(variable)
-        if(constMaybe.nonEmpty) {
-            java.util.Optional.of(constMaybe.get.sort)
-        } else {
-            java.util.Optional.empty()
-        }
+            .orElse(signature.queryConstant(variable))
+            // Gives Option[AnnotatedVar] so far. Take .sort
+            .map(_.sort)
     }
     
     protected def visitForallInner(forall: Forall): T
