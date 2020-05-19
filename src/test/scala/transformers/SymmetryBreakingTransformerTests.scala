@@ -25,30 +25,31 @@ class SymmetryBreakingTransformerTests extends FunSuite with Matchers {
     def DE(index: Int, sort: Sort) = DomainElement(index, sort)
     
     test("Pure, basic constants") {
-        val theory = Theory.empty
-            .withSorts(A, B)
-            .withConstants(a1 of A, a2 of A, a3 of A)
-            .withConstants(b1 of B, b2 of B, b3 of B, b4 of B)
-        
-        val e_a1 = a1 === DE(1, A)
-        val e_a2 = Or(a2 === DE(1, A), a2 === DE(2, A))
-        val e_a3 = Or(a3 === DE(1, A), a3 === DE(2, A), a3 === DE(3, A))
-        val e_b1 = b1 === DE(1, B)
-        val e_b2 = Or(b2 === DE(1, B), b2 === DE(2, B))
-        
-        val i1 = (a2 === DE(2, A)) ==> (a1 === DE(1, A))
-        val i2 = (a3 === DE(2, A)) ==> Or(a1 === DE(1, A), a2 === DE(1, A))
-        val i3 = (a3 === DE(3, A)) ==> Or(a1 === DE(2, A), a2 === DE(2, A))
-        val i4 = (b2 === DE(2, B)) ==> (b1 === DE(1, B))
-        
-        val expected = theory.withAxioms(Seq(e_a1, e_a2, e_a3, e_b1, e_b2))
-            .withAxioms(Seq(i1, i2, i3, i4))
-        
-        val scopes = Map(A -> 4, B -> 2)
-        val transformerONE = new SymmetryBreakingTransformerONE(scopes)
-        val transformerTWO = new SymmetryBreakingTransformerONE(scopes)
-        
-        transformerTWO(theory) should be (expected)
+        pending
+        // val theory = Theory.empty
+        //     .withSorts(A, B)
+        //     .withConstants(a1 of A, a2 of A, a3 of A)
+        //     .withConstants(b1 of B, b2 of B, b3 of B, b4 of B)
+        // 
+        // val e_a1 = a1 === DE(1, A)
+        // val e_a2 = Or(a2 === DE(1, A), a2 === DE(2, A))
+        // val e_a3 = Or(a3 === DE(1, A), a3 === DE(2, A), a3 === DE(3, A))
+        // val e_b1 = b1 === DE(1, B)
+        // val e_b2 = Or(b2 === DE(1, B), b2 === DE(2, B))
+        // 
+        // val i1 = (a2 === DE(2, A)) ==> (a1 === DE(1, A))
+        // val i2 = (a3 === DE(2, A)) ==> Or(a1 === DE(1, A), a2 === DE(1, A))
+        // val i3 = (a3 === DE(3, A)) ==> Or(a1 === DE(2, A), a2 === DE(2, A))
+        // val i4 = (b2 === DE(2, B)) ==> (b1 === DE(1, B))
+        // 
+        // val expected = theory.withAxioms(Seq(e_a1, e_a2, e_a3, e_b1, e_b2))
+        //     .withAxioms(Seq(i1, i2, i3, i4))
+        // 
+        // val scopes = Map(A -> 4, B -> 2)
+        // val transformerONE = new SymmetryBreakingTransformerONE(scopes)
+        // val transformerTWO = new SymmetryBreakingTransformerONE(scopes)
+        // 
+        // transformerTWO(theory) should be (expected)
     }
     
 }

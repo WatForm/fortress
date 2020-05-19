@@ -10,6 +10,6 @@ import fortress.solverinterface._
 
 class FortressTWO extends BaseFortress {
     override def symmetryBreakingTransformers(): Seq[ProblemTransformer] = Seq(
-        new SymmetryBreakingTransformerTWO(analysisScopes)
+        new SymmetryBreakingTransformerTWO
     )
 }
