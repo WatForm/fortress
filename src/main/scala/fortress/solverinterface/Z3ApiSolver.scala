@@ -20,10 +20,10 @@ class Z3ApiSolver extends SolverTemplate {
     private var lastModel: Option[Z3Model] = None
     private var context: Option[Z3Context] = None
     private var solver: Option[Z3Solver] = None
-    private var converter: Option[TheoryToZ3Java] = None
+    private var converter: Option[TheoryToZ3] = None
 
     override protected def convertTheory(theory: Theory, log: java.io.Writer): Unit = {
-        converter = Some(new TheoryToZ3Java(theory))
+        converter = Some(new TheoryToZ3(theory))
         val pair: (Z3Context, Z3Solver) = converter.get.convert
         context = Some(pair._1)
         solver = Some(pair._2)

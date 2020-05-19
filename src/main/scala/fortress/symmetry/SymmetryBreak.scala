@@ -175,6 +175,8 @@ object Symmetry {
             }
         }
         
+        Errors.precondition(P.argSorts forall (unusedValues(_).size >= 2))
+        
         val r = (unusedValues.values map (_.size)).min // Smallest number of unused values
         
         // Generate lists of arguments in the order we will use them for symmetry breaking

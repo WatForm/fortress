@@ -14,7 +14,7 @@ import java.util.ArrayList;
 import java.io.*;
 import fortress.util.Errors;
 
-public class RecklessSubstitutionTest {
+public class FastSubstitutionTest {
     
     Sort A = Sort.mkSortConst("A");
     Sort B = Sort.mkSortConst("B");
@@ -36,7 +36,7 @@ public class RecklessSubstitutionTest {
     public void basicSubstitution() {
         Term t = Term.mkImp(p, Term.mkEq(x, Term.mkApp("f", y)));
         Term expected = Term.mkImp(p, Term.mkEq(Term.mkApp("h", z), Term.mkApp("f", y)));
-        assertEquals(expected, t.recklessSubstituteJava(Map.of(x, Term.mkApp("h", z))));
+        assertEquals(expected, t.fastSubstituteJava(Map.of(x, Term.mkApp("h", z))));
     }
     
     @Test
@@ -53,8 +53,8 @@ public class RecklessSubstitutionTest {
         Term e2 = Term.mkAnd(Term.mkEq(Term.mkBottom(), Term.mkBottom()),
                       Term.mkForall(x.of(A), Term.mkApp("R", x)));
                       
-        assertEquals(e1, t1.recklessSubstituteJava(Map.of(x, Term.mkBottom())));
-        assertEquals(e2, t2.recklessSubstituteJava(Map.of(x, Term.mkBottom())));
+        assertEquals(e1, t1.fastSubstituteJava(Map.of(x, Term.mkBottom())));
+        assertEquals(e2, t2.fastSubstituteJava(Map.of(x, Term.mkBottom())));
     }
     
     @Test

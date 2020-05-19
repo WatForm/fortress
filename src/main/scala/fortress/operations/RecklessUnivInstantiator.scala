@@ -37,33 +37,28 @@ object RecklessUnivInstantiator {
             // TODO does the order of quantifier instantiation matter? Here we do a bottom up approach
             
             val instantiatedBody: Term = instantiate(body)
-            val toConjunct = new scala.collection.mutable.ListBuffer[Term]
             // Forall x_1: A_1, x_2 : A_2, ... x_n: A_n
             // Where A_i is to be instantiated using the set S_i
             // Get the list [S_1, S_2, ..., S_n]
             // and the list [x_1, x_2, ..., x_n]
             val listOfSortSets = new scala.collection.mutable.ListBuffer[IndexedSeq[Term]]
-            annotatedVars.map(av => {
+            for(av <- annotatedVars) {
                 val sort = av.sort
                 listOfSortSets += sortInstantiations(sort).toIndexedSeq
-            })
-            val vars = annotatedVars.map(_.variable)
+            }
+            val vars = annotatedVars map (_.variable)
             
-            val cartesianProduct = new CartesianSeqProduct[Term](listOfSortSets.toIndexedSeq)
-            cartesianProduct.foreach((substitution: Seq[Term]) => {
+            val cartesianProduct = (new CartesianSeqProduct[Term](listOfSortSets.toIndexedSeq)).toSeq
+            val instantiatedVersions: Seq[Term] = cartesianProduct map { substitution: Seq[Term] => {
                 Errors.verify(substitution.size == vars.size)
                 
-                val varSubstitutions = scala.collection.mutable.Map[Var, Term]()
-                for(i <- 0 until vars.size) {
-                    varSubstitutions += (vars(i) -> substitution(i))
-                }
+                val varSubstitutions: Map[Var, Term] = (vars zip substitution).toMap
+
                 // NOTE because we are substituting with fresh variables, there
                 // should never be any variable capture or any other name issues
-                val bodyInstance = instantiatedBody.recklessSubstitute(varSubstitutions.toMap)
-                toConjunct += bodyInstance
-            })
-            if(toConjunct.size >= 2) AndList(toConjunct.toList)
-            else toConjunct.head
+                instantiatedBody.fastSubstitute(varSubstitutions.toMap)
+            }}
+            And.smart(instantiatedVersions)
         }
         
         instantiate(term)

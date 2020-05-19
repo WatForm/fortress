@@ -46,8 +46,8 @@ sealed abstract class Term {
     def substitute(toSub: Var, subWith: Term): Term =
             substitute(toSub, subWith, new IntSuffixNameGenerator(Set.empty[String], 0))
     
-    def recklessSubstituteJava(substitutions: java.util.Map[Var, Term]): Term =
-        RecklessSubstituter(substitutions.asScala.toMap, this)
+    def fastSubstituteJava(substitutions: java.util.Map[Var, Term]): Term =
+        FastSubstituter(substitutions.asScala.toMap, this)
     
     // Be aware if you chain this method together, you will get several nested AndLists
     def and(other: Term): Term = AndList(Seq(this, other))
