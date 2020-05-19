@@ -47,6 +47,7 @@ sealed abstract class Term {
     def or(other: Term): Term = OrList(Seq(this, other))
     def ==>(other: Term): Term = Implication(this, other)
     def ===(other: Term): Term = Eq(this, other)
+    def <==>(other: Term): Term = Iff(this, other)
 }
 
 sealed trait Value extends Term
