@@ -12,7 +12,7 @@ import fortress.operations.TermOps._
 sealed abstract class Term {
     def accept[T](visitor: TermVisitor[T]): T
     
-    def freeVarConstSymbolsJava: java.util.Set[Var] = RecursiveAccumulator.freeVariablesIn(this).asJava
+    def freeVarConstSymbolsJava: java.util.Set[Var] = this.freeVarConstSymbols.asJava
     
     def freeVarsJava(signature: Signature): java.util.Set[Var] = this.freeVars(signature).asJava
     
@@ -81,6 +81,14 @@ case class Var(name: String) extends Term with LeafTerm {
     /** Returns an AnnotatedVar that represents this variable annotated with
       * with a sort. */
     def of(sort: Sort) = AnnotatedVar(this, sort)
+    
+    def asDomainElement: Option[DomainElement] = {
+        if(name.charAt(0) == '@') {
+            val ints = Set('0', '1', '2', '3', '4', '5', '6', '7', '8', '9')
+            val (indexStr, sortStr) = name.tail.partition(ints contains _)
+            Some(DomainElement(indexStr.toInt, SortConst(sortStr)))
+        } else None
+    }
 }
 
 case class EnumValue(name: String) extends Term with LeafTerm with Value {
