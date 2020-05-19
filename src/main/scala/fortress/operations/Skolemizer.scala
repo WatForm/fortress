@@ -90,8 +90,8 @@ class Skolemizer(topLevelTerm: Term, signature: Signature, nameGen: NameGenerato
                     val argumentSorts = new scala.collection.mutable.ListBuffer[Sort]()
                     val arguments = new scala.collection.mutable.ListBuffer[Term]()
                     for(v <- freeVars) {
-                        val sortMaybe: java.util.Optional[Sort] = lookupSort(v)
-                        Errors.assertion(sortMaybe.isPresent, "Sort of variable " + v.name + " could not be found")
+                        val sortMaybe: Option[Sort] = lookupSort(v)
+                        Errors.assertion(sortMaybe.nonEmpty, "Sort of variable " + v.name + " could not be found")
                         val sort = sortMaybe.get
                         
                         argumentSorts += sort

@@ -11,6 +11,14 @@ case class TermOps(term: Term) {
       */ 
     def freeVarConstSymbols: Set[Var] = RecursiveAccumulator.freeVariablesIn(term)
     
+    /** Returns the set of free variables of this term with respect
+      * to the given signature. Constants of the signature are not included.
+      */ 
+    def freeVars(signature: Signature): Set[Var] = {
+        val constants = signature.constants.map(_.variable)
+        RecursiveAccumulator.freeVariablesIn(term) diff constants
+    }
+    
     /** Returns the negation normal form version of this term.
       * The term must be sanitized to call this method.
       */
@@ -22,8 +30,8 @@ case class TermOps(term: Term) {
     def fastSubstitute(substitutions: Map[Var, Term]): Term =
         FastSubstituter(substitutions, term)
     
-    def recklessUnivInstantiate(sortInstantiations: Map[Sort, Seq[Term]]): Term =
-        RecklessUnivInstantiator(term, sortInstantiations)
+    def univInstantiate(sortInstantiations: Map[Sort, Seq[Term]]): Term =
+        UnivInstantiator(term, sortInstantiations)
     
     def simplify: Term = TermConverter.simplify(term)
     

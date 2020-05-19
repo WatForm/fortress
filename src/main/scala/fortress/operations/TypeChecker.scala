@@ -39,7 +39,7 @@ class TypeChecker(signature: Signature) extends TermVisitorWithTypeContext[TypeC
         }
         
         val sortMaybe = lookupSort(variable)
-        if(!sortMaybe.isPresent()) {
+        if(sortMaybe.isEmpty) {
             throw new TypeCheckException.UndeterminedSort("Could not determine sort of variable " + variable.name)
         }
         

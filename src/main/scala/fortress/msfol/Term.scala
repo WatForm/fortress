@@ -14,15 +14,7 @@ sealed abstract class Term {
     
     def freeVarConstSymbolsJava: java.util.Set[Var] = RecursiveAccumulator.freeVariablesIn(this).asJava
     
-    /** Returns the set of free variables of this term with respect
-      * to the given signature. Constants of the signature are not included.
-      */ 
-    def freeVars(signature: Signature): Set[Var] = {
-        val constants = signature.constants.map(_.variable)
-        RecursiveAccumulator.freeVariablesIn(this) diff constants
-    }
-    
-    def freeVarsJava(signature: Signature): java.util.Set[Var] = freeVars(signature).asJava
+    def freeVarsJava(signature: Signature): java.util.Set[Var] = this.freeVars(signature).asJava
     
     /** Given a signature, typechecks the term with respect to the signature.
       * Returns a TypeCheckResult containing the sort of the term, AND a new term

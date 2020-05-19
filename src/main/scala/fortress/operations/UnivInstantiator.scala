@@ -5,10 +5,15 @@ import fortress.data.CartesianSeqProduct
 import fortress.util.Errors
 import fortress.operations.TermOps._
 
-// TODO this is probably an efficiency bottleneck, and can be made much faster
-// by not directly substituting
+// TODO can we make this faster?
 
-object RecklessUnivInstantiator {
+/* The instantiator will NOT avoid variable capture; it is the responsibility
+* of the caller to make sure the instantiation terms do not contain free
+* variables that could be captured.
+* For example, it would be okay to instantiate with domain elements or fresh
+* constants that do not share the same name as any quantified variable.
+*/
+object UnivInstantiator {
     
     def apply(term: Term, sortInstantiations: Map[Sort, Seq[Term]]): Term = {
         def instantiate(t: Term): Term = t match {
