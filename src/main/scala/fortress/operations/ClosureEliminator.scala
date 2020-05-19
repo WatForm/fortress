@@ -68,7 +68,7 @@ class ClosureEliminator(topLevelTerm: Term, signature: Signature, scopes: Map[So
             def queryFunction(name: String): Boolean = signature.hasFunctionWithName(name) || closureFunctions.exists(f => f.name == name)
             if (!queryFunction(closureName)) {
                 val rel = signature.queryUninterpretedFunction(relationName).get
-                var argSorts = rel.getArgSorts
+                var argSorts = rel.argSorts.asJava
                 val sort = argSorts.get(idx)
                 closureFunctions += FuncDecl.mkFuncDecl(closureName, argSorts, Sort.Bool)
                 val vars = List.tabulate(argSorts.size-2)(_ => Var(nameGen.freshName("bv")))
@@ -116,7 +116,7 @@ class ClosureEliminator(topLevelTerm: Term, signature: Signature, scopes: Map[So
             def queryFunction(name: String): Boolean = signature.hasFunctionWithName(name) || closureFunctions.exists(f => f.name == name)
             if (!queryFunction(reflexiveClosureName)) {
                 val rel = signature.queryUninterpretedFunction(relationName).get
-                var argSorts = rel.getArgSorts
+                var argSorts = rel.argSorts.asJava
                 val sort = argSorts.get(idx)
                 closureFunctions += FuncDecl.mkFuncDecl(reflexiveClosureName, argSorts, Sort.Bool)
                 val vars = List.tabulate(argSorts.size-2)(_ => Var(nameGen.freshName("bv")))
