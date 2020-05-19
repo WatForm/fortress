@@ -83,11 +83,14 @@ class SymmetryBreakingTransformerTWO(scopes: Map[Sort, Int]) extends TheoryTrans
                 if (f.isDomainRangeDistinct) {
                     // DRD scheme
                     val fEqualities = Symmetry.drdFunctionEqualities(f, scopes, usedVals)
+                    val fImplications = Symmetry.drdFunctionImplications(f, scopes, usedVals)
                     
                     // Add to constraints
                     constraints ++= fEqualities
+                    constraints ++= fImplications
                     // Add to used values
                     markUsed(fEqualities flatMap (_.domainElements))
+                    markUsed(fImplications flatMap (_.domainElements))
                     
                 } else {
                     // Extended CS scheme
