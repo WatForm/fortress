@@ -76,7 +76,6 @@ class VerifyInterpretationTests extends FunSuite with Matchers {
                         assertTrue(run(And(true1, true2, true3)))
                         assertTrue(run(Or(true1, false1, false2, false3)))
                         assertFalse(run(And(true1, true2, false1, false2)))
-                        assertFalse(run(Or(false3)))
                 }
 
                 test("boolean implication/iff/eq"){
