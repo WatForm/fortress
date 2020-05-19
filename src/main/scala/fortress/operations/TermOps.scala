@@ -33,7 +33,7 @@ case class TermOps(term: Term) {
     def univInstantiate(sortInstantiations: Map[Sort, Seq[Term]]): Term =
         UnivInstantiator(term, sortInstantiations)
     
-    def simplify: Term = TermConverter.simplify(term)
+    def simplify: Term = Simplifier.simplify(term)
     
     def eliminateDomainElements: Term = DomainElementEliminator(term)
     
