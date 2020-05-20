@@ -41,7 +41,7 @@ class RangeFormulaTests extends FunSuite with Matchers {
         
         val scopes = Map(A -> 2, B -> 2)
         val transformer = RangeFormulaTransformer.create()
-        transformer(Problem(theory, scopes)) should be (Problem(expected, Map.empty))
+        transformer(Problem(theory, scopes)) should be (Problem(expected, scopes))
     }
     
     test("function arity 1") {
@@ -78,7 +78,7 @@ class RangeFormulaTests extends FunSuite with Matchers {
         
         val scopes = Map(A -> 2, B -> 3)
         val transformer = RangeFormulaTransformer.create()
-        transformer(Problem(theory, scopes)) should be (Problem(expected, Map.empty))
+        transformer(Problem(theory, scopes)) should be (Problem(expected, scopes))
     }
     
     test("function arity 2") {
@@ -110,7 +110,7 @@ class RangeFormulaTests extends FunSuite with Matchers {
         
         val scopes = Map(A -> 2, B -> 3, C -> 2)
         val transformer = RangeFormulaTransformer.create()
-        transformer(Problem(theory, scopes)) should be (Problem(expected, Map.empty))
+        transformer(Problem(theory, scopes)) should be (Problem(expected, scopes))
     }
     
     // TODO replace this with property check?
@@ -134,7 +134,7 @@ class RangeFormulaTests extends FunSuite with Matchers {
         
         val scopes = Map(A -> 5, B -> 7, C -> 2)
         val transformer = RangeFormulaTransformer.create()
-        transformer(Problem(theory, scopes)) should be (Problem(expected, Map.empty))
+        transformer(Problem(theory, scopes)) should be (Problem(expected, scopes))
     }
     
     test("boolean constants/predicates not restricted") {
@@ -152,7 +152,7 @@ class RangeFormulaTests extends FunSuite with Matchers {
         
         val scopes = Map(A -> 2)
         val transformer = RangeFormulaTransformer.create()
-        transformer(Problem(theory, scopes)) should be (Problem(expected, Map.empty))
+        transformer(Problem(theory, scopes)) should be (Problem(expected, scopes))
     }
     
     test("scope of one") {
@@ -173,7 +173,7 @@ class RangeFormulaTests extends FunSuite with Matchers {
         
         val scopes = Map(A -> 1, B -> 1)
         val transformer = RangeFormulaTransformer.create()
-        transformer(Problem(theory, scopes)) should be (Problem(expected, Map.empty))
+        transformer(Problem(theory, scopes)) should be (Problem(expected, scopes))
     }
     
     test("builtin types universally quantified") {
@@ -203,6 +203,6 @@ class RangeFormulaTests extends FunSuite with Matchers {
         
         val scopes = Map(A -> 2)
         val transformer = RangeFormulaTransformer.create()
-        transformer(Problem(theory, scopes)) should be (Problem(expected, Map.empty))
+        transformer(Problem(theory, scopes)) should be (Problem(expected, scopes))
     }
 }
