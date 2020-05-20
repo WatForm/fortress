@@ -30,6 +30,21 @@ case class TermOps(term: Term) {
     def fastSubstitute(substitutions: Map[Var, Term]): Term =
         FastSubstituter(substitutions, term)
     
+    def substitute(toSub: Var, subWith: Term, nameGenerator: NameGenerator): Term =
+        Substituter(toSub, subWith, term, nameGenerator)
+    
+    def substitute(toSub: Var, subWith: Term): Term =
+                substitute(toSub, subWith, new IntSuffixNameGenerator(Set.empty[String], 0))
+    
+    /** Returns a term that is alpha-equivalent to this one but whose quantified
+      * variables are instead De Bruijn indices. Note that these indices are prefixed
+      * by an underscore to make it clearer (e.g. the first quantified variable is "_1")
+      */
+    def deBruijn: Term = new DeBruijnConverter().convert(term)
+    
+    /** Returns true iff the other term is alpha-equivalent to this term. */
+    def alphaEquivalent(other: Term): Boolean = deBruijn == TermOps(other).deBruijn
+    
     def univInstantiate(sortInstantiations: Map[Sort, Seq[Term]]): Term =
         UnivInstantiator(term, sortInstantiations)
         

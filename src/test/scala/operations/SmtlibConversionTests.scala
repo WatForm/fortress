@@ -4,7 +4,6 @@ import org.scalatest.junit.JUnitRunner
 
 import fortress.msfol._
 import fortress.operations.TermOps._
-import fortress.symmetry._ 
 
 @RunWith(classOf[JUnitRunner])
 class SmtlibConversionTests extends FunSuite with Matchers {

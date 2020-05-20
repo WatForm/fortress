@@ -14,32 +14,12 @@ sealed abstract class Term {
     
     def freeVarConstSymbolsJava: java.util.Set[Var] = this.freeVarConstSymbols.asJava
     
-    def freeVarsJava(signature: Signature): java.util.Set[Var] = this.freeVars(signature).asJava
-    
     /** Given a signature, typechecks the term with respect to the signature.
       * Returns a TypeCheckResult containing the sort of the term, AND a new term
       * that is equal to the old term but with instances of Eq replaced with Iff
       * when comparing Bool sorts. Such a term is called "sanitized".
       */
     def typeCheck(signature: Signature): TypeCheckResult = (new TypeChecker(signature)).visit(this)
-    
-    /** Returns a term that is alpha-equivalent to this one but whose quantified
-      * variables are instead De Bruijn indices. Note that these indices are prefixed
-      * by an underscore to make it clearer (e.g. the first quantified variable is "_1")
-      */
-    def deBruijn: Term = new DeBruijnConverter().convert(this)
-    
-    /** Returns true iff the other term is alpha-equivalen to this term. */
-    def alphaEquivalent(other: Term): Boolean = this.deBruijn == other.deBruijn
-    
-    def substitute(toSub: Var, subWith: Term, nameGenerator: NameGenerator): Term =
-        Substituter(toSub, subWith, this, nameGenerator)
-    
-    def substitute(toSub: Var, subWith: Term): Term =
-            substitute(toSub, subWith, new IntSuffixNameGenerator(Set.empty[String], 0))
-    
-    def fastSubstituteJava(substitutions: java.util.Map[Var, Term]): Term =
-        FastSubstituter(substitutions.asScala.toMap, this)
     
     // Be aware if you chain this method together, you will get several nested AndLists
     def and(other: Term): Term = AndList(Seq(this, other))
