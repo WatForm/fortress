@@ -85,5 +85,19 @@ Such problems fall under the fragment of first-order logic called the logic of e
 In SMT literature, this logic is called the logic of quantifier-free uninterpreted functions (QF_UF).
 SMT solvers are decision procedures for such problems, and therefore so too is Fortress.
 
-
 ## Pipeline Optimizations
+
+## Performance Notes
+When making changes to Fortress it is important that the impact on performance is empirically tested.
+Small changes can have significant impacts on performance.
+This is due both to the large formula trees that Fortress generates, as well as the inherent unpredictability of the external SMT solver.
+Some of the following results are unintuitive, but backed by empirical testing.
+
+#### Constructing Terms in the Z3 API is Slow
+For reasons not entirely clear to us, we found it significantly slower to construct expressions directly using the Z3 Java API than to simply convert them to SMTLIB2 strings and have the API parse them.
+Our best guess is that this is because the Z3 API performs some kind of typechecking when expressions are constructed, so recursively building terms bottom-up repeatedly invokes the typechecker at each expression construction, greatly slowing the process.
+
+#### Simplification Is Necessary
+Without the simplification step, Z3 takes a significantly longer time to run.
+Even though simplification takes extra time in Fortress, the net gain is well worth it.
+We initially assumed that Z3 would be able to simplify both faster and more aggressively than Fortress, but this is not the case for the problems we are providing it.
