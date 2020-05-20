@@ -32,6 +32,9 @@ case class TermOps(term: Term) {
     
     def univInstantiate(sortInstantiations: Map[Sort, Seq[Term]]): Term =
         UnivInstantiator(term, sortInstantiations)
+        
+    def univInstantiateAndSimplify(sortInstantiations: Map[Sort, Seq[Term]]): Term =
+        UnivInstantiatorSimplifier(term, sortInstantiations)
     
     def simplify: Term = Simplifier.simplify(term)
     
