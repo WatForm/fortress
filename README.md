@@ -76,3 +76,9 @@ Check out the `examples/` directory for some examples of this.
 5. When running, ensure that the `libz3java.dylib` or `libz3java.so` file from this archive (usually in the z3 directory) is in your `java.library.path`.
     * For example, if `libz3java.dylib` is in the `libs` directory, you can add `-Djava.library.path="libs/"` to your call to `java`.
     * If this is not done correctly, a `java.lang.UnsatisfiedLinkError` may be raised at runtime.
+    
+## Troubleshooting
+### General
+If the gradle build is not working properly ensure that your `JAVA_HOME` environment variable is correctly set (to the folder where the jdk that you are using is installed).
+### Linux 
+If you have double checked that you have correctly set the `-Djava.library.path` flag and a `java.lang.UnsatisfiedLinkError` is still being thrown, you can try copying the libz3java.so and libz3.so files to the /usr/lib directory and omitting the `-Djava.library.path` flag. It may also be useful to build Z3 from source following the instructions on the [Z3 Repository](https://github.com/Z3Prover/z3#building-z3-using-make-and-gccclang) using the `--java` command line flag with `mk_make.py`.
