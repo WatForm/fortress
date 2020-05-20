@@ -25,6 +25,7 @@ unzip -oj libs/fortress-2.0.zip -d libs/
 ## Compiling and Running Examples
 Change to the `examples/` directory before running the following code.
 Make sure the `libs/` directory has been setup correctly.
+If you are on Windows use a semicolon to seperate paths in the -cp flag instead of a colon ie. `java -cp ".;libs/*" ...`
 
 ### Pigeonhole
 Run the following code to compile and run the Pigeonhole example.
