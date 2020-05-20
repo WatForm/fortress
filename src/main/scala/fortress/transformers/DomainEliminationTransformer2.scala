@@ -42,5 +42,5 @@ class DomainEliminationTransformer2 extends ProblemTransformer {
         }
     }
     
-    override def name: String = "Domain Elimination Transformer"
+    override def name: String = "Domain Elimination Transformer2"
 }

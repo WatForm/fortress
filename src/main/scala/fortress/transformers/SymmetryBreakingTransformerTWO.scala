@@ -6,6 +6,12 @@ import scala.collection.mutable
 import fortress.symmetry._
 import fortress.operations.TermOps._
 
+/** Applies symmetry breaking to the given Problem. The input Problem is allowed
+* to have domain elements in its formulas. The output formula will have domain
+* elements in its formulas. The resulting Problem has the same scopes, contains
+* the original axioms plus additional symmetry breaking axioms, and is
+* equisatisfiable to the original.
+*/
 class SymmetryBreakingTransformerTWO extends ProblemTransformer {
         
     def apply(problem: Problem): Problem = problem match {

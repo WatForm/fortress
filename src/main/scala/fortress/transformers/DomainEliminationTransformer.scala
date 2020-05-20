@@ -7,8 +7,8 @@ import fortress.msfol._
 import fortress.util.Errors
 import fortress.operations.TermOps._
 
-/** Replaces occurences of domain elements in axioms with distinct constants 
-  * that simulate them.
+/** Replaces occurences of domain elements in axioms with constants 
+  * that simulate them, asserting that they are distinct.
   * Leaves all other aspects of the theory unchanged.
   */
 class DomainEliminationTransformer extends TheoryTransformer {
