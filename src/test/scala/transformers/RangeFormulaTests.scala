@@ -5,8 +5,6 @@ import org.scalatest.junit.JUnitRunner
 import fortress.msfol._
 import fortress.transformers._
 
-import scala.collection.immutable.Seq
-
 @RunWith(classOf[JUnitRunner])
 class RangeFormulaTests extends FunSuite with Matchers {
     
