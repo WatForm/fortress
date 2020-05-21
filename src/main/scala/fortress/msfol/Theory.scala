@@ -7,8 +7,8 @@ import fortress.operations.TypeCheckResult
 import scala.language.implicitConversions
 import scala.jdk.CollectionConverters._
 import scala.annotation.varargs
-import scala.collection.immutable.Seq
 import fortress.operations.InterpretationVerifier
+import fortress.operations.TermOps._
 
 // TODO Theory needs to check for inconsistencies when adding functions as well.
 // e.g. If some term already uses "f" as a variable and we add "f : A -> B".
@@ -17,7 +17,7 @@ import fortress.operations.InterpretationVerifier
 // is through the empty and withXYZ methods 
 case class Theory private (signature: Signature, axioms: Set[Term]) {
     
-    /** Returns a theory consisting of the current theory but with the given
+    /** Returns a theory consisti`ng of the current theory but with the given
       * axiom added. Note that this does not modify the current Theory object,
       * but rather just returns a new Theory object. Throws an exception
       * if the result fails to typecheck with respect to this theory's signature.
@@ -118,9 +118,6 @@ case class Theory private (signature: Signature, axioms: Set[Term]) {
         // TODO consistency checking
         Theory(signature.withEnumSort(t, values), axioms)
     }
-
-    def verifyInterpretation(interpretation: Interpretation): Boolean =
-        new InterpretationVerifier(this).verifyInterpretation(interpretation)
     
     // End of published interface
     
@@ -129,8 +126,6 @@ case class Theory private (signature: Signature, axioms: Set[Term]) {
     def functionDeclarations: Set[FuncDecl] = signature.functionDeclarations
     def constants: Set[AnnotatedVar] = signature.constants
     def enumConstants: Map[Sort, Seq[EnumValue]] = signature.enumConstants
-    
-    def withoutAxioms: Theory = Theory(signature, Set.empty)
     
     private def sanitizeAxiom(axiom: Term): Term = {
         // Check axiom typechecks as bool

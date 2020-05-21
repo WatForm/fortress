@@ -4,7 +4,14 @@ import fortress.msfol._
 import fortress.data._
 import scala.language.implicitConversions
 
-case class TermOps(term: Term) {
+case class TermOps private (term: Term) {
+    /** Given a signature, typechecks the term with respect to the signature.
+      * Returns a TypeCheckResult containing the sort of the term, AND a new term
+      * that is equal to the old term but with instances of Eq replaced with Iff
+      * when comparing Bool sorts. Such a term is called "sanitized".
+      */
+    def typeCheck(signature: Signature): TypeCheckResult = (new TypeChecker(signature)).visit(term)
+    
     /** Returns the set of Vars that appear unquantified in this term.
       * This only looks at syntax without respect to a given signature,
       * so it could also include what are intended to be constants.

@@ -4,6 +4,7 @@ import org.scalatest.junit.JUnitRunner
 
 import fortress.msfol._
 import fortress.transformers._
+import fortress.operations.TermOps._
 
 @RunWith(classOf[JUnitRunner])
 class TypeCheckSanitizeTest extends FunSuite with Matchers {

@@ -14,13 +14,6 @@ sealed abstract class Term {
     
     def freeVarConstSymbolsJava: java.util.Set[Var] = this.freeVarConstSymbols.asJava
     
-    /** Given a signature, typechecks the term with respect to the signature.
-      * Returns a TypeCheckResult containing the sort of the term, AND a new term
-      * that is equal to the old term but with instances of Eq replaced with Iff
-      * when comparing Bool sorts. Such a term is called "sanitized".
-      */
-    def typeCheck(signature: Signature): TypeCheckResult = (new TypeChecker(signature)).visit(this)
-    
     // Be aware if you chain this method together, you will get several nested AndLists
     def and(other: Term): Term = AndList(Seq(this, other))
     // Be aware if you chain this method together, you will get several nested OrLists
