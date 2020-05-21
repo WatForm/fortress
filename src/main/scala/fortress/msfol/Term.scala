@@ -50,7 +50,7 @@ case object Bottom extends Term with LeafTerm with Value {
   * Whether it is treated as a variable or constant depends on the context
   * in which it is used (e.g. a signature or quantifier binding).
   */
-case class Var(name: String) extends Term with LeafTerm {
+case class Var private(name: String) extends Term with LeafTerm {
     Errors.precondition(name.length > 0, "Cannot create variable with empty name")
     Errors.precondition(! Names.isIllegal(name), "Illegal variable name " + name)
     
@@ -71,7 +71,7 @@ case class Var(name: String) extends Term with LeafTerm {
     }
 }
 
-case class EnumValue(name: String) extends Term with LeafTerm with Value {
+case class EnumValue private (name: String) extends Term with LeafTerm with Value {
     Errors.precondition(name.length > 0)
     Errors.precondition(! Names.isIllegal(name))
     
@@ -86,7 +86,7 @@ case class EnumValue(name: String) extends Term with LeafTerm with Value {
   * Inside a Term it is only possible (and required) to annotate a Var when
   * a quantifier declares it bound.
   */
-case class AnnotatedVar(variable: Var, sort: Sort) {
+case class AnnotatedVar private (variable: Var, sort: Sort) {
     def getVar: Var = variable     
     def getSort: Sort = sort     
     def getName: String = variable.name
@@ -96,7 +96,7 @@ case class AnnotatedVar(variable: Var, sort: Sort) {
 }
 
 /** Represents a negation. */
-case class Not(body: Term) extends Term {
+case class Not private (body: Term) extends Term {
     override def accept[T](visitor: TermVisitor[T]): T = visitor.visitNot(this)
     def mapBody(mapping: Term => Term): Term = Not(mapping(body))
     
@@ -154,7 +154,7 @@ object Or {
 }
 
 /** Represents a formula signifying whether its arguments have distinct values. */
-case class Distinct(arguments: Seq[Term]) extends Term {
+case class Distinct private (arguments: Seq[Term]) extends Term {
     Errors.precondition(arguments.size >= 2)
     
     override def accept[T](visitor: TermVisitor[T]): T = visitor.visitDistinct(this)
@@ -186,7 +186,7 @@ object Distinct {
 }
 
 /** Represents an implication. */
-case class Implication(left: Term, right: Term) extends Term {
+case class Implication private (left: Term, right: Term) extends Term {
     override def accept[T](visitor: TermVisitor[T]): T = visitor.visitImplication(this)
     def mapArguments(mapping: Term => Term): Term =
         Implication(mapping(left), mapping(right))
@@ -195,7 +195,7 @@ case class Implication(left: Term, right: Term) extends Term {
 }
 
 /** Represents a bi-equivalence. */
-case class Iff(left: Term, right: Term) extends Term {
+case class Iff private (left: Term, right: Term) extends Term {
     def getLeft: Term = left
     def getRight: Term = right
     override def accept[T](visitor: TermVisitor[T]): T = visitor.visitIff(this)
@@ -206,7 +206,7 @@ case class Iff(left: Term, right: Term) extends Term {
 }
 
 /** Represents an equality. */
-case class Eq(left: Term, right: Term) extends Term {
+case class Eq private (left: Term, right: Term) extends Term {
     override def accept[T](visitor: TermVisitor[T]): T = visitor.visitEq(this)
     def mapArguments(mapping: Term => Term): Term =
         Eq(mapping(left), mapping(right))
@@ -252,7 +252,7 @@ sealed abstract class Quantifier extends Term {
 }
 
 /** Represents an existentially quantified Term. */
-case class Exists(vars: Seq[AnnotatedVar], body: Term) extends Quantifier {
+case class Exists private (vars: Seq[AnnotatedVar], body: Term) extends Quantifier {
     Errors.precondition(vars.size >= 1, "Quantifier must bind at least one variable");
     // Check variables distinct
     Errors.precondition(vars.map(av => av.name).toSet.size == vars.size, "Duplicate variable name in quantifier")
@@ -270,7 +270,7 @@ object Exists {
 }
 
 /** Represents a universally quantified Term. */
-case class Forall(vars: Seq[AnnotatedVar], body: Term) extends Quantifier {
+case class Forall private (vars: Seq[AnnotatedVar], body: Term) extends Quantifier {
     Errors.precondition(vars.size >= 1, "Quantifier must bind at least one variable")
     // Check variables distinct
     Errors.precondition(vars.map(av => av.name).toSet.size == vars.size, "Duplicate variable name in quantifier")
@@ -291,7 +291,7 @@ object Forall {
   * For example, DomainElement(2, A) represents the domain element at index 2
   * for sort A, written as 2A.
   * DomainElements are indexed starting with 1.*/
-case class DomainElement(index: Int, sort: Sort) extends Term with LeafTerm with Value {
+case class DomainElement private (index: Int, sort: Sort) extends Term with LeafTerm with Value {
     Errors.precondition(index >= 1)
     
     override def accept[T](visitor: TermVisitor[T]): T = visitor.visitDomainElement(this)
@@ -302,11 +302,11 @@ case class DomainElement(index: Int, sort: Sort) extends Term with LeafTerm with
     override def toString = "@" + index.toString + sort.toString
 }
 
-case class IntegerLiteral(value: Int) extends Term with LeafTerm with Value {
+case class IntegerLiteral private (value: Int) extends Term with LeafTerm with Value {
     override def accept[T](visitor: TermVisitor[T]): T = visitor.visitIntegerLiteral(this)
 }
 
-case class BitVectorLiteral(value: Int, bitwidth: Int) extends Term with LeafTerm with Value {
+case class BitVectorLiteral private (value: Int, bitwidth: Int) extends Term with LeafTerm with Value {
     Errors.precondition(bitwidth > 0)
     override def accept[T](visitor: TermVisitor[T]): T = visitor.visitBitVectorLiteral(this)
 }

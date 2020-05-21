@@ -28,7 +28,7 @@ case object IntSort extends Sort {
     override def isBuiltin: Boolean = true
 }
 
-case class BitVectorSort(bitwidth: Int) extends Sort {
+case class BitVectorSort private (bitwidth: Int) extends Sort {
     def name: String = "BitVec" + bitwidth.toString
     override def isBuiltin: Boolean = true
 }

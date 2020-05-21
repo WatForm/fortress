@@ -160,12 +160,12 @@ class SmtLibParserTest extends FunSuite with Matchers {
                 .withAxiom(
                         Eq(
                                 Term.mkPlus(
-                                        new IntegerLiteral(1),
-                                        new IntegerLiteral(1)),
-                                new IntegerLiteral(2)))
+                                        IntegerLiteral(1),
+                                        IntegerLiteral(1)),
+                                IntegerLiteral(2)))
                 .withAxiom(AndList(Seq(
-                        Term.mkGE(new IntegerLiteral(5), new IntegerLiteral(5)),
-                        Term.mkGE(new IntegerLiteral(5), new IntegerLiteral(1))
+                        Term.mkGE(IntegerLiteral(5), IntegerLiteral(5)),
+                        Term.mkGE(IntegerLiteral(5), IntegerLiteral(1))
                 )))
 
         resultTheory should be (expected)
@@ -194,36 +194,36 @@ class SmtLibParserTest extends FunSuite with Matchers {
         val parser = new SmtLibParser
         val resultTheory = parser.parse(fileStream)
 
-        val bv5 = new BitVectorSort(5)
+        val bv5 = BitVectorSort(5)
 
         val expected = Theory.empty
             .withSort(bv5)
-            .withConstant((new Var("x")).of(bv5))
+            .withConstant((Var("x")).of(bv5))
             .withFunctionDeclaration(FuncDecl.mkFuncDecl("f", bv5, bv5, bv5))
             .withFunctionDeclaration(FuncDecl.mkFuncDecl("g", bv5, bv5))
             .withAxiom(
                 Eq(
                     App(
                         "f",
-                        new Var("x"),
-                        new Var("x")),
+                        Var("x"),
+                        Var("x")),
                     Term.mkBvPlus(
-                        new Var("x"),
-                        new Var("x")
+                        Var("x"),
+                        Var("x")
                     )))
             .withAxiom(
                 Eq(
                     App(
                         "g",
-                        new Var("x")),
-                    Term.mkBvNeg(new Var("x"))))
+                        Var("x")),
+                    Term.mkBvNeg(Var("x"))))
             .withAxiom(
                 Eq(
                     App("f",
                         App("g",
-                            new Var("x")),
-                        new Var("x")),
-                    new BitVectorLiteral(0, 5)
+                            Var("x")),
+                        Var("x")),
+                    BitVectorLiteral(0, 5)
                 ))
 
         resultTheory should be (expected)
