@@ -5,6 +5,7 @@ import fortress.msfol._
 import fortress.util.Errors
 import fortress.data._
 import fortress.interpretation._
+import fortress.operations.TheoryOps._
 
 sealed abstract class Binding
 case class ConstBinding(c: AnnotatedVar, value: Value) extends Binding {

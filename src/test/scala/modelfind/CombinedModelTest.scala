@@ -4,6 +4,7 @@ import java.io.{File, FileInputStream}
 
 import fortress.inputs.SmtLibParser
 import fortress.modelfind._
+import fortress.operations.TheoryOps._
 import fortress.msfol._
 import org.junit.runner.RunWith
 import org.scalatest._

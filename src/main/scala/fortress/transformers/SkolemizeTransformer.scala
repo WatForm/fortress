@@ -5,6 +5,7 @@ import fortress.data.NameGenerator
 import fortress.data.IntSuffixNameGenerator
 import fortress.operations.Skolemizer
 import fortress.operations.TermOps._
+import fortress.operations.TheoryOps._
 
 import scala.jdk.CollectionConverters._
 

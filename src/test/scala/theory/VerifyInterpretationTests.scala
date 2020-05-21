@@ -6,7 +6,7 @@ import org.scalatest.junit.JUnitRunner
 import fortress.msfol._
 import fortress.modelfind._
 import fortress.interpretation._
-import scala.collection.immutable.Seq
+import fortress.operations.TheoryOps._
 
 @RunWith(classOf[JUnitRunner])
 class VerifyInterpretationTests extends FunSuite with Matchers {
