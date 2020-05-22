@@ -1,11 +1,9 @@
 import org.scalatest._
-import org.junit.runner.RunWith
-import org.scalatest.junit.JUnitRunner
 
 import fortress.msfol._
 import fortress.operations.TermOps._
 
-class DeBruijnTest extends FunSuite with Matchers{
+class DeBruijnTest extends UnitSuite {
     
     val A = Sort.mkSortConst("A");
     

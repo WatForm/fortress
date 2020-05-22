@@ -1,12 +1,9 @@
 import org.scalatest._
-import org.junit.runner.RunWith
-import org.scalatest.junit.JUnitRunner
 
 import fortress.msfol._
 import fortress.transformers._
 
-@RunWith(classOf[JUnitRunner])
-class SkolemizeTransformerTest extends FunSuite with Matchers {
+class SkolemizeTransformerTest extends UnitSuite {
     
     val skolemizer = new SkolemizeTransformer
     

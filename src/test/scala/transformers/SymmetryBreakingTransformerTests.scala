@@ -1,14 +1,9 @@
 import org.scalatest._
-import org.junit.runner.RunWith
-import org.scalatest.junit.JUnitRunner
 
 import fortress.msfol._
 import fortress.transformers._
 
-import scala.collection.immutable.Seq
-
-@RunWith(classOf[JUnitRunner])
-class SymmetryBreakingTransformerTests extends FunSuite with Matchers {
+class SymmetryBreakingTransformerTests extends UnitSuite {
     
     val A = Sort.mkSortConst("A")
     val B = Sort.mkSortConst("B")

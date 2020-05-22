@@ -1,13 +1,10 @@
 import org.scalatest._
-import org.junit.runner.RunWith
-import org.scalatest.junit.JUnitRunner
 
 import fortress.msfol._
 import fortress.transformers._
 import fortress.operations.TermOps._
 
-@RunWith(classOf[JUnitRunner])
-class TypeCheckSanitizeTest extends FunSuite with Matchers {
+class TypeCheckSanitizeTest extends UnitSuite {
     
     // Check that terms are properly sanitized during typechecking
     // Currently this just means replacing boolean = with iff

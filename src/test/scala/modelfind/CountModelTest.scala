@@ -1,16 +1,8 @@
-package modelfind
-
 import fortress.modelfind._
-import fortress.msfol
 import fortress.msfol._
-import org.junit.runner.RunWith
 import org.scalatest._
-import org.scalatest.junit.JUnitRunner
 
-import scala.collection.immutable.Seq
-
-@RunWith(classOf[JUnitRunner])
-class CountModelTest extends FunSuite with Matchers {
+class CountModelTest extends UnitSuite {
     
     test("basic count") {
         val p = Var("p")
@@ -90,4 +82,3 @@ class CountModelTest extends FunSuite with Matchers {
         finder.countValidModels(theory) should be (8)
     }
 }
-

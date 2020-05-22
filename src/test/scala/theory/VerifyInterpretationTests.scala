@@ -1,15 +1,12 @@
 import fortress.inputs.SmtLibSubsetParser.DistinctContext
 import org.scalatest._
 import org.junit.Assert._
-import org.junit.runner.RunWith
-import org.scalatest.junit.JUnitRunner
 import fortress.msfol._
 import fortress.modelfind._
 import fortress.interpretation._
 import fortress.operations.TheoryOps._
 
-@RunWith(classOf[JUnitRunner])
-class VerifyInterpretationTests extends FunSuite with Matchers {
+class VerifyInterpretationTests extends UnitSuite {
         /** Unit tests for Theory.verifyInterpretation()
           *
           * In each function, we first create a raw theory with all our constant & function definitions,

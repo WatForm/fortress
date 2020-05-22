@@ -1,13 +1,10 @@
 import org.scalatest._
-import org.junit.runner.RunWith
-import org.scalatest.junit.JUnitRunner
 
 import fortress.msfol._
 import fortress.transformers._
 import fortress.operations.TermOps._
 
-@RunWith(classOf[JUnitRunner])
-class NamingTypeCheckTest extends FunSuite with Matchers {
+class NamingTypeCheckTest extends UnitSuite {
     
     val A = Sort.mkSortConst("A")
     val B = Sort.mkSortConst("B")

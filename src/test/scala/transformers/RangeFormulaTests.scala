@@ -1,12 +1,9 @@
 import org.scalatest._
-import org.junit.runner.RunWith
-import org.scalatest.junit.JUnitRunner
 
 import fortress.msfol._
 import fortress.transformers._
 
-@RunWith(classOf[JUnitRunner])
-class RangeFormulaTests extends FunSuite with Matchers {
+class RangeFormulaTests extends UnitSuite {
     
     val A = Sort.mkSortConst("A")
     val B = Sort.mkSortConst("B")

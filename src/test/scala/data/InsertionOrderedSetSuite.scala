@@ -1,11 +1,8 @@
-import org.scalatest.FunSuite
-import org.junit.runner.RunWith
-import org.scalatest.junit.JUnitRunner
+import org.scalatest._
 
 import fortress.data.InsertionOrderedSet
 
-@RunWith(classOf[JUnitRunner])
-class InsertionOrderedSetSuite extends FunSuite {
+class InsertionOrderedSetSuite extends UnitSuite {
     
     test("equality with Sets") {
         val s1: Set[Integer] = InsertionOrderedSet.empty

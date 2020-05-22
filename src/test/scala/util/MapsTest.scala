@@ -1,11 +1,8 @@
 import org.scalatest._
-import org.junit.runner.RunWith
-import org.scalatest.junit.JUnitRunner
 
 import fortress.util.Maps
 
-@RunWith(classOf[JUnitRunner])
-class MapsTest extends FunSuite with Matchers {
+class MapsTest extends UnitSuite {
     test("maps with conflict") {
         val map1 = Map(1 -> "cat", 2 -> "dog")
         val map2 = Map(1 -> "dog", 3 -> "sheep")

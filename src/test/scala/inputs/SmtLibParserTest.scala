@@ -1,18 +1,13 @@
-package modelfind
-
 import java.io.{File, FileInputStream}
 
 import fortress.inputs._
 import fortress.modelfind._
 import fortress.msfol._
-import org.junit.runner.RunWith
 import org.scalatest._
-import org.scalatest.junit.JUnitRunner
 import scala.jdk.CollectionConverters._
 import scala.jdk.OptionConverters._
 
-@RunWith(classOf[JUnitRunner])
-class SmtLibParserTest extends FunSuite with Matchers {
+class SmtLibParserTest extends UnitSuite {
     
     test("parser throws on error") {
         val classLoader = getClass.getClassLoader

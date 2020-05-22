@@ -1,14 +1,9 @@
 import org.scalatest._
-import org.junit.runner.RunWith
-import org.scalatest.junit.JUnitRunner
-
-import scala.collection.immutable.Seq
 
 import fortress.msfol._
 import fortress.transformers._
 
-@RunWith(classOf[JUnitRunner])
-class IntegerFinitizationTransformerTest extends FunSuite with Matchers {
+class IntegerFinitizationTransformerTest extends UnitSuite {
     test("basic literals") {
         val theory = Theory.empty
             .withAxiom(Not(IntegerLiteral(1) === IntegerLiteral(2)))

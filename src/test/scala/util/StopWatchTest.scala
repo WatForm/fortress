@@ -1,11 +1,8 @@
 import org.scalatest._
-import org.junit.runner.RunWith
-import org.scalatest.junit.JUnitRunner
 
 import fortress.util.StopWatch
 
-@RunWith(classOf[JUnitRunner])
-class StopWatchTest extends FunSuite with Matchers {
+class StopWatchTest extends UnitSuite {
     
     test("format milliseconds") {
         StopWatch.formatNano(43000000L) should be ("0.043s")

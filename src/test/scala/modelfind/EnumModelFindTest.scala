@@ -1,13 +1,9 @@
 import org.scalatest._
-import org.junit.runner.RunWith
-import org.scalatest.junit.JUnitRunner
-import scala.collection.immutable.Seq
 
 import fortress.msfol._
 import fortress.modelfind._
 
-@RunWith(classOf[JUnitRunner])
-class EnumModelFindTest extends FunSuite with Matchers {
+class EnumModelFindTest extends UnitSuite {
     
     test("simple enum theory") {
         val Colour = Sort.mkSortConst("Colour")

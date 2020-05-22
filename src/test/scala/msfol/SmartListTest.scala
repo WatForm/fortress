@@ -1,11 +1,8 @@
 import org.scalatest._
-import org.junit.runner.RunWith
-import org.scalatest.junit.JUnitRunner
 
 import fortress.msfol._
 
-@RunWith(classOf[JUnitRunner])
-class SmartListTest extends FunSuite with Matchers {
+class SmartListTest extends UnitSuite {
     
     val x = Var("x")
     val y = Var("y")

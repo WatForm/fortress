@@ -1,13 +1,10 @@
 import org.scalatest._
-import org.junit.runner.RunWith
-import org.scalatest.junit.JUnitRunner
 
 import fortress.msfol._
 import fortress.modelfind._
 import fortress.transformers._
 
-@RunWith(classOf[JUnitRunner])
-class ModelFinderZ3ApiTest extends FunSuite with Matchers {
+class ModelFinderZ3ApiTest extends UnitSuite {
     
     val p = Var("p")
     val q = Var("q")

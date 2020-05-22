@@ -1,17 +1,12 @@
-package modelfind
-
 import java.io.{File, FileInputStream}
 
 import fortress.inputs.SmtLibParser
 import fortress.modelfind._
 import fortress.operations.TheoryOps._
 import fortress.msfol._
-import org.junit.runner.RunWith
 import org.scalatest._
-import org.scalatest.junit.JUnitRunner
 
-@RunWith(classOf[JUnitRunner])
-class CombinedModelTest extends FunSuite with Matchers {
+class CombinedModelTest extends UnitSuite {
 
     // Demonstrates SMTLib integer parsing and valid model counting on an example
     // squares_example.smt is a specification for the problem of finding square numbers in a given range

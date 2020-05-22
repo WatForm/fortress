@@ -1,16 +1,11 @@
-package modelfind
-
 import java.io.{File, FileInputStream}
 
 import fortress.inputs._
 import fortress.modelfind._
 import fortress.msfol._
-import org.junit.runner.RunWith
 import org.scalatest._
-import org.scalatest.junit.JUnitRunner
 
-@RunWith(classOf[JUnitRunner])
-class TptpParserTest extends FunSuite with Matchers {
+class TptpParserTest extends UnitSuite {
 
     test("abelian example") {
         val classLoader = getClass.getClassLoader
