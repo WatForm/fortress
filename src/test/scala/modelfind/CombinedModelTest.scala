@@ -12,15 +12,15 @@ class CombinedModelTest extends UnitSuite {
     // squares_example.smt is a specification for the problem of finding square numbers in a given range
     // Here, we count the number of perfect squares between 100 and 5000
     test("squares example") {
-        println("Squares example: finds all perfect squares from 100 to 5000")
+        // println("Squares example: finds all perfect squares from 100 to 5000")
         val classLoader: ClassLoader = getClass.getClassLoader
         val file = new File(classLoader.getResource("squares_example.smt").getFile)
         val fileStream = new FileInputStream(file)
 
         val parser = new SmtLibParser
         val resultTheory = parser.parse(fileStream)
-        println("Parsed theory from file:")
-        println(resultTheory)
+        // println("Parsed theory from file:")
+        // println(resultTheory)
 
         val finder = ModelFinder.createDefault()
 
@@ -30,7 +30,7 @@ class CombinedModelTest extends UnitSuite {
         val model = finder.viewModel()
 
         val numModels = finder.countValidModels(resultTheory)
-        println("Found " + numModels + " models")
+        // println("Found " + numModels + " models")
 
         // Found with WolframAlpha
         numModels should be (61)
@@ -39,25 +39,25 @@ class CombinedModelTest extends UnitSuite {
 
         var result = finder.checkSat()
         while (result == ModelFinderResult.Sat) {
-            println("Found square: " + finder.viewModel().constantInterpretations(Var("soln").of(IntSort)).asInstanceOf[IntegerLiteral].value)
+            // println("Found square: " + finder.viewModel().constantInterpretations(Var("soln").of(IntSort)).asInstanceOf[IntegerLiteral].value)
             result = finder.nextInterpretation()
         }
-        println("No more squares!")
+        // println("No more squares!")
     }
 
     // Demonstrates SMTLib integer parsing and valid model counting on an example
     // prime_example.smt is a specification for the problem of finding prime numbers in a given range
     // Here, we count the number of primes between 2 and 100
     test("prime example") {
-        println("Prime example: finds all primes from 2 to 100")
+        // println("Prime example: finds all primes from 2 to 100")
         val classLoader: ClassLoader = getClass.getClassLoader
         val file = new File(classLoader.getResource("prime_example.smt").getFile)
         val fileStream = new FileInputStream(file)
 
         val parser = new SmtLibParser
         val resultTheory = parser.parse(fileStream)
-        println("Parsed theory from file:")
-        println(resultTheory)
+        // println("Parsed theory from file:")
+        // println(resultTheory)
 
         val finder = ModelFinder.createDefault()
 
@@ -67,7 +67,7 @@ class CombinedModelTest extends UnitSuite {
         val model = finder.viewModel()
 
         val numModels = finder.countValidModels(resultTheory)
-        println("Found " + numModels + " models")
+        // println("Found " + numModels + " models")
 
         // Found with WolframAlpha
         numModels should be (25)
@@ -76,10 +76,10 @@ class CombinedModelTest extends UnitSuite {
 
         var result = finder.checkSat()
         while (result == ModelFinderResult.Sat) {
-            println("Found prime: " + finder.viewModel().constantInterpretations(Var("prime").of(IntSort)).asInstanceOf[IntegerLiteral].value)
+            // println("Found prime: " + finder.viewModel().constantInterpretations(Var("prime").of(IntSort)).asInstanceOf[IntegerLiteral].value)
             result = finder.nextInterpretation()
         }
-        println("No more primes!")
+        // println("No more primes!")
     }
 
     // Demonstrates SMTLib parsing, valid model counting, and model verification

@@ -139,12 +139,12 @@ class InterpretationVerifier(theory: Theory) {
         }
         for(axiom <- theory.axioms){
             val result = forceValueToBool(evaluate(axiom))
-            println(axiom.toString + " evaluated to " + result)
+            // println(axiom.toString + " evaluated to " + result)
             if(!result){
                 return false
             }
         }
-        println("All axioms satisfied")
+        // println("All axioms satisfied")
         true
     }
 }

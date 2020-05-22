@@ -1,3 +1,7 @@
+
+plugins {
+  id "com.github.maiflai.scalatest" version "0.26" // For scalatest runner
+}
 apply plugin: 'scala'
 apply plugin: 'distribution'
 apply plugin: 'antlr'
@@ -18,6 +22,7 @@ dependencies {
     
     testImplementation 'junit:junit:4.12'
     testImplementation 'org.scalatest:scalatest_2.13:3.0.8'
+    testImplementation 'org.pegdown:pegdown:1.4.2' // For scalatest html output
     
     implementation 'org.scala-lang:scala-library:2.13.1'
     // implementation 'org.scala-lang.modules:scala-parallel-collections_2.13:0.2.0'
@@ -31,26 +36,8 @@ generateGrammarSource {
     arguments += ['-package', 'fortress.inputs'] // Add fortress.inputs package header to files
 }
 
-// JUnit
-
-test {
-    ignoreFailures true // Don't stop build when unit test fails
-    testLogging {
-        events "passed", "skipped", "failed"
-        // Print summary
-        afterSuite { desc, result ->
-            if (!desc.parent) { // will match the outermost suite
-                def output = "Results: ${result.resultType} (${result.testCount} tests, ${result.successfulTestCount} successes, ${result.failedTestCount} failures, ${result.skippedTestCount} skipped)"
-                def startItem = '|  ', endItem = '  |'
-                def repeatLength = startItem.length() + output.length() + endItem.length()
-                println('\n' + ('-' * repeatLength) + '\n' + startItem + output + endItem + '\n' + ('-' * repeatLength))
-            }
-        }
-    }
-}
-
 tasks.withType(Test) {
-    // Allow junit test runtime to find libz3java.dylib or libz3java.so
+    // Allow test runtime to find libz3java.dylib or libz3java.so
     systemProperty "java.library.path", "z3/"
 }
 
