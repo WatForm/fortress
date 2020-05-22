@@ -69,7 +69,7 @@ object SmtlibConverter {
             case BuiltinApp(IntNeg, args) => writeGeneralApp("-", args)
             case BuiltinApp(IntSub, args) => writeGeneralApp("-", args)
             case BuiltinApp(IntMult, args) => writeGeneralApp("*", args)
-            case BuiltinApp(IntDiv, args) => writeGeneralApp("/", args)
+            case BuiltinApp(IntDiv, args) => writeGeneralApp("div", args)
             case BuiltinApp(IntMod, args) => writeGeneralApp("mod", args)
             case BuiltinApp(IntLE, args) => writeGeneralApp("<=", args)
             case BuiltinApp(IntLT, args) => writeGeneralApp("<", args)
