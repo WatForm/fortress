@@ -66,7 +66,7 @@ class InterpretationVerifier(theory: Theory) {
             val theory: Theory = Theory.empty
                 .withConstant(evalResultAnnotated)
                 .withAxiom(evalResult === BuiltinApp(fn, evalArgs))
-            solver.solve(theory, 1000, new StringWriter)
+            solver.solve(theory, 1000, Seq.empty)
             val solvedInstance = solver.getInstance(theory)
             solvedInstance.constantInterpretations(evalResultAnnotated)
         }

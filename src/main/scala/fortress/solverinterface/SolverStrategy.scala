@@ -13,8 +13,8 @@ trait SolverStrategy {
     * Attempts to solve the given theory, searching for a satisfying instance.
     */
     @throws(classOf[java.io.IOException])
-    def solve(theory: Theory, timeoutMillis: Int, log: java.io.Writer): ModelFinderResult
-    def addAxiom(axiom: Term, timeoutMillis: Int, log: java.io.Writer): ModelFinderResult
+    def solve(theory: Theory, timeoutMillis: Int, eventLoggers: Seq[EventLogger]): ModelFinderResult
+    def addAxiom(axiom: Term, timeoutMillis: Int): ModelFinderResult
 
     def getInstance(theory: Theory): Interpretation
 }

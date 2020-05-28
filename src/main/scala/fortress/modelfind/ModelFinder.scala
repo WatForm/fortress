@@ -44,7 +44,7 @@ trait ModelFinder {
     
     // Internal use only
     def setOutput(log: java.io.Writer): Unit
-    def setDebug(enableDebug: Boolean): Unit
+    def addLogger(logger: EventLogger): Unit
 }
 
 object ModelFinder {

@@ -7,43 +7,39 @@ import fortress.modelfind._
 abstract class SolverTemplate extends SolverStrategy {
     
     @throws(classOf[java.io.IOException])
-    override def solve(theory: Theory, timeoutMillis: Int, log: java.io.Writer): ModelFinderResult = {
+    override def solve(theory: Theory, timeoutMillis: Int, eventLoggers: Seq[EventLogger]): ModelFinderResult = {
         // template method
         
-        log.write("Converting to solver format: ")
-        log.flush()
+        for(logger <- eventLoggers) logger.convertingToSolverFormat()
         
         val conversionTimer = new StopWatch
         conversionTimer.startFresh()
         
-        convertTheory(theory, log)
+        convertTheory(theory)
         
-        log.write(StopWatch.formatNano(conversionTimer.elapsedNano()) + "\n")
-        log.flush()
+        for(logger <- eventLoggers) logger.convertedToSolverFormat(StopWatch.formatNano(conversionTimer.elapsedNano()))
         
         val remainingMillis: Int = timeoutMillis - StopWatch.nanoToMillis(conversionTimer.elapsedNano())
         if(remainingMillis <= 0) {
-            log.write("TIMEOUT within Fortress.\n")
-            log.flush()
+            for(logger <- eventLoggers) logger.timeoutInternal()
             return ModelFinderResult.Timeout
         }
         
         updateTimeout(remainingMillis)
         
-        log.write("Solving... ")
-        log.flush()
+        for(logger <- eventLoggers) logger.solving()
         
         val solverTimer = new StopWatch
         solverTimer.startFresh()
         
-        val result: ModelFinderResult = runSolver(log)
+        val result: ModelFinderResult = runSolver()
         
-        log.write("Z3 solver time: " + StopWatch.formatNano(solverTimer.elapsedNano()) + "\n")
+        for(logger <- eventLoggers) logger.solverFinished(StopWatch.formatNano(solverTimer.elapsedNano()))
         
         result
     }
     
-    protected def convertTheory(theory: Theory, log: java.io.Writer): Unit
+    protected def convertTheory(theory: Theory): Unit
     protected def updateTimeout(remainingMillis: Int): Unit
-    protected def runSolver(log: java.io.Writer): ModelFinderResult
+    protected def runSolver(): ModelFinderResult
 }
