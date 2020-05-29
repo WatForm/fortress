@@ -35,7 +35,7 @@ trait StdModelFindConfig extends ModelFinder {
     }
     
     override def setOutput(writer: java.io.Writer): Unit = {
-        eventLoggers += new WriterLogger(writer)
+        eventLoggers += new StandardLogger(writer)
     }
     
     override def addLogger(logger: EventLogger): Unit = {

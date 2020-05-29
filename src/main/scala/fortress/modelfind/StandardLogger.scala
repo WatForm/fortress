@@ -4,7 +4,7 @@ import fortress.msfol._
 import fortress.transformers._
 import fortress.util._
 
-class WriterLogger(writer: java.io.Writer) extends EventLogger {
+class StandardLogger(writer: java.io.Writer) extends EventLogger {
     
     override def transformerStarted(transformer: ProblemTransformer): Unit = {
         writer.write("Applying transformer: " + transformer.name)
