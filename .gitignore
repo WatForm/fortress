@@ -5,6 +5,8 @@ build/
 z3/com.microsoft.z3.jar
 z3/libz3java.dylib
 z3/libz3java.so
+cvc4/CVC4.jar
+cvc4/libcvc4jni.so
 out/
 .metals/
 examples/*.class

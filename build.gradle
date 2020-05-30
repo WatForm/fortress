@@ -17,13 +17,14 @@ dependencies {
     antlr "org.antlr:antlr4:4.7.2"
     implementation "org.antlr:antlr4-runtime:4.7.2"
     implementation files('z3/com.microsoft.z3.jar')
+    implementation files('cvc4/CVC4.jar')
     runtimeOnly files('z3/libz3java.dylib') // Required to run Z3's Java interface on MacOS
     runtimeOnly files('z3/libz3java.so') // Required to run Z3's Java interface on Ubuntu
-    
+
     testImplementation 'junit:junit:4.12'
     testImplementation 'org.scalatest:scalatest_2.13:3.0.8'
     testImplementation 'org.pegdown:pegdown:1.4.2' // For scalatest html output
-    
+
     implementation 'org.scala-lang:scala-library:2.13.1'
     // implementation 'org.scala-lang.modules:scala-parallel-collections_2.13:0.2.0'
 }
@@ -38,7 +39,7 @@ generateGrammarSource {
 
 tasks.withType(Test) {
     // Allow test runtime to find libz3java.dylib or libz3java.so
-    systemProperty "java.library.path", "z3/"
+    systemProperty "java.library.path", "z3/" + File.pathSeparator + "cvc4/"
 }
 
 // Distribution
