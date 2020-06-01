@@ -12,12 +12,14 @@ It was original described in the paper "Finite Model Finding Using the Logic of 
 ## System Requirements
 Fortress requires Java 10 or higher to compile and run.
 
-## Setup
+## Overview
 
 To use Fortress, there are three steps:
-1. Setup (install supporting libraries)
+1. Setup  (install supporting libraries) - either by our scripts or manually
 2. Build the fortress code
 3. Use the fortress library in your own project
+
+## Setup
 
 We currently have setup scripts tested on `MacOS` and `Ubuntu`.  Otherwise, follow the manual setup sets described below.
 
@@ -46,6 +48,7 @@ Scripts are available to automate some of the setup for the following platforms:
     * If on `Windows`, make sure you add the directory with `libz3java.dll` to your PATH.
 
 ## Building Fortress
+
 Java 10 or higher is required to build Fortress.
 Fortress uses the Gradle build system through calls to gradlew as described below. If running Windows, run gradle.bat instead of `./gradlew` in the steps below.  Any use of `./gradlew` will automatically download the appropriate version of the build system, as well any additional dependencies for fortress.
 
@@ -65,6 +68,7 @@ Note that you may need to run `./gradlew cleanTest test` to run all of the tests
 Run `./gradlew javadoc`.
 
 ## Running Fortress in Your Project
+
 Follow the below instructions.
 Check out the `examples/` directory for some examples of this.
 
@@ -78,7 +82,9 @@ Check out the `examples/` directory for some examples of this.
     * If this is not done correctly, a `java.lang.UnsatisfiedLinkError` may be raised at runtime.
     
 ## Troubleshooting
+
 ### General
 If the gradle build is not working properly ensure that your `JAVA_HOME` environment variable is correctly set (to the folder where the jdk that you are using is installed).
+
 ### Linux 
 If you have double checked that you have correctly set the `-Djava.library.path` flag and a `java.lang.UnsatisfiedLinkError` is still being thrown, you can try copying the libz3java.so and libz3.so files to the /usr/lib directory and omitting the `-Djava.library.path` flag. It may also be useful to build Z3 from source following the instructions on the [Z3 Repository](https://github.com/Z3Prover/z3#building-z3-using-make-and-gccclang) using the `--java` command line flag with `mk_make.py`.
