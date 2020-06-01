@@ -1,8 +1,9 @@
 # Fortress
 
-Fortress is a library for finite model finding in typed (or "many-sorted") first order logic (TFOL) with equality.
+Fortress is a library for finite model finding in many-sorted first order logic (MSFOL) with equality.
+
 Fortress consists of two main parts:
-* An internal Domain Specific Language (DSL) in Java for creating TFOL formulas and theories
+* An internal Domain Specific Language (DSL) in Java for creating MSFOL formulas/theories/problems
 * A tool for searching for finite models that satisfy such theories
 
 Fortress is written in Scala, but is intended to be used by Java users and *not* Scala users.
@@ -16,8 +17,8 @@ Fortress requires Java 10 or higher to compile and run.
 
 To use Fortress, there are three steps:
 1. Setup  (install supporting libraries) - either by our scripts or manually
-2. Build the fortress code
-3. Use the fortress library in your own project
+2. Build the Fortress code
+3. Use the Fortress library in your own project
 
 ## Setup
 
@@ -67,12 +68,12 @@ Note that you may need to run `./gradlew cleanTest test` to run all of the tests
 ### Building Documentation
 Run `./gradlew javadoc`.
 
-## Running Fortress in Your Project
+## Use the Fortress library in your own project
 
 Follow the below instructions.
-Check out the `examples/` directory for some examples of this.
+Check out the `examples/` directory for some examples of how to use Fortress in your own project.
 
-1. Follow the steps for building Fortress.
+1. Follow the steps for building Fortress (above).
 2. Copy `build/distributions/fortress-2.0.tar` or `build/distributions/fortress-2.0.zip` (both archives contain the same files) to an appropriate location, such as a `libs` folder for your project. 
 3. Unzip the archive.
 4. When compiling and running, ensure that the files from this archive are in your Java `classpath`.
