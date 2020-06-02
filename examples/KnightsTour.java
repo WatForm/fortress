@@ -5,6 +5,7 @@ import fortress.msfol.FuncDecl.*;
 import fortress.modelfind.*;
 
 import java.util.*;
+import java.util.stream.*;
 import static java.lang.Math.abs;
 
 public class KnightsTour{
@@ -41,8 +42,37 @@ public class KnightsTour{
         Var pos1 = mkVar("pos1");
         Var pos2 = mkVar("pos2");
 
+        // Constants to be used instead of domain elements
+        List<Var> distances = new ArrayList<>();
+        Var dist1 = mkVar("dist1");
+        Var dist2 = mkVar("dist2");
+        distances.add(dist1);
+        distances.add(dist2);
+        List<AnnotatedVar> annotatedDistances = distances.stream()
+            .map(v -> v.of(Distance))
+            .collect(Collectors.toList());
+
+        List<Var> positions = new ArrayList<>();
+        for(int i=1; i <= size*size; ++i){
+            positions.add(mkVar("pos" + i));
+        }
+        List<AnnotatedVar> annotatedPositions = positions.stream()
+            .map(v -> v.of(Position))
+            .collect(Collectors.toList());
+
+        List<Var> indices = new ArrayList<>();
+        for(int i=1; i <= size; ++i){
+            indices.add(mkVar("idx" + i));
+        }
+        List<AnnotatedVar> annotatedIndices = indices.stream()
+            .map(v -> v.of(Index))
+            .collect(Collectors.toList());
+
         // Axioms
-        List<Term> axioms = new ArrayList<>(2 + size * size * 2);
+        List<Term> axioms = new ArrayList<>(5 + size * size * 2);
+        axioms.add(mkDistinct(distances));
+        axioms.add(mkDistinct(positions));
+        axioms.add(mkDistinct(indices));
         // Unique Positions
         Term uniquePositions = mkForall(List.of(pos1.of(Position), pos2.of(Position)),
             mkImp(
@@ -59,41 +89,56 @@ public class KnightsTour{
             mkOr(
                 mkAnd(
                     mkEq(mkApp(dist, mkApp(row,pos), mkApp(row, mkApp(next,pos))),
-                        mkDomainElement(1, Distance)),
+                        dist1),
                     mkEq(mkApp(dist, mkApp(col,pos), mkApp(col, mkApp(next,pos))),
-                        mkDomainElement(2, Distance))
+                        dist2)
                 ),
                 mkAnd(
                     mkEq(mkApp(dist, mkApp(row,pos), mkApp(row, mkApp(next,pos))),
-                        mkDomainElement(2, Distance)),
+                        dist2),
                     mkEq(mkApp(dist, mkApp(col,pos), mkApp(col, mkApp(next,pos))),
-                        mkDomainElement(1, Distance))
+                        dist1)
                 )
             ));
         axioms.add(knightJump);
 
         // Define the distance function
         // (Distance has 3 values: 1 represents 1, 2 represents 2, and 3 represents invalid)
-        for(int i = 1; i <= size; ++i){
-            for(int j = 1; j <= size; ++j){
+        for(int i = 0; i < size; ++i){
+            for(int j = 0; j < size; ++j){
                 int diff = abs(i - j);
-                Term t = mkEq(mkApp(dist, mkDomainElement(i, Index), mkDomainElement(j, Index)),
-                            mkDomainElement(diff == 1 || diff == 2 ? diff : 3, Distance));
+                Term t;
+                if(diff == 1 || diff == 2){
+                    t = mkEq(mkApp(dist, indices.get(i), indices.get(j)),
+                            distances.get(diff - 1));
+                }
+                else{
+                    t = mkAnd(
+                        mkNot(mkEq(mkApp(dist, indices.get(i), indices.get(j)),
+                            dist1)),
+                        mkNot(mkEq(mkApp(dist, indices.get(i), indices.get(j)),
+                            dist2))
+                    );
+                }
+
                 axioms.add(t);
             }
         }
 
         // Define the next function
-        for(int i = 1; i < size * size ; ++i){
-            Term t = mkEq(mkApp(next, mkDomainElement(i, Position)), mkDomainElement(i + 1, Position));
+        for(int i = 0; i + 1 < size * size ; ++i){
+            Term t = mkEq(mkApp(next, positions.get(i)), positions.get(i + 1));
             axioms.add(t);
         }
-        axioms.add(mkEq(mkApp(next, mkDomainElement(size * size, Position)), mkDomainElement(1, Position)));
+        axioms.add(mkEq(mkApp(next, positions.get(positions.size()-1)), positions.get(0)));
 
         // Initialize the theory
         Theory knightsTheory =  Theory.empty()
             .withSorts(Position, Index, Distance)
             .withFunctionDeclarations(rowFn, colFn, nextFn, distFn)
+            .withConstants(annotatedDistances)
+            .withConstants(annotatedPositions)
+            .withConstants(annotatedIndices)
             .withAxioms(axioms);
 
         // Initialize a model finder
@@ -109,12 +154,6 @@ public class KnightsTour{
         finder.setAnalysisScope(Position, size*size);
         finder.setAnalysisScope(Distance, 3);
 
-        // utility map to help print indices
-        Map<Value, Integer> indices = new HashMap<>();
-        for(int i=1; i <= size; ++i){
-            indices.put(mkDomainElement(i, Index), i);
-        }
-
         // Check if all axioms in the theory are satisfiable
         ModelFinderResult result = finder.checkSat();
         System.out.println("Satisiable?: " + result.toString());
@@ -124,13 +163,21 @@ public class KnightsTour{
             Map<List<Value>, Value> nextMap = finder.viewModel().functionInterpretationsJava().get(nextFn);
             Map<List<Value>, Value> rowMap = finder.viewModel().functionInterpretationsJava().get(rowFn);
             Map<List<Value>, Value> colMap = finder.viewModel().functionInterpretationsJava().get(colFn);
-            Value currPos = mkDomainElement(1, Position);
+            Map<AnnotatedVar, Value> constants = finder.viewModel().constantInterpretationsJava();
+
+            // utility map to help print indices
+            Map<Value, Integer> indicesMap = new HashMap<>();
+            for(int i=1; i <= size; ++i){
+                indicesMap.put(constants.get(annotatedIndices.get(i-1)), i);
+            }
+
+            Value currPos = constants.get(annotatedPositions.get(0));
             for(int i=1; i<=size*size; ++i){
                 Value currRow = rowMap.get(List.of(currPos));
                 Value currCol = colMap.get(List.of(currPos));
                 System.out.println("Position: " + i
-                    + "\tRow: " + indices.get(currRow)
-                    + "\tCol:" + indices.get(currCol));
+                    + "\tRow: " + indicesMap.get(currRow)
+                    + "\tCol:" + indicesMap.get(currCol));
                 currPos = nextMap.get(List.of(currPos));
             }
         }
