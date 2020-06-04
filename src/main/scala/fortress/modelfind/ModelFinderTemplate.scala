@@ -40,7 +40,7 @@ abstract class ModelFinderTemplate(var solverStrategy: SolverStrategy) extends M
         val resultingProblem = transformer(problem)
         
         val elapsed = transformationTimer.elapsedNano()
-        for(logger <- eventLoggers) logger.transformerFinished(transformer, StopWatch.formatNano(elapsed))
+        for(logger <- eventLoggers) logger.transformerFinished(transformer, elapsed)
         resultingProblem
     }
     
@@ -70,7 +70,7 @@ abstract class ModelFinderTemplate(var solverStrategy: SolverStrategy) extends M
 
         constrainedTheory = finalTheory
 
-        for(logger <- eventLoggers) logger.allTransformersFinished(finalTheory, StopWatch.formatNano(totalTimer.elapsedNano()))
+        for(logger <- eventLoggers) logger.allTransformersFinished(finalTheory, totalTimer.elapsedNano())
         
         if(totalTimer.elapsedNano() > timeoutNano) {
             for(logger <- eventLoggers) logger.timeoutInternal()
@@ -84,10 +84,10 @@ abstract class ModelFinderTemplate(var solverStrategy: SolverStrategy) extends M
     private def solverPhase(finalTheory: Theory): ModelFinderResult = {
         for(logger <- eventLoggers) logger.invokingSolverStrategy()
 
-        val remainingMillis = timeoutMilliseconds - StopWatch.nanoToMillis(totalTimer.elapsedNano)
+        val remainingMillis = timeoutMilliseconds - totalTimer.elapsedNano().toMilli
         val finalResult: ModelFinderResult = solverStrategy.solve(finalTheory, remainingMillis, eventLoggers.toList)
         
-        for(logger <- eventLoggers) logger.finished(finalResult, StopWatch.formatNano(totalTimer.elapsedNano()))
+        for(logger <- eventLoggers) logger.finished(finalResult, totalTimer.elapsedNano())
         
         finalResult
     }

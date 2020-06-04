@@ -14,11 +14,21 @@ import fortress.solverinterface._
 * ERROR means there was a fatal problem; this is not expected behaviour. */
 sealed trait ModelFinderResult
 
-case object SatResult extends ModelFinderResult
-case object UnsatResult extends ModelFinderResult
-case object UnknownResult extends ModelFinderResult
-case object TimeoutResult extends ModelFinderResult
-case object ErrorResult extends ModelFinderResult
+case object SatResult extends ModelFinderResult {
+    override def toString = "Sat"
+}
+case object UnsatResult extends ModelFinderResult {
+    override def toString = "Unsat"
+}
+case object UnknownResult extends ModelFinderResult {
+    override def toString = "Unknown"
+}
+case object TimeoutResult extends ModelFinderResult {
+    override def toString = "Timeout"
+}
+case object ErrorResult extends ModelFinderResult {
+    override def toString = "Error"
+}
 
 object ModelFinderResult {
     val Sat: ModelFinderResult = SatResult

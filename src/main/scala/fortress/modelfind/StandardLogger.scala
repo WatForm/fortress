@@ -12,13 +12,13 @@ class StandardLogger(writer: java.io.Writer) extends EventLogger {
         writer.flush()
     }
     
-    override def transformerFinished(transformer: ProblemTransformer, time: String): Unit = {
-        writer.write(time + "\n")
+    override def transformerFinished(transformer: ProblemTransformer, time: Nanoseconds): Unit = {
+        writer.write(time.prettyPrint + "\n")
         writer.flush
     }
     
-    override def allTransformersFinished(finalTheory: Theory, totalTime: String): Unit = {
-        writer.write("Total transformation time: " + totalTime + "\n")
+    override def allTransformersFinished(finalTheory: Theory, totalTime: Nanoseconds): Unit = {
+        writer.write("Total transformation time: " + totalTime.prettyPrint + "\n")
         writer.flush()
     }
     
@@ -32,8 +32,8 @@ class StandardLogger(writer: java.io.Writer) extends EventLogger {
         writer.flush()
     }
     
-    override def convertedToSolverFormat(time: String): Unit = {
-        writer.write(time + "\n")
+    override def convertedToSolverFormat(time: Nanoseconds): Unit = {
+        writer.write(time.prettyPrint + "\n")
         writer.flush()
     }
     
@@ -42,14 +42,14 @@ class StandardLogger(writer: java.io.Writer) extends EventLogger {
         writer.flush()
     }
     
-    override def solverFinished(time: String): Unit = {
-        writer.write("Z3 solver time: " + time + "\n")
+    override def solverFinished(time: Nanoseconds): Unit = {
+        writer.write("Z3 solver time: " + time.prettyPrint + "\n")
         writer.flush()
     }
     
-    override def finished(result: ModelFinderResult, totalTime: String): Unit = {
+    override def finished(result: ModelFinderResult, totalTime: Nanoseconds): Unit = {
         writer.write("Done. Result was " + result.toString + ".\n")
-        writer.write("TOTAL time: " + totalTime + "\n")
+        writer.write("TOTAL time: " + totalTime.prettyPrint + "\n")
         writer.flush()
     }
     
