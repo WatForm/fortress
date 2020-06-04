@@ -1,6 +1,6 @@
 package fortress.util
 
-class Milliseconds(val value: Int) extends AnyVal {
+class Milliseconds(val value: Int) {
     def >(other: Milliseconds): Boolean = value > other.value
     def >=(other: Milliseconds): Boolean = value >= other.value
     def <(other: Milliseconds): Boolean = value < other.value
@@ -15,7 +15,7 @@ object Milliseconds {
     def apply(value: Int): Milliseconds = new Milliseconds(value)
 }
 
-class Nanoseconds(val value: Long) extends AnyVal {
+class Nanoseconds(val value: Long) {
     
     def >(other: Nanoseconds): Boolean = value > other.value
     def >=(other: Nanoseconds): Boolean = value >= other.value
