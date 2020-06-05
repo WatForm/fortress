@@ -70,5 +70,5 @@ compileScala { // or: tasks.withType(ScalaCompile)
 task runner(type: JavaExec) {
   classpath sourceSets.main.runtimeClasspath
   systemProperty "java.library.path", "z3/" // Find z3 Java interface
-  main = "fortress.exec.Runner1"
+  main = "fortress.exec.AddressBook"
 }

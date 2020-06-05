@@ -4,6 +4,7 @@ import fortress.msfol._
 import fortress.data.CartesianSeqProduct
 import fortress.util.Errors
 import fortress.operations.TermOps._
+import fortress.operations.Simplifier._
 
 // TODO can we make this faster?
 
@@ -13,35 +14,47 @@ import fortress.operations.TermOps._
 * For example, it would be okay to instantiate with domain elements or fresh
 * constants that do not share the same name as any quantified variable.
 */
-object UnivInstantiator {
+
+// Simplification during the process helps to counteract the exponential growth
+// This makes the instantation with simplification faster than without!
+object QuantifierExpanderSimplifier {
     
     def apply(term: Term, sortInstantiations: Map[Sort, Seq[Term]]): Term = {
-        def instantiate(t: Term): Term = t match {
+        def instantiateAndSimp(t: Term): Term = t match {
             case Top | Bottom | Var(_) | DomainElement(_, _) | IntegerLiteral(_)
                 | BitVectorLiteral(_, _) | EnumValue(_) => t
-            case Not(arg) => Not(instantiate(arg))
-            case AndList(args) => AndList(args map instantiate)
-            case OrList(args) => OrList(args map instantiate)
-            case Distinct(args) => Distinct(args map instantiate)
-            case Implication(left, right) => Implication(instantiate(left), instantiate(right))
-            case Iff(left, right) => Iff(instantiate(left), instantiate(right))
+            case Not(arg) => simplifyStep(Not(instantiateAndSimp(arg)))
+            case AndList(args) => simplifyStep(AndList(args map instantiateAndSimp))
+            case OrList(args) => simplifyStep(OrList(args map instantiateAndSimp))
+            case Distinct(args) => simplifyStep(Distinct(args map instantiateAndSimp))
+            case Implication(left, right) => simplifyStep(
+                Implication(instantiateAndSimp(left), instantiateAndSimp(right))
+            )
+            case Iff(left, right) => simplifyStep(
+                Iff(instantiateAndSimp(left), instantiateAndSimp(right))
+            )
             // We assume eq, app do not contain quantifiers, so we do not need to go further
             // If we change the implementation from just using direct substitution, we will need to change this
-            case Eq(_, _) | App(_, _) | BuiltinApp(_, _) => t 
-            case Exists(_, _) => throw new java.lang.IllegalArgumentException("Term must be existential-quantifier-free")
+            case Eq(_, _) | App(_, _) | BuiltinApp(_, _) => simplify(t)
             case Forall(annotatedVars, body) => {
                 // Reorder by whether can instantiate and then call helper function
                 val (doNotInstantiate, toInstantiate) = annotatedVars.partition(_.sort.isBuiltin)
-                if (doNotInstantiate.isEmpty) simpleForalls(annotatedVars, body)
-                else Forall(doNotInstantiate, simpleForalls(toInstantiate, body))
+                if (doNotInstantiate.isEmpty) simplifyStep(And.smart(simpleQuantifiers(annotatedVars, body)))
+                else simplifyStep(Forall(doNotInstantiate, simplifyStep(And.smart(simpleQuantifiers(toInstantiate, body)))))
+            }
+            case Exists(annotatedVars, body) => {
+                // Reorder by whether can instantiate and then call helper function
+                val (doNotInstantiate, toInstantiate) = annotatedVars.partition(_.sort.isBuiltin)
+                if (doNotInstantiate.isEmpty) Or.smart(simpleQuantifiers(annotatedVars, body))
+                else simplifyStep(Exists(doNotInstantiate, Or.smart(simpleQuantifiers(toInstantiate, body))))
             }
         }
             
-        def simpleForalls(annotatedVars: Seq[AnnotatedVar], body: Term): Term = {
+        def simpleQuantifiers(annotatedVars: Seq[AnnotatedVar], body: Term): Seq[Term] = {
             // TODO this assumes each sort is instantiated, which we may change later
             // TODO does the order of quantifier instantiation matter? Here we do a bottom up approach
             
-            val instantiatedBody: Term = instantiate(body)
+            val instantiatedBody: Term = instantiateAndSimp(body)
             // Forall x_1: A_1, x_2 : A_2, ... x_n: A_n
             // Where A_i is to be instantiated using the set S_i
             // Get the list [S_1, S_2, ..., S_n]
@@ -63,9 +76,9 @@ object UnivInstantiator {
                 // should never be any variable capture or any other name issues
                 instantiatedBody.fastSubstitute(varSubstitutions.toMap)
             }}
-            And.smart(instantiatedVersions)
+            instantiatedVersions map simplify
         }
         
-        instantiate(term)
+        instantiateAndSimp(term).simplify
     }
 }

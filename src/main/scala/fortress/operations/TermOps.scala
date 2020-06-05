@@ -52,11 +52,11 @@ case class TermOps private (term: Term) {
     /** Returns true iff the other term is alpha-equivalent to this term. */
     def alphaEquivalent(other: Term): Boolean = deBruijn == TermOps(other).deBruijn
     
-    def univInstantiate(sortInstantiations: Map[Sort, Seq[Term]]): Term =
-        UnivInstantiator(term, sortInstantiations)
+    def expandQuantifiers(sortInstantiations: Map[Sort, Seq[Term]]): Term =
+        QuantifierExpander(term, sortInstantiations)
         
-    def univInstantiateAndSimplify(sortInstantiations: Map[Sort, Seq[Term]]): Term =
-        UnivInstantiatorSimplifier(term, sortInstantiations)
+    def expandQuantifiersAndSimplify(sortInstantiations: Map[Sort, Seq[Term]]): Term =
+        QuantifierExpanderSimplifier(term, sortInstantiations)
     
     def simplify: Term = Simplifier.simplify(term)
     

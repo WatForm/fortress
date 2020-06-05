@@ -8,14 +8,14 @@ import fortress.operations.TermOps._
 
 /** Instantiates quantifiers with domain elements, according to the scopes of the problem.
   * The scopes must provide sizes for all sorts in the theory.
-  * The input theory is required to have no existential quantifiers and no enum sorts.
+  * The input theory is required to have no enum sorts.
   * The resulting theory's signature is identical to the original.
   * The scopes are not changed.
   * The resulting problem is equivalent to the original.
   */
   
 // TODO it seems like we could remove the requirement to ahve no enum sorts or existential quantifiers
-class DomainInstantiationTransformer private (useConstForDomElem: Boolean) extends ProblemTransformer {
+class QuantifierExpansionSimplifierTransformer private (useConstForDomElem: Boolean) extends ProblemTransformer {
     
     private def DE(index: Integer, sort: Sort): Term =
         if (useConstForDomElem) DomainElement(index, sort).asSmtConstant
@@ -30,7 +30,7 @@ class DomainInstantiationTransformer private (useConstForDomElem: Boolean) exten
             }
         
             val newAxioms = theory.axioms.map(
-                axiom => axiom.univInstantiate(domainElemsMap)
+                axiom => axiom.expandQuantifiersAndSimplify(domainElemsMap)
             )
         
             val newTheory = Theory.mkTheoryWithSignature(theory.signature).withAxioms(newAxioms)
@@ -38,10 +38,10 @@ class DomainInstantiationTransformer private (useConstForDomElem: Boolean) exten
         }
     }
     
-    override def name: String = "Domain Instantiation Transformer"
+    override def name: String = "Quantifier Expansion Simplifier Transformer"
 }
 
-object DomainInstantiationTransformer {
-    def create(): DomainInstantiationTransformer = new DomainInstantiationTransformer(false)
-    def createWithDomElemsAsConstants(): DomainInstantiationTransformer = new DomainInstantiationTransformer(true)
+object QuantifierExpansionSimplifierTransformer {
+    def create(): QuantifierExpansionSimplifierTransformer = new QuantifierExpansionSimplifierTransformer(false)
+    def createWithDomElemsAsConstants(): QuantifierExpansionSimplifierTransformer = new QuantifierExpansionSimplifierTransformer(true)
 }

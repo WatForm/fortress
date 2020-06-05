@@ -9,6 +9,7 @@ object SmtlibConverter {
         def recur(term: Term): Unit = term match {
             case DomainElement(_, _) | EnumValue(_) =>
                 Errors.unsupported("Domain elements and enum values cannot be converted to SMTLIB2")
+            // case d @ DomainElement(index, sort) => writer.write(d.asSmtConstant.name)
             case Top => writer.write("true")
             case Bottom => writer.write("false")
             case Var(name) => writer.write(name)
