@@ -83,13 +83,15 @@ case class TermOps private (term: Term) {
     
     def smtlib: String = {
         val writer = new java.io.StringWriter
-        SmtlibConverter.write(term, writer)
+        val converter = new SmtlibConverter(writer)
+        converter.write(term)
         writer.toString
     }
     
     def smtlibAssertion: String = {
         val writer = new java.io.StringWriter
-        SmtlibConverter.writeAssertion(term, writer)
+        val converter = new SmtlibConverter(writer)
+        converter.writeAssertion(term)
         writer.toString
     }
 }

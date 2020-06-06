@@ -67,37 +67,41 @@ class SmtlibConversionTests extends UnitSuite {
     test("basic sorts") {
         val sorts = Seq(IntSort, BoolSort, BitVectorSort(8), A, B)
         val writer = new java.io.StringWriter
-        SmtlibConverter.writeSorts(sorts, writer)
+        val converter = new SmtlibConverter(writer)
+        converter.writeSorts(sorts)
         writer.toString should be ("Int Bool (_ BitVec 8) A B")
     }
     
     test("single sort") {
         val sorts = Seq(IntSort)
         val writer = new java.io.StringWriter
-        SmtlibConverter.writeSorts(sorts, writer)
+        val converter = new SmtlibConverter(writer)
+        converter.writeSorts(sorts)
         writer.toString should be ("Int")
     }
     
     test("no sorts") {
         val sorts = Seq()
         val writer = new java.io.StringWriter
-        SmtlibConverter.writeSorts(sorts, writer)
+        val converter = new SmtlibConverter(writer)
+        converter.writeSorts(sorts)
         writer.toString should be ("")
     }
     
     test("sort declarations") {
         val writer = new java.io.StringWriter
+        val converter = new SmtlibConverter(writer)
         
-        SmtlibConverter.writeSortDecl(IntSort, writer)
+        converter.writeSortDecl(IntSort)
         writer.toString should be ("")
         
-        SmtlibConverter.writeSortDecl(BoolSort, writer)
+        converter.writeSortDecl(BoolSort)
         writer.toString should be ("")
         
-        SmtlibConverter.writeSortDecl(BitVectorSort(8), writer)
+        converter.writeSortDecl(BitVectorSort(8))
         writer.toString should be ("")
         
-        SmtlibConverter.writeSortDecl(A, writer)
+        converter.writeSortDecl(A)
         writer.toString should be ("(declare-sort A 0)")
     }
 }

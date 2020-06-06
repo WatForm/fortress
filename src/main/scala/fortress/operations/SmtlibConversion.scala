@@ -3,9 +3,9 @@ package fortress.operations
 import fortress.msfol._
 import fortress.util.Errors
 
-object SmtlibConverter {
+class SmtlibConverter(writer: java.io.Writer) {
     // Use a writer for efficiency
-    def write(t: Term, writer: java.io.Writer): Unit = {
+    def write(t: Term): Unit = {
         def recur(term: Term): Unit = term match {
             case DomainElement(_, _) | EnumValue(_) =>
                 Errors.unsupported("Domain elements and enum values cannot be converted to SMTLIB2")
@@ -31,7 +31,7 @@ object SmtlibConverter {
                     writer.write('(')
                     writer.write(av.name)
                     writer.write(' ')
-                    writeSort(av.sort, writer)
+                    writeSort(av.sort)
                     writer.write(')')
                     num += 1
                 }
@@ -49,7 +49,7 @@ object SmtlibConverter {
                     writer.write('(')
                     writer.write(av.name)
                     writer.write(' ')
-                    writeSort(av.sort, writer)
+                    writeSort(av.sort)
                     writer.write(')')
                     num += 1
                 }
@@ -113,7 +113,7 @@ object SmtlibConverter {
         recur(t)
     }
     
-    def writeSort(sort: Sort, writer: java.io.Writer): Unit = sort match {
+    def writeSort(sort: Sort): Unit = sort match {
         case SortConst(name) => writer.write(name)
         case BoolSort => writer.write("Bool")
         case IntSort => writer.write("Int")
@@ -124,18 +124,18 @@ object SmtlibConverter {
         }
     }
     
-    def writeSorts(sorts: Seq[Sort], writer: java.io.Writer): Unit = {
+    def writeSorts(sorts: Seq[Sort]): Unit = {
         if(sorts.size == 1){
-            writeSort(sorts.head, writer)
+            writeSort(sorts.head)
         }
         else if(sorts.size > 1){
-            writeSort(sorts.head, writer)
+            writeSort(sorts.head)
             writer.write(' ')
-            writeSorts(sorts.tail, writer)
+            writeSorts(sorts.tail)
         }
     }
     
-    def writeSortDecl(sort: Sort, writer: java.io.Writer): Unit = {
+    def writeSortDecl(sort: Sort): Unit = {
         sort match {
             case SortConst(name) => {
                 writer.write("(declare-sort ")
@@ -146,38 +146,38 @@ object SmtlibConverter {
         }
     }
     
-    def writeFuncDecl(funcDecl: FuncDecl, writer: java.io.Writer): Unit = {
+    def writeFuncDecl(funcDecl: FuncDecl): Unit = {
         writer.write("(declare-fun ")
         writer.write(funcDecl.name)
         writer.write(" (")
-        writeSorts(funcDecl.argSorts, writer)
+        writeSorts(funcDecl.argSorts)
         writer.write(") ")
-        writeSort(funcDecl.resultSort, writer)
+        writeSort(funcDecl.resultSort)
         writer.write(')')
     }
     
-    def writeConst(constant: AnnotatedVar, writer: java.io.Writer): Unit = {
+    def writeConst(constant: AnnotatedVar): Unit = {
         writer.write("(declare-const ")
         writer.write(constant.name)
         writer.write(' ')
-        writeSort(constant.getSort, writer)
+        writeSort(constant.getSort)
         writer.write(')')
     }
 
-    def writeSignature(sig: Signature, writer: java.io.Writer): Unit = {
-        sig.sorts.foreach(sort => writeSortDecl(sort, writer))
-        sig.functionDeclarations.foreach(sort => writeFuncDecl(sort, writer))
-        sig.constants.foreach(constant => writeConst(constant, writer))
+    def writeSignature(sig: Signature): Unit = {
+        sig.sorts.foreach(writeSortDecl)
+        sig.functionDeclarations.foreach(writeFuncDecl)
+        sig.constants.foreach(writeConst)
     }
     
-    def writeAssertion(term: Term, writer: java.io.Writer): Unit = {
+    def writeAssertion(term: Term): Unit = {
         writer.write("(assert ")
-        write(term, writer)
+        write(term)
         writer.write(')')
     }
     
-    def writeTheory(theory: Theory, writer: java.io.Writer): Unit = {
-        writeSignature(theory.signature, writer)
-        theory.axioms.foreach(axiom => writeAssertion(axiom, writer))
+    def writeTheory(theory: Theory): Unit = {
+        writeSignature(theory.signature)
+        theory.axioms.foreach(writeAssertion)
     }
 }

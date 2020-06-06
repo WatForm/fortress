@@ -15,7 +15,8 @@ case class TheoryOps private (theory: Theory) {
     
     def smtlib: String = {
         val writer = new java.io.StringWriter
-        SmtlibConverter.writeTheory(theory, writer)
+        val converter = new SmtlibConverter(writer)
+        converter.writeTheory(theory)
         writer.toString
     }
 }
