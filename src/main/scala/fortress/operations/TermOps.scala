@@ -15,12 +15,12 @@ case class TermOps private (term: Term) {
     /** Returns the set of Vars that appear unquantified in this term.
       * This only looks at syntax without respect to a given signature,
       * so it could also include what are intended to be constants.
-      */ 
+      */
     def freeVarConstSymbols: Set[Var] = RecursiveAccumulator.freeVariablesIn(term)
     
     /** Returns the set of free variables of this term with respect
       * to the given signature. Constants of the signature are not included.
-      */ 
+      */
     def freeVars(signature: Signature): Set[Var] = {
         val constants = signature.constants.map(_.variable)
         RecursiveAccumulator.freeVariablesIn(term) diff constants
@@ -89,9 +89,7 @@ case class TermOps private (term: Term) {
     
     def smtlibAssertion: String = {
         val writer = new java.io.StringWriter
-        writer.write("(assert ")
-        SmtlibConverter.write(term, writer)
-        writer.write(')')
+        SmtlibConverter.writeAssertion(term, writer)
         writer.toString
     }
 }

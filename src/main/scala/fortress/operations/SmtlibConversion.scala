@@ -31,7 +31,7 @@ object SmtlibConverter {
                     writer.write('(')
                     writer.write(av.name)
                     writer.write(' ')
-                    writeSort(av.sort)
+                    writeSort(av.sort, writer)
                     writer.write(')')
                     num += 1
                 }
@@ -49,7 +49,7 @@ object SmtlibConverter {
                     writer.write('(')
                     writer.write(av.name)
                     writer.write(' ')
-                    writeSort(av.sort)
+                    writeSort(av.sort, writer)
                     writer.write(')')
                     num += 1
                 }
@@ -110,17 +110,74 @@ object SmtlibConverter {
             writer.write(')')
         }
         
-        def writeSort(sort: Sort): Unit = sort match {
-            case SortConst(name) => writer.write(name)
-            case BoolSort => writer.write("Bool")
-            case IntSort => writer.write("Int")
-            case BitVectorSort(bitwidth) => {
-                writer.write("(_ BitVec ")
-                writer.write(bitwidth.toString)
-                writer.write(')')
-            }
-        }
-        
         recur(t)
+    }
+    
+    def writeSort(sort: Sort, writer: java.io.Writer): Unit = sort match {
+        case SortConst(name) => writer.write(name)
+        case BoolSort => writer.write("Bool")
+        case IntSort => writer.write("Int")
+        case BitVectorSort(bitwidth) => {
+            writer.write("(_ BitVec ")
+            writer.write(bitwidth.toString)
+            writer.write(')')
+        }
+    }
+    
+    def writeSorts(sorts: Seq[Sort], writer: java.io.Writer): Unit = {
+        if(sorts.size == 1){
+            writeSort(sorts.head, writer)
+        }
+        else if(sorts.size > 1){
+            writeSort(sorts.head, writer)
+            writer.write(' ')
+            writeSorts(sorts.tail, writer)
+        }
+    }
+    
+    def writeSortDecl(sort: Sort, writer: java.io.Writer): Unit = {
+        sort match {
+            case SortConst(name) => {
+                writer.write("(declare-sort ")
+                writer.write(sort.name)
+                writer.write(" 0)")
+            }
+            case _ =>
+        }
+    }
+    
+    def writeFuncDecl(funcDecl: FuncDecl, writer: java.io.Writer): Unit = {
+        writer.write("(declare-fun ")
+        writer.write(funcDecl.name)
+        writer.write(" (")
+        writeSorts(funcDecl.argSorts, writer)
+        writer.write(") ")
+        writeSort(funcDecl.resultSort, writer)
+        writer.write(')')
+    }
+    
+    def writeConst(constant: AnnotatedVar, writer: java.io.Writer): Unit = {
+        writer.write("(declare-const ")
+        writer.write(constant.name)
+        writer.write(' ')
+        writeSort(constant.getSort, writer)
+        writer.write(')')
+    }
+
+    def writeSignature(sig: Signature, writer: java.io.Writer): Unit = {
+        sig.sorts.foreach(sort => writeSortDecl(sort, writer))
+        sig.functionDeclarations.foreach(sort => writeFuncDecl(sort, writer))
+        sig.constants.foreach(constant => writeConst(constant, writer))
+    }
+    
+    def writeAssertion(term: Term, writer: java.io.Writer): Unit = {
+        writer.write("(assert ")
+        write(term, writer)
+        writer.write(')')
+    }
+    
+    def writeTheory(theory: Theory, writer: java.io.Writer): Unit = {
+        writeSignature(theory.signature, writer)
+        theory.axioms.foreach(axiom => writeAssertion(axiom, writer))
     }
 }

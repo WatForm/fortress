@@ -12,6 +12,12 @@ case class TheoryOps private (theory: Theory) {
         new InterpretationVerifier(theory).verifyInterpretation(interpretation)
     
     def withoutAxioms: Theory = Theory(theory.signature, Set.empty)
+    
+    def smtlib: String = {
+        val writer = new java.io.StringWriter
+        SmtlibConverter.writeTheory(theory, writer)
+        writer.toString
+    }
 }
 
 object TheoryOps {
