@@ -16,39 +16,15 @@ class SymmetryBreakingTransformerTWO extends ProblemTransformer {
         
     def apply(problem: Problem): Problem = problem match {
         case Problem(theory, scopes) => {
-            // Contains all used domain elements in the theory
-            // This data structure is updated over time
-            // Note this an immutable map of mutable sets
-            val usedDomainElements: Map[Sort, mutable.Set[DomainElement]] = {
-                // Determine which domain elements have been used in the original theory
-                val allUsedDomainElements: Set[DomainElement] = theory.axioms flatMap (_.domainElements)
-                val mapTuples = for (sort <- theory.sorts if !sort.isBuiltin) yield {
-                    val set = allUsedDomainElements filter (_.sort == sort)
-                    val mutableSet = mutable.Set(set.toSeq: _*) // Annoying conversion
-                    (sort, mutableSet)
-                }
-                mapTuples.toMap
-            }
-            
-            // Marks domain elements as used
-            def markUsed(domainElements: Iterable[DomainElement]): Unit = {
-                for(de <- domainElements) {
-                    usedDomainElements(de.sort) += de
-                }
-            }
-            
-            // Determines whether this sort has any unused domain elements
-            def stillUnusedDomainElements(sort: Sort): Boolean = usedDomainElements(sort).size < scopes(sort)
-            // Determines how many unused domain elements this sort has
-            def numUnusedDomainElements(sort: Sort): Int = scopes(sort) - usedDomainElements(sort).size
+            val tracker = new DomainElementTracker(theory, scopes)
             
             // Accumulates the symmetry breaking constraints
             val constraints = new mutable.ListBuffer[Term]
             
             // Symmetry break on constants first
-            for(sort <- theory.sorts if !sort.isBuiltin && stillUnusedDomainElements(sort)) {
+            for(sort <- theory.sorts if !sort.isBuiltin && tracker.stillUnusedDomainElements(sort)) {
                 val constants = theory.constants.filter(_.sort == sort).toIndexedSeq
-                val usedVals = usedDomainElements(sort).toIndexedSeq
+                val usedVals = tracker.usedDomainElements(sort).toIndexedSeq
                 val scope = scopes(sort)
                 val constantEqualities = Symmetry.csConstantEqualities(sort, constants, scope, usedVals)
                 val constantImplications = Symmetry.csConstantImplications(sort, constants, scope, usedVals)
@@ -57,8 +33,8 @@ class SymmetryBreakingTransformerTWO extends ProblemTransformer {
                 constraints ++= constantEqualities
                 constraints ++= constantImplications
                 // Add to used values
-                markUsed(constantEqualities flatMap (_.domainElements))
-                markUsed(constantImplications flatMap (_.domainElements))
+                tracker.markUsed(constantEqualities flatMap (_.domainElements))
+                tracker.markUsed(constantImplications flatMap (_.domainElements))
             }
             
             // After constants, do all of the functions
@@ -69,8 +45,8 @@ class SymmetryBreakingTransformerTWO extends ProblemTransformer {
                 // Lowest arity, then largest # of unused result values
                 if (f1.arity < f2.arity) true
                 else if (f1.arity > f2.arity) false
-                else (numUnusedDomainElements(f1.resultSort)
-                    > numUnusedDomainElements(f2.resultSort))
+                else (tracker.numUnusedDomainElements(f1.resultSort)
+                    > tracker.numUnusedDomainElements(f2.resultSort))
             }
             
             // Only perform symmetry breaking on functions that don't consume or produce
@@ -83,9 +59,9 @@ class SymmetryBreakingTransformerTWO extends ProblemTransformer {
             for(f <- functions) {
                 val resultSort = f.resultSort
                 val scope = scopes(resultSort)
-                val usedVals = usedDomainElements(resultSort).toIndexedSeq
+                val usedVals = tracker.usedDomainElements(resultSort).toIndexedSeq
                 
-                if(stillUnusedDomainElements(resultSort)) {
+                if(tracker.stillUnusedDomainElements(resultSort)) {
                     if (f.isDomainRangeDistinct) {
                         // DRD scheme
                         val fEqualities = Symmetry.drdFunctionEqualities(f, scopes, usedVals)
@@ -95,8 +71,8 @@ class SymmetryBreakingTransformerTWO extends ProblemTransformer {
                         constraints ++= fEqualities
                         constraints ++= fImplications
                         // Add to used values
-                        markUsed(fEqualities flatMap (_.domainElements))
-                        markUsed(fImplications flatMap (_.domainElements))
+                        tracker.markUsed(fEqualities flatMap (_.domainElements))
+                        tracker.markUsed(fImplications flatMap (_.domainElements))
                         
                     } else {
                         // Extended CS scheme
@@ -105,7 +81,7 @@ class SymmetryBreakingTransformerTWO extends ProblemTransformer {
                         // Add to constraints
                         constraints ++= fEqualities
                         // Add to used values
-                        markUsed(fEqualities flatMap (_.domainElements))
+                        tracker.markUsed(fEqualities flatMap (_.domainElements))
                     }
                 }
             }
@@ -127,8 +103,8 @@ class SymmetryBreakingTransformerTWO extends ProblemTransformer {
             
             // Apply symmetry breaking to the predicates
             for(P <- predicates) {
-                if(P.argSorts forall (numUnusedDomainElements(_) >= 2)) { // Need at least 2 unused values to do any symmetry breaking
-                    val usedValues: Map[Sort, IndexedSeq[DomainElement]] = usedDomainElements map {
+                if(P.argSorts forall (tracker.numUnusedDomainElements(_) >= 2)) { // Need at least 2 unused values to do any symmetry breaking
+                    val usedValues: Map[Sort, IndexedSeq[DomainElement]] = tracker.usedDomainElements map {
                         case (sort, setOfVals) => (sort, setOfVals.toIndexedSeq)
                     }
                     val pImplications = Symmetry.predicateImplications(P, scopes, usedValues)
@@ -136,7 +112,7 @@ class SymmetryBreakingTransformerTWO extends ProblemTransformer {
                     // Add to constraints
                     constraints ++= pImplications
                     // Add to used values
-                    markUsed(pImplications flatMap (_.domainElements))
+                    tracker.markUsed(pImplications flatMap (_.domainElements))
                 }
             }
             
