@@ -13,13 +13,13 @@ argument, calls default model finder (eufsolver/Z3) and prints result. -->
 
 ## Setup
 1. Follow the steps for building Fortress.
-2. Copy and unzip the contents of `build/distributions/fortress-2.0.zip` into the `examples/libs` directory.
+2. Copy and unzip the contents of `build/distributions/fortress.zip` into the `examples/libs` directory.
 For example, the following shell code can be run from the `examples/` directory.
 ```
 # Copy and unzip Fortress files into libs/ directory
-rm -rf libs/fortress-2.0.zip libs/fortress-2.0.zip
-cp ../build/distributions/fortress-2.0.zip libs/
-unzip -oj libs/fortress-2.0.zip -d libs/
+rm -rf libs/fortress.zip libs/fortress.zip
+cp ../build/distributions/fortress.zip libs/
+unzip -oj libs/fortress.zip -d libs/
 ```
 
 ## Compiling and Running Examples
@@ -135,3 +135,26 @@ This example asks if there exists a graph on 5 vertices so that:
 This breaks the handshake lemma for finite graphs (that there is an even number 
 of odd-degree vertices), and so for finite scopes is unsatisfiable.
 It is satisfiable for infinite graphs (an infinite ray is an example).
+
+### Monkey Village
+Run the following code to compile and run the Monkey Village example.
+```
+# Compile
+javac -cp ".:libs/*" MonkeyVillage.java
+
+# Run
+java -cp ".:libs/*" -Djava.library.path="libs" MonkeyVillage 2 6 12
+```
+This example is taken from "Finding Finite Models in Multi-sorted First-Order Logic"
+by Reger, Suda, and Voronkov.
+To quote their description of the problem:
+
+> Imagine a village of monkeys where each monkey owns at least two bananas.
+As the monkeys are well-organised, each tree contains exactly three monkeys.
+Monkeys are also very friendly, so they pair up to make sure they will always have a partner.
+
+The numbers provided specify the number of trees, monkeys, and bananas, respectively.
+The problem is satisfiable if and only if:
+* there are exactly three times as many monkeys as trees,
+* there are at least twice as many bananas as monkeys, and
+* there is an even number of monkeys.
