@@ -142,7 +142,7 @@ public class KnightsTour{
             .withAxioms(axioms);
 
         // Initialize a model finder
-        ModelFinder finder = ModelFinder.createDefault();
+        ModelFinder finder = new FortressTWO();
 
         finder.setTimeout(timeout);
 
