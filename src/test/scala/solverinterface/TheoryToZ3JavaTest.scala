@@ -1,12 +1,9 @@
 import org.scalatest._
-import org.junit.runner.RunWith
-import org.scalatest.junit.JUnitRunner
 
 import fortress.msfol._
 import fortress.symmetry._ 
 
-@RunWith(classOf[JUnitRunner])
-class TheoryToZ3JavaTest extends FunSuite with Matchers {
+class TheoryToZ3JavaTest extends UnitSuite {
     
     test("conversion") {
         pending

@@ -1,15 +1,12 @@
 import fortress.inputs.SmtLibSubsetParser.DistinctContext
 import org.scalatest._
 import org.junit.Assert._
-import org.junit.runner.RunWith
-import org.scalatest.junit.JUnitRunner
 import fortress.msfol._
 import fortress.modelfind._
 import fortress.interpretation._
-import scala.collection.immutable.Seq
+import fortress.operations.TheoryOps._
 
-@RunWith(classOf[JUnitRunner])
-class VerifyInterpretationTests extends FunSuite with Matchers {
+class VerifyInterpretationTests extends UnitSuite {
         /** Unit tests for Theory.verifyInterpretation()
           *
           * In each function, we first create a raw theory with all our constant & function definitions,
@@ -76,7 +73,6 @@ class VerifyInterpretationTests extends FunSuite with Matchers {
                         assertTrue(run(And(true1, true2, true3)))
                         assertTrue(run(Or(true1, false1, false2, false3)))
                         assertFalse(run(And(true1, true2, false1, false2)))
-                        assertFalse(run(Or(false3)))
                 }
 
                 test("boolean implication/iff/eq"){

@@ -5,19 +5,12 @@ import scala.jdk.CollectionConverters._
 import scala.collection.immutable.Seq // Default to immutable Seqs
 import scala.annotation.varargs // So we can call Scala varargs methods from Java
 
-case class FuncDecl(name: String, argSorts: Seq[Sort], resultSort: Sort) {
+case class FuncDecl private (name: String, argSorts: Seq[Sort], resultSort: Sort) {
     Errors.precondition(argSorts.size > 0, "Cannot create nullary functions; use a constant instead")
     Errors.precondition(! Names.isIllegal(name), "Illegal function name " + name)
     Errors.precondition(name.length > 0, "Cannot create function with empty name")
     
-    def getArity: Int = argSorts.size
     def arity: Int = argSorts.size
-
-    def getName: String = name
-
-    def getArgSorts: java.util.List[Sort] = argSorts.asJava
-
-    def getResultSort: Sort = resultSort
     
     def isDomainRangeDistinct: Boolean = !(argSorts contains resultSort)
     

@@ -6,13 +6,15 @@ import fortress.util._
 import fortress.interpretation._
 import fortress.solverinterface._
 
+import scala.collection.mutable.ListBuffer
+
 trait StdModelFindConfig extends ModelFinder {
-    protected var timeoutMilliseconds: Int = 60000
+    protected var timeoutMilliseconds: Milliseconds = Milliseconds(60000)
     protected var analysisScopes: Map[Sort, Int] = Map.empty
     protected var theory: Theory = Theory.empty
     protected var integerSemantics: IntegerSemantics = Unbounded
-    protected var log: java.io.Writer = new java.io.PrintWriter(new fortress.data.NullOutputStream)
     protected var debug: Boolean = false
+    protected var eventLoggers: ListBuffer[EventLogger] = ListBuffer.empty
     
     override def setTheory(newTheory: Theory): Unit = {
         theory = newTheory
@@ -20,7 +22,7 @@ trait StdModelFindConfig extends ModelFinder {
     
     override def setTimeout(milliseconds: Int): Unit = {
         Errors.precondition(milliseconds >= 0)
-        timeoutMilliseconds = milliseconds
+        timeoutMilliseconds = Milliseconds(milliseconds)
     }
     
     override def setAnalysisScope(t: Sort, size: Int): Unit = {
@@ -32,14 +34,14 @@ trait StdModelFindConfig extends ModelFinder {
         integerSemantics = semantics
     }
     
-    override def setDebug(enableDebug: Boolean): Unit = {
-        debug = enableDebug
+    override def setOutput(writer: java.io.Writer): Unit = {
+        eventLoggers += new StandardLogger(writer)
     }
     
-    override def setOutput(logWriter: java.io.Writer) = {
-        log = logWriter
+    override def addLogger(logger: EventLogger): Unit = {
+        eventLoggers += logger
     }
     
     // Calculate the number of nanoseconds until we must output TIMEOUT
-    protected def timeoutNano: Long = StopWatch.millisToNano(timeoutMilliseconds)
+    protected def timeoutNano: Nanoseconds = timeoutMilliseconds.toNano
 }

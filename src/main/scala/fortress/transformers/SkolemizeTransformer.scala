@@ -5,14 +5,14 @@ import fortress.data.NameGenerator
 import fortress.data.IntSuffixNameGenerator
 import fortress.operations.Skolemizer
 import fortress.operations.TermOps._
+import fortress.operations.TheoryOps._
 
 import scala.jdk.CollectionConverters._
 
-/** Takes a theory, whose formulas are all in negation normal form, and produces
-* an equisatisfiable theory whose formulas are still in negation normal form and
-* contain no existential quantifiers.
-* Prenex normal form is preserved.
-* Scopes are preserved. */
+/** Given a theory, with formulas all in negation normal form, eliminates existential
+* quantifiers through skolemization. The resulting theory is equisatisfiable with
+* the original.
+* Precondition: Input theory is in negation normal form.*/
 class SkolemizeTransformer extends TheoryTransformer {
     
     override def apply(theory: Theory): Theory = {

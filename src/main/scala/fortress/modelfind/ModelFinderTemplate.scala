@@ -33,16 +33,14 @@ abstract class ModelFinderTemplate(var solverStrategy: SolverStrategy) extends M
     protected def transformerSequence(): Seq[ProblemTransformer]
     
     private def applyTransformer(transformer: ProblemTransformer, problem: Problem): Problem = {
-        log.write("Applying transformer: " + transformer.name)
-        log.write("... ")
-        log.flush()
+        for(logger <- eventLoggers) logger.transformerStarted(transformer)
         val transformationTimer = new StopWatch()
         transformationTimer.startFresh()
         
         val resultingProblem = transformer(problem)
         
         val elapsed = transformationTimer.elapsedNano()
-        log.write(StopWatch.formatNano(elapsed) + "\n")
+        for(logger <- eventLoggers) logger.transformerFinished(transformer, elapsed)
         resultingProblem
     }
     
@@ -61,8 +59,7 @@ abstract class ModelFinderTemplate(var solverStrategy: SolverStrategy) extends M
             intermediateProblem = applyTransformer(transformer, intermediateProblem)
             
             if(totalTimer.elapsedNano() >= timeoutNano) {
-                log.write("TIMEOUT within Fortress.\n")
-                log.flush()
+                for(logger <- eventLoggers) logger.timeoutInternal()
                 return None
             }
         }
@@ -73,19 +70,10 @@ abstract class ModelFinderTemplate(var solverStrategy: SolverStrategy) extends M
 
         constrainedTheory = finalTheory
 
-        log.write("Total transformation time: " + StopWatch.formatNano(totalTimer.elapsedNano()) + "\n")
-        log.flush()
-        
-        if(debug) {
-            log.write("Resulting theory:\n")
-            log.write(finalTheory.toString)
-            log.write("\n")
-            log.flush()
-        }
+        for(logger <- eventLoggers) logger.allTransformersFinished(finalTheory, totalTimer.elapsedNano())
         
         if(totalTimer.elapsedNano() > timeoutNano) {
-            log.write("TIMEOUT within Fortress.\n")
-            log.flush()
+            for(logger <- eventLoggers) logger.timeoutInternal()
             return None
         }
         
@@ -94,16 +82,12 @@ abstract class ModelFinderTemplate(var solverStrategy: SolverStrategy) extends M
     
     // Returns the final ModelFinderResult
     private def solverPhase(finalTheory: Theory): ModelFinderResult = {
-        log.write("Invoking solver strategy...\n")
-        log.flush()
+        for(logger <- eventLoggers) logger.invokingSolverStrategy()
 
-        val remainingMillis = timeoutMilliseconds - StopWatch.nanoToMillis(totalTimer.elapsedNano)
-        val finalResult: ModelFinderResult = solverStrategy.solve(finalTheory, remainingMillis, log)
+        val remainingMillis = timeoutMilliseconds - totalTimer.elapsedNano().toMilli
+        val finalResult: ModelFinderResult = solverStrategy.solve(finalTheory, remainingMillis, eventLoggers.toList)
         
-        log.write("Done. Result was " + finalResult.toString + ".\n")
-        
-        log.write("TOTAL time: " + StopWatch.formatNano(totalTimer.elapsedNano) + "\n")
-        log.flush()
+        for(logger <- eventLoggers) logger.finished(finalResult, totalTimer.elapsedNano())
         
         finalResult
     }
@@ -118,7 +102,7 @@ abstract class ModelFinderTemplate(var solverStrategy: SolverStrategy) extends M
         //solverStrategy.addAxiom(newAxiom, timeoutMilliseconds, log)
 
         constrainedTheory = constrainedTheory.withAxiom(newAxiom)
-        solverStrategy.solve(constrainedTheory, timeoutMilliseconds, log)
+        solverStrategy.solve(constrainedTheory, timeoutMilliseconds, eventLoggers.toList)
     }
 
     override def countValidModels(newTheory: Theory): Int = {
@@ -126,18 +110,9 @@ abstract class ModelFinderTemplate(var solverStrategy: SolverStrategy) extends M
         checkSat() match {
             case SatResult =>
             case UnsatResult => return 0
-            case UnknownResult =>
-                log.write("Solver gave unknown result\n")
-                log.flush()
-                return 0
-            case ErrorResult =>
-                log.write("An error occurred while computing result\n")
-                log.flush()
-                return 0
-            case TimeoutResult =>
-                log.write("Solver timed out while computing result\n")
-                log.flush()
-                return 0
+            case UnknownResult => Errors.solverError("Solver gave unknown result")
+            case ErrorResult => Errors.solverError("An error occurred while computing result")
+            case TimeoutResult => Errors.solverError("Solver timed out while computing result")
         }
 
         var count: Int = 1
@@ -149,18 +124,9 @@ abstract class ModelFinderTemplate(var solverStrategy: SolverStrategy) extends M
             r match {
                 case SatResult => count += 1
                 case UnsatResult => sat = false
-                case UnknownResult =>
-                    log.write("Solver gave unknown result\n")
-                    log.flush()
-                    sat = false
-                case ErrorResult =>
-                    log.write("An error occurred while computing result\n")
-                    log.flush()
-                    sat = false
-                case TimeoutResult =>
-                    log.write("Solver timed out while computing result\n")
-                    log.flush()
-                    sat = false
+                case UnknownResult => Errors.solverError("Solver gave unknown result")
+                case ErrorResult => Errors.solverError("An error occurred while computing result")
+                case TimeoutResult => Errors.solverError("Solver timed out while computing result")
             }
         }
 

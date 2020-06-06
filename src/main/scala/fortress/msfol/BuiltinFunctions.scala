@@ -2,17 +2,26 @@ package fortress.msfol
 
 import scala.collection.immutable.Seq
 
+/** Represents various builtin for integers and bitvectors. */
 sealed abstract class BuiltinFunction {
+    
+    // Given a sequence of input sorts, returns either the sort of what this
+    // builtin function will output, or None if the inputs sorts are not valid
+    // for this function.
     def resultSortFromArgSorts(sorts: Seq[Sort]): Option[Sort]
 }
 
+/////////////
 // Integers
+/////////////
 case object IntPlus extends BuiltinFunction {
     override def resultSortFromArgSorts(sorts: Seq[Sort]): Option[Sort] = sorts match {
         case Seq(IntSort, IntSort) => Some(IntSort)
         case _ => None
     }
 }
+
+// Unary minus
 case object IntNeg extends BuiltinFunction {
     override def resultSortFromArgSorts(sorts: Seq[Sort]): Option[Sort] = sorts match {
         case Seq(IntSort) => Some(IntSort)
@@ -68,7 +77,9 @@ case object IntGT extends BuiltinFunction {
     }
 }
 
+///////////////
 // Bit Vectors
+///////////////
 case object BvPlus extends BuiltinFunction {
     override def resultSortFromArgSorts(sorts: Seq[Sort]): Option[Sort] = sorts match {
         case Seq(BitVectorSort(n), BitVectorSort(m)) if n == m => Some(BitVectorSort(n))

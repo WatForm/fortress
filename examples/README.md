@@ -2,14 +2,14 @@
 
 This directory contains examples of main programs that use the Fortress library.
 
-## Included examples
+<!-- ## Included examples
 1. Smtlibparsemain.java: Uses Fortress Smtlibparser to parse an 
 SMT-lIB file passed as an argument. Sets default scopes for all 
 scopes (uses ?? for built-in Ints), calls default model finder 
 (eufsolver/Z3) and prints result.
 2. alg212.java: Uses Fortress API to create TPTP problem ALG212+1.p 
 (TPTP version 7.2.0).  The scope for the universal sort is passed as an 
-argument, calls default model finder (eufsolver/Z3) and prints result.
+argument, calls default model finder (eufsolver/Z3) and prints result. -->
 
 ## Setup
 1. Follow the steps for building Fortress.
@@ -25,6 +25,7 @@ unzip -oj libs/fortress-2.0.zip -d libs/
 ## Compiling and Running Examples
 Change to the `examples/` directory before running the following code.
 Make sure the `libs/` directory has been setup correctly.
+If you are on Windows use a semicolon to seperate paths in the -cp flag instead of a colon ie. `java -cp ".;libs/*" ...`
 
 ### Pigeonhole
 Run the following code to compile and run the Pigeonhole example.

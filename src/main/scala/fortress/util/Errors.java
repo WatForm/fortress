@@ -40,6 +40,12 @@ public class Errors {
         }
     }
     
+    public static class SolverException extends RuntimeException {
+        public SolverException(String message) {
+            super(message);
+        }
+    }
+    
     // Precondition: if failed, the method caller messed up
     public static void precondition(boolean condition) {
         if(!condition) {
@@ -107,5 +113,9 @@ public class Errors {
     
     public static void unsupported(String message) {
         throw new UnsupportedException("Unuspported: " + message);
+    }
+    
+    public static void solverError(String message) {
+        throw new SolverException("Solver exception: " + message);
     }
 }

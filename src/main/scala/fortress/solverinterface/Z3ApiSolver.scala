@@ -1,8 +1,7 @@
 package fortress.solverinterface
 
 import fortress.msfol._
-import fortress.util.StopWatch
-import fortress.util.Errors
+import fortress.util._
 
 import fortress.modelfind._
 import fortress.solverinterface._
@@ -20,34 +19,34 @@ class Z3ApiSolver extends SolverTemplate {
     private var lastModel: Option[Z3Model] = None
     private var context: Option[Z3Context] = None
     private var solver: Option[Z3Solver] = None
-    private var converter: Option[TheoryToZ3Java] = None
+    private var converter: Option[TheoryToZ3_StringParse] = None
 
-    override protected def convertTheory(theory: Theory, log: java.io.Writer): Unit = {
-        converter = Some(new TheoryToZ3Java(theory))
+    override protected def convertTheory(theory: Theory): Unit = {
+        converter = Some(new TheoryToZ3_StringParse(theory))
         val pair: (Z3Context, Z3Solver) = converter.get.convert
         context = Some(pair._1)
         solver = Some(pair._2)
     }
 
-    override def addAxiom(axiom: Term, timeoutMillis: Int, log: java.io.Writer): ModelFinderResult = {
+    override def addAxiom(axiom: Term, timeoutMillis: Milliseconds): ModelFinderResult = {
         solver.get.push()
         solver.get.add(converter.get.convertAxiom(axiom))
 
         updateTimeout(timeoutMillis)
-        runSolver(log)
+        runSolver()
     }
 
-    override protected def updateTimeout(remainingMillis: Int): Unit = {
+    override protected def updateTimeout(remainingMillis: Milliseconds): Unit = {
         Errors.assertion(context.nonEmpty)
         Errors.assertion(solver.nonEmpty)
 
         val params: Z3Params = context.get.mkParams()
-        params.add("timeout", remainingMillis)
+        params.add("timeout", remainingMillis.value)
         solver.get.setParameters(params)
     }
 
     @throws(classOf[java.io.IOException])
-    override protected def runSolver(log: java.io.Writer): ModelFinderResult = {
+    override protected def runSolver(): ModelFinderResult = {
         Errors.assertion(context.nonEmpty)
         Errors.assertion(solver.nonEmpty)
 
@@ -56,7 +55,7 @@ class Z3ApiSolver extends SolverTemplate {
         status match {
             case Z3Status.UNKNOWN => {
                 // TODO timeout errors
-                log.write("UNKNOWN (" + solver.get.getReasonUnknown() + ").\n")
+                // log.write("UNKNOWN (" + solver.get.getReasonUnknown() + ").\n")
                 if(solver.get.getReasonUnknown() == "timeout"
                         || solver.get.getReasonUnknown == "canceled") {
                     return ModelFinderResult.Timeout
@@ -65,11 +64,11 @@ class Z3ApiSolver extends SolverTemplate {
             }
             case Z3Status.SATISFIABLE => {
                 lastModel = Some(solver.get.getModel())
-                log.write("SAT.\n")
+                // log.write("SAT.\n")
                 return ModelFinderResult.Sat
             }
             case Z3Status.UNSATISFIABLE => {
-                log.write("UNSAT.\n")
+                // log.write("UNSAT.\n")
                 return ModelFinderResult.Unsat
             }
             case _ => throw new java.lang.RuntimeException("Unexpected solver result " + status.toString)

@@ -11,11 +11,10 @@ import scala.collection.immutable.Seq
 
 import scala.math.min
 
-/** Introduces (quantifier-free) range formulas restricting the ranges of
+/** Introduces range formulas restricting the ranges of
   * function applications and constants.
-  * The resulting problem has no scopes (unbounded), and is equisatisfiable to the original. 
-  * This transformation is parameterized by scopes mapping sorts to sizes.
-  * Note: performs no symmetry breaking.
+  * The resulting problem is equisatisfiable to the original and formulaically bound.
+  * Note: Symmetry breaking is not performed in this step.
   */
 class RangeFormulaTransformer private (useConstForDomElem: Boolean) extends ProblemTransformer {
     
@@ -71,7 +70,7 @@ class RangeFormulaTransformer private (useConstForDomElem: Boolean) extends Prob
             }
             
             val newTheory = theory.withAxioms(constantRangeConstraints).withAxioms(functionRangeConstraints.toList)
-            Problem(newTheory, Map.empty)
+            Problem(newTheory, scopes)
         }
     }
     

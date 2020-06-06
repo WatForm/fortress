@@ -4,12 +4,27 @@ import fortress.msfol._
 import fortress.data._
 import scala.language.implicitConversions
 
-case class TermOps(term: Term) {
+case class TermOps private (term: Term) {
+    /** Given a signature, typechecks the term with respect to the signature.
+      * Returns a TypeCheckResult containing the sort of the term, AND a new term
+      * that is equal to the old term but with instances of Eq replaced with Iff
+      * when comparing Bool sorts. Such a term is called "sanitized".
+      */
+    def typeCheck(signature: Signature): TypeCheckResult = (new TypeChecker(signature)).visit(term)
+    
     /** Returns the set of Vars that appear unquantified in this term.
       * This only looks at syntax without respect to a given signature,
       * so it could also include what are intended to be constants.
       */ 
     def freeVarConstSymbols: Set[Var] = RecursiveAccumulator.freeVariablesIn(term)
+    
+    /** Returns the set of free variables of this term with respect
+      * to the given signature. Constants of the signature are not included.
+      */ 
+    def freeVars(signature: Signature): Set[Var] = {
+        val constants = signature.constants.map(_.variable)
+        RecursiveAccumulator.freeVariablesIn(term) diff constants
+    }
     
     /** Returns the negation normal form version of this term.
       * The term must be sanitized to call this method.
@@ -19,13 +34,31 @@ case class TermOps(term: Term) {
     /** Does not account for variable capture.
       * If in doubt do not use this function.
       */
-    def recklessSubstitute(substitutions: Map[Var, Term]): Term =
-        RecklessSubstituter(substitutions, term)
+    def fastSubstitute(substitutions: Map[Var, Term]): Term =
+        FastSubstituter(substitutions, term)
     
-    def recklessUnivInstantiate(sortInstantiations: Map[Sort, Seq[Term]]): Term =
-        RecklessUnivInstantiator(term, sortInstantiations)
+    def substitute(toSub: Var, subWith: Term, nameGenerator: NameGenerator): Term =
+        Substituter(toSub, subWith, term, nameGenerator)
     
-    def simplify: Term = TermConverter.simplify(term)
+    def substitute(toSub: Var, subWith: Term): Term =
+                substitute(toSub, subWith, new IntSuffixNameGenerator(Set.empty[String], 0))
+    
+    /** Returns a term that is alpha-equivalent to this one but whose quantified
+      * variables are instead De Bruijn indices. Note that these indices are prefixed
+      * by an underscore to make it clearer (e.g. the first quantified variable is "_1")
+      */
+    def deBruijn: Term = new DeBruijnConverter().convert(term)
+    
+    /** Returns true iff the other term is alpha-equivalent to this term. */
+    def alphaEquivalent(other: Term): Boolean = deBruijn == TermOps(other).deBruijn
+    
+    def expandQuantifiers(sortInstantiations: Map[Sort, Seq[Term]]): Term =
+        QuantifierExpander(term, sortInstantiations)
+        
+    def expandQuantifiersAndSimplify(sortInstantiations: Map[Sort, Seq[Term]]): Term =
+        QuantifierExpanderSimplifier(term, sortInstantiations)
+    
+    def simplify: Term = Simplifier.simplify(term)
     
     def eliminateDomainElements: Term = DomainElementEliminator(term)
     
@@ -47,6 +80,20 @@ case class TermOps(term: Term) {
     def equalsOneOf(terms: Seq[Term]): Term = Or.smart(terms map (term === _))
     
     def equalsOneOfFlip(terms: Seq[Term]): Term = Or.smart(terms map (_ === term))
+    
+    def smtlib: String = {
+        val writer = new java.io.StringWriter
+        SmtlibConverter.write(term, writer)
+        writer.toString
+    }
+    
+    def smtlibAssertion: String = {
+        val writer = new java.io.StringWriter
+        writer.write("(assert ")
+        SmtlibConverter.write(term, writer)
+        writer.write(')')
+        writer.toString
+    }
 }
 
 object TermOps {

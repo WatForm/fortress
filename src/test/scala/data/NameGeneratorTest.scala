@@ -1,11 +1,8 @@
 import org.scalatest._
-import org.junit.runner.RunWith
-import org.scalatest.junit.JUnitRunner
 
 import fortress.data.IntSuffixNameGenerator
 
-@RunWith(classOf[JUnitRunner])
-class NameGeneratorTest extends FunSuite with Matchers {
+class NameGeneratorTest extends UnitSuite {
     
     test("integer suffix name generator") {
         val forbid = Set("sk_3")
