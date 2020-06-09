@@ -3,9 +3,9 @@ package fortress.operations
 import fortress.msfol._
 import fortress.util.Errors
 
-object SmtlibConverter {
+class SmtlibConverter(writer: java.io.Writer) {
     // Use a writer for efficiency
-    def write(t: Term, writer: java.io.Writer): Unit = {
+    def write(t: Term): Unit = {
         def recur(term: Term): Unit = term match {
             case DomainElement(_, _) | EnumValue(_) =>
                 Errors.unsupported("Domain elements and enum values cannot be converted to SMTLIB2")
@@ -110,17 +110,74 @@ object SmtlibConverter {
             writer.write(')')
         }
         
-        def writeSort(sort: Sort): Unit = sort match {
-            case SortConst(name) => writer.write(name)
-            case BoolSort => writer.write("Bool")
-            case IntSort => writer.write("Int")
-            case BitVectorSort(bitwidth) => {
-                writer.write("(_ BitVec ")
-                writer.write(bitwidth.toString)
-                writer.write(')')
-            }
-        }
-        
         recur(t)
+    }
+    
+    def writeSort(sort: Sort): Unit = sort match {
+        case SortConst(name) => writer.write(name)
+        case BoolSort => writer.write("Bool")
+        case IntSort => writer.write("Int")
+        case BitVectorSort(bitwidth) => {
+            writer.write("(_ BitVec ")
+            writer.write(bitwidth.toString)
+            writer.write(')')
+        }
+    }
+    
+    def writeSorts(sorts: Seq[Sort]): Unit = {
+        if(sorts.size == 1){
+            writeSort(sorts.head)
+        }
+        else if(sorts.size > 1){
+            writeSort(sorts.head)
+            writer.write(' ')
+            writeSorts(sorts.tail)
+        }
+    }
+    
+    def writeSortDecl(sort: Sort): Unit = {
+        sort match {
+            case SortConst(name) => {
+                writer.write("(declare-sort ")
+                writer.write(sort.name)
+                writer.write(" 0)")
+            }
+            case _ =>
+        }
+    }
+    
+    def writeFuncDecl(funcDecl: FuncDecl): Unit = {
+        writer.write("(declare-fun ")
+        writer.write(funcDecl.name)
+        writer.write(" (")
+        writeSorts(funcDecl.argSorts)
+        writer.write(") ")
+        writeSort(funcDecl.resultSort)
+        writer.write(')')
+    }
+    
+    def writeConst(constant: AnnotatedVar): Unit = {
+        writer.write("(declare-const ")
+        writer.write(constant.name)
+        writer.write(' ')
+        writeSort(constant.getSort)
+        writer.write(')')
+    }
+
+    def writeSignature(sig: Signature): Unit = {
+        sig.sorts.foreach(writeSortDecl)
+        sig.functionDeclarations.foreach(writeFuncDecl)
+        sig.constants.foreach(writeConst)
+    }
+    
+    def writeAssertion(term: Term): Unit = {
+        writer.write("(assert ")
+        write(term)
+        writer.write(')')
+    }
+    
+    def writeTheory(theory: Theory): Unit = {
+        writeSignature(theory.signature)
+        theory.axioms.foreach(writeAssertion)
     }
 }
