@@ -3,7 +3,7 @@ import org.scalatest._
 import fortress.msfol._
 import fortress.transformers._
 
-class DomainInstantiationTests extends UnitSuite {
+class QuantifierExpansionTests extends UnitSuite {
     
     val A = Sort.mkSortConst("A")
     val B = Sort.mkSortConst("B")
@@ -44,7 +44,7 @@ class DomainInstantiationTests extends UnitSuite {
         
         val expected = Problem(expectedTheory, expectedScopes)
         
-        val transformer = DomainInstantiationTransformer.create()
+        val transformer = QuantifierExpansionTransformer.create()
         transformer(problem) should be (expected)
     }
     
@@ -80,7 +80,7 @@ class DomainInstantiationTests extends UnitSuite {
         
         val expected = Problem(expectedTheory, expectedScopes)
         
-        val transformer = DomainInstantiationTransformer.create()
+        val transformer = QuantifierExpansionTransformer.create()
         transformer(problem) should be (expected)
     }
     
@@ -106,7 +106,7 @@ class DomainInstantiationTests extends UnitSuite {
             .withFunctionDeclarations(P, Q, R, g)
             .withAxiom(t1A and t2A)
         
-        val transformer = DomainInstantiationTransformer.create()
+        val transformer = QuantifierExpansionTransformer.create()
         transformer(problem) should be (Problem(expectedTheory, scopes))
     }
     
@@ -129,7 +129,7 @@ class DomainInstantiationTests extends UnitSuite {
                 App("f", DomainElement(1, A)) === b,
                 App("f", DomainElement(2, A)) === b))
         
-        val transformer = DomainInstantiationTransformer.create()
+        val transformer = QuantifierExpansionTransformer.create()
         transformer(problem) should be (Problem(expectedTheory, scopes))
     }
     
@@ -150,7 +150,7 @@ class DomainInstantiationTests extends UnitSuite {
             .withAxiom(App("P", DomainElement(1, A)))
             .withAxiom(App("Q", DomainElement(1, B)))
         
-        val transformer = DomainInstantiationTransformer.create()
+        val transformer = QuantifierExpansionTransformer.create()
         transformer(problem) should be (Problem(expectedTheory, scopes))
     }
     
@@ -175,7 +175,11 @@ class DomainInstantiationTests extends UnitSuite {
             .withAxiom(Forall( Seq(y of IntSort, z of BoolSort),
                 App("P", DomainElement(1, A), y, z) and App("P", DomainElement(2, A), y, z)))
         
-        val transformer = DomainInstantiationTransformer.create()
+        val transformer = QuantifierExpansionTransformer.create()
         transformer(problem) should be (Problem(expectedTheory, scopes))
+    }
+    
+    test("Existential quantifiers expanded") {
+        pending
     }
 }

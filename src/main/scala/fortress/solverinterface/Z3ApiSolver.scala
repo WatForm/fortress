@@ -1,8 +1,7 @@
 package fortress.solverinterface
 
 import fortress.msfol._
-import fortress.util.StopWatch
-import fortress.util.Errors
+import fortress.util._
 
 import fortress.modelfind._
 import fortress.solverinterface._
@@ -29,7 +28,7 @@ class Z3ApiSolver extends SolverTemplate {
         solver = Some(pair._2)
     }
 
-    override def addAxiom(axiom: Term, timeoutMillis: Int): ModelFinderResult = {
+    override def addAxiom(axiom: Term, timeoutMillis: Milliseconds): ModelFinderResult = {
         solver.get.push()
         solver.get.add(converter.get.convertAxiom(axiom))
 
@@ -37,12 +36,12 @@ class Z3ApiSolver extends SolverTemplate {
         runSolver()
     }
 
-    override protected def updateTimeout(remainingMillis: Int): Unit = {
+    override protected def updateTimeout(remainingMillis: Milliseconds): Unit = {
         Errors.assertion(context.nonEmpty)
         Errors.assertion(solver.nonEmpty)
 
         val params: Z3Params = context.get.mkParams()
-        params.add("timeout", remainingMillis)
+        params.add("timeout", remainingMillis.value)
         solver.get.setParameters(params)
     }
 

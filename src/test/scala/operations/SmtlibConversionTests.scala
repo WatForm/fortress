@@ -2,6 +2,8 @@ import org.scalatest._
 
 import fortress.msfol._
 import fortress.operations.TermOps._
+import fortress.operations.TheoryOps._
+import fortress.operations.SmtlibConverter
 
 class SmtlibConversionTests extends UnitSuite {
     
@@ -44,5 +46,62 @@ class SmtlibConversionTests extends UnitSuite {
         )))
         
         formula.smtlibAssertion should be ("(assert (not (exists ((x Int) (y Int)) (and (> x 1) (> y 1) (= (* x y) prime)))))")
+    }
+
+    test("basic theory") {
+        val theory = Theory.empty
+                    .withSorts(A, B)
+                    .withFunctionDeclarations(f, P)
+                    .withConstants(x of A, y of B)
+                    .withAxiom(App("P", Seq(x,y)))
+
+        theory.smtlib should be ("(declare-sort A 0)" +
+                                "(declare-sort B 0)" +
+                                "(declare-fun f (A) B)" +
+                                "(declare-fun P (A B) Bool)" +
+                                "(declare-const x A)" +
+                                "(declare-const y B)" +
+                                "(assert (P x y))")
+    }
+    
+    test("basic sorts") {
+        val sorts = Seq(IntSort, BoolSort, BitVectorSort(8), A, B)
+        val writer = new java.io.StringWriter
+        val converter = new SmtlibConverter(writer)
+        converter.writeSorts(sorts)
+        writer.toString should be ("Int Bool (_ BitVec 8) A B")
+    }
+    
+    test("single sort") {
+        val sorts = Seq(IntSort)
+        val writer = new java.io.StringWriter
+        val converter = new SmtlibConverter(writer)
+        converter.writeSorts(sorts)
+        writer.toString should be ("Int")
+    }
+    
+    test("no sorts") {
+        val sorts = Seq()
+        val writer = new java.io.StringWriter
+        val converter = new SmtlibConverter(writer)
+        converter.writeSorts(sorts)
+        writer.toString should be ("")
+    }
+    
+    test("sort declarations") {
+        val writer = new java.io.StringWriter
+        val converter = new SmtlibConverter(writer)
+        
+        converter.writeSortDecl(IntSort)
+        writer.toString should be ("")
+        
+        converter.writeSortDecl(BoolSort)
+        writer.toString should be ("")
+        
+        converter.writeSortDecl(BitVectorSort(8))
+        writer.toString should be ("")
+        
+        converter.writeSortDecl(A)
+        writer.toString should be ("(declare-sort A 0)")
     }
 }

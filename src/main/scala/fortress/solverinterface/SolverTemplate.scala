@@ -1,13 +1,13 @@
 package fortress.solverinterface
 
 import fortress.msfol._
-import fortress.util.StopWatch
+import fortress.util._
 import fortress.modelfind._
 
 abstract class SolverTemplate extends SolverStrategy {
     
     @throws(classOf[java.io.IOException])
-    override def solve(theory: Theory, timeoutMillis: Int, eventLoggers: Seq[EventLogger]): ModelFinderResult = {
+    override def solve(theory: Theory, timeoutMillis: Milliseconds, eventLoggers: Seq[EventLogger]): ModelFinderResult = {
         // template method
         
         for(logger <- eventLoggers) logger.convertingToSolverFormat()
@@ -17,10 +17,10 @@ abstract class SolverTemplate extends SolverStrategy {
         
         convertTheory(theory)
         
-        for(logger <- eventLoggers) logger.convertedToSolverFormat(StopWatch.formatNano(conversionTimer.elapsedNano()))
+        for(logger <- eventLoggers) logger.convertedToSolverFormat(conversionTimer.elapsedNano())
         
-        val remainingMillis: Int = timeoutMillis - StopWatch.nanoToMillis(conversionTimer.elapsedNano())
-        if(remainingMillis <= 0) {
+        val remainingMillis = timeoutMillis - conversionTimer.elapsedNano().toMilli
+        if(remainingMillis <= Milliseconds(0)) {
             for(logger <- eventLoggers) logger.timeoutInternal()
             return ModelFinderResult.Timeout
         }
@@ -34,12 +34,12 @@ abstract class SolverTemplate extends SolverStrategy {
         
         val result: ModelFinderResult = runSolver()
         
-        for(logger <- eventLoggers) logger.solverFinished(StopWatch.formatNano(solverTimer.elapsedNano()))
+        for(logger <- eventLoggers) logger.solverFinished(solverTimer.elapsedNano())
         
         result
     }
     
     protected def convertTheory(theory: Theory): Unit
-    protected def updateTimeout(remainingMillis: Int): Unit
+    protected def updateTimeout(remainingMillis: Milliseconds): Unit
     protected def runSolver(): ModelFinderResult
 }

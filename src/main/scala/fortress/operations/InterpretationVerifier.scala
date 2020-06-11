@@ -7,6 +7,7 @@ import fortress.interpretation.Interpretation
 import fortress.msfol._
 import fortress.solverinterface.{SolverStrategy, Z3ApiSolver}
 import fortress.util.Errors.AssertionException
+import fortress.util._
 
 import scala.collection.immutable.Seq
 import scala.collection.mutable.ListBuffer
@@ -66,7 +67,7 @@ class InterpretationVerifier(theory: Theory) {
             val theory: Theory = Theory.empty
                 .withConstant(evalResultAnnotated)
                 .withAxiom(evalResult === BuiltinApp(fn, evalArgs))
-            solver.solve(theory, 1000, Seq.empty)
+            solver.solve(theory, Milliseconds(1000), Seq.empty)
             val solvedInstance = solver.getInstance(theory)
             solvedInstance.constantInterpretations(evalResultAnnotated)
         }
