@@ -17,39 +17,15 @@ class SymmetryBreakingTransformerONE extends ProblemTransformer {
         
     def apply(problem: Problem): Problem = problem match {
         case Problem(theory, scopes) => {
-            // Contains all used domain elements in the theory
-            // This data structure is updated over time
-            // Note this an immutable map of mutable sets
-            val usedDomainElements: Map[Sort, mutable.Set[DomainElement]] = {
-                // Determine which domain elements have been used in the original theory
-                val allUsedDomainElements: Set[DomainElement] = theory.axioms flatMap (_.domainElements)
-                val mapTuples = for (sort <- theory.sorts if !sort.isBuiltin) yield {
-                    val set = allUsedDomainElements filter (_.sort == sort)
-                    val mutableSet = mutable.Set(set.toSeq: _*) // Annoying conversion
-                    (sort, mutableSet)
-                }
-                mapTuples.toMap
-            }
-            
-            // Marks domain elements as used
-            def markUsed(domainElements: Iterable[DomainElement]): Unit = {
-                for(de <- domainElements) {
-                    usedDomainElements(de.sort) += de
-                }
-            }
-            
-            // Determines whether this sort has any unused domain elements
-            def stillUnusedDomainElements(sort: Sort): Boolean = usedDomainElements(sort).size < scopes(sort)
-            // Determines how many unused domain elements this sort has
-            def numUnusedDomainElements(sort: Sort): Int = scopes(sort) - usedDomainElements(sort).size
+            val tracker = new DomainElementTracker(theory, scopes)
             
             // Accumulates the symmetry breaking constraints
             val constraints = new mutable.ListBuffer[Term]
             
             // Symmetry break on constants first
-            for(sort <- theory.sorts if !sort.isBuiltin && stillUnusedDomainElements(sort)) {
+            for(sort <- theory.sorts if !sort.isBuiltin && tracker.stillUnusedDomainElements(sort)) {
                 val constants = theory.constants.filter(_.sort == sort).toIndexedSeq
-                val usedVals = usedDomainElements(sort).toIndexedSeq
+                val usedVals = tracker.usedDomainElements(sort).toIndexedSeq
                 val scope = scopes(sort)
                 val constantEqualities = Symmetry.csConstantEqualities(sort, constants, scope, usedVals)
                 val constantImplications = Symmetry.csConstantImplications(sort, constants, scope, usedVals)
@@ -58,8 +34,8 @@ class SymmetryBreakingTransformerONE extends ProblemTransformer {
                 constraints ++= constantEqualities
                 constraints ++= constantImplications
                 // Add to used values
-                markUsed(constantEqualities flatMap (_.domainElements))
-                markUsed(constantImplications flatMap (_.domainElements))
+                tracker.markUsed(constantEqualities flatMap (_.domainElements))
+                tracker.markUsed(constantImplications flatMap (_.domainElements))
             }
             
             // After constants, do functions
@@ -73,14 +49,14 @@ class SymmetryBreakingTransformerONE extends ProblemTransformer {
             for(f <- theory.functionDeclarations if isAtoA(f)) {
                 val sort = f.resultSort
                 val scope = scopes(sort)
-                val usedVals = usedDomainElements(sort).toIndexedSeq
-                if(stillUnusedDomainElements(sort)) {
+                val usedVals = tracker.usedDomainElements(sort).toIndexedSeq
+                if(tracker.stillUnusedDomainElements(sort)) {
                     val fEqualities = Symmetry.csFunctionExtEqualities(f, scope, usedVals)
                     
                     // Add to constraints
                     constraints ++= fEqualities
                     // Add to used values
-                    markUsed(fEqualities flatMap (_.domainElements))
+                    tracker.markUsed(fEqualities flatMap (_.domainElements))
                 }
             }
             
@@ -89,5 +65,5 @@ class SymmetryBreakingTransformerONE extends ProblemTransformer {
         }
     }
     
-    val name: String = "Symmetry Breaking Transformer - TWO" 
+    val name: String = "Symmetry Breaking Transformer - ONE" 
 }
