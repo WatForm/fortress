@@ -2,14 +2,14 @@ package fortress.data
 
 import scala.collection.mutable
 
-// Uses O(n) space where n is the size of the maximum integers on which
+// Uses O(n) space where n is the size of the maximum integer on which
 // union or find is called.
 class SimpleUnionFind extends UnionFind {
     
     private val label = mutable.ArrayBuffer.empty[Int]
     
     // The current maximum elements
-    // The array has indices 0, 1, ..., n
+    // The array has indices 0, 1, ..., maxElem
     private var maxElem = -1
     
     // Expand the collection of integers up to a
@@ -18,6 +18,7 @@ class SimpleUnionFind extends UnionFind {
         for(i <- (maxElem + 1) to a) {
             label += i // Label i with itself
         }
+        maxElem = scala.math.max(maxElem, a)
     }
     
     override def union(a: Int, b: Int): Unit = {
