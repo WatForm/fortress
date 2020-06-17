@@ -52,15 +52,45 @@ object Symmetry {
         val m = unusedValues.size
         val r = scala.math.min(n, m)
         
-        val implications = for(
-            k <- 1 to (r - 1); // Enumerates constants, except first
-            d <- 1 to k // Enumerates values
-        ) yield {
-            val c_k = constants(k).variable
+        val implications = for {
+            i <- 0 to (r - 1) // Enumerates constants
+            j <- 1 to i // Enumerates values, starting with the second
+        } yield {
+            val c_i = constants(i).variable
             
-            val precedingConstants = constants.take(k) map (_.variable) // Recall indexing starts at 0
+            val precedingConstants = constants.take(i) map (_.variable) // Recall indexing starts at 0
             
-            (c_k === unusedValues(d)) ==> (unusedValues(d - 1) equalsOneOfFlip precedingConstants)
+            (c_i === unusedValues(j)) ==> (unusedValues(j - 1) equalsOneOfFlip precedingConstants)
+        }
+        
+        implications.toSet
+    }
+    
+    // Produces matching output to csConstantEqualities - meant to be used at same
+    // time with same input
+    def csConstantImplicationsSimplified(sort: Sort, constants: IndexedSeq[AnnotatedVar], scope: Int,
+        usedValues: IndexedSeq[DomainElement]): Set[Term] = {
+        Errors.precondition(!sort.isBuiltin)
+        Errors.precondition(constants.forall(_.sort == sort))
+        Errors.precondition(usedValues.forall(_.sort == sort))
+        Errors.precondition(usedValues.forall(_.index <= scope))
+        Errors.precondition(usedValues.size < scope)
+        
+        val unusedValues = (for(i <- 1 to scope) yield DomainElement(i, sort)) diff usedValues
+        
+        val n = constants.size
+        val m = unusedValues.size
+        val r = scala.math.min(n, m)
+        
+        val implications = for {
+            i <- 0 to (r - 1) // Enumerates constants
+            j <- 1 to i // Enumerates values, starting with the second
+        } yield {
+            val c_i = constants(i).variable
+            
+            val possiblePrecedingConstants = for(l <- (j - 1) to (i - 1)) yield constants(l).variable
+            
+            (c_i === unusedValues(j)) ==> (unusedValues(j - 1) equalsOneOfFlip possiblePrecedingConstants)
         }
         
         implications.toSet
@@ -138,15 +168,60 @@ object Symmetry {
         
         val r = scala.math.min(m, n)
         
-        val implications = for(
-            k <- 1 to (r - 1); // Enumerates argVectors, except first
-            d <- 1 to k // Enumerates result values
-        ) yield {
-            val app_k = applications(k)
+        val implications = for {
+            i <- 0 to (r - 1) // Enumerates argVectors
+            j <- 1 to i // Enumerates result values, starting with the second
+        } yield {
+            val app_i = applications(i)
             
-            val precedingApps = applications.take(k) // Recall indexing starts at 0
+            val precedingApps = applications.take(i) // Recall indexing starts at 0
             
-            (app_k === unusedResultValues(d)) ==> (unusedResultValues(d - 1) equalsOneOfFlip precedingApps)
+            (app_i === unusedResultValues(j)) ==> (unusedResultValues(j - 1) equalsOneOfFlip precedingApps)
+        }
+        
+        implications.toSet
+    }
+    
+    // Produces matching output to drdFunctionEqualities - meant to be used at same
+    // time with same input
+    def drdFunctionImplicationsSimplified(f: FuncDecl, scopes: Map[Sort, Int],
+        usedResultValues: IndexedSeq[DomainElement]): Set[Term] = {
+        Errors.precondition(f.argSorts.forall(!_.isBuiltin))
+        Errors.precondition(!f.resultSort.isBuiltin)
+        Errors.precondition(usedResultValues.forall(_.sort == f.resultSort))
+        Errors.precondition(usedResultValues.forall(_.index <= scopes(f.resultSort)))
+        Errors.precondition(usedResultValues.size < scopes(f.resultSort))
+        Errors.precondition(!(f.argSorts contains f.resultSort))
+        
+        val unusedResultValues: IndexedSeq[DomainElement] = {
+            val allResultValues = for(i <- 1 to scopes(f.resultSort)) yield DomainElement(i, f.resultSort)
+            allResultValues diff usedResultValues
+        }
+        
+        val m = unusedResultValues.size
+        
+        val argumentListsIterable: Iterable[ArgList] =
+            new fortress.util.ArgumentListGenerator(scopes)
+            .allArgumentListsOfFunction(f)
+            .take(m) // Take up to m of them,  for efficiency since we won't need more than this - the argument list generator does not generate arguments
+            // until they are needed
+        
+        val argumentLists = argumentListsIterable.toIndexedSeq
+        val applications: IndexedSeq[Term] = argumentLists map (App(f.name, _))
+        
+        val n = applications.size
+        
+        val r = scala.math.min(m, n)
+        
+        val implications = for {
+            i <- 0 to (r - 1) // Enumerates argVectors
+            j <- 1 to i // Enumerates result values, starting with the second
+        } yield {
+            val app_i = applications(i)
+            
+            val possiblePrecedingApps = for(l <- (j - 1) to (i - 1)) yield applications(l)
+            
+            (app_i === unusedResultValues(j)) ==> (unusedResultValues(j - 1) equalsOneOfFlip possiblePrecedingApps)
         }
         
         implications.toSet

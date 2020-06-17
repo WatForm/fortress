@@ -27,7 +27,7 @@ class SymmetryBreakingTransformerTWO extends ProblemTransformer {
                 val usedVals = tracker.usedDomainElements(sort).toIndexedSeq
                 val scope = scopes(sort)
                 val constantEqualities = Symmetry.csConstantEqualities(sort, constants, scope, usedVals)
-                val constantImplications = Symmetry.csConstantImplications(sort, constants, scope, usedVals)
+                val constantImplications = Symmetry.csConstantImplicationsSimplified(sort, constants, scope, usedVals)
                 
                 // Add to constraints
                 constraints ++= constantEqualities
@@ -65,7 +65,7 @@ class SymmetryBreakingTransformerTWO extends ProblemTransformer {
                     if (f.isDomainRangeDistinct) {
                         // DRD scheme
                         val fEqualities = Symmetry.drdFunctionEqualities(f, scopes, usedVals)
-                        val fImplications = Symmetry.drdFunctionImplications(f, scopes, usedVals)
+                        val fImplications = Symmetry.drdFunctionImplicationsSimplified(f, scopes, usedVals)
                         
                         // Add to constraints
                         constraints ++= fEqualities
