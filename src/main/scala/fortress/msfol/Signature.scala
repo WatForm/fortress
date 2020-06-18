@@ -5,7 +5,6 @@ import fortress.util.Errors
 import fortress.operations.TypeCheckResult
 import scala.jdk.CollectionConverters._
 import scala.annotation.varargs // So we can call Scala varargs methods from Java
-import scala.collection.immutable.Seq // Use immutable seq by default
 
 // Persistent and Immutable
 // Internally consistent

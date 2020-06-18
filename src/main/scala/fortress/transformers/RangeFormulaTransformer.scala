@@ -7,8 +7,6 @@ import fortress.operations.TermOps._
 import fortress.util.Errors
 import fortress.data.CartesianSeqProduct
 
-import scala.collection.immutable.Seq
-
 import scala.math.min
 
 /** Introduces range formulas restricting the ranges of

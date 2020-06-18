@@ -1,7 +1,5 @@
 package fortress.symmetry
 
-import scala.collection.immutable.Seq
-
 trait HyperGraph[A] {
     
     val vertices: Seq[A]

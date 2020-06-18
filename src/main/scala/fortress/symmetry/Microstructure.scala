@@ -1,6 +1,5 @@
 package fortress.symmetry
 
-import scala.collection.immutable.Seq
 import fortress.msfol._
 import fortress.util.Errors
 import fortress.data._
@@ -145,9 +144,9 @@ class MicrostructureComplement(theory: Theory, scopes: Map[Sort, Int]) extends H
             interpretationForFunctions <- possibleInterpretationsFunctions
         ) yield
             new BasicInterpretation(
-                interpretationForFunctions,
+                sortInterpretations,
                 interpretationForConstants,
-                sortInterpretations
+                interpretationForFunctions
             )
     }
     

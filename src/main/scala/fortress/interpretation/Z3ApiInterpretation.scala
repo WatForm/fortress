@@ -6,16 +6,13 @@ import fortress.data.CartesianSeqProduct
 
 import scala.collection.immutable.ListMap
 
-import scala.collection.immutable.Seq
-
 import com.microsoft.z3.{
     Model => Z3Model,
-		Context => Z3Context,
+	Context => Z3Context,
     BoolSort => Z3BoolSort,
-		IntSort => Z3IntSort,
-		Expr => Z3Expr
+	IntSort => Z3IntSort,
+	Expr => Z3Expr
 }
-
 
 class Z3ApiInterpretation(model: Z3Model, sig: Signature, converter: TheoryToZ3_StringParse, context: Z3Context, sortMappings: Map[Z3Expr, DomainElement]) extends Interpretation {
 

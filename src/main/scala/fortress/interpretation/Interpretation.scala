@@ -2,42 +2,83 @@ package fortress.interpretation
 
 import scala.jdk.CollectionConverters._
 
-import scala.collection.immutable.Seq
-
 import fortress.msfol._
+import scala.collection.mutable
 
 trait Interpretation {
     def functionInterpretations: Map[FuncDecl, Map[Seq[Value], Value]]
     def constantInterpretations: Map[AnnotatedVar, Value]
     def sortInterpretations: Map[Sort, Seq[Value]]
 
-    def viewModel(enumMapping: Map[Value, EnumValue]): Interpretation = {
-        def getMapping(v: Value): Value = if (enumMapping.contains(v)) enumMapping(v) else v
-        new EnumInterpretation(
-            sortInterpretations.map{ case(sort, values) => sort -> values.map(getMapping) }, 
-            constantInterpretations.map{ case(av, value) => av -> getMapping(value) }, 
+    def applyEnumMapping(enumMapping: Map[Value, EnumValue]): Interpretation = {
+        def applyMapping(v: Value): Value = if (enumMapping contains v) enumMapping(v) else v
+        
+        new BasicInterpretation(
+            sortInterpretations.map{ case(sort, values) => sort -> (values map applyMapping) }, 
+            constantInterpretations.map{ case(av, value) => av -> applyMapping(value) }, 
             functionInterpretations.map{ case(fdecl, values) => fdecl -> (values.map{ 
-                case(args, values) => args.map(getMapping) -> getMapping(values) } 
+                case(args, value) => (args map applyMapping) -> applyMapping(value) } 
             )}
         )
     }
 
     def toConstraints: Set[Term] = {
-        var constraints = constantInterpretations.map{ case(a, v) => Term.mkEq(a.variable, v) }.toSet
-        functionInterpretations.foreach { case(fdecl, values) => {
+        val constraints: mutable.Set[Term] = mutable.Set.empty
+        
+        for((const, v) <- constantInterpretations) {
+            constraints += (const.variable === v)
+        }
+        
+        for {
+            (fdecl, map) <- functionInterpretations
+            (arguments, value) <- map
+        } {
             fdecl.resultSort match {
-                case Sort.Bool => constraints = constraints union values.map{ case(args, ret) => if (ret == Term.mkTop) Term.mkApp(fdecl.name, args:_*) else Term.mkNot(Term.mkApp(fdecl.name, args:_*))}.toSet
-                case _ => constraints = constraints union values.map{ case(args, ret) => Term.mkEq(Term.mkApp(fdecl.name, args:_*), ret)}.toSet
+                case BoolSort => { // Predicate
+                    if(value == Top) constraints += App(fdecl.name, arguments)
+                    else constraints += Not(App(fdecl.name, arguments))
+                }
+                case _ =>  { // Function
+                    constraints += (App(fdecl.name, arguments) === value)
+                }
             }
-        }}
-        constraints
+        }
+        constraints.toSet
     }
 
-    override def toString: String =
-        "Sorts <<\n" + sortInterpretations.map{ case(sort, values) => sort.toString + ": " + values.mkString(", ")}.mkString("\n") +
-        ">>\nConstants <<\n" + constantInterpretations.map(_.productIterator.mkString(": ")).mkString("\n") +
-        ">>\nFunctions <<\n" + functionInterpretations.map{ case(fdecl, values) => fdecl.toString + "\n" + values.map{ case(args, ret) => "\t" + args.mkString(", ") + " -> " + ret }.mkString("\n") }.mkString("\n") +
-        ">>"
+    override def toString: String = {
+        val buffer = new mutable.StringBuilder
+        
+        buffer ++= "Sorts\n"
+        
+        val sortLines = for((sort, values) <- sortInterpretations) yield {
+            sort.toString + ": " + values.mkString(", ")
+        }
+        buffer ++= sortLines.mkString("\n")
+        
+        if(constantInterpretations.nonEmpty) {
+            buffer ++= "\nConstants\n"
+            val constLines = for((const, value) <- constantInterpretations) yield {
+                const.toString + " = " + value.toString
+            }
+            buffer ++= constLines.mkString("\n")
+        }
+        
+        if(functionInterpretations.nonEmpty) {
+            buffer ++= "\nFunctions"
+            for {
+                (fdecl, map) <- functionInterpretations
+            } {
+                buffer ++= "\n" + fdecl.toString + "\n"
+                val argLines = for((arguments, value) <- map) yield {
+                    fdecl.name + "(" + arguments.mkString(", ") + ") = " + value.toString
+                }
+                buffer ++= argLines.mkString("\n")
+            }
+        }
+        
+        buffer.toString
+    }
     
     // Java methods
     
@@ -53,15 +94,3 @@ trait Interpretation {
         case (sort, values) => sort -> values.asJava
     }.asJava
 }
-
-class EnumInterpretation(t: Map[Sort, Seq[Value]], c: Map[AnnotatedVar, Value], f: Map[FuncDecl, Map[Seq[Value], Value]]) extends Interpretation {
-    def sortInterpretations = t
-    def constantInterpretations = c
-    def functionInterpretations = f
-}
-
-class BasicInterpretation(
-    val functionInterpretations: Map[FuncDecl, Map[Seq[Value], Value]],
-    val constantInterpretations: Map[AnnotatedVar, Value],
-    val sortInterpretations: Map[Sort, Seq[Value]]
-) extends Interpretation

@@ -9,7 +9,6 @@ import fortress.solverinterface.{SolverStrategy, Z3ApiSolver}
 import fortress.util.Errors.AssertionException
 import fortress.util._
 
-import scala.collection.immutable.Seq
 import scala.collection.mutable.ListBuffer
 
 class InterpretationVerifier(theory: Theory) {

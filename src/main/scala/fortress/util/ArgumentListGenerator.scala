@@ -1,7 +1,6 @@
 package fortress.util
 
 import fortress.msfol._
-import scala.collection.immutable.Seq
 import fortress.data._
 
 class ArgumentListGenerator(scopes: Map[Sort, Int]) {

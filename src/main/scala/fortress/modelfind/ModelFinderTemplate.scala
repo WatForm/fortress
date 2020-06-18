@@ -92,7 +92,7 @@ abstract class ModelFinderTemplate(var solverStrategy: SolverStrategy) extends M
         finalResult
     }
     
-    def viewModel: Interpretation = solverStrategy.getInstance(theory).viewModel(enumSortMapping.map(_.swap))
+    def viewModel: Interpretation = solverStrategy.getInstance(theory).applyEnumMapping(enumSortMapping.map(_.swap))
 
     override def nextInterpretation(): ModelFinderResult = {
         val newAxiom = Not(AndList(

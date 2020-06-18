@@ -1,7 +1,6 @@
 package fortress.msfol
 
 import scala.jdk.CollectionConverters._
-import scala.collection.immutable.Seq // Use immutable seq by default
 import fortress.util.Errors
 
 trait TypeCheckQuerying {

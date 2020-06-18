@@ -88,7 +88,7 @@ In this example, the problem is encoded using a binary relation that says which
 The number provided can be changed to change the number of rooks and grid size.
 
 ### N Rooks - Functional Encoding
-Run the following code to compile and run the relational N Rooks example.
+Run the following code to compile and run the functional N Rooks example.
 ```
 # Compile
 javac -cp ".:libs/*" RooksFunctional.java

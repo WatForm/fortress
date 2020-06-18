@@ -1,7 +1,5 @@
 package fortress.operations
 
-import scala.collection.immutable.Seq // Use immutable seq by default
-
 import fortress.util.Errors
 import fortress.msfol._
 import fortress.data._

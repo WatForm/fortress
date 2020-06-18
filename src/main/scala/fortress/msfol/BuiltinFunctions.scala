@@ -1,7 +1,5 @@
 package fortress.msfol
 
-import scala.collection.immutable.Seq
-
 /** Represents various builtin for integers and bitvectors. */
 sealed abstract class BuiltinFunction {
     

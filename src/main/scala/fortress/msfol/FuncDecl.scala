@@ -2,7 +2,6 @@ package fortress.msfol
 
 import fortress.util.Errors
 import scala.jdk.CollectionConverters._
-import scala.collection.immutable.Seq // Default to immutable Seqs
 import scala.annotation.varargs // So we can call Scala varargs methods from Java
 
 case class FuncDecl private (name: String, argSorts: Seq[Sort], resultSort: Sort) {

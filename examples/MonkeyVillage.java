@@ -111,5 +111,10 @@ public class MonkeyVillage {
         System.out.println("numMonkeys: " + numMonkeys);
         System.out.println("numBananas: " + numBananas);
         System.out.println("Satisiable?: " + result.toString());
+        
+        // Print out model if it exists
+        if(result.equals(ModelFinderResult.Sat())) {
+            System.out.println(finder.viewModel());
+        }
     }
 }

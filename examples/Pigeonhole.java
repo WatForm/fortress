@@ -66,5 +66,10 @@ public class Pigeonhole {
         System.out.println("numPigeons:  " + numPigeons);
         System.out.println("numHoles:    " + numHoles);
         System.out.println("Satisiable?: " + result.toString());
+        
+        // Print out model if it exists
+        if(result.equals(ModelFinderResult.Sat())) {
+            System.out.println(finder.viewModel());
+        }
     }
 }

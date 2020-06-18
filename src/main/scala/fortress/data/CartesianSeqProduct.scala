@@ -3,8 +3,6 @@ package fortress.data
 import fortress.util.Errors
 import java.lang.UnsupportedOperationException
 
-import scala.collection.immutable.Seq
-
 
 // TODO I suspect this is an efficiency bottleneck
 
