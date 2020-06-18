@@ -135,7 +135,7 @@ case class Theory private (signature: Signature, axioms: Set[Term]) {
         result.sanitizedTerm
     }
 
-    override def toString: String = "\n" + signature.toString + " Axioms <<\n" + axioms.mkString("\n") + ">>\n"
+    override def toString: String = "\n" + signature.toString + "\nAxioms\n" + axioms.mkString("\n") + "\n"
     
 }
 

@@ -25,7 +25,7 @@ Equisatisfiable problems do not need to have the same signature; the only thing 
 
 The "unbounded" version of problem is the problem obtained by removing the scopes on any bound sorts.
 
-A problem is "formulaically bound" if the following two conditions hold: the only interpretations that satisfy the unbounded version of the problem are those that satisfy the original (bounded) version.
+A problem is "formulaically bound" if the following condition holds: the only interpretations that satisfy the unbounded version of the problem are those that satisfy the original (bounded) version.
 If a problem is formulaically bound, it is equisatisfiable with its unbounded version.
 
 All that Fortress needs to guarantee is that after its transformations, the final problem is equisatisfiable to the first input problem.

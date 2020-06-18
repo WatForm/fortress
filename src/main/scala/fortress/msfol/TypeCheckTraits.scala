@@ -8,34 +8,11 @@ trait TypeCheckQuerying {
     def hasSort(sort: Sort): Boolean
     def hasSortWithName(name: String): Boolean
     def hasFunctionWithName(name: String): Boolean
+    def functionWithName(name: String): Option[FuncDecl]
     def queryFunction(name: String, argSorts: Seq[Sort]): Option[FuncDecl]
     def queryConstant(v: Var): Option[AnnotatedVar]
     def queryEnum(e: EnumValue): Option[Sort]
     def queryUninterpretedFunction(name: String): Option[FuncDecl]
-    
-    // def queryFunctionJava(name: String, argSorts: java.util.List[Sort]): java.util.Optional[FuncDecl] =
-    //     queryFunction(name, argSorts.asScala.toList) match {
-    //         case Some(fdecl) => java.util.Optional.of[FuncDecl](fdecl)
-    //         case None => java.util.Optional.empty[FuncDecl]()
-    //     }
-    // 
-    // def queryConstantJava(v: Var): java.util.Optional[AnnotatedVar] =
-    //     queryConstant(v) match {
-    //         case Some(av) => java.util.Optional.of(av)
-    //         case None => java.util.Optional.empty[AnnotatedVar]
-    //     }
-    // 
-    // def queryEnumJava(e: EnumValue): java.util.Optional[Sort] =
-    //     queryEnum(e) match {
-    //         case Some(t) => java.util.Optional.of(t)
-    //         case None => java.util.Optional.empty[Sort]
-    //     }
-    // 
-    // def queryUninterpretedFunctionJava(name: String): java.util.Optional[FuncDecl] =
-    //     queryUninterpretedFunction(name) match {
-    //         case Some(fdecl) => java.util.Optional.of[FuncDecl](fdecl)
-    //         case None => java.util.Optional.empty[FuncDecl]()
-    //     }
 }
 
 // trait ExtensibleTypeChecking extends TypeCheckQuerying {

@@ -19,6 +19,8 @@ case class TheoryOps private (theory: Theory) {
         converter.writeTheory(theory)
         writer.toString
     }
+    
+    def inferSorts: (Theory, SortSubstitution) = SortInference.inferSorts(theory)
 }
 
 object TheoryOps {

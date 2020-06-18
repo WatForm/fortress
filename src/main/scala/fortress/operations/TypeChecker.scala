@@ -147,13 +147,14 @@ class TypeChecker(signature: Signature) extends TermVisitorWithTypeContext[TypeC
         val funcName = app.functionName
         
         if(! (signature hasFunctionWithName funcName) ) {
-            throw new TypeCheckException.UnknownFunction("Could not find function " + funcName)
+            throw new TypeCheckException.UnknownFunction("Could not find function: " + funcName)
         }
         
         val results = app.arguments.map(visit)
         val argSorts = results.map(_.sort)
+        
         val fdecl = signature.queryFunction(funcName, argSorts) match {
-            case None => throw new TypeCheckException.WrongSort(funcName + " cannot accept argument sorts " + argSorts.toString + " in " + app.toString)
+            case None => throw new TypeCheckException.WrongSort(signature.functionWithName(funcName).get.toString + " cannot accept argument sorts " + argSorts.toString + " in " + app.toString)
             case Some(fdecl) => fdecl
         }
         

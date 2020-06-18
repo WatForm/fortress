@@ -113,6 +113,8 @@ case class Signature private (
     
     override def hasFunctionWithName(name: String): Boolean = functionDeclarations.exists(_.name == name)
     
+    override def functionWithName(name: String): Option[FuncDecl] = functionDeclarations.find(_.name == name)
+    
     def replaceIntegersWithBitVectors(bitwidth: Int): Signature = {
         def replaceSort(s: Sort): Sort = s match {
             case IntSort => BitVectorSort(bitwidth)
@@ -186,12 +188,11 @@ case class Signature private (
         val constString = "Constants:\n" + constants.mkString("\n")
         
         // Slow but doesn't matter
-        var result = "Signature<<\n"
+        var result = "Signature"
         if(sorts.nonEmpty) { result += "\n" + sortString }
         if(enumConstants.nonEmpty) { result += "\n" + enumString }
         if(functionDeclarations.nonEmpty) { result += "\n" + funcString }
         if(constants.nonEmpty) { result += "\n" + constString }
-        result += ">>"
         result
     }
 }
