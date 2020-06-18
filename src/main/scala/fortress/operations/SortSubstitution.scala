@@ -10,7 +10,7 @@ trait SortSubstitution {
     
     def apply(term: Term): Term = term match {
         case Top | Bottom | Var(_)  => term
-        case Not(p) => Not(apply(term))
+        case Not(p) => Not(apply(p))
         case AndList(args) => AndList(args map apply)
         case OrList(args) => OrList(args map apply)
         case Distinct(args) => Distinct(args map apply)

@@ -93,7 +93,7 @@ case class Not private (body: Term) extends Term {
     override def accept[T](visitor: TermVisitor[T]): T = visitor.visitNot(this)
     def mapBody(mapping: Term => Term): Term = Not(mapping(body))
     
-    override def toString: String = "~" + body.toString
+    override def toString: String = "~(" + body.toString + ")"
 }
 
 /** Represents a conjunction. */

@@ -137,7 +137,7 @@ class SortInferenceTest extends UnitSuite {
         val y = Var("y")
         val z = Var("z")
         
-        val ax = Forall(x of A, Exists(y of A, App("P", x, y, x)))
+        val ax = Forall(x of A, Not(Exists(y of A, App("P", x, y, x))))
         
         val theory = Theory.empty
             .withSorts(A)
@@ -146,7 +146,7 @@ class SortInferenceTest extends UnitSuite {
             
         val P_exp = FuncDecl("P", _2, _1, _2, Sort.Bool)
         
-        val ax_exp = Forall(x of _2, Exists(y of _1, App("P", x, y, x)))
+        val ax_exp = Forall(x of _2, Not(Exists(y of _1, App("P", x, y, x))))
         
         val expectedTheory = Theory.empty
             .withSorts(_1, _2)
