@@ -84,10 +84,14 @@ public final class Runner1 {
             .withAxiom(ax4)
             .withAxiom(ax5);
         
+        var result = TheoryOps.wrapTheory(monkeyTheory).inferSorts();
+        
         System.out.println(monkeyTheory.toString());
         System.out.println();
         System.out.println("========================");
         System.out.println();
-        System.out.println(TheoryOps.wrapTheory(monkeyTheory).inferSorts()._1().toString());
+        System.out.println(result._1().toString());
+        System.out.println(result._2().toString());
+        System.out.println(result._2().inverse().toString());
 	}
 }

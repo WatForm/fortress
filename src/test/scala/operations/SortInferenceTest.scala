@@ -31,6 +31,7 @@ class SortInferenceTest extends UnitSuite {
         
         val (generalTheory, substitution) = theory.inferSorts
         generalTheory should be (expectedTheory)
+        substitution(generalTheory) should be (theory)
     }
     
     test("predicate, no axioms", ImplSensitive) {
@@ -47,6 +48,7 @@ class SortInferenceTest extends UnitSuite {
         
         val (generalTheory, substitution) = theory.inferSorts
         generalTheory should be (expectedTheory)
+        substitution(generalTheory) should be (theory)
     }
     
     test("function, axioms that do not restrict sorts", ImplSensitive) {
@@ -78,6 +80,7 @@ class SortInferenceTest extends UnitSuite {
             
         val (generalTheory, substitution) = theory.inferSorts
         generalTheory should be (expectedTheory)
+        substitution(generalTheory) should be (theory)
     }
     
     test("predicate, axioms that do not restrict sorts", ImplSensitive) {
@@ -104,6 +107,7 @@ class SortInferenceTest extends UnitSuite {
         
         val (generalTheory, substitution) = theory.inferSorts
         generalTheory should be (expectedTheory)
+        substitution(generalTheory) should be (theory)
     }
     
     test("function, axioms that do restrict sorts", ImplSensitive) {
@@ -129,6 +133,7 @@ class SortInferenceTest extends UnitSuite {
             
         val (generalTheory, substitution) = theory.inferSorts
         generalTheory should be (expectedTheory)
+        substitution(generalTheory) should be (theory)
     }
     
     test("predicate, axioms that do restrict sorts", ImplSensitive) {
@@ -155,5 +160,6 @@ class SortInferenceTest extends UnitSuite {
         
         val (generalTheory, substitution) = theory.inferSorts
         generalTheory should be (expectedTheory)
+        substitution(generalTheory) should be (theory)
     }
 }

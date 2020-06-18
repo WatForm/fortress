@@ -19,7 +19,7 @@ object SortInference {
         */
         def sortVar(index: Int): SortConst = SortConst(index.toString)
         
-        object freshSubstitution extends SortSubstitution {
+        object freshSubstitution extends SortApplication {
             var index = 0
             def freshInt(): Int = {
                 val temp = index
@@ -168,7 +168,7 @@ object SortInference {
         }
         
         // Substitute sorts
-        object sortSubstitution extends SortSubstitution {
+        object sortSubstitution extends SortApplication {
             override def apply(sort: Sort): Sort = sort match {
                 case SortConst(indexStr) => {
                     val index = indexStr.toInt
@@ -201,10 +201,9 @@ object SortInference {
             .withFunctionDeclarations(newFunctions)
             .withAxioms(newAxioms)
         
-        object originalSubstitution extends SortSubstitution {
-            override def apply(sort: Sort): Sort = ???
-        }
-        (generalTheory, originalSubstitution)
+        val substitution = SortSubstitution.computeSigMapping(generalTheory.signature, theory.signature)
+        
+        (generalTheory, substitution)
     }
     
 }
