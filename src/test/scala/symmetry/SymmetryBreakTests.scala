@@ -72,6 +72,35 @@ class SymmetryBreakTests extends UnitSuite {
         )
     }
     
+    test("CS Constant - Implications, Simplified") {
+        val constants = IndexedSeq(
+            c1 of B,
+            c2 of B,
+            c3 of B,
+            c4 of B,
+            c5 of B)
+        
+        val usedValues = IndexedSeq(
+            DE(1, B),
+            DE(3, B),
+            DE(5, B),
+        ) // Unused: 2, 4, 6, 7
+        
+        val scope = 7
+        
+        val constraints = Symmetry.csConstantImplicationsSimplified(B, constants, scope, usedValues)
+        constraints should have size 6
+        
+        constraints should contain { (c2 === DE(4, B)) ==> (DE(2, B) equalsOneOfFlip Seq(c1)) }
+        
+        constraints should contain { (c3 === DE(4, B)) ==> (DE(2, B) equalsOneOfFlip Seq(c1, c2)) }
+        constraints should contain { (c3 === DE(6, B)) ==> (DE(4, B) equalsOneOfFlip Seq(c2)) }
+        
+        constraints should contain { (c4 === DE(4, B)) ==> (DE(2, B) equalsOneOfFlip Seq(c1, c2, c3)) }
+        constraints should contain { (c4 === DE(6, B)) ==> (DE(4, B) equalsOneOfFlip Seq(c2, c3)) }
+        constraints should contain { (c4 === DE(7, B)) ==> (DE(6, B) equalsOneOfFlip Seq(c3)) }
+    }
+    
     test("DRD Unary - Equalities") {
         val f = FuncDecl("f", A, B)
         
@@ -79,7 +108,7 @@ class SymmetryBreakTests extends UnitSuite {
             DE(2, B),
             DE(3, B),
             DE(5, B),
-        )
+        ) // Unused: 1, 4, 6, 7
         
         val scopes: Map[Sort, Int] = Map(A -> 8, B -> 7)
         
@@ -105,7 +134,7 @@ class SymmetryBreakTests extends UnitSuite {
             DE(2, B),
             DE(3, B),
             DE(5, B),
-        )
+        ) // Unused: 1, 4, 6, 7, 8, 9
         
         val scopes = Map(A -> 2, D -> 2, B -> 9)
         
@@ -144,13 +173,14 @@ class SymmetryBreakTests extends UnitSuite {
         
         val constraints = Symmetry.drdFunctionImplications(f, scopes, usedResultValues)
         constraints should have size 6
+        
         constraints should contain { (f2A === DE(4, B)) ==> (f1A === DE(1, B)) }
+        
         constraints should contain { (f3A === DE(4, B)) ==> (DE(1, B) equalsOneOfFlip Seq(f1A, f2A)) }
-        constraints should contain { (f4A === DE(4, B)) ==> (DE(1, B) equalsOneOfFlip Seq(f1A, f2A, f3A)) }
-        
         constraints should contain { (f3A === DE(6, B)) ==> (DE(4, B) equalsOneOfFlip Seq(f1A, f2A)) }
-        constraints should contain { (f4A === DE(6, B)) ==> (DE(4, B) equalsOneOfFlip Seq(f1A, f2A, f3A)) }
         
+        constraints should contain { (f4A === DE(4, B)) ==> (DE(1, B) equalsOneOfFlip Seq(f1A, f2A, f3A)) }
+        constraints should contain { (f4A === DE(6, B)) ==> (DE(4, B) equalsOneOfFlip Seq(f1A, f2A, f3A)) }
         constraints should contain { (f4A === DE(7, B)) ==> (DE(6, B) equalsOneOfFlip Seq(f1A, f2A, f3A)) }
     }
     
@@ -175,24 +205,95 @@ class SymmetryBreakTests extends UnitSuite {
         val constraints = Symmetry.drdFunctionImplications(f, scopes, usedResultValues)
         constraints should have size 15
         constraints should contain { (f211 === DE(4, B)) ==> (f111 === DE(1, B)) }
+        
         constraints should contain { (f121 === DE(4, B)) ==> (DE(1, B) equalsOneOfFlip Seq(f111, f211)) }
-        constraints should contain { (f221 === DE(4, B)) ==> (DE(1, B) equalsOneOfFlip Seq(f111, f211, f121)) }
-        constraints should contain { (f112 === DE(4, B)) ==> (DE(1, B) equalsOneOfFlip Seq(f111, f211, f121, f221)) }
-        constraints should contain { (f212 === DE(4, B)) ==> (DE(1, B) equalsOneOfFlip Seq(f111, f211, f121, f221, f112)) }
-        
         constraints should contain { (f121 === DE(6, B)) ==> (DE(4, B) equalsOneOfFlip Seq(f111, f211)) }
+        
+        constraints should contain { (f221 === DE(4, B)) ==> (DE(1, B) equalsOneOfFlip Seq(f111, f211, f121)) }
         constraints should contain { (f221 === DE(6, B)) ==> (DE(4, B) equalsOneOfFlip Seq(f111, f211, f121)) }
-        constraints should contain { (f112 === DE(6, B)) ==> (DE(4, B) equalsOneOfFlip Seq(f111, f211, f121, f221)) }
-        constraints should contain { (f212 === DE(6, B)) ==> (DE(4, B) equalsOneOfFlip Seq(f111, f211, f121, f221, f112)) }
-        
         constraints should contain { (f221 === DE(7, B)) ==> (DE(6, B) equalsOneOfFlip Seq(f111, f211, f121)) }
+        
+        constraints should contain { (f112 === DE(4, B)) ==> (DE(1, B) equalsOneOfFlip Seq(f111, f211, f121, f221)) }
+        constraints should contain { (f112 === DE(6, B)) ==> (DE(4, B) equalsOneOfFlip Seq(f111, f211, f121, f221)) }
         constraints should contain { (f112 === DE(7, B)) ==> (DE(6, B) equalsOneOfFlip Seq(f111, f211, f121, f221)) }
-        constraints should contain { (f212 === DE(7, B)) ==> (DE(6, B) equalsOneOfFlip Seq(f111, f211, f121, f221, f112)) }
-        
         constraints should contain { (f112 === DE(8, B)) ==> (DE(7, B) equalsOneOfFlip Seq(f111, f211, f121, f221)) }
-        constraints should contain { (f212 === DE(8, B)) ==> (DE(7, B) equalsOneOfFlip Seq(f111, f211, f121, f221, f112)) }
         
+        constraints should contain { (f212 === DE(4, B)) ==> (DE(1, B) equalsOneOfFlip Seq(f111, f211, f121, f221, f112)) }
+        constraints should contain { (f212 === DE(6, B)) ==> (DE(4, B) equalsOneOfFlip Seq(f111, f211, f121, f221, f112)) }
+        constraints should contain { (f212 === DE(7, B)) ==> (DE(6, B) equalsOneOfFlip Seq(f111, f211, f121, f221, f112)) }
+        constraints should contain { (f212 === DE(8, B)) ==> (DE(7, B) equalsOneOfFlip Seq(f111, f211, f121, f221, f112)) }
         constraints should contain { (f212 === DE(9, B)) ==> (DE(8, B) equalsOneOfFlip Seq(f111, f211, f121, f221, f112)) }
+    }
+    
+    test("DRD Unary - Implications, Simplified") {
+        val f = FuncDecl("f", A, B)
+        
+        val usedResultValues = IndexedSeq(
+            DE(2, B),
+            DE(3, B),
+            DE(5, B),
+        ) // Unused: 1, 4, 6, 7
+        
+        val scopes: Map[Sort, Int] = Map(A -> 8, B -> 7)
+        
+        val f1A = App("f", DE(1, A))
+        val f2A = App("f", DE(2, A))
+        val f3A = App("f", DE(3, A))
+        val f4A = App("f", DE(4, A))
+        
+        val constraints = Symmetry.drdFunctionImplicationsSimplified(f, scopes, usedResultValues)
+        
+        constraints should have size 6
+        
+        constraints should contain { (f2A === DE(4, B)) ==> (DE(1, B) equalsOneOfFlip Seq(f1A)) }
+        
+        constraints should contain { (f3A === DE(4, B)) ==> (DE(1, B) equalsOneOfFlip Seq(f1A, f2A)) }
+        constraints should contain { (f3A === DE(6, B)) ==> (DE(4, B) equalsOneOfFlip Seq(f2A)) }
+        
+        constraints should contain { (f4A === DE(4, B)) ==> (DE(1, B) equalsOneOfFlip Seq(f1A, f2A, f3A)) }
+        constraints should contain { (f4A === DE(6, B)) ==> (DE(4, B) equalsOneOfFlip Seq(f2A, f3A)) }
+        constraints should contain { (f4A === DE(7, B)) ==> (DE(6, B) equalsOneOfFlip Seq(f3A)) }
+    }
+    
+    test("DRD Ternary - Implications, Simplified") {
+        val f = FuncDecl("f", A, D, A, B)
+        
+        val usedResultValues = IndexedSeq(
+            DE(2, B),
+            DE(3, B),
+            DE(5, B),
+        ) // Unused: 1, 4, 6, 7, 8, 9
+        
+        val scopes = Map(A -> 2, D -> 2, B -> 9)
+        
+        val f111 = App("f", DE(1, A), DE(1, D), DE(1, A))
+        val f211 = App("f", DE(2, A), DE(1, D), DE(1, A))
+        val f121 = App("f", DE(1, A), DE(2, D), DE(1, A))
+        val f221 = App("f", DE(2, A), DE(2, D), DE(1, A))
+        val f112 = App("f", DE(1, A), DE(1, D), DE(2, A))
+        val f212 = App("f", DE(2, A), DE(1, D), DE(2, A))
+        
+        val constraints = Symmetry.drdFunctionImplicationsSimplified(f, scopes, usedResultValues)
+        constraints should have size 15
+        constraints should contain { (f211 === DE(4, B)) ==> (DE(1, B) equalsOneOfFlip Seq(f111)) }
+        
+        constraints should contain { (f121 === DE(4, B)) ==> (DE(1, B) equalsOneOfFlip Seq(f111, f211)) }
+        constraints should contain { (f121 === DE(6, B)) ==> (DE(4, B) equalsOneOfFlip Seq(f211)) }
+        
+        constraints should contain { (f221 === DE(4, B)) ==> (DE(1, B) equalsOneOfFlip Seq(f111, f211, f121)) }
+        constraints should contain { (f221 === DE(6, B)) ==> (DE(4, B) equalsOneOfFlip Seq(f211, f121)) }
+        constraints should contain { (f221 === DE(7, B)) ==> (DE(6, B) equalsOneOfFlip Seq(f121)) }
+        
+        constraints should contain { (f112 === DE(4, B)) ==> (DE(1, B) equalsOneOfFlip Seq(f111, f211, f121, f221)) }
+        constraints should contain { (f112 === DE(6, B)) ==> (DE(4, B) equalsOneOfFlip Seq(f211, f121, f221)) }
+        constraints should contain { (f112 === DE(7, B)) ==> (DE(6, B) equalsOneOfFlip Seq(f121, f221)) }
+        constraints should contain { (f112 === DE(8, B)) ==> (DE(7, B) equalsOneOfFlip Seq(f221)) }
+        
+        constraints should contain { (f212 === DE(4, B)) ==> (DE(1, B) equalsOneOfFlip Seq(f111, f211, f121, f221, f112)) }
+        constraints should contain { (f212 === DE(6, B)) ==> (DE(4, B) equalsOneOfFlip Seq(f211, f121, f221, f112)) }
+        constraints should contain { (f212 === DE(7, B)) ==> (DE(6, B) equalsOneOfFlip Seq(f121, f221, f112)) }
+        constraints should contain { (f212 === DE(8, B)) ==> (DE(7, B) equalsOneOfFlip Seq(f221, f112)) }
+        constraints should contain { (f212 === DE(9, B)) ==> (DE(8, B) equalsOneOfFlip Seq(f112)) }
     }
     
     test("Predicates - Unary") {
