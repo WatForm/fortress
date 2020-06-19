@@ -1,12 +1,10 @@
 package fortress.modelfind
 
-import fortress.msfol._
 import fortress.transformers._
 import fortress.transformers.TheoryTransformer._ // for implicit conversion to ProblemTransformer
 import fortress.solverinterface._
 
-
-abstract class BaseFortress extends ModelFinderTemplate(new Z3ApiSolver) {
+class FortressTWO_SI extends ModelFinderTemplate(new Z3ApiSolver) {
     override def transformerSequence(): Seq[ProblemTransformer] = {
         val transformerSequence = new scala.collection.mutable.ListBuffer[ProblemTransformer]
         transformerSequence += new EnumEliminationTransformer
@@ -16,6 +14,7 @@ abstract class BaseFortress extends ModelFinderTemplate(new Z3ApiSolver) {
                 transformerSequence += new IntegerFinitizationTransformer(bitwidth)
             }
         }
+        transformerSequence += new SortInferenceTransformer
         transformerSequence += new NnfTransformer
         transformerSequence += new SkolemizeTransformer
         transformerSequence ++= symmetryBreakingTransformers
@@ -26,5 +25,7 @@ abstract class BaseFortress extends ModelFinderTemplate(new Z3ApiSolver) {
         transformerSequence.toList
     }
     
-    def symmetryBreakingTransformers(): Seq[ProblemTransformer]
+    def symmetryBreakingTransformers(): Seq[ProblemTransformer] = Seq(
+        new SymmetryBreakingTransformerTWO
+    )
 }
