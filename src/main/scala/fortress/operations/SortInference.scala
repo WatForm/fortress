@@ -88,14 +88,14 @@ object SortInference {
             }
             case Implication(p, q) => {
                 val (pSort, pEqns) = recur(p, context)
-                val (qSort, qEqns) = recur(p, context)
+                val (qSort, qEqns) = recur(q, context)
                 Errors.assertion(pSort == BoolSort)
                 Errors.assertion(qSort == BoolSort)
                 (BoolSort, pEqns union qEqns)
             }
             case Iff(p, q) => {
                 val (pSort, pEqns) = recur(p, context)
-                val (qSort, qEqns) = recur(p, context)
+                val (qSort, qEqns) = recur(q, context)
                 Errors.assertion(pSort == BoolSort)
                 Errors.assertion(qSort == BoolSort)
                 (BoolSort, pEqns union qEqns)
