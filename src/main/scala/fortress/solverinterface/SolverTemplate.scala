@@ -6,7 +6,6 @@ import fortress.modelfind._
 
 abstract class SolverTemplate extends SolverStrategy {
     
-    @throws(classOf[java.io.IOException])
     override def solve(theory: Theory, timeoutMillis: Milliseconds, eventLoggers: Seq[EventLogger]): ModelFinderResult = {
         // template method
         

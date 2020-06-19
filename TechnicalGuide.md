@@ -37,9 +37,9 @@ The formulas of the problem are transformed into negation normal form, where neg
 The resulting problem is equivalent to the first.
 
 #### 2. Skolemization
-Existential quantifiers are eliminated by replacing them with functions and constants.
+Existential quantifiers are eliminated by replacing them with functions and constants that act as witnesses for the existential quantifiers.
 The signature is changed by the introduction of new functions and constants.
-This operation must be performed after putting formulas into negation normal form, as otherwise it is impossible to tell which quantifiers are truly existential (since negations flip quantifiers).
+This operation must be performed after putting formulas into negation normal form, as otherwise it is impossible to tell which quantifiers are truly existential (since negations change quantifiers).
 Given this condition however, the resulting problem is equisatisfiable to the input problem.
 
 #### 3. Symmetry Breaking

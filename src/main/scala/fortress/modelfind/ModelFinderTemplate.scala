@@ -7,9 +7,9 @@ import fortress.interpretation._
 import fortress.solverinterface._
 import fortress.operations.TermOps._
 
-abstract class ModelFinderTemplate(var solverStrategy: SolverStrategy) extends ModelFinder with StdModelFindConfig {
+abstract class ModelFinderTemplate(var solverStrategy: SolverStrategy) extends ModelFinder with ModelFinderSettings {
     private var instance: Option[Interpretation] = None
-    private var constrainedTheory: Theory = Theory.empty
+    protected var constrainedTheory: Theory = Theory.empty
     // A timer to count how much total time has elapsed
     private val totalTimer: StopWatch = new StopWatch()
     protected var enumSortMapping: Map[EnumValue, DomainElement] = Map.empty
@@ -92,7 +92,10 @@ abstract class ModelFinderTemplate(var solverStrategy: SolverStrategy) extends M
         finalResult
     }
     
-    def viewModel: Interpretation = solverStrategy.getInstance(theory).applyEnumMapping(enumSortMapping.map(_.swap))
+    def viewModel: Interpretation = {
+        solverStrategy.getInstance(theory)
+            .applyEnumMapping(enumSortMapping.map(_.swap)) // Undo enum elimination
+    }
 
     override def nextInterpretation(): ModelFinderResult = {
         val newAxiom = Not(AndList(

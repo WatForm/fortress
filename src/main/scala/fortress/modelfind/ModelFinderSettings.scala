@@ -8,7 +8,7 @@ import fortress.solverinterface._
 
 import scala.collection.mutable.ListBuffer
 
-trait StdModelFindConfig extends ModelFinder {
+trait ModelFinderSettings extends ModelFinder {
     protected var timeoutMilliseconds: Milliseconds = Milliseconds(60000)
     protected var analysisScopes: Map[Sort, Int] = Map.empty
     protected var theory: Theory = Theory.empty

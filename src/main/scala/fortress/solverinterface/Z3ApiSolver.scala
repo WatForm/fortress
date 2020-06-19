@@ -45,7 +45,6 @@ class Z3ApiSolver extends SolverTemplate {
         solver.get.setParameters(params)
     }
 
-    @throws(classOf[java.io.IOException])
     override protected def runSolver(): ModelFinderResult = {
         Errors.assertion(context.nonEmpty)
         Errors.assertion(solver.nonEmpty)
@@ -77,6 +76,6 @@ class Z3ApiSolver extends SolverTemplate {
 
     def getInstance(theory: Theory): Interpretation = {
         Errors.assertion(lastModel.nonEmpty, "There is no current instance")
-        return new Z3ApiInterpretation(lastModel.get, theory.signature, converter.get, context.get)
+        return new Z3ApiInterpretation(lastModel.get, theory.signature, converter.get)
     }
 }

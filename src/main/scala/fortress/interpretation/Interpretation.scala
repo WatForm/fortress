@@ -1,14 +1,15 @@
 package fortress.interpretation
 
+import scala.collection.mutable
 import scala.jdk.CollectionConverters._
 
 import fortress.msfol._
-import scala.collection.mutable
+import fortress.operations._
 
 trait Interpretation {
-    def functionInterpretations: Map[FuncDecl, Map[Seq[Value], Value]]
-    def constantInterpretations: Map[AnnotatedVar, Value]
     def sortInterpretations: Map[Sort, Seq[Value]]
+    def constantInterpretations: Map[AnnotatedVar, Value]
+    def functionInterpretations: Map[FuncDecl, Map[Seq[Value], Value]]
 
     def applyEnumMapping(enumMapping: Map[Value, EnumValue]): Interpretation = {
         def applyMapping(v: Value): Value = if (enumMapping contains v) enumMapping(v) else v
@@ -20,6 +21,24 @@ trait Interpretation {
                 case(args, value) => (args map applyMapping) -> applyMapping(value) } 
             )}
         )
+    }
+    
+    def applySortSubstitution(sub: SortSubstitution): Interpretation = {
+        val apply: Value => Value = v => sub.applyValue(v)
+        val newSortInterps = sortInterpretations map {
+            case(sort, values) => sub(sort) -> (values map apply)
+        }
+        val newConstInterps = constantInterpretations map {
+            case(const, value) => sub(const) -> apply(value)
+        }
+        val newFunctionInterps = functionInterpretations map {
+            case(fdecl, mapping) => fdecl -> {
+                mapping map {
+                    case(args, value) => (args map apply) -> apply(value)
+                }
+            }
+        }
+        new BasicInterpretation(newSortInterps, newConstInterps, newFunctionInterps)
     }
 
     def toConstraints: Set[Term] = {

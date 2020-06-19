@@ -28,7 +28,8 @@ trait SortApplication {
             val newVars = avars map {avar => Var(avar.name) of apply(avar.sort)}
             Forall(newVars, apply(body))
         }
-        case EnumValue(_) | DomainElement(_, _) | BuiltinApp(_, _) | IntegerLiteral(_) | BitVectorLiteral(_, _) => ???
+        case DomainElement(index, sort) => DomainElement(index, apply(sort))
+        case EnumValue(_) | BuiltinApp(_, _) | IntegerLiteral(_) | BitVectorLiteral(_, _) => ???
     }
     
     def apply(f: FuncDecl): FuncDecl = f match {
@@ -54,6 +55,12 @@ trait SortApplication {
     def apply(theory: Theory): Theory = {
         Theory.mkTheoryWithSignature(apply(theory.signature))
             .withAxioms(theory.axioms map apply)
+    }
+    
+    def applyValue(value: Value): Value = value match {
+        case Top | Bottom => value
+        case EnumValue(_) | BitVectorLiteral(_, _) | IntegerLiteral(_) => ???
+        case DomainElement(index, sort) => DomainElement(index, apply(sort))
     }
     
 }
@@ -90,7 +97,9 @@ object SortSubstitution {
         // Constants
         for {
             inputConst <- input.constants
-            outputConst = output.queryConstant(inputConst.variable).get
+            outputConstOption = output.queryConstant(inputConst.variable)
+            if outputConstOption.isDefined
+            outputConst = outputConstOption.get
         } {
             mapping += inputConst.sort -> outputConst.sort
         }
@@ -98,7 +107,9 @@ object SortSubstitution {
         // Functions
         for {
             inputDecl <- input.functionDeclarations
-            outputDecl = output.queryUninterpretedFunction(inputDecl.name).get
+            outputDeclOption = output.queryUninterpretedFunction(inputDecl.name)
+            if outputDeclOption.isDefined
+            outputDecl = outputDeclOption.get
         } {
             val inputSorts = inputDecl.argSorts :+ inputDecl.resultSort
             val outputSorts = outputDecl.argSorts :+ outputDecl.resultSort
