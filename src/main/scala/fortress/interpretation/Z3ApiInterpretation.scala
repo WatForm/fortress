@@ -16,29 +16,30 @@ import com.microsoft.z3.{
 
 class Z3ApiInterpretation(model: Z3Model, sig: Signature, converter: TheoryToZ3_StringParse) extends Interpretation {
 
+    // Map from Z3's domain elements to our domain elements
     val sortMappings: Map[Z3Expr, DomainElement] = (
         for {
             z3Decl <- model.getConstDecls
             constantName = z3Decl.getName.toString if constantName.charAt(0) == '@'
         } yield {
             val sortName = z3Decl.getRange.getName.toString
-            model.getConstInterp(z3Decl) -> DomainElement(constantName.substring(1,constantName.length-sortName.length).toInt, Sort.mkSortConst(sortName))
+            model.getConstInterp(z3Decl) -> DomainElement(constantName.substring(1,constantName.length-sortName.length).toInt, SortConst(sortName))
         }
     ).toMap
 
     val constantInterpretations: Map[AnnotatedVar, Value] = (
-			for {
-				(constName, z3Decl) <- converter.constantConversionsMap
-				v = sig.queryConstant(Var(constName))
-				expr = model.evaluate(z3Decl.apply(), true) if v.isDefined
-			} yield v.get -> {
-				v.get.sort match {
-					case BoolSort => if (expr.isTrue) Top else Bottom
-					case IntSort => IntegerLiteral(expr.toString.toInt)
-					case _ => sortMappings(expr)
-				}
+		for {
+			(constName, z3Decl) <- converter.constantConversionsMap
+			v = sig.queryConstant(Var(constName))
+			expr = model.evaluate(z3Decl.apply(), true) if v.isDefined
+		} yield v.get -> {
+			v.get.sort match {
+				case BoolSort => if (expr.isTrue) Top else Bottom
+				case IntSort => IntegerLiteral(expr.toString.toInt)
+				case _ => sortMappings(expr)
 			}
-		).toMap
+		}
+	).toMap
 
     val sortInterpretations: Map[Sort, Seq[Value]] = (
         for {

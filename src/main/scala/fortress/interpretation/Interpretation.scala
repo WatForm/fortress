@@ -40,6 +40,13 @@ trait Interpretation {
         }
         new BasicInterpretation(newSortInterps, newConstInterps, newFunctionInterps)
     }
+    
+    def filterBySignature(signature: Signature): Interpretation = {
+        val newSortInterps = sortInterpretations filter { case(sort, values) => signature hasSort sort }
+        val newConstInterps = constantInterpretations filter { case(const, value) => signature.constants contains const }
+        val newFunctionInterps = functionInterpretations filter {case(fdecl, mapping) => signature.functionDeclarations contains fdecl }
+        new BasicInterpretation(newSortInterps, newConstInterps, newFunctionInterps)
+    }
 
     def toConstraints: Set[Term] = {
         val constraints: mutable.Set[Term] = mutable.Set.empty

@@ -19,8 +19,11 @@ case class Signature private (
     
     // TODO need to check this type is not builtin
     def withSort(t: Sort): Signature = {
-        assertSortConsistent(t)
-        Signature(sorts + t, functionDeclarations, constants, enumConstants)
+        if(t.isBuiltin) this
+        else {
+            assertSortConsistent(t)
+            Signature(sorts + t, functionDeclarations, constants, enumConstants)
+        }
     }
     
     def withSorts(sorts: java.lang.Iterable[Sort]): Signature = {
@@ -199,5 +202,5 @@ case class Signature private (
 object Signature {
     def empty: Signature = 
         // For testing consistency for symmetry breaking, use an insertion ordered set
-        Signature(InsertionOrderedSet.empty[Sort] + BoolSort, InsertionOrderedSet.empty, InsertionOrderedSet.empty, Map.empty)
+        Signature(InsertionOrderedSet.empty[Sort], InsertionOrderedSet.empty, InsertionOrderedSet.empty, Map.empty)
 }
