@@ -31,11 +31,11 @@ class Z3ApiInterpretation(model: Z3Model, sig: Signature, converter: TheoryToZ3_
     ).toMap
 
     val constantInterpretations: Map[AnnotatedVar, Value] = (
-        // Iterate over the constants that do not simulate domain elements
 		for {
 			(constName, z3Decl) <- converter.constantConversionsMap
 			v = sig.queryConstant(Var(constName))
 			expr = model.evaluate(z3Decl.apply(), true) if v.isDefined
+            if constName.charAt(0) != '@' // Exclude domain constants
 		} yield v.get -> {
 			v.get.sort match {
 				case BoolSort => if (expr.isTrue) Top else Bottom

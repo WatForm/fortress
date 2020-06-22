@@ -50,7 +50,8 @@ class SkolemizeTransformerTest extends UnitSuite {
             expected,
             Map.empty,
             Set(Var("sk_0") of A),
-            Set.empty
+            Set.empty,
+            List.empty
         ))
     }
     
@@ -66,7 +67,8 @@ class SkolemizeTransformerTest extends UnitSuite {
             expected,
             Map.empty,
             Set.empty,
-            Set(FuncDecl("sk_0", A, A))
+            Set(FuncDecl("sk_0", A, A)),
+            List.empty
         ))
     }
     
@@ -83,7 +85,8 @@ class SkolemizeTransformerTest extends UnitSuite {
             expected,
             Map.empty,
             Set.empty,
-            Set(FuncDecl("sk_0", A, A))
+            Set(FuncDecl("sk_0", A, A)),
+            List.empty
         ))
     }
     
@@ -107,7 +110,8 @@ class SkolemizeTransformerTest extends UnitSuite {
             expected,
             Map.empty,
             Set(Var("sk_2") of A),
-            Set(FuncDecl("sk_0", A, A), FuncDecl("sk_1", A, A))
+            Set(FuncDecl("sk_0", A, A), FuncDecl("sk_1", A, A)),
+            List.empty
         ))
     }
     
@@ -127,7 +131,8 @@ class SkolemizeTransformerTest extends UnitSuite {
             expected,
             Map.empty,
             Set(Var("sk_0") of B),
-            Set.empty
+            Set.empty,
+            List.empty
         ))
     }
     
@@ -144,7 +149,8 @@ class SkolemizeTransformerTest extends UnitSuite {
             expected,
             Map.empty,
             Set.empty,
-            Set(FuncDecl("sk_0", A, B))
+            Set(FuncDecl("sk_0", A, B)),
+            List.empty
         ))
     }
     
@@ -161,7 +167,8 @@ class SkolemizeTransformerTest extends UnitSuite {
             expected,
             Map.empty,
             Set.empty,
-            Set(FuncDecl("sk_0", A, A), FuncDecl("sk_1", A, A))
+            Set(FuncDecl("sk_0", A, A), FuncDecl("sk_1", A, A)),
+            List.empty
         ))
     }
     
@@ -177,7 +184,8 @@ class SkolemizeTransformerTest extends UnitSuite {
             expected,
             Map.empty,
             Set.empty,
-            Set(FuncDecl("sk_0", A, B, A))
+            Set(FuncDecl("sk_0", A, B, A)),
+            List.empty
         ))
     }
     
@@ -196,7 +204,8 @@ class SkolemizeTransformerTest extends UnitSuite {
             expected,
             Map.empty,
             Set.empty,
-            Set(FuncDecl("sk_0", A, A))
+            Set(FuncDecl("sk_0", A, A)),
+            List.empty
         ))
     }
     
@@ -217,7 +226,8 @@ class SkolemizeTransformerTest extends UnitSuite {
             expected,
             Map.empty,
             Set(Var("sk_0") of A),
-            Set(FuncDecl("sk_1", A, A))
+            Set(FuncDecl("sk_1", A, A)),
+            List.empty
         ))
     }
     
@@ -237,7 +247,8 @@ class SkolemizeTransformerTest extends UnitSuite {
             expected,
             Map.empty,
             Set(Var("sk_1") of A),
-            Set.empty
+            Set.empty,
+            List.empty
         ))
     }
     
@@ -270,7 +281,8 @@ class SkolemizeTransformerTest extends UnitSuite {
             expected,
             Map.empty,
             Set(Var("sk_3") of A),
-            Set(FuncDecl("sk_6", A, A))
+            Set(FuncDecl("sk_6", A, A)),
+            List.empty
         ))
     }
     
@@ -296,14 +308,16 @@ class SkolemizeTransformerTest extends UnitSuite {
             expected1,
             Map.empty,
             Set(Var("sk_0") of A),
-            Set(FuncDecl("sk_1", A, A))
+            Set(FuncDecl("sk_1", A, A)),
+            List.empty
         )
         
         val ps2 = ProblemState(
             expected2,
             Map.empty,
             Set(Var("sk_1") of A),
-            Set(FuncDecl("sk_2", A, A))
+            Set(FuncDecl("sk_2", A, A)),
+            List.empty
         )
         skolemizer(ProblemState(theory)) should (equal (ps1) or equal (ps2))
     }

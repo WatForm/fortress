@@ -81,4 +81,73 @@ class CountModelTest extends UnitSuite {
         val finder = ModelFinder.createDefault()
         finder.countValidModels(theory) should be (8)
     }
+    
+    test("relational bijection count") {
+        // Create Sorts
+        val Row = Sort.mkSortConst("Row") // Rows
+        val Col = Sort.mkSortConst("Col") // Columns
+        
+        // Create declaration for rook assignment predicate
+        // Rook: Row x Col -> Bool
+        val Rook = FuncDecl("Rook", Row, Col, Sort.Bool)
+        
+        // Create variables to use in axioms
+        val r = Var("r")
+        val r1 = Var("r1")
+        val r2 = Var("r2")
+        val c = Var("c")
+        val c1 = Var("c1")
+        val c2 = Var("c2")
+        
+        // Create axioms
+        // "Each row has a rook in it"
+        val rowConstraint1 = Forall(r.of(Row), Exists(c.of(Col), App("Rook", r, c)))
+        // "At most one rook in each row"
+        val rowConstraint2 = Forall(List(r.of(Row), c1.of(Col), c2.of(Col)),
+            Implication(
+                And(App("Rook", r, c1), App("Rook", r, c2)),
+                Eq(c1, c2)))
+        // "Each column has a rook in it"
+        val colConstraint1 = Forall(c.of(Col), Exists(r.of(Row), App("Rook", r, c)))
+        // "At most one rook in each column"
+        val colConstraint2 = Forall(List(c.of(Col), r1.of(Row), r2.of(Row)),
+            Implication(
+                And(App("Rook", r1, c), App("Rook", r2, c)),
+                Eq(r1, r2)))
+        
+        // Begin with the empty theory
+        val rookTheory =  Theory.empty
+        // Add sorts
+            .withSorts(Row, Col)
+        // Add declarations
+            .withFunctionDeclarations(Rook)
+        // Add constraints
+            .withAxiom(rowConstraint1)
+            .withAxiom(rowConstraint2)
+            .withAxiom(colConstraint1)
+            .withAxiom(colConstraint2)
+        
+        val finder = ModelFinder.createDefault
+        finder.setAnalysisScope(Row, 4)
+        finder.setAnalysisScope(Col, 4)
+        finder.countValidModels(rookTheory) should be (24)
+    }
+    
+    test("skolem witnesses not added to count") {
+        val A = Sort.mkSortConst("A")
+        
+        val x = Var("x")
+        val y = Var("y")
+        
+        val f = FuncDecl("f", A, A)
+        
+        val theory = Theory.empty
+            .withSorts(A)
+            .withFunctionDeclarations(f)
+            .withAxiom(Forall(x of A, Exists(y of A, Not(App("f", x) === y))))
+        
+        val finder = ModelFinder.createDefault
+        finder.setAnalysisScope(A, 3) // Should be 27 functions
+        finder.countValidModels(theory) should be (27)
+    }
 }

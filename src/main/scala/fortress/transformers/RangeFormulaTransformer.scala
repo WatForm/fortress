@@ -22,7 +22,7 @@ class RangeFormulaTransformer private (useConstForDomElem: Boolean) extends Prob
         else DomainElement(index, sort)
     
     override def apply(problemState: ProblemState): ProblemState = problemState match {
-        case ProblemState(theory, scopes, skc, skf) => {
+        case ProblemState(theory, scopes, skc, skf, unapplyInterp) => {
             // Generate range constraints for constants
             val constantRangeConstraints = for(c <- theory.constants if !c.sort.isBuiltin) yield {
                 val possibleValues = for(i <- 1 to scopes(c.sort)) yield DE(i, c.sort)
@@ -69,7 +69,7 @@ class RangeFormulaTransformer private (useConstForDomElem: Boolean) extends Prob
             }
             
             val newTheory = theory.withAxioms(constantRangeConstraints).withAxioms(functionRangeConstraints.toList)
-            ProblemState(newTheory, scopes, skc, skf)
+            ProblemState(newTheory, scopes, skc, skf, unapplyInterp)
         }
     }
     

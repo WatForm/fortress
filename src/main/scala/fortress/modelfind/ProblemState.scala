@@ -2,12 +2,14 @@ package fortress.modelfind
 
 import fortress.msfol._
 import fortress.util.Errors
+import fortress.interpretation.Interpretation
 
-case class ProblemState(
+case class ProblemState private(
     theory: Theory,
     scopes: Map[Sort, Int],
     skolemConstants: Set[AnnotatedVar],
-    skolemFunctions: Set[FuncDecl]
+    skolemFunctions: Set[FuncDecl],
+    unapplyInterp: List[Interpretation => Interpretation]
 ) {
     Errors.precondition(scopes.values.forall(_ > 0), "Scopes must be positive")
     Errors.precondition(scopes.keySet.forall(!_.isBuiltin))
@@ -18,7 +20,7 @@ case class ProblemState(
 }
 
 object ProblemState {
-    def apply(theory: Theory): ProblemState = ProblemState(theory, Map.empty, Set.empty, Set.empty)
+    def apply(theory: Theory): ProblemState = ProblemState(theory, Map.empty)
     
     def apply(theory: Theory, scopes: Map[Sort, Int]): ProblemState = {
         // Compute the scopes for enum sorts
@@ -33,7 +35,8 @@ object ProblemState {
             theory,
             scopes ++ enumScopes,
             Set.empty,
-            Set.empty
+            Set.empty,
+            List.empty
         )
     }
 }

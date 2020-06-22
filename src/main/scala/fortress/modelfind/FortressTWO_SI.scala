@@ -7,12 +7,12 @@ import fortress.interpretation._
 import fortress.operations._
 
 class FortressTWO_SI extends ModelFinderTemplate(new Z3ApiSolver) {
-    override def viewModel: Interpretation = {
-        val substitution = SortSubstitution.computeSigMapping(constrainedTheory.signature, theory.signature)
-        solverStrategy.getInstance(theory)
-            .applySortSubstitution(substitution) // Undo sort inference
-            .applyEnumMapping(enumSortMapping.map(_.swap)) // Undo enum elimination
-    }
+    // override def viewModel: Interpretation = {
+    //     val substitution = SortSubstitution.computeSigMapping(constrainedTheory.signature, theory.signature)
+    //     solverStrategy.getInstance(theory)
+    //         .applySortSubstitution(substitution) // Undo sort inference
+    //         .applyEnumMapping(enumSortMapping.map(_.swap)) // Undo enum elimination
+    // }
     
     override def transformerSequence(): Seq[ProblemStateTransformer] = {
         val transformerSequence = new scala.collection.mutable.ListBuffer[ProblemStateTransformer]

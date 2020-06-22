@@ -45,7 +45,9 @@ class EnumEliminationTests extends UnitSuite {
                 Not(App("f", DomainElement(1, A), x) === DomainElement(2, C))))
         
         val transformer = new EnumEliminationTransformer
-        transformer(ProblemState(theory, Map.empty)) should be (ProblemState(expected, Map(A -> 3, C -> 2)))
+        val result = transformer(ProblemState(theory))
+        result.theory should be (expected)
+        result.scopes should be (Map(A -> 3, C -> 2))
     }
     
 }

@@ -15,7 +15,7 @@ import fortress.modelfind.ProblemState
 class SkolemizeTransformer extends ProblemStateTransformer {
     
     override def apply(problemState: ProblemState): ProblemState = problemState match {
-        case ProblemState(theory, scopes, skc, skf) => {
+        case ProblemState(theory, scopes, skc, skf, unapplyInterp) => {
             val forbiddenNames = scala.collection.mutable.Set[String]()
             
             for(sort <- theory.sorts) {
@@ -50,7 +50,7 @@ class SkolemizeTransformer extends ProblemStateTransformer {
                 resultTheory = resultTheory.withAxiom(newAxiom)
             }
             
-            ProblemState(resultTheory, scopes, skc ++ newSkolemConstants.toSet, skf ++ newSkolemFunctions.toSet)
+            ProblemState(resultTheory, scopes, skc ++ newSkolemConstants.toSet, skf ++ newSkolemFunctions.toSet, unapplyInterp)
         }
     }
     

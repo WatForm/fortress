@@ -16,7 +16,7 @@ import fortress.modelfind.ProblemState
 class SymmetryBreakingTransformerTWO extends ProblemStateTransformer {
         
     def apply(problemState: ProblemState): ProblemState = problemState match {
-        case ProblemState(theory, scopes, skc, skf) => {
+        case ProblemState(theory, scopes, skc, skf, unapplyInterp) => {
             val tracker = new DomainElementTracker(theory, scopes)
             
             // Accumulates the symmetry breaking constraints
@@ -118,7 +118,7 @@ class SymmetryBreakingTransformerTWO extends ProblemStateTransformer {
             }
             
             val newTheory = theory.withAxioms(constraints.toList)
-            ProblemState(newTheory, scopes, skc, skf)
+            ProblemState(newTheory, scopes, skc, skf, unapplyInterp)
         }
     }
     

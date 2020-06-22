@@ -19,11 +19,12 @@ object TheoryTransformer {
     implicit def asProblemStateTransformer(theoryTransformer: TheoryTransformer): ProblemStateTransformer = {
         object asPST extends ProblemStateTransformer {
             override def apply(problemState: ProblemState): ProblemState = {
-                new ProblemState(
+                ProblemState(
                     theoryTransformer(problemState.theory),
                     problemState.scopes,
                     problemState.skolemConstants,
-                    problemState.skolemFunctions
+                    problemState.skolemFunctions,
+                    problemState.unapplyInterp
                 )
             }
             

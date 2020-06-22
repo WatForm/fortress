@@ -6,12 +6,13 @@ import fortress.msfol._
 import fortress.util.Errors
 import fortress.operations.TermOps._
 import fortress.modelfind.ProblemState
+import fortress.interpretation.Interpretation
 
 /** Replaces enum values with domain elements, following the mapping from the
   * computeEnumSortMapping method. */
 class EnumEliminationTransformer extends ProblemStateTransformer {
     override def apply(problemState: ProblemState): ProblemState = problemState match {
-        case ProblemState(theory, scopes, skc, skf) => {
+        case ProblemState(theory, scopes, skc, skf, unapplyInterp) => {
             val mapping = computeEnumSortMapping(theory)
             
             // Since we are replacing with domain elements, which cannot be in
@@ -24,8 +25,10 @@ class EnumEliminationTransformer extends ProblemStateTransformer {
             val newTheory = Theory.mkTheoryWithSignature(newSignature)
                 .withAxioms(newAxioms)
             
+            val unapply: Interpretation => Interpretation = _.applyEnumMapping(mapping.map(_.swap))
+            
             // The problem contain scopes for the enums, which should remain the same
-            ProblemState(newTheory, scopes, skc, skf)
+            ProblemState(newTheory, scopes, skc, skf, unapply :: unapplyInterp)
         }
     }
     

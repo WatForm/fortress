@@ -47,6 +47,22 @@ trait Interpretation {
         val newFunctionInterps = functionInterpretations filter {case(fdecl, mapping) => signature.functionDeclarations contains fdecl }
         new BasicInterpretation(newSortInterps, newConstInterps, newFunctionInterps)
     }
+    
+    def withoutConstants(constants: Set[AnnotatedVar]): Interpretation = {
+        new BasicInterpretation(
+            sortInterpretations,
+            constantInterpretations -- constants,
+            functionInterpretations
+        )
+    }
+    
+    def withoutFunctions(funcDecls: Set[FuncDecl]): Interpretation = {
+        new BasicInterpretation(
+            sortInterpretations,
+            constantInterpretations,
+            functionInterpretations -- funcDecls
+        )
+    }
 
     def toConstraints: Set[Term] = {
         val constraints: mutable.Set[Term] = mutable.Set.empty

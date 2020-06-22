@@ -8,11 +8,9 @@ import fortress.solverinterface._
 import fortress.operations.TermOps._
 
 abstract class ModelFinderTemplate(var solverStrategy: SolverStrategy) extends ModelFinder with ModelFinderSettings {
-    private var instance: Option[Interpretation] = None
-    protected var constrainedTheory: Theory = Theory.empty
+    private var problemState: ProblemState = ProblemState(Theory.empty)
     // A timer to count how much total time has elapsed
     private val totalTimer: StopWatch = new StopWatch()
-    protected var enumSortMapping: Map[EnumValue, DomainElement] = Map.empty
     
     override def checkSat(): ModelFinderResult = {
         // Restart the timer
@@ -44,40 +42,30 @@ abstract class ModelFinderTemplate(var solverStrategy: SolverStrategy) extends M
         resultingProblemState
     }
     
-    private def preTransformationPhase(): Unit = {
-        // We need to remember the enum sort mapping
-        // TODO this is a little bit clunky
-        enumSortMapping = (new EnumEliminationTransformer).computeEnumSortMapping(theory)
-    }
+    private def preTransformationPhase(): Unit = { }
     
     // If times out, returns None. Otherwise, returns the final transformed theory.
     private def transformationPhase(): Option[Theory] = {
         val transformerSeq = transformerSequence()
         
-        var intermediateProblemState = ProblemState(theory, analysisScopes)
+        problemState = ProblemState(theory, analysisScopes)
         for(transformer <- transformerSeq) {
-            intermediateProblemState = applyTransformer(transformer, intermediateProblemState)
+            problemState = applyTransformer(transformer, problemState)
             
             if(totalTimer.elapsedNano() >= timeoutNano) {
                 for(logger <- eventLoggers) logger.timeoutInternal()
                 return None
             }
         }
-        
-        val finalTheory = intermediateProblemState match {
-            case ProblemState(fTheory, _, _, _) => fTheory
-        }
 
-        constrainedTheory = finalTheory
-
-        for(logger <- eventLoggers) logger.allTransformersFinished(finalTheory, totalTimer.elapsedNano())
+        for(logger <- eventLoggers) logger.allTransformersFinished(problemState.theory, totalTimer.elapsedNano())
         
         if(totalTimer.elapsedNano() > timeoutNano) {
             for(logger <- eventLoggers) logger.timeoutInternal()
             return None
         }
         
-        Some(finalTheory)
+        Some(problemState.theory)
     }
     
     // Returns the final ModelFinderResult
@@ -93,19 +81,29 @@ abstract class ModelFinderTemplate(var solverStrategy: SolverStrategy) extends M
     }
     
     def viewModel: Interpretation = {
-        solverStrategy.getInstance(theory)
-            .applyEnumMapping(enumSortMapping.map(_.swap)) // Undo enum elimination
+        val instance = solverStrategy.getInstance(problemState.theory)
+        problemState.unapplyInterp.foldLeft(instance) {
+            (interp, unapplyFn) => unapplyFn(interp)
+        }
     }
 
     override def nextInterpretation(): ModelFinderResult = {
-        val newAxiom = Not(AndList(
-            viewModel.toConstraints.toList
-        )).eliminateEnumValues(enumSortMapping).eliminateDomainElements
-
+        // Negate the current interpretation, but leave out the skolem functions
+        // Different witnesses are not useful for counting interpretations
+        val instance = solverStrategy.getInstance(problemState.theory)
+            .withoutConstants(problemState.skolemConstants)
+            .withoutFunctions(problemState.skolemFunctions)
+        val newAxiom = Not(And.smart(instance.toConstraints.toList map (_.eliminateDomainElements)))
         //solverStrategy.addAxiom(newAxiom, timeoutMilliseconds, log)
-
-        constrainedTheory = constrainedTheory.withAxiom(newAxiom)
-        solverStrategy.solve(constrainedTheory, timeoutMilliseconds, eventLoggers.toList)
+        
+        problemState = ProblemState(
+            problemState.theory.withAxiom(newAxiom),
+            problemState.scopes,
+            problemState.skolemConstants,
+            problemState.skolemFunctions,
+            problemState.unapplyInterp
+        )
+        solverStrategy.solve(problemState.theory, timeoutMilliseconds, eventLoggers.toList)
     }
 
     override def countValidModels(newTheory: Theory): Int = {
