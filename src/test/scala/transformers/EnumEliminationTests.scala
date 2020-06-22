@@ -2,6 +2,7 @@ import org.scalatest._
 
 import fortress.msfol._
 import fortress.transformers._
+import fortress.modelfind.ProblemState
 
 class EnumEliminationTests extends UnitSuite {
     
@@ -44,7 +45,7 @@ class EnumEliminationTests extends UnitSuite {
                 Not(App("f", DomainElement(1, A), x) === DomainElement(2, C))))
         
         val transformer = new EnumEliminationTransformer
-        transformer(Problem(theory, Map.empty)) should be (Problem(expected, Map(A -> 3, C -> 2)))
+        transformer(ProblemState(theory, Map.empty)) should be (ProblemState(expected, Map(A -> 3, C -> 2)))
     }
     
 }

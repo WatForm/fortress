@@ -2,6 +2,7 @@ import org.scalatest._
 
 import fortress.msfol._
 import fortress.transformers._
+import fortress.modelfind.ProblemState
 
 class RangeFormulaTests extends UnitSuite {
     
@@ -36,7 +37,7 @@ class RangeFormulaTests extends UnitSuite {
         
         val scopes = Map(A -> 2, B -> 2)
         val transformer = RangeFormulaTransformer.create()
-        transformer(Problem(theory, scopes)) should be (Problem(expected, scopes))
+        transformer(ProblemState(theory, scopes)) should be (ProblemState(expected, scopes))
     }
     
     test("function arity 1") {
@@ -73,7 +74,7 @@ class RangeFormulaTests extends UnitSuite {
         
         val scopes = Map(A -> 2, B -> 3)
         val transformer = RangeFormulaTransformer.create()
-        transformer(Problem(theory, scopes)) should be (Problem(expected, scopes))
+        transformer(ProblemState(theory, scopes)) should be (ProblemState(expected, scopes))
     }
     
     test("function arity 2") {
@@ -105,7 +106,7 @@ class RangeFormulaTests extends UnitSuite {
         
         val scopes = Map(A -> 2, B -> 3, C -> 2)
         val transformer = RangeFormulaTransformer.create()
-        transformer(Problem(theory, scopes)) should be (Problem(expected, scopes))
+        transformer(ProblemState(theory, scopes)) should be (ProblemState(expected, scopes))
     }
     
     // TODO replace this with property check?
@@ -129,7 +130,7 @@ class RangeFormulaTests extends UnitSuite {
         
         val scopes = Map(A -> 5, B -> 7, C -> 2)
         val transformer = RangeFormulaTransformer.create()
-        transformer(Problem(theory, scopes)) should be (Problem(expected, scopes))
+        transformer(ProblemState(theory, scopes)) should be (ProblemState(expected, scopes))
     }
     
     test("boolean constants/predicates not restricted") {
@@ -147,7 +148,7 @@ class RangeFormulaTests extends UnitSuite {
         
         val scopes = Map(A -> 2)
         val transformer = RangeFormulaTransformer.create()
-        transformer(Problem(theory, scopes)) should be (Problem(expected, scopes))
+        transformer(ProblemState(theory, scopes)) should be (ProblemState(expected, scopes))
     }
     
     test("scope of one") {
@@ -168,7 +169,7 @@ class RangeFormulaTests extends UnitSuite {
         
         val scopes = Map(A -> 1, B -> 1)
         val transformer = RangeFormulaTransformer.create()
-        transformer(Problem(theory, scopes)) should be (Problem(expected, scopes))
+        transformer(ProblemState(theory, scopes)) should be (ProblemState(expected, scopes))
     }
     
     test("builtin types universally quantified") {
@@ -198,6 +199,6 @@ class RangeFormulaTests extends UnitSuite {
         
         val scopes = Map(A -> 2)
         val transformer = RangeFormulaTransformer.create()
-        transformer(Problem(theory, scopes)) should be (Problem(expected, scopes))
+        transformer(ProblemState(theory, scopes)) should be (ProblemState(expected, scopes))
     }
 }

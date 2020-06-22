@@ -18,6 +18,8 @@ case class ProblemState(
 }
 
 object ProblemState {
+    def apply(theory: Theory): ProblemState = ProblemState(theory, Map.empty, Set.empty, Set.empty)
+    
     def apply(theory: Theory, scopes: Map[Sort, Int]): ProblemState = {
         // Compute the scopes for enum sorts
         val enumScopes = theory.signature.enumConstants.map {
