@@ -20,7 +20,9 @@ import fortress.util.Errors
 import scala.jdk.CollectionConverters._
 
 class TheoryToCVC4(theory: Theory){
-    System.loadLibrary("cvc4jni")
+    // Make sure cvc4 library is loaded
+    TheoryToCVC4
+    
     val em = new CVC4ExprManager
     val smt = new CVC4SmtEngine(em)
 
@@ -67,15 +69,17 @@ class TheoryToCVC4(theory: Theory){
         case BuiltinApp(fn, args) => ???
     }
 
-    def seqTermToVectorExpr(seq: Seq[Term]) : CVC4VectorExpr = {
-        val exprs = new CVC4VectorExpr
-        seq.foreach(term => exprs.add(convertExpr(term)))
-        exprs
+    def seqTermToVectorExpr(terms: Seq[Term]) : CVC4VectorExpr = {
+        val cvc4exprs = for(term <- terms) yield convertExpr(term)
+        new CVC4VectorExpr(em, cvc4exprs.asJava)
     }
     
-    def seqSortToVectorType(seq: Seq[Sort]) : CVC4VectorType = {
-        val params = new CVC4VectorType
-        seq.foreach(sort => params.add(sortConversionMap.apply(sort)))
-        params
+    def seqSortToVectorType(sorts: Seq[Sort]) : CVC4VectorType = {
+        val cvc4types = for(sort <- sorts) yield sortConversionMap.apply(sort)
+        new CVC4VectorType(em, cvc4types.asJava)
     }
+}
+
+object TheoryToCVC4 {
+    System.loadLibrary("cvc4jni")
 }

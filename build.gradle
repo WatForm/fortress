@@ -20,6 +20,7 @@ dependencies {
     implementation files('cvc4/CVC4.jar')
     runtimeOnly files('z3/libz3java.dylib') // Required to run Z3's Java interface on MacOS
     runtimeOnly files('z3/libz3java.so') // Required to run Z3's Java interface on Ubuntu
+    runtimeOnly files('cvc4/libcvc4jni.so') // Required to run Z3's Java interface on Ubuntu
 
     testImplementation 'junit:junit:4.12'
     testImplementation 'org.scalatest:scalatest_2.13:3.0.8'
