@@ -20,7 +20,7 @@ class Z3ApiInterpretation(model: Z3Model, sig: Signature, converter: TheoryToZ3_
     val sortMappings: Map[Z3Expr, DomainElement] = (
         for {
             z3Decl <- model.getConstDecls
-            constantName = z3Decl.getName.toString if constantName.charAt(0) == '@'
+            constantName = z3Decl.getName.toString if constantName.charAt(0) == '$'
         } yield {
             val sortName = z3Decl.getRange.getName.toString
             model.getConstInterp(z3Decl) -> DomainElement(constantName.substring(1,constantName.length-sortName.length).toInt, SortConst(sortName))
