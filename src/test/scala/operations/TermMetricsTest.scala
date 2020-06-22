@@ -9,10 +9,10 @@ class TermMetricsTest extends UnitSuite {
   val B = Sort.mkSortConst("B")
 
   val c = Var("c")
-  val p = Var("p")
   val x = Var("x")
   val y = Var("y")
   val z = Var("z")
+  val t = Var("t")
 
   val f = FuncDecl.mkFuncDecl("f", A, A)
   val P = FuncDecl.mkFuncDecl("P", A, A, Sort.Bool)
@@ -36,11 +36,15 @@ class TermMetricsTest extends UnitSuite {
       Implication(Eq(c, App("f", x)), App("P", App("f", x), c))
     ))
     val term2 = Exists(x.of(A), Exists(y.of(A),
-        Implication(Eq(c, App("f", x)), App("P", App("f", x), c))
-    ))
-    val term3 = Forall(x.of(A), Exists(y.of(A), Forall(z.of(A),
       Implication(Eq(c, App("f", x)), App("P", App("f", x), c))
-    )))
+    ))
+    val term3 = Iff(
+      Forall(x.of(A), Exists(y.of(A),
+        Forall(z.of(A), Forall(t.of(A),
+          Implication(Eq(c, App("f", x)), App("P", App("f", x), c))
+        )))),
+      OrList(Top, Bottom)
+    )
 
     depthQuantification(term1) should be(1)
     depthQuantification(term2) should be(1)

@@ -9,7 +9,7 @@ object TermMetrics {
 
   /* Returns depth of quantification of a term and an integer between 0 and 2 indicating
   * what the current term is. 1 stands for Forall, 2 stands for Exists, 0 stands for it
-  * is not a quantifier
+  * is not a quantifier.
   * Sort of current term is used in counting adjacent nested quantifiers.
   * "Forall x, Forall y,..." will be counted as depth 1.
   */
