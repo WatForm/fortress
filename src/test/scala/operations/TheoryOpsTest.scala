@@ -10,7 +10,6 @@ class TheoryOpsTest extends UnitSuite {
 
   val c = Var("c")
   val p = Var("p")
-  val q = Var("q")
   val x = Var("x")
   val y = Var("y")
 
@@ -26,7 +25,7 @@ class TheoryOpsTest extends UnitSuite {
     .withFunctionDeclaration(P)
 
   test("sort count") {
-    baseTheory.sortCount should be(3)
+    baseTheory.sortCount should be(2)
   }
 
   test("function count") {
@@ -37,7 +36,20 @@ class TheoryOpsTest extends UnitSuite {
     baseTheory.predicateCount should be(1)
   }
 
-  test("depth of quantification of simple terms") {
+  test("term count") {
+    val theory = baseTheory
+      .withAxiom(Forall(x.of(A),
+        Iff(
+          Implication(Eq(c, App("f", x)), App("P", App("f", x), c)),
+          OrList(Top, Bottom)
+        )
+      ))
+      .withAxiom(AndList(Exists(x.of(A), Not(App("P", App("f", x), c))), Bottom))
+
+    theory.termCount should be(22)
+  }
+
+  test("maximum depth of quantification among all axioms") {
     val theory = baseTheory
       .withAxiom(Forall(x.of(A),
         Iff(
@@ -50,23 +62,7 @@ class TheoryOpsTest extends UnitSuite {
     theory.depthQuantification should be(1)
   }
 
-  test("depth of quantification for nested foralls and Exists") {
-    val P = FuncDecl("P", A, Sort.Bool)
-    val Q = FuncDecl("Q", B, Sort.Bool)
-    val R = FuncDecl("R", A, B, Sort.Bool)
-    val g = FuncDecl("g", A, A)
-
-    val theory = Theory.empty
-      .withSorts(A, B)
-      .withFunctionDeclarations(P, Q, R, g)
-      .withAxiom(Forall(
-        x of A, (App("g", x) === x) or Forall(y of B, App("R", x, y) and Exists(p of A, Not(App("P", p))))
-      ))
-
-    theory.depthQuantification should be(3)
-  }
-
-  test("depth of nested functions") {
+  test("maximum depth of nested functions among all axioms") {
     val theory = baseTheory
       .withAxiom(Exists(x.of(A),
         Forall(y.of(A), Implication(Eq(x, App("f", y)), App("P", App("f", y), x))))
