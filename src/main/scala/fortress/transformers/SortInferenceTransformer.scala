@@ -2,11 +2,12 @@ package fortress.transformers
 
 import fortress.msfol._
 import fortress.operations.TheoryOps._
+import fortress.modelfind.ProblemState
 
-class SortInferenceTransformer extends ProblemTransformer {
+class SortInferenceTransformer extends ProblemStateTransformer {
         
-    def apply(problem: Problem): Problem = problem match {
-        case Problem(theory, scopes) => {
+    def apply(problemState: ProblemState): ProblemState = problemState match {
+        case ProblemState(theory, scopes, skc, skf) => {
             val (generalTheory, sortSubstitution) = theory.inferSorts
             // Create new scopes
             val newScopes = for {
@@ -15,7 +16,7 @@ class SortInferenceTransformer extends ProblemTransformer {
             } yield {
                 sort -> scopes(sortSubstitution(sort))
             }
-            Problem(generalTheory, newScopes.toMap)
+            new ProblemState(generalTheory, newScopes.toMap, skc map (sortSubstitution(_)), skf map (sortSubstitution(_)))
         }
     }
     

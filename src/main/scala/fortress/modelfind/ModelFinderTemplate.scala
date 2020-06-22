@@ -30,18 +30,18 @@ abstract class ModelFinderTemplate(var solverStrategy: SolverStrategy) extends M
         finalResult
     }
     
-    protected def transformerSequence(): Seq[ProblemTransformer]
+    protected def transformerSequence(): Seq[ProblemStateTransformer]
     
-    private def applyTransformer(transformer: ProblemTransformer, problem: Problem): Problem = {
+    private def applyTransformer(transformer: ProblemStateTransformer, problemState: ProblemState): ProblemState = {
         for(logger <- eventLoggers) logger.transformerStarted(transformer)
         val transformationTimer = new StopWatch()
         transformationTimer.startFresh()
         
-        val resultingProblem = transformer(problem)
+        val resultingProblemState = transformer(problemState)
         
         val elapsed = transformationTimer.elapsedNano()
         for(logger <- eventLoggers) logger.transformerFinished(transformer, elapsed)
-        resultingProblem
+        resultingProblemState
     }
     
     private def preTransformationPhase(): Unit = {
@@ -54,9 +54,9 @@ abstract class ModelFinderTemplate(var solverStrategy: SolverStrategy) extends M
     private def transformationPhase(): Option[Theory] = {
         val transformerSeq = transformerSequence()
         
-        var intermediateProblem = Problem(theory, analysisScopes)
+        var intermediateProblemState = ProblemState(theory, analysisScopes)
         for(transformer <- transformerSeq) {
-            intermediateProblem = applyTransformer(transformer, intermediateProblem)
+            intermediateProblemState = applyTransformer(transformer, intermediateProblemState)
             
             if(totalTimer.elapsedNano() >= timeoutNano) {
                 for(logger <- eventLoggers) logger.timeoutInternal()
@@ -64,8 +64,8 @@ abstract class ModelFinderTemplate(var solverStrategy: SolverStrategy) extends M
             }
         }
         
-        val finalTheory = intermediateProblem match {
-            case Problem(thry, scopes) => thry
+        val finalTheory = intermediateProblemState match {
+            case ProblemState(fTheory, _, _, _) => fTheory
         }
 
         constrainedTheory = finalTheory

@@ -5,6 +5,7 @@ import fortress.msfol._
 import scala.collection.mutable
 import fortress.symmetry._
 import fortress.operations.TermOps._
+import fortress.modelfind.ProblemState
 
 /** Applies symmetry breaking to the given Problem. The input Problem is allowed
 * to have domain elements in its formulas. The output formula will have domain
@@ -12,10 +13,10 @@ import fortress.operations.TermOps._
 * the original axioms plus additional symmetry breaking axioms, and is
 * equisatisfiable to the original.
 */
-class SymmetryBreakingTransformerTWO extends ProblemTransformer {
+class SymmetryBreakingTransformerTWO extends ProblemStateTransformer {
         
-    def apply(problem: Problem): Problem = problem match {
-        case Problem(theory, scopes) => {
+    def apply(problemState: ProblemState): ProblemState = problemState match {
+        case ProblemState(theory, scopes, skc, skf) => {
             val tracker = new DomainElementTracker(theory, scopes)
             
             // Accumulates the symmetry breaking constraints
@@ -117,7 +118,7 @@ class SymmetryBreakingTransformerTWO extends ProblemTransformer {
             }
             
             val newTheory = theory.withAxioms(constraints.toList)
-            Problem(newTheory, scopes)
+            ProblemState(newTheory, scopes, skc, skf)
         }
     }
     

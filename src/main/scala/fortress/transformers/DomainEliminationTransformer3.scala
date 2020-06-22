@@ -6,15 +6,16 @@ import fortress.msfol._
 import fortress.util.Errors
 import fortress.operations.TermOps._
 import fortress.operations.TheoryOps._
+import fortress.modelfind.ProblemState
 
 /** Introduces constants to simulate the domain elements, asserting these constants are
   * all distinct and repalacing occurrences of domain elements with the appropriate constant.
   * Leaves other aspects of the Problem unchanged.
   */
-class DomainEliminationTransformer3 extends ProblemTransformer {
+class DomainEliminationTransformer3 extends ProblemStateTransformer {
     
-    override def apply(problem: Problem): Problem = problem match {
-        case Problem(theory, scopes) => {
+    override def apply(problemState: ProblemState): ProblemState = problemState match {
+        case ProblemState(theory, scopes, skc, skf) => {
             val domainElemsMap: Map[Sort, Seq[DomainElement]] =
                 (for(sort <- theory.sorts if !sort.isBuiltin) yield {
                     val domElems = for(i <- 1 to scopes(sort)) yield DomainElement(i, sort)
@@ -38,7 +39,7 @@ class DomainEliminationTransformer3 extends ProblemTransformer {
                 .withAxioms(distinctConstraints)
                 .withAxioms(convertedAxioms)
             
-            Problem(newTheory, scopes)
+            ProblemState(newTheory, scopes, skc, skf)
         }
     }
     

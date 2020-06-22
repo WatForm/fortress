@@ -6,6 +6,7 @@ import fortress.msfol._
 import fortress.operations.TermOps._
 import fortress.util.Errors
 import fortress.data.CartesianSeqProduct
+import fortress.modelfind.ProblemState
 
 import scala.math.min
 
@@ -14,14 +15,14 @@ import scala.math.min
   * The resulting problem is equisatisfiable to the original and formulaically bound.
   * Note: Symmetry breaking is not performed in this step.
   */
-class RangeFormulaTransformer private (useConstForDomElem: Boolean) extends ProblemTransformer {
+class RangeFormulaTransformer private (useConstForDomElem: Boolean) extends ProblemStateTransformer {
     
     private def DE(index: Integer, sort: Sort): Term =
         if (useConstForDomElem) DomainElement(index, sort).asSmtConstant
         else DomainElement(index, sort)
     
-    override def apply(problem: Problem): Problem = problem match {
-        case Problem(theory, scopes) => {
+    override def apply(problemState: ProblemState): ProblemState = problemState match {
+        case ProblemState(theory, scopes, skc, skf) => {
             // Generate range constraints for constants
             val constantRangeConstraints = for(c <- theory.constants if !c.sort.isBuiltin) yield {
                 val possibleValues = for(i <- 1 to scopes(c.sort)) yield DE(i, c.sort)
@@ -68,7 +69,7 @@ class RangeFormulaTransformer private (useConstForDomElem: Boolean) extends Prob
             }
             
             val newTheory = theory.withAxioms(constantRangeConstraints).withAxioms(functionRangeConstraints.toList)
-            Problem(newTheory, scopes)
+            ProblemState(newTheory, scopes, skc, skf)
         }
     }
     
