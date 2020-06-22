@@ -9,35 +9,52 @@ import fortress.util._
 import fortress.solverinterface._
 import fortress.operations.SmtlibConverter
 
-abstract class ProcessBuilderSolver extends SolverStrategy {
-    private var process: Process = null
-    private var pin: BufferedWriter = null
-    private var pout: BufferedReader = null
-    /**
-    * Attempts to solve the given theory, searching for a satisfying instance.
-    */
-    @throws(classOf[java.io.IOException])
-    def solve(theory: Theory, timeoutMillis: Milliseconds, eventLoggers: Seq[EventLogger]): ModelFinderResult = {
-        tryIO (() => {
+abstract class ProcessBuilderSolver extends SolverTemplate {
+    private var process: Option[Process] = None
+    private var pin: Option[BufferedWriter] = None
+    private var pout: Option[BufferedReader] = None
+    private var convertedBytes = new CharArrayWriter
+    private var timeout = Milliseconds(60000)
+    
+    override def convertTheory(theory: Theory): Unit = {
+        convertedBytes.reset
+        
+        convertedBytes write "(set-option :produce-models true)\n"
+        convertedBytes write "(set-logic ALL)\n"
+        val converter = new SmtlibConverter(convertedBytes)
+        converter writeTheory theory
+    }
+    
+    override def updateTimeout(remainingMillis: Milliseconds): Unit = {
+        timeout = remainingMillis
+    }
+    
+    override def runSolver(): ModelFinderResult = {
+        tryIO(() => {
             clearCVC4
-            startCVC4(timeoutMillis)
-            pin write "(set-option :produce-models true)\n"
-            pin write "(set-logic ALL)\n"
-            val converter = new SmtlibConverter(pin)
-            converter writeTheory theory
-            //logging
-            //var errLogger = new BufferedWriter(new OutputStreamWriter(System.err))
-            //val converter2 = new SmtlibConverter(errLogger)
-            //converter2 writeTheory theory
-            //errLogger.flush
+            startCVC4()
+            convertedBytes writeTo pin.get
             checkSat
         })
     }
     
+    def checkSat(): ModelFinderResult = {
+        pin.get write "(check-sat)\n"
+        
+        pin.get.flush
+        
+        var result = pout.get.readLine
+        result match {
+            case "sat" => ModelFinderResult.Sat
+            case "unsat" => ModelFinderResult.Unsat
+            case _ => ModelFinderResult.Unknown
+        }
+    }
+    
     def addAxiom(axiom: Term, timeoutMillis: Milliseconds): ModelFinderResult = {
-        Errors.verify(process != null, "Cannot add axiom without a live cvc4 session")
+        Errors.verify(process.nonEmpty, "Cannot add axiom without a live cvc4 session")
         tryIO(() => {
-            val converter = new SmtlibConverter(pin)
+            val converter = new SmtlibConverter(pin.get)
             converter writeAssertion axiom
             
             checkSat
@@ -46,21 +63,6 @@ abstract class ProcessBuilderSolver extends SolverStrategy {
 
     def getInstance(theory: Theory): Interpretation = {
         null
-    }
-    
-    def checkSat: ModelFinderResult = {
-        tryIO(() => {
-            pin write "(check-sat)\n"
-            
-            pin.flush
-            
-            var result = pout.readLine
-            result match {
-                case "sat" => ModelFinderResult.Sat
-                case "unsat" => ModelFinderResult.Unsat
-                case _ => ModelFinderResult.Unknown
-            }
-        })
     }
     
     def tryIO(func: () => ModelFinderResult): ModelFinderResult = {
@@ -74,38 +76,40 @@ abstract class ProcessBuilderSolver extends SolverStrategy {
         }
     }
     
-    def startCVC4(timeoutMillis: Milliseconds): Unit = {
-        process = new ProcessBuilder(processArgs(timeoutMillis)).start()
-        pin = new BufferedWriter(new OutputStreamWriter(process.getOutputStream))
-        pout = new BufferedReader(new InputStreamReader(process.getInputStream))
+    def startCVC4(): Unit = {
+        process = Some(new ProcessBuilder(processArgs).start())
+        pin = Some(new BufferedWriter(new OutputStreamWriter(process.get.getOutputStream)))
+        pout = Some(new BufferedReader(new InputStreamReader(process.get.getInputStream)))
     }
     
     def clearCVC4: Unit = {
         finalize
-        pin = null
-        pout = null
-        process = null
+        pin = None
+        pout = None
+        process = None
     }
     
     override protected def finalize: Unit = {
-        if(process != null) {
-            pin.close
-            pout.close
-            process.destroy
+        if(process.nonEmpty) {
+            pin.get.close
+            pout.get.close
+            process.get.destroy
         }
     }
     
-    def processArgs(timeoutMillis: Milliseconds): java.util.List[String]
+    protected def timeoutMillis: Milliseconds = timeout
+    
+    def processArgs: java.util.List[String]
 }
 
 class CVC4CliSolver extends ProcessBuilderSolver {
-    def processArgs(timeoutMillis: Milliseconds): java.util.List[String] = {
+    def processArgs: java.util.List[String] = {
         java.util.List.of("cvc4", "--lang=smt2.6", "-im", "--tlimit-per=" + timeoutMillis.value)
     }
 }
 
 class Z3CliSolver extends ProcessBuilderSolver {
-    def processArgs(timeoutMillis: Milliseconds): java.util.List[String] = {
+    def processArgs: java.util.List[String] = {
         java.util.List.of("z3", "-smt2", "-in", "-t:" + timeoutMillis.value)
     }
 }
