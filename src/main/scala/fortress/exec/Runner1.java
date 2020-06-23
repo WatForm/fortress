@@ -12,71 +12,86 @@ import java.io.*;
 
 public final class Runner1 {
 
-	public static void main(String[] args) throws Exception {
-        int gridLength = 4;
-        
+    public static void main(String[] args) throws Exception {
         // Create Sorts
-        Sort Row = Sort.mkSortConst("Row"); // Rows
-        Sort Col = Sort.mkSortConst("Col"); // Columns
-        Sort Num = Sort.mkSortConst("Num"); // Number entries
+        Sort Tree = Sort.mkSortConst("Tree"); // Trees
+        Sort Monkey = Sort.mkSortConst("Monkey"); // Monkeys
+        Sort Banana = Sort.mkSortConst("Banana"); // Bananas
         
-        // Create declaration for entry function
-        // entry: Row x Col -> Num
-        FuncDecl entry = FuncDecl.mkFuncDecl("entry", Row, Col, Num);
+        // Create declarations
+        // Relation which associates monkeys and bananas
+        FuncDecl owns = FuncDecl.mkFuncDecl("owns", Monkey, Banana, Sort.Bool());
+        // Functions that witness the monkeys' two bananas
+        FuncDecl b1 = FuncDecl.mkFuncDecl("b1", Monkey, Banana);
+        FuncDecl b2 = FuncDecl.mkFuncDecl("b2", Monkey, Banana);
+        // Function that maps monkeys to the tree they sit in
+        FuncDecl sits = FuncDecl.mkFuncDecl("sits", Monkey, Tree);
+        // Function that associates each monkey with a partner
+        FuncDecl partner = FuncDecl.mkFuncDecl("partner", Monkey, Monkey);
+        
         
         // Create variables to use in axioms
-        Var r = mkVar("r");
-        Var r1 = mkVar("r1");
-        Var r2 = mkVar("r2");
-        Var c = mkVar("c");
-        Var c1 = mkVar("c1");
-        Var c2 = mkVar("c2");
+        Var M = mkVar("M");
+        Var M1 = mkVar("M1");
+        Var M2 = mkVar("M2");
+        Var M3 = mkVar("M3");
+        Var M4 = mkVar("M4");
+        Var B = mkVar("B");
+        Var T = mkVar("T");
         
-        // Create axioms
-        // For each row, every column gives a different number
-        Term rowConstraint = mkForall(List.of(r.of(Row), c1.of(Col), c2.of(Col)),
+        // Create axiom
+        // "Each monkey owns its two bananas, and those bananas are different"
+        Term ax1 = mkForall(M.of(Monkey), mkAnd(
+            mkApp("owns", M, mkApp("b1", M)),
+            mkApp("owns", M, mkApp("b2", M)),
+            mkNot(mkEq(mkApp("b1", M), mkApp("b2", M)))));
+        // "Different monkeys don't own the same bananas"
+        Term ax2 = mkForall(List.of(M1.of(Monkey), M2.of(Monkey), B.of(Banana)),
             mkImp(
-                mkEq(mkApp("entry", r, c1), mkApp("entry", r, c2)),
-                mkEq(c1, c2)
-                ));
-        // For each column, every row gives a different number
-        Term colConstraint = mkForall(List.of(c.of(Col), r1.of(Row), r2.of(Row)),
+                mkAnd(mkApp("owns", M1, B), mkApp("owns", M2, B)),
+                mkEq(M1, M2)));
+        // Each tree contains exactly three monkeys
+        Term ax3 = mkForall(T.of(Tree), mkExists(List.of(M1.of(Monkey), M2.of(Monkey), M3.of(Monkey)),
+            mkAnd(
+                mkEq(mkApp("sits", M1), T),
+                mkEq(mkApp("sits", M2), T),
+                mkEq(mkApp("sits", M3), T),
+                mkDistinct(M1, M2, M3))));
+        Term ax4 = mkForall(List.of(M1.of(Monkey), M2.of(Monkey), M3.of(Monkey), M4.of(Monkey), T.of(Tree)),
             mkImp(
-                mkEq(mkApp("entry", r1, c), mkApp("entry", r2, c)),
-                mkEq(r1, r2)
-                ));
+                mkAnd(
+                    mkEq(mkApp("sits", M1), T),
+                    mkEq(mkApp("sits", M2), T),
+                    mkEq(mkApp("sits", M3), T),
+                    mkEq(mkApp("sits", M4), T)
+                ),
+                mkNot(mkDistinct(M1, M2, M3, M4))));
+        // No monkey is its own partner, and partners are paired up
+        Term ax5 = mkForall(M.of(Monkey), mkAnd(
+            mkNot(mkEq(mkApp("partner", M), M)),
+            mkEq(mkApp("partner", mkApp("partner", M)), M)));
                 
         // Begin with the empty theory
-        Theory latinSquareTheory =  Theory.empty()
+        Theory monkeyTheory =  Theory.empty()
         // Add sorts
-            .withSorts(Row, Col, Num)
+            .withSorts(Tree, Monkey, Banana)
         // Add declarations
-            .withFunctionDeclarations(entry)
-            .withConstants(mkVar("e").of(Row))
+            .withFunctionDeclarations(owns, b1, b2, sits, partner)
         // Add constraints
-            .withAxiom(rowConstraint)
-            .withAxiom(colConstraint);
-            
-        // Initialize a model finder 
-        ModelFinder finder = ModelFinder.createDefault();
+            .withAxiom(ax1)
+            .withAxiom(ax2)
+            .withAxiom(ax3)
+            .withAxiom(ax4)
+            .withAxiom(ax5);
         
-        // Set the theory of the model finder
-        finder.setTheory(latinSquareTheory);
+        var result = TheoryOps.wrapTheory(monkeyTheory).inferSorts();
         
-        // Set the scopes of the model finder
-        finder.setAnalysisScope(Row, gridLength);
-        finder.setAnalysisScope(Col, gridLength);
-        finder.setAnalysisScope(Num, gridLength);
-        
-        // Check if all axioms in the theory are satisfiable 
-        ModelFinderResult result = finder.checkSat();
-        
-        System.out.println("Grid Size: " + gridLength);
-        System.out.println("Satisiable?: " + result.toString());
-        
-        // Print out model if it exists
-        if(result.equals(ModelFinderResult.Sat())) {
-            System.out.println(finder.viewModel());
-        }
+        System.out.println(monkeyTheory.toString());
+        System.out.println();
+        System.out.println("========================");
+        System.out.println();
+        System.out.println(result._1().toString());
+        System.out.println(result._2().toString());
+        System.out.println(result._2().inverse().toString());
 	}
 }

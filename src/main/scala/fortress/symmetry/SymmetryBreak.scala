@@ -7,8 +7,8 @@ import fortress.util.Errors
 object Symmetry {
     private[this] type ArgList = Seq[DomainElement]
     
-    def csConstantEqualities(sort: Sort, constants: IndexedSeq[AnnotatedVar], scope: Int,
-        usedValues: IndexedSeq[DomainElement]): Set[Term] = {
+    def csConstantRangeRestrictions(sort: Sort, constants: IndexedSeq[AnnotatedVar], scope: Int,
+        usedValues: IndexedSeq[DomainElement]): Set[RangeRestriction] = {
         Errors.precondition(!sort.isBuiltin)
         Errors.precondition(constants.forall(_.sort == sort))
         Errors.precondition(usedValues.forall(_.sort == sort))
@@ -21,19 +21,19 @@ object Symmetry {
         val m = unusedValues.size
         val r = scala.math.min(n, m)
         
-        val equalityConstraints: Seq[Term] =
+        val constraints: Seq[RangeRestriction] =
             for (k <- 0 to (r - 1)) // Enumerate constants
             yield {
                 val c_k = constants(k).variable
             
-                val possibleValues: Seq[Term] =
+                val possibleValues: Seq[DomainElement] =
                     usedValues ++ // Could be any of the used values
                     unusedValues.take(k + 1) // One of the first k + 1 unused values (recall, k starts at 0)
             
-                c_k equalsOneOf possibleValues
+                RangeRestriction(c_k, possibleValues)
             }
         
-        equalityConstraints.toSet
+        constraints.toSet
     }
     
     // Produces matching output to csConstantEqualities - meant to be used at same
@@ -96,8 +96,8 @@ object Symmetry {
         implications.toSet
     }
     
-    def drdFunctionEqualities(f: FuncDecl, scopes: Map[Sort, Int],
-        usedResultValues: IndexedSeq[DomainElement]): Set[Term] = {
+    def drdFunctionRangeRestrictions(f: FuncDecl, scopes: Map[Sort, Int],
+        usedResultValues: IndexedSeq[DomainElement]): Set[RangeRestriction] = {
         Errors.precondition(f.argSorts.forall(!_.isBuiltin))
         Errors.precondition(!f.resultSort.isBuiltin)
         Errors.precondition(usedResultValues.forall(_.sort == f.resultSort))
@@ -124,17 +124,17 @@ object Symmetry {
         
         val r = scala.math.min(m, n)
         
-        val equalityConstraints: Seq[Term] =
+        val constraints: Seq[RangeRestriction] =
             for (k <- 0 to (r - 1)) // Enumerate argument vectors
             yield {
                 val argList = argumentLists(k)
-                val possibleResultValues: Seq[Term] = 
+                val possibleResultValues: Seq[DomainElement] = 
                     usedResultValues ++ // Could be any of the used values
                     unusedResultValues.take(k + 1) // One of the first k + 1 unused values (recall, k starts at 0)
-                App(f.name, argList) equalsOneOf possibleResultValues
+                RangeRestriction(App(f.name, argList), possibleResultValues)
             }
         
-        equalityConstraints.toSet
+        constraints.toSet
     }
     
     // Produces matching output to drdFunctionEqualities - meant to be used at same
@@ -266,8 +266,8 @@ object Symmetry {
     
     // Only need scope for result value
     // I think more symmetry breaking can be done here
-    def csFunctionExtEqualities(f: FuncDecl, resultScope: Int,
-        usedResultValues: IndexedSeq[DomainElement]): Set[Term] = {
+    def csFunctionExtRangeRestrictions(f: FuncDecl, resultScope: Int,
+        usedResultValues: IndexedSeq[DomainElement]): Set[RangeRestriction] = {
             Errors.precondition(f.argSorts.forall(!_.isBuiltin))
             Errors.precondition(!f.resultSort.isBuiltin)
             Errors.precondition(usedResultValues.forall(_.sort == f.resultSort))
@@ -294,7 +294,7 @@ object Symmetry {
             }
             
             val m = unusedResultValues.size
-            val equalityConstraints: Seq[Term] = for(i <- 0 to (m - 2)) yield {
+            val constraints: Seq[RangeRestriction] = for(i <- 0 to (m - 2)) yield {
                 val resVal = unusedResultValues(i)
                 val argList = constructArgList(resVal)
                 
@@ -302,10 +302,10 @@ object Symmetry {
                     usedResultValues ++
                     unusedResultValues.take(i + 2)
                 
-                App(f.name, argList) equalsOneOf possibleResultValues
+                RangeRestriction(App(f.name, argList), possibleResultValues)
             }
             
-            equalityConstraints.toSet
+            constraints.toSet
         }
     
 }

@@ -16,25 +16,27 @@ import fortress.modelfind.ProblemState
 class SymmetryBreakingTransformerTWO extends ProblemStateTransformer {
         
     def apply(problemState: ProblemState): ProblemState = problemState match {
-        case ProblemState(theory, scopes, skc, skf, unapplyInterp) => {
+        case ProblemState(theory, scopes, skc, skf, rangeRestricts, unapplyInterp) => {
             val tracker = new DomainElementTracker(theory, scopes)
             
             // Accumulates the symmetry breaking constraints
             val constraints = new mutable.ListBuffer[Term]
+            val newRangeRestrictions = new mutable.ListBuffer[RangeRestriction]
             
             // Symmetry break on constants first
             for(sort <- theory.sorts if !sort.isBuiltin && tracker.stillUnusedDomainElements(sort)) {
                 val constants = theory.constants.filter(_.sort == sort).toIndexedSeq
                 val usedVals = tracker.usedDomainElements(sort).toIndexedSeq
                 val scope = scopes(sort)
-                val constantEqualities = Symmetry.csConstantEqualities(sort, constants, scope, usedVals)
+                val constantRangeRestrictions = Symmetry.csConstantRangeRestrictions(sort, constants, scope, usedVals)
                 val constantImplications = Symmetry.csConstantImplicationsSimplified(sort, constants, scope, usedVals)
                 
                 // Add to constraints
-                constraints ++= constantEqualities
+                constraints ++= constantRangeRestrictions map (_.asFormula)
+                newRangeRestrictions ++= constantRangeRestrictions
                 constraints ++= constantImplications
                 // Add to used values
-                tracker.markUsed(constantEqualities flatMap (_.domainElements))
+                tracker.markUsed(constantRangeRestrictions flatMap (_.asFormula.domainElements))
                 tracker.markUsed(constantImplications flatMap (_.domainElements))
             }
             
@@ -65,24 +67,26 @@ class SymmetryBreakingTransformerTWO extends ProblemStateTransformer {
                 if(tracker.stillUnusedDomainElements(resultSort)) {
                     if (f.isDomainRangeDistinct) {
                         // DRD scheme
-                        val fEqualities = Symmetry.drdFunctionEqualities(f, scopes, usedVals)
+                        val fRangeRestrictions = Symmetry.drdFunctionRangeRestrictions(f, scopes, usedVals)
                         val fImplications = Symmetry.drdFunctionImplicationsSimplified(f, scopes, usedVals)
                         
                         // Add to constraints
-                        constraints ++= fEqualities
+                        constraints ++= fRangeRestrictions map (_.asFormula)
+                        newRangeRestrictions ++= fRangeRestrictions
                         constraints ++= fImplications
                         // Add to used values
-                        tracker.markUsed(fEqualities flatMap (_.domainElements))
+                        tracker.markUsed(fRangeRestrictions flatMap (_.asFormula.domainElements))
                         tracker.markUsed(fImplications flatMap (_.domainElements))
                         
                     } else {
                         // Extended CS scheme
-                        val fEqualities = Symmetry.csFunctionExtEqualities(f, scope, usedVals)
+                        val fRangeRestrictions = Symmetry.csFunctionExtRangeRestrictions(f, scope, usedVals)
                         
                         // Add to constraints
-                        constraints ++= fEqualities
+                        constraints ++= fRangeRestrictions map (_.asFormula)
+                        newRangeRestrictions ++= fRangeRestrictions
                         // Add to used values
-                        tracker.markUsed(fEqualities flatMap (_.domainElements))
+                        tracker.markUsed(fRangeRestrictions flatMap (_.asFormula.domainElements))
                     }
                 }
             }
@@ -118,7 +122,7 @@ class SymmetryBreakingTransformerTWO extends ProblemStateTransformer {
             }
             
             val newTheory = theory.withAxioms(constraints.toList)
-            ProblemState(newTheory, scopes, skc, skf, unapplyInterp)
+            ProblemState(newTheory, scopes, skc, skf, rangeRestricts union newRangeRestrictions.toSet, unapplyInterp)
         }
     }
     

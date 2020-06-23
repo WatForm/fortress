@@ -24,6 +24,7 @@ object TheoryTransformer {
                     problemState.scopes,
                     problemState.skolemConstants,
                     problemState.skolemFunctions,
+                    problemState.rangeRestrictions,
                     problemState.unapplyInterp
                 )
             }

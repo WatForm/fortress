@@ -101,6 +101,7 @@ abstract class ModelFinderTemplate(var solverStrategy: SolverStrategy) extends M
             problemState.scopes,
             problemState.skolemConstants,
             problemState.skolemFunctions,
+            problemState.rangeRestrictions,
             problemState.unapplyInterp
         )
         solverStrategy.solve(problemState.theory, timeoutMilliseconds, eventLoggers.toList)

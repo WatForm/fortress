@@ -9,6 +9,7 @@ case class ProblemState private(
     scopes: Map[Sort, Int],
     skolemConstants: Set[AnnotatedVar],
     skolemFunctions: Set[FuncDecl],
+    rangeRestrictions: Set[RangeRestriction],
     unapplyInterp: List[Interpretation => Interpretation]
 ) {
     Errors.precondition(scopes.values.forall(_ > 0), "Scopes must be positive")
@@ -34,6 +35,7 @@ object ProblemState {
         new ProblemState(
             theory,
             scopes ++ enumScopes,
+            Set.empty,
             Set.empty,
             Set.empty,
             List.empty

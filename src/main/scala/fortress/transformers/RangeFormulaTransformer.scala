@@ -22,9 +22,14 @@ class RangeFormulaTransformer private (useConstForDomElem: Boolean) extends Prob
         else DomainElement(index, sort)
     
     override def apply(problemState: ProblemState): ProblemState = problemState match {
-        case ProblemState(theory, scopes, skc, skf, unapplyInterp) => {
+        case ProblemState(theory, scopes, skc, skf, rangeRestricts, unapplyInterp) => {
             // Generate range constraints for constants
-            val constantRangeConstraints = for(c <- theory.constants if !c.sort.isBuiltin) yield {
+            val constantRangeConstraints = for {
+                c <- theory.constants
+                if !c.sort.isBuiltin
+                // Don't generate constraints for terms that are already restricted
+                if ! (rangeRestricts exists (_.term == c.variable))
+            } yield {
                 val possibleValues = for(i <- 1 to scopes(c.sort)) yield DE(i, c.sort)
                 val rangeFormula = c.variable equalsOneOf possibleValues
                 rangeFormula
@@ -32,7 +37,10 @@ class RangeFormulaTransformer private (useConstForDomElem: Boolean) extends Prob
             
             // Generate range constraints for functions
             val functionRangeConstraints = new scala.collection.mutable.ListBuffer[Term]()
-            for(f <- theory.functionDeclarations if !f.resultSort.isBuiltin) {
+            for {
+                f <- theory.functionDeclarations
+                if !f.resultSort.isBuiltin
+            } {
                 val possibleRangeValues = for(i <- 1 to scopes(f.resultSort)) yield DE(i, f.resultSort)
                 
                 //  f: A_1 x ... x A_n -> B
@@ -62,14 +70,14 @@ class RangeFormulaTransformer private (useConstForDomElem: Boolean) extends Prob
                     val app = App(f.name, argumentList)
                     if(quantifiedVarsBuffer.nonEmpty) {
                         functionRangeConstraints += Forall(quantifiedVars, app equalsOneOf possibleRangeValues)
-                    } else {
+                    } else if (! (rangeRestricts exists (_.term == app))) { // Don't generate constraints for terms that are already restricted
                         functionRangeConstraints += app equalsOneOf possibleRangeValues
                     }
                 }
             }
             
             val newTheory = theory.withAxioms(constantRangeConstraints).withAxioms(functionRangeConstraints.toList)
-            ProblemState(newTheory, scopes, skc, skf, unapplyInterp)
+            ProblemState(newTheory, scopes, skc, skf, rangeRestricts, unapplyInterp)
         }
     }
     
