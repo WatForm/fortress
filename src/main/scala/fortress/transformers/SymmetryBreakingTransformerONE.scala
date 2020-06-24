@@ -18,7 +18,7 @@ class SymmetryBreakingTransformerONE extends ProblemStateTransformer {
         
     def apply(problemState: ProblemState): ProblemState = problemState match {
         case ProblemState(theory, scopes, skc, skf, rangeRestricts, unapplyInterp) => {
-            val tracker = new DomainElementTracker(theory, scopes)
+            val tracker = DomainElementTracker.create(theory, scopes)
             
             // Accumulates the symmetry breaking constraints
             val constraints = new mutable.ListBuffer[Term]

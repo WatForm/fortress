@@ -4,6 +4,8 @@ import fortress.msfol._
 import fortress.operations.TermOps._
 import fortress.util.Errors
 
+import scala.collection.mutable
+
 object Symmetry {
     private[this] type ArgList = Seq[DomainElement]
     
@@ -237,7 +239,7 @@ object Symmetry {
     // This is about as good as we can do for predicates of the form P: A -> Bool
     // Or P: A x A -> Bool, but I think more can be done for e.g. P: A x B x A -> Bool
     // The issue is the smallest element comment below.
-    def predicateImplications(P: FuncDecl, scopes: Map[Sort, Int],
+    def predicateImplications_OLD(P: FuncDecl, scopes: Map[Sort, Int],
         usedValues: Map[Sort, IndexedSeq[DomainElement]]): Set[Term] = {
         Errors.precondition(P.resultSort == BoolSort)
         Errors.precondition(P.argSorts.forall(!_.isBuiltin))
@@ -263,6 +265,40 @@ object Symmetry {
         
         predicateImplicationChain(P, argLists).toSet
     }
+    
+    def predicateImplications(P: FuncDecl, scopes: Map[Sort, Int],
+        usedValues: Map[Sort, IndexedSeq[DomainElement]]): Set[Term] = {
+            Errors.precondition(P.resultSort == BoolSort)
+            Errors.precondition(P.argSorts forall (!_.isBuiltin))
+            Errors.precondition(P.argSorts forall (sort => usedValues(sort).size <= scopes(sort)))
+            
+            val tracker = DomainElementTracker.create(usedValues, scopes)
+            
+            Errors.precondition(P.argSorts exists (tracker.numUnusedDomainElements(_) >= 2))
+            
+            def fillArgList(sort: Sort, d: DomainElement): ArgList = {
+                Errors.precondition(d.sort == sort)
+                for(s <- P.argSorts) yield {
+                    if(s == sort) d
+                    else DomainElement(1, s) // TODO can we make a smarter selection for the other elements?
+                }
+            }
+            
+            val constraints = new mutable.ListBuffer[Term]
+            
+            while(P.argSorts exists (tracker.numUnusedDomainElements(_) >= 2)) {
+                val sort = (P.argSorts find (tracker.numUnusedDomainElements(_) >= 2)).get
+                val r = tracker.numUnusedDomainElements(sort)
+                val argLists: IndexedSeq[ArgList] = for(i <- 0 to (r - 1)) yield {
+                    fillArgList(sort, tracker.unusedDomainElements(sort)(i))
+                }
+                val implications = predicateImplicationChain(P, argLists)
+                constraints ++= implications
+                tracker.markUsed(implications flatMap (_.domainElements))
+            }
+            
+            constraints.toSet
+        }
     
     // Only need scope for result value
     // I think more symmetry breaking can be done here
