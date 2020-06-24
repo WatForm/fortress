@@ -18,6 +18,9 @@ class Z3ApiInterpretation(model: Z3Model, sig: Signature, converter: TheoryToZ3_
 
     // Map from Z3's domain elements to our domain elements
     val sortMappings: Map[Z3Expr, DomainElement] = (
+        // Iterate over the the Z3 constants, determining which of them are the constants
+        // we use to simulate domain elements
+        // Map the Z3 value of such a constant to the Fortress domain element that the constant simulates
         for {
             z3Decl <- model.getConstDecls
             constantName = z3Decl.getName.toString if constantName.charAt(0) == '$'
@@ -32,6 +35,7 @@ class Z3ApiInterpretation(model: Z3Model, sig: Signature, converter: TheoryToZ3_
 			(constName, z3Decl) <- converter.constantConversionsMap
 			v = sig.queryConstant(Var(constName))
 			expr = model.evaluate(z3Decl.apply(), true) if v.isDefined
+            if constName.charAt(0) != '$' // Exclude domain constants
 		} yield v.get -> {
 			v.get.sort match {
 				case BoolSort => if (expr.isTrue) Top else Bottom

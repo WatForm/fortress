@@ -1,7 +1,8 @@
 package fortress.transformers
 
 import scala.language.implicitConversions
-import fortress.msfol.{Theory, Problem}
+import fortress.msfol.Theory
+import fortress.modelfind.ProblemState
 
 /** An abstraction of a function from Theory to Theory. */
 trait TheoryTransformer {
@@ -15,14 +16,21 @@ trait TheoryTransformer {
 }
 
 object TheoryTransformer {
-    implicit def asProblemTransformer(theoryTransformer: TheoryTransformer): ProblemTransformer = {
-        object asPT extends ProblemTransformer {
-            override def apply(problem: Problem): Problem = problem match {
-                case Problem(theory, scopes) => Problem(theoryTransformer(theory), scopes)
+    implicit def asProblemStateTransformer(theoryTransformer: TheoryTransformer): ProblemStateTransformer = {
+        object asPST extends ProblemStateTransformer {
+            override def apply(problemState: ProblemState): ProblemState = {
+                ProblemState(
+                    theoryTransformer(problemState.theory),
+                    problemState.scopes,
+                    problemState.skolemConstants,
+                    problemState.skolemFunctions,
+                    problemState.rangeRestrictions,
+                    problemState.unapplyInterp
+                )
             }
             
             override def name = theoryTransformer.name
         }
-        asPT
+        asPST
     }
 }

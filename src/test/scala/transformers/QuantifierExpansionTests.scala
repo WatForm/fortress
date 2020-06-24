@@ -2,6 +2,7 @@ import org.scalatest._
 
 import fortress.msfol._
 import fortress.transformers._
+import fortress.modelfind.ProblemState
 
 class QuantifierExpansionTests extends UnitSuite {
     
@@ -26,8 +27,6 @@ class QuantifierExpansionTests extends UnitSuite {
             .withAxiom(Forall(y of B, App("Q", y)))
        
         val scopes = Map(A -> 2, B -> 3)
-        
-        val problem = Problem(theory, scopes)
             
         val expectedTheory = Theory.empty
             .withSorts(A, B)
@@ -42,10 +41,8 @@ class QuantifierExpansionTests extends UnitSuite {
         
         val expectedScopes = scopes
         
-        val expected = Problem(expectedTheory, expectedScopes)
-        
         val transformer = QuantifierExpansionTransformer.create()
-        transformer(problem) should be (expected)
+        transformer(ProblemState(theory, scopes)) should be (ProblemState(expectedTheory, expectedScopes))
     }
     
     test("multivariable forall") {
@@ -56,8 +53,6 @@ class QuantifierExpansionTests extends UnitSuite {
                 (App("P", x) and App("P", y)) ==> App("Q", z) ))
         
         val scopes = Map(A -> 2, B -> 3)
-        
-        val problem = Problem(theory, scopes)
         
         val expectedTheory = Theory.empty
             .withSorts(A, B)
@@ -78,10 +73,8 @@ class QuantifierExpansionTests extends UnitSuite {
         
         val expectedScopes = scopes
         
-        val expected = Problem(expectedTheory, expectedScopes)
-        
         val transformer = QuantifierExpansionTransformer.create()
-        transformer(problem) should be (expected)
+        transformer(ProblemState(theory, scopes)) should be (ProblemState(expectedTheory, expectedScopes))
     }
     
     test("nested foralls") {
@@ -92,8 +85,6 @@ class QuantifierExpansionTests extends UnitSuite {
             
             
         val scopes = Map(A -> 2, B -> 2)
-        
-        val problem = Problem(theory, scopes)
         
         val t1A = (App("g", DomainElement(1, A)) === DomainElement(1, A)) or 
             (App("R", DomainElement(1, A), DomainElement(1, B)) and (App("R", DomainElement(1, A), DomainElement(2, B))))
@@ -107,7 +98,7 @@ class QuantifierExpansionTests extends UnitSuite {
             .withAxiom(t1A and t2A)
         
         val transformer = QuantifierExpansionTransformer.create()
-        transformer(problem) should be (Problem(expectedTheory, scopes))
+        transformer(ProblemState(theory, scopes)) should be (ProblemState(expectedTheory, scopes))
     }
     
     test("constants not expanded") {
@@ -119,8 +110,6 @@ class QuantifierExpansionTests extends UnitSuite {
         
         val scopes = Map(A -> 2, B -> 2)
         
-        val problem = Problem(theory, scopes)
-        
         val expectedTheory = Theory.empty
             .withSorts(A, B)
             .withFunctionDeclaration(f)
@@ -130,7 +119,7 @@ class QuantifierExpansionTests extends UnitSuite {
                 App("f", DomainElement(2, A)) === b))
         
         val transformer = QuantifierExpansionTransformer.create()
-        transformer(problem) should be (Problem(expectedTheory, scopes))
+        transformer(ProblemState(theory, scopes)) should be (ProblemState(expectedTheory, scopes))
     }
     
     test("scope of one") {
@@ -142,8 +131,6 @@ class QuantifierExpansionTests extends UnitSuite {
         
         val scopes = Map(A -> 1, B -> 1)
         
-        val problem = Problem(theory, scopes)
-        
         val expectedTheory = Theory.empty
             .withSorts(A, B)
             .withFunctionDeclarations(P, Q)
@@ -151,7 +138,7 @@ class QuantifierExpansionTests extends UnitSuite {
             .withAxiom(App("Q", DomainElement(1, B)))
         
         val transformer = QuantifierExpansionTransformer.create()
-        transformer(problem) should be (Problem(expectedTheory, scopes))
+        transformer(ProblemState(theory, scopes)) should be (ProblemState(expectedTheory, scopes))
     }
     
     test("Builtin types not expanded") {
@@ -167,8 +154,6 @@ class QuantifierExpansionTests extends UnitSuite {
             
         val scopes: Map[Sort, Int] = Map(A -> 2)
         
-        val problem = Problem(theory, scopes)
-        
         val expectedTheory = Theory.empty
             .withSort(A)
             .withFunctionDeclaration(FuncDecl("P", A, IntSort, BoolSort, BoolSort))
@@ -176,7 +161,7 @@ class QuantifierExpansionTests extends UnitSuite {
                 App("P", DomainElement(1, A), y, z) and App("P", DomainElement(2, A), y, z)))
         
         val transformer = QuantifierExpansionTransformer.create()
-        transformer(problem) should be (Problem(expectedTheory, scopes))
+        transformer(ProblemState(theory, scopes)) should be (ProblemState(expectedTheory, scopes))
     }
     
     test("Existential quantifiers expanded") {

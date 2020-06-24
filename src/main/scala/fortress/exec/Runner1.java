@@ -12,7 +12,7 @@ import java.io.*;
 
 public final class Runner1 {
 
-	public static void main(String[] args) throws Exception {
+    public static void main(String[] args) throws Exception {
         // Create Sorts
         Sort Tree = Sort.mkSortConst("Tree"); // Trees
         Sort Monkey = Sort.mkSortConst("Monkey"); // Monkeys

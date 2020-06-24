@@ -5,8 +5,8 @@ import fortress.transformers._
 import fortress.util._
 
 trait EventLogger {
-    def transformerStarted(transformer: ProblemTransformer): Unit
-    def transformerFinished(transformer: ProblemTransformer, time: Nanoseconds): Unit
+    def transformerStarted(transformer: ProblemStateTransformer): Unit
+    def transformerFinished(transformer: ProblemStateTransformer, time: Nanoseconds): Unit
     def allTransformersFinished(finalTheory: Theory, totalTime: Nanoseconds): Unit
     def invokingSolverStrategy(): Unit
     def convertingToSolverFormat(): Unit

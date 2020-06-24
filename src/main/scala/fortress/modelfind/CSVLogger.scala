@@ -6,9 +6,9 @@ import fortress.util._
 
 class CSVLogger(writer: java.io.Writer) extends EventLogger {
     
-    override def transformerStarted(transformer: ProblemTransformer): Unit = { }
+    override def transformerStarted(transformer: ProblemStateTransformer): Unit = { }
     
-    override def transformerFinished(transformer: ProblemTransformer, time: Nanoseconds): Unit = {
+    override def transformerFinished(transformer: ProblemStateTransformer, time: Nanoseconds): Unit = {
         writer.write(transformer.name.toLowerCase + "," + time.prettyPrint + "\n")
         writer.flush()
     }

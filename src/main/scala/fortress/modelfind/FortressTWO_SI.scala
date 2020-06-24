@@ -1,7 +1,7 @@
 package fortress.modelfind
 
 import fortress.transformers._
-import fortress.transformers.TheoryTransformer._ // for implicit conversion to ProblemTransformer
+import fortress.transformers.TheoryTransformer._ // for implicit conversion to ProblemStateTransformer
 import fortress.solverinterface._
 import fortress.interpretation._
 import fortress.operations._
@@ -9,15 +9,15 @@ import fortress.operations._
 class FortressTWO_SI(solverStrategy: SolverStrategy) extends ModelFinderTemplate(solverStrategy) {
     def this() = this(new Z3ApiSolver)
     
-    override def viewModel: Interpretation = {
-        val substitution = SortSubstitution.computeSigMapping(constrainedTheory.signature, theory.signature)
-        solverStrategy.getInstance(theory)
-            .applySortSubstitution(substitution) // Undo sort inference
-            .applyEnumMapping(enumSortMapping.map(_.swap)) // Undo enum elimination
-    }
+    // override def viewModel: Interpretation = {
+    //     val substitution = SortSubstitution.computeSigMapping(constrainedTheory.signature, theory.signature)
+    //     solverStrategy.getInstance(theory)
+    //         .applySortSubstitution(substitution) // Undo sort inference
+    //         .applyEnumMapping(enumSortMapping.map(_.swap)) // Undo enum elimination
+    // }
     
-    override def transformerSequence(): Seq[ProblemTransformer] = {
-        val transformerSequence = new scala.collection.mutable.ListBuffer[ProblemTransformer]
+    override def transformerSequence(): Seq[ProblemStateTransformer] = {
+        val transformerSequence = new scala.collection.mutable.ListBuffer[ProblemStateTransformer]
         transformerSequence += new EnumEliminationTransformer
         integerSemantics match {
             case Unbounded => ()
@@ -36,7 +36,7 @@ class FortressTWO_SI(solverStrategy: SolverStrategy) extends ModelFinderTemplate
         transformerSequence.toList
     }
     
-    def symmetryBreakingTransformers(): Seq[ProblemTransformer] = Seq(
+    def symmetryBreakingTransformers(): Seq[ProblemStateTransformer] = Seq(
         new SymmetryBreakingTransformerTWO
     )
 }

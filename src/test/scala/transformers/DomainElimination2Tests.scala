@@ -2,6 +2,7 @@ import org.scalatest._
 
 import fortress.msfol._
 import fortress.transformers._
+import fortress.modelfind.ProblemState
 
 class DomainElimination2Tests extends UnitSuite {
     val A = Sort.mkSortConst("A")
@@ -45,7 +46,7 @@ class DomainElimination2Tests extends UnitSuite {
             .withAxiom(Not(d === _4B) ==> Exists(x of A, x === _2A))
         
         val transformer = new DomainEliminationTransformer2
-        transformer(Problem(theory, scopes)) should be (Problem(expectedTheory, scopes))
+        transformer(ProblemState(theory, scopes)) should be (ProblemState(expectedTheory, scopes))
     }
     
     test("out of bounds scope error") {
@@ -69,6 +70,6 @@ class DomainElimination2Tests extends UnitSuite {
             .withAxiom(d === Var("$1B"))
         
         val transformer = new DomainEliminationTransformer2
-        transformer(Problem(theory, scopes)) should be (Problem(expectedTheory, scopes))
+        transformer(ProblemState(theory, scopes)) should be (ProblemState(expectedTheory, scopes))
     }
 }

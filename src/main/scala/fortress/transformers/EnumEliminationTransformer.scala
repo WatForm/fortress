@@ -5,12 +5,14 @@ import scala.jdk.CollectionConverters._
 import fortress.msfol._
 import fortress.util.Errors
 import fortress.operations.TermOps._
+import fortress.modelfind.ProblemState
+import fortress.interpretation.Interpretation
 
 /** Replaces enum values with domain elements, following the mapping from the
   * computeEnumSortMapping method. */
-class EnumEliminationTransformer extends ProblemTransformer {
-    override def apply(problem: Problem): Problem = problem match {
-        case Problem(theory, scopes) => {
+class EnumEliminationTransformer extends ProblemStateTransformer {
+    override def apply(problemState: ProblemState): ProblemState = problemState match {
+        case ProblemState(theory, scopes, skc, skf, rangeRestricts, unapplyInterp) => {
             val mapping = computeEnumSortMapping(theory)
             
             // Since we are replacing with domain elements, which cannot be in
@@ -23,8 +25,10 @@ class EnumEliminationTransformer extends ProblemTransformer {
             val newTheory = Theory.mkTheoryWithSignature(newSignature)
                 .withAxioms(newAxioms)
             
+            val unapply: Interpretation => Interpretation = _.applyEnumMapping(mapping.map(_.swap))
+            
             // The problem contain scopes for the enums, which should remain the same
-            Problem(newTheory, scopes)
+            ProblemState(newTheory, scopes, skc, skf, rangeRestricts, unapply :: unapplyInterp)
         }
     }
     

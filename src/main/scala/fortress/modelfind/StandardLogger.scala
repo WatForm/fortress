@@ -6,13 +6,13 @@ import fortress.util._
 
 class StandardLogger(writer: java.io.Writer) extends EventLogger {
     
-    override def transformerStarted(transformer: ProblemTransformer): Unit = {
+    override def transformerStarted(transformer: ProblemStateTransformer): Unit = {
         writer.write("Applying transformer: " + transformer.name)
         writer.write("... ")
         writer.flush()
     }
     
-    override def transformerFinished(transformer: ProblemTransformer, time: Nanoseconds): Unit = {
+    override def transformerFinished(transformer: ProblemStateTransformer, time: Nanoseconds): Unit = {
         writer.write(time.prettyPrint + "\n")
         writer.flush
     }

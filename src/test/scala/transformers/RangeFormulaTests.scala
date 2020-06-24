@@ -2,6 +2,7 @@ import org.scalatest._
 
 import fortress.msfol._
 import fortress.transformers._
+import fortress.modelfind.ProblemState
 
 class RangeFormulaTests extends UnitSuite {
     
@@ -36,7 +37,7 @@ class RangeFormulaTests extends UnitSuite {
         
         val scopes = Map(A -> 2, B -> 2)
         val transformer = RangeFormulaTransformer.create()
-        transformer(Problem(theory, scopes)) should be (Problem(expected, scopes))
+        transformer(ProblemState(theory, scopes)) should be (ProblemState(expected, scopes))
     }
     
     test("function arity 1") {
@@ -73,7 +74,7 @@ class RangeFormulaTests extends UnitSuite {
         
         val scopes = Map(A -> 2, B -> 3)
         val transformer = RangeFormulaTransformer.create()
-        transformer(Problem(theory, scopes)) should be (Problem(expected, scopes))
+        transformer(ProblemState(theory, scopes)) should be (ProblemState(expected, scopes))
     }
     
     test("function arity 2") {
@@ -105,7 +106,7 @@ class RangeFormulaTests extends UnitSuite {
         
         val scopes = Map(A -> 2, B -> 3, C -> 2)
         val transformer = RangeFormulaTransformer.create()
-        transformer(Problem(theory, scopes)) should be (Problem(expected, scopes))
+        transformer(ProblemState(theory, scopes)) should be (ProblemState(expected, scopes))
     }
     
     // TODO replace this with property check?
@@ -129,7 +130,7 @@ class RangeFormulaTests extends UnitSuite {
         
         val scopes = Map(A -> 5, B -> 7, C -> 2)
         val transformer = RangeFormulaTransformer.create()
-        transformer(Problem(theory, scopes)) should be (Problem(expected, scopes))
+        transformer(ProblemState(theory, scopes)) should be (ProblemState(expected, scopes))
     }
     
     test("boolean constants/predicates not restricted") {
@@ -147,7 +148,7 @@ class RangeFormulaTests extends UnitSuite {
         
         val scopes = Map(A -> 2)
         val transformer = RangeFormulaTransformer.create()
-        transformer(Problem(theory, scopes)) should be (Problem(expected, scopes))
+        transformer(ProblemState(theory, scopes)) should be (ProblemState(expected, scopes))
     }
     
     test("scope of one") {
@@ -168,7 +169,7 @@ class RangeFormulaTests extends UnitSuite {
         
         val scopes = Map(A -> 1, B -> 1)
         val transformer = RangeFormulaTransformer.create()
-        transformer(Problem(theory, scopes)) should be (Problem(expected, scopes))
+        transformer(ProblemState(theory, scopes)) should be (ProblemState(expected, scopes))
     }
     
     test("builtin types universally quantified") {
@@ -198,6 +199,66 @@ class RangeFormulaTests extends UnitSuite {
         
         val scopes = Map(A -> 2)
         val transformer = RangeFormulaTransformer.create()
-        transformer(Problem(theory, scopes)) should be (Problem(expected, scopes))
+        transformer(ProblemState(theory, scopes)) should be (ProblemState(expected, scopes))
+    }
+    
+    test("existing range restriction: if term already restricted, don't generate range formulas") {
+        val theory = Theory.empty
+            .withSorts(A, B)
+            .withConstants(c1 of A, d1 of B)
+            .withFunctionDeclaration(FuncDecl("f", A, B))
+            .withFunctionDeclaration(FuncDecl("g", B, A))
+        
+        val rangeRestrictions = Set(
+            RangeRestriction(c1, Seq(DomainElement(2, A))),
+            RangeRestriction(App("f", DomainElement(1, A)), Seq(DomainElement(3, B), DomainElement(1, B))),
+            RangeRestriction(App("g", DomainElement(3, B)), Seq(DomainElement(1, A))),
+            RangeRestriction(App("g", DomainElement(1, B)), Seq(DomainElement(1, A)))
+        )
+        
+        val expected = Theory.empty
+            .withSorts(A, B)
+            .withConstants(c1 of A, d1 of B)
+            .withFunctionDeclaration(FuncDecl("f", A, B))
+            .withFunctionDeclaration(FuncDecl("g", B, A))
+            // .withAxiom(Or(c1 === DomainElement(1, A), c1 === DomainElement(2, A)))
+            .withAxiom(Or(d1 === DomainElement(1, B), d1 === DomainElement(2, B), d1 === DomainElement(3, B)))
+            // .withAxiom(Or(
+            //     App("f", DomainElement(1, A)) === DomainElement(1, B),
+            //     App("f", DomainElement(1, A)) === DomainElement(2, B),
+            //     App("f", DomainElement(1, A)) === DomainElement(3, B)))
+            .withAxiom(Or(
+                App("f", DomainElement(2, A)) === DomainElement(1, B),
+                App("f", DomainElement(2, A)) === DomainElement(2, B),
+                App("f", DomainElement(2, A)) === DomainElement(3, B)))
+            // .withAxiom(Or(
+            //     App("g", DomainElement(1, B)) === DomainElement(1, A),
+            //     App("g", DomainElement(1, B)) === DomainElement(2, A)))
+            .withAxiom(Or(
+                App("g", DomainElement(2, B)) === DomainElement(1, A),
+                App("g", DomainElement(2, B)) === DomainElement(2, A)))
+            // .withAxiom(Or(
+            //     App("g", DomainElement(3, B)) === DomainElement(1, A),
+            //     App("g", DomainElement(3, B)) === DomainElement(2, A)))
+        
+        val scopes = Map(A -> 2, B -> 3)
+        val transformer = RangeFormulaTransformer.create()
+        val problemState = ProblemState(
+            theory,
+            scopes,
+            Set.empty,
+            Set.empty,
+            rangeRestrictions,
+            List.empty
+        )
+        val expectedProblemState = ProblemState(
+            expected,
+            scopes,
+            Set.empty,
+            Set.empty,
+            rangeRestrictions,
+            List.empty
+        )
+        transformer(problemState) should be (expectedProblemState)
     }
 }

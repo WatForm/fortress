@@ -17,9 +17,9 @@ class AvgTimeLogger extends EventLogger {
         Nanoseconds(totalTimes.map(_.value).sum / totalTimes.size)
     }
     
-    override def transformerStarted(transformer: ProblemTransformer): Unit = { }
+    override def transformerStarted(transformer: ProblemStateTransformer): Unit = { }
     
-    override def transformerFinished(transformer: ProblemTransformer, time: Nanoseconds): Unit = { }
+    override def transformerFinished(transformer: ProblemStateTransformer, time: Nanoseconds): Unit = { }
     
     override def allTransformersFinished(finalTheory: Theory, totalTime: Nanoseconds): Unit = { }
     

@@ -2,13 +2,13 @@ package fortress.modelfind
 
 import fortress.msfol._
 import fortress.transformers._
-import fortress.transformers.TheoryTransformer._ // for implicit conversion to ProblemTransformer
+import fortress.transformers.TheoryTransformer._ // for implicit conversion to ProblemStateTransformer
 import fortress.solverinterface._
 
 
 abstract class BaseFortress(solverStrategy: SolverStrategy) extends ModelFinderTemplate(solverStrategy) {
-    override def transformerSequence(): Seq[ProblemTransformer] = {
-        val transformerSequence = new scala.collection.mutable.ListBuffer[ProblemTransformer]
+    override def transformerSequence(): Seq[ProblemStateTransformer] = {
+        val transformerSequence = new scala.collection.mutable.ListBuffer[ProblemStateTransformer]
         transformerSequence += new EnumEliminationTransformer
         integerSemantics match {
             case Unbounded => ()
@@ -26,5 +26,5 @@ abstract class BaseFortress(solverStrategy: SolverStrategy) extends ModelFinderT
         transformerSequence.toList
     }
     
-    def symmetryBreakingTransformers(): Seq[ProblemTransformer]
+    def symmetryBreakingTransformers(): Seq[ProblemStateTransformer]
 }
