@@ -54,7 +54,7 @@ class InterpretationVerifier(theory: Theory) {
         // (to avoid having to implement every function manually on our end)
         def evaluateBuiltIn(fn: BuiltinFunction, evalArgs: Seq[Value]): Value = {
             val solver: SolverStrategy = new Z3ApiSolver
-            val evalResult: Var = Var("$VERIFY_INTERPRETATION_RES")
+            val evalResult: Var = Var("!VERIFY_INTERPRETATION_RES")
             val evalResultAnnotated: AnnotatedVar = fn match{
                 case IntPlus | IntNeg | IntSub | IntMult | IntDiv | IntMod => evalResult of Sort.Int
                 case BvPlus | BvNeg | BvSub | BvMult | BvSignedDiv | BvSignedRem | BvSignedMod =>

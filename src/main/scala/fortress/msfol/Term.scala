@@ -80,8 +80,8 @@ case class EnumValue private (name: String) extends Term with LeafTerm with Valu
   * a quantifier declares it bound.
   */
 case class AnnotatedVar private (variable: Var, sort: Sort) {
-    def getVar: Var = variable     
-    def getSort: Sort = sort     
+    def getVar: Var = variable
+    def getSort: Sort = sort
     def getName: String = variable.name
     def name: String = variable.name
     
@@ -290,9 +290,9 @@ case class DomainElement private (index: Int, sort: Sort) extends Term with Leaf
     override def accept[T](visitor: TermVisitor[T]): T = visitor.visitDomainElement(this)
     
     // TODO need to restrict any other code from using this naming convention
-    val asSmtConstant = Var("@" + index.toString + sort.toString)
+    val asSmtConstant = Var("$" + index.toString + sort.toString)
     
-    override def toString = "@" + index.toString + sort.toString
+    override def toString = "$" + index.toString + sort.toString
 }
 
 case class IntegerLiteral private (value: Int) extends Term with LeafTerm with Value {
@@ -420,26 +420,26 @@ object Term {
       * over the given annotated variables.
       * At least one or more variables must be provided.
       */
-    def mkForall(vars: java.util.List[AnnotatedVar], body: Term): Term = 
+    def mkForall(vars: java.util.List[AnnotatedVar], body: Term): Term =
         Forall(vars.asScala.toList, body)
     
     /** Returns a term representing the universal quantification of the given body
       * over the given annotated variable.
       */
-    def mkForall(x: AnnotatedVar, body: Term): Term = 
+    def mkForall(x: AnnotatedVar, body: Term): Term =
         Forall(List(x), body)
     
     /** Returns a term representing the existential quantification of the given body
       * over the given annotated variables.
       * At least one or more variables must be provided.
       */
-    def mkExists(vars: java.util.List[AnnotatedVar], body: Term): Term = 
+    def mkExists(vars: java.util.List[AnnotatedVar], body: Term): Term =
         Exists(vars.asScala.toList, body)
     
     /** Returns a term representing the existential quantification of the given body
     * over the given annotated variable.
     */
-    def mkExists(x: AnnotatedVar, body: Term): Term = 
+    def mkExists(x: AnnotatedVar, body: Term): Term =
         Exists(List(x), body)
     
     /** Returns a term representing the bi-implication "t1 iff t2". */

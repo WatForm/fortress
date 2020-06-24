@@ -34,6 +34,7 @@ Scripts are available to automate some of the setup for the following platforms:
 2. Install the Z3 command line tool, version 4.8.4 or higher. Binaries are [available here](https://github.com/Z3Prover/z3/releases).
     * If using MacOS, we recommend using Homebrew instead: `brew install z3`.
     * If on `Ubuntu`, do not use `apt-get`. Its version of Z3 is out of date.
+3. Install the latest stable version of the CVC4 command line tool. Binaries are [available here](https://cvc4.github.io/downloads.html). Make sure that the executable is named `cvc4` and is on your PATH. To make sure that cvc4 is properly installed, open up terminal and type `cvc4`. CVC4 should open in interactive mode.
 
 ### Manual Setup
 1. Download all required files for the Microsoft Z3 SMT solver. These can be found in a zip file, [available here](https://github.com/Z3Prover/z3/releases).
@@ -47,6 +48,7 @@ Scripts are available to automate some of the setup for the following platforms:
     * If using MacOS, we recommend using Homebrew instead: `brew install z3`.
     * If on `Ubuntu`, do not use `apt-get`. Its version of Z3 is out of date.
     * If on `Windows`, make sure you add the directory with `libz3java.dll` to your PATH.
+3. Install the latest stable version of the CVC4 command line tool. Binaries are [available here](https://cvc4.github.io/downloads.html). Make sure that the executable is named `cvc4` and is on your PATH. To make sure that cvc4 is properly installed, open up terminal and type `cvc4`. CVC4 should open in interactive mode.
 
 ## Building Fortress
 
@@ -74,10 +76,10 @@ Follow the below instructions.
 Check out the `examples/` directory for some examples of how to use Fortress in your own project.
 
 1. Follow the steps for building Fortress (above).
-2. Copy `build/distributions/fortress-2.0.tar` or `build/distributions/fortress-2.0.zip` (both archives contain the same files) to an appropriate location, such as a `libs` folder for your project. 
+2. Copy `build/distributions/fortress-2.0.tar` or `build/distributions/fortress-2.0.zip` (both archives contain the same files) to an appropriate location, such as a `libs` folder for your project.
 3. Unzip the archive.
 4. When compiling and running, ensure that the files from this archive are in your Java `classpath`.
-    * For example, if the files are in the `libs` directory of your project, you can add `-cp ".:libs/*"` to `javac`, which says to look for class files in current directory and also jars in the libs directory. 
+    * For example, if the files are in the `libs` directory of your project, you can add `-cp ".:libs/*"` to `javac`, which says to look for class files in current directory and also jars in the libs directory.
 5. When running, ensure that the `libz3java.dylib` or `libz3java.so` file from this archive (usually in the z3 directory) is in your `java.library.path`.
     * For example, if `libz3java.dylib` is in the `libs` directory, you can add `-Djava.library.path="libs/"` to your call to `java`.
     * If this is not done correctly, a `java.lang.UnsatisfiedLinkError` may be raised at runtime.
@@ -87,5 +89,5 @@ Check out the `examples/` directory for some examples of how to use Fortress in 
 ### General
 If the gradle build is not working properly ensure that your `JAVA_HOME` environment variable is correctly set (to the folder where the jdk that you are using is installed).
 
-### Linux 
+### Linux
 If you have double checked that you have correctly set the `-Djava.library.path` flag and a `java.lang.UnsatisfiedLinkError` is still being thrown, you can try copying the libz3java.so and libz3.so files to the /usr/lib directory and omitting the `-Djava.library.path` flag. It may also be useful to build Z3 from source following the instructions on the [Z3 Repository](https://github.com/Z3Prover/z3#building-z3-using-make-and-gccclang) using the `--java` command line flag with `mk_make.py`.

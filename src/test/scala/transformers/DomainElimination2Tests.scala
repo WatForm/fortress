@@ -22,12 +22,12 @@ class DomainElimination2Tests extends UnitSuite {
         
         val scopes = Map(A -> 2, B -> 4)
                 
-        val _1A = Var("@1A")
-        val _2A = Var("@2A")
-        val _1B = Var("@1B")
-        val _2B = Var("@2B")
-        val _3B = Var("@3B")
-        val _4B = Var("@4B")
+        val _1A = Var("$1A")
+        val _2A = Var("$2A")
+        val _1B = Var("$1B")
+        val _2B = Var("$2B")
+        val _3B = Var("$3B")
+        val _4B = Var("$4B")
         
         val expectedTheory = Theory.empty
             .withSorts(A, B)
@@ -65,9 +65,9 @@ class DomainElimination2Tests extends UnitSuite {
         val expectedTheory = Theory.empty
             .withSorts(A, B)
             .withConstants(c of A, d of B)
-            .withConstants(Var("@1A") of A, Var("@1B") of B)
-            .withAxiom(c === Var("@1A"))
-            .withAxiom(d === Var("@1B"))
+            .withConstants(Var("$1A") of A, Var("$1B") of B)
+            .withAxiom(c === Var("$1A"))
+            .withAxiom(d === Var("$1B"))
         
         val transformer = new DomainEliminationTransformer2
         transformer(ProblemState(theory, scopes)) should be (ProblemState(expectedTheory, scopes))
