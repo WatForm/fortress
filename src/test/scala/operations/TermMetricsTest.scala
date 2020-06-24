@@ -18,25 +18,22 @@ class TermMetricsTest extends UnitSuite {
   val P = FuncDecl.mkFuncDecl("P", A, A, Sort.Bool)
 
   test("simple depth of quantification") {
-    val term1 = Forall(Seq(x.of(A), y.of(A)),
+    val term1 = Forall(x.of(A),
       Iff(
-        Implication(Eq(c, App("f", x)), App("P", App("f", y), c)),
+        Implication(Eq(c, App("f", x)), App("P", App("f", x), c)),
         OrList(Top, Bottom)
       )
     )
-    val term2 = Exists(x.of(A),
-      Forall(y.of(A), Implication(Eq(x, App("f", y)), App("P", App("f", y), x))))
+    val term2 = Exists(x.of(A), Forall(y.of(A), Implication(Eq(x, App("f", y)), App("P", App("f", y), x))))
 
     depthQuantification(term1) should be(1)
     depthQuantification(term2) should be(2)
   }
 
   test("depth of quantification of multivariable Forall and Exists") {
-    val term1 = Forall(x.of(A), Forall(y.of(A),
-      Implication(Eq(c, App("f", x)), App("P", App("f", x), c))
-    ))
-    val term2 = Exists(x.of(A), Exists(y.of(A),
-      Implication(Eq(c, App("f", x)), App("P", App("f", x), c))
+    val term1 = Forall(Seq(x.of(A), y.of(A)), Top)
+    val term2 = Exists(Seq(x.of(A), y.of(A)), Forall(Seq(z.of(A), t.of(A)),
+      Implication(Eq(x, y), Eq(z, t))
     ))
     val term3 = Iff(
       Forall(x.of(A), Exists(y.of(A),
@@ -46,14 +43,14 @@ class TermMetricsTest extends UnitSuite {
       OrList(Top, Bottom)
     )
 
-    depthQuantification(term1) should be(1)
-    depthQuantification(term2) should be(1)
-    depthQuantification(term3) should be(3)
+    depthQuantification(term1) should be(2)
+    depthQuantification(term2) should be(4)
+    depthQuantification(term3) should be(4)
   }
 
   test("depth of nested functions") {
     val term = Exists(x.of(A),
-      Forall(y.of(A), Implication(Eq(x, App("f", y)), App("P", App("f", y), x))))
+      Forall(y.of(A), Implication(Eq(x, App("f", y)), App("P", App("f", y), App("f", x)))))
 
     depthNestedFunc(term) should be(2)
   }
