@@ -29,16 +29,16 @@ abstract class ProcessBuilderSolver extends SolverTemplate {
         timeout = remainingMillis
     }
     
-    override def runSolver(): ModelFinderResult = {
+    override def runSolver: ModelFinderResult = {
         tryIO(() => {
-            clearCVC4
-            startCVC4()
+            clearProcess
+            startProcess
             convertedBytes writeTo pin.get
             checkSat
         })
     }
     
-    def checkSat(): ModelFinderResult = {
+    private def checkSat: ModelFinderResult = {
         pin.get write "(check-sat)\n"
         
         pin.get.flush
@@ -51,7 +51,7 @@ abstract class ProcessBuilderSolver extends SolverTemplate {
         }
     }
     
-    def addAxiom(axiom: Term, timeoutMillis: Milliseconds): ModelFinderResult = {
+    override def addAxiom(axiom: Term, timeoutMillis: Milliseconds): ModelFinderResult = {
         Errors.verify(process.nonEmpty, "Cannot add axiom without a live cvc4 session")
         tryIO(() => {
             val converter = new SmtlibConverter(pin.get)
@@ -61,28 +61,28 @@ abstract class ProcessBuilderSolver extends SolverTemplate {
         })
     }
 
-    def getInstance(theory: Theory): Interpretation = {
+    override def getInstance(theory: Theory): Interpretation = {
         ???
     }
     
-    def tryIO(func: () => ModelFinderResult): ModelFinderResult = {
+    private def tryIO(func: () => ModelFinderResult): ModelFinderResult = {
         try {
             func()
         } catch {
             case ex: IOException => {
-                clearCVC4
+                clearProcess
                 ModelFinderResult.Error
             }
         }
     }
     
-    def startCVC4(): Unit = {
+    private def startProcess: Unit = {
         process = Some(new ProcessBuilder(processArgs).start())
         pin = Some(new BufferedWriter(new OutputStreamWriter(process.get.getOutputStream)))
         pout = Some(new BufferedReader(new InputStreamReader(process.get.getInputStream)))
     }
     
-    def clearCVC4: Unit = {
+    private def clearProcess: Unit = {
         finalize
         pin = None
         pout = None
@@ -99,7 +99,7 @@ abstract class ProcessBuilderSolver extends SolverTemplate {
     
     protected def timeoutMillis: Milliseconds = timeout
     
-    def processArgs: java.util.List[String]
+    protected def processArgs: java.util.List[String]
 }
 
 class CVC4CliSolver extends ProcessBuilderSolver {
