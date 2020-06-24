@@ -6,7 +6,9 @@ import fortress.solverinterface._
 import fortress.interpretation._
 import fortress.operations._
 
-class FortressTWO_SI extends ModelFinderTemplate(new Z3ApiSolver) {
+class FortressTWO_SI(solverStrategy: SolverStrategy) extends ModelFinderTemplate(solverStrategy) {
+    def this() = this(new Z3ApiSolver)
+    
     override def viewModel: Interpretation = {
         val substitution = SortSubstitution.computeSigMapping(constrainedTheory.signature, theory.signature)
         solverStrategy.getInstance(theory)

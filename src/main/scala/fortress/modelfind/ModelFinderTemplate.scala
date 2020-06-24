@@ -7,7 +7,7 @@ import fortress.interpretation._
 import fortress.solverinterface._
 import fortress.operations.TermOps._
 
-abstract class ModelFinderTemplate(var solverStrategy: SolverStrategy) extends ModelFinder with ModelFinderSettings {
+abstract class ModelFinderTemplate(solverStrategy: SolverStrategy) extends ModelFinder with ModelFinderSettings {
     private var instance: Option[Interpretation] = None
     protected var constrainedTheory: Theory = Theory.empty
     // A timer to count how much total time has elapsed

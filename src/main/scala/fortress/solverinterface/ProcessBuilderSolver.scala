@@ -62,7 +62,7 @@ abstract class ProcessBuilderSolver extends SolverTemplate {
     }
 
     def getInstance(theory: Theory): Interpretation = {
-        null
+        ???
     }
     
     def tryIO(func: () => ModelFinderResult): ModelFinderResult = {
