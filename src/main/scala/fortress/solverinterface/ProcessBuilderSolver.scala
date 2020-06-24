@@ -2,6 +2,7 @@ package fortress.solverinterface
 
 import java.io._
 
+import fortress.data.CartesianSeqProduct
 import fortress.msfol._
 import fortress.interpretation._
 import fortress.modelfind._
@@ -9,12 +10,16 @@ import fortress.util._
 import fortress.solverinterface._
 import fortress.operations.SmtlibConverter
 
+import scala.util.matching.Regex
+
 abstract class ProcessBuilderSolver extends SolverTemplate {
     private var process: Option[Process] = None
     private var pin: Option[BufferedWriter] = None
     private var pout: Option[BufferedReader] = None
     private var convertedBytes = new CharArrayWriter
     private var timeout = Milliseconds(60000)
+    
+    private val smt2Model: Regex = """^\(\((.+) (.+)\)\)$""".r
     
     override def convertTheory(theory: Theory): Unit = {
         convertedBytes.reset
@@ -62,7 +67,103 @@ abstract class ProcessBuilderSolver extends SolverTemplate {
     }
 
     override def getInstance(theory: Theory): Interpretation = {
-        ???
+        Errors.verify(process.nonEmpty, "Cannot get instance without a live cvc4 session")
+        System.out.println("getting instance");
+        System.out.println("getting instance " + theory.constants.size);
+        try{
+            for(constant <- theory.constants){
+                pin.get write "(get-value ("
+                pin.get write constant.name
+                pin.get write "))"
+            }
+            pin.get write "\n"
+            pin.get.flush
+            
+            
+            
+            val constantsMap: Map[String, String] = (for(constant <- theory.constants) yield {
+                val str = pout.get.readLine
+                str match {
+                    case smt2Model(name, value) => (name -> value)
+                    //case _ => Errors.solverError(s"Bad internal smt2 model output: $str")
+                }
+            }).toMap
+            
+            val smt2ValueToDomainElement: Map[String, DomainElement] = (
+                for((name, value) <- constantsMap if name.charAt(0) == '$')
+                    yield (value, Var(name).asDomainElement.get)
+            ).toMap
+            
+            val sortInterpretations: Map[Sort, IndexedSeq[Value]] = (
+                for(sort <- theory.sorts) yield sort match{
+                    case SortConst(name) => (sort,
+                        smt2ValueToDomainElement.values.filter(
+                            domainElement => domainElement.sort == sort
+                        ).toIndexedSeq)
+                    case _ => ???
+                }
+            ).toMap
+            
+            val constantInterpretations: Map[AnnotatedVar, Value] =
+                (for(constant <- theory.constants) yield {
+                    (constant,
+                    smtValueToFortressValue(
+                        constantsMap(constant.getName),
+                        constant.sort,
+                        smt2ValueToDomainElement)
+                    )
+                }).toMap
+                
+            val functionArgs: Map[FuncDecl, CartesianSeqProduct[Value]] =
+                (for(funcDecl <- theory.functionDeclarations) yield {
+                    (funcDecl, new CartesianSeqProduct[Value](
+                        funcDecl.argSorts
+                        .map(sort => sortInterpretations apply sort)
+                        .toIndexedSeq))
+                }).toMap
+            
+            for(funcDecl <- theory.functionDeclarations;
+                args <- functionArgs.apply(funcDecl)){
+                    pin.get write "(get-value (("
+                    pin.get write funcDecl.name
+                    for(arg <- args){
+                        pin.get write " "
+                        pin.get write arg.toString
+                    }
+                    pin.get write ")))"
+                }
+                
+            pin.get write "\n"
+            pin.get.flush
+                
+            val functionInterpretations: Map[FuncDecl, Map[Seq[Value], Value]] =
+                (for(funcDecl <- theory.functionDeclarations) yield {
+                    (funcDecl, (for(args <- functionArgs.apply(funcDecl)) yield {
+                        val str = pout.get.readLine
+                        val value = str match {
+                            case smt2Model(name, value) => value
+                            //case _ => Errors.solverError(s"Bad internal smt2 model output: $str")
+                        }
+                        (args, smtValueToFortressValue(value, funcDecl.resultSort, smt2ValueToDomainElement))
+                    }).toMap)
+                }).toMap
+            
+            new BasicInterpretation(sortInterpretations,constantInterpretations,functionInterpretations)
+        } catch {
+            case ex: IOException => {
+                ex.printStackTrace
+                new BasicInterpretation(Map(),Map(),Map())
+            }
+        }
+        
+    }
+    
+    private def smtValueToFortressValue(value: String, sort: Sort,
+        smt2ValueToDomainElement: Map[String, DomainElement]) : Value = {
+        sort match {
+            case SortConst(sortName) => smt2ValueToDomainElement.apply(value)
+            case _ => ???
+        }
     }
     
     private def tryIO(func: () => ModelFinderResult): ModelFinderResult = {
