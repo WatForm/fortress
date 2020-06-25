@@ -5,6 +5,7 @@ import fortress.transformers._
 import fortress.util._
 
 import scala.collection.mutable
+import scala.collection.immutable
 
 // Note: It is the responsibility of the caller to check for timeouts and determine what to do.
 // Given a time out, the AvgTimeLogger does nothing.
@@ -13,7 +14,7 @@ class AvgTimeDetailedLogger extends EventLogger {
     
     private val totalTimes: mutable.ListBuffer[Nanoseconds] = mutable.ListBuffer.empty
     
-    private val transformerTimes: mutable.Map[String, mutable.ListBuffer[Nanoseconds]] = mutable.Map()
+    private var transformerTimes: immutable.ListMap[String, mutable.ListBuffer[Nanoseconds]] = immutable.ListMap()
     
     private var solverConvertTimes: mutable.ListBuffer[Nanoseconds] = mutable.ListBuffer.empty
     
@@ -41,7 +42,7 @@ class AvgTimeDetailedLogger extends EventLogger {
     
     override def transformerFinished(transformer: ProblemStateTransformer, time: Nanoseconds): Unit = {
         if(!(transformerTimes contains transformer.name)) {
-            transformerTimes(transformer.name) = mutable.ListBuffer.empty
+            transformerTimes = transformerTimes + (transformer.name -> mutable.ListBuffer.empty)
         }
         transformerTimes(transformer.name) += time
     }
