@@ -20,6 +20,7 @@ abstract class ProcessBuilderSolver extends SolverTemplate {
     private var timeout = Milliseconds(60000)
     
     private val smt2Model: Regex = """^\(\((.+) (.+)\)\)$""".r
+    private val bitVecValue: Regex = """^#(.)(.+)$""".r
     
     override def convertTheory(theory: Theory): Unit = {
         convertedBytes.reset
@@ -68,8 +69,6 @@ abstract class ProcessBuilderSolver extends SolverTemplate {
 
     override def getInstance(theory: Theory): Interpretation = {
         Errors.verify(process.nonEmpty, "Cannot get instance without a live cvc4 session")
-        System.out.println("getting instance");
-        System.out.println("getting instance " + theory.constants.size);
         try{
             for(constant <- theory.constants){
                 pin.get write "(get-value ("
@@ -85,7 +84,7 @@ abstract class ProcessBuilderSolver extends SolverTemplate {
                 val str = pout.get.readLine
                 str match {
                     case smt2Model(name, value) => (name -> value)
-                    //case _ => Errors.solverError(s"Bad internal smt2 model output: $str")
+                    case _ => Errors.unreachable
                 }
             }).toMap
             
@@ -95,12 +94,12 @@ abstract class ProcessBuilderSolver extends SolverTemplate {
             ).toMap
             
             val sortInterpretations: Map[Sort, IndexedSeq[Value]] = (
-                for(sort <- theory.sorts) yield sort match{
+                for(sort <- theory.sorts if !sort.isBuiltin) yield sort match{
                     case SortConst(name) => (sort,
                         smt2ValueToDomainElement.values.filter(
                             domainElement => domainElement.sort == sort
                         ).toIndexedSeq)
-                    case _ => ???
+                    case _ => Errors.unreachable
                 }
             ).toMap
             
@@ -142,7 +141,7 @@ abstract class ProcessBuilderSolver extends SolverTemplate {
                         val str = pout.get.readLine
                         val value = str match {
                             case smt2Model(name, value) => value
-                            //case _ => Errors.solverError(s"Bad internal smt2 model output: $str")
+                            case _ => Errors.unreachable
                         }
                         (args, smtValueToFortressValue(value, funcDecl.resultSort, smt2ValueToDomainElement))
                     }).toMap)
@@ -161,8 +160,20 @@ abstract class ProcessBuilderSolver extends SolverTemplate {
     private def smtValueToFortressValue(value: String, sort: Sort,
         smt2ValueToDomainElement: Map[String, DomainElement]) : Value = {
         sort match {
-            case SortConst(sortName) => smt2ValueToDomainElement.apply(value)
-            case _ => ???
+            case SortConst(_) => smt2ValueToDomainElement.apply(value)
+            case BoolSort => value match {
+                case "true" => Top
+                case "false" => Bottom
+                case _ => Errors.unreachable
+            }
+            case IntSort => IntegerLiteral(value.toInt)
+            case BitVectorSort(bitwidth) => value match {
+                case bitVecValue(radix, digits) => radix match {
+                    case "x" => BitVectorLiteral(Integer.parseInt(digits, 16), bitwidth)
+                    case "b" => BitVectorLiteral(Integer.parseInt(digits, 2),  bitwidth)
+                }
+                case _ => Errors.unreachable
+            }
         }
     }
     
