@@ -109,7 +109,10 @@ abstract class ProcessBuilderSolver extends SolverTemplate {
         (for(constant <- theory.constants) yield {
             val str = pout.get.readLine
             str match {
-                case smt2Model(name, value) => (name -> value)
+                case smt2Model(name, value) => {
+                    Errors.verify(constant.name == name, s""""${constant.name}" should be equal to "$name"""")
+                    (constant.name -> value)
+                }
                 case _ => Errors.unreachable
             }
         }).toMap
