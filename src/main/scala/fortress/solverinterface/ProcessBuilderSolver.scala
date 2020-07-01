@@ -196,6 +196,7 @@ abstract class ProcessBuilderSolver extends SolverTemplate {
                 case bitVecValue(radix, digits) => radix match {
                     case "x" => BitVectorLiteral(Integer.parseInt(digits, 16), bitwidth)
                     case "b" => BitVectorLiteral(Integer.parseInt(digits, 2),  bitwidth)
+                    case _ => Errors.unreachable
                 }
                 case _ => Errors.unreachable
             }
