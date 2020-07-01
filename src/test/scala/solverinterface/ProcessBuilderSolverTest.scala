@@ -45,15 +45,15 @@ class ProcessBuilderSolverTest extends UnitSuite {
             mkNot(mkApp("p", y))
         )
         
-        test("cvc4 solve 2 different theories with 1 solver") {
-            val solver = new CVC4CliSolver;
-            solver.solve(theory, timeout, Seq()) should be (ModelFinderResult.Sat);
-            solver.solve(theory2, timeout, Seq()) should be (ModelFinderResult.Sat);
-        }
-        
-        test("z3 solve 2 different theories with 1 solver") {
-            val solver = new Z3CliSolver;
-            solver.solve(theory, timeout, Seq()) should be (ModelFinderResult.Sat);
-            solver.solve(theory2, timeout, Seq()) should be (ModelFinderResult.Sat);
-        }
+    test("cvc4 solve 2 different theories with 1 solver") {
+        val solver = new CVC4CliSolver;
+        solver.solve(theory, timeout, Seq()) should be (ModelFinderResult.Sat);
+        solver.solve(theory2, timeout, Seq()) should be (ModelFinderResult.Sat);
+    }
+    
+    test("z3 solve 2 different theories with 1 solver") {
+        val solver = new Z3CliSolver;
+        solver.solve(theory, timeout, Seq()) should be (ModelFinderResult.Sat);
+        solver.solve(theory2, timeout, Seq()) should be (ModelFinderResult.Sat);
+    }
 }

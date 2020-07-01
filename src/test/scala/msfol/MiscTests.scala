@@ -10,7 +10,7 @@ class MiscTests extends UnitSuite {
     
     test("variable as domain element") {
         Var("x").asDomainElement should be (None)
-        Var("@12Foo").asDomainElement should be (Some(DomainElement(12, Sort.mkSortConst("Foo"))))
+        Var("$12Foo").asDomainElement should be (Some(DomainElement(12, Sort.mkSortConst("Foo"))))
     }
     
     test("distinct as pairwise not equals") {

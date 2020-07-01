@@ -56,7 +56,7 @@ case class Var private(name: String) extends Term with LeafTerm {
     def of(sort: Sort) = AnnotatedVar(this, sort)
     
     def asDomainElement: Option[DomainElement] = {
-        if(name.charAt(0) == '@') {
+        if(name.charAt(0) == '$') {
             val ints = Set('0', '1', '2', '3', '4', '5', '6', '7', '8', '9')
             val (indexStr, sortStr) = name.tail.partition(ints contains _)
             Some(DomainElement(indexStr.toInt, SortConst(sortStr)))
