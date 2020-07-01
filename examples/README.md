@@ -158,3 +158,17 @@ The problem is satisfiable if and only if:
 * there are exactly three times as many monkeys as trees,
 * there are at least twice as many bananas as monkeys, and
 * there is an even number of monkeys.
+
+### SMTLIB Parser/Main
+
+Run the following code to compile and run the Smtlibparsemain example.
+```
+# Compile
+javac -cp ".:libs/*" Smtlibparsemain.java
+
+# Run
+java -cp ".:libs/*" -Djava.library.path="libs" Smtlibparsemain x.smt2
+
+This example parses an SMTLIB2 file, turns it into a fortress theory and runs the
+default model finder on it with all non-built-in sort scopes set to 10.
+

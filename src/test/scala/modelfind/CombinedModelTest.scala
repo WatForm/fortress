@@ -14,7 +14,7 @@ class CombinedModelTest extends UnitSuite {
     test("squares example") {
         // println("Squares example: finds all perfect squares from 100 to 5000")
         val classLoader: ClassLoader = getClass.getClassLoader
-        val file = new File(classLoader.getResource("squares_example.smt").getFile)
+        val file = new File(classLoader.getResource("squares_example.smt2").getFile)
         val fileStream = new FileInputStream(file)
 
         val parser = new SmtLibParser
@@ -51,7 +51,7 @@ class CombinedModelTest extends UnitSuite {
     test("prime example") {
         // println("Prime example: finds all primes from 2 to 100")
         val classLoader: ClassLoader = getClass.getClassLoader
-        val file = new File(classLoader.getResource("prime_example.smt").getFile)
+        val file = new File(classLoader.getResource("prime_example.smt2").getFile)
         val fileStream = new FileInputStream(file)
 
         val parser = new SmtLibParser
@@ -86,7 +86,7 @@ class CombinedModelTest extends UnitSuite {
     // Finds valid k-colourings for the complete graph on n vertices
     test("graph example") {
         val classLoader: ClassLoader = getClass.getClassLoader
-        val file = new File(classLoader.getResource("graph_colouring.smt").getFile)
+        val file = new File(classLoader.getResource("graph_colouring.smt2").getFile)
         val fileStream = new FileInputStream(file)
 
         val parser = new SmtLibParser

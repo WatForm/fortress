@@ -1,15 +1,23 @@
 package fortress.inputs;
 
+import java.io.*; 
+
 import fortress.msfol.*;
+import fortress.operations.TermOps;
+
 import java.util.List;
 import java.util.ArrayList;
 import java.util.stream.Collectors;
-import fortress.util.Errors;
+// import fortress.util.Errors;
+
 import org.antlr.v4.runtime.misc.Interval;
+
 import java.util.Optional;
 import java.util.Map;
 import java.util.HashMap;
 import java.lang.Void;
+
+
 
 public class SmtLibVisitor extends SmtLibSubsetBaseVisitor {
 
@@ -45,6 +53,16 @@ public class SmtLibVisitor extends SmtLibSubsetBaseVisitor {
         public AttributePair(String attributeName, String attributeValue) {
             this.attributeName = attributeName;
             this.attributeValue = attributeValue;
+        }
+    }
+
+    private static class VarTermPair {
+        public Var v;
+        public Term t;
+
+        public VarTermPair(Var v, Term t) {
+            this.v = v;
+            this.t = t;
         }
     }
 
@@ -94,20 +112,30 @@ public class SmtLibVisitor extends SmtLibSubsetBaseVisitor {
     @Override
     public Void visitDeclare_fun(SmtLibSubsetParser.Declare_funContext ctx) {
         int lastIndex = ctx.sort().size() - 1;
-        String function = ctx.ID().getText();
-        Sort returnSort = (Sort) visit(ctx.sort(lastIndex));
-        List<Sort> argSorts = new ArrayList<>();
-        for (int i = 0; i < lastIndex; i++) {
-            argSorts.add((Sort) visit(ctx.sort(i)));
+        if (lastIndex == 0) {
+            // declare-fun used to declare-const
+            Var x = Term.mkVar(ctx.ID().getText());
+            Sort sort = (Sort) visit(ctx.sort(lastIndex));
+            theory = theory.withConstant(x.of(sort));
+        } else {
+            String function = ctx.ID().getText();
+            Sort returnSort = (Sort) visit(ctx.sort(lastIndex));
+            List<Sort> argSorts = new ArrayList<>();
+            for (int i = 0; i < lastIndex; i++) {
+                argSorts.add((Sort) visit(ctx.sort(i)));
+            }
+            FuncDecl decl = FuncDecl.mkFuncDecl(function, argSorts, returnSort);
+            theory = theory.withFunctionDeclaration(decl);
         }
-        FuncDecl decl = FuncDecl.mkFuncDecl(function, argSorts, returnSort);
-        theory = theory.withFunctionDeclaration(decl);
         return null;
     }
 
     @Override
     public Void visitDeclare_sort(SmtLibSubsetParser.Declare_sortContext ctx) {
         Sort t = Sort.mkSortConst(ctx.ID().getText());
+        // Parser requires this number to be 0 now (no more NAT_NUMBER)
+        // int n = Integer.parseInt(ctx.NAT_NUMBER().getText());
+        // if (n != 0) throw new ParserException("Sort declared with non-zero parameters");
         theory = theory.withSort(t);
         return null;
     }
@@ -183,6 +211,14 @@ public class SmtLibVisitor extends SmtLibSubsetBaseVisitor {
     }
 
     @Override
+    public AttributePair visitAttribute_dec_digit(SmtLibSubsetParser.Attribute_dec_digitContext ctx) {
+        String attributeName = ctx.ID().getText();
+        // treat number as a string
+        String attributeValue = ctx.DEC_DIGIT().getText();
+        return new AttributePair(attributeName, attributeValue);
+    }
+
+    @Override
     public Term visitTrue(SmtLibSubsetParser.TrueContext ctx) {
         return Term.mkTop();
     }
@@ -190,6 +226,23 @@ public class SmtLibVisitor extends SmtLibSubsetBaseVisitor {
     @Override
     public Term visitFalse(SmtLibSubsetParser.FalseContext ctx) {
         return Term.mkBottom();
+    }
+
+    @Override
+    public Term visitLet(SmtLibSubsetParser.LetContext ctx) {
+        List<VarTermPair> vartermlist = ctx.letbinding().stream().map(
+                letbinding -> (VarTermPair) visit(letbinding)
+        ).collect(Collectors.toList());
+        Term term = (Term) visit(ctx.term());
+        Term t = term ;
+        // now have list of (var,term) and have to substitute these into the term
+        // let statements in SMT-LIB are parallel substitutions
+        for (int i = 0; i < vartermlist.size(); i++) {
+            Var v = vartermlist.get(i).v ;
+            Term vt = vartermlist.get(i).t ;
+            t = TermOps.wrapTerm(t).substitute(v,vt) ;
+        } ;
+        return t;
     }
 
     @Override
@@ -290,6 +343,13 @@ public class SmtLibVisitor extends SmtLibSubsetBaseVisitor {
     @Override
     public Term visitVar(SmtLibSubsetParser.VarContext ctx) {
         return Term.mkVar(ctx.ID().getText());
+    }
+
+    @Override
+    public VarTermPair visitLetbinding(SmtLibSubsetParser.LetbindingContext ctx) {
+        Var x = Term.mkVar(ctx.ID().getText());
+        Term t = (Term) visit(ctx.term()) ;
+        return new VarTermPair(x, t) ;
     }
 
     @Override
