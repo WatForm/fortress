@@ -58,7 +58,7 @@ abstract class ProcessBuilderSolver extends SolverTemplate {
     }
     
     override def addAxiom(axiom: Term, timeoutMillis: Milliseconds): ModelFinderResult = {
-        Errors.verify(process.nonEmpty, "Cannot add axiom without a live cvc4 session")
+        Errors.verify(process.nonEmpty, "Cannot add axiom without a live process")
         tryIO(() => {
             val converter = new SmtlibConverter(pin.get)
             converter writeAssertion axiom
@@ -68,99 +68,121 @@ abstract class ProcessBuilderSolver extends SolverTemplate {
     }
 
     override def getInstance(theory: Theory): Interpretation = {
-        Errors.verify(process.nonEmpty, "Cannot get instance without a live cvc4 session")
-        try{
-            for(constant <- theory.constants){
-                pin.get write "(get-value ("
-                pin.get write constant.name
-                pin.get write "))"
-            }
-            pin.get write "\n"
-            pin.get.flush
-            
-            
-            
-            val constantsMap: Map[String, String] = (for(constant <- theory.constants) yield {
-                val str = pout.get.readLine
-                str match {
-                    case smt2Model(name, value) => (name -> value)
-                    case _ => Errors.unreachable
-                }
-            }).toMap
-            
-            val smt2ValueToDomainElement: Map[String, DomainElement] = (
-                for((name, value) <- constantsMap if name.charAt(0) == '$')
-                    yield (value, Var(name).asDomainElement.get)
-            ).toMap
-            
-            val sortInterpretations: Map[Sort, IndexedSeq[Value]] = (
-                for(sort <- theory.sorts if !sort.isBuiltin) yield sort match{
-                    case SortConst(name) => (sort,
-                        smt2ValueToDomainElement.values.filter(
-                            domainElement => domainElement.sort == sort
-                        ).toIndexedSeq)
-                    case _ => Errors.unreachable
-                }
-            ).toMap
-            
-            val constantInterpretations: Map[AnnotatedVar, Value] =
-                (for(constant <- theory.constants) yield {
-                    (constant,
-                    smtValueToFortressValue(
-                        constantsMap(constant.getName),
-                        constant.sort,
-                        smt2ValueToDomainElement)
-                    )
-                }).toMap
-                
-            val functionArgs: Map[FuncDecl, CartesianSeqProduct[Value]] =
-                (for(funcDecl <- theory.functionDeclarations) yield {
-                    (funcDecl, new CartesianSeqProduct[Value](
-                        funcDecl.argSorts
-                        .map(sort => sortInterpretations apply sort)
-                        .toIndexedSeq))
-                }).toMap
-            
-            for(funcDecl <- theory.functionDeclarations;
-                args <- functionArgs.apply(funcDecl)){
-                    pin.get write "(get-value (("
-                    pin.get write funcDecl.name
-                    for(arg <- args){
-                        pin.get write " "
-                        pin.get write arg.toString
-                    }
-                    pin.get write ")))"
-                }
-                
-            pin.get write "\n"
-            pin.get.flush
-                
-            val functionInterpretations: Map[FuncDecl, Map[Seq[Value], Value]] =
-                (for(funcDecl <- theory.functionDeclarations) yield {
-                    (funcDecl, (for(args <- functionArgs.apply(funcDecl)) yield {
-                        val str = pout.get.readLine
-                        val value = str match {
-                            case smt2Model(name, value) => value
-                            case _ => Errors.unreachable
-                        }
-                        (args, smtValueToFortressValue(value, funcDecl.resultSort, smt2ValueToDomainElement))
-                    }).toMap)
-                }).toMap
-            
-            new BasicInterpretation(sortInterpretations,constantInterpretations,functionInterpretations)
-        } catch {
-            case ex: IOException => {
-                ex.printStackTrace
-                new BasicInterpretation(Map(),Map(),Map())
-            }
-        }
+        Errors.verify(process.nonEmpty, "Cannot get instance without a live process")
+
+        val fortressNameToSmtValue: Map[String, String] = getFortressNameToSmtValueMap(theory)
         
+        val smtValueToDomainElement: Map[String, DomainElement] = (
+            for((name, value) <- fortressNameToSmtValue if name.charAt(0) == '$')
+                yield (value, Var(name).asDomainElement.get)
+        ).toMap
+        
+        val sortInterpretations: Map[Sort, IndexedSeq[Value]] =
+            getSortInterpretations(theory, smtValueToDomainElement)
+        
+        val constantInterpretations: Map[AnnotatedVar, Value] =
+            getConstantInterpretations(theory, fortressNameToSmtValue, smtValueToDomainElement)
+            
+        val functionArgs: Map[FuncDecl, CartesianSeqProduct[Value]] =
+            (for(funcDecl <- theory.functionDeclarations) yield {
+                (funcDecl, new CartesianSeqProduct[Value](
+                    funcDecl.argSorts
+                    .map(sort => sortInterpretations(sort))
+                    .toIndexedSeq))
+            }).toMap
+        
+        val functionInterpretations: Map[FuncDecl, Map[Seq[Value], Value]] =
+            getFunctionInterpretations(theory, functionArgs, smtValueToDomainElement)
+        
+        new BasicInterpretation(sortInterpretations,constantInterpretations,functionInterpretations)
     }
     
-    private def smtValueToFortressValue(value: String, sort: Sort,
-        smt2ValueToDomainElement: Map[String, DomainElement]) : Value = {
+    private def getFortressNameToSmtValueMap(theory: Theory): Map[String, String] = {
+        for(constant <- theory.constants){
+            pin.get write "(get-value ("
+            pin.get write constant.name
+            pin.get write "))"
+        }
+        pin.get write "\n"
+        pin.get.flush
+        
+        (for(constant <- theory.constants) yield {
+            val str = pout.get.readLine
+            str match {
+                case smt2Model(name, value) => (name -> value)
+                case _ => Errors.unreachable
+            }
+        }).toMap
+    }
+    
+    private def getFunctionInterpretations(
+        theory: Theory,
+        functionArgs: Map[FuncDecl, CartesianSeqProduct[Value]],
+        smtValueToDomainElement: Map[String, DomainElement]
+    ) : Map[FuncDecl, Map[Seq[Value], Value]] = {
+            
+        for(funcDecl <- theory.functionDeclarations;
+            args <- functionArgs(funcDecl)){
+                pin.get write "(get-value (("
+                pin.get write funcDecl.name
+                for(arg <- args){
+                    pin.get write " "
+                    pin.get write arg.toString
+                }
+                pin.get write ")))"
+            }
+            
+        pin.get write "\n"
+        pin.get.flush
+            
+        (for(funcDecl <- theory.functionDeclarations) yield {
+            (funcDecl, (for(args <- functionArgs(funcDecl)) yield {
+                val str = pout.get.readLine
+                val value = str match {
+                    case smt2Model(name, value) => value
+                    case _ => Errors.unreachable
+                }
+                (args, smtValueToFortressValue(value, funcDecl.resultSort, smtValueToDomainElement))
+            }).toMap)
+        }).toMap
+    }
+    
+    private def getConstantInterpretations(
+        theory: Theory,
+        fortressNameToSmtValue: Map[String, String],
+        smtValueToDomainElement: Map[String, DomainElement]
+    ) : Map[AnnotatedVar, Value] = {
+            
+        (for(constant <- theory.constants) yield {
+            (constant,
+            smtValueToFortressValue(
+                fortressNameToSmtValue(constant.getName),
+                constant.sort,
+                smtValueToDomainElement)
+            )
+        }).toMap
+    }
+    
+    private def getSortInterpretations(
+        theory: Theory,
+        smtValueToDomainElement: Map[String, DomainElement]): Map[Sort, IndexedSeq[Value]] = {
+            
+        (for(sort <- theory.sorts if !sort.isBuiltin) yield sort match{
+            case SortConst(name) => (sort,
+                smtValueToDomainElement.values.filter(
+                    domainElement => domainElement.sort == sort
+                ).toIndexedSeq)
+            case _ => Errors.unreachable
+        }).toMap
+    }
+    
+    private def smtValueToFortressValue(
+        value: String,
+        sort: Sort,
+        smtValueToDomainElement: Map[String, DomainElement]) : Value = {
+            
         sort match {
-            case SortConst(_) => smt2ValueToDomainElement.apply(value)
+            case SortConst(_) => smtValueToDomainElement(value)
             case BoolSort => value match {
                 case "true" => Top
                 case "false" => Bottom
