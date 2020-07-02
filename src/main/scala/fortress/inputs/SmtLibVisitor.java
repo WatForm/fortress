@@ -246,6 +246,14 @@ public class SmtLibVisitor extends SmtLibSubsetBaseVisitor {
     }
 
     @Override
+    public Term visitIte(SmtLibSubsetParser.IteContext ctx) {
+        Term t1 = (Term) visit(ctx.term(0));
+        Term t2 = (Term) visit(ctx.term(1));
+        Term t3 = (Term) visit(ctx.term(2));
+        return Term.mkIfThenElse(t1,t2,t3);
+    }
+
+    @Override
     public Term visitAnd(SmtLibSubsetParser.AndContext ctx) {
         List<Term> terms = ctx.term().stream().map(
                 t -> (Term) visit(t)

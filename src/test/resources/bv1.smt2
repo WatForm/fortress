@@ -1,0 +1,8 @@
+(declare-const x (_ BitVec 5))
+(declare-fun f ((_ BitVec 5) (_ BitVec 5)) (_ BitVec 5))
+(declare-fun g ((_ BitVec 5)) (_ BitVec 5))
+(assert (= (f x x) (bvadd x x)))
+(assert (= (g x) (bvneg x)))
+(assert (= (f (g x) x) #b00000))
+(check-sat)
+(exit)

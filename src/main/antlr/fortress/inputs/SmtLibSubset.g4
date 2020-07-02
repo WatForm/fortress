@@ -27,6 +27,7 @@ attribute : ':' ID ID                                 # attribute_id
 
 term : 'true'                                         # true
      | 'false'                                        # false
+     | '(' 'ite' term term term ')'                   # ite
      | '(' 'let' '(' letbinding+ ')' term ')'         # let
      | '(' 'and' term term term* ')'                  # and
      | '(' 'or' term term term* ')'                   # or
