@@ -5,7 +5,7 @@
 This is just a test really.
 |)
 (set-logic UF)
-(declare-sort A) (declare-sort B)
+(declare-sort A 0) (declare-sort B 0)
 (declare-const x A)
 (declare-const y B)
 (declare-fun p (A B) Bool)

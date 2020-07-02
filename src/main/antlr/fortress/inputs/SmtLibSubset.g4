@@ -6,7 +6,7 @@ commands : command+ ;
 
 command : '(' 'declare-const' ID sort ')'             # declare_const
         | '(' 'declare-fun' ID '(' sort* ')' sort ')' # declare_fun
-        | '(' 'declare-sort' ID ')'                   # declare_sort
+        | '(' 'declare-sort' ID '0' ')'               # declare_sort
 	    | '(' 'assert' term ')'                       # assert
         | '(' 'check-sat' ')'                         # check_sat
         | '(' 'set-info' attribute ')'                # set_info
@@ -22,10 +22,13 @@ sort : ID                                             # sort_name
 attribute : ':' ID ID                                 # attribute_id
           | ':' ID QUOTE                              # attribute_quote
           | ':' ID STRING                             # attribute_string
+          | ':' ID DEC_DIGIT						  # attribute_dec_digit
           ;
 
 term : 'true'                                         # true
      | 'false'                                        # false
+     | '(' 'ite' term term term ')'                   # ite
+     | '(' 'let' '(' letbinding+ ')' term ')'         # let
      | '(' 'and' term term term* ')'                  # and
      | '(' 'or' term term term* ')'                   # or
      | '(' 'distinct' term+ ')'                       # distinct
@@ -68,6 +71,8 @@ term : 'true'                                         # true
      | '(' 'bvshr' term term ')'                      # bvshr
      ;
 
+letbinding: '(' ID term ')' ;
+
 binding : '(' ID sort ')' ;
 
 term_attribute: ':named' ID                           # namedAttribute
@@ -77,7 +82,7 @@ term_attribute: ':named' ID                           # namedAttribute
 // Lexer rules
 
 // IDs must contain at least one letter, to distinguish from numerals
-ID: LETTER (LETTER | DIGIT | SPECIAL)* ;
+ID: (LETTER | SPECIAL) (LETTER | DIGIT | SPECIAL)* ;
 QUOTE: '|' (PRINTABLE_NOT_PIPE_BS | WS)* '|' ;
 STRING: '"' (PRINTABLE_NOT_QUOTE | WS)* '"' ;
 NUMBER: POS_NUMBER | '0' | '-' POS_NUMBER ;
@@ -86,9 +91,11 @@ HEX_NUMBER: '#x' HEX_DIGIT+ ;
 
 POS_NUMBER: NON_ZERO DIGIT* ;
 
+
 LETTER: [A-Za-z] ;
 NON_ZERO: [1-9] ;
 DIGIT: [0-9] ;
+DEC_DIGIT: DIGIT+ '.' DIGIT+ ;
 BIN_DIGIT: [01] ;
 HEX_DIGIT: [0-9a-fA-F] ;
 SPECIAL: [~!@$%^&*] | '_' | [-+=<>.?/] ;

@@ -1,5 +1,5 @@
-(declare-sort vert)
-(declare-sort colour)
+(declare-sort vert 0)
+(declare-sort colour 0)
 
 (declare-fun edges (vert vert) Bool)
 (declare-fun vcolour (vert) colour)

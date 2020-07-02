@@ -131,6 +131,7 @@ case class Theory private (signature: Signature, axioms: Set[Term]) {
         // Check axiom typechecks as bool
         // Note that a formula cannot typecheck if it has any free variables (that are not constants of the signature)
         val result: TypeCheckResult = axiom.typeCheck(signature)
+        // System.out.println(axiom.toString + (result.sort).toString) ;
         Errors.precondition(result.sort == BoolSort)
         result.sanitizedTerm
     }
