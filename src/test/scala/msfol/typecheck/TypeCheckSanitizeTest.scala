@@ -34,5 +34,21 @@ class TypeCheckSanitizeTest extends UnitSuite {
         result.sort should be (Sort.Bool)
         result.sanitizedTerm should be (expected)
     }
+    
+    test("ite return bool, replace with equiv formula") {
+        val p = Var("p")
+        val q = Var("q")
+        val r = Var("r")
+        val sig = Signature.empty
+            .withConstants(p of BoolSort, q of BoolSort, r of BoolSort)
+        
+        val t = IfThenElse(p, q, r)
+        
+        val expected = (p and q) or (Not(p) and r)
+        
+        val result = t.typeCheck(sig)
+        result.sort should be (Sort.Bool)
+        result.sanitizedTerm should be (expected)
+    }
 }
     

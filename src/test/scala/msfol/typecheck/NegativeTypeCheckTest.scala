@@ -327,15 +327,4 @@ class NegativeTypeCheckTest extends UnitSuite {
             t.typeCheck(sig)
         }
     }
-    
-    test("ite return bool") {
-        val sig = Signature.empty
-            .withSorts(A, B)
-            .withConstants(x of A, y of B)
-        
-        val t = IfThenElse(Top, Top, Top)
-        an [fortress.data.TypeCheckException.WrongSort] should be thrownBy {
-            t.typeCheck(sig)
-        }
-    }
 }

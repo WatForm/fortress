@@ -152,16 +152,19 @@ class TypeChecker(signature: Signature) extends TermVisitorWithTypeContext[TypeC
                 + fResult.sort.toString + " in " + ite.toString)
         }
         
-        if(tResult.sort == BoolSort) {
-            throw new TypeCheckException.WrongSort("ite cannot return a bool")
-        }
-        
         if(condResult.containsQuantifiers) {
             throw new TypeCheckException.BadStructure("Condition of ite contains quantifier in " + ite.toString)
         }
         
+        // Replace if p then (Bool q) else (Bool r)
+        // with (p and q) or ( (not p) and r) which is equivalent
+        val sanTerm =
+            if(tResult.sort == BoolSort) (
+                (condResult.sanitizedTerm and tResult.sanitizedTerm) or (Not(condResult.sanitizedTerm) and fResult.sanitizedTerm))
+            else IfThenElse(condResult.sanitizedTerm, tResult.sanitizedTerm, fResult.sanitizedTerm)
+        
         TypeCheckResult(
-            sanitizedTerm = IfThenElse(condResult.sanitizedTerm, tResult.sanitizedTerm, fResult.sanitizedTerm),
+            sanitizedTerm = sanTerm,
             sort = tResult.sort,
             containsConnectives = condResult.containsConnectives || tResult.containsConnectives || fResult.containsConnectives,
             containsQuantifiers = condResult.containsQuantifiers || tResult.containsQuantifiers || fResult.containsQuantifiers
