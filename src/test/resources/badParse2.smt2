@@ -1,6 +1,6 @@
 ; An incorrect formulation of Ramsey's theorem for k = 3.
 
-(declare-sort V)             ; vertex set
+(declare-sort V 0)             ; vertex set
 (declare-fun adj (V V) Bool) ; adjacency relation
 (assert (forall ((u V) (v V)) (= (adj u v) (adj v u)))) ; G is undirected
 (assert (forall ((u V)) (not (adj u u))))               ; G is loopless (not strictly necessary)
