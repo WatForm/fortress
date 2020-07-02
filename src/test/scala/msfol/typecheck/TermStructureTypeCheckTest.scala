@@ -89,4 +89,14 @@ class TermStructureTypeCheckTest extends UnitSuite {
             t.typeCheck(sig)
         }
     }
+    
+    test("quantifier inside ite condition") {
+        val sig = Signature.empty
+            .withSort(A)
+            .withConstant(x of A)
+        val t = IfThenElse(Exists(y of A, y === y), x, x)
+        an [fortress.data.TypeCheckException.BadStructure] should be thrownBy {
+            t.typeCheck(sig)
+        }
+    }
 }

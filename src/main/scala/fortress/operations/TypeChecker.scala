@@ -138,6 +138,36 @@ class TypeChecker(signature: Signature) extends TermVisitorWithTypeContext[TypeC
             containsConnectives = true, containsQuantifiers = leftResult.containsQuantifiers || rightResult.containsQuantifiers)
     }
     
+    override def visitIfThenElse(ite: IfThenElse): TypeCheckResult = {
+        val condResult = visit(ite.condition)
+        val tResult = visit(ite.ifTrue)
+        val fResult = visit(ite.ifFalse)
+        
+        if(condResult.sort != BoolSort) {
+            throw new TypeCheckException.WrongSort("Expected sort Bool for ite condition but was  " + condResult.sort.name + " in " + ite.toString)
+        }
+        
+        if(tResult.sort != fResult.sort) {
+            throw new TypeCheckException.WrongSort("Mismatched argument sorts " + tResult.sort.toString + " and "
+                + fResult.sort.toString + " in " + ite.toString)
+        }
+        
+        if(tResult.sort == BoolSort) {
+            throw new TypeCheckException.WrongSort("ite cannot return a bool")
+        }
+        
+        if(condResult.containsQuantifiers) {
+            throw new TypeCheckException.BadStructure("Condition of ite contains quantifier in " + ite.toString)
+        }
+        
+        TypeCheckResult(
+            sanitizedTerm = IfThenElse(condResult.sanitizedTerm, tResult.sanitizedTerm, fResult.sanitizedTerm),
+            sort = tResult.sort,
+            containsConnectives = condResult.containsConnectives || tResult.containsConnectives || fResult.containsConnectives,
+            containsQuantifiers = condResult.containsQuantifiers || tResult.containsQuantifiers || fResult.containsQuantifiers
+        )
+    }
+    
     override def visitApp(app: App): TypeCheckResult = {
         // Check argument:
         // 1. types match function declaration
@@ -246,7 +276,5 @@ class TypeChecker(signature: Signature) extends TermVisitorWithTypeContext[TypeC
         case Some(eSort: Sort) => TypeCheckResult(sanitizedTerm = e, sort = eSort, containsConnectives = false, containsQuantifiers = false)
         case None => throw new TypeCheckException.UndeterminedSort("Could not determine sort of enum " + e.name)
     }
-    
-    override def visitIfThenElse(ite: IfThenElse): TypeCheckResult = ???
     
 }

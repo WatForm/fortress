@@ -449,6 +449,8 @@ object Term {
     /** Returns a term representing the bi-implication "t1 iff t2". */
     def mkIff(t1: Term, t2: Term): Term = Iff(t1, t2)
     
+    def mkIfThenElse(condition: Term, ifTrue: Term, ifFalse: Term): Term = IfThenElse(condition, ifTrue, ifFalse)
+    
     def mkPlus(t1: Term, t2: Term): Term = BuiltinApp(IntPlus, Seq(t1, t2))
     def mkNeg(t: Term): Term = BuiltinApp(IntNeg, Seq(t))
     def mkSub(t1: Term, t2: Term): Term = BuiltinApp(IntSub, Seq(t1, t2))
