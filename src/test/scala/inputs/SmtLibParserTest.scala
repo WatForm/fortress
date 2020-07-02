@@ -128,6 +128,57 @@ class SmtLibParserTest extends UnitSuite {
         resultTheory should be (expectedTheory)
     }
 
+
+    test("ite example") {
+        val classLoader = getClass.getClassLoader
+        val file = new File(classLoader.getResource("ite-example.smt2").getFile)
+        val fileStream = new FileInputStream(file)
+        
+        val parser = new SmtLibParser
+        val resultTheory = parser.parse(fileStream)
+
+        
+        var expectedTheory = Theory.empty
+        
+        val A = Sort.mkSortConst("A")
+        expectedTheory = expectedTheory.withSort(A)
+        
+        val x = Var("x")
+        expectedTheory = expectedTheory.withConstant(x.of(A))
+        val f = FuncDecl.mkFuncDecl("f", A, A, A)
+        expectedTheory = expectedTheory.withFunctionDeclaration(f)
+        val sf = App("f", x, x)
+        expectedTheory = 
+            expectedTheory.withAxiom(Eq(IfThenElse(Eq(sf,x),x,sf),x)) 
+        resultTheory should be (expectedTheory)
+    }
+
+    test("ite returns Bool") {
+        val classLoader = getClass.getClassLoader
+        val file = new File(classLoader.getResource("ite-example.smt2").getFile)
+        val fileStream = new FileInputStream(file)
+        
+        val parser = new SmtLibParser
+        val resultTheory = parser.parse(fileStream)
+
+        
+        var expectedTheory = Theory.empty
+        
+        val A = Sort.mkSortConst("A")
+        expectedTheory = expectedTheory.withSort(A)
+        
+        val x = Var("x")
+        expectedTheory = expectedTheory.withConstant(x.of(A))
+        val y = Var("y")
+        expectedTheory = expectedTheory.withConstant(x.of(Sort.Bool))
+        val f = FuncDecl.mkFuncDecl("f", A, A, Sort.Bool)
+        expectedTheory = expectedTheory.withFunctionDeclaration(f)
+        val sf = App("f", x, x)
+        expectedTheory = 
+            expectedTheory.withAxiom(IfThenElse(sf,sf,y)) 
+        resultTheory should be (expectedTheory)
+    }
+
     test("sample 2") {
         val classLoader = getClass.getClassLoader
         val file = new File(classLoader.getResource("sample2.smt2").getFile)
