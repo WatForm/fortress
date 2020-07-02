@@ -48,6 +48,9 @@ object QuantifierExpanderSimplifier {
                 if (doNotInstantiate.isEmpty) Or.smart(simpleQuantifiers(annotatedVars, body))
                 else simplifyStep(Exists(doNotInstantiate, Or.smart(simpleQuantifiers(toInstantiate, body))))
             }
+            case IfThenElse(condition, ifTrue, ifFalse) => simplifyStep(
+                IfThenElse(instantiateAndSimp(condition), instantiateAndSimp(ifTrue), instantiateAndSimp(ifFalse))
+            )
         }
             
         def simpleQuantifiers(annotatedVars: Seq[AnnotatedVar], body: Term): Seq[Term] = {

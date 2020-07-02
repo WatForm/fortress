@@ -37,6 +37,8 @@ object TermConverter {
             | Not(Var(_)) | Not(App(_, _)) | Not(BuiltinApp(_, _)) | Not(Eq(_, _)) => term
         case Not(DomainElement(_, _)) | Not(IntegerLiteral(_))
             |  Not(BitVectorLiteral(_, _)) | Not(EnumValue(_)) => ???
+        case IfThenElse(condition, ifTrue, ifFalse) => IfThenElse(nnf(condition), nnf(ifTrue), nnf(ifFalse))
+        case Not(IfThenElse(condition, ifTrue, ifFalse)) => ???
     }
     
     /** Converts integers and operations on integers into signed bitvectors and

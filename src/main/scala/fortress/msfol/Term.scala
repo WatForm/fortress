@@ -304,6 +304,10 @@ case class BitVectorLiteral private (value: Int, bitwidth: Int) extends Term wit
     override def accept[T](visitor: TermVisitor[T]): T = visitor.visitBitVectorLiteral(this)
 }
 
+case class IfThenElse private (condition: Term, ifTrue: Term, ifFalse: Term) extends Term {
+    override def accept[T](visitor: TermVisitor[T]): T = visitor.visitIfThenElse(this)
+}
+
 /** Companion object for Term. */
 object Term {
     /** Returns a Term representing Top/Verum */

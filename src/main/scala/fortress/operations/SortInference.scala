@@ -145,6 +145,15 @@ object SortInference {
             case BuiltinApp(_, _) => ???
             case IntegerLiteral(_) => ???
             case BitVectorLiteral(_, _) => ???
+            case IfThenElse(condition, ifTrue, ifFalse) => {
+                val (condSort, condEqns) = recur(condition, context)
+                val (ifTrueSort, ifTrueEqns) = recur(ifTrue, context)
+                val (ifFalseSort, ifFalseEqns) = recur(ifFalse, context)
+                Errors.assertion(condSort == BoolSort)
+                Errors.assertion(ifTrueSort != BoolSort)
+                Errors.assertion(ifFalseSort != BoolSort)
+                (ifTrueSort, (ifTrueEqns union ifFalseEqns) + Equation(ifTrueSort, ifFalseSort))
+            }
         }
         
         val recurInfo = replacedAxioms map {recur(_, List.empty)}

@@ -120,5 +120,6 @@ class Skolemizer(topLevelTerm: Term, signature: Signature, nameGen: NameGenerato
         
         override def visitEnumValue(e: EnumValue): Term = e
         
+        override def visitIfThenElse(ite: IfThenElse): Term = ???
     }
 }

@@ -19,6 +19,10 @@ object Simplifier {
             case Eq(_, _) | App(_, _) | BuiltinApp(_, _) => simplifyStep(term)
             case Top | Bottom | Var(_) | EnumValue(_) | DomainElement(_, _)
                 | IntegerLiteral(_) | BitVectorLiteral(_, _) => term
+            
+            case IfThenElse(condition, ifTrue, ifFalse) => simplifyStep(
+                IfThenElse(simplifyFull(condition), simplifyFull(ifTrue), simplifyFull(ifFalse))
+            )
         }
         
         simplifyFull(term)
@@ -78,6 +82,8 @@ object Simplifier {
             if (newVars.size == 0) body
             else Forall(newVars, body)
         }
+        case IfThenElse(Top, ifTrue, ifFalse) => ifTrue
+        case IfThenElse(Bottom, ifTrue, ifFalse) => ifFalse
         case _ => term
     }
 }

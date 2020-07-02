@@ -25,6 +25,8 @@ object DomainElementEliminator {
             case BuiltinApp(function, args) => BuiltinApp(function, args map eliminateDomainElements)
             case Exists(vars, body) => Exists(vars, eliminateDomainElements(body))
             case Forall(vars, body) => Forall(vars, eliminateDomainElements(body))
+            case IfThenElse(condition, ifTrue, ifFalse) =>
+                IfThenElse(eliminateDomainElements(condition), eliminateDomainElements(ifTrue), eliminateDomainElements(ifFalse))
             case Top | Bottom | Var(_) | EnumValue(_)
                 | IntegerLiteral(_) | BitVectorLiteral(_, _) => term
         }

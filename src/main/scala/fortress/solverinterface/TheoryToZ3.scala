@@ -151,6 +151,11 @@ class TheoryToZ3(theory: Theory) {
                 null // No symbol to track skolem constants
             )
         }
+        case IfThenElse(condition, ifTrue, ifFalse) => context.mkITE(
+            recur(condition, ctxStack).asInstanceOf[Z3BoolExpr],
+            recur(ifTrue, ctxStack),
+            recur(ifFalse, ctxStack)
+        )
         case BuiltinApp(fn, args) => (fn, args) match {
             case (IntPlus, Seq(arg1, arg2)) => {
                 context.mkAdd(

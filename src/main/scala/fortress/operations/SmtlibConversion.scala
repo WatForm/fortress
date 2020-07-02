@@ -21,6 +21,7 @@ class SmtlibConverter(writer: java.io.Writer) {
             case Iff(left, right) => writeGeneralApp("=", Seq(left, right))
             case Eq(left, right) => writeGeneralApp("=", Seq(left, right))
             case App(fname, args) => writeGeneralApp(fname, args)
+            case IfThenElse(condition, ifTrue, ifFalse) => writeGeneralApp("ite", Seq(condition, ifTrue, ifFalse))
             case Exists(vars, body) => {
                 writer.write("(exists (")
                 var num = 0
