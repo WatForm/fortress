@@ -189,15 +189,16 @@ class TypeChecker(signature: Signature) extends TermVisitorWithTypeContext[TypeC
             case Some(fdecl) => fdecl
         }
         
-        if(results.exists(_.containsConnectives)) {
-            throw new TypeCheckException.BadStructure("Argument of " + funcName + " contains connective")
-        }
-        if(results.exists(_.containsQuantifiers)) {
+        if(results exists (_.containsQuantifiers)) {
             throw new TypeCheckException.BadStructure("Argument of " + funcName + " contains quantifier")
         }
         
-        TypeCheckResult(sanitizedTerm = App(funcName, results.map(_.sanitizedTerm)), sort = fdecl.resultSort,
-            containsConnectives = false, containsQuantifiers = false)
+        TypeCheckResult(
+            sanitizedTerm = App(funcName, results map (_.sanitizedTerm)),
+            sort = fdecl.resultSort,
+            containsConnectives = results exists (_.containsConnectives),
+            containsQuantifiers = false
+        )
     }
     
     override def visitBuiltinApp(bapp: BuiltinApp): TypeCheckResult = {
