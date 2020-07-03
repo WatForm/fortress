@@ -202,7 +202,7 @@ class SmtLibParserTest extends UnitSuite {
         val sf = App("f", x, x)
         val ii = Or(And(y,sf),And(Not(y),y))
         expectedTheory = 
-            expectedTheory.withAxiom(Or(And(ii,y),And(Not(ii),sf))) 
+            expectedTheory.withAxiom(IfThenElse(sf,sf,y)) 
         resultTheory should be (expectedTheory)
     }
 
