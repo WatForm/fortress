@@ -155,7 +155,7 @@ class SmtLibParserTest extends UnitSuite {
 
     test("ite returns Bool") {
         val classLoader = getClass.getClassLoader
-        val file = new File(classLoader.getResource("ite-example.smt2").getFile)
+        val file = new File(classLoader.getResource("ite-example2.smt2").getFile)
         val fileStream = new FileInputStream(file)
         
         val parser = new SmtLibParser
@@ -181,7 +181,7 @@ class SmtLibParserTest extends UnitSuite {
 
     test("ite returns Bool nested") {
         val classLoader = getClass.getClassLoader
-        val file = new File(classLoader.getResource("ite-example.smt2").getFile)
+        val file = new File(classLoader.getResource("ite-example3.smt2").getFile)
         val fileStream = new FileInputStream(file)
         
         val parser = new SmtLibParser
