@@ -4,8 +4,6 @@ import fortress.msfol._
 import fortress.data.NameGenerator
 import fortress.operations.TermOps._
 
-import scala.jdk.CollectionConverters._
-
 /** Applies the substitution [x -> s] in term t. Will perform alpha-renaming to
   * avoid variable capture when necessary.
   * When creating new variables for alpha-renaming, it will use the given name
@@ -48,6 +46,7 @@ object Substituter {
                 val (newVariables, newBody) = avoidCapture(vars, body)
                 Forall(newVariables, sub(newBody))
             }
+            case IfThenElse(condition, ifTrue, ifFalse) => IfThenElse(sub(condition), sub(ifTrue), sub(ifFalse))
         }
         
         def avoidCapture(vars: Seq[AnnotatedVar], body: Term) = {
@@ -120,6 +119,8 @@ object FastSubstituter {
                     val sigmaPrime: Map[Var, Term] = sigma.view.filterKeys(!variables.contains(_)).toMap
                     Forall(vars, sub(sigmaPrime, body))
                 }
+                case IfThenElse(condition, ifTrue, ifFalse) =>
+                    IfThenElse(sub(sigma, condition), sub(sigma, ifTrue), sub(sigma, ifFalse))
             }
         
         sub(substitutions, t)
