@@ -45,7 +45,6 @@ case object Bottom extends Term with LeafTerm with Value {
   */
 case class Var private(name: String) extends Term with LeafTerm {
     Errors.precondition(name.length > 0, "Cannot create variable with empty name")
-    Errors.precondition(! Names.isIllegal(name), "Illegal variable name " + name)
     
     override def toString: String = name
     def getName: String = name
@@ -54,14 +53,15 @@ case class Var private(name: String) extends Term with LeafTerm {
     /** Returns an AnnotatedVar that represents this variable annotated with
       * with a sort. */
     def of(sort: Sort) = AnnotatedVar(this, sort)
-    
-    def asDomainElement: Option[DomainElement] = {
-        if(name.charAt(0) == '$') {
-            val ints = Set('0', '1', '2', '3', '4', '5', '6', '7', '8', '9')
-            val (indexStr, sortStr) = name.tail.partition(ints contains _)
-            Some(DomainElement(indexStr.toInt, SortConst(sortStr)))
-        } else None
+}
+
+object Var {
+    def apply(name: String): Var = {
+        Errors.precondition(! Names.isIllegal(name), "Illegal variable name " + name)
+        new Var(name)
     }
+    
+    def mkWithoutNameRestriction(name: String): Var = new Var(name)
 }
 
 case class EnumValue private (name: String) extends Term with LeafTerm with Value {
@@ -290,9 +290,22 @@ case class DomainElement private (index: Int, sort: Sort) extends Term with Leaf
     override def accept[T](visitor: TermVisitor[T]): T = visitor.visitDomainElement(this)
     
     // TODO need to restrict any other code from using this naming convention
-    val asSmtConstant = Var("$" + index.toString + sort.toString)
+    val asSmtConstant = Var.mkWithoutNameRestriction(DomainElement.prefix + index.toString + sort.toString)
     
-    override def toString = "$" + index.toString + sort.toString
+    override def toString = DomainElement.prefix + index.toString + sort.toString
+}
+
+object DomainElement {
+    private[msfol] val prefix = "%"
+    
+    def interpretName(name: String): Option[DomainElement] = {
+        if(name startsWith DomainElement.prefix) {
+            val rest = name drop DomainElement.prefix.length
+            val ints = Set('0', '1', '2', '3', '4', '5', '6', '7', '8', '9')
+            val (indexStr, sortStr) = rest.partition(ints contains _)
+            Some(DomainElement(indexStr.toInt, SortConst(sortStr)))
+        } else None
+    }
 }
 
 case class IntegerLiteral private (value: Int) extends Term with LeafTerm with Value {

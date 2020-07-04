@@ -8,5 +8,10 @@ object Names {
         "if", "else"
     )
     
-    def isIllegal(name: String): Boolean =  (illegalNames contains name.toLowerCase)
+    private val illegalPrefixes: Set[String] = Set(
+        DomainElement.prefix
+    )
+    
+    def isIllegal(name: String): Boolean =
+        (illegalNames contains name.toLowerCase) || (illegalPrefixes exists (name startsWith _))
 }

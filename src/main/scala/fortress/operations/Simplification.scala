@@ -55,9 +55,9 @@ object Simplifier {
         case Iff(p, Bottom) => Not(p)
         case Iff(Bottom, p) => Not(p)
         case Eq(d1 @ DomainElement(_, _), d2 @ DomainElement(_, _)) => if (d1 == d2) Top else Bottom
-        case Eq(x @ Var(xs), y @ Var(ys)) => {
+        case Eq(x @ Var(xname), y @ Var(yname)) => {
             if(x == y) Top
-            else (x.asDomainElement, y.asDomainElement) match {
+            else (DomainElement.interpretName(xname), DomainElement.interpretName(yname)) match {
                 case (Some(xde), Some(yde)) if (xde != yde) => Bottom
                 case _ => term
             }
