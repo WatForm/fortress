@@ -9,7 +9,8 @@ object Names {
     )
     
     private val illegalPrefixes: Set[String] = Set(
-        DomainElement.prefix
+        DomainElement.prefix,
+        "@"
     )
     
     def isIllegal(name: String): Boolean =

@@ -179,8 +179,8 @@ class RangeFormulaTests extends UnitSuite {
             .withFunctionDeclaration(FuncDecl("f", BoolSort, A, IntSort, A))
             .withFunctionDeclaration(FuncDecl("g", IntSort, A, BoolSort, A))
          
-         val x0 = Var("@x_0")
-         val x1 = Var("@x_1")
+         val x0 = Var("$x_0")
+         val x1 = Var("$x_1")
          
          val expected = theory
             .withAxiom((c2 === DomainElement(1, A)) or (c2 === DomainElement(2, A)))

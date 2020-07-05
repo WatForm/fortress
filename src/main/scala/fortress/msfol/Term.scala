@@ -61,7 +61,7 @@ object Var {
         new Var(name)
     }
     
-    def mkWithoutNameRestriction(name: String): Var = new Var(name)
+    private [msfol] def mkWithoutNameRestriction(name: String): Var = new Var(name)
 }
 
 case class EnumValue private (name: String) extends Term with LeafTerm with Value {
@@ -296,7 +296,7 @@ case class DomainElement private (index: Int, sort: Sort) extends Term with Leaf
 }
 
 object DomainElement {
-    private[msfol] val prefix = "%"
+    private[msfol] val prefix = "_@"
     
     def interpretName(name: String): Option[DomainElement] = {
         if(name startsWith DomainElement.prefix) {

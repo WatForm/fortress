@@ -97,7 +97,13 @@ Some of the following results are unintuitive, but backed by empirical testing.
 For reasons not entirely clear to us, we found it significantly slower to construct expressions directly using the Z3 Java API than to simply convert them to SMTLIB2 strings and have the API parse them.
 Our best guess is that this is because the Z3 API performs some kind of typechecking when expressions are constructed, so recursively building terms bottom-up repeatedly invokes the typechecker at each expression construction, greatly slowing the process.
 
-#### Simplification Is Necessary
+#### Simplification is Necessary
 Without the simplification step, Z3 takes a significantly longer time to run.
 Even though simplification takes extra time in Fortress, the net gain is well worth it.
 We initially assumed that Z3 would be able to simplify both faster and more aggressively than Fortress, but this is not the case for the problems we are providing it.
+
+#### Name Changes can be Significant
+Seemingly innocuous name changes can have unexpected performance consequences.
+For example, changing the prefix used for domain constants from `@` to `%` (in order to be more compliant with the standards used by SMT solvers) caused performance in some tests to slow down, at least when using the Z3 Java API.
+Changing it to `_@` (also standards-compliant) improved performance again.
+Not only should this be investigated further, but it should serve as a lesson that performance should always be tested when making changes.
