@@ -28,7 +28,7 @@ public class Smtlibparsemain {
         }
 
 	    File f = new File(inputFilePath);
-	    Integer scope = 10;
+	    Integer scope = 2;
 	    Integer thresholdTimeout = 10000; // milliseconds
 	    FileInputStream fileStream ; 
 
