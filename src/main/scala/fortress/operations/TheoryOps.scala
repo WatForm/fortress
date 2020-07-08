@@ -38,6 +38,20 @@ case class TheoryOps private (theory: Theory) {
         theory.functionDeclarations.count(_.resultSort == BoolSort)
     }
 
+    // Returns the maximum arity of functions of a theory
+    def maxFunctionArity: Int = {
+        if (functionCount > 0) {
+            theory.functionDeclarations.map(_.arity).max
+        } else {
+            0
+        }
+    }
+
+    // Counts the number of function args that are of boolean sort
+    def boolArgCount: Int = {
+        theory.functionDeclarations.map(_.argSorts.count(_ == BoolSort)).sum
+    }
+
     // Returns the number of terms in a theory
     def termCount: Int = {
         theory.axioms.map(TermMetrics.termCount).sum

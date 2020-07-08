@@ -36,6 +36,23 @@ class TheoryOpsTest extends UnitSuite {
     baseTheory.predicateCount should be(1)
   }
 
+  test("maximum arity of functions") {
+    val emptyTheory = Theory.empty
+
+    emptyTheory.maxFunctionArity should be(0)
+    baseTheory.maxFunctionArity should be(2)
+  }
+
+  test("boolean sort function args count") {
+    val q = FuncDecl.mkFuncDecl("q", Sort.Bool, Sort.Bool, Sort.Bool)
+    val t = FuncDecl.mkFuncDecl("t", Sort.Bool, A)
+    val theory = baseTheory.withFunctionDeclaration(q)
+        .withFunctionDeclaration(t)
+
+    baseTheory.boolArgCount should be(0)
+    theory.boolArgCount should be(3)
+  }
+
   test("term count") {
     val theory = baseTheory
       .withAxiom(Forall(x.of(A),
