@@ -2,7 +2,7 @@
 ; complement of a path of length 2.
 ; This is satisfiable for scopes 1 and 2, but unsatisfiable for scopes at least 3.
 
-(declare-sort V)             ; vertex set
+(declare-sort V 0)             ; vertex set
 (declare-fun adj (V V) Bool) ; adjacency relation
 (assert (forall ((u V) (v V)) (= (adj u v) (adj v u)))) ; G is undirected
 (assert (forall ((u V)) (not (adj u u))))               ; G is loopless (not strictly necessary)

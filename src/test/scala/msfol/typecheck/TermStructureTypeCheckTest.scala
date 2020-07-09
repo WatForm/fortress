@@ -46,45 +46,11 @@ class TermStructureTypeCheckTest extends UnitSuite {
         }
     }
     
-    test("connective inside app") {
-        // Logical connectives are not allowed inside an application
-        val sig = Signature.empty
-            .withFunctionDeclaration(h)
-        val t = App("h", And(Top, Top))
-        an [fortress.data.TypeCheckException.BadStructure] should be thrownBy {
-            t.typeCheck(sig)
-        }
-    }
-    
-    test("negation inside app") {
-        // Negation is not allowed inside an application
-        val sig = Signature.empty
-            .withFunctionDeclaration(h)
-        val t = App("h", Not(Top))
-        an [fortress.data.TypeCheckException.BadStructure] should be thrownBy {
-            t.typeCheck(sig)
-        }
-    }
-    
-    test("equals inside app") {
-        // = is not allowed inside an application
+    test("quantifier inside ite condition") {
         val sig = Signature.empty
             .withSort(A)
-            .withConstant(x.of(A))
-            .withFunctionDeclaration(h)
-        val t = App("h", Eq(x, x))
-        an [fortress.data.TypeCheckException.BadStructure] should be thrownBy {
-            t.typeCheck(sig)
-        }
-    }
-    
-    test("distinct inside app") {
-        // distinct is not allowed inside an application
-        val sig = Signature.empty
-            .withSort(A)
-            .withConstant(x.of(A))
-            .withFunctionDeclaration(h)
-        val t = App("h", Distinct(x, x))
+            .withConstant(x of A)
+        val t = IfThenElse(Exists(y of A, y === y), x, x)
         an [fortress.data.TypeCheckException.BadStructure] should be thrownBy {
             t.typeCheck(sig)
         }

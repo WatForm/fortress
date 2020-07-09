@@ -19,22 +19,22 @@ class DomainEliminationTests extends UnitSuite {
             .withAxiom(App("f", c, DomainElement(1, A)) === DomainElement(3, B))
             .withAxiom(Not(d === DomainElement(4, B)) ==> Exists(x of A, x === DomainElement(2, A)))
         
-        val _1A = Var("$1A")
-        val _3B = Var("$3B")
-        val _4B = Var("$4B")
-        val _2A = Var("$2A")
+        val _1A = DomainElement(1, A).asSmtConstant
+        val _3B = DomainElement(3, B).asSmtConstant
+        val _4B = DomainElement(4, B).asSmtConstant
+        val _2A = DomainElement(2, A).asSmtConstant
         
         val expected = Theory.empty
             .withSorts(A, B)
             .withConstants(c of A, d of B)
             .withFunctionDeclaration(FuncDecl("f", A, A, B))
             .withConstants(
-                Var("$1A") of A,
-                Var("$2A") of A,
-                Var("$3B") of B,
-                Var("$4B") of B)
-            .withAxiom(Distinct(Var("$1A"), Var("$2A")))
-            .withAxiom(Distinct(Var("$3B"), Var("$4B")))
+                _1A of A,
+                _2A of A,
+                _3B of B,
+                _4B of B)
+            .withAxiom(Distinct(_1A, _2A))
+            .withAxiom(Distinct(_3B, _4B))
             .withAxiom(App("f", c, _1A) === _3B)
             .withAxiom(Not(d === _4B) ==> Exists(x of A, x === _2A))
         
@@ -52,12 +52,17 @@ class DomainEliminationTests extends UnitSuite {
             .withConstants(c of A, d of B)
             .withAxiom(c === DomainElement(1, A))
             .withAxiom(d === DomainElement(1, B))
+            
+            
+        val _1A = DomainElement(1, A).asSmtConstant
+        val _1B = DomainElement(1, B).asSmtConstant
+        
         val expected =  Theory.empty
             .withSorts(A, B)
             .withConstants(c of A, d of B)
-            .withConstants(Var("$1A") of A, Var("$1B") of B)
-            .withAxiom(c === Var("$1A"))
-            .withAxiom(d === Var("$1B"))
+            .withConstants(_1A of A, _1B of B)
+            .withAxiom(c === _1A)
+            .withAxiom(d === _1B)
         
         val transformer = new DomainEliminationTransformer
         transformer(theory) should be (expected)

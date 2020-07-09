@@ -73,8 +73,10 @@ abstract class ProcessBuilderSolver extends SolverTemplate {
         val fortressNameToSmtValue: Map[String, String] = getFortressNameToSmtValueMap(theory)
         
         val smtValueToDomainElement: Map[String, DomainElement] = (
-            for((name, value) <- fortressNameToSmtValue if name.charAt(0) == '$')
-                yield (value, Var(name).asDomainElement.get)
+            for {
+                (name, value) <- fortressNameToSmtValue
+                domainElement <- DomainElement.interpretName(name)
+            } yield (value, domainElement)
         ).toMap
         
         val sortInterpretations: Map[Sort, IndexedSeq[Value]] =

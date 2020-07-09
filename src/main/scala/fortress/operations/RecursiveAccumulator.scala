@@ -23,6 +23,7 @@ object RecursiveAccumulator {
         case BuiltinApp(function, args) => (args map allSymbolsIn) reduce (_ union _)
         case Forall(vars, body) => allSymbolsIn(body) union (vars map (_.variable.name)).toSet union (vars map (_.sort.name)).toSet
         case Exists(vars, body) => allSymbolsIn(body) union (vars map (_.variable.name)).toSet union (vars map (_.sort.name)).toSet
+        case IfThenElse(condition, ifTrue, ifFalse) => allSymbolsIn(condition) union allSymbolsIn(ifTrue) union allSymbolsIn(ifFalse)
     }
     
     /** Returns the set of all domain elements that appear within a term.
@@ -45,6 +46,7 @@ object RecursiveAccumulator {
         case BuiltinApp(function, args) => args.map(domainElementsIn).reduce((a, b) => a union b)
         case Forall(vars, body) => domainElementsIn(body)
         case Exists(vars, body) => domainElementsIn(body)
+        case IfThenElse(condition, ifTrue, ifFalse) => domainElementsIn(condition) union domainElementsIn(ifTrue) union domainElementsIn(ifFalse)
     }
     
     def enumValuesIn(term: Term): Set[EnumValue] = {
@@ -72,6 +74,7 @@ object RecursiveAccumulator {
         case BuiltinApp(function, args) => args.map(functionsIn).reduce((a, b) => a union b)
         case Forall(vars, body) => functionsIn(body)
         case Exists(vars, body) => functionsIn(body)
+        case IfThenElse(condition, ifTrue, ifFalse) => functionsIn(condition) union functionsIn(ifTrue) union functionsIn(ifFalse)
     }
     
     def constantsIn(term: Term): Set[String] = {
@@ -91,6 +94,7 @@ object RecursiveAccumulator {
             case BuiltinApp(function, args) => args.map(arg => recur(arg, variables)).reduce((a, b) => a union b)
             case Forall(vars, body) => recur(body, variables ++ vars.map(_.name))
             case Exists(vars, body) => recur(body, variables ++ vars.map(_.name))
+            case IfThenElse(condition, ifTrue, ifFalse) => constantsIn(condition) union constantsIn(ifTrue) union constantsIn(ifFalse)
         }
         recur(term, Set.empty)
     }
@@ -113,5 +117,6 @@ object RecursiveAccumulator {
         case BuiltinApp(function, args) => (args map freeVariablesIn) reduce (_ union _)
         case Exists(vars, body) => freeVariablesIn(body) diff (vars map (_.variable)).toSet
         case Forall(vars, body) => freeVariablesIn(body) diff (vars map (_.variable)).toSet
+        case IfThenElse(condition, ifTrue, ifFalse) => freeVariablesIn(condition) union freeVariablesIn(ifTrue) union freeVariablesIn(ifFalse)
     }
 }

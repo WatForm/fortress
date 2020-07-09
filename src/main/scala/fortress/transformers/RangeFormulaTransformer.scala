@@ -52,7 +52,7 @@ class RangeFormulaTransformer private (useConstForDomElem: Boolean) extends Prob
                 var counter = 0
                 val seqOfDomainSeqs: IndexedSeq[IndexedSeq[Term]] = f.argSorts.toIndexedSeq.map (sort => {
                     val Di: IndexedSeq[Term] = if (sort.isBuiltin) {
-                        val annotatedVar = Var("@x_" + counter.toString) of sort
+                        val annotatedVar = Var("$x_" + counter.toString) of sort
                         counter += 1
                         quantifiedVarsBuffer += annotatedVar
                         IndexedSeq(annotatedVar.variable)

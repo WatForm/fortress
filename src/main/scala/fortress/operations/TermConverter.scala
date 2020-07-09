@@ -32,11 +32,17 @@ object TermConverter {
         )
         case Not(Forall(vars, body)) => Exists(vars, nnf(Not(body)))
         case Not(Exists(vars, body)) => Forall(vars, nnf(Not(body)))
-        case Top | Bottom | Var(_) | App(_, _) | BuiltinApp(_, _) | Eq(_, _) | DomainElement(_, _)
+        case App(fname, args) => App(fname, args map nnf)
+        case Not(App(fname, args)) => Not(App(fname, args map nnf)) 
+        case Eq(l, r) => Eq(nnf(l), nnf(r))
+        case Not(Eq(l, r)) => Not(Eq(nnf(l), nnf(r))) // Not that Eq does not compare booleans
+        case Top | Bottom | Var(_) | BuiltinApp(_, _) | DomainElement(_, _)
             | IntegerLiteral(_) | BitVectorLiteral(_, _) | EnumValue(_)
-            | Not(Var(_)) | Not(App(_, _)) | Not(BuiltinApp(_, _)) | Not(Eq(_, _)) => term
+            | Not(Var(_)) | Not(BuiltinApp(_, _)) => term
         case Not(DomainElement(_, _)) | Not(IntegerLiteral(_))
             |  Not(BitVectorLiteral(_, _)) | Not(EnumValue(_)) => ???
+        case IfThenElse(condition, ifTrue, ifFalse) => IfThenElse(nnf(condition), nnf(ifTrue), nnf(ifFalse))
+        case Not(IfThenElse(condition, ifTrue, ifFalse)) => ??? // Note that ITE does not return boolean
     }
     
     /** Converts integers and operations on integers into signed bitvectors and

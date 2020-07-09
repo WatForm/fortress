@@ -30,6 +30,7 @@ trait SortApplication {
         }
         case DomainElement(index, sort) => DomainElement(index, apply(sort))
         case EnumValue(_) | BuiltinApp(_, _) | IntegerLiteral(_) | BitVectorLiteral(_, _) => ???
+        case IfThenElse(condition, ifTrue, ifFalse) => IfThenElse(apply(condition), apply(ifTrue), apply(ifFalse))
     }
     
     def apply(f: FuncDecl): FuncDecl = f match {

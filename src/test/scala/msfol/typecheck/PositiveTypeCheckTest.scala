@@ -171,4 +171,13 @@ class PositiveTypeCheckTest extends UnitSuite {
         t.typeCheck(sig).sort should be (A)
     }
     
+    test("ite") {
+        val sig = Signature.empty
+            .withSort(A)
+            .withConstants(x of A, y of A)
+        
+        val t = IfThenElse(x === y, x, y)
+        t.typeCheck(sig).sort should be (A)
+    }
+    
 }

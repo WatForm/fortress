@@ -23,21 +23,22 @@ class Z3ApiInterpretation(model: Z3Model, sig: Signature, converter: TheoryToZ3_
         // Map the Z3 value of such a constant to the Fortress domain element that the constant simulates
         for {
             z3Decl <- model.getConstDecls
-            constantName = z3Decl.getName.toString if constantName.charAt(0) == '$'
+            constantName = z3Decl.getName.toString
+            domainElement <- DomainElement.interpretName(constantName)
         } yield {
             val sortName = z3Decl.getRange.getName.toString
-            model.getConstInterp(z3Decl) -> DomainElement(constantName.substring(1,constantName.length-sortName.length).toInt, SortConst(sortName))
+            model.getConstInterp(z3Decl) -> domainElement
         }
     ).toMap
 
     val constantInterpretations: Map[AnnotatedVar, Value] = (
 		for {
 			(constName, z3Decl) <- converter.constantConversionsMap
-			v = sig.queryConstant(Var(constName))
-			expr = model.evaluate(z3Decl.apply(), true) if v.isDefined
-            if constName.charAt(0) != '$' // Exclude domain constants
-		} yield v.get -> {
-			v.get.sort match {
+            if DomainElement.interpretName(constName).isEmpty // Exclude domain constants
+			v @ AnnotatedVar(variable, sort) <- sig.queryConstant(Var(constName))
+			expr = model.evaluate(z3Decl.apply(), true)
+		} yield v -> {
+			sort match {
 				case BoolSort => if (expr.isTrue) Top else Bottom
 				case IntSort => IntegerLiteral(expr.toString.toInt)
 				case _ => sortMappings(expr)

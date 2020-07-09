@@ -23,4 +23,5 @@ trait TermVisitor[T] {
     def visitForall(term: Forall): T
     def visitIntegerLiteral(term: IntegerLiteral): T
     def visitBitVectorLiteral(term: BitVectorLiteral): T
+    def visitIfThenElse(term: IfThenElse): T
 }

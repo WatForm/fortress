@@ -72,7 +72,7 @@ class InterpretationVerifier(theory: Theory) {
         }
 
         // Recursively evaluates a given expression to either Top or Bottom, starting from the root
-        def evaluate(term: Term): Value = term match{
+        def evaluate(term: Term): Value = term match {
             // "Atomic" terms should be maintained as-is
             case Top | Bottom | EnumValue(_) | DomainElement(_, _) |
                  IntegerLiteral(_) | BitVectorLiteral(_, _) => term.asInstanceOf[Value]
@@ -92,6 +92,10 @@ class InterpretationVerifier(theory: Theory) {
             )
             // The operands to Eq are expected to be case classes, so equality works as expected
             case Eq(l, r) => boolToValue(evaluate(l) == evaluate(r))
+            case IfThenElse(condition, ifTrue, ifFalse) => {
+                if(forceValueToBool(evaluate(condition))) evaluate(ifTrue)
+                else evaluate(ifFalse)
+            }
             case App(fname, args) => appInterpretations(fname, args.map(arg => evaluate(arg)))
             case BuiltinApp(fn, args) => evaluateBuiltIn(fn, args.map(arg => evaluate(arg)))
             case Forall(vars, body) => {

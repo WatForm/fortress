@@ -71,7 +71,7 @@ class ModelFinderProcessBuilderTest extends UnitSuite {
         )
         val constantInterpretations: Map[AnnotatedVar, Value] = Map(
             (x of S) -> mkDomainElement(1, S),
-            (Var("$1S") of S) -> mkDomainElement(1, S)
+            (DomainElement(1, S).asSmtConstant of S) -> mkDomainElement(1, S)
         )
         val functionInterpretations: Map[FuncDecl, Map[Seq[Value], Value]] = Map()
         

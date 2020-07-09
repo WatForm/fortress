@@ -11,7 +11,7 @@ class SmtLibParserTest extends UnitSuite {
     
     test("parser throws on error") {
         val classLoader = getClass.getClassLoader
-        val file = new File(classLoader.getResource("badParse.smt").getFile)
+        val file = new File(classLoader.getResource("badParse.smt2").getFile)
         val fileStream = new FileInputStream(file)
         
         val parser = new SmtLibParser
@@ -20,7 +20,7 @@ class SmtLibParserTest extends UnitSuite {
     
     test("lexer throws on error") {
         val classLoader = getClass.getClassLoader
-        val file = new File(classLoader.getResource("badLexical.smt").getFile)
+        val file = new File(classLoader.getResource("badLexical.smt2").getFile)
         val fileStream = new FileInputStream(file)
         
         val parser = new SmtLibParser
@@ -29,7 +29,7 @@ class SmtLibParserTest extends UnitSuite {
 
     test("sample 1") {
         val classLoader = getClass.getClassLoader
-        val file = new File(classLoader.getResource("sample1.smt").getFile)
+        val file = new File(classLoader.getResource("sample1.smt2").getFile)
         val fileStream = new FileInputStream(file)
         
         val parser = new SmtLibParser
@@ -105,10 +105,146 @@ class SmtLibParserTest extends UnitSuite {
         
         resultTheory should be (expectedTheory)
     }
-    
+
+    test("let example") {
+        val classLoader = getClass.getClassLoader
+        val file = new File(classLoader.getResource("let-example.smt2").getFile)
+        val fileStream = new FileInputStream(file)
+        
+        val parser = new SmtLibParser
+        val resultTheory = parser.parse(fileStream)
+
+        
+        var expectedTheory = Theory.empty
+        
+        val A = Sort.mkSortConst("A")
+        expectedTheory = expectedTheory.withSort(A)
+        
+        val x = Var("x")
+        expectedTheory = expectedTheory.withConstant(x.of(A))
+        val f = FuncDecl.mkFuncDecl("f", A, A, A)
+        expectedTheory = expectedTheory.withFunctionDeclaration(f)
+        expectedTheory = expectedTheory.withAxiom(Eq(App("f", x, x),App("f",x,x)))
+        resultTheory should be (expectedTheory)
+    }
+
+
+    test("ite example") {
+        val classLoader = getClass.getClassLoader
+        val file = new File(classLoader.getResource("ite-example.smt2").getFile)
+        val fileStream = new FileInputStream(file)
+        
+        val parser = new SmtLibParser
+        val resultTheory = parser.parse(fileStream)
+
+        
+        var expectedTheory = Theory.empty
+        
+        val A = Sort.mkSortConst("A")
+        expectedTheory = expectedTheory.withSort(A)
+        
+        val x = Var("x")
+        expectedTheory = expectedTheory.withConstant(x.of(A))
+        val f = FuncDecl.mkFuncDecl("f", A, A, A)
+        expectedTheory = expectedTheory.withFunctionDeclaration(f)
+        val sf = App("f", x, x)
+        expectedTheory = 
+            expectedTheory.withAxiom(Eq(IfThenElse(Eq(sf,x),x,sf),x)) 
+        resultTheory should be (expectedTheory)
+    }
+
+    test("ite returns Bool") {
+        val classLoader = getClass.getClassLoader
+        val file = new File(classLoader.getResource("ite-example2.smt2").getFile)
+        val fileStream = new FileInputStream(file)
+        
+        val parser = new SmtLibParser
+        val resultTheory = parser.parse(fileStream)
+
+        
+        var expectedTheory = Theory.empty
+        
+        val A = Sort.mkSortConst("A")
+        expectedTheory = expectedTheory.withSort(A)
+        
+        val x = Var("x")
+        expectedTheory = expectedTheory.withConstant(x.of(A))
+        val y = Var("y")
+        expectedTheory = expectedTheory.withConstant(y.of(Sort.Bool))
+        val f = FuncDecl.mkFuncDecl("f", A, A, Sort.Bool)
+        expectedTheory = expectedTheory.withFunctionDeclaration(f)
+        val sf = App("f", x, x)
+        expectedTheory = 
+            expectedTheory.withAxiom(Or(And(sf,sf),And(Not(sf),y))) 
+        resultTheory should be (expectedTheory)
+    }
+
+    test("ite returns Bool nested") {
+        val classLoader = getClass.getClassLoader
+        val file = new File(classLoader.getResource("ite-example3.smt2").getFile)
+        val fileStream = new FileInputStream(file)
+        
+        val parser = new SmtLibParser
+        val resultTheory = parser.parse(fileStream)
+
+        
+        var expectedTheory = Theory.empty
+        
+        val A = Sort.mkSortConst("A")
+        expectedTheory = expectedTheory.withSort(A)
+        
+        val x = Var("x")
+        expectedTheory = expectedTheory.withConstant(x.of(A))
+        val y = Var("y")
+        expectedTheory = expectedTheory.withConstant(y.of(Sort.Bool))
+        val f = FuncDecl.mkFuncDecl("f", A, A, Sort.Bool)
+        expectedTheory = expectedTheory.withFunctionDeclaration(f)
+        val sf = App("f", x, x)
+        val ii = Or(And(y,sf),And(Not(y),y))
+        expectedTheory = 
+            expectedTheory.withAxiom(Or(And(ii,y),And(Not(ii),sf))) 
+        resultTheory should be (expectedTheory)
+    }
+
+    test("sample 2") {
+        val classLoader = getClass.getClassLoader
+        val file = new File(classLoader.getResource("sample2.smt2").getFile)
+        val fileStream = new FileInputStream(file)
+        
+        val parser = new SmtLibParser
+        val resultTheory = parser.parse(fileStream)
+        val info: Map[String, String] = parser.getInfo.asScala.toMap
+        val logic: Option[String] = parser.getLogic.toScala
+        
+        logic should be (Some("UF"))
+        
+        val source = "\nTesting $ at beginning of constant/function names.\n"
+        
+        info should be  (Map(
+            "smt-lib-version" -> "2.6",
+            "status" -> "sat",
+            "category" -> "toyExample",
+            "source" -> source
+        ))
+        
+        var expectedTheory = Theory.empty
+        
+        val A = Sort.mkSortConst("A")
+        expectedTheory = expectedTheory.withSort(A)
+        
+        val x = Var("$x")
+        expectedTheory = expectedTheory.withConstant(x.of(A))
+        val p = FuncDecl.mkFuncDecl("$p", A, A, Sort.Bool)
+        expectedTheory = expectedTheory.withFunctionDeclaration(p)
+        
+        expectedTheory = expectedTheory.withAxiom(App("$p", x, x))
+        resultTheory should be (expectedTheory)
+    }
+
+
     test("ramsey coclique k3 bad formulation") {
         val classLoader = getClass.getClassLoader
-        val file = new File(classLoader.getResource("length-two-paths.smt").getFile)
+        val file = new File(classLoader.getResource("length-two-paths.smt2").getFile)
         val fileStream = new FileInputStream(file)
         
         val parser = new SmtLibParser
@@ -145,11 +281,13 @@ class SmtLibParserTest extends UnitSuite {
 
     test("integer parse 1") {
         val classLoader = getClass.getClassLoader
-        val file = new File(classLoader.getResource("integers.smt").getFile)
+        val file = new File(classLoader.getResource("integers.smt2").getFile)
         val fileStream = new FileInputStream(file)
 
         val parser = new SmtLibParser
         val resultTheory = parser.parse(fileStream)
+
+
 
         val expected = Theory.empty
                 .withAxiom(
@@ -163,12 +301,15 @@ class SmtLibParserTest extends UnitSuite {
                         Term.mkGE(IntegerLiteral(5), IntegerLiteral(1))
                 )))
 
+        // println("Parsed theory from file:")
+        // println(expected)
+
         resultTheory should be (expected)
     }
 
     test("integer parse 2") {
         val classLoader = getClass.getClassLoader
-        val file = new File(classLoader.getResource("integers2.smt").getFile)
+        val file = new File(classLoader.getResource("integers2.smt2").getFile)
         val fileStream = new FileInputStream(file)
 
         val parser = new SmtLibParser
@@ -183,7 +324,7 @@ class SmtLibParserTest extends UnitSuite {
 
     test("bitvector parse 1") {
         val classLoader = getClass.getClassLoader
-        val file = new File(classLoader.getResource("bv1.smt").getFile)
+        val file = new File(classLoader.getResource("bv1.smt2").getFile)
         val fileStream = new FileInputStream(file)
 
         val parser = new SmtLibParser
