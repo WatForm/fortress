@@ -22,8 +22,8 @@ class ModelFinderProcessBuilderTest extends UnitSuite {
         )
         val functionInterpretations: Map[FuncDecl, Map[Seq[Value], Value]] = Map()
         
-        testCVC4(theory, sortInterpretations, constantInterpretations, functionInterpretations)
-        testZ3(theory, sortInterpretations, constantInterpretations, functionInterpretations)
+        testCVC4(theory, Map(), sortInterpretations, constantInterpretations, functionInterpretations)
+        testZ3(theory, Map(), sortInterpretations, constantInterpretations, functionInterpretations)
     }
     
     test("model with bool"){
@@ -38,8 +38,8 @@ class ModelFinderProcessBuilderTest extends UnitSuite {
         )
         val functionInterpretations: Map[FuncDecl, Map[Seq[Value], Value]] = Map()
         
-        testCVC4(theory, sortInterpretations, constantInterpretations, functionInterpretations)
-        testZ3(theory, sortInterpretations, constantInterpretations, functionInterpretations)
+        testCVC4(theory, Map(), sortInterpretations, constantInterpretations, functionInterpretations)
+        testZ3(theory, Map(), sortInterpretations, constantInterpretations, functionInterpretations)
     }
     
     test("model with bitvector"){
@@ -54,8 +54,8 @@ class ModelFinderProcessBuilderTest extends UnitSuite {
         )
         val functionInterpretations: Map[FuncDecl, Map[Seq[Value], Value]] = Map()
         
-        testCVC4(theory, sortInterpretations, constantInterpretations, functionInterpretations)
-        testZ3(theory, sortInterpretations, constantInterpretations, functionInterpretations)
+        testCVC4(theory, Map(), sortInterpretations, constantInterpretations, functionInterpretations)
+        testZ3(theory, Map(), sortInterpretations, constantInterpretations, functionInterpretations)
     }
     
     test("model with custom Sort"){
@@ -75,38 +75,81 @@ class ModelFinderProcessBuilderTest extends UnitSuite {
         )
         val functionInterpretations: Map[FuncDecl, Map[Seq[Value], Value]] = Map()
         
-        val finder = new FortressTWO(new CVC4CliSolver)
-        finder setTheory theory
-        finder.setAnalysisScope(S, 1)
-        finder.checkSat should be (ModelFinderResult.Sat)
-        assertModel(finder.viewModel(), sortInterpretations, constantInterpretations, functionInterpretations)
+        val scopes: Map[Sort, Int] = Map(S -> 1)
+        
+        testCVC4(theory, scopes, sortInterpretations, constantInterpretations, functionInterpretations)
+        testZ3(theory, scopes, sortInterpretations, constantInterpretations, functionInterpretations)
+    }
+    
+    test("model with function"){
+        val S = mkSortConst("S")
+        val x = mkVar("x")
+        val y = mkVar("y")
+        
+        val f = FuncDecl.mkFuncDecl("f", S, BitVectorSort(16));
+        
+        val theory: Theory = Theory.empty
+            .withSort(S)
+            .withConstants(x of S, y of S)
+            .withFunctionDeclaration(f)
+            .withAxiom(mkEq(x, mkDomainElement(1, S)))
+            .withAxiom(mkEq(y, mkDomainElement(2, S)))
+            .withAxiom(mkEq(mkApp("f", x), BitVectorLiteral(0x1234, 16)))
+            .withAxiom(mkEq(mkApp("f", y), BitVectorLiteral(0xffff, 16)))
+            
+        val sortInterpretations: Map[Sort, Seq[Value]] = Map(
+            S -> Seq(mkDomainElement(1, S), mkDomainElement(2, S))
+        )
+        val constantInterpretations: Map[AnnotatedVar, Value] = Map(
+            (x of S) -> mkDomainElement(1, S),
+            (y of S) -> mkDomainElement(2, S),
+            (mkDomainElement(1, S).asSmtConstant of S) -> mkDomainElement(1, S),
+            (mkDomainElement(2, S).asSmtConstant of S) -> mkDomainElement(2, S)
+        )
+        val functionInterpretations: Map[FuncDecl, Map[Seq[Value], Value]] = Map(
+            f -> Map(
+                Seq(mkDomainElement(1, S)) -> BitVectorLiteral(0x1234, 16),
+                Seq(mkDomainElement(2, S)) -> BitVectorLiteral(0xffff, 16)
+            )
+        )
+        
+        val scopes: Map[Sort, Int] = Map(S -> 2)
+        
+        testCVC4(theory, scopes, sortInterpretations, constantInterpretations, functionInterpretations)
+        testZ3(theory, scopes, sortInterpretations, constantInterpretations, functionInterpretations)
     }
     
     def testCVC4(theory: Theory,
+        scopes: Map[Sort, Int],
         sortInterpretations: Map[Sort, Seq[Value]],
         constantInterpretations: Map[AnnotatedVar, Value],
         functionInterpretations: Map[FuncDecl, Map[Seq[Value], Value]]): Unit = {
         
-        testSolverStrategy(new CVC4CliSolver, theory, sortInterpretations, constantInterpretations, functionInterpretations)
+        testSolverStrategy(new CVC4CliSolver, theory, scopes, sortInterpretations, constantInterpretations, functionInterpretations)
     }
     
     def testZ3(theory: Theory,
+        scopes: Map[Sort, Int],
         sortInterpretations: Map[Sort, Seq[Value]],
         constantInterpretations: Map[AnnotatedVar, Value],
         functionInterpretations: Map[FuncDecl, Map[Seq[Value], Value]]): Unit = {
         
-        testSolverStrategy(new Z3CliSolver, theory, sortInterpretations, constantInterpretations, functionInterpretations)
+        testSolverStrategy(new Z3CliSolver, theory, scopes, sortInterpretations, constantInterpretations, functionInterpretations)
     }
     
     def testSolverStrategy(
         strategy: SolverStrategy,
         theory: Theory,
+        scopes: Map[Sort, Int],
         sortInterpretations: Map[Sort, Seq[Value]],
         constantInterpretations: Map[AnnotatedVar, Value],
         functionInterpretations: Map[FuncDecl, Map[Seq[Value], Value]]): Unit = {
             
         val finder = new FortressTWO(strategy)
         finder setTheory theory
+        for ((sort, scope) <- scopes) {
+            finder.setAnalysisScope(sort, scope)
+        }
         finder.checkSat should be (ModelFinderResult.Sat)
         assertModel(finder.viewModel(), sortInterpretations, constantInterpretations, functionInterpretations)
     }
@@ -116,7 +159,9 @@ class ModelFinderProcessBuilderTest extends UnitSuite {
         constantInterpretations: Map[AnnotatedVar, Value],
         functionInterpretations: Map[FuncDecl, Map[Seq[Value], Value]]): Unit = {
         
-        model.sortInterpretations should be (sortInterpretations)
+        for((sort, values) <- model.sortInterpretations){
+            values should contain theSameElementsAs sortInterpretations(sort)
+        }
         model.constantInterpretations should be (constantInterpretations)
         model.functionInterpretations should be (functionInterpretations)
     }
