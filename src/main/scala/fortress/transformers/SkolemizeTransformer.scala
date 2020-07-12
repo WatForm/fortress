@@ -7,6 +7,7 @@ import fortress.operations.Skolemizer
 import fortress.operations.TermOps._
 import fortress.operations.TheoryOps._
 import fortress.modelfind.ProblemState
+import fortress.interpretation.Interpretation
 
 /** Given a theory, with formulas all in negation normal form, eliminates existential
 * quantifiers through skolemization. The resulting theory is equisatisfiable with
@@ -50,7 +51,16 @@ class SkolemizeTransformer extends ProblemStateTransformer {
                 resultTheory = resultTheory.withAxiom(newAxiom)
             }
             
-            ProblemState(resultTheory, scopes, skc ++ newSkolemConstants.toSet, skf ++ newSkolemFunctions.toSet, rangeRestricts, unapplyInterp)
+            val unapply: Interpretation => Interpretation = {
+                interp => interp.withoutConstants(newSkolemConstants.toSet).withoutFunctions(newSkolemFunctions.toSet)
+            }
+            ProblemState(
+                resultTheory,
+                scopes, skc ++ newSkolemConstants.toSet,
+                skf ++ newSkolemFunctions.toSet,
+                rangeRestricts,
+                unapply :: unapplyInterp
+            )
         }
     }
     

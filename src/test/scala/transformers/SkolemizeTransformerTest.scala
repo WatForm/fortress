@@ -46,14 +46,10 @@ class SkolemizeTransformerTest extends UnitSuite {
             .withConstant(Var("sk_0").of(A))
             .withAxiom(App("P", Var("sk_0")))
             
-        skolemizer(ProblemState(theory)) should be (ProblemState(
-            expected,
-            Map.empty,
-            Set(Var("sk_0") of A),
-            Set.empty,
-            Set.empty,
-            List.empty
-        ))
+        val newProblemState = skolemizer(ProblemState(theory))
+        newProblemState.theory should be (expected)
+        newProblemState.skolemConstants should be (Set(Var("sk_0") of A))
+        newProblemState.skolemFunctions should be (Set.empty[FuncDecl])
     }
     
     test("simple skolem function") {
@@ -64,14 +60,10 @@ class SkolemizeTransformerTest extends UnitSuite {
             .withFunctionDeclaration(FuncDecl.mkFuncDecl("sk_0", A, A))
             .withAxiom(Forall(x.of(A), App("Q", x, App("sk_0", x))))
             
-        skolemizer(ProblemState(theory)) should be (ProblemState(
-            expected,
-            Map.empty,
-            Set.empty,
-            Set(FuncDecl("sk_0", A, A)),
-            Set.empty,
-            List.empty
-        ))
+        val newProblemState = skolemizer(ProblemState(theory))
+        newProblemState.theory should be (expected)
+        newProblemState.skolemConstants should be (Set.empty[AnnotatedVar])
+        newProblemState.skolemFunctions should be (Set(FuncDecl("sk_0", A, A)))
     }
     
     test("all exists all") {
@@ -82,15 +74,11 @@ class SkolemizeTransformerTest extends UnitSuite {
         val expected = baseTheory
             .withFunctionDeclaration(FuncDecl.mkFuncDecl("sk_0", A, A))
             .withAxiom(Forall(x.of(A), Forall(z.of(A), App("R", x, App("sk_0", x), z))))
-            
-        skolemizer(ProblemState(theory)) should be (ProblemState(
-            expected,
-            Map.empty,
-            Set.empty,
-            Set(FuncDecl("sk_0", A, A)),
-            Set.empty,
-            List.empty
-        ))
+        
+        val newProblemState = skolemizer(ProblemState(theory))
+        newProblemState.theory should be (expected)
+        newProblemState.skolemConstants should be (Set.empty[AnnotatedVar])
+        newProblemState.skolemFunctions should be (Set(FuncDecl("sk_0", A, A)))
     }
     
     test("multiple skolem functions") {
@@ -109,14 +97,10 @@ class SkolemizeTransformerTest extends UnitSuite {
                 Forall(z.of(A), App("Q", App("sk_1", z), z)),
                 App("P", Var("sk_2"))))
         
-        skolemizer(ProblemState(theory)) should be (ProblemState(
-            expected,
-            Map.empty,
-            Set(Var("sk_2") of A),
-            Set(FuncDecl("sk_0", A, A), FuncDecl("sk_1", A, A)),
-            Set.empty,
-            List.empty
-        ))
+        val newProblemState = skolemizer(ProblemState(theory))
+        newProblemState.theory should be (expected)
+        newProblemState.skolemConstants should be (Set(Var("sk_2") of A))
+        newProblemState.skolemFunctions should be (Set(FuncDecl("sk_0", A, A), FuncDecl("sk_1", A, A)))
     }
     
     // TODO how to test when technically the order of arguments is not guaranteed?
@@ -130,15 +114,11 @@ class SkolemizeTransformerTest extends UnitSuite {
         val expected = baseTheory
             .withConstant(Var("sk_0").of(B))
             .withAxiom(Forall(x.of(A), App("S", Var("sk_0"))))
-            
-        skolemizer(ProblemState(theory)) should be (ProblemState(
-            expected,
-            Map.empty,
-            Set(Var("sk_0") of B),
-            Set.empty,
-            Set.empty,
-            List.empty
-        ))
+        
+        val newProblemState = skolemizer(ProblemState(theory))
+        newProblemState.theory should be (expected)
+        newProblemState.skolemConstants should be (Set(Var("sk_0") of B))
+        newProblemState.skolemFunctions should be (Set.empty[FuncDecl])
     }
     
     // Only the free variables actually used should be made as arguments to the skolem function
@@ -149,15 +129,11 @@ class SkolemizeTransformerTest extends UnitSuite {
         val expected = baseTheory
             .withFunctionDeclaration(FuncDecl.mkFuncDecl("sk_0", A, B))
             .withAxiom(Forall(Seq(x.of(A), z.of(A)), App("T", z, App("sk_0", z))))
-            
-        skolemizer(ProblemState(theory)) should be (ProblemState(
-            expected,
-            Map.empty,
-            Set.empty,
-            Set(FuncDecl("sk_0", A, B)),
-            Set.empty,
-            List.empty
-        ))
+        
+        val newProblemState = skolemizer(ProblemState(theory))
+        newProblemState.theory should be (expected)
+        newProblemState.skolemConstants should be (Set.empty[AnnotatedVar])
+        newProblemState.skolemFunctions should be (Set(FuncDecl("sk_0", A, B)))
     }
     
     test("multivariable Exists") {
@@ -169,14 +145,10 @@ class SkolemizeTransformerTest extends UnitSuite {
             .withFunctionDeclaration(FuncDecl.mkFuncDecl("sk_1", A, A))
             .withAxiom(Forall(x.of(A), App("R", x, App("sk_0", x), App("sk_1", x))))
         
-        skolemizer(ProblemState(theory)) should be (ProblemState(
-            expected,
-            Map.empty,
-            Set.empty,
-            Set(FuncDecl("sk_0", A, A), FuncDecl("sk_1", A, A)),
-            Set.empty,
-            List.empty
-        ))
+        val newProblemState = skolemizer(ProblemState(theory))
+        newProblemState.theory should be (expected)
+        newProblemState.skolemConstants should be (Set.empty[AnnotatedVar])
+        newProblemState.skolemFunctions should be (Set(FuncDecl("sk_0", A, A), FuncDecl("sk_1", A, A)))
     }
     
     test("multi argument") {
@@ -187,14 +159,10 @@ class SkolemizeTransformerTest extends UnitSuite {
             .withFunctionDeclaration(FuncDecl.mkFuncDecl("sk_0", A, B, A))
             .withAxiom(Forall(Seq(x.of(A), z.of(B)), App("R_1", x, App("sk_0", x, z), z)))
         
-        skolemizer(ProblemState(theory)) should be (ProblemState(
-            expected,
-            Map.empty,
-            Set.empty,
-            Set(FuncDecl("sk_0", A, B, A)),
-            Set.empty,
-            List.empty
-        ))
+        val newProblemState = skolemizer(ProblemState(theory))
+        newProblemState.theory should be (expected)
+        newProblemState.skolemConstants should be (Set.empty[AnnotatedVar])
+        newProblemState.skolemFunctions should be (Set(FuncDecl("sk_0", A, B, A)))
     }
     
     // Constants should not be included as arguments to skolem functions
@@ -208,14 +176,10 @@ class SkolemizeTransformerTest extends UnitSuite {
             .withFunctionDeclaration(FuncDecl.mkFuncDecl("sk_0", A, A))
             .withAxiom(Forall(x.of(A), App("R_1", x, App("sk_0", x), z)))
         
-        skolemizer(ProblemState(theory)) should be (ProblemState(
-            expected,
-            Map.empty,
-            Set.empty,
-            Set(FuncDecl("sk_0", A, A)),
-            Set.empty,
-            List.empty
-        ))
+        val newProblemState = skolemizer(ProblemState(theory))
+        newProblemState.theory should be (expected)
+        newProblemState.skolemConstants should be (Set.empty[AnnotatedVar])
+        newProblemState.skolemFunctions should be (Set(FuncDecl("sk_0", A, A)))
     }
     
     // Former bug: was not adding sk_0 to constants, so when encountering it
@@ -231,14 +195,10 @@ class SkolemizeTransformerTest extends UnitSuite {
             .withFunctionDeclaration(FuncDecl.mkFuncDecl("sk_1", A, A))
             .withAxiom(Forall(x.of(A), App("R", x, Var("sk_0"), App("sk_1", x))))
         
-        skolemizer(ProblemState(theory)) should be (ProblemState(
-            expected,
-            Map.empty,
-            Set(Var("sk_0") of A),
-            Set(FuncDecl("sk_1", A, A)),
-            Set.empty,
-            List.empty
-        ))
+        val newProblemState = skolemizer(ProblemState(theory))
+        newProblemState.theory should be (expected)
+        newProblemState.skolemConstants should be (Set(Var("sk_0") of A))
+        newProblemState.skolemFunctions should be (Set(FuncDecl("sk_1", A, A)))
     }
     
     test("name generation 1") {
@@ -253,14 +213,10 @@ class SkolemizeTransformerTest extends UnitSuite {
             .withConstant(Var("sk_1").of(A))
             .withAxiom(App("P", Var("sk_1")))
         
-        skolemizer(ProblemState(theory)) should be (ProblemState(
-            expected,
-            Map.empty,
-            Set(Var("sk_1") of A),
-            Set.empty,
-            Set.empty,
-            List.empty
-        ))
+        val newProblemState = skolemizer(ProblemState(theory))
+        newProblemState.theory should be (expected)
+        newProblemState.skolemConstants should be (Set(Var("sk_1") of A))
+        newProblemState.skolemFunctions should be (Set.empty[FuncDecl])
     }
     
     test("name generation 2") {
@@ -288,14 +244,10 @@ class SkolemizeTransformerTest extends UnitSuite {
                 App("P", Var("sk_3")),
                 Forall(x.of(A), App("Q", x, App("sk_6", x)))))
         
-        skolemizer(ProblemState(theory)) should be (ProblemState(
-            expected,
-            Map.empty,
-            Set(Var("sk_3") of A),
-            Set(FuncDecl("sk_6", A, A)),
-            Set.empty,
-            List.empty
-        ))
+        val newProblemState = skolemizer(ProblemState(theory))
+        newProblemState.theory should be (expected)
+        newProblemState.skolemConstants should be (Set(Var("sk_3") of A))
+        newProblemState.skolemFunctions should be (Set(FuncDecl("sk_6", A, A)))
     }
     
     test("multiple formulas") {
@@ -316,23 +268,13 @@ class SkolemizeTransformerTest extends UnitSuite {
             .withAxiom(App("P", Var("sk_1")))
             .withAxiom(Forall(x.of(A), App("Q", x, App("sk_0", x))))
         
-        val ps1 = ProblemState(
-            expected1,
-            Map.empty,
-            Set(Var("sk_0") of A),
-            Set(FuncDecl("sk_1", A, A)),
-            Set.empty,
-            List.empty
-        )
-        
-        val ps2 = ProblemState(
-            expected2,
-            Map.empty,
-            Set(Var("sk_1") of A),
-            Set(FuncDecl("sk_2", A, A)),
-            Set.empty,
-            List.empty
-        )
-        skolemizer(ProblemState(theory)) should (equal (ps1) or equal (ps2))
+        val newProblemState = skolemizer(ProblemState(theory))
+        newProblemState.theory should (equal (expected1) or equal (expected2))
+        newProblemState.skolemConstants should (
+            equal (Set(Var("sk_0") of A))
+            or equal (Set(Var("sk_1") of A)))
+        newProblemState.skolemFunctions should (
+            equal (Set(FuncDecl("sk_1", A, A)))
+            or equal (Set(FuncDecl("sk_0", A, A))))
     }
 }
