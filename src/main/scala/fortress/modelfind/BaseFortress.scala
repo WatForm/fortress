@@ -6,7 +6,7 @@ import fortress.transformers.TheoryTransformer._ // for implicit conversion to P
 import fortress.solverinterface._
 
 
-abstract class BaseFortress(solverStrategy: SolverStrategy) extends ModelFinderTemplate(solverStrategy) {
+abstract class BaseFortress(solverStrategy: SolverStrategy) extends TransformationModelFinder(solverStrategy) {
     override def transformerSequence(): Seq[ProblemStateTransformer] = {
         val transformerSequence = new scala.collection.mutable.ListBuffer[ProblemStateTransformer]
         transformerSequence += new EnumEliminationTransformer

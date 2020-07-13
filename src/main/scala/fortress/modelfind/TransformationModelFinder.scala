@@ -7,7 +7,7 @@ import fortress.interpretation._
 import fortress.solverinterface._
 import fortress.operations.TermOps._
 
-abstract class ModelFinderTemplate(var solverStrategy: SolverStrategy) extends ModelFinder with ModelFinderSettings {
+abstract class TransformationModelFinder(var solverStrategy: SolverStrategy) extends ModelFinder with ModelFinderSettings {
     private var problemState: ProblemState = ProblemState(Theory.empty)
     // A timer to count how much total time has elapsed
     private val totalTimer: StopWatch = new StopWatch()
@@ -15,8 +15,6 @@ abstract class ModelFinderTemplate(var solverStrategy: SolverStrategy) extends M
     override def checkSat(): ModelFinderResult = {
         // Restart the timer
         totalTimer.startFresh()
-        
-        preTransformationPhase()
         
         val finalTheory: Theory = transformationPhase() match {
             case None => return TimeoutResult
@@ -31,18 +29,16 @@ abstract class ModelFinderTemplate(var solverStrategy: SolverStrategy) extends M
     protected def transformerSequence(): Seq[ProblemStateTransformer]
     
     private def applyTransformer(transformer: ProblemStateTransformer, problemState: ProblemState): ProblemState = {
-        for(logger <- eventLoggers) logger.transformerStarted(transformer)
+        notifyLoggers(_.transformerStarted(transformer))
         val transformationTimer = new StopWatch()
         transformationTimer.startFresh()
         
         val resultingProblemState = transformer(problemState)
         
         val elapsed = transformationTimer.elapsedNano()
-        for(logger <- eventLoggers) logger.transformerFinished(transformer, elapsed)
+        notifyLoggers(_.transformerFinished(transformer, elapsed))
         resultingProblemState
     }
-    
-    private def preTransformationPhase(): Unit = { }
     
     // If times out, returns None. Otherwise, returns the final transformed theory.
     private def transformationPhase(): Option[Theory] = {
@@ -53,15 +49,15 @@ abstract class ModelFinderTemplate(var solverStrategy: SolverStrategy) extends M
             problemState = applyTransformer(transformer, problemState)
             
             if(totalTimer.elapsedNano() >= timeoutNano) {
-                for(logger <- eventLoggers) logger.timeoutInternal()
+                notifyLoggers(_.timeoutInternal())
                 return None
             }
         }
 
-        for(logger <- eventLoggers) logger.allTransformersFinished(problemState.theory, totalTimer.elapsedNano())
+        notifyLoggers(_.allTransformersFinished(problemState.theory, totalTimer.elapsedNano()))
         
         if(totalTimer.elapsedNano() > timeoutNano) {
-            for(logger <- eventLoggers) logger.timeoutInternal()
+            notifyLoggers(_.timeoutInternal())
             return None
         }
         
@@ -70,12 +66,12 @@ abstract class ModelFinderTemplate(var solverStrategy: SolverStrategy) extends M
     
     // Returns the final ModelFinderResult
     private def solverPhase(finalTheory: Theory): ModelFinderResult = {
-        for(logger <- eventLoggers) logger.invokingSolverStrategy()
+        notifyLoggers(_.invokingSolverStrategy())
 
         val remainingMillis = timeoutMilliseconds - totalTimer.elapsedNano().toMilli
         val finalResult: ModelFinderResult = solverStrategy.solve(finalTheory, remainingMillis, eventLoggers.toList)
         
-        for(logger <- eventLoggers) logger.finished(finalResult, totalTimer.elapsedNano())
+        notifyLoggers(_.finished(finalResult, totalTimer.elapsedNano()))
         
         finalResult
     }

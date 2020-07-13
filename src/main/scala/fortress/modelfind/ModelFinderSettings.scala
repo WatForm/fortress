@@ -44,4 +44,7 @@ trait ModelFinderSettings extends ModelFinder {
     
     // Calculate the number of nanoseconds until we must output TIMEOUT
     protected def timeoutNano: Nanoseconds = timeoutMilliseconds.toNano
+    
+    protected def notifyLoggers(notifyFn: EventLogger => Unit): Unit =
+      for(logger <- eventLoggers) notifyFn(logger)
 }
