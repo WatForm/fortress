@@ -19,9 +19,6 @@ abstract class ProcessBuilderSolver extends SolverTemplate {
     private var convertedBytes = new CharArrayWriter
     private var timeout = Milliseconds(60000)
     
-    private val smt2Model: Regex = """^\(\((.+) (.+)\)\)$""".r
-    private val bitVecValue: Regex = """^#(.)(.+)$""".r
-    
     override def convertTheory(theory: Theory): Unit = {
         convertedBytes.reset
         
@@ -111,7 +108,10 @@ abstract class ProcessBuilderSolver extends SolverTemplate {
         (for(constant <- theory.constants) yield {
             val str = pout.get.readLine
             str match {
-                case smt2Model(name, value) => (name -> value)
+                case ProcessBuilderSolver.smt2Model(name, value) => {
+                    Errors.verify(constant.name == name, s""""${constant.name}" should be equal to "$name"""")
+                    (constant.name -> value)
+                }
                 case _ => Errors.unreachable
             }
         }).toMap
@@ -141,7 +141,7 @@ abstract class ProcessBuilderSolver extends SolverTemplate {
             (funcDecl, (for(args <- functionArgs(funcDecl)) yield {
                 val str = pout.get.readLine
                 val value = str match {
-                    case smt2Model(name, value) => value
+                    case ProcessBuilderSolver.smt2Model(name, value) => value
                     case _ => Errors.unreachable
                 }
                 (args, smtValueToFortressValue(value, funcDecl.resultSort, smtValueToDomainElement))
@@ -192,9 +192,14 @@ abstract class ProcessBuilderSolver extends SolverTemplate {
             }
             case IntSort => IntegerLiteral(value.toInt)
             case BitVectorSort(bitwidth) => value match {
-                case bitVecValue(radix, digits) => radix match {
+                case ProcessBuilderSolver.bitVecLiteral(radix, digits) => radix match {
                     case "x" => BitVectorLiteral(Integer.parseInt(digits, 16), bitwidth)
                     case "b" => BitVectorLiteral(Integer.parseInt(digits, 2),  bitwidth)
+                    case _ => Errors.unreachable
+                }
+                case ProcessBuilderSolver.bitVecExpr(digits, bitw) => {
+                    Errors.verify(bitw.toInt == bitwidth)
+                    BitVectorLiteral(digits.toInt, bitwidth)
                 }
                 case _ => Errors.unreachable
             }
@@ -236,6 +241,12 @@ abstract class ProcessBuilderSolver extends SolverTemplate {
     protected def timeoutMillis: Milliseconds = timeout
     
     protected def processArgs: java.util.List[String]
+}
+
+object ProcessBuilderSolver {
+    private val smt2Model: Regex = """^\(\((\S+|\(.+\)) (\S+|\(.+\))\)\)$""".r
+    private val bitVecLiteral: Regex = """^#(.)(.+)$""".r
+    private val bitVecExpr: Regex = """\(_ bv(\d+) (\d+)\)""".r
 }
 
 class CVC4CliSolver extends ProcessBuilderSolver {
