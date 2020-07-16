@@ -11,7 +11,7 @@
 ## High Level Overview
 Fortress is a Java library for finite model finding (FMF).
 It uses many-sorted first-order logic (MSFOL), which is a variation of first-order logic that uses a system of simple sorts (i.e. simple types).
-Given a MSFOL theory and sizes for each of its sorts, Fortress answers whether there is an interpretation that satisfies the theory and respects those sizes.
+Given an MSFOL theory and sizes for each of its sorts, Fortress answers whether there is an interpretation that satisfies the theory and respects those sizes.
 
 ## Whirlwind Tour
 There are two steps to creating a theory:
@@ -49,7 +49,7 @@ Let's start with the functions.
 ```java
 // Create function declaration objects
 FuncDecl holeOf = FuncDecl.mkFuncDecl("holeOf", Pigeon, Hole); // Hole assignment function
-FuncDecl isMean = FuncDecl.mkFuncDecl("isMean", P, Sort.Bool()) // predicate to specify mean pigeons
+FuncDecl isMean = FuncDecl.mkFuncDecl("isMean", P, Sort.Bool()) // Predicate to specify mean pigeons
 
 // Add function declaration to theory
 theory = theory.withFunctionDeclarations(holeOf, isMean);
@@ -57,7 +57,7 @@ theory = theory.withFunctionDeclarations(holeOf, isMean);
 
 Let's do constants next.
 First, we make `Var` objects for the constants.
-We adding them to the theory, we have to specify the constant's sort.
+When adding them to the theory, we have to specify the constant's sort.
 We do this by annotating the `Var` object with its sort by using the `of` method.
 
 ```java

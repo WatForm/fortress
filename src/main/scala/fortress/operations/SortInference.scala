@@ -212,7 +212,12 @@ object SortInference {
         
         val substitution = SortSubstitution.computeSigMapping(generalTheory.signature, theory.signature)
         
-        (generalTheory, substitution)
+        // If the substitution does nothing except rename sorts (i.e. sort inference did nothing)
+        // then just return the original theory
+        // Otherwise, return the more general inferred theory
+        if(substitution.isBijectiveRenaming)
+            (theory, SortSubstitution.identity)
+        else (generalTheory, substitution)
     }
     
 }

@@ -10,4 +10,12 @@ object Maps {
         Errors.precondition(noConflict(map1, map2))
         map1 ++ map2
     }
+    
+    def isInjective[A, B](map: Map[A, B]): Boolean = {
+        map.values.toSet.size == map.keySet.size
+    }
+    
+    def isIdentity[A](map: Map[A, A]): Boolean = {
+        map.forall{case (x, y) => x == y}
+    }
 }

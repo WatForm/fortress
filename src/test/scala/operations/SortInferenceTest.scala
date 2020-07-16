@@ -162,4 +162,20 @@ class SortInferenceTest extends UnitSuite {
         generalTheory should be (expectedTheory)
         substitution(generalTheory) should be (theory)
     }
+    
+    test("when theory is already maximally general, return original theory") {
+        val f = FuncDecl("f", A, A, A)
+        val x = Var("x")
+        
+        val ax = Forall(x of A, App("f", x, x) === x)
+        
+        val theory = Theory.empty
+            .withSorts(A)
+            .withFunctionDeclarations(f)
+            .withAxiom(ax)
+            
+        val (generalTheory, substitution) = theory.inferSorts
+        generalTheory should be (theory)
+        substitution shouldBe 'isIdentity
+    }
 }

@@ -3,13 +3,20 @@ package fortress.operations
 import scala.language.implicitConversions
 import fortress.msfol._
 import fortress.util.Errors
+import fortress.util.Maps
 
 import scala.collection.mutable
 
+/**
+ * Trait that extends a function from Sort to Sort by applying it to all Sorts appearing 
+ * in a term, declaration, signature, theory, etc.
+ */
 trait SortApplication {
     
+    // The function from Sorts to Sorts
     def apply(sort: Sort): Sort
     
+    // Apply the Sort function to every appearence of a Sort in a Term.
     def apply(term: Term): Term = term match {
         case Top | Bottom | Var(_)  => term
         case Not(p) => Not(apply(p))
@@ -33,14 +40,17 @@ trait SortApplication {
         case IfThenElse(condition, ifTrue, ifFalse) => IfThenElse(apply(condition), apply(ifTrue), apply(ifFalse))
     }
     
+    // Apply the Sort function to every appearence of a Sort in a FuncDecl.
     def apply(f: FuncDecl): FuncDecl = f match {
         case FuncDecl(name, argSorts, resultSort) => FuncDecl(name, argSorts map apply, apply(resultSort))
     }
     
+    // Apply the Sort function to every appearence of a Sort in an AnnotatedVar.
     def apply(avar: AnnotatedVar): AnnotatedVar = avar match {
         case AnnotatedVar(name, sort) => AnnotatedVar(name, apply(sort))
     }
     
+    // Apply the Sort function to every appearence of a Sort in a Signature.
     def apply(signature: Signature): Signature = signature match {
         case Signature(sorts, functionDeclarations, constants, enumConstants) => {
             Errors.precondition(enumConstants.isEmpty)
@@ -53,11 +63,13 @@ trait SortApplication {
         }
     }
     
+    // Apply the Sort function to every appearence of a Sort in a Theory.
     def apply(theory: Theory): Theory = {
         Theory.mkTheoryWithSignature(apply(theory.signature))
             .withAxioms(theory.axioms map apply)
     }
     
+    // Apply the Sort function to every appearence of a Sort in a Value.
     def applyValue(value: Value): Value = value match {
         case Top | Bottom => value
         case EnumValue(_) | BitVectorLiteral(_, _) | IntegerLiteral(_) => ???
@@ -89,35 +101,40 @@ class SortSubstitution(mapping: Map[Sort, Sort]) extends SortApplication {
             case (sort, seq) => (sort, seq.map(_._1).toSet)
         }.toMap
     }
+    
+    def isBijectiveRenaming: Boolean = Maps.isInjective(mapping)
+    
+    def isIdentity: Boolean = Maps.isIdentity(mapping)
 }
 
 object SortSubstitution {
+    
+    // Given two signatures with the same function and constant names and arities, compute
+    // a SortSubstitution that transforms the first signature to the second signature.
     def computeSigMapping(input: Signature, output: Signature): SortSubstitution = {
         val mapping: mutable.Map[Sort, Sort] = mutable.Map.empty
         
         // Constants
-        for {
+        val constantsMapping = for {
             inputConst <- input.constants
-            outputConstOption = output.queryConstant(inputConst.variable)
-            if outputConstOption.isDefined
-            outputConst = outputConstOption.get
-        } {
-            mapping += inputConst.sort -> outputConst.sort
-        }
+            outputConst <- output.queryConstant(inputConst.variable)
+        } yield (inputConst.sort -> outputConst.sort)
         
         // Functions
-        for {
-            inputDecl <- input.functionDeclarations
-            outputDeclOption = output.queryUninterpretedFunction(inputDecl.name)
-            if outputDeclOption.isDefined
-            outputDecl = outputDeclOption.get
-        } {
-            val inputSorts = inputDecl.argSorts :+ inputDecl.resultSort
-            val outputSorts = outputDecl.argSorts :+ outputDecl.resultSort
-            Errors.assertion(inputSorts.size == outputSorts.size)
-            mapping ++= inputSorts zip outputSorts
-        }
+        val functionsMapping = {
+            for {
+                inputDecl <- input.functionDeclarations
+                outputDecl <- output.queryUninterpretedFunction(inputDecl.name)
+            } yield {
+                val inputSorts = inputDecl.argSorts :+ inputDecl.resultSort
+                val outputSorts = outputDecl.argSorts :+ outputDecl.resultSort
+                Errors.assertion(inputSorts.size == outputSorts.size)
+                inputSorts zip outputSorts
+            }
+        }.flatten
         
-        new SortSubstitution(mapping.toMap)
+        new SortSubstitution((constantsMapping ++ functionsMapping).toMap)
     }
+    
+    def identity: SortSubstitution = new SortSubstitution(Map.empty)
 }
