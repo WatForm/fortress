@@ -38,7 +38,7 @@ class InsertionOrderedSetSuite extends UnitSuite {
     test("insertion ordered") {
         val set = InsertionOrderedSet.empty[String] + "cat" + "dog" + "mouse" + "rat" + "raccoon" + "bird"
         
-        val iter = set.iterator;
+        val iter = set.iterator
         assert(iter.next == "cat")
         assert(iter.next == "dog")
         assert(iter.next == "mouse")
@@ -49,5 +49,23 @@ class InsertionOrderedSetSuite extends UnitSuite {
         val list = set.toList
         
         assert(list == List("cat", "dog", "mouse", "rat", "raccoon", "bird"))
+    }
+    
+    test("removal") {
+        val set = InsertionOrderedSet.empty[String] + "cat" + "dog" + "mouse" + "rat" + "raccoon" + "bird"
+        val set2 = set excl "rat"
+        
+        assert(set2 == Set("cat", "dog", "mouse", "raccoon", "bird"))
+        
+        val iter = set2.iterator
+        assert(iter.next == "cat")
+        assert(iter.next == "dog")
+        assert(iter.next == "mouse")
+        assert(iter.next == "raccoon")
+        assert(iter.next == "bird")
+        
+        val list = set2.toList
+        
+        assert(list == List("cat", "dog", "mouse", "raccoon", "bird"))
     }
 }
