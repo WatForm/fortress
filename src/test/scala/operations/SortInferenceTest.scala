@@ -176,6 +176,6 @@ class SortInferenceTest extends UnitSuite {
             
         val (generalTheory, substitution) = theory.inferSorts
         generalTheory should be (theory)
-        substitution shouldBe 'isIdentity
+        substitution shouldBe Symbol("isIdentity")
     }
 }

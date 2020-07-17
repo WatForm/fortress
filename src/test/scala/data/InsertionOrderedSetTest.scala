@@ -2,7 +2,7 @@ import org.scalatest._
 
 import fortress.data.InsertionOrderedSet
 
-class InsertionOrderedSetSuite extends UnitSuite {
+class InsertionOrderedSetTest extends UnitSuite {
     
     test("equality with Sets") {
         val s1: Set[Integer] = InsertionOrderedSet.empty
