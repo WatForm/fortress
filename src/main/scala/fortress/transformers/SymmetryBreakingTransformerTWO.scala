@@ -37,7 +37,7 @@ class SymmetryBreakingTransformerTWO(selectionHeuristic: SelectionHeuristic) ext
             @scala.annotation.tailrec
             def loop(usedFunctionsPredicates: Set[FuncDecl]): Unit = {
                 val remaining = fp diff usedFunctionsPredicates
-                selectionHeuristic.nextFunctionPredicate(breaker.usedDomainElements, remaining) match {
+                selectionHeuristic.nextFunctionPredicate(breaker.tracker, remaining) match {
                     case None => ()
                     case Some(p @ FuncDecl(_, _, BoolSort)) => {
                         breaker.breakPredicate(p)

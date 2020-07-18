@@ -7,7 +7,7 @@ import fortress.util.Errors
 import scala.collection.mutable
 
 class SymmetryBreaker(theory: Theory, scopes: Map[Sort, Int]) {
-    private val tracker = DomainElementTracker.create(theory, scopes)
+    val tracker = DomainElementTracker.create(theory, scopes)
     
     // Accumulates the symmetry breaking constraints
     val constraints = new mutable.ListBuffer[Term]
