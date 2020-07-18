@@ -5,6 +5,7 @@ import fortress.transformers.TheoryTransformer._ // for implicit conversion to P
 import fortress.solverinterface._
 import fortress.interpretation._
 import fortress.operations._
+import fortress.symmetry._
 
 class FortressTWO_SI(solverStrategy: SolverStrategy) extends TransformationModelFinder(solverStrategy) {
     def this() = this(new Z3ApiSolver)
@@ -30,6 +31,6 @@ class FortressTWO_SI(solverStrategy: SolverStrategy) extends TransformationModel
     }
     
     def symmetryBreakingTransformers(): Seq[ProblemStateTransformer] = Seq(
-        new SymmetryBreakingTransformerTWO
+        new SymmetryBreakingTransformerTWO(FunctionsFirstAnyOrder)
     )
 }
