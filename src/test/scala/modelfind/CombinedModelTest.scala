@@ -122,4 +122,32 @@ class CombinedModelTest extends UnitSuite {
 
         finder.countValidModels(resultTheory) should be (120)
     }
+    
+    test("graph isomorphism count") {
+        val classLoader: ClassLoader = getClass.getClassLoader
+        val file = new File(classLoader.getResource("graph-isomorphism.smt2").getFile)
+        val fileStream = new FileInputStream(file)
+
+        val parser = new SmtLibParser
+        val resultTheory = parser.parse(fileStream)
+
+        val finder = ModelFinder.createDefault()
+
+        finder.setAnalysisScope(SortConst("V1"), 2)
+        finder.setAnalysisScope(SortConst("V2"), 2)
+        finder.setTheory(resultTheory)
+        finder.countValidModels(resultTheory) should be (2)
+        /**
+        V1 = {a, b}
+        V2 = {x, y}
+        
+        // Soln 1
+        adj1 = empty
+        adj2 = empty
+        
+        // Soln 2
+        adj1 = {(a, b), (b, a)}
+        adj2 = {(x, y), (y, x)}
+        */
+    }
 }
