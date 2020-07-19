@@ -136,7 +136,7 @@ class CombinedModelTest extends UnitSuite {
         finder.setAnalysisScope(SortConst("V1"), 2)
         finder.setAnalysisScope(SortConst("V2"), 2)
         finder.setTheory(resultTheory)
-        finder.countValidModels(resultTheory) should be (2)
+        finder.countValidModels(resultTheory) should be (4)
         /**
         V1 = {a, b}
         V2 = {x, y}
@@ -144,10 +144,22 @@ class CombinedModelTest extends UnitSuite {
         // Soln 1
         adj1 = empty
         adj2 = empty
+        f = a -> x, b -> y
         
         // Soln 2
+        adj1 = empty
+        adj2 = empty
+        f = a -> y, b -> x
+        
+        // Soln 3
         adj1 = {(a, b), (b, a)}
         adj2 = {(x, y), (y, x)}
+        f = a -> x, b -> y
+        
+        // Soln 4
+        adj1 = {(a, b), (b, a)}
+        adj2 = {(x, y), (y, x)}
+        f = a -> y, b -> x
         */
     }
 }

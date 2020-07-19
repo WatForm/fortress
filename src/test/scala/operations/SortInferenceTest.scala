@@ -11,11 +11,11 @@ class SortInferenceTest extends UnitSuite {
     val C = Sort.mkSortConst("C")
     val D = Sort.mkSortConst("D")
     
-    val _0 = Sort.mkSortConst("0")
-    val _1 = Sort.mkSortConst("1")
-    val _2 = Sort.mkSortConst("2")
-    val _3 = Sort.mkSortConst("3")
-    val _4 = Sort.mkSortConst("4")
+    val _0 = Sort.mkSortConst("S0")
+    val _1 = Sort.mkSortConst("S1")
+    val _2 = Sort.mkSortConst("S2")
+    val _3 = Sort.mkSortConst("S3")
+    val _4 = Sort.mkSortConst("S4")
     
     test("function, no axioms", ImplSensitive) {
         val f = FuncDecl("f", A, A, A)

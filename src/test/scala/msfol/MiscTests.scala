@@ -10,8 +10,10 @@ class MiscTests extends UnitSuite {
     
     test("variable as domain element") {
         val Foo = Sort.mkSortConst("Foo")
+        val V1 = Sort.mkSortConst("V1")
         DomainElement.interpretName("x") should be (None)
         DomainElement.interpretName(DomainElement(12, Foo).asSmtConstant.name) should be (Some(DomainElement(12, Foo)))
+        DomainElement.interpretName(DomainElement(12, V1).asSmtConstant.name) should be (Some(DomainElement(12, V1)))
     }
     
     test("distinct as pairwise not equals") {

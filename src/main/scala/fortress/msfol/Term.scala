@@ -300,9 +300,10 @@ object DomainElement {
     
     def interpretName(name: String): Option[DomainElement] = {
         if(name startsWith DomainElement.prefix) {
-            val rest = name drop DomainElement.prefix.length
+            val s = name drop DomainElement.prefix.length
             val ints = Set('0', '1', '2', '3', '4', '5', '6', '7', '8', '9')
-            val (indexStr, sortStr) = rest.partition(ints contains _)
+            val i = s.indexWhere(!ints.contains(_))
+            val (indexStr, sortStr) = s splitAt i
             Some(DomainElement(indexStr.toInt, SortConst(sortStr)))
         } else None
     }

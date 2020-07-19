@@ -17,7 +17,9 @@ object SortInference {
             Booleans don't need to be factored into equation solving.
             Only solve equations between type variables.
         */
-        def sortVar(index: Int): SortConst = SortConst(index.toString)
+        def sortVar(index: Int): SortConst = SortConst("S" + index.toString)
+        
+        def sortVarAsInt(s: SortConst): Int = s.name.tail.toInt
         
         object freshSubstitution extends SortApplication {
             var index = 0
@@ -168,8 +170,8 @@ object SortInference {
         for(Equation(lsort, rsort) <- equations) {
             (lsort, rsort) match {
                 case (lsort: SortConst, rsort: SortConst) => {
-                    val lInt = lsort.name.toInt
-                    val rInt = rsort.name.toInt
+                    val lInt = sortVarAsInt(lsort)
+                    val rInt = sortVarAsInt(rsort)
                     unionFind.union(lInt, rInt)
                 }
                 case _ => ???
@@ -179,8 +181,8 @@ object SortInference {
         // Substitute sorts
         object sortSubstitution extends SortApplication {
             override def apply(sort: Sort): Sort = sort match {
-                case SortConst(indexStr) => {
-                    val index = indexStr.toInt
+                case s @ SortConst(indexStr) => {
+                    val index = sortVarAsInt(s)
                     val representative = unionFind.find(index)
                     sortVar(representative)
                 }
