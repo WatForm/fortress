@@ -13,7 +13,7 @@ import fortress.modelfind.ProblemState
 * the original axioms plus additional symmetry breaking axioms, and is
 * equisatisfiable to the original.
 */
-class SymmetryBreakingTransformerTWO(selectionHeuristic: SelectionHeuristic) extends ProblemStateTransformer {
+class SymmetryBreakingTransformer(selectionHeuristic: SelectionHeuristic) extends ProblemStateTransformer {
         
     def apply(problemState: ProblemState): ProblemState = problemState match {
         case ProblemState(theory, scopes, skc, skf, rangeRestricts, unapplyInterp) => {
@@ -57,5 +57,5 @@ class SymmetryBreakingTransformerTWO(selectionHeuristic: SelectionHeuristic) ext
         }
     }
     
-    val name: String = "Symmetry Breaking Transformer - TWO" 
+    val name: String = s"Symmetry Breaking Transformer (${selectionHeuristic.name})" 
 }

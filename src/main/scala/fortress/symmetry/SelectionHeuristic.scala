@@ -5,16 +5,19 @@ import fortress.operations.TermOps._
 import fortress.util.Errors
 
 trait SelectionHeuristic {
+    
+    def name: String
+    
     // Select the next function or predicate
     def nextFunctionPredicate(
         tracker: DomainElementTracker,
         remaining: Set[FuncDecl]
     ): Option[FuncDecl]
     
-    def acceptableFunction(fn: FuncDecl): Boolean =
+    protected def acceptableFunction(fn: FuncDecl): Boolean =
         (fn.argSorts :+ fn.resultSort) forall (!_.isBuiltin)
         
-    def acceptablePredicate(p: FuncDecl): Boolean =
+    protected def acceptablePredicate(p: FuncDecl): Boolean =
         (p.argSorts forall (!_.isBuiltin)) && (p.resultSort == BoolSort)
 }
 
@@ -26,9 +29,13 @@ object FunctionsFirstAnyOrder extends SelectionHeuristic {
         
         (remaining find acceptableFunction) orElse (remaining find acceptablePredicate)
     }
+    
+    override def name = "Functions First, Any Order"
 }
 
 object FunctionsFirstGreedy extends SelectionHeuristic {
+    
+    override def name = "Functions First, Greedy"
     
     override def nextFunctionPredicate(
         tracker: DomainElementTracker,
@@ -58,6 +65,9 @@ object FunctionsFirstGreedy extends SelectionHeuristic {
 }
 
 object Random extends SelectionHeuristic {
+    
+    override def name = "Random"
+    
     override def nextFunctionPredicate(
         tracker: DomainElementTracker,
         remaining: Set[FuncDecl]
@@ -65,5 +75,20 @@ object Random extends SelectionHeuristic {
         
         val valid = (remaining filter (f => acceptableFunction(f) || acceptablePredicate(f)))
         scala.util.Random.shuffle(valid.toList).headOption
+    }
+}
+
+object AtoAOnlyAnyOrder extends SelectionHeuristic {
+    
+    override def name = "A -> A Only, Any Order"
+    
+    private def isAtoA(f: FuncDecl): Boolean = f.argSorts.forall(_ == f.resultSort) && !f.resultSort.isBuiltin
+    
+    override def nextFunctionPredicate(
+        tracker: DomainElementTracker,
+        remaining: Set[FuncDecl]
+    ): Option[FuncDecl] = {
+        
+        (remaining filter isAtoA).headOption
     }
 }
