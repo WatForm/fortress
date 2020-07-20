@@ -13,11 +13,11 @@ import fortress.modelfind.ProblemState
 * the original axioms plus additional symmetry breaking axioms, and is
 * equisatisfiable to the original.
 */
-class SymmetryBreakingTransformer_NoImp(selectionHeuristic: SelectionHeuristic) extends ProblemStateTransformer {
+class SymmetryBreakingTransformer_Imp0(selectionHeuristic: SelectionHeuristic) extends ProblemStateTransformer {
         
     def apply(problemState: ProblemState): ProblemState = problemState match {
         case ProblemState(theory, scopes, skc, skf, rangeRestricts, unapplyInterp) => {
-            val breaker = new NoImpSymmetryBreaker(theory, scopes)
+            val breaker = new Imp0SymmetryBreaker(theory, scopes)
             
             breaker.breakConstants(theory.constants)
             

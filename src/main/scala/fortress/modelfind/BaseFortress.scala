@@ -19,9 +19,9 @@ abstract class BaseFortress(solverStrategy: SolverStrategy) extends Transformati
         transformerSequence += new NnfTransformer
         transformerSequence += new SkolemizeTransformer
         transformerSequence ++= symmetryBreakingTransformers
-        transformerSequence += QuantifierExpansionTransformer.create()
+        transformerSequence += QuantifierExpansionSimplifierTransformer.create()
         transformerSequence += RangeFormulaTransformer.create()
-        transformerSequence += new SimplifyTransformer
+        // transformerSequence += new SimplifyTransformer
         transformerSequence += new DomainEliminationTransformer2
         transformerSequence.toList
     }

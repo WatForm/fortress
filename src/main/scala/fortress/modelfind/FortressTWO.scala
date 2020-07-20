@@ -45,10 +45,18 @@ class FortressTWO_NoSymSkolem(solverStrategy: SolverStrategy) extends BaseFortre
     )
 }
 
-class FortressTWO_NoImp(solverStrategy: SolverStrategy) extends BaseFortress(solverStrategy) {
+class FortressTWO_Imp0(solverStrategy: SolverStrategy) extends BaseFortress(solverStrategy) {
     def this() = this(new Z3ApiSolver)
     
     override def symmetryBreakingTransformers(): Seq[ProblemStateTransformer] = Seq(
-        new SymmetryBreakingTransformer_NoImp(FunctionsFirstAnyOrder)
+        new SymmetryBreakingTransformer_Imp0(FunctionsFirstAnyOrder)
+    )
+}
+
+class FortressTWO_Imp1(solverStrategy: SolverStrategy) extends BaseFortress(solverStrategy) {
+    def this() = this(new Z3ApiSolver)
+    
+    override def symmetryBreakingTransformers(): Seq[ProblemStateTransformer] = Seq(
+        new SymmetryBreakingTransformer_Imp1(FunctionsFirstAnyOrder)
     )
 }
