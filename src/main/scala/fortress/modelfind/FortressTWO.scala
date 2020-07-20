@@ -13,14 +13,6 @@ class FortressTWO(solverStrategy: SolverStrategy) extends BaseFortress(solverStr
     )
 }
 
-class FortressTWO_BETA(solverStrategy: SolverStrategy) extends BaseFortress(solverStrategy) {
-    def this() = this(new Z3ApiSolver)
-    
-    override def symmetryBreakingTransformers(): Seq[ProblemStateTransformer] = Seq(
-        new SymmetryBreakingTransformer_BETA(FunctionsFirstAnyOrder)
-    )
-}
-
 class FortressTWO_G(solverStrategy: SolverStrategy) extends BaseFortress(solverStrategy) {
     def this() = this(new Z3ApiSolver)
     
