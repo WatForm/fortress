@@ -6,16 +6,39 @@ import fortress.util.Errors
 
 import scala.collection.mutable
 
-class SymmetryBreaker(theory: Theory, scopes: Map[Sort, Int]) {
+abstract class SymmetryBreaker(theory: Theory, scopes: Map[Sort, Int]) {
     val tracker = DomainElementTracker.create(theory, scopes)
     
     // Accumulates the symmetry breaking constraints
     val constraints = new mutable.ListBuffer[Term]
     val newRangeRestrictions = new mutable.ListBuffer[RangeRestriction]
     
-    def breakConstants(): Unit = {
+    def breakConstants(constantsToBreak: Set[AnnotatedVar]): Unit
+    def breakFunction(f: FuncDecl): Unit
+    def breakPredicate(P: FuncDecl): Unit
+    
+    def usedDomainElements: Map[Sort, Set[DomainElement]] = tracker.usedDomainElements
+    
+    protected def addRangeRestrictions(rangeRestrictions: Set[RangeRestriction]): Unit = {
+        // Add to constraints
+        constraints ++= rangeRestrictions map (_.asFormula)
+        newRangeRestrictions ++= rangeRestrictions
+        // Add to used values
+        tracker.markUsed(rangeRestrictions flatMap (_.asFormula.domainElements))
+    }
+    protected def addGeneralConstraints(fmls: Set[Term]): Unit = {
+        // Add to constraints
+        constraints ++= fmls
+        // Add to used values
+        tracker.markUsed(fmls flatMap (_.domainElements))
+    }
+}
+
+class DefaultSymmetryBreaker(theory: Theory, scopes: Map[Sort, Int]) extends SymmetryBreaker(theory, scopes) {
+    
+    override def breakConstants(constantsToBreak: Set[AnnotatedVar]): Unit = {
         for(sort <- theory.sorts if !sort.isBuiltin && tracker.stillUnusedDomainElements(sort)) {
-            val constants = theory.constants.filter(_.sort == sort).toIndexedSeq
+            val constants = constantsToBreak.filter(_.sort == sort).toIndexedSeq
             val usedVals = tracker.usedDomainElements(sort).toIndexedSeq
             val scope = scopes(sort)
             val constantRangeRestrictions = Symmetry.csConstantRangeRestrictions(sort, constants, scope, usedVals)
@@ -31,7 +54,7 @@ class SymmetryBreaker(theory: Theory, scopes: Map[Sort, Int]) {
         }
     }
     
-    def breakFunction(f: FuncDecl): Unit = {
+    override def breakFunction(f: FuncDecl): Unit = {
         val resultSort = f.resultSort
         val scope = scopes(resultSort)
         val usedVals = tracker.usedDomainElements(resultSort).toIndexedSeq
@@ -63,7 +86,7 @@ class SymmetryBreaker(theory: Theory, scopes: Map[Sort, Int]) {
         }
     }
     
-    def breakPredicate(P: FuncDecl): Unit = {
+    override def breakPredicate(P: FuncDecl): Unit = {
         if(P.argSorts forall (tracker.numUnusedDomainElements(_) >= 2)) { // Need at least 2 unused values to do any symmetry breaking
             val usedValues: Map[Sort, IndexedSeq[DomainElement]] = tracker.usedDomainElements map {
                 case (sort, setOfVals) => (sort, setOfVals.toIndexedSeq)
@@ -76,6 +99,99 @@ class SymmetryBreaker(theory: Theory, scopes: Map[Sort, Int]) {
             tracker.markUsed(pImplications flatMap (_.domainElements))
         }
     }
+}
+
+class DefaultSymmetryBreaker_BETA(theory: Theory, scopes: Map[Sort, Int]) extends SymmetryBreaker(theory, scopes) {
     
-    def usedDomainElements: Map[Sort, Set[DomainElement]] = tracker.usedDomainElements
+    override def breakConstants(constantsToBreak: Set[AnnotatedVar]): Unit = {
+        for(sort <- theory.sorts if !sort.isBuiltin && tracker.stillUnusedDomainElements(sort)) {
+            val constants = constantsToBreak.filter(_.sort == sort).toIndexedSeq
+            val usedVals = tracker.usedDomainElements(sort).toIndexedSeq
+            val scope = scopes(sort)
+            val constantRangeRestrictions = Symmetry.csConstantRangeRestrictions(sort, constants, scope, usedVals)
+            val constantImplications = Symmetry.csConstantImplicationsSimplified(sort, constants, scope, usedVals)
+            
+            addRangeRestrictions(constantRangeRestrictions)
+            addGeneralConstraints(constantImplications)
+        }
+    }
+    
+    override def breakFunction(f: FuncDecl): Unit = {
+        val resultSort = f.resultSort
+        val scope = scopes(resultSort)
+        val usedVals = tracker.usedDomainElements(resultSort).toIndexedSeq
+        
+        if(tracker.stillUnusedDomainElements(resultSort)) {
+            if (f.isDomainRangeDistinct) {
+                // DRD scheme
+                val fRangeRestrictions = Symmetry.drdFunctionRangeRestrictions(f, scopes, usedVals)
+                val fImplications = Symmetry.drdFunctionImplicationsSimplified(f, scopes, usedVals)
+                addRangeRestrictions(fRangeRestrictions)
+                addGeneralConstraints(fImplications)
+                
+            } else {
+                // Extended CS scheme
+                val fRangeRestrictions = Symmetry.csFunctionExtRangeRestrictions(f, scope, usedVals)
+                addRangeRestrictions(fRangeRestrictions)
+            }
+        }
+    }
+    
+    override def breakPredicate(P: FuncDecl): Unit = {
+        if(P.argSorts forall (tracker.numUnusedDomainElements(_) >= 2)) { // Need at least 2 unused values to do any symmetry breaking
+            val usedValues: Map[Sort, IndexedSeq[DomainElement]] = tracker.usedDomainElements map {
+                case (sort, setOfVals) => (sort, setOfVals.toIndexedSeq)
+            }
+            val pImplications = Symmetry.predicateImplications(P, scopes, usedValues)
+            addGeneralConstraints(pImplications)
+        }
+    }
+}
+
+// No implications for functions or constants (but still for predicates)
+class NoImpSymmetryBreaker(theory: Theory, scopes: Map[Sort, Int]) extends SymmetryBreaker(theory, scopes) {
+    
+    override def breakConstants(constantsToBreak: Set[AnnotatedVar]): Unit = {
+        for(sort <- theory.sorts if !sort.isBuiltin && tracker.stillUnusedDomainElements(sort)) {
+            val constants = constantsToBreak.filter(_.sort == sort).toIndexedSeq
+            val usedVals = tracker.usedDomainElements(sort).toIndexedSeq
+            val scope = scopes(sort)
+            val constantRangeRestrictions = Symmetry.csConstantRangeRestrictions(sort, constants, scope, usedVals)
+            // val constantImplications = Symmetry.csConstantImplicationsSimplified(sort, constants, scope, usedVals)
+            
+            addRangeRestrictions(constantRangeRestrictions)
+            // addGeneralConstraints(constantImplications)
+        }
+    }
+    
+    override def breakFunction(f: FuncDecl): Unit = {
+        val resultSort = f.resultSort
+        val scope = scopes(resultSort)
+        val usedVals = tracker.usedDomainElements(resultSort).toIndexedSeq
+        
+        if(tracker.stillUnusedDomainElements(resultSort)) {
+            if (f.isDomainRangeDistinct) {
+                // DRD scheme
+                val fRangeRestrictions = Symmetry.drdFunctionRangeRestrictions(f, scopes, usedVals)
+                // val fImplications = Symmetry.drdFunctionImplicationsSimplified(f, scopes, usedVals)
+                addRangeRestrictions(fRangeRestrictions)
+                // addGeneralConstraints(fImplications)
+                
+            } else {
+                // Extended CS scheme
+                val fRangeRestrictions = Symmetry.csFunctionExtRangeRestrictions(f, scope, usedVals)
+                addRangeRestrictions(fRangeRestrictions)
+            }
+        }
+    }
+    
+    override def breakPredicate(P: FuncDecl): Unit = {
+        if(P.argSorts forall (tracker.numUnusedDomainElements(_) >= 2)) { // Need at least 2 unused values to do any symmetry breaking
+            val usedValues: Map[Sort, IndexedSeq[DomainElement]] = tracker.usedDomainElements map {
+                case (sort, setOfVals) => (sort, setOfVals.toIndexedSeq)
+            }
+            val pImplications = Symmetry.predicateImplications(P, scopes, usedValues)
+            addGeneralConstraints(pImplications)
+        }
+    }
 }

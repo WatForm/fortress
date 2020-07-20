@@ -13,13 +13,13 @@ import fortress.modelfind.ProblemState
 * the original axioms plus additional symmetry breaking axioms, and is
 * equisatisfiable to the original.
 */
-class SymmetryBreakingTransformer(selectionHeuristic: SelectionHeuristic) extends ProblemStateTransformer {
+class SymmetryBreakingTransformer_BETA(selectionHeuristic: SelectionHeuristic) extends ProblemStateTransformer {
         
     def apply(problemState: ProblemState): ProblemState = problemState match {
         case ProblemState(theory, scopes, skc, skf, rangeRestricts, unapplyInterp) => {
-            val breaker = new SymmetryBreaker(theory, scopes)
+            val breaker = new DefaultSymmetryBreaker_BETA(theory, scopes)
             
-            breaker.breakConstants()
+            breaker.breakConstants(theory.constants)
             
             // This weirdness exists to make sure that this version performs symmetry breaking
             // on functions in the same order as the previous version
