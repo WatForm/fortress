@@ -89,4 +89,14 @@ class TheoryOpsTest extends UnitSuite {
     theory.depthQuantification should be(2)
   }
 
+  test("Inferred sorts count") {
+    val f = FuncDecl("f", A, A, A)
+
+    val theory = Theory.empty
+      .withSorts(A)
+      .withFunctionDeclarations(f)
+
+    theory.inferSortsCount should be(2)
+  }
+
 }
