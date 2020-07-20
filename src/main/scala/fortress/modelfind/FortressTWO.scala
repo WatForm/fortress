@@ -9,7 +9,7 @@ class FortressTWO(solverStrategy: SolverStrategy) extends BaseFortress(solverStr
     def this() = this(new Z3ApiSolver)
     
     override def symmetryBreakingTransformers(): Seq[ProblemStateTransformer] = Seq(
-        new SymmetryBreakingTransformer(FunctionsFirstAnyOrder)
+        new SymmetryBreakingTransformer(FunctionsFirstAnyOrder, DefaultSymmetryBreaker)
     )
 }
 
@@ -17,7 +17,7 @@ class FortressTWO_G(solverStrategy: SolverStrategy) extends BaseFortress(solverS
     def this() = this(new Z3ApiSolver)
     
     override def symmetryBreakingTransformers(): Seq[ProblemStateTransformer] = Seq(
-        new SymmetryBreakingTransformer(FunctionsFirstGreedy)
+        new SymmetryBreakingTransformer(FunctionsFirstGreedy, DefaultSymmetryBreaker)
     )
 }
 
@@ -25,7 +25,7 @@ class FortressTWO_R(solverStrategy: SolverStrategy) extends BaseFortress(solverS
     def this() = this(new Z3ApiSolver)
     
     override def symmetryBreakingTransformers(): Seq[ProblemStateTransformer] = Seq(
-        new SymmetryBreakingTransformer(Random)
+        new SymmetryBreakingTransformer(Random, DefaultSymmetryBreaker)
     )
 }
 
@@ -33,7 +33,7 @@ class FortressTWO_NoSymSkolem(solverStrategy: SolverStrategy) extends BaseFortre
     def this() = this(new Z3ApiSolver)
     
     override def symmetryBreakingTransformers(): Seq[ProblemStateTransformer] = Seq(
-        new SymmetryBreakingTransformer_NoSkolem(FunctionsFirstAnyOrder)
+        new SymmetryBreakingTransformer_NoSkolem(FunctionsFirstAnyOrder, DefaultSymmetryBreaker)
     )
 }
 
@@ -41,7 +41,7 @@ class FortressTWO_Imp0(solverStrategy: SolverStrategy) extends BaseFortress(solv
     def this() = this(new Z3ApiSolver)
     
     override def symmetryBreakingTransformers(): Seq[ProblemStateTransformer] = Seq(
-        new SymmetryBreakingTransformer_Imp0(FunctionsFirstAnyOrder)
+        new SymmetryBreakingTransformer(FunctionsFirstAnyOrder, Imp0SymmetryBreaker)
     )
 }
 
@@ -49,7 +49,7 @@ class FortressTWO_Imp1(solverStrategy: SolverStrategy) extends BaseFortress(solv
     def this() = this(new Z3ApiSolver)
     
     override def symmetryBreakingTransformers(): Seq[ProblemStateTransformer] = Seq(
-        new SymmetryBreakingTransformer_Imp1(FunctionsFirstAnyOrder)
+        new SymmetryBreakingTransformer(FunctionsFirstAnyOrder, Imp1SymmetryBreaker)
     )
 }
 
@@ -76,6 +76,6 @@ class FortressTWO_NoElision(solverStrategy: SolverStrategy) extends BaseFortress
     }
     
     override def symmetryBreakingTransformers(): Seq[ProblemStateTransformer] = Seq(
-        new SymmetryBreakingTransformer(FunctionsFirstAnyOrder)
+        new SymmetryBreakingTransformer(FunctionsFirstAnyOrder, DefaultSymmetryBreaker)
     )
 }

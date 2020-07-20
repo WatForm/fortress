@@ -31,6 +31,6 @@ class FortressTWO_SI(solverStrategy: SolverStrategy) extends TransformationModel
     }
     
     def symmetryBreakingTransformers(): Seq[ProblemStateTransformer] = Seq(
-        new SymmetryBreakingTransformer(FunctionsFirstAnyOrder)
+        new SymmetryBreakingTransformer(FunctionsFirstAnyOrder, DefaultSymmetryBreaker)
     )
 }

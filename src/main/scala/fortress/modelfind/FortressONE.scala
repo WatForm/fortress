@@ -9,6 +9,6 @@ class FortressONE(solverStrategy: SolverStrategy) extends BaseFortress(solverStr
     def this() = this(new Z3ApiSolver)
     
     override def symmetryBreakingTransformers(): Seq[ProblemStateTransformer] = Seq(
-        new SymmetryBreakingTransformer(AtoAOnlyAnyOrder)
+        new SymmetryBreakingTransformer(AtoAOnlyAnyOrder, DefaultSymmetryBreaker)
     )
 }

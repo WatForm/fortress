@@ -83,6 +83,8 @@ trait DefaultNonDrdScheme extends DrdDifferentiation {
     }
 }
 
+// Concrete Implementations
+
 class DefaultSymmetryBreaker(theory: Theory, scopes: Map[Sort, Int])
 extends SymmetryBreaker(theory, scopes)
 with DefaultPredicateBreaking
@@ -113,6 +115,10 @@ with DefaultNonDrdScheme {
         addRangeRestrictions(fRangeRestrictions)
         addGeneralConstraints(fImplications)
     }
+}
+
+object DefaultSymmetryBreaker extends SymmetryBreakerFactory {
+    def create(theory: Theory, scopes: Map[Sort, Int]): SymmetryBreaker = new DefaultSymmetryBreaker(theory, scopes)
 }
 
 // No implications for functions or constants (but still for predicates)
@@ -148,6 +154,10 @@ with DefaultNonDrdScheme {
     }
 }
 
+object Imp0SymmetryBreaker extends SymmetryBreakerFactory {
+    def create(theory: Theory, scopes: Map[Sort, Int]): SymmetryBreaker = new Imp0SymmetryBreaker(theory, scopes)
+}
+
 // No implications for functions or constants (but still for predicates)
 class Imp1SymmetryBreaker(theory: Theory, scopes: Map[Sort, Int])
 extends SymmetryBreaker(theory, scopes)
@@ -179,4 +189,8 @@ with DefaultNonDrdScheme {
         addRangeRestrictions(fRangeRestrictions)
         addGeneralConstraints(fImplications)
     }
+}
+
+object Imp1SymmetryBreaker extends SymmetryBreakerFactory {
+    def create(theory: Theory, scopes: Map[Sort, Int]): SymmetryBreaker = new Imp1SymmetryBreaker(theory, scopes)
 }
