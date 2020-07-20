@@ -58,5 +58,5 @@ class SymmetryBreakingTransformer_NoSkolem(selectionHeuristic: SelectionHeuristi
         }
     }
     
-    val name: String = s"Symmetry Breaking Transformer (${selectionHeuristic.name})" 
+    val name: String = s"Symmetry Breaking Transformer No Skolem (${selectionHeuristic.name})" 
 }
