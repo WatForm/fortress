@@ -44,4 +44,6 @@ class CSVLogger(writer: java.io.Writer) extends EventLogger {
         writer.write("total,timeout")
         writer.flush()
     }
+    
+    override def smt2Output(smt2String: String): Unit = { }
 }

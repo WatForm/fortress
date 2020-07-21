@@ -58,4 +58,5 @@ class StandardLogger(writer: java.io.Writer) extends EventLogger {
         writer.flush()
     }
     
+    override def smt2Output(smt2String: String): Unit = { }
 }

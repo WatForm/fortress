@@ -54,7 +54,7 @@ class AvgTimeDetailedLogger extends EventLogger {
     def convertingToSolverFormat(): Unit = { }
     
     override def convertedToSolverFormat(time: Nanoseconds): Unit = {
-        solverConvertTimes += time 
+        solverConvertTimes += time
     }
     
     override def solving(): Unit = { }
@@ -68,4 +68,6 @@ class AvgTimeDetailedLogger extends EventLogger {
     }
     
     override def timeoutInternal(): Unit = { }
+    
+    override def smt2Output(smt2String: String): Unit = { }
 }

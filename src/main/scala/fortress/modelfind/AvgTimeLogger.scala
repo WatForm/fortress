@@ -38,4 +38,6 @@ class AvgTimeLogger extends EventLogger {
     }
     
     override def timeoutInternal(): Unit = { }
+    
+    override def smt2Output(smt2String: String): Unit = { }
 }
