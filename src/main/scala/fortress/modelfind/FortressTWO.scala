@@ -29,6 +29,30 @@ class FortressTWO_R(solverStrategy: SolverStrategy) extends BaseFortress(solverS
     )
 }
 
+class FortressTWO_P(solverStrategy: SolverStrategy) extends BaseFortress(solverStrategy) {
+    def this() = this(new Z3ApiSolver)
+    
+    override def symmetryBreakingTransformers(): Seq[ProblemStateTransformer] = Seq(
+        new SymmetryBreakingTransformer(PredicatesFirstAnyOrder, DefaultSymmetryBreaker)
+    )
+}
+
+class FortressTWO_PG(solverStrategy: SolverStrategy) extends BaseFortress(solverStrategy) {
+    def this() = this(new Z3ApiSolver)
+    
+    override def symmetryBreakingTransformers(): Seq[ProblemStateTransformer] = Seq(
+        new SymmetryBreakingTransformer(PredicatesFirstGreedy, DefaultSymmetryBreaker)
+    )
+}
+
+class FortressTWO_PO(solverStrategy: SolverStrategy) extends BaseFortress(solverStrategy) {
+    def this() = this(new Z3ApiSolver)
+    
+    override def symmetryBreakingTransformers(): Seq[ProblemStateTransformer] = Seq(
+        new SymmetryBreakingTransformer(PredicatesOnlyAnyOrder, DefaultSymmetryBreaker)
+    )
+}
+
 class FortressTWO_NoSymSkolem(solverStrategy: SolverStrategy) extends BaseFortress(solverStrategy) {
     def this() = this(new Z3ApiSolver)
     

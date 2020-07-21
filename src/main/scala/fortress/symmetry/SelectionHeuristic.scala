@@ -33,6 +33,18 @@ object FunctionsFirstAnyOrder extends SelectionHeuristic {
     override def name = "Functions First, Any Order"
 }
 
+object PredicatesFirstAnyOrder extends SelectionHeuristic {
+    override def nextFunctionPredicate(
+        tracker: DomainElementTracker,
+        remaining: Set[FuncDecl]
+    ): Option[FuncDecl] = {
+        
+        (remaining find acceptablePredicate) orElse (remaining find acceptableFunction)
+    }
+    
+    override def name = "Predicates First, Any Order"
+}
+
 object FunctionsFirstGreedy extends SelectionHeuristic {
     
     override def name = "Functions First, Greedy"
@@ -62,6 +74,49 @@ object FunctionsFirstGreedy extends SelectionHeuristic {
         ((remaining filter acceptableFunction).toSeq sortWith fnLessThan).headOption
             .orElse { ((remaining filter acceptablePredicate).toSeq sortWith predLessThan).headOption }
     }
+}
+
+object PredicatesFirstGreedy extends SelectionHeuristic {
+    
+    override def name = "Predicates First, Greedy"
+    
+    override def nextFunctionPredicate(
+        tracker: DomainElementTracker,
+        remaining: Set[FuncDecl]
+    ): Option[FuncDecl] = {
+        
+        // Comparison operation for functions to determine which order
+        // to perform symmetry breaking
+        def fnLessThan(f1: FuncDecl, f2: FuncDecl): Boolean = {
+            // Lowest arity, then largest # of unused result values
+            if (f1.arity < f2.arity) true
+            else if (f1.arity > f2.arity) false
+            else (tracker.numUnusedDomainElements(f1.resultSort)
+                > tracker.numUnusedDomainElements(f2.resultSort))
+        }
+        
+        // Comparison operation for functions to determine which order
+        // to perform symmetry breaking
+        def predLessThan(P1: FuncDecl, P2: FuncDecl): Boolean = {
+            // Lowest arity
+            P1.arity < P2.arity
+        }
+        
+        ((remaining filter acceptablePredicate).toSeq sortWith predLessThan).headOption
+            .orElse { ((remaining filter acceptableFunction).toSeq sortWith fnLessThan).headOption }
+    }
+}
+
+object PredicatesOnlyAnyOrder extends SelectionHeuristic {
+    override def nextFunctionPredicate(
+        tracker: DomainElementTracker,
+        remaining: Set[FuncDecl]
+    ): Option[FuncDecl] = {
+        
+        remaining find acceptablePredicate
+    }
+    
+    override def name = "Predicates Only, Any Order"
 }
 
 object Random extends SelectionHeuristic {
