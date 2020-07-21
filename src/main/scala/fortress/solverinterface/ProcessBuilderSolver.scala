@@ -50,7 +50,17 @@ abstract class ProcessBuilderSolver extends SolverTemplate {
         result match {
             case "sat" => ModelFinderResult.Sat
             case "unsat" => ModelFinderResult.Unsat
-            case _ => ModelFinderResult.Unknown
+            case _ => {
+                pin.get write "(get-info :reason-unknown)\n"
+                pin.get.flush
+
+                var reason = pout.get.readLine
+
+                if(reason.contains("timeout"))
+                    ModelFinderResult.Timeout
+                else
+                    ModelFinderResult.Unknown
+            }
         }
     }
     
