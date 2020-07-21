@@ -194,3 +194,41 @@ with DefaultNonDrdScheme {
 object Imp1SymmetryBreaker extends SymmetryBreakerFactory {
     def create(theory: Theory, scopes: Map[Sort, Int]): SymmetryBreaker = new Imp1SymmetryBreaker(theory, scopes)
 }
+
+// Just Neq
+class Neq0SymmetryBreaker(theory: Theory, scopes: Map[Sort, Int]) extends DefaultSymmetryBreaker(theory, scopes) {
+    override protected def addRangeRestrictions(rangeRestrictions: Set[RangeRestriction]): Unit = {
+        // Add to constraints
+        constraints ++= rangeRestrictions flatMap (rr => {
+            val sort = rr.sort
+            val allDomainElems = (1 to scopes(sort)) map (i => DomainElement(i, sort))
+            rr.asNeqs(allDomainElems)
+        })
+        newRangeRestrictions ++= rangeRestrictions
+        // Add to used values
+        tracker.markUsed(rangeRestrictions flatMap (_.asFormula.domainElements))
+    }
+}
+
+object Neq0SymmetryBreaker extends SymmetryBreakerFactory {
+    def create(theory: Theory, scopes: Map[Sort, Int]): SymmetryBreaker = new Neq0SymmetryBreaker(theory, scopes)
+}
+
+// Neq and OrEqs
+class Neq1SymmetryBreaker(theory: Theory, scopes: Map[Sort, Int]) extends DefaultSymmetryBreaker(theory, scopes) {
+    override protected def addRangeRestrictions(rangeRestrictions: Set[RangeRestriction]): Unit = {
+        // Add to constraints
+        constraints ++= rangeRestrictions flatMap (rr => {
+            val sort = rr.sort
+            val allDomainElems = (1 to scopes(sort)) map (i => DomainElement(i, sort))
+            rr.asNeqs(allDomainElems) :+ rr.asFormula
+        })
+        newRangeRestrictions ++= rangeRestrictions
+        // Add to used values
+        tracker.markUsed(rangeRestrictions flatMap (_.asFormula.domainElements))
+    }
+}
+
+object Neq1SymmetryBreaker extends SymmetryBreakerFactory {
+    def create(theory: Theory, scopes: Map[Sort, Int]): SymmetryBreaker = new Neq1SymmetryBreaker(theory, scopes)
+}

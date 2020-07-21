@@ -79,3 +79,39 @@ class FortressTWO_NoElision(solverStrategy: SolverStrategy) extends BaseFortress
         new SymmetryBreakingTransformer(FunctionsFirstAnyOrder, DefaultSymmetryBreaker)
     )
 }
+
+// Have to use NoElision for range formulas, since the shortened one is not generated.
+class FortressTWO_Neq0(solverStrategy: SolverStrategy) extends BaseFortress(solverStrategy) {
+    def this() = this(new Z3ApiSolver)
+    
+    override def transformerSequence(): Seq[ProblemStateTransformer] = {
+        val transformerSequence = new scala.collection.mutable.ListBuffer[ProblemStateTransformer]
+        transformerSequence += new EnumEliminationTransformer
+        integerSemantics match {
+            case Unbounded => ()
+            case ModularSigned(bitwidth) => {
+                transformerSequence += new IntegerFinitizationTransformer(bitwidth)
+            }
+        }
+        transformerSequence += new NnfTransformer
+        transformerSequence += new SkolemizeTransformer
+        transformerSequence ++= symmetryBreakingTransformers
+        transformerSequence += QuantifierExpansionTransformer.create()
+        transformerSequence += RangeFormulaTransformer_NoElision.create()
+        transformerSequence += new SimplifyTransformer
+        transformerSequence += new DomainEliminationTransformer2
+        transformerSequence.toList
+    }
+    
+    override def symmetryBreakingTransformers(): Seq[ProblemStateTransformer] = Seq(
+        new SymmetryBreakingTransformer(FunctionsFirstAnyOrder, Neq0SymmetryBreaker)
+    )
+}
+
+class FortressTWO_Neq1(solverStrategy: SolverStrategy) extends BaseFortress(solverStrategy) {
+    def this() = this(new Z3ApiSolver)
+    
+    override def symmetryBreakingTransformers(): Seq[ProblemStateTransformer] = Seq(
+        new SymmetryBreakingTransformer(FunctionsFirstAnyOrder, Neq1SymmetryBreaker)
+    )
+}
