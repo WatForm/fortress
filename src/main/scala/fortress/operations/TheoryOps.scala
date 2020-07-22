@@ -66,6 +66,16 @@ case class TheoryOps private (theory: Theory) {
     def depthNestedFunc: Int = {
         theory.axioms.map(TermMetrics.depthNestedFunc).max
     }
+
+    // Returns the number of sorts created by Sort Inference
+    def inferSortsCount: Int = {
+        inferSorts._1.sorts.size - sortCount
+    }
+
+    // Returns whether sort inference found any new sorts
+    def newSortsInferred: Boolean = {
+        inferSortsCount > 0
+    }
 }
 
 object TheoryOps {
