@@ -89,7 +89,7 @@ class TheoryOpsTest extends UnitSuite {
     theory.depthQuantification should be(2)
   }
 
-  test("Inferred sorts count") {
+  test("Sort Inference metrics: new sorts inferred") {
     val f = FuncDecl("f", A, A, A)
 
     val theory = Theory.empty
@@ -97,6 +97,6 @@ class TheoryOpsTest extends UnitSuite {
       .withFunctionDeclarations(f)
 
     theory.inferSortsCount should be(2)
+    theory.newSortsInferred should be(true)
   }
-
 }
