@@ -50,7 +50,7 @@ abstract class ProcessBuilderSolver extends SolverTemplate {
         result match {
             case "sat" => ModelFinderResult.Sat
             case "unsat" => ModelFinderResult.Unsat
-            case _ => {
+            case "unknown" => {
                 pin.get write "(get-info :reason-unknown)\n"
                 pin.get.flush
 
@@ -61,6 +61,7 @@ abstract class ProcessBuilderSolver extends SolverTemplate {
                 else
                     ModelFinderResult.Unknown
             }
+            case _ => ModelFinderResult.Error
         }
     }
     
