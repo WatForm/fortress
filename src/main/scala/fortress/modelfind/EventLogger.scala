@@ -15,4 +15,5 @@ trait EventLogger {
     def solverFinished(time: Nanoseconds): Unit
     def finished(result: ModelFinderResult, time: Nanoseconds): Unit
     def timeoutInternal(): Unit
+    def smt2Output(smt2String: String): Unit
 }

@@ -34,9 +34,12 @@ abstract class SolverTemplate extends SolverStrategy {
         val result: ModelFinderResult = runSolver()
         
         for(logger <- eventLoggers) logger.solverFinished(solverTimer.elapsedNano())
+        logSMT2Output(eventLoggers)
         
         result
     }
+    
+    def logSMT2Output(eventLoggers: Seq[EventLogger]): Unit = { }
     
     protected def convertTheory(theory: Theory): Unit
     protected def updateTimeout(remainingMillis: Milliseconds): Unit

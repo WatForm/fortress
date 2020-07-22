@@ -41,6 +41,12 @@ abstract class ProcessBuilderSolver extends SolverTemplate {
         })
     }
     
+    override def logSMT2Output(eventLoggers: Seq[EventLogger]): Unit = {
+        val smt2Output = convertedBytes.toString
+        
+        for(logger <- eventLoggers) logger.smt2Output(smt2Output)
+    }
+    
     private def checkSat: ModelFinderResult = {
         pin.get write "(check-sat)\n"
         
