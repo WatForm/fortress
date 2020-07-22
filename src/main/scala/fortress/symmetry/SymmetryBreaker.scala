@@ -20,6 +20,7 @@ abstract class SymmetryBreaker(
     // Accumulates the symmetry breaking constraints
     val constraints = new mutable.ListBuffer[Term]
     val newRangeRestrictions = new mutable.ListBuffer[RangeRestriction]
+    val newDeclarations = new mutable.ListBuffer[FuncDecl]
     
     def breakConstants(constantsToBreak: Set[AnnotatedVar]): Unit
     def breakFunction(f: FuncDecl): Unit
@@ -34,11 +35,16 @@ abstract class SymmetryBreaker(
         // Add to used values
         tracker.markUsed(rangeRestrictions flatMap (_.asFormula.domainElements))
     }
+    
     protected def addGeneralConstraints(fmls: Set[Term]): Unit = {
         // Add to constraints
         constraints ++= fmls
         // Add to used values
         tracker.markUsed(fmls flatMap (_.domainElements))
+    }
+    
+    protected def addDeclaration(f: FuncDecl): Unit = {
+        newDeclarations += f
     }
 }
 
@@ -231,4 +237,28 @@ class Neq1SymmetryBreaker(theory: Theory, scopes: Map[Sort, Int]) extends Defaul
 
 object Neq1SymmetryBreaker extends SymmetryBreakerFactory {
     def create(theory: Theory, scopes: Map[Sort, Int]): SymmetryBreaker = new Neq1SymmetryBreaker(theory, scopes)
+}
+
+class RainbowSymmetryBreaker (theory: Theory, scopes: Map[Sort, Int])
+extends SymmetryBreaker(theory, scopes)
+with DrdDifferentiation {
+    override def breakConstants(constantsToBreak: Set[AnnotatedVar]): Unit = { }
+    override def breakNonDrdFunction(f: FuncDecl): Unit = { }
+    override def breakPredicate(P: FuncDecl): Unit = { }
+    
+    override def breakDrdFunction(f: FuncDecl): Unit = {
+        if (
+            f.arity <= 2
+            && f.isRainbowSorted
+            && (f.resultSort +: f.argSorts).forall(tracker.usedDomainElements(_).isEmpty)
+        ) {
+            val usedValues: Map[Sort, IndexedSeq[DomainElement]] = tracker.usedDomainElements map {
+                case (sort, setOfVals) => (sort, setOfVals.toIndexedSeq)
+            }
+            val (ltDecl, formulas, rangeRestrictions) = Symmetry.rainbowFunctionLT(f, scopes, usedValues)
+            addDeclaration(ltDecl)
+            addRangeRestrictions(rangeRestrictions.toSet)
+            addGeneralConstraints(formulas.toSet)
+        }
+    }
 }
