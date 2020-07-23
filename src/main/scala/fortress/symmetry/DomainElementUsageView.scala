@@ -5,10 +5,14 @@ import fortress.operations.TermOps._
 
 // An immutable view to look at the current usage of domain elements.
 // Sequences of domain elements are all returned in numerical order.
-trait DomainElementUsageView {
-    def scope(sort: Sort): Int
+sealed trait DomainElementUsageView {
+    protected def scopeMap: Map[Sort, Int]
     
-    def usedDomainElements(sort: Sort): IndexedSeq[DomainElement]
+    protected def usedDomainElementsMap: Map[Sort, IndexedSeq[DomainElement]]
+    
+    def scope(sort: Sort): Int = scopeMap(sort)
+    
+    def usedDomainElements(sort: Sort): IndexedSeq[DomainElement] = usedDomainElementsMap(sort)
     
     def unusedDomainElements(sort: Sort): IndexedSeq[DomainElement] = {
         val used = usedDomainElements(sort)
@@ -19,9 +23,9 @@ trait DomainElementUsageView {
     
     def existsUnusedDomainElements(sort: Sort): Boolean = numUnusedDomainElements(sort) > 0
     
-    def domainElements(sort: Sort): IndexedSeq[DomainElement] = {
-        (1 to scope(sort)) map { i => DomainElement(i, sort) }
-    }
+    def domainElements(sort: Sort): IndexedSeq[DomainElement] = DomainElement.range(1, scope(sort), sort)
+    
+    def createTracker: DomainElementTracker = DomainElementTracker.create(usedDomainElementsMap, scopeMap)
 }
 
 object DomainElementUsageView {
@@ -31,12 +35,10 @@ object DomainElementUsageView {
     ): DomainElementUsageView = {
         
         object View extends DomainElementUsageView {
-            def scope(sort: Sort): Int = scopes(sort)
-            
-            def usedDomainElements(sort: Sort): IndexedSeq[DomainElement] = {
-                val collection = usedDomainElems(sort)
-                domainElements(sort) filter (collection contains _)
-            }
+            val scopeMap = scopes
+            val usedDomainElementsMap = usedDomainElems.map{
+                case(sort, seq) => sort -> seq.toIndexedSeq.sortWith(_.index < _.index)
+            }.toMap
         }
         View
     }
@@ -47,12 +49,10 @@ object DomainElementUsageView {
     )(implicit d: DummyImplicit): DomainElementUsageView = {
         
         object View extends DomainElementUsageView {
-            def scope(sort: Sort): Int = scopes(sort)
-            
-            def usedDomainElements(sort: Sort): IndexedSeq[DomainElement] = {
-                val collection = usedDomainElems(sort)
-                domainElements(sort) filter (collection contains _)
-            }
+            val scopeMap = scopes
+            val usedDomainElementsMap = usedDomainElems.map{
+                case(sort, seq) => sort -> seq.toIndexedSeq.sortWith(_.index < _.index)
+            }.toMap
         }
         View
     }

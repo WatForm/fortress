@@ -26,8 +26,6 @@ abstract class SymmetryBreaker(
     def breakFunction(f: FuncDecl): Unit
     def breakPredicate(P: FuncDecl): Unit
     
-    def usedDomainElements: Map[Sort, Set[DomainElement]] = tracker.usedDomainElements
-    
     protected def addRangeRestrictions(rangeRestrictions: Set[RangeRestriction]): Unit = {
         // Add to constraints
         constraints ++= rangeRestrictions map (_.asFormula)
@@ -51,10 +49,7 @@ abstract class SymmetryBreaker(
 trait DefaultPredicateBreaking extends SymmetryBreaker {
     override def breakPredicate(P: FuncDecl): Unit = {
         if(P.argSorts forall (tracker.view.numUnusedDomainElements(_) >= 2)) { // Need at least 2 unused values to do any symmetry breaking
-            val usedValues: Map[Sort, IndexedSeq[DomainElement]] = tracker.usedDomainElements map {
-                case (sort, setOfVals) => (sort, setOfVals.toIndexedSeq)
-            }
-            val pImplications = Symmetry.predicateImplications(P, scopes, usedValues)
+            val pImplications = Symmetry.predicateImplications(P, tracker.view)
             addGeneralConstraints(pImplications)
         }
     }

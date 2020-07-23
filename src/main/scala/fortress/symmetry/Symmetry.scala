@@ -365,16 +365,14 @@ object Symmetry {
     
     def predicateImplications(
         P: FuncDecl,
-        scopes: Map[Sort, Int],
-        usedValues: Map[Sort, IndexedSeq[DomainElement]]
+        deView: DomainElementUsageView
     ): Set[Term] = {
             
             Errors.precondition(P.resultSort == BoolSort)
             Errors.precondition(P.argSorts forall (!_.isBuiltin))
-            Errors.precondition(P.argSorts forall (sort => usedValues(sort).size <= scopes(sort)))
             
-            val tracker = DomainElementTracker.create(usedValues, scopes)
-            
+            val tracker = deView.createTracker
+                        
             Errors.precondition(P.argSorts exists (tracker.view.numUnusedDomainElements(_) >= 2))
             
             def fillArgList(sort: Sort, d: DomainElement): ArgList = {

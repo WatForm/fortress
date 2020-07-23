@@ -307,6 +307,9 @@ object DomainElement {
             Some(DomainElement(indexStr.toInt, SortConst(sortStr)))
         } else None
     }
+    
+    def range(min: Int, max: Int, sort: Sort): IndexedSeq[DomainElement] =
+        (min to max) map (i => DomainElement(i, sort))
 }
 
 case class IntegerLiteral private (value: Int) extends Term with LeafTerm with Value {
