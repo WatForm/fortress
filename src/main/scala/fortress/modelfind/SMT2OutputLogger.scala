@@ -18,5 +18,6 @@ class SMT2OutputLogger(writer: java.io.Writer) extends EventLogger {
     
     override def smt2Output(smt2String: String): Unit = {
         writer.write(smt2String);
+        writer.flush();
     }
 }
