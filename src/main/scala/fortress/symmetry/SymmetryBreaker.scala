@@ -84,7 +84,7 @@ trait DefaultNonDrdScheme extends DrdDifferentiation {
         val usedVals = tracker.usedDomainElements(resultSort).toIndexedSeq
         
         // Extended CS scheme
-        val fRangeRestrictions = Symmetry.csFunctionExtRangeRestrictions(f, scope, usedVals)
+        val fRangeRestrictions = Symmetry.csFunctionExtRangeRestrictions(f, tracker.view)
         addRangeRestrictions(fRangeRestrictions)
     }
 }
@@ -102,8 +102,8 @@ with DefaultNonDrdScheme {
             val constants = constantsToBreak.filter(_.sort == sort).toIndexedSeq
             val usedVals = tracker.usedDomainElements(sort).toIndexedSeq
             val scope = scopes(sort)
-            val constantRangeRestrictions = Symmetry.csConstantRangeRestrictions(sort, constants, scope, usedVals)
-            val constantImplications = Symmetry.csConstantImplicationsSimplified(sort, constants, scope, usedVals)
+            val constantRangeRestrictions = Symmetry.csConstantRangeRestrictions(sort, constants, tracker.view)
+            val constantImplications = Symmetry.csConstantImplicationsSimplified(sort, constants, tracker.view)
             
             addRangeRestrictions(constantRangeRestrictions)
             addGeneralConstraints(constantImplications)
@@ -116,8 +116,8 @@ with DefaultNonDrdScheme {
         val usedVals = tracker.usedDomainElements(resultSort).toIndexedSeq
         
         // DRD scheme
-        val fRangeRestrictions = Symmetry.drdFunctionRangeRestrictions(f, scopes, usedVals)
-        val fImplications = Symmetry.drdFunctionImplicationsSimplified(f, scopes, usedVals)
+        val fRangeRestrictions = Symmetry.drdFunctionRangeRestrictions(f, tracker.view)
+        val fImplications = Symmetry.drdFunctionImplicationsSimplified(f, tracker.view)
         addRangeRestrictions(fRangeRestrictions)
         addGeneralConstraints(fImplications)
     }
@@ -139,7 +139,7 @@ with DefaultNonDrdScheme {
             val constants = constantsToBreak.filter(_.sort == sort).toIndexedSeq
             val usedVals = tracker.usedDomainElements(sort).toIndexedSeq
             val scope = scopes(sort)
-            val constantRangeRestrictions = Symmetry.csConstantRangeRestrictions(sort, constants, scope, usedVals)
+            val constantRangeRestrictions = Symmetry.csConstantRangeRestrictions(sort, constants, tracker.view)
             // val constantImplications = Symmetry.csConstantImplicationsSimplified(sort, constants, scope, usedVals)
             
             addRangeRestrictions(constantRangeRestrictions)
@@ -153,7 +153,7 @@ with DefaultNonDrdScheme {
         val usedVals = tracker.usedDomainElements(resultSort).toIndexedSeq
         
         // DRD scheme
-        val fRangeRestrictions = Symmetry.drdFunctionRangeRestrictions(f, scopes, usedVals)
+        val fRangeRestrictions = Symmetry.drdFunctionRangeRestrictions(f, tracker.view)
         // val fImplications = Symmetry.drdFunctionImplicationsSimplified(f, scopes, usedVals)
         addRangeRestrictions(fRangeRestrictions)
         // addGeneralConstraints(fImplications)
@@ -176,8 +176,8 @@ with DefaultNonDrdScheme {
             val constants = constantsToBreak.filter(_.sort == sort).toIndexedSeq
             val usedVals = tracker.usedDomainElements(sort).toIndexedSeq
             val scope = scopes(sort)
-            val constantRangeRestrictions = Symmetry.csConstantRangeRestrictions(sort, constants, scope, usedVals)
-            val constantImplications = Symmetry.csConstantImplications(sort, constants, scope, usedVals)
+            val constantRangeRestrictions = Symmetry.csConstantRangeRestrictions(sort, constants, tracker.view)
+            val constantImplications = Symmetry.csConstantImplications(sort, constants, tracker.view)
             
             addRangeRestrictions(constantRangeRestrictions)
             addGeneralConstraints(constantImplications)
@@ -190,8 +190,8 @@ with DefaultNonDrdScheme {
         val usedVals = tracker.usedDomainElements(resultSort).toIndexedSeq
         
         // DRD scheme
-        val fRangeRestrictions = Symmetry.drdFunctionRangeRestrictions(f, scopes, usedVals)
-        val fImplications = Symmetry.drdFunctionImplications(f, scopes, usedVals)
+        val fRangeRestrictions = Symmetry.drdFunctionRangeRestrictions(f, tracker.view)
+        val fImplications = Symmetry.drdFunctionImplications(f, tracker.view)
         addRangeRestrictions(fRangeRestrictions)
         addGeneralConstraints(fImplications)
     }

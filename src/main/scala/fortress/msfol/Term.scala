@@ -9,7 +9,7 @@ import scala.annotation.varargs // So we can call Scala varargs methods from Jav
 import fortress.operations.TermOps._
 
 /** Representation of a syntactic Term. */
-sealed abstract class Term {
+sealed trait Term {
     def accept[T](visitor: TermVisitor[T]): T
     
     def freeVarConstSymbolsJava: java.util.Set[Var] = this.freeVarConstSymbols.asJava

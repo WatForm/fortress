@@ -3,7 +3,7 @@ package fortress.util
 import fortress.msfol._
 import fortress.data._
 
-class ArgumentListGenerator(scopes: Map[Sort, Int]) {
+class ArgumentListGenerator(scopes: PartialFunction[Sort, Int]) {
     
     /** Given a function f: A_1 x ... x A_n -> B, returns an iterable object containing
     all the possible argument combination to the functions. Each argument combination is given as

@@ -12,20 +12,14 @@ object Symmetry {
     def csConstantRangeRestrictions(
         sort: Sort,
         constants: IndexedSeq[AnnotatedVar],
-        scope: Int,
-        usedValues: IndexedSeq[DomainElement]
+        deView: DomainElementUsageView
     ): Set[RangeRestriction] = {
         
         Errors.precondition(!sort.isBuiltin)
         Errors.precondition(constants.forall(_.sort == sort))
-        Errors.precondition(usedValues.forall(_.sort == sort))
-        Errors.precondition(usedValues.forall(_.index <= scope))
-        Errors.precondition(usedValues.size < scope)
-        
-        val unusedValues = (for(i <- 1 to scope) yield DomainElement(i, sort)) diff usedValues
         
         val n = constants.size
-        val m = unusedValues.size
+        val m = deView.numUnusedDomainElements(sort)
         val r = scala.math.min(n, m)
         
         val constraints: Seq[RangeRestriction] =
@@ -34,8 +28,8 @@ object Symmetry {
                 val c_k = constants(k).variable
             
                 val possibleValues: Seq[DomainElement] =
-                    usedValues ++ // Could be any of the used values
-                    unusedValues.take(k + 1) // One of the first k + 1 unused values (recall, k starts at 0)
+                    deView.usedDomainElements(sort) ++ // Could be any of the used values
+                    deView.unusedDomainElements(sort).take(k + 1) // One of the first k + 1 unused values (recall, k starts at 0)
             
                 RangeRestriction(c_k, possibleValues)
             }
@@ -48,20 +42,16 @@ object Symmetry {
     def csConstantImplications(
         sort: Sort,
         constants: IndexedSeq[AnnotatedVar],
-        scope: Int,
-        usedValues: IndexedSeq[DomainElement]
+        deView: DomainElementUsageView,
     ): Set[Term] = {
         
         Errors.precondition(!sort.isBuiltin)
         Errors.precondition(constants.forall(_.sort == sort))
-        Errors.precondition(usedValues.forall(_.sort == sort))
-        Errors.precondition(usedValues.forall(_.index <= scope))
-        Errors.precondition(usedValues.size < scope)
         
-        val unusedValues = (for(i <- 1 to scope) yield DomainElement(i, sort)) diff usedValues
+        val unusedValues = deView.unusedDomainElements(sort)
         
         val n = constants.size
-        val m = unusedValues.size
+        val m = deView.numUnusedDomainElements(sort)
         val r = scala.math.min(n, m)
         
         val implications = for {
@@ -83,20 +73,16 @@ object Symmetry {
     def csConstantImplicationsSimplified(
         sort: Sort,
         constants: IndexedSeq[AnnotatedVar],
-        scope: Int,
-        usedValues: IndexedSeq[DomainElement]
+        deView: DomainElementUsageView
     ): Set[Term] = {
         
         Errors.precondition(!sort.isBuiltin)
         Errors.precondition(constants.forall(_.sort == sort))
-        Errors.precondition(usedValues.forall(_.sort == sort))
-        Errors.precondition(usedValues.forall(_.index <= scope))
-        Errors.precondition(usedValues.size < scope)
         
-        val unusedValues = (for(i <- 1 to scope) yield DomainElement(i, sort)) diff usedValues
+        val unusedValues = deView.unusedDomainElements(sort)
         
         val n = constants.size
-        val m = unusedValues.size
+        val m = deView.numUnusedDomainElements(sort)
         val r = scala.math.min(n, m)
         
         val implications = for {
@@ -115,26 +101,20 @@ object Symmetry {
     
     def drdFunctionRangeRestrictions(
         f: FuncDecl,
-        scopes: Map[Sort, Int],
-        usedResultValues: IndexedSeq[DomainElement]
+        deView: DomainElementUsageView
     ): Set[RangeRestriction] = {
         
         Errors.precondition(f.argSorts.forall(!_.isBuiltin))
         Errors.precondition(!f.resultSort.isBuiltin)
-        Errors.precondition(usedResultValues.forall(_.sort == f.resultSort))
-        Errors.precondition(usedResultValues.forall(_.index <= scopes(f.resultSort)))
-        Errors.precondition(usedResultValues.size < scopes(f.resultSort))
         Errors.precondition(!(f.argSorts contains f.resultSort))
         
-        val unusedResultValues: IndexedSeq[DomainElement] = {
-            val allResultValues = for(i <- 1 to scopes(f.resultSort)) yield DomainElement(i, f.resultSort)
-            allResultValues diff usedResultValues
-        }
+        val unusedResultValues: IndexedSeq[DomainElement] = deView.unusedDomainElements(f.resultSort)
+        val usedResultValues = deView.usedDomainElements(f.resultSort)
         
         val m = unusedResultValues.size
         
         val argumentListsIterable: Iterable[ArgList] =
-            new fortress.util.ArgumentListGenerator(scopes)
+            new fortress.util.ArgumentListGenerator(deView.scope(_))
             .allArgumentListsOfFunction(f)
             .take(m) // Take up to m of them,  for efficiency since we won't need more than this - the argument list generator does not generate arguments
             // until they are needed
@@ -162,26 +142,19 @@ object Symmetry {
     // time with same input
     def drdFunctionImplications(
         f: FuncDecl,
-        scopes: Map[Sort, Int],
-        usedResultValues: IndexedSeq[DomainElement]
+        deView: DomainElementUsageView
     ): Set[Term] = {
         
         Errors.precondition(f.argSorts.forall(!_.isBuiltin))
         Errors.precondition(!f.resultSort.isBuiltin)
-        Errors.precondition(usedResultValues.forall(_.sort == f.resultSort))
-        Errors.precondition(usedResultValues.forall(_.index <= scopes(f.resultSort)))
-        Errors.precondition(usedResultValues.size < scopes(f.resultSort))
         Errors.precondition(!(f.argSorts contains f.resultSort))
         
-        val unusedResultValues: IndexedSeq[DomainElement] = {
-            val allResultValues = for(i <- 1 to scopes(f.resultSort)) yield DomainElement(i, f.resultSort)
-            allResultValues diff usedResultValues
-        }
+        val unusedResultValues: IndexedSeq[DomainElement] = deView.unusedDomainElements(f.resultSort)
         
         val m = unusedResultValues.size
         
         val argumentListsIterable: Iterable[ArgList] =
-            new fortress.util.ArgumentListGenerator(scopes)
+            new fortress.util.ArgumentListGenerator(deView.scope(_))
             .allArgumentListsOfFunction(f)
             .take(m) // Take up to m of them,  for efficiency since we won't need more than this - the argument list generator does not generate arguments
             // until they are needed
@@ -211,27 +184,20 @@ object Symmetry {
     // time with same input
     def drdFunctionImplicationsSimplified(
         f: FuncDecl,
-        scopes: Map[Sort, Int],
-        usedResultValues: IndexedSeq[DomainElement]
+        deView: DomainElementUsageView
     ): Set[Term] = {
         
         Errors.precondition(f.argSorts.forall(!_.isBuiltin))
         Errors.precondition(!f.resultSort.isBuiltin)
-        Errors.precondition(usedResultValues.forall(_.sort == f.resultSort))
-        Errors.precondition(usedResultValues.forall(_.index <= scopes(f.resultSort)))
-        Errors.precondition(usedResultValues.size < scopes(f.resultSort))
         Errors.precondition(!(f.argSorts contains f.resultSort))
         Errors.precondition(f.isDomainRangeDistinct)
         
-        val unusedResultValues: IndexedSeq[DomainElement] = {
-            val allResultValues = for(i <- 1 to scopes(f.resultSort)) yield DomainElement(i, f.resultSort)
-            allResultValues diff usedResultValues
-        }
+        val unusedResultValues: IndexedSeq[DomainElement] = deView.unusedDomainElements(f.resultSort)
         
         val m = unusedResultValues.size
         
         val argumentListsIterable: Iterable[ArgList] =
-            new fortress.util.ArgumentListGenerator(scopes)
+            new fortress.util.ArgumentListGenerator(deView.scope(_))
             .allArgumentListsOfFunction(f)
             .take(m) // Take up to m of them, for efficiency since we won't need more than this - the argument list generator does not generate arguments
             // until they are needed
@@ -448,19 +414,16 @@ object Symmetry {
     // I think more symmetry breaking can be done here
     def csFunctionExtRangeRestrictions(
         f: FuncDecl,
-        resultScope: Int,
-        usedResultValues: IndexedSeq[DomainElement]
+        deView: DomainElementUsageView
     ): Set[RangeRestriction] = {
             
             Errors.precondition(f.argSorts.forall(!_.isBuiltin))
             Errors.precondition(!f.resultSort.isBuiltin)
-            Errors.precondition(usedResultValues.forall(_.sort == f.resultSort))
-            Errors.precondition(usedResultValues.forall(_.index <= resultScope))
-            Errors.precondition(usedResultValues.size < resultScope)
             Errors.precondition(f.argSorts contains f.resultSort)
             Errors.precondition(!f.isDomainRangeDistinct)
             
-            val unusedResultValues: IndexedSeq[DomainElement] = (for(i <- 1 to resultScope) yield DomainElement(i, f.resultSort)) diff usedResultValues
+            val unusedResultValues: IndexedSeq[DomainElement] = deView.unusedDomainElements(f.resultSort)
+            val usedResultValues: IndexedSeq[DomainElement] = deView.usedDomainElements(f.resultSort)
             
             // We fix particular values for the sorts not in the output
             // These stay the same for all argument lists we symmetry break using
