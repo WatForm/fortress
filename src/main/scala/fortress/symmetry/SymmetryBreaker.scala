@@ -50,7 +50,7 @@ abstract class SymmetryBreaker(
 
 trait DefaultPredicateBreaking extends SymmetryBreaker {
     override def breakPredicate(P: FuncDecl): Unit = {
-        if(P.argSorts forall (tracker.numUnusedDomainElements(_) >= 2)) { // Need at least 2 unused values to do any symmetry breaking
+        if(P.argSorts forall (tracker.view.numUnusedDomainElements(_) >= 2)) { // Need at least 2 unused values to do any symmetry breaking
             val usedValues: Map[Sort, IndexedSeq[DomainElement]] = tracker.usedDomainElements map {
                 case (sort, setOfVals) => (sort, setOfVals.toIndexedSeq)
             }
@@ -67,7 +67,7 @@ trait DrdDifferentiation extends SymmetryBreaker {
     override def breakFunction(f: FuncDecl): Unit = {
         val resultSort = f.resultSort
         
-        if(tracker.stillUnusedDomainElements(resultSort)) {
+        if(tracker.view.existsUnusedDomainElements(resultSort)) {
             if (f.isDomainRangeDistinct) {
                 breakDrdFunction(f)
             } else {
@@ -98,10 +98,8 @@ with DrdDifferentiation
 with DefaultNonDrdScheme {
     
     override def breakConstants(constantsToBreak: Set[AnnotatedVar]): Unit = {
-        for(sort <- theory.sorts if !sort.isBuiltin && tracker.stillUnusedDomainElements(sort)) {
+        for(sort <- theory.sorts if !sort.isBuiltin && tracker.view.existsUnusedDomainElements(sort)) {
             val constants = constantsToBreak.filter(_.sort == sort).toIndexedSeq
-            val usedVals = tracker.usedDomainElements(sort).toIndexedSeq
-            val scope = scopes(sort)
             val constantRangeRestrictions = Symmetry.csConstantRangeRestrictions(sort, constants, tracker.view)
             val constantImplications = Symmetry.csConstantImplicationsSimplified(sort, constants, tracker.view)
             
@@ -112,8 +110,6 @@ with DefaultNonDrdScheme {
     
     override def breakDrdFunction(f: FuncDecl): Unit = {
         val resultSort = f.resultSort
-        val scope = scopes(resultSort)
-        val usedVals = tracker.usedDomainElements(resultSort).toIndexedSeq
         
         // DRD scheme
         val fRangeRestrictions = Symmetry.drdFunctionRangeRestrictions(f, tracker.view)
@@ -135,10 +131,8 @@ with DrdDifferentiation
 with DefaultNonDrdScheme {
     
     override def breakConstants(constantsToBreak: Set[AnnotatedVar]): Unit = {
-        for(sort <- theory.sorts if !sort.isBuiltin && tracker.stillUnusedDomainElements(sort)) {
+        for(sort <- theory.sorts if !sort.isBuiltin && tracker.view.existsUnusedDomainElements(sort)) {
             val constants = constantsToBreak.filter(_.sort == sort).toIndexedSeq
-            val usedVals = tracker.usedDomainElements(sort).toIndexedSeq
-            val scope = scopes(sort)
             val constantRangeRestrictions = Symmetry.csConstantRangeRestrictions(sort, constants, tracker.view)
             // val constantImplications = Symmetry.csConstantImplicationsSimplified(sort, constants, scope, usedVals)
             
@@ -149,8 +143,6 @@ with DefaultNonDrdScheme {
     
     override def breakDrdFunction(f: FuncDecl): Unit = {
         val resultSort = f.resultSort
-        val scope = scopes(resultSort)
-        val usedVals = tracker.usedDomainElements(resultSort).toIndexedSeq
         
         // DRD scheme
         val fRangeRestrictions = Symmetry.drdFunctionRangeRestrictions(f, tracker.view)
@@ -172,10 +164,8 @@ with DrdDifferentiation
 with DefaultNonDrdScheme {
     
     override def breakConstants(constantsToBreak: Set[AnnotatedVar]): Unit = {
-        for(sort <- theory.sorts if !sort.isBuiltin && tracker.stillUnusedDomainElements(sort)) {
+        for(sort <- theory.sorts if !sort.isBuiltin && tracker.view.existsUnusedDomainElements(sort)) {
             val constants = constantsToBreak.filter(_.sort == sort).toIndexedSeq
-            val usedVals = tracker.usedDomainElements(sort).toIndexedSeq
-            val scope = scopes(sort)
             val constantRangeRestrictions = Symmetry.csConstantRangeRestrictions(sort, constants, tracker.view)
             val constantImplications = Symmetry.csConstantImplications(sort, constants, tracker.view)
             

@@ -343,30 +343,21 @@ object Symmetry {
     // The issue is the smallest element comment below.
     def predicateImplications_OLD(
         P: FuncDecl,
-        scopes: Map[Sort, Int],
-        usedValues: Map[Sort, IndexedSeq[DomainElement]]
+        deView: DomainElementUsageView
     ): Set[Term] = {
         
         Errors.precondition(P.resultSort == BoolSort)
         Errors.precondition(P.argSorts.forall(!_.isBuiltin))
-        Errors.precondition(P.argSorts.forall(sort => usedValues(sort).size <= scopes(sort)))
         
-        val unusedValues: Map[Sort, IndexedSeq[DomainElement]] = usedValues.map {
-            case (sort, usedVals) => {
-                val unusedVals = (for(i <- 1 to scopes(sort)) yield DomainElement(i, sort)) diff usedVals
-                (sort, unusedVals)
-            }
-        }
+        Errors.precondition(P.argSorts forall (deView.numUnusedDomainElements(_) >= 2))
         
-        Errors.precondition(P.argSorts forall (unusedValues(_).size >= 2))
-        
-        val r = (unusedValues.values map (_.size)).min // Smallest number of unused values
+        val r = (P.argSorts map (deView.numUnusedDomainElements(_))).min // Smallest number of unused values
         
         // Generate lists of arguments in the order we will use them for symmetry breaking
         // e.g. If P: A x B x A -> Bool, gives Seq[(a1, b1, a1), (a2, b2, a2), ...]
         
         val argLists: IndexedSeq[ArgList] = for(i <- 0 to (r - 1)) yield {
-            P.argSorts map (sort => unusedValues(sort)(i))
+            P.argSorts map (sort => deView.unusedDomainElements(sort)(i))
         }
         
         predicateImplicationChain(P, argLists).toSet
@@ -384,7 +375,7 @@ object Symmetry {
             
             val tracker = DomainElementTracker.create(usedValues, scopes)
             
-            Errors.precondition(P.argSorts exists (tracker.numUnusedDomainElements(_) >= 2))
+            Errors.precondition(P.argSorts exists (tracker.view.numUnusedDomainElements(_) >= 2))
             
             def fillArgList(sort: Sort, d: DomainElement): ArgList = {
                 Errors.precondition(d.sort == sort)
@@ -396,11 +387,11 @@ object Symmetry {
             
             val constraints = new mutable.ListBuffer[Term]
             
-            while(P.argSorts exists (tracker.numUnusedDomainElements(_) >= 2)) {
-                val sort = (P.argSorts find (tracker.numUnusedDomainElements(_) >= 2)).get
-                val r = tracker.numUnusedDomainElements(sort)
+            while(P.argSorts exists (tracker.view.numUnusedDomainElements(_) >= 2)) {
+                val sort = (P.argSorts find (tracker.view.numUnusedDomainElements(_) >= 2)).get
+                val r = tracker.view.numUnusedDomainElements(sort)
                 val argLists: IndexedSeq[ArgList] = for(i <- 0 to (r - 1)) yield {
-                    fillArgList(sort, tracker.unusedDomainElements(sort)(i))
+                    fillArgList(sort, tracker.view.unusedDomainElements(sort)(i))
                 }
                 val implications = predicateImplicationChain(P, argLists)
                 constraints ++= implications

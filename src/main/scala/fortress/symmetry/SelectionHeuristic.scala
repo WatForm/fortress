@@ -60,8 +60,8 @@ object FunctionsFirstGreedy extends SelectionHeuristic {
             // Lowest arity, then largest # of unused result values
             if (f1.arity < f2.arity) true
             else if (f1.arity > f2.arity) false
-            else (tracker.numUnusedDomainElements(f1.resultSort)
-                > tracker.numUnusedDomainElements(f2.resultSort))
+            else (tracker.view.numUnusedDomainElements(f1.resultSort)
+                > tracker.view.numUnusedDomainElements(f2.resultSort))
         }
         
         // Comparison operation for functions to determine which order
@@ -91,8 +91,8 @@ object PredicatesFirstGreedy extends SelectionHeuristic {
             // Lowest arity, then largest # of unused result values
             if (f1.arity < f2.arity) true
             else if (f1.arity > f2.arity) false
-            else (tracker.numUnusedDomainElements(f1.resultSort)
-                > tracker.numUnusedDomainElements(f2.resultSort))
+            else (tracker.view.numUnusedDomainElements(f1.resultSort)
+                > tracker.view.numUnusedDomainElements(f2.resultSort))
         }
         
         // Comparison operation for functions to determine which order
