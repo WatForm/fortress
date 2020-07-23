@@ -14,20 +14,26 @@ abstract class SymmetryBreaker(
     protected val scopes: Map[Sort, Int]
 ) {
     
-    val tracker = DomainElementTracker.create(theory, scopes)
+    protected val tracker = DomainElementTracker.create(theory, scopes)
     
     // Accumulates the symmetry breaking constraints
-    val constraints = new mutable.ListBuffer[Term]
-    val newRangeRestrictions = new mutable.ListBuffer[RangeRestriction]
-    val newDeclarations = new mutable.ListBuffer[FuncDecl]
+    protected val newConstraints = new mutable.ListBuffer[Term]
+    protected val newRangeRestrictions = new mutable.ListBuffer[RangeRestriction]
+    protected val newDeclarations = new mutable.ListBuffer[FuncDecl]
     
     def breakConstants(constantsToBreak: Set[AnnotatedVar]): Unit
     def breakFunction(f: FuncDecl): Unit
     def breakPredicate(P: FuncDecl): Unit
     
+    def constraints: Seq[Term] = newConstraints.toList
+    def rangeRestrictions: Seq[RangeRestriction] = newRangeRestrictions.toList
+    def declarations: Seq[FuncDecl] = newDeclarations.toList
+    
+    def view: DomainElementUsageView = tracker.view
+    
     protected def addRangeRestrictions(rangeRestrictions: Set[RangeRestriction]): Unit = {
         // Add to constraints
-        constraints ++= rangeRestrictions map (_.asFormula)
+        newConstraints ++= rangeRestrictions map (_.asFormula)
         newRangeRestrictions ++= rangeRestrictions
         // Add to used values
         tracker.markUsed(rangeRestrictions flatMap (_.asFormula.domainElements))
@@ -35,7 +41,7 @@ abstract class SymmetryBreaker(
     
     protected def addGeneralConstraints(fmls: Set[Term]): Unit = {
         // Add to constraints
-        constraints ++= fmls
+        newConstraints ++= fmls
         // Add to used values
         tracker.markUsed(fmls flatMap (_.domainElements))
     }
@@ -47,8 +53,8 @@ abstract class SymmetryBreaker(
 
 trait DefaultPredicateBreaking extends SymmetryBreaker {
     override def breakPredicate(P: FuncDecl): Unit = {
-        if(P.argSorts forall (tracker.view.numUnusedDomainElements(_) >= 2)) { // Need at least 2 unused values to do any symmetry breaking
-            val pImplications = Symmetry.predicateImplications(P, tracker.view)
+        if(P.argSorts forall (view.numUnusedDomainElements(_) >= 2)) { // Need at least 2 unused values to do any symmetry breaking
+            val pImplications = Symmetry.predicateImplications(P, view)
             addGeneralConstraints(pImplications)
         }
     }
@@ -59,7 +65,7 @@ trait DrdDifferentiation extends SymmetryBreaker {
     def breakNonDrdFunction(f: FuncDecl): Unit
     
     override def breakFunction(f: FuncDecl): Unit = {
-        if(tracker.view.existsUnusedDomainElements(f.resultSort)) {
+        if(view.existsUnusedDomainElements(f.resultSort)) {
             if (f.isDomainRangeDistinct) {
                 breakDrdFunction(f)
             } else {
@@ -71,7 +77,7 @@ trait DrdDifferentiation extends SymmetryBreaker {
 
 trait DefaultNonDrdScheme extends DrdDifferentiation {
     override def breakNonDrdFunction(f: FuncDecl): Unit = {
-        val fRangeRestrictions = Symmetry.csFunctionExtRangeRestrictions(f, tracker.view)
+        val fRangeRestrictions = Symmetry.csFunctionExtRangeRestrictions(f, view)
         addRangeRestrictions(fRangeRestrictions)
     }
 }
@@ -85,10 +91,10 @@ with DrdDifferentiation
 with DefaultNonDrdScheme {
     
     override def breakConstants(constantsToBreak: Set[AnnotatedVar]): Unit = {
-        for(sort <- theory.sorts if !sort.isBuiltin && tracker.view.existsUnusedDomainElements(sort)) {
+        for(sort <- theory.sorts if !sort.isBuiltin && view.existsUnusedDomainElements(sort)) {
             val constants = constantsToBreak.filter(_.sort == sort).toIndexedSeq
-            val constantRangeRestrictions = Symmetry.csConstantRangeRestrictions(sort, constants, tracker.view)
-            val constantImplications = Symmetry.csConstantImplicationsSimplified(sort, constants, tracker.view)
+            val constantRangeRestrictions = Symmetry.csConstantRangeRestrictions(sort, constants, view)
+            val constantImplications = Symmetry.csConstantImplicationsSimplified(sort, constants, view)
             
             addRangeRestrictions(constantRangeRestrictions)
             addGeneralConstraints(constantImplications)
@@ -96,8 +102,8 @@ with DefaultNonDrdScheme {
     }
     
     override def breakDrdFunction(f: FuncDecl): Unit = {
-        val fRangeRestrictions = Symmetry.drdFunctionRangeRestrictions(f, tracker.view)
-        val fImplications = Symmetry.drdFunctionImplicationsSimplified(f, tracker.view)
+        val fRangeRestrictions = Symmetry.drdFunctionRangeRestrictions(f, view)
+        val fImplications = Symmetry.drdFunctionImplicationsSimplified(f, view)
         addRangeRestrictions(fRangeRestrictions)
         addGeneralConstraints(fImplications)
     }

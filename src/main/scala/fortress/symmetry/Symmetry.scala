@@ -239,8 +239,7 @@ object Symmetry {
     // No input elements to shuffle
     def rainbowFunctionLT(
         f: FuncDecl,
-        scopes: Map[Sort, Int],
-        usedValues: Map[Sort, IndexedSeq[DomainElement]]
+        deView: DomainElementUsageView
     ): (FuncDecl, Seq[Term], Seq[RangeRestriction]) = {
         
         Errors.precondition(f.argSorts.forall(!_.isBuiltin))
@@ -248,22 +247,22 @@ object Symmetry {
         
         Errors.precondition(f.isRainbowSorted)
         Errors.precondition(f.arity < 3)
-        Errors.precondition(f.argSorts forall (usedValues(_).isEmpty))
-        Errors.precondition(usedValues(f.resultSort).isEmpty)
+        Errors.precondition(f.argSorts forall (deView.usedDomainElements(_).isEmpty))
+        Errors.precondition(deView.usedDomainElements(f.resultSort).isEmpty)
         
-        val (ltDecl, ltDefn) = sortLtDefinition(f.resultSort, scopes(f.resultSort))
+        val (ltDecl, ltDefn) = sortLtDefinition(f.resultSort, deView.scope(f.resultSort))
         
         val LT = ltDecl.name
         
         val (constraints, rangeRestrictions): (Seq[Term], Seq[RangeRestriction]) = f match {
             case FuncDecl(fname, Seq(argSort), resultSort) => {
-                val ltConstraints: Seq[Term] = for(i <- 1 to (scopes(argSort) - 1)) yield {
+                val ltConstraints: Seq[Term] = for(i <- 1 to (deView.scope(argSort) - 1)) yield {
                     App(LT,
                         App(fname, DomainElement(i, argSort)),
                         App(fname, DomainElement(i + 1, argSort))
                     )
                 }
-                val r = scala.math.min(scopes(argSort), scopes(resultSort))
+                val r = scala.math.min(deView.scope(argSort), deView.scope(resultSort))
                 // Have to make them manually, ordering might not match what we want
                 val drdRangeRestrictions: Seq[RangeRestriction] = for(i <- 1 to r) yield {
                     RangeRestriction(
@@ -286,13 +285,13 @@ object Symmetry {
                 
                 // First argument constraints
                 
-                val ltConstraintsArg1: Seq[Term] = for(i <- 1 to (scopes(argSort1) - 1)) yield {
+                val ltConstraintsArg1: Seq[Term] = for(i <- 1 to (deView.scope(argSort1) - 1)) yield {
                     App(LT,
                         App(fname, DomainElement(i, argSort1), DomainElement(1, argSort2)),
                         App(fname, DomainElement(i + 1, argSort1), DomainElement(1, argSort2))
                     )
                 }
-                val r1 = scala.math.min(scopes(argSort1), scopes(resultSort))
+                val r1 = scala.math.min(deView.scope(argSort1), deView.scope(resultSort))
                 // Have to make them manually, ordering might not match what we want
                 val drdRangeRestrictions: Seq[RangeRestriction] = for(i <- 1 to r1) yield {
                     RangeRestriction(
@@ -311,7 +310,7 @@ object Symmetry {
                 }
                 
                 // Second argument constraints
-                val ltConstraintsArg2: Seq[Term] = for(i <- 1 to (scopes(argSort2) - 1)) yield {
+                val ltConstraintsArg2: Seq[Term] = for(i <- 1 to (deView.scope(argSort2) - 1)) yield {
                     App(LT,
                         App(fname, DomainElement(1, argSort1), DomainElement(i, argSort2)),
                         App(fname, DomainElement(1, argSort1), DomainElement(i + 1, argSort2))
