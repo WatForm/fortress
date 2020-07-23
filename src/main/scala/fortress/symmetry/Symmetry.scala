@@ -106,7 +106,7 @@ object Symmetry {
         
         Errors.precondition(f.argSorts.forall(!_.isBuiltin))
         Errors.precondition(!f.resultSort.isBuiltin)
-        Errors.precondition(!(f.argSorts contains f.resultSort))
+        Errors.precondition(f.isDomainRangeDistinct)
         
         val unusedResultValues: IndexedSeq[DomainElement] = deView.unusedDomainElements(f.resultSort)
         val usedResultValues = deView.usedDomainElements(f.resultSort)
@@ -116,13 +116,12 @@ object Symmetry {
         val argumentListsIterable: Iterable[ArgList] =
             new fortress.util.ArgumentListGenerator(deView.scope(_))
             .allArgumentListsOfFunction(f)
-            .take(m) // Take up to m of them,  for efficiency since we won't need more than this - the argument list generator does not generate arguments
+            .take(m) // Take up to m of them, for efficiency since we won't need more than this - the argument list generator does not generate arguments
             // until they are needed
         
         val argumentLists = argumentListsIterable.toIndexedSeq
         
         val n = argumentLists.size
-        
         val r = scala.math.min(m, n)
         
         val constraints: Seq[RangeRestriction] =

@@ -10,7 +10,7 @@ trait SelectionHeuristic {
     
     // Select the next function or predicate
     def nextFunctionPredicate(
-        tracker: DomainElementTracker,
+        deView: DomainElementUsageView,
         remaining: Set[FuncDecl]
     ): Option[FuncDecl]
     
@@ -23,7 +23,7 @@ trait SelectionHeuristic {
 
 object FunctionsFirstAnyOrder extends SelectionHeuristic {
     override def nextFunctionPredicate(
-        tracker: DomainElementTracker,
+        deView: DomainElementUsageView,
         remaining: Set[FuncDecl]
     ): Option[FuncDecl] = {
         
@@ -35,7 +35,7 @@ object FunctionsFirstAnyOrder extends SelectionHeuristic {
 
 object PredicatesFirstAnyOrder extends SelectionHeuristic {
     override def nextFunctionPredicate(
-        tracker: DomainElementTracker,
+        deView: DomainElementUsageView,
         remaining: Set[FuncDecl]
     ): Option[FuncDecl] = {
         
@@ -50,7 +50,7 @@ object FunctionsFirstGreedy extends SelectionHeuristic {
     override def name = "Functions First, Greedy"
     
     override def nextFunctionPredicate(
-        tracker: DomainElementTracker,
+        deView: DomainElementUsageView,
         remaining: Set[FuncDecl]
     ): Option[FuncDecl] = {
         
@@ -60,8 +60,8 @@ object FunctionsFirstGreedy extends SelectionHeuristic {
             // Lowest arity, then largest # of unused result values
             if (f1.arity < f2.arity) true
             else if (f1.arity > f2.arity) false
-            else (tracker.view.numUnusedDomainElements(f1.resultSort)
-                > tracker.view.numUnusedDomainElements(f2.resultSort))
+            else (deView.numUnusedDomainElements(f1.resultSort)
+                > deView.numUnusedDomainElements(f2.resultSort))
         }
         
         // Comparison operation for functions to determine which order
@@ -81,7 +81,7 @@ object PredicatesFirstGreedy extends SelectionHeuristic {
     override def name = "Predicates First, Greedy"
     
     override def nextFunctionPredicate(
-        tracker: DomainElementTracker,
+        deView: DomainElementUsageView,
         remaining: Set[FuncDecl]
     ): Option[FuncDecl] = {
         
@@ -91,8 +91,8 @@ object PredicatesFirstGreedy extends SelectionHeuristic {
             // Lowest arity, then largest # of unused result values
             if (f1.arity < f2.arity) true
             else if (f1.arity > f2.arity) false
-            else (tracker.view.numUnusedDomainElements(f1.resultSort)
-                > tracker.view.numUnusedDomainElements(f2.resultSort))
+            else (deView.numUnusedDomainElements(f1.resultSort)
+                > deView.numUnusedDomainElements(f2.resultSort))
         }
         
         // Comparison operation for functions to determine which order
@@ -109,7 +109,7 @@ object PredicatesFirstGreedy extends SelectionHeuristic {
 
 object PredicatesOnlyAnyOrder extends SelectionHeuristic {
     override def nextFunctionPredicate(
-        tracker: DomainElementTracker,
+        deView: DomainElementUsageView,
         remaining: Set[FuncDecl]
     ): Option[FuncDecl] = {
         
@@ -124,7 +124,7 @@ object Random extends SelectionHeuristic {
     override def name = "Random"
     
     override def nextFunctionPredicate(
-        tracker: DomainElementTracker,
+        deView: DomainElementUsageView,
         remaining: Set[FuncDecl]
     ): Option[FuncDecl] = {
         
@@ -140,7 +140,7 @@ object AtoAOnlyAnyOrder extends SelectionHeuristic {
     private def isAtoA(f: FuncDecl): Boolean = f.argSorts.forall(_ == f.resultSort) && !f.resultSort.isBuiltin
     
     override def nextFunctionPredicate(
-        tracker: DomainElementTracker,
+        deView: DomainElementUsageView,
         remaining: Set[FuncDecl]
     ): Option[FuncDecl] = {
         
