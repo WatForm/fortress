@@ -43,7 +43,7 @@ class MicrostructureComplement(theory: Theory, scopes: Map[Sort, Int]) extends H
     def possibleFunctionBindings(f: FuncDecl): Seq[FunctionBinding] = {
         val possibleRangeValues: Seq[Value] = f.resultSort match {
             case BoolSort => Seq(Top, Bottom)
-            case SortConst(_) => for(i <- 1 to scopes(f.resultSort)) yield DomainElement(i, f.resultSort)
+            case SortConst(_) => DomainElement.range(1 to scopes(f.resultSort), f.resultSort)
             case _ => ???
         }
             
@@ -51,7 +51,7 @@ class MicrostructureComplement(theory: Theory, scopes: Map[Sort, Int]) extends H
         // and each A_i has generated domain D_i
         // get the list [D_1, ..., D_n]
         val seqOfDomainSeqs: IndexedSeq[IndexedSeq[DomainElement]] = f.argSorts.toIndexedSeq.map (sort => {
-            for(j <- 1 to scopes(sort)) yield DomainElement(j, sort)
+            DomainElement.range(1 to scopes(sort), sort)
         })
         
         // Take the product D_1 x ... x D_n
@@ -112,7 +112,7 @@ class MicrostructureComplement(theory: Theory, scopes: Map[Sort, Int]) extends H
     lazy val allPossibleInterpretations: Seq[Interpretation] = {
         // Always the same interpretation for sorts
         val sortInterpretations: Map[Sort, Seq[Value]] = theory.sorts.filter(!_.isBuiltin).map(sort => {
-            val values: Seq[Value] = for(i <- 1 to scopes(sort)) yield DomainElement(i, sort)
+            val values: Seq[Value] = DomainElement.range(1 to scopes(sort), sort)
             (sort, values)
         }).toMap
         

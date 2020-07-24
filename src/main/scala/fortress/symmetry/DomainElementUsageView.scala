@@ -23,7 +23,7 @@ sealed trait DomainElementUsageView {
     
     def existsUnusedDomainElements(sort: Sort): Boolean = numUnusedDomainElements(sort) > 0
     
-    def domainElements(sort: Sort): IndexedSeq[DomainElement] = DomainElement.range(1, scope(sort), sort)
+    def domainElements(sort: Sort): IndexedSeq[DomainElement] = DomainElement.range(1 to scope(sort), sort)
     
     def createTracker: DomainElementTracker = DomainElementTracker.create(usedDomainElementsMap, scopeMap)
 }

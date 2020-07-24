@@ -21,7 +21,13 @@ abstract class SymmetryBreaker(
     protected val newRangeRestrictions = new mutable.ListBuffer[RangeRestriction]
     protected val newDeclarations = new mutable.ListBuffer[FuncDecl]
     
-    def breakConstants(constantsToBreak: Set[AnnotatedVar]): Unit
+    final def breakConstants(constantsToBreak: Set[AnnotatedVar]): Unit = {
+        for(sort <- theory.sorts if !sort.isBuiltin && view.existsUnusedDomainElements(sort)) {
+            breakConstants(sort, constantsToBreak.filter(_.sort == sort).toIndexedSeq)
+        }
+    }
+    protected def breakConstants(sort: Sort, constants: IndexedSeq[AnnotatedVar]): Unit
+    
     def breakFunction(f: FuncDecl): Unit
     def breakPredicate(P: FuncDecl): Unit
     
@@ -30,6 +36,8 @@ abstract class SymmetryBreaker(
     def declarations: Seq[FuncDecl] = newDeclarations.toList
     
     def view: DomainElementUsageView = tracker.view
+    
+    
     
     protected def addRangeRestrictions(rangeRestrictions: Set[RangeRestriction]): Unit = {
         // Add to constraints
@@ -90,15 +98,12 @@ with DefaultPredicateBreaking
 with DrdDifferentiation
 with DefaultNonDrdScheme {
     
-    override def breakConstants(constantsToBreak: Set[AnnotatedVar]): Unit = {
-        for(sort <- theory.sorts if !sort.isBuiltin && view.existsUnusedDomainElements(sort)) {
-            val constants = constantsToBreak.filter(_.sort == sort).toIndexedSeq
-            val constantRangeRestrictions = Symmetry.csConstantRangeRestrictions(sort, constants, view)
-            val constantImplications = Symmetry.csConstantImplicationsSimplified(sort, constants, view)
-            
-            addRangeRestrictions(constantRangeRestrictions)
-            addGeneralConstraints(constantImplications)
-        }
+    override def breakConstants(sort: Sort, constants: IndexedSeq[AnnotatedVar]): Unit = {
+        val constantRangeRestrictions = Symmetry.csConstantRangeRestrictions(sort, constants, view)
+        val constantImplications = Symmetry.csConstantImplicationsSimplified(sort, constants, view)
+        
+        addRangeRestrictions(constantRangeRestrictions)
+        addGeneralConstraints(constantImplications)
     }
     
     override def breakDrdFunction(f: FuncDecl): Unit = {
