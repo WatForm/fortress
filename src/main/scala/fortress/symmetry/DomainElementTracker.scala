@@ -6,7 +6,7 @@ import fortress.operations.TermOps._
 import scala.collection.mutable
 
 class DomainElementTracker private (
-    var usedDomainElements: Map[Sort, Set[DomainElement]],
+    private var usedDomainElements: Map[Sort, Set[DomainElement]],
     scopes: Map[Sort, Int]
 ) {
     

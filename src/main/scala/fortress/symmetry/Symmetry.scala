@@ -3,6 +3,7 @@ package fortress.symmetry
 import fortress.msfol._
 import fortress.operations.TermOps._
 import fortress.util.Errors
+import fortress.util.Extensions._
 
 import scala.collection.mutable
 
@@ -91,7 +92,7 @@ object Symmetry {
         } yield {
             val c_i = constants(i).variable
             
-            val possiblePrecedingConstants = for(l <- (j - 1) to (i - 1)) yield constants(l).variable
+            val possiblePrecedingConstants = constants.rangeSlice((j - 1) to (i - 1)).map(_.variable)
             
             (c_i === unusedValues(j)) ==> (unusedValues(j - 1) equalsOneOfFlip possiblePrecedingConstants)
         }
@@ -246,7 +247,7 @@ object Symmetry {
         Errors.precondition(!f.resultSort.isBuiltin)
         
         Errors.precondition(f.isRainbowSorted)
-        Errors.precondition(f.arity < 3)
+        Errors.precondition(f.arity <= 2)
         Errors.precondition(f.argSorts forall (deView.usedDomainElements(_).isEmpty))
         Errors.precondition(deView.usedDomainElements(f.resultSort).isEmpty)
         
@@ -255,19 +256,25 @@ object Symmetry {
         val LT = ltDecl.name
         
         val (constraints, rangeRestrictions): (Seq[Term], Seq[RangeRestriction]) = f match {
+            // Unary
             case FuncDecl(fname, Seq(argSort), resultSort) => {
-                val ltConstraints: Seq[Term] = for(i <- 1 to (deView.scope(argSort) - 1)) yield {
+                // Ordering constraints
+                val ltConstraints: Seq[Term] = for(i <- 1 until deView.scope(argSort)) yield {
                     App(LT,
                         App(fname, DomainElement(i, argSort)),
                         App(fname, DomainElement(i + 1, argSort))
                     )
                 }
+                
+                // Standard DRD constraints
+                // Make them manually instead of invoking method, because:
+                // 1. ordering might not match what we want
+                // 2. in case scope(result) > scope(arg1)
                 val r = scala.math.min(deView.scope(argSort), deView.scope(resultSort))
-                // Have to make them manually, ordering might not match what we want
                 val drdRangeRestrictions: Seq[RangeRestriction] = for(i <- 1 to r) yield {
                     RangeRestriction(
                         App(fname, DomainElement(i, argSort)),
-                        (1 to i) map {j => DomainElement(j, resultSort) }
+                        DomainElement.range(1 to i, resultSort)
                     )
                 }
                 val drdImplicationsSimplified: Seq[Term] = for {
@@ -281,6 +288,7 @@ object Symmetry {
                 }
                 (ltConstraints ++ drdImplicationsSimplified, drdRangeRestrictions)
             }
+            // Binary
             case FuncDecl(fname, Seq(argSort1, argSort2), resultSort) => {
                 
                 // First argument constraints
@@ -319,6 +327,7 @@ object Symmetry {
                 
                 (ltConstraintsArg1 ++ ltConstraintsArg2 ++ drdImplicationsSimplified, drdRangeRestrictions)
             }
+            // Other
             case _ => (???, ???)
         }
         

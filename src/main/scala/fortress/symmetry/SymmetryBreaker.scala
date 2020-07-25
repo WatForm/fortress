@@ -26,6 +26,7 @@ abstract class SymmetryBreaker(
             breakConstants(sort, constantsToBreak.filter(_.sort == sort).toIndexedSeq)
         }
     }
+    
     protected def breakConstants(sort: Sort, constants: IndexedSeq[AnnotatedVar]): Unit
     
     def breakFunction(f: FuncDecl): Unit
