@@ -5,6 +5,8 @@ import fortress.msfol._
 import fortress.interpretation._
 import fortress.solverinterface._
 
+import java.lang.AutoCloseable
+
 /** The various return possibilities of the model finder.
 * SAT means the theory is satisfiable.
 * UNSAT means the theory is unsatisfiable.
@@ -39,7 +41,7 @@ object ModelFinderResult {
 }
 
 /** Invoked to search for satisfying models to theories. */
-trait ModelFinder {
+trait ModelFinder extends AutoCloseable {
     def setTheory(theory: Theory): Unit
     def setAnalysisScope(t: Sort, size: Int): Unit
     def setTimeout(milliseconds: Int): Unit

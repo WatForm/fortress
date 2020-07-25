@@ -8,6 +8,8 @@ import fortress.solverinterface._
 import fortress.modelfind._
 import fortress.util.Milliseconds
 
+import scala.util.Using
+
 class ProcessBuilderSolverTest extends UnitSuite {
     
     val x = mkVar("x")
@@ -23,15 +25,17 @@ class ProcessBuilderSolverTest extends UnitSuite {
     val timeout = new Milliseconds(1000)
         
     test("cvc4 basic incremental solve") {
-        val solver = new CVC4CliSolver;
-        solver.solve(theory, timeout, Seq()) should be (ModelFinderResult.Sat);
-        solver.addAxiom(x, timeout) should be (ModelFinderResult.Unsat);
+        Using.resource(new CVC4CliSolver) { solver => {
+            solver.solve(theory, timeout, Seq()) should be (ModelFinderResult.Sat);
+            solver.addAxiom(x, timeout) should be (ModelFinderResult.Unsat);
+        }}
     }
     
     test("z3 basic incremental solve") {
-        val solver = new Z3CliSolver;
-        solver.solve(theory, timeout, Seq()) should be (ModelFinderResult.Sat);
-        solver.addAxiom(x, timeout) should be (ModelFinderResult.Unsat);
+        Using.resource(new Z3CliSolver) { solver => {
+            solver.solve(theory, timeout, Seq()) should be (ModelFinderResult.Sat);
+            solver.addAxiom(x, timeout) should be (ModelFinderResult.Unsat);
+        }}
     }
     
     val predicate = mkFuncDecl("p", IntSort, Bool)
@@ -46,14 +50,16 @@ class ProcessBuilderSolverTest extends UnitSuite {
         )
         
     test("cvc4 solve 2 different theories with 1 solver") {
-        val solver = new CVC4CliSolver;
-        solver.solve(theory, timeout, Seq()) should be (ModelFinderResult.Sat);
-        solver.solve(theory2, timeout, Seq()) should be (ModelFinderResult.Sat);
+        Using.resource(new CVC4CliSolver) { solver => {
+            solver.solve(theory, timeout, Seq()) should be (ModelFinderResult.Sat);
+            solver.solve(theory2, timeout, Seq()) should be (ModelFinderResult.Sat);
+        }}
     }
     
     test("z3 solve 2 different theories with 1 solver") {
-        val solver = new Z3CliSolver;
-        solver.solve(theory, timeout, Seq()) should be (ModelFinderResult.Sat);
-        solver.solve(theory2, timeout, Seq()) should be (ModelFinderResult.Sat);
+        Using.resource(new Z3CliSolver) { solver => {
+            solver.solve(theory, timeout, Seq()) should be (ModelFinderResult.Sat);
+            solver.solve(theory2, timeout, Seq()) should be (ModelFinderResult.Sat);
+        }}
     }
 }

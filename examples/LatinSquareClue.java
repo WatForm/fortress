@@ -8,7 +8,7 @@ import java.util.List;
 import java.io.*;
 
 public class LatinSquareClue {
-    public static void main(String[] args) {
+    public static void main(String[] args) throws Exception {
         int gridLength = 4;
         
         // Create Sorts
@@ -75,26 +75,26 @@ public class LatinSquareClue {
             .withAxiom(clue3)
             .withAxiom(clue4);
             
-        // Initialize a model finder 
-        ModelFinder finder = ModelFinder.createDefault();
-        
-        // Set the theory of the model finder
-        finder.setTheory(latinSquareTheory);
-        
-        // Set the scopes of the model finder
-        finder.setAnalysisScope(Row, gridLength);
-        finder.setAnalysisScope(Col, gridLength);
-        finder.setAnalysisScope(Num, gridLength);
-        
-        // Check if all axioms in the theory are satisfiable 
-        ModelFinderResult result = finder.checkSat();
-        
-        System.out.println("Grid Size: " + gridLength);
-        System.out.println("Satisiable?: " + result.toString());
-        
-        // Print out model if it exists
-        if(result.equals(ModelFinderResult.Sat())) {
-            System.out.println(finder.viewModel());
+        // Initialize a model finder
+        try(ModelFinder finder = ModelFinder.createDefault()){
+            // Set the theory of the model finder
+            finder.setTheory(latinSquareTheory);
+            
+            // Set the scopes of the model finder
+            finder.setAnalysisScope(Row, gridLength);
+            finder.setAnalysisScope(Col, gridLength);
+            finder.setAnalysisScope(Num, gridLength);
+            
+            // Check if all axioms in the theory are satisfiable
+            ModelFinderResult result = finder.checkSat();
+            
+            System.out.println("Grid Size: " + gridLength);
+            System.out.println("Satisiable?: " + result.toString());
+            
+            // Print out model if it exists
+            if(result.equals(ModelFinderResult.Sat())) {
+                System.out.println(finder.viewModel());
+            }
         }
     }
 }

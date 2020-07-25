@@ -78,4 +78,8 @@ class Z3ApiSolver extends SolverTemplate {
         Errors.assertion(lastModel.nonEmpty, "There is no current instance")
         return new Z3ApiInterpretation(lastModel.get, theory.signature, converter.get)
     }
+    
+    override def close(): Unit = {
+        context.foreach(ctx => ctx.close)
+    }
 }

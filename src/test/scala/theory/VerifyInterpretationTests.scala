@@ -5,6 +5,7 @@ import fortress.msfol._
 import fortress.modelfind._
 import fortress.interpretation._
 import fortress.operations.TheoryOps._
+import scala.util.Using
 
 class VerifyInterpretationTests extends UnitSuite {
         /** Unit tests for Theory.verifyInterpretation()
@@ -27,31 +28,31 @@ class VerifyInterpretationTests extends UnitSuite {
         }
 
         def runBoolTests(): Unit = {
-                val bool: Sort = Sort.Bool
+            val bool: Sort = Sort.Bool
 
-                val true1: Var = Var("true1")
-                val true2: Var = Var("true2")
-                val true3: Var = Var("true3")
-                val false1: Var = Var("false1")
-                val false2: Var = Var("false2")
-                val false3: Var = Var("false3")
+            val true1: Var = Var("true1")
+            val true2: Var = Var("true2")
+            val true3: Var = Var("true3")
+            val false1: Var = Var("false1")
+            val false2: Var = Var("false2")
+            val false3: Var = Var("false3")
 
-                val identity = FuncDecl("identity", bool, bool)
-                val doubleIdentity = FuncDecl("doubleIdentity", bool, bool, bool)
+            val identity = FuncDecl("identity", bool, bool)
+            val doubleIdentity = FuncDecl("doubleIdentity", bool, bool, bool)
 
-                val rawTheory : Theory = Theory.empty
-                    .withConstants(true1 of bool, true2 of bool, false1 of bool,
-                            false2 of bool, true3 of bool, false3 of bool)
-                    .withFunctionDeclarations(identity, doubleIdentity)
+            val rawTheory : Theory = Theory.empty
+                .withConstants(true1 of bool, true2 of bool, false1 of bool,
+                        false2 of bool, true3 of bool, false3 of bool)
+                .withFunctionDeclarations(identity, doubleIdentity)
 
-                val temp: Var = Var("temp")
-                val theory: Theory = rawTheory
-                    .withAxiom(And(true1, true2, true3))
-                    .withAxiom(Not(Or(false1, false2, false3)))
-                    .withAxiom(Forall(temp of bool, temp === App("identity", temp)))
-                    .withAxiom(Forall(temp of bool, temp === App("doubleIdentity", temp, temp)))
+            val temp: Var = Var("temp")
+            val theory: Theory = rawTheory
+                .withAxiom(And(true1, true2, true3))
+                .withAxiom(Not(Or(false1, false2, false3)))
+                .withAxiom(Forall(temp of bool, temp === App("identity", temp)))
+                .withAxiom(Forall(temp of bool, temp === App("doubleIdentity", temp, temp)))
 
-                val finder: ModelFinder = ModelFinder.createDefault()
+            Using.resource(ModelFinder.createDefault) { finder => {
                 try {
                         finder.setTheory(theory)
                         finder.checkSat()
@@ -118,36 +119,37 @@ class VerifyInterpretationTests extends UnitSuite {
                         assertTrue(run(Exists(Seq(tmp1 of bool, tmp2 of bool, tmp3 of bool), And(tmp1, tmp2, tmp3))))
                         assertFalse(run(Exists(Seq(tmp1 of bool, tmp2 of bool), And(tmp1 === tmp2, Not(tmp1 === tmp2)))))
                 }
+            }}
         }
 
         def runSortNoEnumTests(): Unit = {
-                // This is the exact same as the other Sort test but does not use an EnumSort this time
-                val fruit: Sort = Sort.mkSortConst("fruit")
+            // This is the exact same as the other Sort test but does not use an EnumSort this time
+            val fruit: Sort = Sort.mkSortConst("fruit")
 
-                val apple: Var = Var("apple")
-                val orange: Var = Var("orange")
-                val banana: Var = Var("banana")
-                val plum: Var = Var("plum")
-                val peach: Var = Var("peach")
+            val apple: Var = Var("apple")
+            val orange: Var = Var("orange")
+            val banana: Var = Var("banana")
+            val plum: Var = Var("plum")
+            val peach: Var = Var("peach")
 
-                val identity: FuncDecl = FuncDecl("identity", fruit, fruit)
-                val doubleIdentity: FuncDecl = FuncDecl("doubleIdentity", fruit, fruit, fruit)
-                val tripleIdentity: FuncDecl = FuncDecl("tripleIdentity", fruit, fruit, fruit, fruit)
+            val identity: FuncDecl = FuncDecl("identity", fruit, fruit)
+            val doubleIdentity: FuncDecl = FuncDecl("doubleIdentity", fruit, fruit, fruit)
+            val tripleIdentity: FuncDecl = FuncDecl("tripleIdentity", fruit, fruit, fruit, fruit)
 
-                val temp: Var = Var("temp")
-                val rawTheory: Theory = Theory.empty
-                    .withSort(fruit)
-                    .withConstants(apple of fruit, orange of fruit,
-                            banana of fruit, plum of fruit, peach of fruit)
-                    .withFunctionDeclarations(identity, doubleIdentity, tripleIdentity)
+            val temp: Var = Var("temp")
+            val rawTheory: Theory = Theory.empty
+                .withSort(fruit)
+                .withConstants(apple of fruit, orange of fruit,
+                        banana of fruit, plum of fruit, peach of fruit)
+                .withFunctionDeclarations(identity, doubleIdentity, tripleIdentity)
 
-                val theory: Theory = rawTheory
-                    .withAxiom(Distinct(apple, orange, banana, plum, peach))
-                    .withAxiom(Forall(temp of fruit, temp === App("identity", temp)))
-                    .withAxiom(Forall(temp of fruit, temp === App("doubleIdentity", temp, temp)))
-                    .withAxiom(Forall(temp of fruit, temp === App("tripleIdentity", temp, temp, temp)))
+            val theory: Theory = rawTheory
+                .withAxiom(Distinct(apple, orange, banana, plum, peach))
+                .withAxiom(Forall(temp of fruit, temp === App("identity", temp)))
+                .withAxiom(Forall(temp of fruit, temp === App("doubleIdentity", temp, temp)))
+                .withAxiom(Forall(temp of fruit, temp === App("tripleIdentity", temp, temp, temp)))
 
-                val finder: ModelFinder = ModelFinder.createDefault()
+            Using.resource(ModelFinder.createDefault) { finder => {
                 try {
                         finder.setTheory(theory)
                         finder.setAnalysisScope(fruit, 5)
@@ -223,43 +225,44 @@ class VerifyInterpretationTests extends UnitSuite {
                         // Double binding
                         assertTrue(run(Exists(temp of fruit, Exists(temp of fruit, App("identity", temp) === temp))))
                 }
+            }}
         }
 
         def runSortTests(): Unit = {
-                val fruit: Sort = Sort.mkSortConst("fruit")
+            val fruit: Sort = Sort.mkSortConst("fruit")
 
-                val apple: Var = Var("apple")
-                val orange: Var = Var("orange")
-                val banana: Var = Var("banana")
-                val plum: Var = Var("plum")
-                val peach: Var = Var("peach")
+            val apple: Var = Var("apple")
+            val orange: Var = Var("orange")
+            val banana: Var = Var("banana")
+            val plum: Var = Var("plum")
+            val peach: Var = Var("peach")
 
-                val fruitVals: List[EnumValue] = List(
-                        Term.mkEnumValue("apple"),
-                        Term.mkEnumValue("orange"),
-                        Term.mkEnumValue("banana"),
-                        Term.mkEnumValue("plum"),
-                        Term.mkEnumValue("peach")
-                )
+            val fruitVals: List[EnumValue] = List(
+                    Term.mkEnumValue("apple"),
+                    Term.mkEnumValue("orange"),
+                    Term.mkEnumValue("banana"),
+                    Term.mkEnumValue("plum"),
+                    Term.mkEnumValue("peach")
+            )
 
-                val identity: FuncDecl = FuncDecl("identity", fruit, fruit)
-                val doubleIdentity: FuncDecl = FuncDecl("doubleIdentity", fruit, fruit, fruit)
-                val tripleIdentity: FuncDecl = FuncDecl("tripleIdentity", fruit, fruit, fruit, fruit)
+            val identity: FuncDecl = FuncDecl("identity", fruit, fruit)
+            val doubleIdentity: FuncDecl = FuncDecl("doubleIdentity", fruit, fruit, fruit)
+            val tripleIdentity: FuncDecl = FuncDecl("tripleIdentity", fruit, fruit, fruit, fruit)
 
-                val temp: Var = Var("temp")
-                val rawTheory: Theory = Theory.empty
-                    .withEnumSort(fruit, fruitVals : _*)
-                    .withConstants(apple of fruit, orange of fruit,
-                            banana of fruit, plum of fruit, peach of fruit)
-                    .withFunctionDeclarations(identity, doubleIdentity, tripleIdentity)
+            val temp: Var = Var("temp")
+            val rawTheory: Theory = Theory.empty
+                .withEnumSort(fruit, fruitVals : _*)
+                .withConstants(apple of fruit, orange of fruit,
+                        banana of fruit, plum of fruit, peach of fruit)
+                .withFunctionDeclarations(identity, doubleIdentity, tripleIdentity)
 
-                val theory: Theory = rawTheory
-                    .withAxiom(Distinct(apple, orange, banana, plum, peach))
-                    .withAxiom(Forall(temp of fruit, temp === App("identity", temp)))
-                    .withAxiom(Forall(temp of fruit, temp === App("doubleIdentity", temp, temp)))
-                    .withAxiom(Forall(temp of fruit, temp === App("tripleIdentity", temp, temp, temp)))
+            val theory: Theory = rawTheory
+                .withAxiom(Distinct(apple, orange, banana, plum, peach))
+                .withAxiom(Forall(temp of fruit, temp === App("identity", temp)))
+                .withAxiom(Forall(temp of fruit, temp === App("doubleIdentity", temp, temp)))
+                .withAxiom(Forall(temp of fruit, temp === App("tripleIdentity", temp, temp, temp)))
 
-                val finder: ModelFinder = ModelFinder.createDefault()
+            Using.resource(ModelFinder.createDefault) { finder => {
                 try {
                         finder.setTheory(theory)
                         finder.checkSat()
@@ -334,26 +337,27 @@ class VerifyInterpretationTests extends UnitSuite {
                         // Double binding
                         assertTrue(run(Exists(temp of fruit, Exists(temp of fruit, App("identity", temp) === temp))))
                 }
+            }}
         }
 
         def runIntTests(): Unit = {
-                val int: Sort = Sort.Int
+            val int: Sort = Sort.Int
 
-                val zero: Var = Var("zero")
-                val one: Var = Var("one")
-                val three: Var = Var("three")
-                val seven: Var = Var("seven")
+            val zero: Var = Var("zero")
+            val one: Var = Var("one")
+            val three: Var = Var("three")
+            val seven: Var = Var("seven")
 
-                val rawTheory: Theory = Theory.empty
-                    .withConstants(zero of int, one of int, three of int, seven of int)
+            val rawTheory: Theory = Theory.empty
+                .withConstants(zero of int, one of int, three of int, seven of int)
 
-                val theory: Theory = rawTheory
-                    .withAxiom(IntegerLiteral(0) === zero)
-                    .withAxiom(IntegerLiteral(1) === one)
-                    .withAxiom(IntegerLiteral(3) === three)
-                    .withAxiom(IntegerLiteral(7) === seven)
+            val theory: Theory = rawTheory
+                .withAxiom(IntegerLiteral(0) === zero)
+                .withAxiom(IntegerLiteral(1) === one)
+                .withAxiom(IntegerLiteral(3) === three)
+                .withAxiom(IntegerLiteral(7) === seven)
 
-                val finder: ModelFinder = ModelFinder.createDefault()
+            Using.resource(ModelFinder.createDefault) { finder => {
                 try {
                         finder.setTheory(theory)
                         finder.checkSat()
@@ -414,5 +418,6 @@ class VerifyInterpretationTests extends UnitSuite {
                         assertFalse(run(BuiltinApp(IntGT, one, one)))
                         assertFalse(run(BuiltinApp(IntGT, zero, one)))
                 }
+            }}
         }
 }

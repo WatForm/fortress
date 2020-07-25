@@ -11,7 +11,7 @@ import java.io.*;
 // by Reger, Suda, and Voronkov
 
 public class MonkeyVillage {
-    public static void main(String[] args) {
+    public static void main(String[] args) throws Exception {
         if(args.length < 3) {
             System.err.println("Please include numTrees, numMonkeys, and numBananas");
             System.exit(1);
@@ -93,28 +93,28 @@ public class MonkeyVillage {
             
         // This is satisfiable if and only if numPigeons <= numHoles
             
-        // Initialize a model finder 
-        ModelFinder finder = ModelFinder.createDefault();
-        
-        // Set the theory of the model finder
-        finder.setTheory(monkeyTheory);
-        
-        // Set the scopes of the model finder
-        finder.setAnalysisScope(Tree, numTrees);
-        finder.setAnalysisScope(Monkey, numMonkeys);
-        finder.setAnalysisScope(Banana, numBananas);
-        
-        // Check if all axioms in the theory are satisfiable 
-        ModelFinderResult result = finder.checkSat();
-        
-        System.out.println("numTrees:   " + numTrees);
-        System.out.println("numMonkeys: " + numMonkeys);
-        System.out.println("numBananas: " + numBananas);
-        System.out.println("Satisiable?: " + result.toString());
-        
-        // Print out model if it exists
-        if(result.equals(ModelFinderResult.Sat())) {
-            System.out.println(finder.viewModel());
+        // Initialize a model finder
+        try(ModelFinder finder = ModelFinder.createDefault()){
+            // Set the theory of the model finder
+            finder.setTheory(monkeyTheory);
+            
+            // Set the scopes of the model finder
+            finder.setAnalysisScope(Tree, numTrees);
+            finder.setAnalysisScope(Monkey, numMonkeys);
+            finder.setAnalysisScope(Banana, numBananas);
+            
+            // Check if all axioms in the theory are satisfiable
+            ModelFinderResult result = finder.checkSat();
+            
+            System.out.println("numTrees:   " + numTrees);
+            System.out.println("numMonkeys: " + numMonkeys);
+            System.out.println("numBananas: " + numBananas);
+            System.out.println("Satisiable?: " + result.toString());
+            
+            // Print out model if it exists
+            if(result.equals(ModelFinderResult.Sat())) {
+                System.out.println(finder.viewModel());
+            }
         }
     }
 }

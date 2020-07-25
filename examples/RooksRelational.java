@@ -8,7 +8,7 @@ import java.util.List;
 import java.io.*;
 
 public class RooksRelational {
-    public static void main(String[] args) {
+    public static void main(String[] args) throws Exception {
         if(args.length < 1) {
             System.err.println("Please include grid size");
             System.exit(1);
@@ -59,25 +59,25 @@ public class RooksRelational {
             .withAxiom(colConstraint1)
             .withAxiom(colConstraint2);
             
-        // Initialize a model finder 
-        ModelFinder finder = ModelFinder.createDefault();
-        
-        // Set the theory of the model finder
-        finder.setTheory(rookTheory);
-        
-        // Set the scopes of the model finder
-        finder.setAnalysisScope(Row, gridSize);
-        finder.setAnalysisScope(Col, gridSize);
-        
-        // Check if all axioms in the theory are satisfiable 
-        ModelFinderResult result = finder.checkSat();
-        
-        System.out.println("Grid Size: " + gridSize);
-        System.out.println("Satisiable?: " + result.toString());
-        
-        // Print out model if it exists
-        if(result.equals(ModelFinderResult.Sat())) {
-            System.out.println(finder.viewModel());
+        // Initialize a model finder
+        try(ModelFinder finder = ModelFinder.createDefault()) {
+            // Set the theory of the model finder
+            finder.setTheory(rookTheory);
+            
+            // Set the scopes of the model finder
+            finder.setAnalysisScope(Row, gridSize);
+            finder.setAnalysisScope(Col, gridSize);
+            
+            // Check if all axioms in the theory are satisfiable
+            ModelFinderResult result = finder.checkSat();
+            
+            System.out.println("Grid Size: " + gridSize);
+            System.out.println("Satisiable?: " + result.toString());
+            
+            // Print out model if it exists
+            if(result.equals(ModelFinderResult.Sat())) {
+                System.out.println(finder.viewModel());
+            }
         }
     }
 }

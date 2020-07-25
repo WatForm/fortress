@@ -4,6 +4,8 @@ import fortress.msfol._
 import fortress.modelfind._
 import fortress.transformers._
 
+import scala.util.Using
+
 class ModelFinderZ3ApiTest extends UnitSuite {
     
     val p = Var("p")
@@ -23,10 +25,11 @@ class ModelFinderZ3ApiTest extends UnitSuite {
             .withConstant(p.of(Sort.Bool))
             .withAxiom(And(p, p))
         
-        val finder = ModelFinder.createDefault
-        finder.setTheory(theory)
-        
-        finder.checkSat should be (ModelFinderResult.Sat)
+        Using.resource(ModelFinder.createDefault) { finder => {
+            finder.setTheory(theory)
+            
+            finder.checkSat should be (ModelFinderResult.Sat)
+        }}
     }
     
     test("prop unsat 1") {
@@ -34,10 +37,11 @@ class ModelFinderZ3ApiTest extends UnitSuite {
             .withConstant(p.of(Sort.Bool))
             .withAxiom(And(p, Not(p)))
         
-        val finder = ModelFinder.createDefault
-        finder.setTheory(theory)
-        
-        finder.checkSat should be (ModelFinderResult.Unsat)
+        Using.resource(ModelFinder.createDefault) { finder => {
+            finder.setTheory(theory)
+            
+            finder.checkSat should be (ModelFinderResult.Unsat)
+        }}
     }
     
     test("prop unsat 2") {
@@ -45,10 +49,11 @@ class ModelFinderZ3ApiTest extends UnitSuite {
             .withConstants(p.of(Sort.Bool), q.of(Sort.Bool))
             .withAxiom(Not(Implication(And(p, q), q)))
         
-        val finder = ModelFinder.createDefault
-        finder.setTheory(theory)
-        
-        finder.checkSat should be (ModelFinderResult.Unsat)
+        Using.resource(ModelFinder.createDefault) { finder => {
+            finder.setTheory(theory)
+            
+            finder.checkSat should be (ModelFinderResult.Unsat)
+        }}
     }
     
     test("prop sat 2") {
@@ -56,10 +61,11 @@ class ModelFinderZ3ApiTest extends UnitSuite {
             .withConstants(p.of(Sort.Bool), q.of(Sort.Bool))
             .withAxiom(Not(Implication(Or(p, q), q)))
         
-        val finder = ModelFinder.createDefault
-        finder.setTheory(theory)
-        
-        finder.checkSat should be (ModelFinderResult.Sat)
+        Using.resource(ModelFinder.createDefault) { finder => {
+            finder.setTheory(theory)
+            
+            finder.checkSat should be (ModelFinderResult.Sat)
+        }}
     }
     
     // EUF tests
@@ -79,9 +85,10 @@ class ModelFinderZ3ApiTest extends UnitSuite {
             .withAxiom(premise2)
             .withAxiom(Not(conjecture))
             
-        val finder = ModelFinder.createDefault
-        finder.setTheory(theory)
-        finder.setAnalysisScope(U, 3)
-        finder.checkSat should be (ModelFinderResult.Unsat)
+        Using.resource(ModelFinder.createDefault) { finder => {
+            finder.setTheory(theory)
+            finder.setAnalysisScope(U, 3)
+            finder.checkSat should be (ModelFinderResult.Unsat)
+        }}
     }
 }

@@ -15,7 +15,7 @@ import java.util.Map;
 // A fortress implementation of TPTP problem ALG212+1.p
 // TPTP version 7.2.0
 public class alg212 {
-    public static void solve(int scope, boolean printout) throws IOException {
+    public static void solve(int scope, boolean printout) throws Exception {
         Sort Univ = mkSortConst("Univ");
         FuncDecl f = FuncDecl.mkFuncDecl("f", Univ, Univ, Univ, Univ);
         
@@ -51,22 +51,23 @@ public class alg212 {
             .withAxiom(associativityAxiom)
             .withAxiom(mkNot(dist_longConjecture));
         
-        ModelFinder modelfinder = ModelFinder.createDefault();
-        modelfinder.setTimeout(2000);
-        modelfinder.setTheory(theory);
+        try(ModelFinder modelfinder = ModelFinder.createDefault()) {
+            modelfinder.setTimeout(2000);
+            modelfinder.setTheory(theory);
 
-        ModelFinderResult result;
-        if(printout) {
-            Writer log = new PrintWriter(System.out);
-            modelfinder.setOutput(log);
+            ModelFinderResult result;
+            if(printout) {
+                Writer log = new PrintWriter(System.out);
+                modelfinder.setOutput(log);
+            }
+            result = modelfinder.checkSat();
+
+            System.out.println();
+            System.out.println(result);
         }
-        result = modelfinder.checkSat();
-
-        System.out.println();
-        System.out.println(result);
     }
     
-    public static void main(String args[]) throws IOException {
+    public static void main(String args[]) throws Exception {
         if(args.length == 0) {
             System.err.println("No size argument given.");
         } else {

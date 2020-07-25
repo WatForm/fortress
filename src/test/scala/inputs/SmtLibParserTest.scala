@@ -6,6 +6,7 @@ import fortress.msfol._
 import org.scalatest._
 import scala.jdk.CollectionConverters._
 import scala.jdk.OptionConverters._
+import scala.util.Using
 
 class SmtLibParserTest extends UnitSuite {
     
@@ -148,8 +149,8 @@ class SmtLibParserTest extends UnitSuite {
         val f = FuncDecl.mkFuncDecl("f", A, A, A)
         expectedTheory = expectedTheory.withFunctionDeclaration(f)
         val sf = App("f", x, x)
-        expectedTheory = 
-            expectedTheory.withAxiom(Eq(IfThenElse(Eq(sf,x),x,sf),x)) 
+        expectedTheory =
+            expectedTheory.withAxiom(Eq(IfThenElse(Eq(sf,x),x,sf),x))
         resultTheory should be (expectedTheory)
     }
 
@@ -174,8 +175,8 @@ class SmtLibParserTest extends UnitSuite {
         val f = FuncDecl.mkFuncDecl("f", A, A, Sort.Bool)
         expectedTheory = expectedTheory.withFunctionDeclaration(f)
         val sf = App("f", x, x)
-        expectedTheory = 
-            expectedTheory.withAxiom(Or(And(sf,sf),And(Not(sf),y))) 
+        expectedTheory =
+            expectedTheory.withAxiom(Or(And(sf,sf),And(Not(sf),y)))
         resultTheory should be (expectedTheory)
     }
 
@@ -201,8 +202,8 @@ class SmtLibParserTest extends UnitSuite {
         expectedTheory = expectedTheory.withFunctionDeclaration(f)
         val sf = App("f", x, x)
         val ii = Or(And(y,sf),And(Not(y),y))
-        expectedTheory = 
-            expectedTheory.withAxiom(Or(And(ii,y),And(Not(ii),sf))) 
+        expectedTheory =
+            expectedTheory.withAxiom(Or(And(ii,y),And(Not(ii),sf)))
         resultTheory should be (expectedTheory)
     }
 
@@ -315,11 +316,12 @@ class SmtLibParserTest extends UnitSuite {
         val parser = new SmtLibParser
         val resultTheory = parser.parse(fileStream)
 
-        val mf = ModelFinder.createDefault
-        mf.setTheory(resultTheory)
-        val res = mf.checkSat
+        Using.resource(ModelFinder.createDefault) { mf => {
+            mf.setTheory(resultTheory)
+            val res = mf.checkSat
 
-        res should be (ModelFinderResult.Sat)
+            res should be (ModelFinderResult.Sat)
+        }}
     }
 
     test("bitvector parse 1") {
@@ -364,10 +366,11 @@ class SmtLibParserTest extends UnitSuite {
 
         resultTheory should be (expected)
 
-        val mf = ModelFinder.createDefault
-        mf.setTheory(resultTheory)
-        val res = mf.checkSat
+        Using.resource(ModelFinder.createDefault) { mf => {
+            mf.setTheory(resultTheory)
+            val res = mf.checkSat
 
-        res should be (ModelFinderResult.Sat)
+            res should be (ModelFinderResult.Sat)
+        }}
     }
 }

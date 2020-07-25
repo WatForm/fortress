@@ -1,6 +1,7 @@
 import fortress.modelfind._
 import fortress.msfol._
 import org.scalatest._
+import scala.util.Using
 
 class CountModelTest extends UnitSuite {
     
@@ -17,28 +18,29 @@ class CountModelTest extends UnitSuite {
             .withAxiom(Or(p, q))
             .withAxiom(Not(And(p, q)))
 
-        val finder = ModelFinder.createDefault()
-        finder.setTheory(theory)
+        Using.resource(ModelFinder.createDefault) { finder => {
+            finder.setTheory(theory)
 
-        finder.checkSat should be (ModelFinderResult.Sat)
+            finder.checkSat should be (ModelFinderResult.Sat)
 
-        var model = finder.viewModel()
-        val pVal1 = model.constantInterpretations(p of BoolSort)
-        val qVal1 = model.constantInterpretations(q of BoolSort)
+            var model = finder.viewModel()
+            val pVal1 = model.constantInterpretations(p of BoolSort)
+            val qVal1 = model.constantInterpretations(q of BoolSort)
 
-        finder.nextInterpretation() should be (ModelFinderResult.Sat)
-        model = finder.viewModel()
+            finder.nextInterpretation() should be (ModelFinderResult.Sat)
+            model = finder.viewModel()
 
-        val pVal2 = model.constantInterpretations(p of BoolSort)
-        val qVal2 = model.constantInterpretations(q of BoolSort)
+            val pVal2 = model.constantInterpretations(p of BoolSort)
+            val qVal2 = model.constantInterpretations(q of BoolSort)
 
-        // Check that the second interpretation is the opposite of the first
-        assert(pVal1 != qVal1)
-        assert(pVal1 != pVal2)
-        assert(qVal1 != qVal2)
-        finder.nextInterpretation() should be (ModelFinderResult.Unsat)
+            // Check that the second interpretation is the opposite of the first
+            assert(pVal1 != qVal1)
+            assert(pVal1 != pVal2)
+            assert(qVal1 != qVal2)
+            finder.nextInterpretation() should be (ModelFinderResult.Unsat)
 
-        finder.countValidModels(theory) should be (2)
+            finder.countValidModels(theory) should be (2)
+        }}
     }
 
     test("basic count 2") {
@@ -54,8 +56,9 @@ class CountModelTest extends UnitSuite {
           .withAxiom(Or(p, q, r))
           .withAxiom(Not(And(p, q, r)))
 
-        val finder = ModelFinder.createDefault()
-        finder.countValidModels(theory) should be (6)
+        Using.resource(ModelFinder.createDefault) { finder =>
+            finder.countValidModels(theory) should be (6)
+        }
     }
 
     test("function count") {
@@ -78,8 +81,9 @@ class CountModelTest extends UnitSuite {
           .withAxiom(Not(App("next", red) === red))
           .withAxiom(c === App("next", red))
 
-        val finder = ModelFinder.createDefault()
-        finder.countValidModels(theory) should be (8)
+        Using.resource(ModelFinder.createDefault) { finder =>
+            finder.countValidModels(theory) should be (8)
+        }
     }
     
     test("relational bijection count") {
@@ -127,10 +131,11 @@ class CountModelTest extends UnitSuite {
             .withAxiom(colConstraint1)
             .withAxiom(colConstraint2)
         
-        val finder = ModelFinder.createDefault
-        finder.setAnalysisScope(Row, 4)
-        finder.setAnalysisScope(Col, 4)
-        finder.countValidModels(rookTheory) should be (24)
+        Using.resource(ModelFinder.createDefault) { finder => {
+            finder.setAnalysisScope(Row, 4)
+            finder.setAnalysisScope(Col, 4)
+            finder.countValidModels(rookTheory) should be (24)
+        }}
     }
     
     test("skolem witnesses not added to count") {
@@ -146,8 +151,9 @@ class CountModelTest extends UnitSuite {
             .withFunctionDeclarations(f)
             .withAxiom(Forall(x of A, Exists(y of A, Not(App("f", x) === y))))
         
-        val finder = ModelFinder.createDefault
-        finder.setAnalysisScope(A, 3) // Should be 27 functions
-        finder.countValidModels(theory) should be (27)
+        Using.resource(ModelFinder.createDefault) { finder => {
+            finder.setAnalysisScope(A, 3) // Should be 27 functions
+            finder.countValidModels(theory) should be (27)
+        }}
     }
 }

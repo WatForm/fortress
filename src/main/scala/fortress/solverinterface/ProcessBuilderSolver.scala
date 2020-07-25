@@ -113,6 +113,11 @@ abstract class ProcessBuilderSolver extends SolverTemplate {
         new BasicInterpretation(sortInterpretations,constantInterpretations,functionInterpretations)
     }
     
+    @throws(classOf[java.io.IOException])
+    override def close(): Unit = {
+        clearProcess
+    }
+    
     private def getFortressNameToSmtValueMap(theory: Theory): Map[String, String] = {
         for(constant <- theory.constants){
             pin.get write "(get-value ("
