@@ -104,6 +104,7 @@ with DrdDifferentiation {
             f.arity <= 2
             && f.isRainbowSorted
             && (f.resultSort +: f.argSorts).forall(view.usedDomainElements(_).isEmpty)
+            && (f.resultSort +: f.argSorts).forall(view.scope(_) >= 2)
         ) {
             val (ltDecl, formulas, rangeRestrictions) = Symmetry.rainbowFunctionLT(f, view)
             addDeclaration(ltDecl)
@@ -111,4 +112,8 @@ with DrdDifferentiation {
             addGeneralConstraints(formulas.toSet)
         }
     }
+}
+
+object RainbowSymmetryBreaker extends SymmetryBreakerFactory {
+    def create(theory: Theory, scopes: Map[Sort, Int]): SymmetryBreaker = new RainbowSymmetryBreaker(theory, scopes)
 }

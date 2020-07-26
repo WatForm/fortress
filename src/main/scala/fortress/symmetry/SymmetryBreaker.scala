@@ -38,8 +38,6 @@ abstract class SymmetryBreaker(
     
     def view: DomainElementUsageView = tracker.view
     
-    
-    
     protected def addRangeRestrictions(rangeRestrictions: Set[RangeRestriction]): Unit = {
         // Add to constraints
         newConstraints ++= rangeRestrictions map (_.asFormula)

@@ -214,9 +214,7 @@ object Symmetry {
             j <- 1 to i // Enumerates result values, starting with the second
         } yield {
             val app_i = applications(i)
-            
-            val possiblePrecedingApps = for(l <- (j - 1) to (i - 1)) yield applications(l)
-            
+            val possiblePrecedingApps = applications.rangeSlice((j - 1) to (i - 1))
             (app_i === unusedResultValues(j)) ==> (unusedResultValues(j - 1) equalsOneOfFlip possiblePrecedingApps)
         }
         
@@ -250,6 +248,8 @@ object Symmetry {
         Errors.precondition(f.arity <= 2)
         Errors.precondition(f.argSorts forall (deView.usedDomainElements(_).isEmpty))
         Errors.precondition(deView.usedDomainElements(f.resultSort).isEmpty)
+        Errors.precondition(f.argSorts.forall(deView.scope(_) >= 2))
+        Errors.precondition(deView.scope(f.resultSort) >= 2)
         
         val (ltDecl, ltDefn) = sortLtDefinition(f.resultSort, deView.scope(f.resultSort))
         
@@ -266,26 +266,9 @@ object Symmetry {
                     )
                 }
                 
-                // Standard DRD constraints
-                // Make them manually instead of invoking method, because:
-                // 1. ordering might not match what we want
-                // 2. in case scope(result) > scope(arg1)
-                val r = scala.math.min(deView.scope(argSort), deView.scope(resultSort))
-                val drdRangeRestrictions: Seq[RangeRestriction] = for(i <- 1 to r) yield {
-                    RangeRestriction(
-                        App(fname, DomainElement(i, argSort)),
-                        DomainElement.range(1 to i, resultSort)
-                    )
-                }
-                val drdImplicationsSimplified: Seq[Term] = for {
-                    i <- 0 to (r - 1)
-                    j <- 1 to i
-                } yield {
-                    App(fname, DomainElement(i, argSort)) === DomainElement(j, resultSort)
-                    .==> (DomainElement(j - 1, resultSort) equalsOneOfFlip (
-                        ((j - 1) to (i - 1)) map (l => App(fname, DomainElement(l, argSort)))
-                    ))
-                }
+                val drdRangeRestrictions: Seq[RangeRestriction] = drdFunctionRangeRestrictions(f, deView).toSeq
+                val drdImplicationsSimplified: Seq[Term] = drdFunctionImplicationsSimplified(f, deView).toSeq
+                
                 (ltConstraints ++ drdImplicationsSimplified, drdRangeRestrictions)
             }
             // Binary
@@ -293,32 +276,39 @@ object Symmetry {
                 
                 // First argument constraints
                 
-                val ltConstraintsArg1: Seq[Term] = for(i <- 1 to (deView.scope(argSort1) - 1)) yield {
+                // Ordering constraints on first argument
+                val ltConstraintsArg1: Seq[Term] = for(i <- 1 until deView.scope(argSort1)) yield {
                     App(LT,
                         App(fname, DomainElement(i, argSort1), DomainElement(1, argSort2)),
                         App(fname, DomainElement(i + 1, argSort1), DomainElement(1, argSort2))
                     )
                 }
+                
+                // Have to make DRD constraints manually, otherwise:
+                // 1. ordering might not match what we want
+                // 2. if scope(resultSort) > scope(argSort1), the constraints will spill over into the second
+                // value of argSort2, which is not what we want because then we can't justify "shuffling"
+                
                 val r1 = scala.math.min(deView.scope(argSort1), deView.scope(resultSort))
-                // Have to make them manually, ordering might not match what we want
+                
                 val drdRangeRestrictions: Seq[RangeRestriction] = for(i <- 1 to r1) yield {
                     RangeRestriction(
                         App(fname, DomainElement(i, argSort1), DomainElement(1, argSort2)),
-                        (1 to i) map {j => DomainElement(j, resultSort) }
+                        DomainElement.range(1 to i, resultSort)
                     )
                 }
+                
                 val drdImplicationsSimplified: Seq[Term] = for {
-                    i <- 0 to (r1 - 1)
-                    j <- 1 to i
+                    i <- 1 to r1
+                    j <- 2 to i
                 } yield {
-                    App(fname, DomainElement(i, argSort1), DomainElement(1, argSort2)) === DomainElement(j, resultSort)
-                    .==> (DomainElement(j - 1, resultSort) equalsOneOfFlip (
-                        ((j - 1) to (i - 1)) map (l => App(fname, DomainElement(l, argSort1), DomainElement(1, argSort2)))
-                    ))
+                    val lhs = App(fname, DomainElement(i, argSort1), DomainElement(1, argSort2)) === DomainElement(j, resultSort)
+                    val rhs = DomainElement(j - 1, resultSort) equalsOneOfFlip DomainElement.range((j - 1) to (i - 1), argSort1).map(App(fname, _, DomainElement(1, argSort2)))
+                    lhs ==> rhs
                 }
                 
                 // Second argument constraints
-                val ltConstraintsArg2: Seq[Term] = for(i <- 1 to (deView.scope(argSort2) - 1)) yield {
+                val ltConstraintsArg2: Seq[Term] = for(i <- 2 until deView.scope(argSort2)) yield {
                     App(LT,
                         App(fname, DomainElement(1, argSort1), DomainElement(i, argSort2)),
                         App(fname, DomainElement(1, argSort1), DomainElement(i + 1, argSort2))
@@ -377,10 +367,9 @@ object Symmetry {
             
             Errors.precondition(P.resultSort == BoolSort)
             Errors.precondition(P.argSorts forall (!_.isBuiltin))
+            Errors.precondition(P.argSorts exists (deView.numUnusedDomainElements(_) >= 2))
             
             val tracker = deView.createTracker
-                        
-            Errors.precondition(P.argSorts exists (tracker.view.numUnusedDomainElements(_) >= 2))
             
             def fillArgList(sort: Sort, d: DomainElement): ArgList = {
                 Errors.precondition(d.sort == sort)
@@ -406,7 +395,6 @@ object Symmetry {
             constraints.toSet
         }
     
-    // Only need scope for result value
     // I think more symmetry breaking can be done here
     def csFunctionExtRangeRestrictions(
         f: FuncDecl,

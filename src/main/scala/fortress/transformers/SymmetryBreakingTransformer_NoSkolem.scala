@@ -56,7 +56,7 @@ class SymmetryBreakingTransformer_NoSkolem(
             
             loop(Set.empty)
             
-            val newTheory = theory.withAxioms(breaker.constraints)
+            val newTheory = theory.withFunctionDeclarations(breaker.declarations).withAxioms(breaker.constraints)
             ProblemState(newTheory, scopes, skc, skf, rangeRestricts union breaker.rangeRestrictions.toSet, unapplyInterp)
         }
     }
