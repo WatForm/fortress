@@ -157,7 +157,7 @@ class FortressTWO_SR(solverStrategy: SolverStrategy) extends BaseFortress(solver
         transformerSequence ++= symmetryBreakingTransformers
         transformerSequence += QuantifierExpansionTransformer.create()
         transformerSequence += RangeFormulaTransformer.create()
-        transformerSequence += new SimplifyTransformer
+        transformerSequence += new SimplifyWithRangeTransformer
         transformerSequence += new DomainEliminationTransformer2
         transformerSequence.toList
     }
