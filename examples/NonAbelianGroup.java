@@ -8,7 +8,7 @@ import java.util.List;
 import java.io.*;
 
 public class NonAbelianGroup {
-    public static void main(String[] args) {
+    public static void main(String[] args) throws IOException {
         if(args.length < 1) {
             System.err.println("Please include group size");
             System.exit(1);
@@ -70,24 +70,24 @@ public class NonAbelianGroup {
         Theory nonAbelianGroupTheory = groupTheory
             .withAxiom(mkNot(abelian));
             
-        // Initialize a model finder 
-        ModelFinder finder = ModelFinder.createDefault();
-        
-        // Set the theory of the model finder
-        finder.setTheory(nonAbelianGroupTheory);
-        
-        // Set the scopes of the model finder
-        finder.setAnalysisScope(G, groupSize);
-        
-        // Check if all axioms in the theory are satisfiable 
-        ModelFinderResult result = finder.checkSat();
-        
-        System.out.println("Group Size: " + groupSize);
-        System.out.println("Satisiable?: " + result.toString());
-        
-        // Print out model if it exists
-        if(result.equals(ModelFinderResult.Sat())) {
-            System.out.println(finder.viewModel());
+        // Initialize a model finder
+        try(ModelFinder finder = ModelFinder.createDefault()) {
+            // Set the theory of the model finder
+            finder.setTheory(nonAbelianGroupTheory);
+            
+            // Set the scopes of the model finder
+            finder.setAnalysisScope(G, groupSize);
+            
+            // Check if all axioms in the theory are satisfiable
+            ModelFinderResult result = finder.checkSat();
+            
+            System.out.println("Group Size: " + groupSize);
+            System.out.println("Satisiable?: " + result.toString());
+            
+            // Print out model if it exists
+            if(result.equals(ModelFinderResult.Sat())) {
+                System.out.println(finder.viewModel());
+            }
         }
     }
 }

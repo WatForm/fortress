@@ -130,4 +130,8 @@ abstract class TransformationModelFinder(var solverStrategy: SolverStrategy) ext
 
         count
     }
+    
+    override def close(): Unit = {
+        solverStrategy.close
+    }
 }

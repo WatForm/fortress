@@ -5,11 +5,13 @@ import fortress.interpretation._
 import fortress.modelfind._
 import fortress.util._
 
+import java.lang.AutoCloseable
+
 /** An abstraction of which solving method should be used to search for a satisfying model.
 * For example, dumping the theory to SMT-LIB and solving it using a command-line SMT solver. */
 
 //TODO Memory out errors
-trait SolverStrategy {
+trait SolverStrategy extends AutoCloseable {
     /**
     * Attempts to solve the given theory, searching for a satisfying instance.
     */
@@ -17,4 +19,7 @@ trait SolverStrategy {
     def addAxiom(axiom: Term, timeoutMillis: Milliseconds): ModelFinderResult
 
     def getInstance(theory: Theory): Interpretation
+    
+    @throws(classOf[java.io.IOException])
+    override def close(): Unit
 }

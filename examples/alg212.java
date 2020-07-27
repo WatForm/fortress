@@ -51,19 +51,20 @@ public class alg212 {
             .withAxiom(associativityAxiom)
             .withAxiom(mkNot(dist_longConjecture));
         
-        ModelFinder modelfinder = ModelFinder.createDefault();
-        modelfinder.setTimeout(2000);
-        modelfinder.setTheory(theory);
+        try(ModelFinder modelfinder = ModelFinder.createDefault()) {
+            modelfinder.setTimeout(2000);
+            modelfinder.setTheory(theory);
 
-        ModelFinderResult result;
-        if(printout) {
-            Writer log = new PrintWriter(System.out);
-            modelfinder.setOutput(log);
+            ModelFinderResult result;
+            if(printout) {
+                Writer log = new PrintWriter(System.out);
+                modelfinder.setOutput(log);
+            }
+            result = modelfinder.checkSat();
+
+            System.out.println();
+            System.out.println(result);
         }
-        result = modelfinder.checkSat();
-
-        System.out.println();
-        System.out.println(result);
     }
     
     public static void main(String args[]) throws IOException {

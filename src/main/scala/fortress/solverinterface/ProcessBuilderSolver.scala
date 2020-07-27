@@ -20,12 +20,12 @@ abstract class ProcessBuilderSolver extends SolverTemplate {
     private var timeout = Milliseconds(60000)
     
     override def convertTheory(theory: Theory): Unit = {
-        convertedBytes.reset
+        convertedBytes.reset()
         
-        convertedBytes write "(set-option :produce-models true)\n"
-        convertedBytes write "(set-logic ALL)\n"
+        convertedBytes.write("(set-option :produce-models true)\n")
+        convertedBytes.write("(set-logic ALL)\n")
         val converter = new SmtlibConverter(convertedBytes)
-        converter writeTheory theory
+        converter.writeTheory(theory)
     }
     
     override def updateTimeout(remainingMillis: Milliseconds): Unit = {
@@ -34,9 +34,9 @@ abstract class ProcessBuilderSolver extends SolverTemplate {
     
     override def runSolver: ModelFinderResult = {
         tryIO(() => {
-            clearProcess
-            startProcess
-            convertedBytes writeTo pin.get
+            clearProcess()
+            startProcess()
+            convertedBytes.writeTo(pin.get)
             checkSat
         })
     }
@@ -48,19 +48,19 @@ abstract class ProcessBuilderSolver extends SolverTemplate {
     }
     
     private def checkSat: ModelFinderResult = {
-        pin.get write "(check-sat)\n"
+        pin.get.write("(check-sat)\n")
         
-        pin.get.flush
+        pin.get.flush()
         
-        var result = pout.get.readLine
+        var result = pout.get.readLine()
         result match {
             case "sat" => ModelFinderResult.Sat
             case "unsat" => ModelFinderResult.Unsat
             case "unknown" => {
-                pin.get write "(get-info :reason-unknown)\n"
-                pin.get.flush
+                pin.get.write("(get-info :reason-unknown)\n")
+                pin.get.flush()
 
-                var reason = pout.get.readLine
+                var reason = pout.get.readLine()
 
                 if(reason.contains("timeout"))
                     ModelFinderResult.Timeout
@@ -75,7 +75,7 @@ abstract class ProcessBuilderSolver extends SolverTemplate {
         Errors.verify(process.nonEmpty, "Cannot add axiom without a live process")
         tryIO(() => {
             val converter = new SmtlibConverter(pin.get)
-            converter writeAssertion axiom
+            converter.writeAssertion(axiom)
             
             checkSat
         })
@@ -90,7 +90,7 @@ abstract class ProcessBuilderSolver extends SolverTemplate {
             for {
                 (name, value) <- fortressNameToSmtValue
                 domainElement <- DomainElement.interpretName(name)
-            } yield (value, domainElement)
+            } yield (value -> domainElement)
         ).toMap
         
         val sortInterpretations: Map[Sort, IndexedSeq[Value]] =
@@ -101,7 +101,7 @@ abstract class ProcessBuilderSolver extends SolverTemplate {
             
         val functionArgs: Map[FuncDecl, CartesianSeqProduct[Value]] =
             (for(funcDecl <- theory.functionDeclarations) yield {
-                (funcDecl, new CartesianSeqProduct[Value](
+                (funcDecl -> new CartesianSeqProduct[Value](
                     funcDecl.argSorts
                     .map(sort => sortInterpretations(sort))
                     .toIndexedSeq))
@@ -113,23 +113,28 @@ abstract class ProcessBuilderSolver extends SolverTemplate {
         new BasicInterpretation(sortInterpretations,constantInterpretations,functionInterpretations)
     }
     
+    @throws(classOf[java.io.IOException])
+    override def close(): Unit = {
+        clearProcess()
+    }
+    
     private def getFortressNameToSmtValueMap(theory: Theory): Map[String, String] = {
         for(constant <- theory.constants){
-            pin.get write "(get-value ("
-            pin.get write constant.name
-            pin.get write "))"
+            pin.get.write("(get-value (")
+            pin.get.write(constant.name)
+            pin.get.write("))")
         }
-        pin.get write "\n"
-        pin.get.flush
+        pin.get.write("\n")
+        pin.get.flush()
         
         (for(constant <- theory.constants) yield {
-            val str = pout.get.readLine
+            val str = pout.get.readLine()
             str match {
                 case ProcessBuilderSolver.smt2Model(name, value) => {
                     Errors.verify(constant.name == name, s""""${constant.name}" should be equal to "$name"""")
                     (constant.name -> value)
                 }
-                case _ => Errors.unreachable
+                case _ => Errors.unreachable()
             }
         }).toMap
     }
@@ -142,26 +147,26 @@ abstract class ProcessBuilderSolver extends SolverTemplate {
             
         for(funcDecl <- theory.functionDeclarations;
             args <- functionArgs(funcDecl)){
-                pin.get write "(get-value (("
-                pin.get write funcDecl.name
+                pin.get.write("(get-value ((")
+                pin.get.write(funcDecl.name)
                 for(arg <- args){
-                    pin.get write " "
-                    pin.get write arg.toString
+                    pin.get.write(" ")
+                    pin.get.write(arg.toString)
                 }
-                pin.get write ")))"
+                pin.get.write(")))")
             }
             
-        pin.get write "\n"
-        pin.get.flush
+        pin.get.write("\n")
+        pin.get.flush()
             
         (for(funcDecl <- theory.functionDeclarations) yield {
-            (funcDecl, (for(args <- functionArgs(funcDecl)) yield {
-                val str = pout.get.readLine
+            (funcDecl -> (for(args <- functionArgs(funcDecl)) yield {
+                val str = pout.get.readLine()
                 val value = str match {
                     case ProcessBuilderSolver.smt2Model(name, value) => value
-                    case _ => Errors.unreachable
+                    case _ => Errors.unreachable()
                 }
-                (args, smtValueToFortressValue(value, funcDecl.resultSort, smtValueToDomainElement))
+                (args -> smtValueToFortressValue(value, funcDecl.resultSort, smtValueToDomainElement))
             }).toMap)
         }).toMap
     }
@@ -173,7 +178,7 @@ abstract class ProcessBuilderSolver extends SolverTemplate {
     ) : Map[AnnotatedVar, Value] = {
             
         (for(constant <- theory.constants) yield {
-            (constant,
+            (constant ->
             smtValueToFortressValue(
                 fortressNameToSmtValue(constant.getName),
                 constant.sort,
@@ -186,12 +191,12 @@ abstract class ProcessBuilderSolver extends SolverTemplate {
         theory: Theory,
         smtValueToDomainElement: Map[String, DomainElement]): Map[Sort, IndexedSeq[Value]] = {
             
-        (for(sort <- theory.sorts if !sort.isBuiltin) yield sort match{
-            case SortConst(name) => (sort,
+        (for(sort <- theory.sorts if !sort.isBuiltin) yield sort match {
+            case SortConst(name) => (sort ->
                 smtValueToDomainElement.values.filter(
                     domainElement => domainElement.sort == sort
                 ).toIndexedSeq)
-            case _ => Errors.unreachable
+            case _ => Errors.unreachable()
         }).toMap
     }
     
@@ -205,20 +210,20 @@ abstract class ProcessBuilderSolver extends SolverTemplate {
             case BoolSort => value match {
                 case "true" => Top
                 case "false" => Bottom
-                case _ => Errors.unreachable
+                case _ => Errors.unreachable()
             }
             case IntSort => IntegerLiteral(value.toInt)
             case BitVectorSort(bitwidth) => value match {
                 case ProcessBuilderSolver.bitVecLiteral(radix, digits) => radix match {
                     case "x" => BitVectorLiteral(Integer.parseInt(digits, 16), bitwidth)
                     case "b" => BitVectorLiteral(Integer.parseInt(digits, 2),  bitwidth)
-                    case _ => Errors.unreachable
+                    case _ => Errors.unreachable()
                 }
                 case ProcessBuilderSolver.bitVecExpr(digits, bitw) => {
                     Errors.verify(bitw.toInt == bitwidth)
                     BitVectorLiteral(digits.toInt, bitwidth)
                 }
-                case _ => Errors.unreachable
+                case _ => Errors.unreachable()
             }
         }
     }
@@ -228,30 +233,30 @@ abstract class ProcessBuilderSolver extends SolverTemplate {
             func()
         } catch {
             case ex: IOException => {
-                clearProcess
+                clearProcess()
                 ModelFinderResult.Error
             }
         }
     }
     
-    private def startProcess: Unit = {
+    private def startProcess(): Unit = {
         process = Some(new ProcessBuilder(processArgs).start())
         pin = Some(new BufferedWriter(new OutputStreamWriter(process.get.getOutputStream)))
         pout = Some(new BufferedReader(new InputStreamReader(process.get.getInputStream)))
     }
     
-    private def clearProcess: Unit = {
-        finalize
+    private def clearProcess(): Unit = {
+        finalize()
         pin = None
         pout = None
         process = None
     }
     
-    override protected def finalize: Unit = {
+    override protected def finalize(): Unit = {
         if(process.nonEmpty) {
-            pin.get.close
-            pout.get.close
-            process.get.destroy
+            pin.get.close()
+            pout.get.close()
+            process.get.destroy()
         }
     }
     

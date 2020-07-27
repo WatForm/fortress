@@ -1,6 +1,6 @@
-/* Parse SMT-LIB2 file given as command-line arg, 
-   set scopes to default value, 
-   run model finder, 
+/* Parse SMT-LIB2 file given as command-line arg,
+   set scopes to default value,
+   run model finder,
    and output results */
 
 import fortress.msfol.*;
@@ -15,7 +15,7 @@ import java.io.*;
 
 public class Smtlibparsemain {
 
-    public static void main(String[] args) throws Exception {
+    public static void main(String[] args) throws IOException {
 
         if (args.length == 0) {
             System.out.println("Missing Argument");
@@ -30,22 +30,21 @@ public class Smtlibparsemain {
 	    File f = new File(inputFilePath);
 	    Integer scope = 2;
 	    Integer thresholdTimeout = 10000; // milliseconds
-	    FileInputStream fileStream ; 
+	    FileInputStream fileStream ;
 
- 		try {
-			fileStream = new FileInputStream(f); 
-	        // parse SMT-LIB to Fortress theory      
-	        SmtLibParser parser = new SmtLibParser();	
+ 		try(ModelFinder modelfinder = ModelFinder.createDefault()) {
+			fileStream = new FileInputStream(f);
+	        // parse SMT-LIB to Fortress theory
+	        SmtLibParser parser = new SmtLibParser();
 	        Theory thy = parser.parse(fileStream);
 	        // Set up model finder
-	        ModelFinder modelfinder = ModelFinder.createDefault();
 			modelfinder.setTimeout(thresholdTimeout);
 			modelfinder.setTheory(thy);
 			// Set all sorts to default scopes
 			for (Sort s: thy.sortsJava())  {
 				if (!(s.isBuiltin())) {
 					modelfinder.setAnalysisScope(s,scope);
-				} 
+				}
 			}
 
 	        Writer log = new PrintWriter(System.out);
@@ -62,4 +61,3 @@ public class Smtlibparsemain {
         }
     }
 }
-

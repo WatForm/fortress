@@ -3,6 +3,8 @@ import org.scalatest._
 import fortress.msfol._
 import fortress.modelfind._
 
+import scala.util.Using
+
 class EnumModelFindTest extends UnitSuite {
     
     test("simple enum theory") {
@@ -25,27 +27,28 @@ class EnumModelFindTest extends UnitSuite {
             .withAxiom(App("next", red) === green)
             .withAxiom(c === App("next", red))
         
-        val finder = ModelFinder.createDefault
-        finder.setTheory(theory)
-        // Do not need to set scope of enum sort
-        
-        finder.checkSat should be (ModelFinderResult.Sat)
-        
-        val model = finder.viewModel()
-        model.constantInterpretations should be (Map(
-            (c of Colour) -> green
-        ))
-        model.sortInterpretations should be (Map(
-            Colour -> Seq(red, yellow, green),
-            BoolSort -> Seq(Term.mkTop, Term.mkBottom)
-        ))
-        model.functionInterpretations should be (Map(
-            next -> Map(
-                Seq(red) -> green,
-                Seq(yellow) -> red,
-                Seq(green) -> yellow
-            )
-        ))
+        Using.resource(ModelFinder.createDefault) { finder => {
+            finder.setTheory(theory)
+            // Do not need to set scope of enum sort
+            
+            finder.checkSat should be (ModelFinderResult.Sat)
+            
+            val model = finder.viewModel()
+            model.constantInterpretations should be (Map(
+                (c of Colour) -> green
+            ))
+            model.sortInterpretations should be (Map(
+                Colour -> Seq(red, yellow, green),
+                BoolSort -> Seq(Term.mkTop, Term.mkBottom)
+            ))
+            model.functionInterpretations should be (Map(
+                next -> Map(
+                    Seq(red) -> green,
+                    Seq(yellow) -> red,
+                    Seq(green) -> yellow
+                )
+            ))
+        }}
     }
 }
     

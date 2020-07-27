@@ -9,7 +9,7 @@ import java.util.function.*;
 import java.io.*;
 
 public class InfiniteRay {
-    public static void main(String[] args) {
+    public static void main(String[] args) throws IOException {
         if(args.length < 1) {
             System.err.println("Please include number of vertices");
             System.exit(1);
@@ -38,7 +38,7 @@ public class InfiniteRay {
         Term loopless = mkForall(v.of(V), mkNot(mkApp("Adj", v, v)));
         
         // G is undirected
-        Term undirected = mkForall(List.of(u.of(V), v.of(V)), 
+        Term undirected = mkForall(List.of(u.of(V), v.of(V)),
             mkImp(mkApp("Adj", u, v), mkApp("Adj", v, u)));
         
         // There is a special vertex w of degree exactly one.
@@ -85,24 +85,24 @@ public class InfiniteRay {
             .withAxiom(degreeOneW)
             .withAxiom(elseDegreeTwo);
             
-        // Initialize a model finder 
-        ModelFinder finder = ModelFinder.createDefault();
-        
-        // Set the theory of the model finder
-        finder.setTheory(rayTheory);
-        
-        // Set the scopes of the model finder
-        finder.setAnalysisScope(V, numVertices);
-        
-        // Check if all axioms in the theory are satisfiable 
-        ModelFinderResult result = finder.checkSat();
-        
-        System.out.println("numVertices: " + numVertices);
-        System.out.println("Satisiable?: " + result.toString());
-        
-        // Print out model if it exists
-        if(result.equals(ModelFinderResult.Sat())) {
-            System.out.println(finder.viewModel());
+        // Initialize a model finder
+        try(ModelFinder finder = ModelFinder.createDefault()){
+            // Set the theory of the model finder
+            finder.setTheory(rayTheory);
+            
+            // Set the scopes of the model finder
+            finder.setAnalysisScope(V, numVertices);
+            
+            // Check if all axioms in the theory are satisfiable
+            ModelFinderResult result = finder.checkSat();
+            
+            System.out.println("numVertices: " + numVertices);
+            System.out.println("Satisiable?: " + result.toString());
+            
+            // Print out model if it exists
+            if(result.equals(ModelFinderResult.Sat())) {
+                System.out.println(finder.viewModel());
+            }
         }
     }
 }

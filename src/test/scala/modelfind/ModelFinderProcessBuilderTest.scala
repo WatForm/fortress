@@ -8,6 +8,8 @@ import fortress.transformers._
 import fortress.solverinterface._
 import fortress.interpretation._
 
+import scala.util.Using
+
 class ModelFinderProcessBuilderTest extends UnitSuite {
     test("model with integers"){
         val x = mkVar("x")
@@ -145,13 +147,14 @@ class ModelFinderProcessBuilderTest extends UnitSuite {
         constantInterpretations: Map[AnnotatedVar, Value],
         functionInterpretations: Map[FuncDecl, Map[Seq[Value], Value]]): Unit = {
             
-        val finder = new FortressTWO(strategy)
-        finder setTheory theory
-        for ((sort, scope) <- scopes) {
-            finder.setAnalysisScope(sort, scope)
-        }
-        finder.checkSat should be (ModelFinderResult.Sat)
-        assertModel(finder.viewModel(), sortInterpretations, constantInterpretations, functionInterpretations)
+        Using.resource(new FortressTWO(strategy)) { finder => {
+            finder setTheory theory
+            for ((sort, scope) <- scopes) {
+                finder.setAnalysisScope(sort, scope)
+            }
+            finder.checkSat should be (ModelFinderResult.Sat)
+            assertModel(finder.viewModel(), sortInterpretations, constantInterpretations, functionInterpretations)
+        }}
     }
     
     def assertModel(model: Interpretation,
