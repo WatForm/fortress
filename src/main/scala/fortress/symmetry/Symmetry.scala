@@ -8,7 +8,7 @@ import fortress.util.Extensions._
 import scala.collection.mutable
 
 object Symmetry {
-    private[this] type ArgList = Seq[DomainElement]
+    private[this] type ArgList = Seq[Value]
     
     def csConstantRangeRestrictions(
         sort: Sort,
