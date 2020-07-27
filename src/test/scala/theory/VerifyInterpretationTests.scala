@@ -107,6 +107,7 @@ class VerifyInterpretationTests extends UnitSuite {
                 val tmp2: Var = Var("tmp2")
                 val tmp3: Var = Var("tmp3")
                 test("boolean forall"){
+                        pending
                         assertTrue(run(Forall(tmp1 of bool, Or(tmp1, true1))))
                         assertTrue(run(Forall(tmp1 of bool, And(tmp1, tmp1) === tmp1)))
                         assertTrue(run(Forall(Seq(tmp1 of bool, tmp2 of bool), Or(tmp1 === tmp2, tmp1, tmp2))))
@@ -115,6 +116,7 @@ class VerifyInterpretationTests extends UnitSuite {
                 }
 
                 test("boolean exists"){
+                        pending
                         assertTrue(run(Exists(tmp1 of bool, tmp1)))
                         assertTrue(run(Exists(Seq(tmp1 of bool, tmp2 of bool, tmp3 of bool), And(tmp1, tmp2, tmp3))))
                         assertFalse(run(Exists(Seq(tmp1 of bool, tmp2 of bool), And(tmp1 === tmp2, Not(tmp1 === tmp2)))))

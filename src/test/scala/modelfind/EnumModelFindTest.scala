@@ -38,8 +38,7 @@ class EnumModelFindTest extends UnitSuite {
                 (c of Colour) -> green
             ))
             model.sortInterpretations should be (Map(
-                Colour -> Seq(red, yellow, green),
-                BoolSort -> Seq(Term.mkTop, Term.mkBottom)
+                Colour -> Seq(red, yellow, green)
             ))
             model.functionInterpretations should be (Map(
                 next -> Map(

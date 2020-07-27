@@ -80,9 +80,6 @@ case class EnumValue private (name: String) extends Term with LeafTerm with Valu
   * a quantifier declares it bound.
   */
 case class AnnotatedVar private (variable: Var, sort: Sort) {
-    def getVar: Var = variable
-    def getSort: Sort = sort
-    def getName: String = variable.name
     def name: String = variable.name
     
     override def toString: String = variable.toString + ": " + sort.toString

@@ -161,7 +161,7 @@ class SmtlibConverter(writer: java.io.Writer) {
         writer.write("(declare-const ")
         writer.write(constant.name)
         writer.write(' ')
-        writeSort(constant.getSort)
+        writeSort(constant.sort)
         writer.write(')')
     }
 
