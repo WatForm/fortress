@@ -15,7 +15,7 @@ import java.util.Map;
 // A fortress implementation of TPTP problem ALG212+1.p
 // TPTP version 7.2.0
 public class alg212 {
-    public static void solve(int scope, boolean printout) throws Exception {
+    public static void solve(int scope, boolean printout) throws IOException {
         Sort Univ = mkSortConst("Univ");
         FuncDecl f = FuncDecl.mkFuncDecl("f", Univ, Univ, Univ, Univ);
         
@@ -67,7 +67,7 @@ public class alg212 {
         }
     }
     
-    public static void main(String args[]) throws Exception {
+    public static void main(String args[]) throws IOException {
         if(args.length == 0) {
             System.err.println("No size argument given.");
         } else {

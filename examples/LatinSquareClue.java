@@ -8,7 +8,7 @@ import java.util.List;
 import java.io.*;
 
 public class LatinSquareClue {
-    public static void main(String[] args) throws Exception {
+    public static void main(String[] args) throws IOException {
         int gridLength = 4;
         
         // Create Sorts

@@ -57,6 +57,9 @@ trait ModelFinder extends AutoCloseable {
     // Internal use only
     def setOutput(log: java.io.Writer): Unit
     def addLogger(logger: EventLogger): Unit
+    
+    @throws(classOf[java.io.IOException])
+    override def close(): Unit
 }
 
 object ModelFinder {

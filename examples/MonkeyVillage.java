@@ -11,7 +11,7 @@ import java.io.*;
 // by Reger, Suda, and Voronkov
 
 public class MonkeyVillage {
-    public static void main(String[] args) throws Exception {
+    public static void main(String[] args) throws IOException {
         if(args.length < 3) {
             System.err.println("Please include numTrees, numMonkeys, and numBananas");
             System.exit(1);

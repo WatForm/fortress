@@ -19,4 +19,7 @@ trait SolverStrategy extends AutoCloseable {
     def addAxiom(axiom: Term, timeoutMillis: Milliseconds): ModelFinderResult
 
     def getInstance(theory: Theory): Interpretation
+    
+    @throws(classOf[java.io.IOException])
+    override def close(): Unit
 }

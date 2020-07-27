@@ -9,7 +9,7 @@ import java.util.function.*;
 import java.io.*;
 
 public class InfiniteRay {
-    public static void main(String[] args) throws Exception {
+    public static void main(String[] args) throws IOException {
         if(args.length < 1) {
             System.err.println("Please include number of vertices");
             System.exit(1);

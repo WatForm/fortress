@@ -8,7 +8,7 @@ import java.util.List;
 import java.io.*;
 
 public class RooksFunctional {
-    public static void main(String[] args) throws Exception {
+    public static void main(String[] args) throws IOException {
         if(args.length < 1) {
             System.err.println("Please include grid size");
             System.exit(1);
