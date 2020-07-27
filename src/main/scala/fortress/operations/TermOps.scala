@@ -60,6 +60,8 @@ case class TermOps private (term: Term) {
     
     def simplify: Term = Simplifier.simplify(term)
     
+    def simplifyWithRange(rangeRestrictions: Set[RangeRestriction]) = (new SimplifierWithRange(rangeRestrictions)).simplify(term)
+    
     def eliminateDomainElements: Term = DomainElementEliminator(term)
     
     def eliminateEnumValues(eliminationMapping: Map[EnumValue, DomainElement]): Term = EnumValueEliminator(eliminationMapping)(term)

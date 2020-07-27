@@ -41,7 +41,7 @@ class SymmetryBreakingTransformer_NoSkolem(
             @scala.annotation.tailrec
             def loop(usedFunctionsPredicates: Set[FuncDecl]): Unit = {
                 val remaining = fp diff usedFunctionsPredicates
-                selectionHeuristic.nextFunctionPredicate(breaker.tracker, remaining) match {
+                selectionHeuristic.nextFunctionPredicate(breaker.view, remaining) match {
                     case None => ()
                     case Some(p @ FuncDecl(_, _, BoolSort)) => {
                         breaker.breakPredicate(p)
@@ -56,8 +56,8 @@ class SymmetryBreakingTransformer_NoSkolem(
             
             loop(Set.empty)
             
-            val newTheory = theory.withAxioms(breaker.constraints.toList)
-            ProblemState(newTheory, scopes, skc, skf, rangeRestricts union breaker.newRangeRestrictions.toSet, unapplyInterp)
+            val newTheory = theory.withFunctionDeclarations(breaker.declarations).withAxioms(breaker.constraints)
+            ProblemState(newTheory, scopes, skc, skf, rangeRestricts union breaker.rangeRestrictions.toSet, unapplyInterp)
         }
     }
     

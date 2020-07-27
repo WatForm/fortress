@@ -139,3 +139,38 @@ class FortressTWO_Neq1(solverStrategy: SolverStrategy) extends BaseFortress(solv
         new SymmetryBreakingTransformer(FunctionsFirstAnyOrder, Neq1SymmetryBreaker)
     )
 }
+
+class FortressTWO_SR(solverStrategy: SolverStrategy) extends BaseFortress(solverStrategy) {
+    def this() = this(new Z3ApiSolver)
+    
+    override def transformerSequence(): Seq[ProblemStateTransformer] = {
+        val transformerSequence = new scala.collection.mutable.ListBuffer[ProblemStateTransformer]
+        transformerSequence += new EnumEliminationTransformer
+        integerSemantics match {
+            case Unbounded => ()
+            case ModularSigned(bitwidth) => {
+                transformerSequence += new IntegerFinitizationTransformer(bitwidth)
+            }
+        }
+        transformerSequence += new NnfTransformer
+        transformerSequence += new SkolemizeTransformer
+        transformerSequence ++= symmetryBreakingTransformers
+        transformerSequence += QuantifierExpansionTransformer.create()
+        transformerSequence += RangeFormulaTransformer.create()
+        transformerSequence += new SimplifyWithRangeTransformer
+        transformerSequence += new DomainEliminationTransformer2
+        transformerSequence.toList
+    }
+    
+    override def symmetryBreakingTransformers(): Seq[ProblemStateTransformer] = Seq(
+        new SymmetryBreakingTransformer(FunctionsFirstAnyOrder, DefaultSymmetryBreaker)
+    )
+}
+
+class FortressTWO_RAINBOW(solverStrategy: SolverStrategy) extends BaseFortress(solverStrategy) {
+    def this() = this(new Z3ApiSolver)
+    
+    override def symmetryBreakingTransformers(): Seq[ProblemStateTransformer] = Seq(
+        new SymmetryBreakingTransformer(FunctionsFirstAnyOrder, RainbowSymmetryBreaker)
+    )
+}

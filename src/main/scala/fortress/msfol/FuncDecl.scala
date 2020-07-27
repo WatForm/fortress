@@ -13,6 +13,8 @@ case class FuncDecl private (name: String, argSorts: Seq[Sort], resultSort: Sort
     
     def isDomainRangeDistinct: Boolean = !(argSorts contains resultSort)
     
+    def isRainbowSorted: Boolean = isDomainRangeDistinct && (argSorts.distinct == argSorts)
+    
     override def toString: String = name + ": (" + argSorts.mkString(", ") + ") -> " + resultSort.toString
 }
 

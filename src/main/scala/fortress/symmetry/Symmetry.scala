@@ -3,24 +3,24 @@ package fortress.symmetry
 import fortress.msfol._
 import fortress.operations.TermOps._
 import fortress.util.Errors
+import fortress.util.Extensions._
 
 import scala.collection.mutable
 
 object Symmetry {
     private[this] type ArgList = Seq[DomainElement]
     
-    def csConstantRangeRestrictions(sort: Sort, constants: IndexedSeq[AnnotatedVar], scope: Int,
-        usedValues: IndexedSeq[DomainElement]): Set[RangeRestriction] = {
+    def csConstantRangeRestrictions(
+        sort: Sort,
+        constants: IndexedSeq[AnnotatedVar],
+        deView: DomainElementUsageView
+    ): Set[RangeRestriction] = {
+        
         Errors.precondition(!sort.isBuiltin)
         Errors.precondition(constants.forall(_.sort == sort))
-        Errors.precondition(usedValues.forall(_.sort == sort))
-        Errors.precondition(usedValues.forall(_.index <= scope))
-        Errors.precondition(usedValues.size < scope)
-        
-        val unusedValues = (for(i <- 1 to scope) yield DomainElement(i, sort)) diff usedValues
         
         val n = constants.size
-        val m = unusedValues.size
+        val m = deView.numUnusedDomainElements(sort)
         val r = scala.math.min(n, m)
         
         val constraints: Seq[RangeRestriction] =
@@ -29,8 +29,8 @@ object Symmetry {
                 val c_k = constants(k).variable
             
                 val possibleValues: Seq[DomainElement] =
-                    usedValues ++ // Could be any of the used values
-                    unusedValues.take(k + 1) // One of the first k + 1 unused values (recall, k starts at 0)
+                    deView.usedDomainElements(sort) ++ // Could be any of the used values
+                    deView.unusedDomainElements(sort).take(k + 1) // One of the first k + 1 unused values (recall, k starts at 0)
             
                 RangeRestriction(c_k, possibleValues)
             }
@@ -40,18 +40,19 @@ object Symmetry {
     
     // Produces matching output to csConstantEqualities - meant to be used at same
     // time with same input
-    def csConstantImplications(sort: Sort, constants: IndexedSeq[AnnotatedVar], scope: Int,
-        usedValues: IndexedSeq[DomainElement]): Set[Term] = {
+    def csConstantImplications(
+        sort: Sort,
+        constants: IndexedSeq[AnnotatedVar],
+        deView: DomainElementUsageView,
+    ): Set[Term] = {
+        
         Errors.precondition(!sort.isBuiltin)
         Errors.precondition(constants.forall(_.sort == sort))
-        Errors.precondition(usedValues.forall(_.sort == sort))
-        Errors.precondition(usedValues.forall(_.index <= scope))
-        Errors.precondition(usedValues.size < scope)
         
-        val unusedValues = (for(i <- 1 to scope) yield DomainElement(i, sort)) diff usedValues
+        val unusedValues = deView.unusedDomainElements(sort)
         
         val n = constants.size
-        val m = unusedValues.size
+        val m = deView.numUnusedDomainElements(sort)
         val r = scala.math.min(n, m)
         
         val implications = for {
@@ -70,18 +71,19 @@ object Symmetry {
     
     // Produces matching output to csConstantEqualities - meant to be used at same
     // time with same input
-    def csConstantImplicationsSimplified(sort: Sort, constants: IndexedSeq[AnnotatedVar], scope: Int,
-        usedValues: IndexedSeq[DomainElement]): Set[Term] = {
+    def csConstantImplicationsSimplified(
+        sort: Sort,
+        constants: IndexedSeq[AnnotatedVar],
+        deView: DomainElementUsageView
+    ): Set[Term] = {
+        
         Errors.precondition(!sort.isBuiltin)
         Errors.precondition(constants.forall(_.sort == sort))
-        Errors.precondition(usedValues.forall(_.sort == sort))
-        Errors.precondition(usedValues.forall(_.index <= scope))
-        Errors.precondition(usedValues.size < scope)
         
-        val unusedValues = (for(i <- 1 to scope) yield DomainElement(i, sort)) diff usedValues
+        val unusedValues = deView.unusedDomainElements(sort)
         
         val n = constants.size
-        val m = unusedValues.size
+        val m = deView.numUnusedDomainElements(sort)
         val r = scala.math.min(n, m)
         
         val implications = for {
@@ -90,7 +92,7 @@ object Symmetry {
         } yield {
             val c_i = constants(i).variable
             
-            val possiblePrecedingConstants = for(l <- (j - 1) to (i - 1)) yield constants(l).variable
+            val possiblePrecedingConstants = constants.rangeSlice((j - 1) to (i - 1)).map(_.variable)
             
             (c_i === unusedValues(j)) ==> (unusedValues(j - 1) equalsOneOfFlip possiblePrecedingConstants)
         }
@@ -98,32 +100,29 @@ object Symmetry {
         implications.toSet
     }
     
-    def drdFunctionRangeRestrictions(f: FuncDecl, scopes: Map[Sort, Int],
-        usedResultValues: IndexedSeq[DomainElement]): Set[RangeRestriction] = {
+    def drdFunctionRangeRestrictions(
+        f: FuncDecl,
+        deView: DomainElementUsageView
+    ): Set[RangeRestriction] = {
+        
         Errors.precondition(f.argSorts.forall(!_.isBuiltin))
         Errors.precondition(!f.resultSort.isBuiltin)
-        Errors.precondition(usedResultValues.forall(_.sort == f.resultSort))
-        Errors.precondition(usedResultValues.forall(_.index <= scopes(f.resultSort)))
-        Errors.precondition(usedResultValues.size < scopes(f.resultSort))
-        Errors.precondition(!(f.argSorts contains f.resultSort))
+        Errors.precondition(f.isDomainRangeDistinct)
         
-        val unusedResultValues: IndexedSeq[DomainElement] = {
-            val allResultValues = for(i <- 1 to scopes(f.resultSort)) yield DomainElement(i, f.resultSort)
-            allResultValues diff usedResultValues
-        }
+        val unusedResultValues: IndexedSeq[DomainElement] = deView.unusedDomainElements(f.resultSort)
+        val usedResultValues = deView.usedDomainElements(f.resultSort)
         
         val m = unusedResultValues.size
         
         val argumentListsIterable: Iterable[ArgList] =
-            new fortress.util.ArgumentListGenerator(scopes)
+            new fortress.util.ArgumentListGenerator(deView.scope(_))
             .allArgumentListsOfFunction(f)
-            .take(m) // Take up to m of them,  for efficiency since we won't need more than this - the argument list generator does not generate arguments
+            .take(m) // Take up to m of them, for efficiency since we won't need more than this - the argument list generator does not generate arguments
             // until they are needed
         
         val argumentLists = argumentListsIterable.toIndexedSeq
         
         val n = argumentLists.size
-        
         val r = scala.math.min(m, n)
         
         val constraints: Seq[RangeRestriction] =
@@ -141,24 +140,21 @@ object Symmetry {
     
     // Produces matching output to drdFunctionEqualities - meant to be used at same
     // time with same input
-    def drdFunctionImplications(f: FuncDecl, scopes: Map[Sort, Int],
-        usedResultValues: IndexedSeq[DomainElement]): Set[Term] = {
+    def drdFunctionImplications(
+        f: FuncDecl,
+        deView: DomainElementUsageView
+    ): Set[Term] = {
+        
         Errors.precondition(f.argSorts.forall(!_.isBuiltin))
         Errors.precondition(!f.resultSort.isBuiltin)
-        Errors.precondition(usedResultValues.forall(_.sort == f.resultSort))
-        Errors.precondition(usedResultValues.forall(_.index <= scopes(f.resultSort)))
-        Errors.precondition(usedResultValues.size < scopes(f.resultSort))
         Errors.precondition(!(f.argSorts contains f.resultSort))
         
-        val unusedResultValues: IndexedSeq[DomainElement] = {
-            val allResultValues = for(i <- 1 to scopes(f.resultSort)) yield DomainElement(i, f.resultSort)
-            allResultValues diff usedResultValues
-        }
+        val unusedResultValues: IndexedSeq[DomainElement] = deView.unusedDomainElements(f.resultSort)
         
         val m = unusedResultValues.size
         
         val argumentListsIterable: Iterable[ArgList] =
-            new fortress.util.ArgumentListGenerator(scopes)
+            new fortress.util.ArgumentListGenerator(deView.scope(_))
             .allArgumentListsOfFunction(f)
             .take(m) // Take up to m of them,  for efficiency since we won't need more than this - the argument list generator does not generate arguments
             // until they are needed
@@ -186,26 +182,24 @@ object Symmetry {
     
     // Produces matching output to drdFunctionEqualities - meant to be used at same
     // time with same input
-    def drdFunctionImplicationsSimplified(f: FuncDecl, scopes: Map[Sort, Int],
-        usedResultValues: IndexedSeq[DomainElement]): Set[Term] = {
+    def drdFunctionImplicationsSimplified(
+        f: FuncDecl,
+        deView: DomainElementUsageView
+    ): Set[Term] = {
+        
         Errors.precondition(f.argSorts.forall(!_.isBuiltin))
         Errors.precondition(!f.resultSort.isBuiltin)
-        Errors.precondition(usedResultValues.forall(_.sort == f.resultSort))
-        Errors.precondition(usedResultValues.forall(_.index <= scopes(f.resultSort)))
-        Errors.precondition(usedResultValues.size < scopes(f.resultSort))
         Errors.precondition(!(f.argSorts contains f.resultSort))
+        Errors.precondition(f.isDomainRangeDistinct)
         
-        val unusedResultValues: IndexedSeq[DomainElement] = {
-            val allResultValues = for(i <- 1 to scopes(f.resultSort)) yield DomainElement(i, f.resultSort)
-            allResultValues diff usedResultValues
-        }
+        val unusedResultValues: IndexedSeq[DomainElement] = deView.unusedDomainElements(f.resultSort)
         
         val m = unusedResultValues.size
         
         val argumentListsIterable: Iterable[ArgList] =
-            new fortress.util.ArgumentListGenerator(scopes)
+            new fortress.util.ArgumentListGenerator(deView.scope(_))
             .allArgumentListsOfFunction(f)
-            .take(m) // Take up to m of them,  for efficiency since we won't need more than this - the argument list generator does not generate arguments
+            .take(m) // Take up to m of them, for efficiency since we won't need more than this - the argument list generator does not generate arguments
             // until they are needed
         
         val argumentLists = argumentListsIterable.toIndexedSeq
@@ -220,16 +214,121 @@ object Symmetry {
             j <- 1 to i // Enumerates result values, starting with the second
         } yield {
             val app_i = applications(i)
-            
-            val possiblePrecedingApps = for(l <- (j - 1) to (i - 1)) yield applications(l)
-            
+            val possiblePrecedingApps = applications.rangeSlice((j - 1) to (i - 1))
             (app_i === unusedResultValues(j)) ==> (unusedResultValues(j - 1) equalsOneOfFlip possiblePrecedingApps)
         }
         
         implications.toSet
     }
     
-    private[this] def predicateImplicationChain(P: FuncDecl, argLists: IndexedSeq[ArgList]): Seq[Term] = {
+    def sortLtDefinition(sort: Sort, scope: Int): (FuncDecl, Seq[Term])  = {
+        val LT = "_LT" + sort.name
+        val assertions = for {
+            i <- 1 to scope
+            j <- 1 to scope
+        } yield {
+            val app = App(LT, DomainElement(i, sort), DomainElement(j, sort))
+            if (i <= j) app
+            else Not(app)
+        }
+        (FuncDecl(LT, sort, sort, BoolSort), assertions)
+    }
+    
+    // I don't think that I can say the constants are ordered
+    // No input elements to shuffle
+    def rainbowFunctionLT(
+        f: FuncDecl,
+        deView: DomainElementUsageView
+    ): (FuncDecl, Seq[Term], Seq[RangeRestriction]) = {
+        
+        Errors.precondition(f.argSorts.forall(!_.isBuiltin))
+        Errors.precondition(!f.resultSort.isBuiltin)
+        
+        Errors.precondition(f.isRainbowSorted)
+        Errors.precondition(f.arity <= 2)
+        Errors.precondition(f.argSorts forall (deView.usedDomainElements(_).isEmpty))
+        Errors.precondition(deView.usedDomainElements(f.resultSort).isEmpty)
+        Errors.precondition(f.argSorts.forall(deView.scope(_) >= 2))
+        Errors.precondition(deView.scope(f.resultSort) >= 2)
+        
+        val (ltDecl, ltDefn) = sortLtDefinition(f.resultSort, deView.scope(f.resultSort))
+        
+        val LT = ltDecl.name
+        
+        val (constraints, rangeRestrictions): (Seq[Term], Seq[RangeRestriction]) = f match {
+            // Unary
+            case FuncDecl(fname, Seq(argSort), resultSort) => {
+                // Ordering constraints
+                val ltConstraints: Seq[Term] = for(i <- 1 until deView.scope(argSort)) yield {
+                    App(LT,
+                        App(fname, DomainElement(i, argSort)),
+                        App(fname, DomainElement(i + 1, argSort))
+                    )
+                }
+                
+                val drdRangeRestrictions: Seq[RangeRestriction] = drdFunctionRangeRestrictions(f, deView).toSeq
+                val drdImplicationsSimplified: Seq[Term] = drdFunctionImplicationsSimplified(f, deView).toSeq
+                
+                (ltConstraints ++ drdImplicationsSimplified, drdRangeRestrictions)
+            }
+            // Binary
+            case FuncDecl(fname, Seq(argSort1, argSort2), resultSort) => {
+                
+                // First argument constraints
+                
+                // Ordering constraints on first argument
+                val ltConstraintsArg1: Seq[Term] = for(i <- 1 until deView.scope(argSort1)) yield {
+                    App(LT,
+                        App(fname, DomainElement(i, argSort1), DomainElement(1, argSort2)),
+                        App(fname, DomainElement(i + 1, argSort1), DomainElement(1, argSort2))
+                    )
+                }
+                
+                // Have to make DRD constraints manually, otherwise:
+                // 1. ordering might not match what we want
+                // 2. if scope(resultSort) > scope(argSort1), the constraints will spill over into the second
+                // value of argSort2, which is not what we want because then we can't justify "shuffling"
+                
+                val r1 = scala.math.min(deView.scope(argSort1), deView.scope(resultSort))
+                
+                val drdRangeRestrictions: Seq[RangeRestriction] = for(i <- 1 to r1) yield {
+                    RangeRestriction(
+                        App(fname, DomainElement(i, argSort1), DomainElement(1, argSort2)),
+                        DomainElement.range(1 to i, resultSort)
+                    )
+                }
+                
+                val drdImplicationsSimplified: Seq[Term] = for {
+                    i <- 1 to r1
+                    j <- 2 to i
+                } yield {
+                    val lhs = App(fname, DomainElement(i, argSort1), DomainElement(1, argSort2)) === DomainElement(j, resultSort)
+                    val rhs = DomainElement(j - 1, resultSort) equalsOneOfFlip DomainElement.range((j - 1) to (i - 1), argSort1).map(App(fname, _, DomainElement(1, argSort2)))
+                    lhs ==> rhs
+                }
+                
+                // Second argument constraints
+                val ltConstraintsArg2: Seq[Term] = for(i <- 2 until deView.scope(argSort2)) yield {
+                    App(LT,
+                        App(fname, DomainElement(1, argSort1), DomainElement(i, argSort2)),
+                        App(fname, DomainElement(1, argSort1), DomainElement(i + 1, argSort2))
+                    )
+                }
+                
+                (ltConstraintsArg1 ++ ltConstraintsArg2 ++ drdImplicationsSimplified, drdRangeRestrictions)
+            }
+            // Other
+            case _ => (???, ???)
+        }
+        
+        (ltDecl, ltDefn ++ constraints, rangeRestrictions)
+    }
+    
+    private[this] def predicateImplicationChain(
+        P: FuncDecl,
+        argLists: IndexedSeq[ArgList]
+    ): Seq[Term] = {
+        
         for(i <- 1 to (argLists.size - 1)) yield {
             App(P.name, argLists(i)) ==> App(P.name, argLists(i - 1))
         }
@@ -239,42 +338,38 @@ object Symmetry {
     // This is about as good as we can do for predicates of the form P: A -> Bool
     // Or P: A x A -> Bool, but I think more can be done for e.g. P: A x B x A -> Bool
     // The issue is the smallest element comment below.
-    def predicateImplications_OLD(P: FuncDecl, scopes: Map[Sort, Int],
-        usedValues: Map[Sort, IndexedSeq[DomainElement]]): Set[Term] = {
+    def predicateImplications_OLD(
+        P: FuncDecl,
+        deView: DomainElementUsageView
+    ): Set[Term] = {
+        
         Errors.precondition(P.resultSort == BoolSort)
         Errors.precondition(P.argSorts.forall(!_.isBuiltin))
-        Errors.precondition(P.argSorts.forall(sort => usedValues(sort).size <= scopes(sort)))
         
-        val unusedValues: Map[Sort, IndexedSeq[DomainElement]] = usedValues.map {
-            case (sort, usedVals) => {
-                val unusedVals = (for(i <- 1 to scopes(sort)) yield DomainElement(i, sort)) diff usedVals
-                (sort, unusedVals)
-            }
-        }
+        Errors.precondition(P.argSorts forall (deView.numUnusedDomainElements(_) >= 2))
         
-        Errors.precondition(P.argSorts forall (unusedValues(_).size >= 2))
-        
-        val r = (unusedValues.values map (_.size)).min // Smallest number of unused values
+        val r = (P.argSorts map (deView.numUnusedDomainElements(_))).min // Smallest number of unused values
         
         // Generate lists of arguments in the order we will use them for symmetry breaking
         // e.g. If P: A x B x A -> Bool, gives Seq[(a1, b1, a1), (a2, b2, a2), ...]
         
         val argLists: IndexedSeq[ArgList] = for(i <- 0 to (r - 1)) yield {
-            P.argSorts map (sort => unusedValues(sort)(i))
+            P.argSorts map (sort => deView.unusedDomainElements(sort)(i))
         }
         
         predicateImplicationChain(P, argLists).toSet
     }
     
-    def predicateImplications(P: FuncDecl, scopes: Map[Sort, Int],
-        usedValues: Map[Sort, IndexedSeq[DomainElement]]): Set[Term] = {
+    def predicateImplications(
+        P: FuncDecl,
+        deView: DomainElementUsageView
+    ): Set[Term] = {
+            
             Errors.precondition(P.resultSort == BoolSort)
             Errors.precondition(P.argSorts forall (!_.isBuiltin))
-            Errors.precondition(P.argSorts forall (sort => usedValues(sort).size <= scopes(sort)))
+            Errors.precondition(P.argSorts exists (deView.numUnusedDomainElements(_) >= 2))
             
-            val tracker = DomainElementTracker.create(usedValues, scopes)
-            
-            Errors.precondition(P.argSorts exists (tracker.numUnusedDomainElements(_) >= 2))
+            val tracker = deView.createTracker
             
             def fillArgList(sort: Sort, d: DomainElement): ArgList = {
                 Errors.precondition(d.sort == sort)
@@ -286,11 +381,11 @@ object Symmetry {
             
             val constraints = new mutable.ListBuffer[Term]
             
-            while(P.argSorts exists (tracker.numUnusedDomainElements(_) >= 2)) {
-                val sort = (P.argSorts find (tracker.numUnusedDomainElements(_) >= 2)).get
-                val r = tracker.numUnusedDomainElements(sort)
+            while(P.argSorts exists (tracker.view.numUnusedDomainElements(_) >= 2)) {
+                val sort = (P.argSorts find (tracker.view.numUnusedDomainElements(_) >= 2)).get
+                val r = tracker.view.numUnusedDomainElements(sort)
                 val argLists: IndexedSeq[ArgList] = for(i <- 0 to (r - 1)) yield {
-                    fillArgList(sort, tracker.unusedDomainElements(sort)(i))
+                    fillArgList(sort, tracker.view.unusedDomainElements(sort)(i))
                 }
                 val implications = predicateImplicationChain(P, argLists)
                 constraints ++= implications
@@ -300,18 +395,19 @@ object Symmetry {
             constraints.toSet
         }
     
-    // Only need scope for result value
     // I think more symmetry breaking can be done here
-    def csFunctionExtRangeRestrictions(f: FuncDecl, resultScope: Int,
-        usedResultValues: IndexedSeq[DomainElement]): Set[RangeRestriction] = {
+    def csFunctionExtRangeRestrictions(
+        f: FuncDecl,
+        deView: DomainElementUsageView
+    ): Set[RangeRestriction] = {
+            
             Errors.precondition(f.argSorts.forall(!_.isBuiltin))
             Errors.precondition(!f.resultSort.isBuiltin)
-            Errors.precondition(usedResultValues.forall(_.sort == f.resultSort))
-            Errors.precondition(usedResultValues.forall(_.index <= resultScope))
-            Errors.precondition(usedResultValues.size < resultScope)
             Errors.precondition(f.argSorts contains f.resultSort)
+            Errors.precondition(!f.isDomainRangeDistinct)
             
-            val unusedResultValues: IndexedSeq[DomainElement] = (for(i <- 1 to resultScope) yield DomainElement(i, f.resultSort)) diff usedResultValues
+            val unusedResultValues: IndexedSeq[DomainElement] = deView.unusedDomainElements(f.resultSort)
+            val usedResultValues: IndexedSeq[DomainElement] = deView.usedDomainElements(f.resultSort)
             
             // We fix particular values for the sorts not in the output
             // These stay the same for all argument lists we symmetry break using

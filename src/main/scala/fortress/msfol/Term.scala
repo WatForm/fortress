@@ -9,7 +9,7 @@ import scala.annotation.varargs // So we can call Scala varargs methods from Jav
 import fortress.operations.TermOps._
 
 /** Representation of a syntactic Term. */
-sealed abstract class Term {
+sealed trait Term {
     def accept[T](visitor: TermVisitor[T]): T
     
     def freeVarConstSymbolsJava: java.util.Set[Var] = this.freeVarConstSymbols.asJava
@@ -307,6 +307,9 @@ object DomainElement {
             Some(DomainElement(indexStr.toInt, SortConst(sortStr)))
         } else None
     }
+    
+    def range(rangeOver: Range, sort: Sort): IndexedSeq[DomainElement] =
+        rangeOver map (i => DomainElement(i, sort))
 }
 
 case class IntegerLiteral private (value: Int) extends Term with LeafTerm with Value {
