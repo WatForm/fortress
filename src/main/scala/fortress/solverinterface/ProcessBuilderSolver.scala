@@ -13,13 +13,12 @@ import fortress.operations.SmtlibConverter
 import scala.util.matching.Regex
 
 abstract class ProcessBuilderSolver extends SolverTemplate {
-    private var process: Option[Process] = None
-    private var pin: Option[BufferedWriter] = None
-    private var pout: Option[BufferedReader] = None
+    private var processSession: Option[ProcessSession] = None
     private var convertedBytes = new CharArrayWriter
     private var timeout = Milliseconds(60000)
     
     override def convertTheory(theory: Theory): Unit = {
+        // Just writes the theory to the char array buffer
         convertedBytes.reset()
         
         convertedBytes.write("(set-option :produce-models true)\n")
@@ -33,12 +32,11 @@ abstract class ProcessBuilderSolver extends SolverTemplate {
     }
     
     override def runSolver: ModelFinderResult = {
-        tryIO(() => {
-            clearProcess()
-            startProcess()
-            convertedBytes.writeTo(pin.get)
+        tryIO {
+            openSession()
+            convertedBytes.writeTo(processSession.get.inputWriter)
             checkSat
-        })
+        }
     }
     
     override def logSMT2Output(eventLoggers: Seq[EventLogger]): Unit = {
@@ -48,19 +46,18 @@ abstract class ProcessBuilderSolver extends SolverTemplate {
     }
     
     private def checkSat: ModelFinderResult = {
-        pin.get.write("(check-sat)\n")
+        processSession.get.write("(check-sat)\n")
+        processSession.get.flush()
         
-        pin.get.flush()
-        
-        var result = pout.get.readLine()
+        var result = processSession.get.readLine()
         result match {
             case "sat" => ModelFinderResult.Sat
             case "unsat" => ModelFinderResult.Unsat
             case "unknown" => {
-                pin.get.write("(get-info :reason-unknown)\n")
-                pin.get.flush()
+                processSession.get.write("(get-info :reason-unknown)\n")
+                processSession.get.flush()
 
-                var reason = pout.get.readLine()
+                var reason = processSession.get.readLine()
 
                 if(reason.contains("timeout"))
                     ModelFinderResult.Timeout
@@ -72,17 +69,17 @@ abstract class ProcessBuilderSolver extends SolverTemplate {
     }
     
     override def addAxiom(axiom: Term, timeoutMillis: Milliseconds): ModelFinderResult = {
-        Errors.verify(process.nonEmpty, "Cannot add axiom without a live process")
-        tryIO(() => {
-            val converter = new SmtlibConverter(pin.get)
+        Errors.verify(processSession.nonEmpty, "Cannot add axiom without a live process")
+        tryIO {
+            val converter = new SmtlibConverter(processSession.get.inputWriter)
             converter.writeAssertion(axiom)
             
             checkSat
-        })
+        }
     }
 
     override def getInstance(theory: Theory): Interpretation = {
-        Errors.verify(process.nonEmpty, "Cannot get instance without a live process")
+        Errors.verify(processSession.nonEmpty, "Cannot get instance without a live process")
 
         val fortressNameToSmtValue: Map[String, String] = getFortressNameToSmtValueMap(theory)
         
@@ -103,17 +100,17 @@ abstract class ProcessBuilderSolver extends SolverTemplate {
             }
             
             override protected def evaluateFunction(f: FuncDecl, argList: Seq[Value]): Value = {
-                pin.get.write("(get-value ((")
-                pin.get.write(f.name)
+                processSession.get.write("(get-value ((")
+                processSession.get.write(f.name)
                 for(arg <- argList){
-                    pin.get.write(" ")
-                    pin.get.write(arg.toString)
+                    processSession.get.write(" ")
+                    processSession.get.write(arg.toString)
                 }
-                pin.get.write(")))")
-                pin.get.write("\n")
-                pin.get.flush()
+                processSession.get.write(")))")
+                processSession.get.write("\n")
+                processSession.get.flush()
                 
-                val str = pout.get.readLine()
+                val str = processSession.get.readLine()
                 val value = str match {
                     case ProcessBuilderSolver.smt2Model(name, value) => value
                     case _ => Errors.unreachable()
@@ -130,22 +127,17 @@ abstract class ProcessBuilderSolver extends SolverTemplate {
         Solution
     }
     
-    @throws(classOf[java.io.IOException])
-    override def close(): Unit = {
-        clearProcess()
-    }
-    
     private def getFortressNameToSmtValueMap(theory: Theory): Map[String, String] = {
         for(constant <- theory.constants){
-            pin.get.write("(get-value (")
-            pin.get.write(constant.name)
-            pin.get.write("))")
+            processSession.get.write("(get-value (")
+            processSession.get.write(constant.name)
+            processSession.get.write("))")
         }
-        pin.get.write("\n")
-        pin.get.flush()
+        processSession.get.write("\n")
+        processSession.get.flush()
         
         (for(constant <- theory.constants) yield {
-            val str = pout.get.readLine()
+            val str = processSession.get.readLine()
             str match {
                 case ProcessBuilderSolver.smt2Model(name, value) => {
                     Errors.verify(constant.name == name, s""""${constant.name}" should be equal to "$name"""")
@@ -185,37 +177,25 @@ abstract class ProcessBuilderSolver extends SolverTemplate {
         }
     }
     
-    private def tryIO(func: () => ModelFinderResult): ModelFinderResult = {
+    private def tryIO(func: => ModelFinderResult): ModelFinderResult = {
         try {
-            func()
+            func
         } catch {
             case ex: IOException => {
-                clearProcess()
+                close()
                 ModelFinderResult.Error
             }
         }
     }
     
-    private def startProcess(): Unit = {
-        process = Some(new ProcessBuilder(processArgs).start())
-        pin = Some(new BufferedWriter(new OutputStreamWriter(process.get.getOutputStream)))
-        pout = Some(new BufferedReader(new InputStreamReader(process.get.getInputStream)))
+    private def openSession(): Unit = {
+        processSession = Some(new ProcessSession(processArgs))
     }
     
-    private def clearProcess(): Unit = {
-        finalize()
-        pin = None
-        pout = None
-        process = None
-    }
+    @throws(classOf[java.io.IOException])
+    override def close(): Unit = processSession.get.close()
     
-    override protected def finalize(): Unit = {
-        if(process.nonEmpty) {
-            pin.get.close()
-            pout.get.close()
-            process.get.destroy()
-        }
-    }
+    protected override def finalize(): Unit = close()
     
     protected def timeoutMillis: Milliseconds = timeout
     
