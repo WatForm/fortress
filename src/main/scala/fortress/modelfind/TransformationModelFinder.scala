@@ -98,18 +98,7 @@ extends ModelFinder with ModelFinderSettings {
             .withoutFunctions(problemState.skolemFunctions)
         val newAxiom = Not(And.smart(instance.toConstraints.toList map (_.eliminateDomainElements)))
         
-        problemState = ProblemState(
-            problemState.theory.withAxiom(newAxiom),
-            problemState.scopes,
-            problemState.skolemConstants,
-            problemState.skolemFunctions,
-            problemState.rangeRestrictions,
-            problemState.unapplyInterp
-        )
-        
-        solverSession.close()
-        solverSession.open()
-        solverSession.setTheory(problemState.theory)
+        solverSession.addAxiom(newAxiom)
         solverSession.solve(timeoutMilliseconds)
     }
 
