@@ -67,7 +67,6 @@ class InterpretationVerifier(theory: Theory) {
                 .withAxiom(evalResult === BuiltinApp(fn, evalArgs))
                 
             val solver = new Z3ApiSolver
-            solver.open()
             solver.setTheory(theory)
             solver.solve(Milliseconds(1000))
             val solvedInstance = solver.solution

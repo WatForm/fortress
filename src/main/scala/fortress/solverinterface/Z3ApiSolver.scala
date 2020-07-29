@@ -22,8 +22,6 @@ class Z3ApiSolver extends SolverSession {
     private var converter: Option[TheoryToZ3_StringParse] = None
     private var theory: Option[Theory] = None
     
-    override def open(): Unit = ()
-    
     override def setTheory(theory: Theory): Unit = {
         this.theory = Some(theory)
         converter = Some(new TheoryToZ3_StringParse(theory))

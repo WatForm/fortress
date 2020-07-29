@@ -124,7 +124,7 @@ class ModelFinderProcessBuilderTest extends UnitSuite {
         constantInterpretations: Map[AnnotatedVar, Value],
         functionInterpretations: Map[FuncDecl, Map[Seq[Value], Value]]): Unit = {
         
-        testSolverStrategy(new CVC4CliSolver, theory, scopes, sortInterpretations, constantInterpretations, functionInterpretations)
+        testSolverStrategy(CVC4CliInterface, theory, scopes, sortInterpretations, constantInterpretations, functionInterpretations)
     }
     
     def testZ3(theory: Theory,
@@ -133,18 +133,18 @@ class ModelFinderProcessBuilderTest extends UnitSuite {
         constantInterpretations: Map[AnnotatedVar, Value],
         functionInterpretations: Map[FuncDecl, Map[Seq[Value], Value]]): Unit = {
         
-        testSolverStrategy(new Z3CliSolver, theory, scopes, sortInterpretations, constantInterpretations, functionInterpretations)
+        testSolverStrategy(Z3CliInterface, theory, scopes, sortInterpretations, constantInterpretations, functionInterpretations)
     }
     
     def testSolverStrategy(
-        strategy: SolverSession,
+        solverInterface: SolverInterface,
         theory: Theory,
         scopes: Map[Sort, Int],
         sortInterpretations: Map[Sort, Seq[Value]],
         constantInterpretations: Map[AnnotatedVar, Value],
         functionInterpretations: Map[FuncDecl, Map[Seq[Value], Value]]): Unit = {
             
-        Using.resource(new FortressTWO(strategy)) { finder => {
+        Using.resource(new FortressTWO(solverInterface)) { finder => {
             finder setTheory theory
             for ((sort, scope) <- scopes) {
                 finder.setAnalysisScope(sort, scope)

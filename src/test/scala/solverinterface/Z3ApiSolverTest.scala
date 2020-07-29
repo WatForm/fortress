@@ -23,7 +23,6 @@ class Z3ApiSolverTest extends UnitSuite {
         
     test("basic solve") {
         Using.resource(new Z3ApiSolver) { solver => {
-            solver.open()
             solver.setTheory(theory)
             solver.solve(timeout) should be (ModelFinderResult.Sat)
         }}
@@ -31,7 +30,6 @@ class Z3ApiSolverTest extends UnitSuite {
     
     test("basic solution") {
         Using.resource(new Z3ApiSolver) { solver => {
-            solver.open()
             solver.setTheory(theory)
             solver.solve(timeout) should be (ModelFinderResult.Sat)
             val soln = solver.solution

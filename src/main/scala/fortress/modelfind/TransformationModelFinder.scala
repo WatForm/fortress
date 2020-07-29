@@ -7,12 +7,13 @@ import fortress.interpretation._
 import fortress.solverinterface._
 import fortress.operations.TermOps._
 
-abstract class TransformationModelFinder(solverSession: SolverSession)
+abstract class TransformationModelFinder(solverInterface: SolverInterface)
 extends ModelFinder with ModelFinderSettings {
     
     private var problemState: ProblemState = ProblemState(Theory.empty)
     // A timer to count how much total time has elapsed
     private val totalTimer: StopWatch = new StopWatch()
+    private var solverSession: Option[SolverSession] = None
     
     override def checkSat(): ModelFinderResult = {
         // Restart the timer
@@ -70,13 +71,17 @@ extends ModelFinder with ModelFinderSettings {
     private def solverPhase(finalTheory: Theory): ModelFinderResult = {
         notifyLoggers(_.invokingSolverStrategy())
         
-        solverSession.close()
-        solverSession.open()
-        solverSession.setTheory(finalTheory)
+        // Close solver session, if one exists
+        solverSession.foreach(_.close())
+        
+        // Open new solver session
+        val session = solverInterface.openSession()
+        solverSession = Some(session)
+        session.setTheory(finalTheory)
 
         val remainingMillis = timeoutMilliseconds - totalTimer.elapsedNano().toMilli
         
-        val finalResult: ModelFinderResult = solverSession.solve(remainingMillis)
+        val finalResult: ModelFinderResult = session.solve(remainingMillis)
         
         notifyLoggers(_.finished(finalResult, totalTimer.elapsedNano()))
         
@@ -84,7 +89,7 @@ extends ModelFinder with ModelFinderSettings {
     }
     
     def viewModel: Interpretation = {
-        val instance = solverSession.solution
+        val instance = solverSession.get.solution
         problemState.unapplyInterp.foldLeft(instance) {
             (interp, unapplyFn) => unapplyFn(interp)
         }
@@ -93,13 +98,13 @@ extends ModelFinder with ModelFinderSettings {
     def nextInterpretation(): ModelFinderResult = {
         // Negate the current interpretation, but leave out the skolem functions
         // Different witnesses are not useful for counting interpretations
-        val instance = solverSession.solution
+        val instance = solverSession.get.solution
             .withoutConstants(problemState.skolemConstants)
             .withoutFunctions(problemState.skolemFunctions)
         val newAxiom = Not(And.smart(instance.toConstraints.toList map (_.eliminateDomainElements)))
         
-        solverSession.addAxiom(newAxiom)
-        solverSession.solve(timeoutMilliseconds)
+        solverSession.get.addAxiom(newAxiom)
+        solverSession.get.solve(timeoutMilliseconds)
     }
 
     override def countValidModels(newTheory: Theory): Int = {
@@ -131,6 +136,6 @@ extends ModelFinder with ModelFinderSettings {
     }
     
     override def close(): Unit = {
-        solverSession.close()
+        solverSession.foreach(_.close())
     }
 }

@@ -26,7 +26,6 @@ class ProcessBuilderSolverTest extends UnitSuite {
         
     test("cvc4 basic incremental solve") {
         Using.resource(new CVC4CliSolver) { solver => {
-            solver.open()
             solver.setTheory(theory)
             solver.solve(timeout) should be (ModelFinderResult.Sat)
             solver.addAxiom(x)
@@ -36,7 +35,6 @@ class ProcessBuilderSolverTest extends UnitSuite {
     
     test("z3 basic incremental solve") {
         Using.resource(new Z3CliSolver) { solver => {
-            solver.open()
             solver.setTheory(theory)
             solver.solve(timeout) should be (ModelFinderResult.Sat)
             solver.addAxiom(x)
@@ -54,7 +52,8 @@ class ProcessBuilderSolverTest extends UnitSuite {
         .withAxiom(
             mkNot(mkApp("p", y))
         )
-        
+    
+    // Don't know if we should support this behaviour
     test("cvc4 solve 2 different theories with 1 solver") {
         pending
         Using.resource(new CVC4CliSolver) { solver => {

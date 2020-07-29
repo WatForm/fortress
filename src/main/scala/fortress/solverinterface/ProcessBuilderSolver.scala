@@ -18,8 +18,6 @@ abstract class ProcessBuilderSolver extends SolverSession {
     private val convertedBytes: CharArrayWriter = new CharArrayWriter
     private var theory: Option[Theory] = None
     
-    override def open(): Unit = ()
-    
     override def setTheory(theory: Theory): Unit = {
         this.theory = Some(theory)
         convertedBytes.reset()
