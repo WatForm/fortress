@@ -5,7 +5,7 @@ import fortress.transformers._
 import fortress.transformers.TheoryTransformer._ // for implicit conversion to ProblemStateTransformer
 import fortress.symmetry._
 
-class FortressTWO(solverStrategy: SolverStrategy) extends BaseFortress(solverStrategy) {
+class FortressTWO(solverSession: SolverSession) extends BaseFortress(solverSession) {
     def this() = this(new Z3ApiSolver)
     
     override def symmetryBreakingTransformers(): Seq[ProblemStateTransformer] = Seq(
@@ -13,7 +13,7 @@ class FortressTWO(solverStrategy: SolverStrategy) extends BaseFortress(solverStr
     )
 }
 
-class FortressTWO_G(solverStrategy: SolverStrategy) extends BaseFortress(solverStrategy) {
+class FortressTWO_G(solverSession: SolverSession) extends BaseFortress(solverSession) {
     def this() = this(new Z3ApiSolver)
     
     override def symmetryBreakingTransformers(): Seq[ProblemStateTransformer] = Seq(
@@ -21,7 +21,7 @@ class FortressTWO_G(solverStrategy: SolverStrategy) extends BaseFortress(solverS
     )
 }
 
-class FortressTWO_R(solverStrategy: SolverStrategy) extends BaseFortress(solverStrategy) {
+class FortressTWO_R(solverSession: SolverSession) extends BaseFortress(solverSession) {
     def this() = this(new Z3ApiSolver)
     
     override def symmetryBreakingTransformers(): Seq[ProblemStateTransformer] = Seq(
@@ -29,7 +29,7 @@ class FortressTWO_R(solverStrategy: SolverStrategy) extends BaseFortress(solverS
     )
 }
 
-class FortressTWO_P(solverStrategy: SolverStrategy) extends BaseFortress(solverStrategy) {
+class FortressTWO_P(solverSession: SolverSession) extends BaseFortress(solverSession) {
     def this() = this(new Z3ApiSolver)
     
     override def symmetryBreakingTransformers(): Seq[ProblemStateTransformer] = Seq(
@@ -37,7 +37,7 @@ class FortressTWO_P(solverStrategy: SolverStrategy) extends BaseFortress(solverS
     )
 }
 
-class FortressTWO_PG(solverStrategy: SolverStrategy) extends BaseFortress(solverStrategy) {
+class FortressTWO_PG(solverSession: SolverSession) extends BaseFortress(solverSession) {
     def this() = this(new Z3ApiSolver)
     
     override def symmetryBreakingTransformers(): Seq[ProblemStateTransformer] = Seq(
@@ -45,7 +45,7 @@ class FortressTWO_PG(solverStrategy: SolverStrategy) extends BaseFortress(solver
     )
 }
 
-class FortressTWO_PO(solverStrategy: SolverStrategy) extends BaseFortress(solverStrategy) {
+class FortressTWO_PO(solverSession: SolverSession) extends BaseFortress(solverSession) {
     def this() = this(new Z3ApiSolver)
     
     override def symmetryBreakingTransformers(): Seq[ProblemStateTransformer] = Seq(
@@ -53,7 +53,7 @@ class FortressTWO_PO(solverStrategy: SolverStrategy) extends BaseFortress(solver
     )
 }
 
-class FortressTWO_NoSymSkolem(solverStrategy: SolverStrategy) extends BaseFortress(solverStrategy) {
+class FortressTWO_NoSymSkolem(solverSession: SolverSession) extends BaseFortress(solverSession) {
     def this() = this(new Z3ApiSolver)
     
     override def symmetryBreakingTransformers(): Seq[ProblemStateTransformer] = Seq(
@@ -61,7 +61,7 @@ class FortressTWO_NoSymSkolem(solverStrategy: SolverStrategy) extends BaseFortre
     )
 }
 
-class FortressTWO_Imp0(solverStrategy: SolverStrategy) extends BaseFortress(solverStrategy) {
+class FortressTWO_Imp0(solverSession: SolverSession) extends BaseFortress(solverSession) {
     def this() = this(new Z3ApiSolver)
     
     override def symmetryBreakingTransformers(): Seq[ProblemStateTransformer] = Seq(
@@ -69,7 +69,7 @@ class FortressTWO_Imp0(solverStrategy: SolverStrategy) extends BaseFortress(solv
     )
 }
 
-class FortressTWO_Imp1(solverStrategy: SolverStrategy) extends BaseFortress(solverStrategy) {
+class FortressTWO_Imp1(solverSession: SolverSession) extends BaseFortress(solverSession) {
     def this() = this(new Z3ApiSolver)
     
     override def symmetryBreakingTransformers(): Seq[ProblemStateTransformer] = Seq(
@@ -77,7 +77,7 @@ class FortressTWO_Imp1(solverStrategy: SolverStrategy) extends BaseFortress(solv
     )
 }
 
-class FortressTWO_NoElision(solverStrategy: SolverStrategy) extends BaseFortress(solverStrategy) {
+class FortressTWO_NoElision(solverSession: SolverSession) extends BaseFortress(solverSession) {
     def this() = this(new Z3ApiSolver)
     
     override def transformerSequence(): Seq[ProblemStateTransformer] = {
@@ -105,7 +105,7 @@ class FortressTWO_NoElision(solverStrategy: SolverStrategy) extends BaseFortress
 }
 
 // Have to use NoElision for range formulas, since the shortened one is not generated.
-class FortressTWO_Neq0(solverStrategy: SolverStrategy) extends BaseFortress(solverStrategy) {
+class FortressTWO_Neq0(solverSession: SolverSession) extends BaseFortress(solverSession) {
     def this() = this(new Z3ApiSolver)
     
     override def transformerSequence(): Seq[ProblemStateTransformer] = {
@@ -132,7 +132,7 @@ class FortressTWO_Neq0(solverStrategy: SolverStrategy) extends BaseFortress(solv
     )
 }
 
-class FortressTWO_Neq1(solverStrategy: SolverStrategy) extends BaseFortress(solverStrategy) {
+class FortressTWO_Neq1(solverSession: SolverSession) extends BaseFortress(solverSession) {
     def this() = this(new Z3ApiSolver)
     
     override def symmetryBreakingTransformers(): Seq[ProblemStateTransformer] = Seq(
@@ -140,7 +140,7 @@ class FortressTWO_Neq1(solverStrategy: SolverStrategy) extends BaseFortress(solv
     )
 }
 
-class FortressTWO_SR(solverStrategy: SolverStrategy) extends BaseFortress(solverStrategy) {
+class FortressTWO_SR(solverSession: SolverSession) extends BaseFortress(solverSession) {
     def this() = this(new Z3ApiSolver)
     
     override def transformerSequence(): Seq[ProblemStateTransformer] = {
@@ -167,7 +167,7 @@ class FortressTWO_SR(solverStrategy: SolverStrategy) extends BaseFortress(solver
     )
 }
 
-class FortressTWO_RAINBOW(solverStrategy: SolverStrategy) extends BaseFortress(solverStrategy) {
+class FortressTWO_RAINBOW(solverSession: SolverSession) extends BaseFortress(solverSession) {
     def this() = this(new Z3ApiSolver)
     
     override def symmetryBreakingTransformers(): Seq[ProblemStateTransformer] = Seq(

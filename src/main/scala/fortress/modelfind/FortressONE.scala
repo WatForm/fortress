@@ -5,7 +5,7 @@ import fortress.transformers._
 import fortress.transformers.TheoryTransformer._ // for implicit conversion to ProblemStateTransformer
 import fortress.symmetry._
 
-class FortressONE(solverStrategy: SolverStrategy) extends BaseFortress(solverStrategy) {
+class FortressONE(solverSession: SolverSession) extends BaseFortress(solverSession) {
     def this() = this(new Z3ApiSolver)
     
     override def symmetryBreakingTransformers(): Seq[ProblemStateTransformer] = Seq(

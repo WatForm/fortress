@@ -10,46 +10,35 @@ import fortress.util._
 import fortress.solverinterface._
 import fortress.operations.SmtlibConverter
 
+import scala.jdk.CollectionConverters._
 import scala.util.matching.Regex
 
-abstract class ProcessBuilderSolver extends SolverTemplate {
+abstract class ProcessBuilderSolver extends SolverSession {
     private var processSession: Option[ProcessSession] = None
-    private var convertedBytes = new CharArrayWriter
-    private var timeout = Milliseconds(60000)
+    private val convertedBytes: CharArrayWriter = new CharArrayWriter
+    private var theory: Option[Theory] = None
     
-    override def convertTheory(theory: Theory): Unit = {
-        // Just writes the theory to the char array buffer
+    override def open(): Unit = ()
+    
+    override def setTheory(theory: Theory): Unit = {
+        this.theory = Some(theory)
         convertedBytes.reset()
-        
         convertedBytes.write("(set-option :produce-models true)\n")
         convertedBytes.write("(set-logic ALL)\n")
         val converter = new SmtlibConverter(convertedBytes)
         converter.writeTheory(theory)
     }
     
-    override def updateTimeout(remainingMillis: Milliseconds): Unit = {
-        timeout = remainingMillis
-    }
-    
-    override def runSolver: ModelFinderResult = {
-        tryIO {
-            openSession()
-            convertedBytes.writeTo(processSession.get.inputWriter)
-            checkSat
-        }
-    }
-    
-    override def logSMT2Output(eventLoggers: Seq[EventLogger]): Unit = {
-        val smt2Output = convertedBytes.toString
-        
-        for(logger <- eventLoggers) logger.smt2Output(smt2Output)
-    }
-    
-    private def checkSat: ModelFinderResult = {
+    override def solve(timeoutMillis: Milliseconds): ModelFinderResult = {
+        processSession.foreach(_.close())
+        processSession = Some(new ProcessSession( { processArgs :+ timeoutArg(timeoutMillis) }.asJava))
+        convertedBytes.writeTo(processSession.get.inputWriter)
         processSession.get.write("(check-sat)\n")
         processSession.get.flush()
         
-        var result = processSession.get.readLine()
+        // processSession.get.write(s"(set-option :timeout ${timeoutMillis.value})") // Doesn't work for CVC4
+        
+        val result = processSession.get.readLine()
         result match {
             case "sat" => ModelFinderResult.Sat
             case "unsat" => ModelFinderResult.Unsat
@@ -57,31 +46,27 @@ abstract class ProcessBuilderSolver extends SolverTemplate {
                 processSession.get.write("(get-info :reason-unknown)\n")
                 processSession.get.flush()
 
-                var reason = processSession.get.readLine()
+                val reason = processSession.get.readLine()
 
                 if(reason.contains("timeout"))
                     ModelFinderResult.Timeout
                 else
                     ModelFinderResult.Unknown
             }
-            case _ => ModelFinderResult.Error
+            case _ => ErrorResult(s"Unrecognized result '${result}'" )
         }
     }
     
-    override def addAxiom(axiom: Term, timeoutMillis: Milliseconds): ModelFinderResult = {
+    override def addAxiom(axiom: Term): Unit = {
         Errors.verify(processSession.nonEmpty, "Cannot add axiom without a live process")
-        tryIO {
-            val converter = new SmtlibConverter(processSession.get.inputWriter)
-            converter.writeAssertion(axiom)
-            
-            checkSat
-        }
+        val converter = new SmtlibConverter(convertedBytes)
+        converter.writeAssertion(axiom)
     }
 
-    override def getInstance(theory: Theory): Interpretation = {
+    override def solution: Interpretation = {
         Errors.verify(processSession.nonEmpty, "Cannot get instance without a live process")
 
-        val fortressNameToSmtValue: Map[String, String] = getFortressNameToSmtValueMap(theory)
+        val fortressNameToSmtValue: Map[String, String] = getFortressNameToSmtValueMap(theory.get)
         
         val smtValueToDomainElement: Map[String, DomainElement] = (
             for {
@@ -90,7 +75,7 @@ abstract class ProcessBuilderSolver extends SolverTemplate {
             } yield (value -> domainElement)
         ).toMap
         
-        object Solution extends EvaluationBasedInterpretation(theory.signature) {
+        object Solution extends EvaluationBasedInterpretation(theory.get.signature) {
             override protected def evaluateConstant(c: AnnotatedVar): Value = {
                 smtValueToFortressValue(
                     fortressNameToSmtValue(c.name),
@@ -177,29 +162,15 @@ abstract class ProcessBuilderSolver extends SolverTemplate {
         }
     }
     
-    private def tryIO(func: => ModelFinderResult): ModelFinderResult = {
-        try {
-            func
-        } catch {
-            case ex: IOException => {
-                close()
-                ModelFinderResult.Error
-            }
-        }
-    }
-    
-    private def openSession(): Unit = {
-        processSession = Some(new ProcessSession(processArgs))
-    }
-    
     @throws(classOf[java.io.IOException])
-    override def close(): Unit = processSession.get.close()
+    override def close(): Unit = {
+        processSession.foreach(_.close())
+    }
     
     protected override def finalize(): Unit = close()
     
-    protected def timeoutMillis: Milliseconds = timeout
-    
-    protected def processArgs: java.util.List[String]
+    protected def processArgs: Seq[String]
+    protected def timeoutArg(timeoutMillis: Milliseconds): String
 }
 
 object ProcessBuilderSolver {
@@ -209,13 +180,13 @@ object ProcessBuilderSolver {
 }
 
 class CVC4CliSolver extends ProcessBuilderSolver {
-    def processArgs: java.util.List[String] = {
-        java.util.List.of("cvc4", "--lang=smt2.6", "-im", "--tlimit-per=" + timeoutMillis.value)
-    }
+    def processArgs: Seq[String] = Seq("cvc4", "--lang=smt2.6", "-im")
+    
+    def timeoutArg(timeoutMillis: Milliseconds): String = "--tlimit-per=" + timeoutMillis.value
 }
 
 class Z3CliSolver extends ProcessBuilderSolver {
-    def processArgs: java.util.List[String] = {
-        java.util.List.of("z3", "-smt2", "-in", "-t:" + timeoutMillis.value)
-    }
+    def processArgs: Seq[String] = Seq("z3", "-smt2", "-in")
+    
+    def timeoutArg(timeoutMillis: Milliseconds): String = "-t:" + timeoutMillis.value
 }

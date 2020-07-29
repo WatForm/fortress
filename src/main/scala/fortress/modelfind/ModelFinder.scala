@@ -28,8 +28,8 @@ case object UnknownResult extends ModelFinderResult {
 case object TimeoutResult extends ModelFinderResult {
     override def toString = "Timeout"
 }
-case object ErrorResult extends ModelFinderResult {
-    override def toString = "Error"
+case class ErrorResult(message: String) extends ModelFinderResult {
+    override def toString = s"Error (${message})"
 }
 
 object ModelFinderResult {
@@ -37,7 +37,6 @@ object ModelFinderResult {
     val Unsat: ModelFinderResult = UnsatResult
     val Unknown: ModelFinderResult = UnknownResult
     val Timeout: ModelFinderResult = TimeoutResult
-    val Error: ModelFinderResult = ErrorResult
 }
 
 /** Invoked to search for satisfying models to theories. */

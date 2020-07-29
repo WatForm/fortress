@@ -7,7 +7,7 @@ import fortress.interpretation._
 import fortress.operations._
 import fortress.symmetry._
 
-class FortressTWO_SI(solverStrategy: SolverStrategy) extends TransformationModelFinder(solverStrategy) {
+class FortressTWO_SI(solverSession: SolverSession) extends TransformationModelFinder(solverSession) {
     def this() = this(new Z3ApiSolver)
     
     override def transformerSequence(): Seq[ProblemStateTransformer] = {

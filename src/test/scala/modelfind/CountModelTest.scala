@@ -18,7 +18,7 @@ class CountModelTest extends UnitSuite {
             .withAxiom(Or(p, q))
             .withAxiom(Not(And(p, q)))
 
-        Using.resource(ModelFinder.createDefault) { finder => {
+        Using.resource(new FortressZERO) { finder => {
             finder.setTheory(theory)
 
             finder.checkSat should be (ModelFinderResult.Sat)

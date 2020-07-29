@@ -137,7 +137,7 @@ class ModelFinderProcessBuilderTest extends UnitSuite {
     }
     
     def testSolverStrategy(
-        strategy: SolverStrategy,
+        strategy: SolverSession,
         theory: Theory,
         scopes: Map[Sort, Int],
         sortInterpretations: Map[Sort, Seq[Value]],

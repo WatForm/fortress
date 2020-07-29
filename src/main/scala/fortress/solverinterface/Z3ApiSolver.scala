@@ -15,39 +15,35 @@ import com.microsoft.z3.{
     Params => Z3Params
 }
 
-class Z3ApiSolver extends SolverTemplate {
+class Z3ApiSolver extends SolverSession {
     private var lastModel: Option[Z3Model] = None
     private var context: Option[Z3Context] = None
     private var solver: Option[Z3Solver] = None
     private var converter: Option[TheoryToZ3_StringParse] = None
-
-    override protected def convertTheory(theory: Theory): Unit = {
+    private var theory: Option[Theory] = None
+    
+    override def open(): Unit = ()
+    
+    override def setTheory(theory: Theory): Unit = {
+        this.theory = Some(theory)
         converter = Some(new TheoryToZ3_StringParse(theory))
         val pair: (Z3Context, Z3Solver) = converter.get.convert
         context = Some(pair._1)
         solver = Some(pair._2)
     }
 
-    override def addAxiom(axiom: Term, timeoutMillis: Milliseconds): ModelFinderResult = {
+    override def addAxiom(axiom: Term): Unit = {
         solver.get.push()
         solver.get.add(converter.get.convertAxiom(axiom))
-
-        updateTimeout(timeoutMillis)
-        runSolver()
     }
-
-    override protected def updateTimeout(remainingMillis: Milliseconds): Unit = {
+    
+    override def solve(remainingMillis: Milliseconds): ModelFinderResult = {
         Errors.assertion(context.nonEmpty)
         Errors.assertion(solver.nonEmpty)
-
+        
         val params: Z3Params = context.get.mkParams()
         params.add("timeout", remainingMillis.value)
         solver.get.setParameters(params)
-    }
-
-    override protected def runSolver(): ModelFinderResult = {
-        Errors.assertion(context.nonEmpty)
-        Errors.assertion(solver.nonEmpty)
 
         val status: Z3Status = solver.get.check()
         lastModel = None
@@ -74,12 +70,12 @@ class Z3ApiSolver extends SolverTemplate {
         }
     }
 
-    def getInstance(theory: Theory): Interpretation = {
+    def solution: Interpretation = {
         Errors.assertion(lastModel.nonEmpty, "There is no current instance")
-        return new Z3ApiInterpretation(lastModel.get, theory.signature, converter.get)
+        return new Z3ApiInterpretation(lastModel.get, theory.get.signature, converter.get)
     }
     
     override def close(): Unit = {
-        context.foreach(ctx => ctx.close)
+        context.foreach(_.close())
     }
 }
