@@ -9,14 +9,24 @@ trait SolverInterface {
     def openSession(): SolverSession
 }
 
-object Z3ApiInterface extends SolverInterface {
+object SolverInterface {
+    // For use with fortress-tests
+    def makeByName(name: String): Option[SolverInterface] = name match {
+        case "Z3Api" => Some(Z3ApiInterface)
+        case "Z3Cli" => Some(Z3CliInterface)
+        case "CVC4Cli" => Some(CVC4CliInterface)
+        case _ => None
+    }
+}
+
+case object Z3ApiInterface extends SolverInterface {
     def openSession(): SolverSession = new Z3ApiSolver
 }
 
-object Z3CliInterface extends SolverInterface {
+case object Z3CliInterface extends SolverInterface {
     def openSession(): SolverSession = new Z3CliSolver
 }
 
-object CVC4CliInterface extends SolverInterface {
+case object CVC4CliInterface extends SolverInterface {
     def openSession(): SolverSession = new CVC4CliSolver
 }
