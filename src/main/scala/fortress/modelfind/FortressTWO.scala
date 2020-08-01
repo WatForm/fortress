@@ -53,6 +53,15 @@ class FortressTWO_PO(solverInterface: SolverInterface) extends BaseFortress(solv
     )
 }
 
+// Constants only
+class FortressTWO_CO(solverInterface: SolverInterface) extends BaseFortress(solverInterface) {
+    def this() = this(Z3ApiInterface)
+    
+    override def symmetryBreakingTransformers(): Seq[ProblemStateTransformer] = Seq(
+        new SymmetryBreakingTransformer(NoFunctionsPredicates, DefaultSymmetryBreaker)
+    )
+}
+
 class FortressTWO_NoSymSkolem(solverInterface: SolverInterface) extends BaseFortress(solverInterface) {
     def this() = this(Z3ApiInterface)
     

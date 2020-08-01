@@ -147,3 +147,12 @@ object AtoAOnlyAnyOrder extends SelectionHeuristic {
         (remaining filter isAtoA).headOption
     }
 }
+
+object NoFunctionsPredicates extends SelectionHeuristic {
+    override def nextFunctionPredicate(
+        deView: DomainElementUsageView,
+        remaining: Set[FuncDecl]
+    ): Option[FuncDecl] = None
+    
+    override def name = "No Functions or Predicates"
+}
