@@ -5,7 +5,7 @@ import java.io.StringWriter
 import fortress.data.CartesianSeqProduct
 import fortress.interpretation.Interpretation
 import fortress.msfol._
-import fortress.solverinterface.{SolverSession, Z3ApiSolver}
+import fortress.solverinterface.{SolverSession, Z3CliSolver}
 import fortress.util.Errors.AssertionException
 import fortress.util._
 
@@ -66,7 +66,7 @@ class InterpretationVerifier(theory: Theory) {
                 .withConstant(evalResultAnnotated)
                 .withAxiom(evalResult === BuiltinApp(fn, evalArgs))
                 
-            val solver = new Z3ApiSolver
+            val solver = new Z3CliSolver
             solver.setTheory(theory)
             solver.solve(Milliseconds(1000))
             val solvedInstance = solver.solution

@@ -70,3 +70,34 @@ class ProcessBuilderSolverTest extends UnitSuite {
         }}
     }
 }
+
+class Z3ProcessBuilderTest2 extends UnitSuite {
+    
+    val p = mkVar("p")
+    val q = mkVar("q")
+
+    val theory = Theory.empty
+        .withConstants(p of Bool, q of Bool)
+        .withAxiom(p and q)
+        
+    val timeout = new Milliseconds(10000)
+        
+    test("basic solve") {
+        Using.resource(new Z3CliSolver) { solver => {
+            solver.setTheory(theory)
+            solver.solve(timeout) should be (ModelFinderResult.Sat)
+        }}
+    }
+    
+    test("basic solution") {
+        Using.resource(new Z3CliSolver) { solver => {
+            solver.setTheory(theory)
+            solver.solve(timeout) should be (ModelFinderResult.Sat)
+            val soln = solver.solution
+            soln.constantInterpretations should be { Map(
+                (p of Bool) -> Top,
+                (q of Bool) -> Top
+            )}
+        }}
+    }
+}
