@@ -23,9 +23,6 @@ trait ProcessBuilderSolver extends SolverSession {
     }
     
     protected override def finalize(): Unit = close()
-    
-    protected def processArgs: Seq[String]
-    protected def timeoutArg(timeoutMillis: Milliseconds): String
 }
 
 object ProcessBuilderSolver {

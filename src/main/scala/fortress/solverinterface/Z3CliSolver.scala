@@ -19,3 +19,7 @@ class Z3CliSolver extends StandardProcessBuilderSolver with ProcessSmtlibEvaluat
     def timeoutArg(timeoutMillis: Milliseconds): String = "-t:" + timeoutMillis.value
 }
 
+class Z3IncCliSolver extends IncrementalProcessBuilderSolver with ProcessSmtlibEvaluation {
+    def processArgs: Seq[String] = Seq("z3", "-smt2", "-in")
+}
+
