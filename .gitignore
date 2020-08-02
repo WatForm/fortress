@@ -19,3 +19,4 @@ examples/libs/*.zip
 examples/libs/*.dylib
 examples/libs/*.so
 examples/libs/*.dll
+target/
