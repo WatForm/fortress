@@ -1,5 +1,5 @@
-ThisBuild / scalaVersion := "2.13.2"
-ThisBuild / organization := "ca.uwaterloo.watform"
+scalaVersion := "2.13.2"
+organization := "ca.uwaterloo.watform"
 
 // Antlr
 enablePlugins(Antlr4Plugin)
@@ -15,3 +15,10 @@ libraryDependencies += "org.scalatest" %% "scalatest" % "3.1.0" % Test
 // HTML test report
 // libraryDependencies += "org.pegdown" % "pegdown" % "1.6.0" % Test
 // testOptions in Test += Tests.Argument(TestFrameworks.ScalaTest, "-h", "target/test-reports")
+
+// Use Java 10
+javacOptions ++= Seq("-source", "10", "-target", "10")
+scalacOptions += "-target:jvm-10"
+
+// Sbt assembly for creating fat jars with all dependencies
+test in assembly := {} // Do not run unit tests
