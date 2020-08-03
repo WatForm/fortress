@@ -16,9 +16,6 @@ repositories{
 dependencies {
     antlr "org.antlr:antlr4:4.7.2"
     implementation "org.antlr:antlr4-runtime:4.7.2"
-    implementation files('z3/com.microsoft.z3.jar')
-    runtimeOnly files('z3/libz3java.dylib') // Required to run Z3's Java interface on MacOS
-    runtimeOnly files('z3/libz3java.so') // Required to run Z3's Java interface on Ubuntu
     
     testImplementation 'junit:junit:4.12'
     testImplementation 'org.scalatest:scalatest_2.13:3.0.8'
@@ -34,11 +31,6 @@ generateGrammarSource {
     maxHeapSize = "64m"
     arguments += ["-visitor", "-long-messages"]
     arguments += ['-package', 'fortress.inputs'] // Add fortress.inputs package header to files
-}
-
-tasks.withType(Test) {
-    // Allow test runtime to find libz3java.dylib or libz3java.so
-    systemProperty "java.library.path", "z3/"
 }
 
 // Distribution
@@ -71,6 +63,5 @@ compileScala { // or: tasks.withType(ScalaCompile)
 // Exec Runner
 task runner(type: JavaExec) {
   classpath sourceSets.main.runtimeClasspath
-  systemProperty "java.library.path", "z3/" // Find z3 Java interface
   main = "fortress.exec.Runner1"
 }

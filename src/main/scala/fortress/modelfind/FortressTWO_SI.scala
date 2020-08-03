@@ -7,8 +7,8 @@ import fortress.interpretation._
 import fortress.operations._
 import fortress.symmetry._
 
-class FortressTWO_SI(solverStrategy: SolverStrategy) extends TransformationModelFinder(solverStrategy) {
-    def this() = this(new Z3ApiSolver)
+class FortressTWO_SI(solverInterface: SolverInterface) extends TransformationModelFinder(solverInterface) {
+    def this() = this(Z3CliInterface)
     
     override def transformerSequence(): Seq[ProblemStateTransformer] = {
         val transformerSequence = new scala.collection.mutable.ListBuffer[ProblemStateTransformer]

@@ -7,10 +7,13 @@ import fortress.interpretation._
 import fortress.solverinterface._
 import fortress.operations.TermOps._
 
-abstract class TransformationModelFinder(var solverStrategy: SolverStrategy) extends ModelFinder with ModelFinderSettings {
+abstract class TransformationModelFinder(solverInterface: SolverInterface)
+extends ModelFinder with ModelFinderSettings {
+    
     private var problemState: ProblemState = ProblemState(Theory.empty)
     // A timer to count how much total time has elapsed
     private val totalTimer: StopWatch = new StopWatch()
+    private var solverSession: Option[SolverSession] = None
     
     override def checkSat(): ModelFinderResult = {
         // Restart the timer
@@ -67,9 +70,18 @@ abstract class TransformationModelFinder(var solverStrategy: SolverStrategy) ext
     // Returns the final ModelFinderResult
     private def solverPhase(finalTheory: Theory): ModelFinderResult = {
         notifyLoggers(_.invokingSolverStrategy())
+        
+        // Close solver session, if one exists
+        solverSession.foreach(_.close())
+        
+        // Open new solver session
+        val session = solverInterface.openSession()
+        solverSession = Some(session)
+        session.setTheory(finalTheory)
 
         val remainingMillis = timeoutMilliseconds - totalTimer.elapsedNano().toMilli
-        val finalResult: ModelFinderResult = solverStrategy.solve(finalTheory, remainingMillis, eventLoggers.toList)
+        
+        val finalResult: ModelFinderResult = session.solve(remainingMillis)
         
         notifyLoggers(_.finished(finalResult, totalTimer.elapsedNano()))
         
@@ -77,30 +89,22 @@ abstract class TransformationModelFinder(var solverStrategy: SolverStrategy) ext
     }
     
     def viewModel: Interpretation = {
-        val instance = solverStrategy.getInstance(problemState.theory)
+        val instance = solverSession.get.solution
         problemState.unapplyInterp.foldLeft(instance) {
             (interp, unapplyFn) => unapplyFn(interp)
         }
     }
 
-    override def nextInterpretation(): ModelFinderResult = {
+    def nextInterpretation(): ModelFinderResult = {
         // Negate the current interpretation, but leave out the skolem functions
         // Different witnesses are not useful for counting interpretations
-        val instance = solverStrategy.getInstance(problemState.theory)
+        val instance = solverSession.get.solution
             .withoutConstants(problemState.skolemConstants)
             .withoutFunctions(problemState.skolemFunctions)
         val newAxiom = Not(And.smart(instance.toConstraints.toList map (_.eliminateDomainElements)))
-        //solverStrategy.addAxiom(newAxiom, timeoutMilliseconds, log)
         
-        problemState = ProblemState(
-            problemState.theory.withAxiom(newAxiom),
-            problemState.scopes,
-            problemState.skolemConstants,
-            problemState.skolemFunctions,
-            problemState.rangeRestrictions,
-            problemState.unapplyInterp
-        )
-        solverStrategy.solve(problemState.theory, timeoutMilliseconds, eventLoggers.toList)
+        solverSession.get.addAxiom(newAxiom)
+        solverSession.get.solve(timeoutMilliseconds)
     }
 
     override def countValidModels(newTheory: Theory): Int = {
@@ -109,7 +113,7 @@ abstract class TransformationModelFinder(var solverStrategy: SolverStrategy) ext
             case SatResult =>
             case UnsatResult => return 0
             case UnknownResult => Errors.solverError("Solver gave unknown result")
-            case ErrorResult => Errors.solverError("An error occurred while computing result")
+            case ErrorResult(_) => Errors.solverError("An error occurred while computing result")
             case TimeoutResult => Errors.solverError("Solver timed out while computing result")
         }
 
@@ -123,7 +127,7 @@ abstract class TransformationModelFinder(var solverStrategy: SolverStrategy) ext
                 case SatResult => count += 1
                 case UnsatResult => sat = false
                 case UnknownResult => Errors.solverError("Solver gave unknown result")
-                case ErrorResult => Errors.solverError("An error occurred while computing result")
+                case ErrorResult(_) => Errors.solverError("An error occurred while computing result")
                 case TimeoutResult => Errors.solverError("Solver timed out while computing result")
             }
         }
@@ -132,6 +136,6 @@ abstract class TransformationModelFinder(var solverStrategy: SolverStrategy) ext
     }
     
     override def close(): Unit = {
-        solverStrategy.close
+        solverSession.foreach(_.close())
     }
 }

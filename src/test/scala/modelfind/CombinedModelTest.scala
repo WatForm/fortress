@@ -35,15 +35,6 @@ class CombinedModelTest extends UnitSuite {
 
             // Found with WolframAlpha
             numModels should be (61)
-
-            finder.setTheory(resultTheory)
-
-            var result = finder.checkSat()
-            while (result == ModelFinderResult.Sat) {
-                // println("Found square: " + finder.viewModel().constantInterpretations(Var("soln").of(IntSort)).asInstanceOf[IntegerLiteral].value)
-                result = finder.nextInterpretation()
-            }
-            // println("No more squares!")
         }}
     }
 
@@ -73,15 +64,6 @@ class CombinedModelTest extends UnitSuite {
 
             // Found with WolframAlpha
             numModels should be (25)
-
-            finder.setTheory(resultTheory)
-
-            var result = finder.checkSat()
-            while (result == ModelFinderResult.Sat) {
-                // println("Found prime: " + finder.viewModel().constantInterpretations(Var("prime").of(IntSort)).asInstanceOf[IntegerLiteral].value)
-                result = finder.nextInterpretation()
-            }
-            // println("No more primes!")
         }}
     }
 

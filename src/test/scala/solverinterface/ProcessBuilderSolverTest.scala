@@ -26,15 +26,19 @@ class ProcessBuilderSolverTest extends UnitSuite {
         
     test("cvc4 basic incremental solve") {
         Using.resource(new CVC4CliSolver) { solver => {
-            solver.solve(theory, timeout, Seq()) should be (ModelFinderResult.Sat);
-            solver.addAxiom(x, timeout) should be (ModelFinderResult.Unsat);
+            solver.setTheory(theory)
+            solver.solve(timeout) should be (ModelFinderResult.Sat)
+            solver.addAxiom(x)
+            solver.solve(timeout) should be (ModelFinderResult.Unsat)
         }}
     }
     
     test("z3 basic incremental solve") {
         Using.resource(new Z3CliSolver) { solver => {
-            solver.solve(theory, timeout, Seq()) should be (ModelFinderResult.Sat);
-            solver.addAxiom(x, timeout) should be (ModelFinderResult.Unsat);
+            solver.setTheory(theory)
+            solver.solve(timeout) should be (ModelFinderResult.Sat)
+            solver.addAxiom(x)
+            solver.solve(timeout) should be (ModelFinderResult.Unsat)
         }}
     }
     
@@ -48,18 +52,52 @@ class ProcessBuilderSolverTest extends UnitSuite {
         .withAxiom(
             mkNot(mkApp("p", y))
         )
-        
+    
+    // Don't know if we should support this behaviour
     test("cvc4 solve 2 different theories with 1 solver") {
+        pending
         Using.resource(new CVC4CliSolver) { solver => {
-            solver.solve(theory, timeout, Seq()) should be (ModelFinderResult.Sat);
-            solver.solve(theory2, timeout, Seq()) should be (ModelFinderResult.Sat);
+            // solver.solve(theory, timeout, Seq()) should be (ModelFinderResult.Sat);
+            // solver.solve(theory2, timeout, Seq()) should be (ModelFinderResult.Sat);
         }}
     }
     
     test("z3 solve 2 different theories with 1 solver") {
+        pending
         Using.resource(new Z3CliSolver) { solver => {
-            solver.solve(theory, timeout, Seq()) should be (ModelFinderResult.Sat);
-            solver.solve(theory2, timeout, Seq()) should be (ModelFinderResult.Sat);
+            // solver.solve(theory, timeout, Seq()) should be (ModelFinderResult.Sat);
+            // solver.solve(theory2, timeout, Seq()) should be (ModelFinderResult.Sat);
+        }}
+    }
+}
+
+class Z3ProcessBuilderTest2 extends UnitSuite {
+    
+    val p = mkVar("p")
+    val q = mkVar("q")
+
+    val theory = Theory.empty
+        .withConstants(p of Bool, q of Bool)
+        .withAxiom(p and q)
+        
+    val timeout = new Milliseconds(10000)
+        
+    test("basic solve") {
+        Using.resource(new Z3CliSolver) { solver => {
+            solver.setTheory(theory)
+            solver.solve(timeout) should be (ModelFinderResult.Sat)
+        }}
+    }
+    
+    test("basic solution") {
+        Using.resource(new Z3CliSolver) { solver => {
+            solver.setTheory(theory)
+            solver.solve(timeout) should be (ModelFinderResult.Sat)
+            val soln = solver.solution
+            soln.constantInterpretations should be { Map(
+                (p of Bool) -> Top,
+                (q of Bool) -> Top
+            )}
         }}
     }
 }

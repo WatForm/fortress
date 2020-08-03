@@ -5,25 +5,25 @@ import java.io.StringWriter
 import fortress.data.CartesianSeqProduct
 import fortress.interpretation.Interpretation
 import fortress.msfol._
-import fortress.solverinterface.{SolverStrategy, Z3ApiSolver}
+import fortress.solverinterface.{SolverSession, Z3CliSolver}
 import fortress.util.Errors.AssertionException
 import fortress.util._
 
 import scala.collection.mutable.ListBuffer
 
 class InterpretationVerifier(theory: Theory) {
+    // Utility functions to transform between Scala Booleans and Fortress ones
+    private def forceValueToBool(term: Value): Boolean = term match{
+        case Top => true
+        case Bottom => false
+        case _ => throw new AssertionException("Tried to cast non-Top/Bottom Term to Boolean")
+    }
+    
+    private  def boolToValue(b: Boolean): Value = if(b) Top else Bottom
     /** Given an interpretation, test all axioms of the original theory & return whether
       * they were all satisfied.
       */
     def verifyInterpretation(interpretation: Interpretation): Boolean = {
-        // Utility functions to transform between Scala Booleans and Fortress ones
-        def forceValueToBool(term: Value): Boolean = term match{
-            case Top => true
-            case Bottom => false
-            case _ => throw new AssertionException("Tried to cast non-Top/Bottom Term to Boolean")
-        }
-        def boolToValue(b: Boolean): Value = if(b) Top else Bottom
-
         // Context: A mapping of Vars to ListBuffer[Term]s (used as a stack).
         // The head of the ListBuffer will always hold the innermost binding of the Var,
         // with the "default" context being the base interpretation itself.
@@ -53,9 +53,8 @@ class InterpretationVerifier(theory: Theory) {
         // Given a builtin function and its arguments, run it through a throwaway Z3 solver for the result
         // (to avoid having to implement every function manually on our end)
         def evaluateBuiltIn(fn: BuiltinFunction, evalArgs: Seq[Value]): Value = {
-            val solver: SolverStrategy = new Z3ApiSolver
             val evalResult: Var = Var("!VERIFY_INTERPRETATION_RES")
-            val evalResultAnnotated: AnnotatedVar = fn match{
+            val evalResultAnnotated: AnnotatedVar = fn match {
                 case IntPlus | IntNeg | IntSub | IntMult | IntDiv | IntMod => evalResult of Sort.Int
                 case BvPlus | BvNeg | BvSub | BvMult | BvSignedDiv | BvSignedRem | BvSignedMod =>
                     evalResult of Sort.BitVector(evalArgs.head.asInstanceOf[BitVectorLiteral].bitwidth);
@@ -66,8 +65,12 @@ class InterpretationVerifier(theory: Theory) {
             val theory: Theory = Theory.empty
                 .withConstant(evalResultAnnotated)
                 .withAxiom(evalResult === BuiltinApp(fn, evalArgs))
-            solver.solve(theory, Milliseconds(1000), Seq.empty)
-            val solvedInstance = solver.getInstance(theory)
+                
+            val solver = new Z3CliSolver
+            solver.setTheory(theory)
+            solver.solve(Milliseconds(1000))
+            val solvedInstance = solver.solution
+            solver.close()
             solvedInstance.constantInterpretations(evalResultAnnotated)
         }
 

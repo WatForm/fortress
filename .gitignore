@@ -7,6 +7,12 @@ z3/libz3java.dylib
 z3/libz3java.so
 out/
 .metals/
+.bloop/
+.vscode/
+.settings
+.classpath
+.project
+bin/
 examples/*.class
 examples/libs/*.jar
 examples/libs/*.zip
