@@ -498,4 +498,37 @@ class SymmetryBreakTests extends UnitSuite {
         constraints should contain (OrList(f7171))
         constraints should contain (OrList(f8181))
     }
+
+    test("CS Functions Version 2 - Unary, Equality") {
+        val f = FuncDecl("f", A, A)
+        
+        val usedResultValues = IndexedSeq(
+            DE(1, A),
+            DE(3, A),
+            DE(4, A),
+            DE(6, A)
+        ) // Unused 2 5 7 8 9
+        
+        val scopes = Map(A -> 9)
+        val used = Map(A -> usedResultValues)
+        val deView = DomainElementUsageView(scopes, used)
+        
+        val f1A = for(i <- Seq(1, 3, 4, 6, 2)) yield {App("f", DE(1, A)) === DE(i, A)}
+        val f3A = for(i <- Seq(1, 3, 4, 6, 2, 5)) yield {App("f", DE(3, A)) === DE(i, A)}
+        val f4A = for(i <- Seq(1, 3, 4, 6, 2, 5, 7)) yield {App("f", DE(4, A)) === DE(i, A)}
+        val f6A = for(i <- Seq(1, 3, 4, 6, 2, 5, 7, 8)) yield {App("f", DE(6, A)) === DE(i, A)}
+        val f2A = for(i <- Seq(1, 3, 4, 6, 2, 5, 7, 8, 9)) yield {App("f", DE(2, A)) === DE(i, A)}
+        
+        val constraints = Symmetry.csFunctionExtRangeRestrictionsVersion2(f, deView) map (_.asFormula)
+        constraints should have size 5
+        constraints should contain (OrList(f1A))
+        constraints should contain (OrList(f3A))
+        constraints should contain (OrList(f4A))
+        constraints should contain (OrList(f6A))
+        constraints should contain (OrList(f2A))
+    }
+
+    test("pure") {
+        pending
+    }
 }
