@@ -98,7 +98,10 @@ trait ProcessSmtlibEvaluation extends ProcessBuilderSolver {
                 case "false" => Bottom
                 case _ => Errors.unreachable()
             }
-            case IntSort => IntegerLiteral(value.toInt)
+            case IntSort => value match {
+                case ProcessBuilderSolver.negativeInteger(digits) => IntegerLiteral(-(digits.toInt))
+                case _ => IntegerLiteral(value.toInt)
+            }
             case BitVectorSort(bitwidth) => value match {
                 case ProcessBuilderSolver.bitVecLiteral(radix, digits) => radix match {
                     case "x" => BitVectorLiteral(Integer.parseInt(digits, 16), bitwidth)

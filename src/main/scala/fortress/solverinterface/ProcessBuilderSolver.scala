@@ -29,4 +29,5 @@ object ProcessBuilderSolver {
     val smt2Model: Regex = """^\(\((\S+|\(.+\)) (\S+|\(.+\))\)\)$""".r
     val bitVecLiteral: Regex = """^#(.)(.+)$""".r
     val bitVecExpr: Regex = """\(_ bv(\d+) (\d+)\)""".r
+    val negativeInteger: Regex = """\(- (\d+)\)""".r
 }
