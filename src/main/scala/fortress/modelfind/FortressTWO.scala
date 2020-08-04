@@ -183,3 +183,11 @@ class FortressTWO_RAINBOW(solverInterface: SolverInterface) extends BaseFortress
         new SymmetryBreakingTransformer(FunctionsFirstAnyOrder, RainbowSymmetryBreaker)
     )
 }
+
+class FortressTWO_US(solverInterface: SolverInterface) extends BaseFortress(solverInterface) {
+    def this() = this(Z3CliInterface)
+    
+    override def symmetryBreakingTransformers(): Seq[ProblemStateTransformer] = Seq(
+        new SymmetryBreakingTransformer(FunctionsFirstAnyOrder, UsedFirstRidSymmetryBreaker)
+    )
+}

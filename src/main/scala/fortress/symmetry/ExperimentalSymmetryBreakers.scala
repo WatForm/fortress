@@ -8,7 +8,7 @@ class Imp0SymmetryBreaker(theory: Theory, scopes: Map[Sort, Int])
 extends SymmetryBreaker(theory, scopes)
 with DefaultPredicateBreaking
 with DrdDifferentiation
-with DefaultNonDrdScheme {
+with DefaultRidScheme {
     
     override def breakConstants(sort: Sort, constants: IndexedSeq[AnnotatedVar]): Unit = {
         val constantRangeRestrictions = Symmetry.csConstantRangeRestrictions(sort, constants, view)
@@ -32,7 +32,7 @@ class Imp1SymmetryBreaker(theory: Theory, scopes: Map[Sort, Int])
 extends SymmetryBreaker(theory, scopes)
 with DefaultPredicateBreaking
 with DrdDifferentiation
-with DefaultNonDrdScheme {
+with DefaultRidScheme {
     
     override def breakConstants(sort: Sort, constants: IndexedSeq[AnnotatedVar]): Unit = {
         val constantRangeRestrictions = Symmetry.csConstantRangeRestrictions(sort, constants, view)
@@ -96,7 +96,7 @@ class RainbowSymmetryBreaker (theory: Theory, scopes: Map[Sort, Int])
 extends SymmetryBreaker(theory, scopes)
 with DrdDifferentiation {
     override def breakConstants(sort: Sort, constants: IndexedSeq[AnnotatedVar]): Unit = { }
-    override def breakNonDrdFunction(f: FuncDecl): Unit = { }
+    override def breakRidFunction(f: FuncDecl): Unit = { }
     override def breakPredicate(P: FuncDecl): Unit = { }
     
     override def breakDrdFunction(f: FuncDecl): Unit = {
@@ -116,4 +116,20 @@ with DrdDifferentiation {
 
 object RainbowSymmetryBreaker extends SymmetryBreakerFactory {
     def create(theory: Theory, scopes: Map[Sort, Int]): SymmetryBreaker = new RainbowSymmetryBreaker(theory, scopes)
+}
+
+class UsedFirstRidSymmetryBreaker(theory: Theory, scopes: Map[Sort, Int])
+extends SymmetryBreaker(theory, scopes)
+with DefaultPredicateBreaking
+with DrdDifferentiation
+with DefaultConstantScheme
+with DefaultDrdScheme {
+    override def breakRidFunction(f: FuncDecl): Unit = {
+        val fRangeRestrictions = Symmetry.ridFunctionRangeRestrictions_UsedFirst(f, view)
+        addRangeRestrictions(fRangeRestrictions)
+    }
+}
+
+object UsedFirstRidSymmetryBreaker extends SymmetryBreakerFactory {
+    def create(theory: Theory, scopes: Map[Sort, Int]): SymmetryBreaker = new UsedFirstRidSymmetryBreaker(theory, scopes)
 }

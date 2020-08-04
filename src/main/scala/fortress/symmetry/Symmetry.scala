@@ -395,8 +395,6 @@ object Symmetry {
             constraints.toSet
         }
     
-
-    // For this one it's easier to do it for single argument
     private def ridFunctionRangeRestrictionsGeneral(
         f: FuncDecl,
         deView: DomainElementUsageView,
@@ -453,77 +451,18 @@ object Symmetry {
             }
         }
         loop(0, deView.unusedDomainElements(f.resultSort), deView.usedDomainElements(f.resultSort))
-        // val tracker = deView.createTracker
-        // var index = 0
-
-        // while(tracker.view.existsUnusedDomainElements(f.resultSort)) {
-        //     val input = argumentOrder(index)
-        //     index += 1
-        //     val rangeRestriction = constraintForInput(
-        //         input,
-        //         tracker.view.unusedDomainElements(f.resultSort),
-        //         tracker.view.usedDomainElements(f.resultSort)
-        //     )
-        //     tracker.markUsed(rangeRestriction.asFormula.domainElements)
-        //     rangeRestrictions += rangeRestriction
-        // }
 
         rangeRestrictions.toSet
     }
 
-    def csFunctionExtRangeRestrictions(
+    def ridFunctionRangeRestrictions_UnusedFirst(
         f: FuncDecl,
         deView: DomainElementUsageView
     ): Set[RangeRestriction] = {
         ridFunctionRangeRestrictionsGeneral(f, deView, deView.unusedDomainElements(f.resultSort))
     }
 
-    // // I think more symmetry breaking can be done here
-    // def csFunctionExtRangeRestrictions(
-    //     f: FuncDecl,
-    //     deView: DomainElementUsageView
-    // ): Set[RangeRestriction] = {
-            
-    //         Errors.precondition(f.argSorts.forall(!_.isBuiltin))
-    //         Errors.precondition(!f.resultSort.isBuiltin)
-    //         Errors.precondition(f.argSorts contains f.resultSort)
-    //         Errors.precondition(!f.isDomainRangeDistinct)
-            
-    //         val unusedResultValues: IndexedSeq[DomainElement] = deView.unusedDomainElements(f.resultSort)
-    //         val usedResultValues: IndexedSeq[DomainElement] = deView.usedDomainElements(f.resultSort)
-            
-    //         // We fix particular values for the sorts not in the output
-    //         // These stay the same for all argument lists we symmetry break using
-    //         // (you don't have to fix particular values, but you can)
-            
-    //         // Construct an argument list given the result value we are using
-    //         // e.g. if f: A x B x A x D -> A,
-    //         // given a2 it will yield: (a2, b1, a2, d1)
-    //         // given a3 it will yield: (a3, b1, a3, d1)
-    //         def constructArgList(resVal: DomainElement): Seq[DomainElement] = {
-    //             Errors.precondition(resVal.sort == f.resultSort)
-    //             f.argSorts map (sort => {
-    //                 if(sort == f.resultSort) resVal
-    //                 else DomainElement(1, sort) // for other sorts, doesn't matter what values we choose
-    //             })
-    //         }
-            
-    //         val m = unusedResultValues.size
-    //         val constraints: Seq[RangeRestriction] = for(i <- 0 to (m - 2)) yield {
-    //             val resVal = unusedResultValues(i)
-    //             val argList = constructArgList(resVal)
-                
-    //             val possibleResultValues =
-    //                 usedResultValues ++
-    //                 unusedResultValues.take(i + 2)
-                
-    //             RangeRestriction(App(f.name, argList), possibleResultValues)
-    //         }
-            
-    //         constraints.toSet
-    //     }
-
-    def csFunctionExtRangeRestrictionsVersion2(
+    def ridFunctionRangeRestrictions_UsedFirst(
         f: FuncDecl,
         deView: DomainElementUsageView
     ): Set[RangeRestriction] = {
@@ -533,52 +472,5 @@ object Symmetry {
             deView.usedDomainElements(f.resultSort) ++ deView.unusedDomainElements(f.resultSort)
         )
     }
-
-    // I think more symmetry breaking can be done here
-    // def csFunctionExtRangeRestrictionsVersion2(
-    //     f: FuncDecl,
-    //     deView: DomainElementUsageView
-    // ): Set[RangeRestriction] = {
-            
-    //     Errors.precondition(f.argSorts.forall(!_.isBuiltin))
-    //     Errors.precondition(!f.resultSort.isBuiltin)
-    //     Errors.precondition(f.argSorts contains f.resultSort)
-    //     Errors.precondition(!f.isDomainRangeDistinct)
-        
-    //     val unusedResultValues: IndexedSeq[DomainElement] = deView.unusedDomainElements(f.resultSort)
-    //     val usedResultValues: IndexedSeq[DomainElement] = deView.usedDomainElements(f.resultSort)
-
-    //     val valuesOrderedUsedFirst: IndexedSeq[DomainElement] = usedResultValues ++ unusedResultValues
-        
-    //     // We fix particular values for the sorts not in the output
-    //     // These stay the same for all argument lists we symmetry break using
-    //     // (you don't have to fix particular values, but you can)
-        
-    //     // Construct an argument list given the result value we are using
-    //     // e.g. if f: A x B x A x D -> A,
-    //     // given a2 it will yield: (a2, b1, a2, d1)
-    //     // given a3 it will yield: (a3, b1, a3, d1)
-    //     def constructArgList(resVal: DomainElement): Seq[DomainElement] = {
-    //         Errors.precondition(resVal.sort == f.resultSort)
-    //         f.argSorts map (sort => {
-    //             if(sort == f.resultSort) resVal
-    //             else DomainElement(1, sort) // for other sorts, doesn't matter what values we choose
-    //         })
-    //     }
-        
-    //     val m = unusedResultValues.size
-    //     val constraints: Seq[RangeRestriction] = for(i <- 0 until m) yield {
-    //         val resVal = unusedResultValues(i)
-    //         val argList = constructArgList(valuesOrderedUsedFirst(i))
-            
-    //         val possibleResultValues =
-    //             usedResultValues ++
-    //             unusedResultValues.take(i + 1)
-            
-    //         RangeRestriction(App(f.name, argList), possibleResultValues)
-    //     }
-        
-    //     constraints.toSet
-    // }
     
 }

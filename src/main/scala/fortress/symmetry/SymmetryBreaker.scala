@@ -69,23 +69,42 @@ trait DefaultPredicateBreaking extends SymmetryBreaker {
 
 trait DrdDifferentiation extends SymmetryBreaker {
     def breakDrdFunction(f: FuncDecl): Unit
-    def breakNonDrdFunction(f: FuncDecl): Unit
+    def breakRidFunction(f: FuncDecl): Unit
     
     override def breakFunction(f: FuncDecl): Unit = {
         if(view.existsUnusedDomainElements(f.resultSort)) {
             if (f.isDomainRangeDistinct) {
                 breakDrdFunction(f)
             } else {
-                breakNonDrdFunction(f)
+                breakRidFunction(f)
             }
         }
     }
 }
 
-trait DefaultNonDrdScheme extends DrdDifferentiation {
-    override def breakNonDrdFunction(f: FuncDecl): Unit = {
-        val fRangeRestrictions = Symmetry.csFunctionExtRangeRestrictions(f, view)
+trait DefaultRidScheme extends DrdDifferentiation {
+    override def breakRidFunction(f: FuncDecl): Unit = {
+        val fRangeRestrictions = Symmetry.ridFunctionRangeRestrictions_UnusedFirst(f, view)
         addRangeRestrictions(fRangeRestrictions)
+    }
+}
+
+trait DefaultDrdScheme extends DrdDifferentiation {
+    override def breakDrdFunction(f: FuncDecl): Unit = {
+        val fRangeRestrictions = Symmetry.drdFunctionRangeRestrictions(f, view)
+        val fImplications = Symmetry.drdFunctionImplicationsSimplified(f, view)
+        addRangeRestrictions(fRangeRestrictions)
+        addGeneralConstraints(fImplications)
+    }
+}
+
+trait DefaultConstantScheme extends SymmetryBreaker {
+    override def breakConstants(sort: Sort, constants: IndexedSeq[AnnotatedVar]): Unit = {
+        val constantRangeRestrictions = Symmetry.csConstantRangeRestrictions(sort, constants, view)
+        val constantImplications = Symmetry.csConstantImplicationsSimplified(sort, constants, view)
+        
+        addRangeRestrictions(constantRangeRestrictions)
+        addGeneralConstraints(constantImplications)
     }
 }
 
@@ -95,23 +114,9 @@ class DefaultSymmetryBreaker(theory: Theory, scopes: Map[Sort, Int])
 extends SymmetryBreaker(theory, scopes)
 with DefaultPredicateBreaking
 with DrdDifferentiation
-with DefaultNonDrdScheme {
-    
-    override def breakConstants(sort: Sort, constants: IndexedSeq[AnnotatedVar]): Unit = {
-        val constantRangeRestrictions = Symmetry.csConstantRangeRestrictions(sort, constants, view)
-        val constantImplications = Symmetry.csConstantImplicationsSimplified(sort, constants, view)
-        
-        addRangeRestrictions(constantRangeRestrictions)
-        addGeneralConstraints(constantImplications)
-    }
-    
-    override def breakDrdFunction(f: FuncDecl): Unit = {
-        val fRangeRestrictions = Symmetry.drdFunctionRangeRestrictions(f, view)
-        val fImplications = Symmetry.drdFunctionImplicationsSimplified(f, view)
-        addRangeRestrictions(fRangeRestrictions)
-        addGeneralConstraints(fImplications)
-    }
-}
+with DefaultConstantScheme
+with DefaultDrdScheme
+with DefaultRidScheme
 
 object DefaultSymmetryBreaker extends SymmetryBreakerFactory {
     def create(theory: Theory, scopes: Map[Sort, Int]): SymmetryBreaker = new DefaultSymmetryBreaker(theory, scopes)
