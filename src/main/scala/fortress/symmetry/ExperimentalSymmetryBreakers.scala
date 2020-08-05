@@ -118,18 +118,18 @@ object RainbowSymmetryBreaker extends SymmetryBreakerFactory {
     def create(theory: Theory, scopes: Map[Sort, Int]): SymmetryBreaker = new RainbowSymmetryBreaker(theory, scopes)
 }
 
-class UsedFirstRidSymmetryBreaker(theory: Theory, scopes: Map[Sort, Int])
+class UnusedFirstRidSymmetryBreaker(theory: Theory, scopes: Map[Sort, Int])
 extends SymmetryBreaker(theory, scopes)
 with DefaultPredicateBreaking
 with DrdDifferentiation
 with DefaultConstantScheme
 with DefaultDrdScheme {
     override def breakRidFunction(f: FuncDecl): Unit = {
-        val fRangeRestrictions = Symmetry.ridFunctionRangeRestrictions_UsedFirst(f, view)
+        val fRangeRestrictions = Symmetry.ridFunctionRangeRestrictions_UnusedFirst(f, view)
         addRangeRestrictions(fRangeRestrictions)
     }
 }
 
-object UsedFirstRidSymmetryBreaker extends SymmetryBreakerFactory {
-    def create(theory: Theory, scopes: Map[Sort, Int]): SymmetryBreaker = new UsedFirstRidSymmetryBreaker(theory, scopes)
+object UnusedFirstRidSymmetryBreaker extends SymmetryBreakerFactory {
+    def create(theory: Theory, scopes: Map[Sort, Int]): SymmetryBreaker = new UnusedFirstRidSymmetryBreaker(theory, scopes)
 }

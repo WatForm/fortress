@@ -84,7 +84,7 @@ trait DrdDifferentiation extends SymmetryBreaker {
 
 trait DefaultRidScheme extends DrdDifferentiation {
     override def breakRidFunction(f: FuncDecl): Unit = {
-        val fRangeRestrictions = Symmetry.ridFunctionRangeRestrictions_UnusedFirst(f, view)
+        val fRangeRestrictions = Symmetry.ridFunctionRangeRestrictions_UsedFirst(f, view)
         addRangeRestrictions(fRangeRestrictions)
     }
 }

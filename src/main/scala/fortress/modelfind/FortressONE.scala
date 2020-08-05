@@ -13,10 +13,10 @@ class FortressONE(solverInterface: SolverInterface) extends BaseFortress(solverI
     )
 }
 
-class FortressONE_US(solverInterface: SolverInterface) extends BaseFortress(solverInterface) {
+class FortressONE_UNS(solverInterface: SolverInterface) extends BaseFortress(solverInterface) {
     def this() = this(Z3CliInterface)
     
     override def symmetryBreakingTransformers(): Seq[ProblemStateTransformer] = Seq(
-        new SymmetryBreakingTransformer(AtoAOnlyAnyOrder, UsedFirstRidSymmetryBreaker)
+        new SymmetryBreakingTransformer(AtoAOnlyAnyOrder, UnusedFirstRidSymmetryBreaker)
     )
 }
