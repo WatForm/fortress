@@ -72,19 +72,6 @@ case class EnumValue private (name: String) extends Term with LeafTerm with Valu
     override def accept[T](visitor: TermVisitor[T]): T = visitor.visitEnumValue(this)
 }
 
-/** Represents a variable together with a sort annotation.
-  * Used when quantifying a variable, or when declaring a Var to be a constant
-  * of a given Sort.
-  * AnnotatedVar is not a subclass of Term.
-  * Inside a Term it is only possible (and required) to annotate a Var when
-  * a quantifier declares it bound.
-  */
-case class AnnotatedVar private (variable: Var, sort: Sort) {
-    def name: String = variable.name
-    
-    override def toString: String = variable.toString + ": " + sort.toString
-}
-
 /** Represents a negation. */
 case class Not private (body: Term) extends Term {
     override def accept[T](visitor: TermVisitor[T]): T = visitor.visitNot(this)

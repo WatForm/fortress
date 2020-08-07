@@ -6,23 +6,35 @@ import fortress.util._
 import fortress.interpretation._
 import fortress.solverinterface._
 import fortress.operations.TermOps._
+import fortress.compiler._
 
 abstract class TransformationModelFinder(solverInterface: SolverInterface)
 extends ModelFinder with ModelFinderSettings {
     
-    private var problemState: ProblemState = ProblemState(Theory.empty)
+    // private var problemState: ProblemState = ProblemState(Theory.empty)
     // A timer to count how much total time has elapsed
     private val totalTimer: StopWatch = new StopWatch()
+    private var compiler: LogicCompiler = new FortressZEROCompiler(IntegerSemantics.UnboundedSemantics)
     private var solverSession: Option[SolverSession] = None
+    private var compilerResult: Option[CompilerResult] = None
     
     override def checkSat(): ModelFinderResult = {
         // Restart the timer
         totalTimer.startFresh()
-        
-        val finalTheory: Theory = transformationPhase() match {
-            case None => return TimeoutResult
-            case Some(fTheory) => fTheory
+
+        val result = compiler.compile(theory, analysisScopes, timeoutMilliseconds) match {
+            case Left(error) => ???
+            case Right(result) => result
         }
+
+        compilerResult = Some(result)
+        
+        // val finalTheory: Theory = transformationPhase() match {
+        //     case None => return TimeoutResult
+        //     case Some(fTheory) => fTheory
+        // }
+
+        val finalTheory = compilerResult.get.theory
 
         val finalResult: ModelFinderResult = solverPhase(finalTheory)
 
@@ -31,41 +43,41 @@ extends ModelFinder with ModelFinderSettings {
     
     protected def transformerSequence(): Seq[ProblemStateTransformer]
     
-    private def applyTransformer(transformer: ProblemStateTransformer, problemState: ProblemState): ProblemState = {
-        notifyLoggers(_.transformerStarted(transformer))
-        val transformationTimer = new StopWatch()
-        transformationTimer.startFresh()
+    // private def applyTransformer(transformer: ProblemStateTransformer, problemState: ProblemState): ProblemState = {
+    //     notifyLoggers(_.transformerStarted(transformer))
+    //     val transformationTimer = new StopWatch()
+    //     transformationTimer.startFresh()
         
-        val resultingProblemState = transformer(problemState)
+    //     val resultingProblemState = transformer(problemState)
         
-        val elapsed = transformationTimer.elapsedNano()
-        notifyLoggers(_.transformerFinished(transformer, elapsed))
-        resultingProblemState
-    }
+    //     val elapsed = transformationTimer.elapsedNano()
+    //     notifyLoggers(_.transformerFinished(transformer, elapsed))
+    //     resultingProblemState
+    // }
     
     // If times out, returns None. Otherwise, returns the final transformed theory.
-    private def transformationPhase(): Option[Theory] = {
-        val transformerSeq = transformerSequence()
+    // private def transformationPhase(): Option[Theory] = {
+    //     val transformerSeq = transformerSequence()
         
-        problemState = ProblemState(theory, analysisScopes)
-        for(transformer <- transformerSeq) {
-            problemState = applyTransformer(transformer, problemState)
+    //     problemState = ProblemState(theory, analysisScopes)
+    //     for(transformer <- transformerSeq) {
+    //         problemState = applyTransformer(transformer, problemState)
             
-            if(totalTimer.elapsedNano() >= timeoutNano) {
-                notifyLoggers(_.timeoutInternal())
-                return None
-            }
-        }
+    //         if(totalTimer.elapsedNano() >= timeoutNano) {
+    //             notifyLoggers(_.timeoutInternal())
+    //             return None
+    //         }
+    //     }
 
-        notifyLoggers(_.allTransformersFinished(problemState.theory, totalTimer.elapsedNano()))
+    //     notifyLoggers(_.allTransformersFinished(problemState.theory, totalTimer.elapsedNano()))
         
-        if(totalTimer.elapsedNano() > timeoutNano) {
-            notifyLoggers(_.timeoutInternal())
-            return None
-        }
+    //     if(totalTimer.elapsedNano() > timeoutNano) {
+    //         notifyLoggers(_.timeoutInternal())
+    //         return None
+    //     }
         
-        Some(problemState.theory)
-    }
+    //     Some(problemState.theory)
+    // }
     
     // Returns the final ModelFinderResult
     private def solverPhase(finalTheory: Theory): ModelFinderResult = {
@@ -90,17 +102,19 @@ extends ModelFinder with ModelFinderSettings {
     
     def viewModel: Interpretation = {
         val instance = solverSession.get.solution
-        problemState.unapplyInterp.foldLeft(instance) {
-            (interp, unapplyFn) => unapplyFn(interp)
-        }
+        compilerResult.get.decompileInterpretation(instance)
+        // problemState.unapplyInterp.foldLeft(instance) {
+        //     (interp, unapplyFn) => unapplyFn(interp)
+        // }
     }
 
     def nextInterpretation(): ModelFinderResult = {
         // Negate the current interpretation, but leave out the skolem functions
         // Different witnesses are not useful for counting interpretations
         val instance = solverSession.get.solution
-            .withoutConstants(problemState.skolemConstants)
-            .withoutFunctions(problemState.skolemFunctions)
+            .withoutDeclarations(compilerResult.get.skipForNextInterpretation)
+            // .withoutConstants(problemState.skolemConstants)
+            // .withoutFunctions(problemState.skolemFunctions)
         val newAxiom = Not(And.smart(instance.toConstraints.toList map (_.eliminateDomainElements)))
         
         solverSession.get.addAxiom(newAxiom)

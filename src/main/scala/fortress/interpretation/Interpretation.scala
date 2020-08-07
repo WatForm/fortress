@@ -47,6 +47,23 @@ trait Interpretation {
         val newFunctionInterps = functionInterpretations filter {case(fdecl, mapping) => signature.functionDeclarations contains fdecl }
         new BasicInterpretation(newSortInterps, newConstInterps, newFunctionInterps)
     }
+
+    def withoutDeclarations(decls: Set[Declaration]): Interpretation = {
+        def castConstant(decl: Declaration): Option[AnnotatedVar] = decl match {
+            case c: AnnotatedVar => Some(c)
+            case f: FuncDecl => None
+        }
+
+        def castFuncDecl(decl: Declaration): Option[FuncDecl] = decl match {
+            case c: AnnotatedVar => None
+            case f: FuncDecl => Some(f)
+        }
+
+        val constants: Set[AnnotatedVar] = decls.map(castConstant).flatten
+        val fdecls: Set[FuncDecl] = decls.map(castFuncDecl).flatten
+
+        this.withoutConstants(constants).withoutFunctions(fdecls)
+    }
     
     def withoutConstants(constants: Set[AnnotatedVar]): Interpretation = {
         new BasicInterpretation(
