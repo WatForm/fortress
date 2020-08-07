@@ -3,11 +3,10 @@ package fortress.compiler
 import fortress.msfol._
 import fortress.transformers._
 import fortress.transformers.TheoryTransformer._ // for implicit conversion to ProblemStateTransformer
-import fortress.solverinterface._
 import fortress.modelfind._
 
 abstract class BaseFortressCompiler(integerSemantics: IntegerSemantics) extends TransformationCompiler {
-    override def transformerSequence(): Seq[ProblemStateTransformer] = {
+    override def transformerSequence: Seq[ProblemStateTransformer] = {
         val transformerSequence = new scala.collection.mutable.ListBuffer[ProblemStateTransformer]
         transformerSequence += new EnumEliminationTransformer
         integerSemantics match {
@@ -26,5 +25,5 @@ abstract class BaseFortressCompiler(integerSemantics: IntegerSemantics) extends 
         transformerSequence.toList
     }
     
-    def symmetryBreakingTransformers(): Seq[ProblemStateTransformer]
+    def symmetryBreakingTransformers: Seq[ProblemStateTransformer]
 }

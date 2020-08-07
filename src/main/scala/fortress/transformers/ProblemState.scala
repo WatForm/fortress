@@ -1,4 +1,4 @@
-package fortress.modelfind
+package fortress.transformers
 
 import fortress.msfol._
 import fortress.util.Errors

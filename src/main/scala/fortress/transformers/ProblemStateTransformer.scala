@@ -1,7 +1,5 @@
 package fortress.transformers
 
-import fortress.modelfind.ProblemState
-
 /** An abstraction of a function from ProblemState to ProblemState. */
 trait ProblemStateTransformer extends {
     

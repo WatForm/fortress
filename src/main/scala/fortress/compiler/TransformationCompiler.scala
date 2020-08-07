@@ -3,7 +3,6 @@ package fortress.compiler
 import fortress.msfol._
 import fortress.transformers._
 import fortress.util._
-import fortress.modelfind._
 import fortress.interpretation._
 
 trait TransformationCompiler extends LogicCompiler {

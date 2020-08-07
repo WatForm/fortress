@@ -6,7 +6,6 @@ import fortress.msfol._
 import fortress.operations.TermOps._
 import fortress.util.Errors
 import fortress.data.CartesianSeqProduct
-import fortress.modelfind.ProblemState
 
 import scala.math.min
 

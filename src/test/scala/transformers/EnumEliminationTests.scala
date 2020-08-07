@@ -2,7 +2,6 @@ import org.scalatest._
 
 import fortress.msfol._
 import fortress.transformers._
-import fortress.modelfind.ProblemState
 
 class EnumEliminationTests extends UnitSuite {
     

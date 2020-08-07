@@ -2,7 +2,6 @@ package fortress.transformers
 
 import fortress.msfol._
 import fortress.operations.TheoryOps._
-import fortress.modelfind.ProblemState
 import fortress.interpretation.Interpretation
 
 class SortInferenceTransformer extends ProblemStateTransformer {

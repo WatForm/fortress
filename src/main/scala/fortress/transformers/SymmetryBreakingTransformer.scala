@@ -5,7 +5,6 @@ import fortress.msfol._
 import scala.collection.mutable
 import fortress.symmetry._
 import fortress.operations.TermOps._
-import fortress.modelfind.ProblemState
 
 /** Applies symmetry breaking to the given Problem. The input Problem is allowed
 * to have domain elements in its formulas. The output formula will have domain

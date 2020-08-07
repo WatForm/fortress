@@ -6,7 +6,6 @@ import fortress.data.IntSuffixNameGenerator
 import fortress.operations.Skolemizer
 import fortress.operations.TermOps._
 import fortress.operations.TheoryOps._
-import fortress.modelfind.ProblemState
 import fortress.interpretation.Interpretation
 
 /** Given a theory, with formulas all in negation normal form, eliminates existential
