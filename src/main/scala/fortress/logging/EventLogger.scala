@@ -1,8 +1,9 @@
-package fortress.modelfind
+package fortress.logging
 
 import fortress.msfol._
 import fortress.transformers._
 import fortress.util._
+import fortress.modelfind._
 
 trait EventLogger {
     def transformerStarted(transformer: ProblemStateTransformer): Unit
@@ -15,5 +16,4 @@ trait EventLogger {
     def solverFinished(time: Nanoseconds): Unit
     def finished(result: ModelFinderResult, time: Nanoseconds): Unit
     def timeoutInternal(): Unit
-    def smt2Output(smt2String: String): Unit
 }

@@ -3,12 +3,14 @@ package fortress.compiler
 import fortress.msfol._
 import fortress.interpretation._
 import fortress.util._
+import fortress.logging._
 
 trait LogicCompiler {
     def compile(
         theory: Theory,
         scopes: Map[Sort, Int],
-        timeout: Milliseconds
+        timeout: Milliseconds,
+        loggers: Seq[EventLogger]
     ): Either[CompilerError, CompilerResult]
 }
 

@@ -4,15 +4,28 @@ import fortress.msfol._
 import fortress.transformers._
 import fortress.util._
 import fortress.interpretation._
+import fortress.logging._
+import fortress.util.Control.measureTime
 
 trait TransformationCompiler extends LogicCompiler {
     override def compile(
         theory: Theory,
         scopes: Map[Sort, Int],
-        timeout: Milliseconds
+        timeout: Milliseconds,
+        loggers: Seq[EventLogger]
     ): Either[CompilerError, CompilerResult] = {
         val initialProblemState = ProblemState(theory, scopes)
-        val finalProblemState = transformerSequence.foldLeft(initialProblemState)((pState, transformer) => transformer(pState))
+        val finalProblemState = transformerSequence.foldLeft(initialProblemState)((pState, transformer) => {
+            loggers.foreach(_.transformerStarted(transformer))
+
+            val (finalPState, elapsedNano) = measureTime {
+                transformer(pState)
+            }
+
+            loggers.foreach(_.transformerFinished(transformer, elapsedNano))
+
+            finalPState
+        })
         
         object Result extends CompilerResult {
             override val theory: Theory = finalProblemState.theory

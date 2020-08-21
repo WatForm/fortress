@@ -1,8 +1,9 @@
-package fortress.modelfind
+package fortress.logging
 
 import fortress.msfol._
 import fortress.transformers._
 import fortress.util._
+import fortress.modelfind._
 
 import scala.collection.mutable.ListBuffer
 
@@ -38,6 +39,4 @@ class AvgTimeLogger extends EventLogger {
     }
     
     override def timeoutInternal(): Unit = { }
-    
-    override def smt2Output(smt2String: String): Unit = { }
 }

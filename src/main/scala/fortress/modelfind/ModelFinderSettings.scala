@@ -5,6 +5,7 @@ import fortress.transformers._
 import fortress.util._
 import fortress.interpretation._
 import fortress.solverinterface._
+import fortress.logging._
 
 import scala.collection.mutable.ListBuffer
 
@@ -13,7 +14,6 @@ trait ModelFinderSettings extends ModelFinder {
     protected var analysisScopes: Map[Sort, Int] = Map.empty
     protected var theory: Theory = Theory.empty
     protected var integerSemantics: IntegerSemantics = Unbounded
-    protected var debug: Boolean = false
     protected var eventLoggers: ListBuffer[EventLogger] = ListBuffer.empty
     
     override def setTheory(newTheory: Theory): Unit = {

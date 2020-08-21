@@ -7,6 +7,8 @@ import fortress.interpretation._
 import fortress.solverinterface._
 import fortress.operations.TermOps._
 import fortress.compiler._
+import fortress.logging._
+import fortress.util.Control.measureTime
 
 abstract class CompilationModelFinder(solverInterface: SolverInterface)
 extends ModelFinder
@@ -27,7 +29,7 @@ with ModelFinderSettings {
 
         compiler = Some(createCompiler(integerSemantics))
 
-        val result = compiler.get.compile(theory, analysisScopes, timeoutMilliseconds) match {
+        val result = compiler.get.compile(theory, analysisScopes, timeoutMilliseconds, eventLoggers.toList) match {
             case Left(error) => ???
             case Right(result) => result
         }
@@ -35,6 +37,8 @@ with ModelFinderSettings {
         compilerResult = Some(result)
         
         val finalTheory = compilerResult.get.theory
+
+        notifyLoggers(_.allTransformersFinished(finalTheory, totalTimer.elapsedNano))
 
         val finalResult: ModelFinderResult = solverPhase(finalTheory)
 
@@ -51,12 +55,22 @@ with ModelFinderSettings {
         // Open new solver session
         val session = solverInterface.openSession()
         solverSession = Some(session)
-        session.setTheory(finalTheory)
+
+        // Convert to solver format
+        notifyLoggers(_.convertingToSolverFormat())
+        val (_, elapsedConvertNano) = measureTime[Unit] {
+            session.setTheory(finalTheory)
+        }
+        notifyLoggers(_.convertedToSolverFormat(elapsedConvertNano))
 
         val remainingMillis = timeoutMilliseconds - totalTimer.elapsedNano().toMilli
         
-        val finalResult: ModelFinderResult = session.solve(remainingMillis)
-        
+        // Solve
+        val (finalResult, elapsedSolverNano) = measureTime {
+            session.solve(remainingMillis)
+        }
+        notifyLoggers(_.solverFinished(elapsedSolverNano))
+
         notifyLoggers(_.finished(finalResult, totalTimer.elapsedNano()))
         
         finalResult

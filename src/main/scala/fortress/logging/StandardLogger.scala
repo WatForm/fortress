@@ -1,8 +1,9 @@
-package fortress.modelfind
+package fortress.logging
 
 import fortress.msfol._
 import fortress.transformers._
 import fortress.util._
+import fortress.modelfind._
 
 class StandardLogger(writer: java.io.Writer) extends EventLogger {
     
@@ -57,6 +58,4 @@ class StandardLogger(writer: java.io.Writer) extends EventLogger {
         writer.write("TIMEOUT within Fortress.\n")
         writer.flush()
     }
-    
-    override def smt2Output(smt2String: String): Unit = { }
 }

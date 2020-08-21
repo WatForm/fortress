@@ -4,6 +4,7 @@ import fortress.msfol._
 
 import fortress.interpretation._
 import fortress.solverinterface._
+import fortress.logging._
 
 import java.lang.AutoCloseable
 
