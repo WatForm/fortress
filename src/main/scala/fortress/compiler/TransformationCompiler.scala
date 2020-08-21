@@ -19,7 +19,7 @@ trait TransformationCompiler extends LogicCompiler {
 
         val finalProblemState = withCountdown(timeout) { countdown => {
             transformerSequence.foldLeft(initialProblemState)((pState, transformer) => {
-                if(countdown.isExpired) return Left(Timeout)
+                if(countdown.isExpired) return Left(CompilerError.Timeout)
                 loggers.foreach(_.transformerStarted(transformer))
 
                 val (finalPState, elapsedNano) = measureTime {

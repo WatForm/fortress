@@ -23,5 +23,8 @@ trait CompilerResult {
 }
 
 sealed trait CompilerError
-case object Timeout extends CompilerError
-case class Other(message: String) extends CompilerError
+
+object CompilerError {
+    case object Timeout extends CompilerError
+    case class Other(message: String) extends CompilerError
+}

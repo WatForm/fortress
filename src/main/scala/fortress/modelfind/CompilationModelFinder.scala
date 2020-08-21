@@ -29,21 +29,21 @@ with ModelFinderSettings {
 
         compiler = Some(createCompiler(integerSemantics))
 
-        val result = compiler.get.compile(theory, analysisScopes, timeoutMilliseconds, eventLoggers.toList) match {
-            case Left(Timeout) => return TimeoutResult
-            case Left(Other(errMsg)) => return ErrorResult(errMsg)
-            case Right(result) => result
+        compiler.get.compile(theory, analysisScopes, timeoutMilliseconds, eventLoggers.toList) match {
+            case Left(CompilerError.Timeout) => TimeoutResult
+            case Left(CompilerError.Other(errMsg)) => ErrorResult(errMsg)
+            case Right(compilerRes) => {
+                compilerResult = Some(compilerRes)
+
+                val finalTheory = compilerResult.get.theory
+
+                notifyLoggers(_.allTransformersFinished(finalTheory, totalTimer.elapsedNano))
+
+                val finalResult: ModelFinderResult = solverPhase(finalTheory)
+
+                finalResult
+            }
         }
-
-        compilerResult = Some(result)
-        
-        val finalTheory = compilerResult.get.theory
-
-        notifyLoggers(_.allTransformersFinished(finalTheory, totalTimer.elapsedNano))
-
-        val finalResult: ModelFinderResult = solverPhase(finalTheory)
-
-        finalResult
     }
     
     // Returns the final ModelFinderResult
