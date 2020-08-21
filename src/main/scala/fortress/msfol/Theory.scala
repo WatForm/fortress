@@ -19,18 +19,15 @@ case class Theory private (signature: Signature, axioms: Set[Term]) {
     
     /** Returns a theory consisti`ng of the current theory but with the given
       * axiom added. Note that this does not modify the current Theory object,
-      * but rather just returns a new Theory object. Throws an exception
-      * if the result fails to typecheck with respect to this theory's signature.
+      * but rather just returns a new Theory object.
       */
     def withAxiom(axiom: Term): Theory = {
-        val sanitizedAxiom: Term = sanitizeAxiom(axiom)
-        Theory(signature, axioms + sanitizedAxiom)
+        Theory(signature, axioms + axiom)
     }
     
     /** Returns a theory consisting of the current theory but with the given
       * axioms added. Note that this does not modify the current Theory object,
-      * but rather just returns a new Theory object. Throws an exception
-      * if the result fails to typecheck with respect to this theory's signature.
+      * but rather just returns a new Theory object.
       */
     def withAxioms(newAxioms: java.lang.Iterable[Term]): Theory = {
         var theory: Theory = this
@@ -41,8 +38,7 @@ case class Theory private (signature: Signature, axioms: Set[Term]) {
     }
     
     def withAxioms(newAxioms: Iterable[Term]): Theory = {
-        val sanitizedAxioms = newAxioms.map(sanitizeAxiom)
-        Theory(signature, axioms ++ sanitizedAxioms)
+        Theory(signature, axioms ++ newAxioms)
     }
     
     /** Returns a theory consisting of the current theory but with the given
@@ -126,15 +122,6 @@ case class Theory private (signature: Signature, axioms: Set[Term]) {
     def functionDeclarations: Set[FuncDecl] = signature.functionDeclarations
     def constants: Set[AnnotatedVar] = signature.constants
     def enumConstants: Map[Sort, Seq[EnumValue]] = signature.enumConstants
-    
-    private def sanitizeAxiom(axiom: Term): Term = {
-        // Check axiom typechecks as bool
-        // Note that a formula cannot typecheck if it has any free variables (that are not constants of the signature)
-        val result: TypeCheckResult = axiom.typeCheck(signature)
-        // System.out.println(axiom.toString + (result.sort).toString) ;
-        Errors.precondition(result.sort == BoolSort)
-        result.sanitizedTerm
-    }
 
     override def toString: String = "\n" + signature.toString + "\nAxioms\n" + axioms.mkString("\n") + "\n"
     

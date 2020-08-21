@@ -7,6 +7,7 @@ import fortress.interpretation._
 import fortress.logging._
 import fortress.util.Control.measureTime
 import fortress.util.Control.withCountdown
+import fortress.util.Extensions._
 
 trait TransformationCompiler extends LogicCompiler {
     override def compile(
@@ -51,4 +52,13 @@ trait TransformationCompiler extends LogicCompiler {
     }
 
     def transformerSequence: Seq[ProblemStateTransformer]
+}
+
+trait PervasiveTypeChecking extends TransformationCompiler {
+    abstract override def transformerSequence: Seq[ProblemStateTransformer] = {
+        val transformers = super.transformerSequence.toList
+        val n = transformers.length
+        val typecheckers: List[ProblemStateTransformer] = for(i <- (1 to n).toList) yield new TypecheckSanitizeTransformer
+        transformers interleave typecheckers
+    }
 }

@@ -80,6 +80,7 @@ class FortressTWOCompiler_NoElision(integerSemantics: IntegerSemantics) extends 
 
     override def transformerSequence: Seq[ProblemStateTransformer] = {
         val transformerSequence = new scala.collection.mutable.ListBuffer[ProblemStateTransformer]
+        transformerSequence += new TypecheckSanitizeTransformer
         transformerSequence += new EnumEliminationTransformer
         integerSemantics match {
             case Unbounded => ()
@@ -106,6 +107,7 @@ class FortressTWOCompiler_Neq0(integerSemantics: IntegerSemantics) extends Trans
 
     override def transformerSequence: Seq[ProblemStateTransformer] = {
         val transformerSequence = new scala.collection.mutable.ListBuffer[ProblemStateTransformer]
+        transformerSequence += new TypecheckSanitizeTransformer
         transformerSequence += new EnumEliminationTransformer
         integerSemantics match {
             case Unbounded => ()
@@ -137,6 +139,7 @@ class FortressTWOCompiler_SR(integerSemantics: IntegerSemantics) extends Transfo
 
     override def transformerSequence: Seq[ProblemStateTransformer] = {
         val transformerSequence = new scala.collection.mutable.ListBuffer[ProblemStateTransformer]
+        transformerSequence += new TypecheckSanitizeTransformer
         transformerSequence += new EnumEliminationTransformer
         integerSemantics match {
             case Unbounded => ()

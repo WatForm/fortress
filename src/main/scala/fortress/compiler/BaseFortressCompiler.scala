@@ -8,6 +8,7 @@ import fortress.modelfind._
 abstract class BaseFortressCompiler(integerSemantics: IntegerSemantics) extends TransformationCompiler {
     override def transformerSequence: Seq[ProblemStateTransformer] = {
         val transformerSequence = new scala.collection.mutable.ListBuffer[ProblemStateTransformer]
+        transformerSequence += new TypecheckSanitizeTransformer
         transformerSequence += new EnumEliminationTransformer
         integerSemantics match {
             case Unbounded => ()

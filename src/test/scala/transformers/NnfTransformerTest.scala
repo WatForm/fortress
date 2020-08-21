@@ -48,7 +48,7 @@ class NnfTransformerTest extends UnitSuite {
 
     test("nnf Iff") {
         val theory = baseTheory
-            .withAxiom(Eq(p, q))
+            .withAxiom(Iff(p, q))
             
         val expected = baseTheory
             .withAxiom(Or(And(p, q),
@@ -119,7 +119,7 @@ class NnfTransformerTest extends UnitSuite {
 
     test("nnf Not Iff") {
         val theory = baseTheory
-            .withAxiom(Not(Eq(p, q)))
+            .withAxiom(Not(Iff(p, q)))
             
         val expected = baseTheory
             .withAxiom(Or(And(p, Not(q)),
@@ -132,7 +132,7 @@ class NnfTransformerTest extends UnitSuite {
         val axiom = Not(
             Exists(
                 x.of(A),
-                Eq(
+                Iff(
                     Not(p),
                     Not(Or(q, p)))))
         val expectedAxiom =
@@ -151,7 +151,7 @@ class NnfTransformerTest extends UnitSuite {
         val axiom = Not(
             Exists(
                 x.of(A),
-                Eq(
+                Iff(
                     Not(p),
                     Not(
                         Or(

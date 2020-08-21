@@ -29,6 +29,7 @@ class FortressTWOCompiler_SI(integerSemantics: IntegerSemantics) extends Transfo
     
     override def transformerSequence: Seq[ProblemStateTransformer] = {
         val transformerSequence = new scala.collection.mutable.ListBuffer[ProblemStateTransformer]
+        transformerSequence += new TypecheckSanitizeTransformer
         transformerSequence += new EnumEliminationTransformer
         integerSemantics match {
             case Unbounded => ()
@@ -37,6 +38,7 @@ class FortressTWOCompiler_SI(integerSemantics: IntegerSemantics) extends Transfo
             }
         }
         transformerSequence += new SortInferenceTransformer
+        transformerSequence += new TypecheckSanitizeTransformer
         transformerSequence += new NnfTransformer
         transformerSequence += new SkolemizeTransformer
         transformerSequence ++= symmetryBreakingTransformers
