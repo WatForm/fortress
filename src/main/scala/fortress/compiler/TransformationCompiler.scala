@@ -6,6 +6,7 @@ import fortress.util._
 import fortress.interpretation._
 import fortress.logging._
 import fortress.util.Control.measureTime
+import fortress.util.Control.withCountdown
 
 trait TransformationCompiler extends LogicCompiler {
     override def compile(
@@ -15,17 +16,21 @@ trait TransformationCompiler extends LogicCompiler {
         loggers: Seq[EventLogger]
     ): Either[CompilerError, CompilerResult] = {
         val initialProblemState = ProblemState(theory, scopes)
-        val finalProblemState = transformerSequence.foldLeft(initialProblemState)((pState, transformer) => {
-            loggers.foreach(_.transformerStarted(transformer))
 
-            val (finalPState, elapsedNano) = measureTime {
-                transformer(pState)
-            }
+        val finalProblemState = withCountdown(timeout) { countdown => {
+            transformerSequence.foldLeft(initialProblemState)((pState, transformer) => {
+                if(countdown.isExpired) return Left(Timeout)
+                loggers.foreach(_.transformerStarted(transformer))
 
-            loggers.foreach(_.transformerFinished(transformer, elapsedNano))
+                val (finalPState, elapsedNano) = measureTime {
+                    transformer(pState)
+                }
 
-            finalPState
-        })
+                loggers.foreach(_.transformerFinished(transformer, elapsedNano))
+
+                finalPState
+            })
+        }}
         
         object Result extends CompilerResult {
             override val theory: Theory = finalProblemState.theory

@@ -30,7 +30,8 @@ with ModelFinderSettings {
         compiler = Some(createCompiler(integerSemantics))
 
         val result = compiler.get.compile(theory, analysisScopes, timeoutMilliseconds, eventLoggers.toList) match {
-            case Left(error) => ???
+            case Left(Timeout) => return TimeoutResult
+            case Left(Other(errMsg)) => return ErrorResult(errMsg)
             case Right(result) => result
         }
 
@@ -79,9 +80,6 @@ with ModelFinderSettings {
     def viewModel: Interpretation = {
         val instance = solverSession.get.solution
         compilerResult.get.decompileInterpretation(instance)
-        // problemState.unapplyInterp.foldLeft(instance) {
-        //     (interp, unapplyFn) => unapplyFn(interp)
-        // }
     }
 
     def nextInterpretation(): ModelFinderResult = {
@@ -89,8 +87,7 @@ with ModelFinderSettings {
         // Different witnesses are not useful for counting interpretations
         val instance = solverSession.get.solution
             .withoutDeclarations(compilerResult.get.skipForNextInterpretation)
-            // .withoutConstants(problemState.skolemConstants)
-            // .withoutFunctions(problemState.skolemFunctions)
+            
         val newAxiom = Not(And.smart(instance.toConstraints.toList map (_.eliminateDomainElements)))
         
         solverSession.get.addAxiom(newAxiom)

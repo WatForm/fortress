@@ -22,3 +22,11 @@ class StopWatch {
     }
     
 }
+
+// Automatically starts
+class CountdownTimer(val maxTime: Milliseconds) {
+    private val watch = new StopWatch
+    watch.startFresh()
+
+    def isExpired: Boolean = watch.elapsedNano().toMilli > maxTime
+}

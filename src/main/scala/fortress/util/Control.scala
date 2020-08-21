@@ -17,4 +17,8 @@ object Control {
 
         block(stopwatch)
     }
+
+    def withCountdown[A](maxTime: Milliseconds)(block: CountdownTimer => A): A = {
+        block(new CountdownTimer(maxTime))
+    }
 }
