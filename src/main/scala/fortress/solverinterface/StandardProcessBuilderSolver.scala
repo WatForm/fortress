@@ -15,6 +15,11 @@ import scala.util.matching.Regex
 
 trait StandardProcessBuilderSolver extends ProcessBuilderSolver {
 
+    // TODO: the extra write to the CharArrayWriter is likely increasing time and memory usage
+    // The interface will need to be changed to accomodate its removal
+    // It could be removed easily without an interface change, but this would affect the measured
+    // time to convert the theory
+
     private val convertedBytes: CharArrayWriter = new CharArrayWriter
 
     override def setTheory(theory: Theory): Unit = {

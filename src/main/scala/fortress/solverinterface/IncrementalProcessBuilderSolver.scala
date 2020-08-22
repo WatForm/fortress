@@ -16,19 +16,15 @@ import scala.util.matching.Regex
 trait IncrementalProcessBuilderSolver extends ProcessBuilderSolver {
 
     override def setTheory(theory: Theory): Unit = {
-        // Convert theory
         this.theory = Some(theory)
-        val convertedBytes = new CharArrayWriter
-        convertedBytes.reset()
-        convertedBytes.write("(set-option :produce-models true)\n")
-        convertedBytes.write("(set-logic ALL)\n")
-        val converter = new SmtlibConverter(convertedBytes)
-        converter.writeTheory(theory)
-
-        // Write theory to process
         processSession.foreach(_.close())
         processSession = Some(new ProcessSession(processArgs.asJava))
-        convertedBytes.writeTo(processSession.get.inputWriter)
+        // Convert & write theory
+        val writer = processSession.get.inputWriter
+        writer.write("(set-option :produce-models true)\n")
+        writer.write("(set-logic ALL)\n")
+        val converter = new SmtlibConverter(writer)
+        converter.writeTheory(theory)
     }
     
     override def solve(timeoutMillis: Milliseconds): ModelFinderResult = {
@@ -57,11 +53,8 @@ trait IncrementalProcessBuilderSolver extends ProcessBuilderSolver {
     
     override def addAxiom(axiom: Term): Unit = {
         Errors.verify(processSession.nonEmpty, "Cannot add axiom without a live process")
-        val convertedBytes: CharArrayWriter = new CharArrayWriter
-        convertedBytes.reset()
-        val converter = new SmtlibConverter(convertedBytes)
+        val converter = new SmtlibConverter(processSession.get.inputWriter)
         converter.writeAssertion(axiom)
-        convertedBytes.writeTo(processSession.get.inputWriter)
     }
 
     protected def processArgs: Seq[String]

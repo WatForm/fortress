@@ -64,10 +64,9 @@ with ModelFinderSettings {
         }
         notifyLoggers(_.convertedToSolverFormat(elapsedConvertNano))
 
-        val remainingMillis = timeoutMilliseconds - totalTimer.elapsedNano().toMilli
-        
         // Solve
         val (finalResult, elapsedSolverNano) = measureTime {
+            val remainingMillis = timeoutMilliseconds - totalTimer.elapsedNano().toMilli
             session.solve(remainingMillis)
         }
         notifyLoggers(_.solverFinished(elapsedSolverNano))
