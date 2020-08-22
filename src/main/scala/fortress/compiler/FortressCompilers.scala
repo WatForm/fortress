@@ -49,3 +49,9 @@ class FortressTWOCompiler_SI(integerSemantics: IntegerSemantics) extends Transfo
         transformerSequence.toList
     }
 }
+
+class FortressTHREECompiler(integerSemantics: IntegerSemantics) extends BaseFortressCompiler(integerSemantics) {
+    override def symmetryBreakingTransformers: Seq[ProblemStateTransformer] = Seq(
+        new SymmetryBreakingTransformer(MonoFirstThenFunctionsFirstAnyOrder, DefaultSymmetryBreaker)
+    )
+}

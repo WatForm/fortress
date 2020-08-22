@@ -148,6 +148,21 @@ object AtoAOnlyAnyOrder extends SelectionHeuristic {
     }
 }
 
+object MonoFirstThenFunctionsFirstAnyOrder extends SelectionHeuristic {
+    
+    override def name = "A -> A First, then Functions Any Order"
+    
+    private def isAtoA(f: FuncDecl): Boolean = f.argSorts.forall(_ == f.resultSort) && !f.resultSort.isBuiltin
+    
+    override def nextFunctionPredicate(
+        deView: DomainElementUsageView,
+        remaining: Set[FuncDecl]
+    ): Option[FuncDecl] = {
+        
+        (remaining filter isAtoA).headOption orElse (remaining find acceptableFunction) orElse (remaining find acceptablePredicate)
+    }
+}
+
 object NoFunctionsPredicates extends SelectionHeuristic {
     override def nextFunctionPredicate(
         deView: DomainElementUsageView,
