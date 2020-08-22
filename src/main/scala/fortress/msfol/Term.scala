@@ -214,7 +214,11 @@ case class App private (functionName: String, arguments: Seq[Term]) extends Term
     override def toString: String = functionName + "(" + arguments.mkString(", ") + ")"
 }
 
-object App {
+
+object App
+extends ConcreteFactory[App, (String, Seq[Term])] ( (t: (String, Seq[Term])) => new App(t._1, t._2) )
+with Caching[App, (String, Seq[Term])] {
+    def apply(functionName: String, arguments: Seq[Term]): App = create((functionName, arguments))
     def apply(functionName: String, args: Term*): Term = App(functionName, args.toList)
 }
 
