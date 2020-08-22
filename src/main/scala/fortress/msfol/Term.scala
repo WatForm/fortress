@@ -55,10 +55,13 @@ case class Var private(name: String) extends Term with LeafTerm {
     def of(sort: Sort) = AnnotatedVar(this, sort)
 }
 
-object Var {
+object Var
+extends ConcreteFactory[Var, String]((name: String) => new Var(name))
+with Caching[Var, String] {
+
     def apply(name: String): Var = {
         Errors.precondition(! Names.isIllegal(name), "Illegal variable name " + name)
-        new Var(name)
+        create(name)
     }
     
     private [msfol] def mkWithoutNameRestriction(name: String): Var = new Var(name)
@@ -70,6 +73,12 @@ case class EnumValue private (name: String) extends Term with LeafTerm with Valu
     
     override def toString: String = name
     override def accept[T](visitor: TermVisitor[T]): T = visitor.visitEnumValue(this)
+}
+
+object EnumValue
+extends ConcreteFactory[EnumValue, String]((name: String) => new EnumValue(name))
+with Caching[EnumValue, String] {
+    def apply(name: String): EnumValue = create(name)
 }
 
 /** Represents a negation. */
@@ -279,7 +288,11 @@ case class DomainElement private (index: Int, sort: Sort) extends Term with Leaf
     override def toString = DomainElement.prefix + index.toString + sort.toString
 }
 
-object DomainElement {
+object DomainElement
+extends ConcreteFactory[DomainElement, (Int, Sort)]( (t: (Int, Sort)) => new DomainElement(t._1, t._2) )
+with Caching[DomainElement, (Int, Sort)] {
+    def apply(index: Int, sort: Sort): DomainElement = create((index, sort))
+
     private[msfol] val prefix = "_@"
     
     def interpretName(name: String): Option[DomainElement] = {
