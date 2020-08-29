@@ -5,55 +5,49 @@ import fortress.operations.TermOps._
 
 // An immutable view to look at the current usage of domain elements.
 // Sequences of domain elements are all returned in numerical order.
-sealed trait DomainElementUsageView {
-    protected def scopeMap: Map[Sort, Int]
-    
-    protected def usedDomainElementsMap: Map[Sort, IndexedSeq[DomainElement]]
+class DomainElementUsageView private (
+    private val scopeMap: Map[Sort, Int],
+    private val staleMap: Map[Sort, IndexedSeq[DomainElement]]
+) {
     
     def scope(sort: Sort): Int = scopeMap(sort)
     
-    def usedDomainElements(sort: Sort): IndexedSeq[DomainElement] = usedDomainElementsMap(sort)
+    def staleValues(sort: Sort): IndexedSeq[DomainElement] = staleMap(sort)
     
-    def unusedDomainElements(sort: Sort): IndexedSeq[DomainElement] = {
-        val used = usedDomainElements(sort)
-        domainElements(sort) filter (!used.contains(_))
+    def freshValues(sort: Sort): IndexedSeq[DomainElement] = {
+        val stale = staleValues(sort)
+        domainElements(sort) filter (!stale.contains(_))
     }
     
-    def numUnusedDomainElements(sort: Sort): Int = unusedDomainElements(sort).size
+    def numFreshValues(sort: Sort): Int = freshValues(sort).size
     
-    def existsUnusedDomainElements(sort: Sort): Boolean = numUnusedDomainElements(sort) > 0
+    def existsFreshValue(sort: Sort): Boolean = numFreshValues(sort) > 0
     
     def domainElements(sort: Sort): IndexedSeq[DomainElement] = DomainElement.range(1 to scope(sort), sort)
     
-    def createTracker: DomainElementTracker = DomainElementTracker.create(usedDomainElementsMap, scopeMap)
+    def createTracker: DomainElementTracker = DomainElementTracker.create(staleMap, scopeMap)
 }
 
 object DomainElementUsageView {
     def apply(
         scopes: Map[Sort, Int],
-        usedDomainElems: Map[Sort, Seq[DomainElement]]
+        staleElems: Map[Sort, Seq[DomainElement]]
     ): DomainElementUsageView = {
         
-        object View extends DomainElementUsageView {
-            val scopeMap = scopes
-            val usedDomainElementsMap = usedDomainElems.map{
-                case(sort, seq) => sort -> seq.toIndexedSeq.sortWith(_.index < _.index)
-            }.toMap
-        }
-        View
+        val staleMap = staleElems.map{
+            case(sort, seq) => sort -> seq.toIndexedSeq.sorted
+        }.toMap
+        new DomainElementUsageView(scopes, staleMap)
     }
     
     def apply(
         scopes: Map[Sort, Int],
-        usedDomainElems: Map[Sort, Set[DomainElement]]
+        staleElems: Map[Sort, Set[DomainElement]]
     )(implicit d: DummyImplicit): DomainElementUsageView = {
-        
-        object View extends DomainElementUsageView {
-            val scopeMap = scopes
-            val usedDomainElementsMap = usedDomainElems.map{
-                case(sort, seq) => sort -> seq.toIndexedSeq.sortWith(_.index < _.index)
-            }.toMap
-        }
-        View
+
+        val staleMap = staleElems.map{
+            case(sort, seq) => sort -> seq.toIndexedSeq.sorted
+        }.toMap
+        new DomainElementUsageView(scopes, staleMap)
     }
 }

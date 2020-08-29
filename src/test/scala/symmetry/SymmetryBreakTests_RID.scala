@@ -4,7 +4,7 @@ import fortress.msfol._
 import fortress.operations.TermOps._
 import fortress.symmetry._ 
 
-class SymmetryBreakTests_RID extends UnitSuite {
+class SymmetryBreakTests_RDD extends UnitSuite {
     
     val A: Sort = SortConst("A")
     val B: Sort = SortConst("B")
@@ -18,7 +18,7 @@ class SymmetryBreakTests_RID extends UnitSuite {
     
     def DE(index: Int, sort: Sort) = DomainElement(index, sort)
 
-    test("RID Functions - Unused First, Pure, Unary") {
+    test("rdd Functions - Unused First, Pure, Unary") {
         val f = FuncDecl("f", A, A)
         
         val usedResultValues = IndexedSeq()
@@ -36,7 +36,7 @@ class SymmetryBreakTests_RID extends UnitSuite {
         val f7A = for(i <- Seq(1, 2, 3, 4, 5, 6, 7, 8)) yield {App("f", DE(7, A)) === DE(i, A)}
         val f8A = for(i <- Seq(1, 2, 3, 4, 5, 6, 7, 8, 9)) yield {App("f", DE(8, A)) === DE(i, A)}
         
-        val constraints = Symmetry.ridFunctionRangeRestrictions_UnusedFirst(f, deView) map (_.asFormula)
+        val constraints = Symmetry.rddFunctionRangeRestrictions_UnusedFirst(f, deView) map (_.asFormula)
         constraints should have size 8
         constraints should contain (OrList(f1A))
         constraints should contain (OrList(f2A))
@@ -48,7 +48,7 @@ class SymmetryBreakTests_RID extends UnitSuite {
         constraints should contain (OrList(f8A))
     }
 
-    test("RID Functions - Unused First, Unary") {
+    test("rdd Functions - Unused First, Unary") {
         val f = FuncDecl("f", A, A)
         
         val usedResultValues = IndexedSeq(
@@ -67,7 +67,7 @@ class SymmetryBreakTests_RID extends UnitSuite {
         val f7A = for(i <- Seq(1, 3, 4, 6, 2, 5, 7, 8)) yield {App("f", DE(7, A)) === DE(i, A)}
         val f8A = for(i <- Seq(1, 3, 4, 6, 2, 5, 7, 8, 9)) yield {App("f", DE(8, A)) === DE(i, A)}
         
-        val constraints = Symmetry.ridFunctionRangeRestrictions_UnusedFirst(f, deView) map (_.asFormula)
+        val constraints = Symmetry.rddFunctionRangeRestrictions_UnusedFirst(f, deView) map (_.asFormula)
         constraints should have size 4
         constraints should contain (OrList(f2A))
         constraints should contain (OrList(f5A))
@@ -75,7 +75,7 @@ class SymmetryBreakTests_RID extends UnitSuite {
         constraints should contain (OrList(f8A))
     }
     
-    test("RID Functions - Unused First, Binary, Single-sort") {
+    test("rdd Functions - Unused First, Binary, Single-sort") {
         val f = FuncDecl("f", A, A, A)
         
         val usedResultValues = IndexedSeq(
@@ -94,7 +94,7 @@ class SymmetryBreakTests_RID extends UnitSuite {
         val f77 = for(i <- Seq(1, 3, 4, 6, 2, 5, 7, 8)) yield {App("f", DE(7, A), DE(7, A)) === DE(i, A)}
         val f88 = for(i <- Seq(1, 3, 4, 6, 2, 5, 7, 8, 9)) yield {App("f", DE(8, A), DE(8, A)) === DE(i, A)}
         
-        val constraints = Symmetry.ridFunctionRangeRestrictions_UnusedFirst(f, deView) map (_.asFormula)
+        val constraints = Symmetry.rddFunctionRangeRestrictions_UnusedFirst(f, deView) map (_.asFormula)
         constraints should have size 4
         constraints should contain (OrList(f22))
         constraints should contain (OrList(f55))
@@ -102,7 +102,7 @@ class SymmetryBreakTests_RID extends UnitSuite {
         constraints should contain (OrList(f88))
     }
     
-    test("RID Functions - Unused First, 4-ary, Multi-sort") {
+    test("rdd Functions - Unused First, 4-ary, Multi-sort") {
         val f = FuncDecl("f", A, D, A, B, A)
         
         val usedResultValues = IndexedSeq(
@@ -121,7 +121,7 @@ class SymmetryBreakTests_RID extends UnitSuite {
         val f7171 = for(i <- Seq(1, 3, 4, 6, 2, 5, 7, 8)) yield {App("f", DE(7, A), DE(1, D), DE(7, A), DE(1, B)) === DE(i, A)}
         val f8181 = for(i <- Seq(1, 3, 4, 6, 2, 5, 7, 8, 9)) yield {App("f", DE(8, A), DE(1, D), DE(8, A), DE(1, B)) === DE(i, A)}
         
-        val constraints = Symmetry.ridFunctionRangeRestrictions_UnusedFirst(f, deView) map (_.asFormula)
+        val constraints = Symmetry.rddFunctionRangeRestrictions_UnusedFirst(f, deView) map (_.asFormula)
         constraints should have size 4
         constraints should contain (OrList(f2121))
         constraints should contain (OrList(f5151))
@@ -129,7 +129,7 @@ class SymmetryBreakTests_RID extends UnitSuite {
         constraints should contain (OrList(f8181))
     }
 
-    test("RID Functions - Used First, Pure, Unary") {
+    test("rdd Functions - Used First, Pure, Unary") {
         val f = FuncDecl("f", A, A)
         
         val usedResultValues = IndexedSeq()
@@ -147,7 +147,7 @@ class SymmetryBreakTests_RID extends UnitSuite {
         val f7A = for(i <- Seq(1, 2, 3, 4, 5, 6, 7, 8)) yield {App("f", DE(7, A)) === DE(i, A)}
         val f8A = for(i <- Seq(1, 2, 3, 4, 5, 6, 7, 8, 9)) yield {App("f", DE(8, A)) === DE(i, A)}
         
-        val constraints = Symmetry.ridFunctionRangeRestrictions_UsedFirst(f, deView) map (_.asFormula)
+        val constraints = Symmetry.rddFunctionRangeRestrictions_UsedFirst(f, deView) map (_.asFormula)
         constraints should have size 8
         constraints should contain (OrList(f1A))
         constraints should contain (OrList(f2A))
@@ -159,7 +159,7 @@ class SymmetryBreakTests_RID extends UnitSuite {
         constraints should contain (OrList(f8A))
     }
 
-    test("RID Functions - Used First, Unary") {
+    test("rdd Functions - Used First, Unary") {
         val f = FuncDecl("f", A, A)
         
         val usedResultValues = IndexedSeq(
@@ -179,7 +179,7 @@ class SymmetryBreakTests_RID extends UnitSuite {
         val f6A = for(i <- Seq(1, 3, 4, 6, 2, 5, 7, 8)) yield {App("f", DE(6, A)) === DE(i, A)}
         val f2A = for(i <- Seq(1, 3, 4, 6, 2, 5, 7, 8, 9)) yield {App("f", DE(2, A)) === DE(i, A)}
         
-        val constraints = Symmetry.ridFunctionRangeRestrictions_UsedFirst(f, deView) map (_.asFormula)
+        val constraints = Symmetry.rddFunctionRangeRestrictions_UsedFirst(f, deView) map (_.asFormula)
         constraints should have size 5
         constraints should contain (OrList(f1A))
         constraints should contain (OrList(f3A))

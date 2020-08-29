@@ -3,6 +3,7 @@ package fortress.symmetry
 import fortress.msfol._
 import fortress.operations.TermOps._
 import fortress.util.Errors
+import fortress.operations._
 
 trait SelectionHeuristic {
     
@@ -57,11 +58,11 @@ object FunctionsFirstGreedy extends SelectionHeuristic {
         // Comparison operation for functions to determine which order
         // to perform symmetry breaking
         def fnLessThan(f1: FuncDecl, f2: FuncDecl): Boolean = {
-            // Lowest arity, then largest # of unused result values
+            // Lowest arity, then largest # of fresh result values
             if (f1.arity < f2.arity) true
             else if (f1.arity > f2.arity) false
-            else (deView.numUnusedDomainElements(f1.resultSort)
-                > deView.numUnusedDomainElements(f2.resultSort))
+            else (deView.numFreshValues(f1.resultSort)
+                > deView.numFreshValues(f2.resultSort))
         }
         
         // Comparison operation for functions to determine which order
@@ -88,11 +89,11 @@ object PredicatesFirstGreedy extends SelectionHeuristic {
         // Comparison operation for functions to determine which order
         // to perform symmetry breaking
         def fnLessThan(f1: FuncDecl, f2: FuncDecl): Boolean = {
-            // Lowest arity, then largest # of unused result values
+            // Lowest arity, then largest # of fresh result values
             if (f1.arity < f2.arity) true
             else if (f1.arity > f2.arity) false
-            else (deView.numUnusedDomainElements(f1.resultSort)
-                > deView.numUnusedDomainElements(f2.resultSort))
+            else (deView.numFreshValues(f1.resultSort)
+                > deView.numFreshValues(f2.resultSort))
         }
         
         // Comparison operation for functions to determine which order
@@ -171,3 +172,18 @@ object NoFunctionsPredicates extends SelectionHeuristic {
     
     override def name = "No Functions or Predicates"
 }
+
+// Decorator
+// class SelectAfterSubstitution(baseSelection: SelectionHeuristic, sortSubstitution: SortSubstitution) extends SelectionHeuristic {
+//     override def nextFunctionPredicate(
+//         deView: DomainElementUsageView,
+//         remaining: Set[FuncDecl]
+//     ): Option[FuncDecl] = {
+    // Have to change deview as well
+//         val deViewSub = DomainElementUsageView()
+//         val remainingSub = remaining map sortSubstitution
+//         baseSelection.nextFunctionPredicate(deViewSub, remaining map sortSubstitution)
+//     }
+
+//     override def name = "Substitution + " + baseSelection.name
+// }

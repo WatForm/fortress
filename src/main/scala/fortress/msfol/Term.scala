@@ -311,6 +311,8 @@ with Caching[DomainElement, (Int, Sort)] {
     
     def range(rangeOver: Range, sort: Sort): IndexedSeq[DomainElement] =
         rangeOver map (i => DomainElement(i, sort))
+    
+    implicit val ordering: math.Ordering[DomainElement] = math.Ordering.fromLessThan(_.index < _.index)
 }
 
 case class IntegerLiteral private (value: Int) extends Term with LeafTerm with Value {

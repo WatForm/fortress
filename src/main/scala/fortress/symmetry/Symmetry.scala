@@ -20,7 +20,7 @@ object Symmetry {
         Errors.precondition(constants.forall(_.sort == sort))
         
         val n = constants.size
-        val m = deView.numUnusedDomainElements(sort)
+        val m = deView.numFreshValues(sort)
         val r = scala.math.min(n, m)
         
         val constraints: Seq[RangeRestriction] =
@@ -29,8 +29,8 @@ object Symmetry {
                 val c_k = constants(k).variable
             
                 val possibleValues: Seq[DomainElement] =
-                    deView.usedDomainElements(sort) ++ // Could be any of the used values
-                    deView.unusedDomainElements(sort).take(k + 1) // One of the first k + 1 unused values (recall, k starts at 0)
+                    deView.staleValues(sort) ++ // Could be any of the stale values
+                    deView.freshValues(sort).take(k + 1) // One of the first k + 1 fresh values (recall, k starts at 0)
             
                 RangeRestriction(c_k, possibleValues)
             }
@@ -49,10 +49,10 @@ object Symmetry {
         Errors.precondition(!sort.isBuiltin)
         Errors.precondition(constants.forall(_.sort == sort))
         
-        val unusedValues = deView.unusedDomainElements(sort)
+        val freshValues = deView.freshValues(sort)
         
         val n = constants.size
-        val m = deView.numUnusedDomainElements(sort)
+        val m = deView.numFreshValues(sort)
         val r = scala.math.min(n, m)
         
         val implications = for {
@@ -63,7 +63,7 @@ object Symmetry {
             
             val precedingConstants = constants.take(i) map (_.variable) // Recall indexing starts at 0
             
-            (c_i === unusedValues(j)) ==> (unusedValues(j - 1) equalsOneOfFlip precedingConstants)
+            (c_i === freshValues(j)) ==> (freshValues(j - 1) equalsOneOfFlip precedingConstants)
         }
         
         implications.toSet
@@ -80,10 +80,10 @@ object Symmetry {
         Errors.precondition(!sort.isBuiltin)
         Errors.precondition(constants.forall(_.sort == sort))
         
-        val unusedValues = deView.unusedDomainElements(sort)
+        val freshValues = deView.freshValues(sort)
         
         val n = constants.size
-        val m = deView.numUnusedDomainElements(sort)
+        val m = deView.numFreshValues(sort)
         val r = scala.math.min(n, m)
         
         val implications = for {
@@ -94,25 +94,25 @@ object Symmetry {
             
             val possiblePrecedingConstants = constants.rangeSlice((j - 1) to (i - 1)).map(_.variable)
             
-            (c_i === unusedValues(j)) ==> (unusedValues(j - 1) equalsOneOfFlip possiblePrecedingConstants)
+            (c_i === freshValues(j)) ==> (freshValues(j - 1) equalsOneOfFlip possiblePrecedingConstants)
         }
         
         implications.toSet
     }
     
-    def drdFunctionRangeRestrictions(
+    def rdiFunctionRangeRestrictions(
         f: FuncDecl,
         deView: DomainElementUsageView
     ): Set[RangeRestriction] = {
         
         Errors.precondition(f.argSorts.forall(!_.isBuiltin))
         Errors.precondition(!f.resultSort.isBuiltin)
-        Errors.precondition(f.isDomainRangeDistinct)
+        Errors.precondition(f.isRDI)
         
-        val unusedResultValues: IndexedSeq[DomainElement] = deView.unusedDomainElements(f.resultSort)
-        val usedResultValues = deView.usedDomainElements(f.resultSort)
+        val freshResultValues: IndexedSeq[DomainElement] = deView.freshValues(f.resultSort)
+        val staleResultValues = deView.staleValues(f.resultSort)
         
-        val m = unusedResultValues.size
+        val m = freshResultValues.size
         
         val argumentListsIterable: Iterable[ArgList] =
             new fortress.util.ArgumentListGenerator(deView.scope(_))
@@ -130,17 +130,17 @@ object Symmetry {
             yield {
                 val argList = argumentLists(k)
                 val possibleResultValues: Seq[DomainElement] = 
-                    usedResultValues ++ // Could be any of the used values
-                    unusedResultValues.take(k + 1) // One of the first k + 1 unused values (recall, k starts at 0)
+                    staleResultValues ++ // Could be any of the stale values
+                    freshResultValues.take(k + 1) // One of the first k + 1 unused values (recall, k starts at 0)
                 RangeRestriction(App(f.name, argList), possibleResultValues)
             }
         
         constraints.toSet
     }
     
-    // Produces matching output to drdFunctionEqualities - meant to be used at same
+    // Produces matching output to rdiFunctionEqualities - meant to be used at same
     // time with same input
-    def drdFunctionImplications(
+    def rdiFunctionImplications(
         f: FuncDecl,
         deView: DomainElementUsageView
     ): Set[Term] = {
@@ -149,9 +149,9 @@ object Symmetry {
         Errors.precondition(!f.resultSort.isBuiltin)
         Errors.precondition(!(f.argSorts contains f.resultSort))
         
-        val unusedResultValues: IndexedSeq[DomainElement] = deView.unusedDomainElements(f.resultSort)
+        val freshResultValues: IndexedSeq[DomainElement] = deView.freshValues(f.resultSort)
         
-        val m = unusedResultValues.size
+        val m = freshResultValues.size
         
         val argumentListsIterable: Iterable[ArgList] =
             new fortress.util.ArgumentListGenerator(deView.scope(_))
@@ -174,15 +174,15 @@ object Symmetry {
             
             val precedingApps = applications.take(i) // Recall indexing starts at 0
             
-            (app_i === unusedResultValues(j)) ==> (unusedResultValues(j - 1) equalsOneOfFlip precedingApps)
+            (app_i === freshResultValues(j)) ==> (freshResultValues(j - 1) equalsOneOfFlip precedingApps)
         }
         
         implications.toSet
     }
     
-    // Produces matching output to drdFunctionEqualities - meant to be used at same
+    // Produces matching output to rdiFunctionEqualities - meant to be used at same
     // time with same input
-    def drdFunctionImplicationsSimplified(
+    def rdiFunctionImplicationsSimplified(
         f: FuncDecl,
         deView: DomainElementUsageView
     ): Set[Term] = {
@@ -190,11 +190,11 @@ object Symmetry {
         Errors.precondition(f.argSorts.forall(!_.isBuiltin))
         Errors.precondition(!f.resultSort.isBuiltin)
         Errors.precondition(!(f.argSorts contains f.resultSort))
-        Errors.precondition(f.isDomainRangeDistinct)
+        Errors.precondition(f.isRDI)
         
-        val unusedResultValues: IndexedSeq[DomainElement] = deView.unusedDomainElements(f.resultSort)
+        val freshResultValues: IndexedSeq[DomainElement] = deView.freshValues(f.resultSort)
         
-        val m = unusedResultValues.size
+        val m = freshResultValues.size
         
         val argumentListsIterable: Iterable[ArgList] =
             new fortress.util.ArgumentListGenerator(deView.scope(_))
@@ -215,7 +215,7 @@ object Symmetry {
         } yield {
             val app_i = applications(i)
             val possiblePrecedingApps = applications.rangeSlice((j - 1) to (i - 1))
-            (app_i === unusedResultValues(j)) ==> (unusedResultValues(j - 1) equalsOneOfFlip possiblePrecedingApps)
+            (app_i === freshResultValues(j)) ==> (freshResultValues(j - 1) equalsOneOfFlip possiblePrecedingApps)
         }
         
         implications.toSet
@@ -246,8 +246,8 @@ object Symmetry {
         
         Errors.precondition(f.isRainbowSorted)
         Errors.precondition(f.arity <= 2)
-        Errors.precondition(f.argSorts forall (deView.usedDomainElements(_).isEmpty))
-        Errors.precondition(deView.usedDomainElements(f.resultSort).isEmpty)
+        Errors.precondition(f.argSorts forall (deView.staleValues(_).isEmpty))
+        Errors.precondition(deView.staleValues(f.resultSort).isEmpty)
         Errors.precondition(f.argSorts.forall(deView.scope(_) >= 2))
         Errors.precondition(deView.scope(f.resultSort) >= 2)
         
@@ -266,10 +266,10 @@ object Symmetry {
                     )
                 }
                 
-                val drdRangeRestrictions: Seq[RangeRestriction] = drdFunctionRangeRestrictions(f, deView).toSeq
-                val drdImplicationsSimplified: Seq[Term] = drdFunctionImplicationsSimplified(f, deView).toSeq
+                val rdiRangeRestrictions: Seq[RangeRestriction] = rdiFunctionRangeRestrictions(f, deView).toSeq
+                val rdiImplicationsSimplified: Seq[Term] = rdiFunctionImplicationsSimplified(f, deView).toSeq
                 
-                (ltConstraints ++ drdImplicationsSimplified, drdRangeRestrictions)
+                (ltConstraints ++ rdiImplicationsSimplified, rdiRangeRestrictions)
             }
             // Binary
             case FuncDecl(fname, Seq(argSort1, argSort2), resultSort) => {
@@ -284,21 +284,21 @@ object Symmetry {
                     )
                 }
                 
-                // Have to make DRD constraints manually, otherwise:
+                // Have to make rdi constraints manually, otherwise:
                 // 1. ordering might not match what we want
                 // 2. if scope(resultSort) > scope(argSort1), the constraints will spill over into the second
                 // value of argSort2, which is not what we want because then we can't justify "shuffling"
                 
                 val r1 = scala.math.min(deView.scope(argSort1), deView.scope(resultSort))
                 
-                val drdRangeRestrictions: Seq[RangeRestriction] = for(i <- 1 to r1) yield {
+                val rdiRangeRestrictions: Seq[RangeRestriction] = for(i <- 1 to r1) yield {
                     RangeRestriction(
                         App(fname, DomainElement(i, argSort1), DomainElement(1, argSort2)),
                         DomainElement.range(1 to i, resultSort)
                     )
                 }
                 
-                val drdImplicationsSimplified: Seq[Term] = for {
+                val rdiImplicationsSimplified: Seq[Term] = for {
                     i <- 1 to r1
                     j <- 2 to i
                 } yield {
@@ -315,7 +315,7 @@ object Symmetry {
                     )
                 }
                 
-                (ltConstraintsArg1 ++ ltConstraintsArg2 ++ drdImplicationsSimplified, drdRangeRestrictions)
+                (ltConstraintsArg1 ++ ltConstraintsArg2 ++ rdiImplicationsSimplified, rdiRangeRestrictions)
             }
             // Other
             case _ => (???, ???)
@@ -346,15 +346,15 @@ object Symmetry {
         Errors.precondition(P.resultSort == BoolSort)
         Errors.precondition(P.argSorts.forall(!_.isBuiltin))
         
-        Errors.precondition(P.argSorts forall (deView.numUnusedDomainElements(_) >= 2))
+        Errors.precondition(P.argSorts forall (deView.numFreshValues(_) >= 2))
         
-        val r = (P.argSorts map (deView.numUnusedDomainElements(_))).min // Smallest number of unused values
+        val r = (P.argSorts map (deView.numFreshValues(_))).min // Smallest number of unused values
         
         // Generate lists of arguments in the order we will use them for symmetry breaking
         // e.g. If P: A x B x A -> Bool, gives Seq[(a1, b1, a1), (a2, b2, a2), ...]
         
         val argLists: IndexedSeq[ArgList] = for(i <- 0 to (r - 1)) yield {
-            P.argSorts map (sort => deView.unusedDomainElements(sort)(i))
+            P.argSorts map (sort => deView.freshValues(sort)(i))
         }
         
         predicateImplicationChain(P, argLists).toSet
@@ -367,7 +367,7 @@ object Symmetry {
             
             Errors.precondition(P.resultSort == BoolSort)
             Errors.precondition(P.argSorts forall (!_.isBuiltin))
-            Errors.precondition(P.argSorts exists (deView.numUnusedDomainElements(_) >= 2))
+            Errors.precondition(P.argSorts exists (deView.numFreshValues(_) >= 2))
             
             val tracker = deView.createTracker
             
@@ -381,21 +381,21 @@ object Symmetry {
             
             val constraints = new mutable.ListBuffer[Term]
             
-            while(P.argSorts exists (tracker.view.numUnusedDomainElements(_) >= 2)) {
-                val sort = (P.argSorts find (tracker.view.numUnusedDomainElements(_) >= 2)).get
-                val r = tracker.view.numUnusedDomainElements(sort)
+            while(P.argSorts exists (tracker.view.numFreshValues(_) >= 2)) {
+                val sort = (P.argSorts find (tracker.view.numFreshValues(_) >= 2)).get
+                val r = tracker.view.numFreshValues(sort)
                 val argLists: IndexedSeq[ArgList] = for(i <- 0 to (r - 1)) yield {
-                    fillArgList(sort, tracker.view.unusedDomainElements(sort)(i))
+                    fillArgList(sort, tracker.view.freshValues(sort)(i))
                 }
                 val implications = predicateImplicationChain(P, argLists)
                 constraints ++= implications
-                tracker.markUsed(implications flatMap (_.domainElements))
+                tracker.markStale(implications flatMap (_.domainElements))
             }
             
             constraints.toSet
         }
     
-    private def ridFunctionRangeRestrictionsGeneral(
+    private def rddFunctionRangeRestrictionsGeneral(
         f: FuncDecl,
         deView: DomainElementUsageView,
         argumentOrder: IndexedSeq[DomainElement]
@@ -404,7 +404,7 @@ object Symmetry {
         Errors.precondition(f.argSorts.forall(!_.isBuiltin))
         Errors.precondition(!f.resultSort.isBuiltin)
         Errors.precondition(f.argSorts contains f.resultSort)
-        Errors.precondition(!f.isDomainRangeDistinct)
+        Errors.precondition(!f.isRDI)
 
         // We fix particular values for the sorts not in the output
         // These stay the same for all argument lists we symmetry break using
@@ -450,26 +450,26 @@ object Symmetry {
                 loop(index + 1, unused diff newlyUsed, used ++ newlyUsed)
             }
         }
-        loop(0, deView.unusedDomainElements(f.resultSort), deView.usedDomainElements(f.resultSort))
+        loop(0, deView.freshValues(f.resultSort), deView.staleValues(f.resultSort))
 
         rangeRestrictions.toSet
     }
 
-    def ridFunctionRangeRestrictions_UnusedFirst(
+    def rddFunctionRangeRestrictions_UnusedFirst(
         f: FuncDecl,
         deView: DomainElementUsageView
     ): Set[RangeRestriction] = {
-        ridFunctionRangeRestrictionsGeneral(f, deView, deView.unusedDomainElements(f.resultSort))
+        rddFunctionRangeRestrictionsGeneral(f, deView, deView.freshValues(f.resultSort))
     }
 
-    def ridFunctionRangeRestrictions_UsedFirst(
+    def rddFunctionRangeRestrictions_UsedFirst(
         f: FuncDecl,
         deView: DomainElementUsageView
     ): Set[RangeRestriction] = {
-        ridFunctionRangeRestrictionsGeneral(
+        rddFunctionRangeRestrictionsGeneral(
             f,
             deView,
-            deView.usedDomainElements(f.resultSort) ++ deView.unusedDomainElements(f.resultSort)
+            deView.staleValues(f.resultSort) ++ deView.freshValues(f.resultSort)
         )
     }
     

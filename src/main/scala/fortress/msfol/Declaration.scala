@@ -12,10 +12,14 @@ case class FuncDecl private (name: String, argSorts: Seq[Sort], resultSort: Sort
     Errors.precondition(name.length > 0, "Cannot create function with empty name")
     
     def arity: Int = argSorts.size
+
+    // Range-domain dependent
+    def isRDD: Boolean = argSorts contains resultSort
+
+    // Range-domain independent
+    def isRDI: Boolean = !isRDD
     
-    def isDomainRangeDistinct: Boolean = !(argSorts contains resultSort)
-    
-    def isRainbowSorted: Boolean = isDomainRangeDistinct && (argSorts.distinct == argSorts)
+    def isRainbowSorted: Boolean = isRDI && (argSorts.distinct == argSorts)
     
     override def toString: String = name + ": (" + argSorts.mkString(", ") + ") -> " + resultSort.toString
 }

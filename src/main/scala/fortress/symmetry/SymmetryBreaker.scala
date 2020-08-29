@@ -22,7 +22,7 @@ abstract class SymmetryBreaker(
     protected val newDeclarations = new mutable.ListBuffer[FuncDecl]
     
     final def breakConstants(constantsToBreak: Set[AnnotatedVar]): Unit = {
-        for(sort <- theory.sorts if !sort.isBuiltin && view.existsUnusedDomainElements(sort)) {
+        for(sort <- theory.sorts if !sort.isBuiltin && view.existsFreshValue(sort)) {
             breakConstants(sort, constantsToBreak.filter(_.sort == sort).toIndexedSeq)
         }
     }
@@ -43,14 +43,14 @@ abstract class SymmetryBreaker(
         newConstraints ++= rangeRestrictions map (_.asFormula)
         newRangeRestrictions ++= rangeRestrictions
         // Add to used values
-        tracker.markUsed(rangeRestrictions flatMap (_.asFormula.domainElements))
+        tracker.markStale(rangeRestrictions flatMap (_.asFormula.domainElements))
     }
     
     protected def addGeneralConstraints(fmls: Set[Term]): Unit = {
         // Add to constraints
         newConstraints ++= fmls
         // Add to used values
-        tracker.markUsed(fmls flatMap (_.domainElements))
+        tracker.markStale(fmls flatMap (_.domainElements))
     }
     
     protected def addDeclaration(f: FuncDecl): Unit = {
@@ -60,39 +60,39 @@ abstract class SymmetryBreaker(
 
 trait DefaultPredicateBreaking extends SymmetryBreaker {
     override def breakPredicate(P: FuncDecl): Unit = {
-        if(P.argSorts forall (view.numUnusedDomainElements(_) >= 2)) { // Need at least 2 unused values to do any symmetry breaking
+        if(P.argSorts forall (view.numFreshValues(_) >= 2)) { // Need at least 2 unused values to do any symmetry breaking
             val pImplications = Symmetry.predicateImplications(P, view)
             addGeneralConstraints(pImplications)
         }
     }
 }
 
-trait DrdDifferentiation extends SymmetryBreaker {
-    def breakDrdFunction(f: FuncDecl): Unit
-    def breakRidFunction(f: FuncDecl): Unit
+trait DependenceDifferentiation extends SymmetryBreaker {
+    def breakRDDFunction(f: FuncDecl): Unit
+    def breakRDIFunction(f: FuncDecl): Unit
     
     override def breakFunction(f: FuncDecl): Unit = {
-        if(view.existsUnusedDomainElements(f.resultSort)) {
-            if (f.isDomainRangeDistinct) {
-                breakDrdFunction(f)
+        if(view.existsFreshValue(f.resultSort)) {
+            if (f.isRDD) {
+                breakRDDFunction(f)
             } else {
-                breakRidFunction(f)
+                breakRDIFunction(f)
             }
         }
     }
 }
 
-trait DefaultRidScheme extends DrdDifferentiation {
-    override def breakRidFunction(f: FuncDecl): Unit = {
-        val fRangeRestrictions = Symmetry.ridFunctionRangeRestrictions_UsedFirst(f, view)
+trait DefaultRDDScheme extends DependenceDifferentiation {
+    override def breakRDDFunction(f: FuncDecl): Unit = {
+        val fRangeRestrictions = Symmetry.rddFunctionRangeRestrictions_UsedFirst(f, view)
         addRangeRestrictions(fRangeRestrictions)
     }
 }
 
-trait DefaultDrdScheme extends DrdDifferentiation {
-    override def breakDrdFunction(f: FuncDecl): Unit = {
-        val fRangeRestrictions = Symmetry.drdFunctionRangeRestrictions(f, view)
-        val fImplications = Symmetry.drdFunctionImplicationsSimplified(f, view)
+trait DefaultRDIScheme extends DependenceDifferentiation {
+    override def breakRDIFunction(f: FuncDecl): Unit = {
+        val fRangeRestrictions = Symmetry.rdiFunctionRangeRestrictions(f, view)
+        val fImplications = Symmetry.rdiFunctionImplicationsSimplified(f, view)
         addRangeRestrictions(fRangeRestrictions)
         addGeneralConstraints(fImplications)
     }
@@ -113,10 +113,10 @@ trait DefaultConstantScheme extends SymmetryBreaker {
 class DefaultSymmetryBreaker(theory: Theory, scopes: Map[Sort, Int])
 extends SymmetryBreaker(theory, scopes)
 with DefaultPredicateBreaking
-with DrdDifferentiation
+with DependenceDifferentiation
 with DefaultConstantScheme
-with DefaultDrdScheme
-with DefaultRidScheme
+with DefaultRDIScheme
+with DefaultRDDScheme
 
 object DefaultSymmetryBreaker extends SymmetryBreakerFactory {
     def create(theory: Theory, scopes: Map[Sort, Int]): SymmetryBreaker = new DefaultSymmetryBreaker(theory, scopes)

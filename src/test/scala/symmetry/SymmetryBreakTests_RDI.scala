@@ -4,7 +4,7 @@ import fortress.msfol._
 import fortress.operations.TermOps._
 import fortress.symmetry._ 
 
-class SymmetryBreakTests_DRD extends UnitSuite {
+class SymmetryBreakTests_RDI extends UnitSuite {
     val A: Sort = SortConst("A")
     val B: Sort = SortConst("B")
     val D: Sort = SortConst("D")
@@ -17,7 +17,7 @@ class SymmetryBreakTests_DRD extends UnitSuite {
     
     def DE(index: Int, sort: Sort) = DomainElement(index, sort)
 
-    test("DRD Unary - Equalities") {
+    test("rdi Unary - Equalities") {
         val f = FuncDecl("f", A, B)
         
         val usedResultValues = IndexedSeq(
@@ -35,7 +35,7 @@ class SymmetryBreakTests_DRD extends UnitSuite {
         val f3A = for (i <- Seq(2, 3, 5, 1, 4, 6)) yield {App("f", DE(3, A)) === DE(i, B)}
         val f4A = for (i <- Seq(2, 3, 5, 1, 4, 6, 7)) yield {App("f", DE(4, A)) === DE(i, B)}
         
-        Symmetry.drdFunctionRangeRestrictions(f, deView) map (_.asFormula) should be (
+        Symmetry.rdiFunctionRangeRestrictions(f, deView) map (_.asFormula) should be (
             Set(
                 OrList(f1A),
                 OrList(f2A),
@@ -45,7 +45,7 @@ class SymmetryBreakTests_DRD extends UnitSuite {
         )
     }
     
-    test("DRD Ternary - Equalities") {
+    test("rdi Ternary - Equalities") {
         val f = FuncDecl("f", A, D, A, B)
         
         val usedResultValues = IndexedSeq(
@@ -65,7 +65,7 @@ class SymmetryBreakTests_DRD extends UnitSuite {
         val f112 = for (i <- Seq(2, 3, 5, 1, 4, 6, 7, 8)) yield {App("f", DE(1, A), DE(1, D), DE(2, A)) === DE(i, B)}
         val f212 = for (i <- Seq(2, 3, 5, 1, 4, 6, 7, 8, 9)) yield {App("f", DE(2, A), DE(1, D), DE(2, A)) === DE(i, B)}
         
-        val constraints = Symmetry.drdFunctionRangeRestrictions(f, deView) map (_.asFormula)
+        val constraints = Symmetry.rdiFunctionRangeRestrictions(f, deView) map (_.asFormula)
         constraints should have size 6
         constraints should contain (OrList(f111))
         constraints should contain (OrList(f211))
@@ -75,7 +75,7 @@ class SymmetryBreakTests_DRD extends UnitSuite {
         constraints should contain (OrList(f212))
     }
     
-    test("DRD Unary - Implications") {
+    test("rdi Unary - Implications") {
         val f = FuncDecl("f", A, B)
         
         val usedResultValues = IndexedSeq(
@@ -93,7 +93,7 @@ class SymmetryBreakTests_DRD extends UnitSuite {
         val f3A = App("f", DE(3, A))
         val f4A = App("f", DE(4, A))
         
-        val constraints = Symmetry.drdFunctionImplications(f, deView)
+        val constraints = Symmetry.rdiFunctionImplications(f, deView)
         constraints should have size 6
         
         constraints should contain { (f2A === DE(4, B)) ==> (f1A === DE(1, B)) }
@@ -106,7 +106,7 @@ class SymmetryBreakTests_DRD extends UnitSuite {
         constraints should contain { (f4A === DE(7, B)) ==> (DE(6, B) equalsOneOfFlip Seq(f1A, f2A, f3A)) }
     }
     
-    test("DRD Ternary - Implications") {
+    test("rdi Ternary - Implications") {
         val f = FuncDecl("f", A, D, A, B)
         
         val usedResultValues = IndexedSeq(
@@ -126,7 +126,7 @@ class SymmetryBreakTests_DRD extends UnitSuite {
         val f112 = App("f", DE(1, A), DE(1, D), DE(2, A))
         val f212 = App("f", DE(2, A), DE(1, D), DE(2, A))
         
-        val constraints = Symmetry.drdFunctionImplications(f, deView)
+        val constraints = Symmetry.rdiFunctionImplications(f, deView)
         constraints should have size 15
         constraints should contain { (f211 === DE(4, B)) ==> (f111 === DE(1, B)) }
         
@@ -149,7 +149,7 @@ class SymmetryBreakTests_DRD extends UnitSuite {
         constraints should contain { (f212 === DE(9, B)) ==> (DE(8, B) equalsOneOfFlip Seq(f111, f211, f121, f221, f112)) }
     }
     
-    test("DRD Unary - Implications, Simplified") {
+    test("rdi Unary - Implications, Simplified") {
         val f = FuncDecl("f", A, B)
         
         val usedResultValues = IndexedSeq(
@@ -167,7 +167,7 @@ class SymmetryBreakTests_DRD extends UnitSuite {
         val f3A = App("f", DE(3, A))
         val f4A = App("f", DE(4, A))
         
-        val constraints = Symmetry.drdFunctionImplicationsSimplified(f, deView)
+        val constraints = Symmetry.rdiFunctionImplicationsSimplified(f, deView)
         
         constraints should have size 6
         
@@ -181,7 +181,7 @@ class SymmetryBreakTests_DRD extends UnitSuite {
         constraints should contain { (f4A === DE(7, B)) ==> (DE(6, B) equalsOneOfFlip Seq(f3A)) }
     }
     
-    test("DRD Ternary - Implications, Simplified") {
+    test("rdi Ternary - Implications, Simplified") {
         val f = FuncDecl("f", A, D, A, B)
         
         val usedResultValues = IndexedSeq(
@@ -201,7 +201,7 @@ class SymmetryBreakTests_DRD extends UnitSuite {
         val f112 = App("f", DE(1, A), DE(1, D), DE(2, A))
         val f212 = App("f", DE(2, A), DE(1, D), DE(2, A))
         
-        val constraints = Symmetry.drdFunctionImplicationsSimplified(f, deView)
+        val constraints = Symmetry.rdiFunctionImplicationsSimplified(f, deView)
         constraints should have size 15
         constraints should contain { (f211 === DE(4, B)) ==> (DE(1, B) equalsOneOfFlip Seq(f111)) }
         

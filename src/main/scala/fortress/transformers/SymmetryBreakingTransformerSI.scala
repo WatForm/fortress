@@ -30,7 +30,7 @@ class SymmetryBreakingTransformerSI(
                 yield {sort -> scopes(substitution(sort))}
             }.toMap
 
-            // Perform symmetry breaking on inferred theory
+            // Perform symmetry breaking on inferred theory, but select as if it wasn't there
 
             val breaker = symmetryBreakerFactory.create(infTheory, infScopes)
             
