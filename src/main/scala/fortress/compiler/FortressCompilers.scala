@@ -56,30 +56,8 @@ class FortressTHREECompiler(integerSemantics: IntegerSemantics) extends BaseFort
     )
 }
 
-class FortressTHREECompiler_SI(integerSemantics: IntegerSemantics) extends TransformationCompiler {
-    def symmetryBreakingTransformers: Seq[ProblemStateTransformer] = Seq(
+class FortressTHREECompiler_SI(integerSemantics: IntegerSemantics) extends BaseFortressCompiler(integerSemantics) {
+    override def symmetryBreakingTransformers: Seq[ProblemStateTransformer] = Seq(
         new SymmetryBreakingTransformerSI(MonoFirstThenFunctionsFirstAnyOrder, DefaultSymmetryBreaker)
     )
-
-    override def transformerSequence: Seq[ProblemStateTransformer] = {
-        val transformerSequence = new scala.collection.mutable.ListBuffer[ProblemStateTransformer]
-        transformerSequence += new TypecheckSanitizeTransformer
-        transformerSequence += new EnumEliminationTransformer
-        integerSemantics match {
-            case Unbounded => ()
-            case ModularSigned(bitwidth) => {
-                transformerSequence += new IntegerFinitizationTransformer(bitwidth)
-            }
-        }
-        transformerSequence += new SortInferenceTransformer
-        transformerSequence += new TypecheckSanitizeTransformer
-        transformerSequence += new NnfTransformer
-        transformerSequence += new SkolemizeTransformer
-        transformerSequence ++= symmetryBreakingTransformers
-        transformerSequence += QuantifierExpansionTransformer.create()
-        transformerSequence += RangeFormulaTransformer.create()
-        transformerSequence += new SimplifyTransformer
-        transformerSequence += new DomainEliminationTransformer2
-        transformerSequence.toList
-    }
 }
