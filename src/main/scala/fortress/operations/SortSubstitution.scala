@@ -75,6 +75,14 @@ trait SortApplication {
         case EnumValue(_) | BitVectorLiteral(_, _) | IntegerLiteral(_) => ???
         case DomainElement(index, sort) => DomainElement(index, apply(sort))
     }
+
+    def applyDE(de: DomainElement): DomainElement = de match {
+        case DomainElement(index, sort) => DomainElement(index, apply(sort))
+    }
+
+    def apply(rangeRestriction: RangeRestriction): RangeRestriction = rangeRestriction match {
+        case RangeRestriction(term, values) => RangeRestriction(apply(term), values map applyDE)
+    }
     
 }
 
@@ -85,6 +93,8 @@ object SortApplication {
     implicit def asSortFunction(sigma: SortApplication): Sort => Sort = (sort => sigma(sort))
     
     implicit def asTermFunction(sigma: SortApplication): Term => Term = (term => sigma(term))
+
+    implicit def asDeclFunction(sigma: SortApplication): FuncDecl => FuncDecl = (f => sigma(f))
 }
 
 class SortSubstitution(mapping: Map[Sort, Sort]) extends SortApplication {
