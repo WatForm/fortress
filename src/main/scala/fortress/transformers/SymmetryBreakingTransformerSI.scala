@@ -77,5 +77,5 @@ class SymmetryBreakingTransformerSI(
         }
     }
     
-    val name: String = s"Symmetry Breaking Transformer (${selectionHeuristic.name})" 
+    val name: String = s"Symmetry Breaking Transformer SI (${selectionHeuristic.name})" 
 }
