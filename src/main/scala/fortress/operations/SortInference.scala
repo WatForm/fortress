@@ -8,6 +8,7 @@ import scala.language.implicitConversions
 
 case class Equation(x: Sort, y: Sort)
 
+// Only allows for Bool and SortConst
 object SortInference {
     
     type ContextStack = List[AnnotatedVar]
@@ -56,7 +57,7 @@ object SortInference {
             case _ :: tail => lookup(name, tail)
         }
         
-        // Returns the sort of the term, and the set of equations
+        // Returns the sort of the term, and the set of equations that unify it
         def recur(term: Term, context: ContextStack): (Sort, Set[Equation]) = term match {
             case Top => (BoolSort, Set.empty)
             case Bottom => (BoolSort, Set.empty)
@@ -118,10 +119,21 @@ object SortInference {
                 val recurEqns = recurInfo flatMap (_._2)
                 
                 // Add to equations that the argument sorts must match up
-                val newEqns = for((sort1, sort2) <- argSorts zip recurArgSorts)
-                    yield Equation(sort1, sort2)
+                val newEqns: Seq[Option[Equation]] = {
+                    for((sort1, sort2) <- argSorts zip recurArgSorts)
+                    yield { 
+                        (sort1, sort2) match {
+                            case (s1: SortConst, s2: SortConst) => Some(Equation(s1, s2))
+                            case (BoolSort, BoolSort) => None
+                            case _ => {
+                                Errors.assertion(false)
+                                ???
+                            }
+                        }
+                    }
+                }
                 
-                val eqns = (recurEqns ++ newEqns).toSet
+                val eqns = (recurEqns ++ newEqns.flatten).toSet
                 (resSort, eqns)
             }
             case Exists(avars, body) => {
@@ -154,7 +166,7 @@ object SortInference {
                 Errors.assertion(condSort == BoolSort)
                 Errors.assertion(ifTrueSort != BoolSort)
                 Errors.assertion(ifFalseSort != BoolSort)
-                (ifTrueSort, (ifTrueEqns union ifFalseEqns) + Equation(ifTrueSort, ifFalseSort))
+                (ifTrueSort, (condEqns union ifTrueEqns union ifFalseEqns) + Equation(ifTrueSort, ifFalseSort))
             }
         }
         
