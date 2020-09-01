@@ -34,9 +34,9 @@ class SymmetryBreakTests_Constants extends UnitSuite {
         
         val scopes = Map(B -> 7)
         val used = Map(B -> usedValues)
-        val deView = DomainElementUsageView(scopes, used)
+        val state = StalenessState(Set(B), scopes, used)
         
-        Symmetry.csConstantRangeRestrictions(B, constants, deView) map (_.asFormula) should be (
+        Symmetry.csConstantRangeRestrictions(B, constants, state) map (_.asFormula) should be (
             Set(
                 Or(c1 === DE(1, B), c1 === DE(3, B), c1 === DE(5, B), c1 === DE(2, B)),
                 Or(c2 === DE(1, B), c2 === DE(3, B), c2 === DE(5, B), c2 === DE(2, B), c2 === DE(4, B)),
@@ -62,9 +62,9 @@ class SymmetryBreakTests_Constants extends UnitSuite {
         
         val scopes = Map(B -> 7)
         val used = Map(B -> usedValues)
-        val deView = DomainElementUsageView(scopes, used)
+        val state = StalenessState(Set(B), scopes, used)
         
-        Symmetry.csConstantImplications(B, constants, deView) should be (
+        Symmetry.csConstantImplications(B, constants, state) should be (
             Set(
                 (c2 === DE(4, B)) ==> (c1 === DE(2, B)),
                 (c3 === DE(4, B)) ==> Or(c1 === DE(2, B), c2 === DE(2, B)),
@@ -92,9 +92,9 @@ class SymmetryBreakTests_Constants extends UnitSuite {
         
         val scopes = Map(B -> 7)
         val used = Map(B -> usedValues)
-        val deView = DomainElementUsageView(scopes, used)
+        val state = StalenessState(Set(B), scopes, used)
         
-        val constraints = Symmetry.csConstantImplicationsSimplified(B, constants, deView)
+        val constraints = Symmetry.csConstantImplicationsSimplified(B, constants, state)
         constraints should have size 6
         
         constraints should contain { (c2 === DE(4, B)) ==> (DE(2, B) equalsOneOfFlip Seq(c1)) }

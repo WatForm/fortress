@@ -11,7 +11,7 @@ trait SelectionHeuristic {
     
     // Select the next function or predicate
     def nextFunctionPredicate(
-        deView: DomainElementUsageView,
+        state: StalenessState,
         remaining: Set[FuncDecl]
     ): Option[FuncDecl]
     
@@ -24,7 +24,7 @@ trait SelectionHeuristic {
 
 object FunctionsFirstAnyOrder extends SelectionHeuristic {
     override def nextFunctionPredicate(
-        deView: DomainElementUsageView,
+        state: StalenessState,
         remaining: Set[FuncDecl]
     ): Option[FuncDecl] = {
         
@@ -36,7 +36,7 @@ object FunctionsFirstAnyOrder extends SelectionHeuristic {
 
 object PredicatesFirstAnyOrder extends SelectionHeuristic {
     override def nextFunctionPredicate(
-        deView: DomainElementUsageView,
+        state: StalenessState,
         remaining: Set[FuncDecl]
     ): Option[FuncDecl] = {
         
@@ -51,7 +51,7 @@ object FunctionsFirstGreedy extends SelectionHeuristic {
     override def name = "Functions First, Greedy"
     
     override def nextFunctionPredicate(
-        deView: DomainElementUsageView,
+        state: StalenessState,
         remaining: Set[FuncDecl]
     ): Option[FuncDecl] = {
         
@@ -61,8 +61,8 @@ object FunctionsFirstGreedy extends SelectionHeuristic {
             // Lowest arity, then largest # of fresh result values
             if (f1.arity < f2.arity) true
             else if (f1.arity > f2.arity) false
-            else (deView.numFreshValues(f1.resultSort)
-                > deView.numFreshValues(f2.resultSort))
+            else (state.numFreshValues(f1.resultSort)
+                > state.numFreshValues(f2.resultSort))
         }
         
         // Comparison operation for functions to determine which order
@@ -82,7 +82,7 @@ object PredicatesFirstGreedy extends SelectionHeuristic {
     override def name = "Predicates First, Greedy"
     
     override def nextFunctionPredicate(
-        deView: DomainElementUsageView,
+        state: StalenessState,
         remaining: Set[FuncDecl]
     ): Option[FuncDecl] = {
         
@@ -92,8 +92,8 @@ object PredicatesFirstGreedy extends SelectionHeuristic {
             // Lowest arity, then largest # of fresh result values
             if (f1.arity < f2.arity) true
             else if (f1.arity > f2.arity) false
-            else (deView.numFreshValues(f1.resultSort)
-                > deView.numFreshValues(f2.resultSort))
+            else (state.numFreshValues(f1.resultSort)
+                > state.numFreshValues(f2.resultSort))
         }
         
         // Comparison operation for functions to determine which order
@@ -110,7 +110,7 @@ object PredicatesFirstGreedy extends SelectionHeuristic {
 
 object PredicatesOnlyAnyOrder extends SelectionHeuristic {
     override def nextFunctionPredicate(
-        deView: DomainElementUsageView,
+        state: StalenessState,
         remaining: Set[FuncDecl]
     ): Option[FuncDecl] = {
         
@@ -125,7 +125,7 @@ object Random extends SelectionHeuristic {
     override def name = "Random"
     
     override def nextFunctionPredicate(
-        deView: DomainElementUsageView,
+        state: StalenessState,
         remaining: Set[FuncDecl]
     ): Option[FuncDecl] = {
         
@@ -134,39 +134,35 @@ object Random extends SelectionHeuristic {
     }
 }
 
-object AtoAOnlyAnyOrder extends SelectionHeuristic {
+object MonoOnlyAnyOrder extends SelectionHeuristic {
     
-    override def name = "A -> A Only, Any Order"
-    
-    private def isAtoA(f: FuncDecl): Boolean = f.argSorts.forall(_ == f.resultSort) && !f.resultSort.isBuiltin
+    override def name = "Mono Only, Any Order"
     
     override def nextFunctionPredicate(
-        deView: DomainElementUsageView,
+        state: StalenessState,
         remaining: Set[FuncDecl]
     ): Option[FuncDecl] = {
         
-        (remaining filter isAtoA).headOption
+        (remaining filter (_.isMonoSorted)).headOption
     }
 }
 
 object MonoFirstThenFunctionsFirstAnyOrder extends SelectionHeuristic {
     
-    override def name = "A -> A First, then Functions Any Order"
-    
-    private def isAtoA(f: FuncDecl): Boolean = f.argSorts.forall(_ == f.resultSort) && !f.resultSort.isBuiltin
+    override def name = "Mono First, then Functions, then Predicates"
     
     override def nextFunctionPredicate(
-        deView: DomainElementUsageView,
+        state: StalenessState,
         remaining: Set[FuncDecl]
     ): Option[FuncDecl] = {
         
-        (remaining filter isAtoA).headOption orElse (remaining find acceptableFunction) orElse (remaining find acceptablePredicate)
+        (remaining filter (_.isMonoSorted)).headOption orElse (remaining find acceptableFunction) orElse (remaining find acceptablePredicate)
     }
 }
 
 object NoFunctionsPredicates extends SelectionHeuristic {
     override def nextFunctionPredicate(
-        deView: DomainElementUsageView,
+        state: StalenessState,
         remaining: Set[FuncDecl]
     ): Option[FuncDecl] = None
     

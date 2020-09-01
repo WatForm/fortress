@@ -29,9 +29,9 @@ class SymmetryBreakTests_Predicates extends UnitSuite {
         
         val usedValues = Map(A -> usedValsA)
         val scopes = Map(A -> 9)
-        val deView = DomainElementUsageView(scopes, usedValues)
+        val state = StalenessState(Set(A), scopes, usedValues)
         
-        val constraints = Symmetry.predicateImplications_OLD(P, deView)
+        val constraints = Symmetry.predicateImplications_OLD(P, state)
         constraints should have size 5
         constraints should contain (App("P", DE(4, A)) ==> App("P", DE(3, A)))
         constraints should contain (App("P", DE(6, A)) ==> App("P", DE(4, A)))
@@ -57,9 +57,9 @@ class SymmetryBreakTests_Predicates extends UnitSuite {
         
         val usedValues = Map(A -> usedValsA, B -> usedValsB)
         val scopes = Map(A -> 9, B -> 8)
-        val deView = DomainElementUsageView(scopes, usedValues)
+        val state = StalenessState(Set(A, B), scopes, usedValues)
         
-        val constraints = Symmetry.predicateImplications_OLD(P, deView)
+        val constraints = Symmetry.predicateImplications_OLD(P, state)
         constraints should have size 4
         constraints should contain (App("P", DE(4, A), DE(5, B), DE(4, A)) ==> (App("P", DE(3, A), DE(1, B), DE(3, A)))) 
         constraints should contain (App("P", DE(6, A), DE(6, B), DE(6, A)) ==> (App("P", DE(4, A), DE(5, B), DE(4, A)))) 
@@ -78,9 +78,9 @@ class SymmetryBreakTests_Predicates extends UnitSuite {
         
         val usedValues = Map(A -> usedValsA)
         val scopes = Map(A -> 9)
-        val deView = DomainElementUsageView(scopes, usedValues)
+        val state = StalenessState(Set(A), scopes, usedValues)
         
-        val constraints = Symmetry.predicateImplications(P, deView)
+        val constraints = Symmetry.predicateImplications(P, state)
         constraints should have size 5
         constraints should contain (App("P", DE(4, A)) ==> App("P", DE(3, A)))
         constraints should contain (App("P", DE(6, A)) ==> App("P", DE(4, A)))
@@ -106,9 +106,9 @@ class SymmetryBreakTests_Predicates extends UnitSuite {
         
         val usedValues = Map(A -> usedValsA, B -> usedValsB)
         val scopes = Map(A -> 9, B -> 8)
-        val deView = DomainElementUsageView(scopes, usedValues)
+        val state = StalenessState(Set(A, B), scopes, usedValues)
         
-        val constraints = Symmetry.predicateImplications(P, deView)
+        val constraints = Symmetry.predicateImplications(P, state)
         constraints should have size 8
         // A constraints
         constraints should contain (App("P", DE(4, A), DE(1, B), DE(4, A)) ==> (App("P", DE(3, A), DE(1, B), DE(3, A))))

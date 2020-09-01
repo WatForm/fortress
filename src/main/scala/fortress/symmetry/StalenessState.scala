@@ -5,9 +5,10 @@ import fortress.operations.TermOps._
 
 // An immutable view to look at the current usage of domain elements.
 // Sequences of domain elements are all returned in numerical order.
-class DomainElementUsageView private (
-    private val scopeMap: Map[Sort, Int],
-    private val staleMap: Map[Sort, IndexedSeq[DomainElement]]
+class StalenessState private (
+    val sorts: Set[Sort],
+    scopeMap: Map[Sort, Int],
+    staleMap: Map[Sort, IndexedSeq[DomainElement]]
 ) {
     
     def scope(sort: Sort): Int = scopeMap(sort)
@@ -25,29 +26,31 @@ class DomainElementUsageView private (
     
     def domainElements(sort: Sort): IndexedSeq[DomainElement] = DomainElement.range(1 to scope(sort), sort)
     
-    def createTracker: DomainElementTracker = DomainElementTracker.create(staleMap, scopeMap)
+    def createTrackerWithState: StalenessTracker = StalenessTracker.create(sorts, staleMap, scopeMap)
 }
 
-object DomainElementUsageView {
+object StalenessState {
     def apply(
+        sorts: Set[Sort],
         scopes: Map[Sort, Int],
         staleElems: Map[Sort, Seq[DomainElement]]
-    ): DomainElementUsageView = {
+    ): StalenessState = {
         
         val staleMap = staleElems.map{
             case(sort, seq) => sort -> seq.toIndexedSeq.sorted
         }.toMap
-        new DomainElementUsageView(scopes, staleMap)
+        new StalenessState(sorts, scopes, staleMap)
     }
     
     def apply(
+        sorts: Set[Sort],
         scopes: Map[Sort, Int],
         staleElems: Map[Sort, Set[DomainElement]]
-    )(implicit d: DummyImplicit): DomainElementUsageView = {
+    )(implicit d: DummyImplicit): StalenessState = {
 
         val staleMap = staleElems.map{
             case(sort, seq) => sort -> seq.toIndexedSeq.sorted
         }.toMap
-        new DomainElementUsageView(scopes, staleMap)
+        new StalenessState(sorts, scopes, staleMap)
     }
 }

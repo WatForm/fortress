@@ -28,14 +28,14 @@ class SymmetryBreakTests_RDI extends UnitSuite {
         
         val scopes = Map(A -> 8, B -> 7)
         val used = Map(B -> usedResultValues)
-        val deView = DomainElementUsageView(scopes, used)
+        val state = StalenessState(Set(A, B), scopes, used)
         
         val f1A = for (i <- Seq(2, 3, 5, 1)) yield {App("f", DE(1, A)) === DE(i, B)}
         val f2A = for (i <- Seq(2, 3, 5, 1, 4)) yield {App("f", DE(2, A)) === DE(i, B)}
         val f3A = for (i <- Seq(2, 3, 5, 1, 4, 6)) yield {App("f", DE(3, A)) === DE(i, B)}
         val f4A = for (i <- Seq(2, 3, 5, 1, 4, 6, 7)) yield {App("f", DE(4, A)) === DE(i, B)}
         
-        Symmetry.rdiFunctionRangeRestrictions(f, deView) map (_.asFormula) should be (
+        Symmetry.rdiFunctionRangeRestrictions(f, state) map (_.asFormula) should be (
             Set(
                 OrList(f1A),
                 OrList(f2A),
@@ -56,7 +56,7 @@ class SymmetryBreakTests_RDI extends UnitSuite {
         
         val scopes = Map(A -> 2, D -> 2, B -> 9)
         val used = Map(B -> usedResultValues)
-        val deView = DomainElementUsageView(scopes, used)
+        val state = StalenessState(Set(A, D, B), scopes, used)
         
         val f111 = for (i <- Seq(2, 3, 5, 1)) yield {App("f", DE(1, A), DE(1, D), DE(1, A)) === DE(i, B)}
         val f211 = for (i <- Seq(2, 3, 5, 1, 4)) yield {App("f", DE(2, A), DE(1, D), DE(1, A)) === DE(i, B)}
@@ -65,7 +65,7 @@ class SymmetryBreakTests_RDI extends UnitSuite {
         val f112 = for (i <- Seq(2, 3, 5, 1, 4, 6, 7, 8)) yield {App("f", DE(1, A), DE(1, D), DE(2, A)) === DE(i, B)}
         val f212 = for (i <- Seq(2, 3, 5, 1, 4, 6, 7, 8, 9)) yield {App("f", DE(2, A), DE(1, D), DE(2, A)) === DE(i, B)}
         
-        val constraints = Symmetry.rdiFunctionRangeRestrictions(f, deView) map (_.asFormula)
+        val constraints = Symmetry.rdiFunctionRangeRestrictions(f, state) map (_.asFormula)
         constraints should have size 6
         constraints should contain (OrList(f111))
         constraints should contain (OrList(f211))
@@ -86,14 +86,14 @@ class SymmetryBreakTests_RDI extends UnitSuite {
         
         val scopes: Map[Sort, Int] = Map(A -> 8, B -> 7)
         val used = Map(B -> usedResultValues)
-        val deView = DomainElementUsageView(scopes, used)
+        val state = StalenessState(Set(A, B), scopes, used)
         
         val f1A = App("f", DE(1, A))
         val f2A = App("f", DE(2, A))
         val f3A = App("f", DE(3, A))
         val f4A = App("f", DE(4, A))
         
-        val constraints = Symmetry.rdiFunctionImplications(f, deView)
+        val constraints = Symmetry.rdiFunctionImplications(f, state)
         constraints should have size 6
         
         constraints should contain { (f2A === DE(4, B)) ==> (f1A === DE(1, B)) }
@@ -117,7 +117,7 @@ class SymmetryBreakTests_RDI extends UnitSuite {
         
         val scopes = Map(A -> 2, D -> 2, B -> 9)
         val used = Map(B -> usedResultValues)
-        val deView = DomainElementUsageView(scopes, used)
+        val state = StalenessState(Set(A, D, B), scopes, used)
         
         val f111 = App("f", DE(1, A), DE(1, D), DE(1, A))
         val f211 = App("f", DE(2, A), DE(1, D), DE(1, A))
@@ -126,7 +126,7 @@ class SymmetryBreakTests_RDI extends UnitSuite {
         val f112 = App("f", DE(1, A), DE(1, D), DE(2, A))
         val f212 = App("f", DE(2, A), DE(1, D), DE(2, A))
         
-        val constraints = Symmetry.rdiFunctionImplications(f, deView)
+        val constraints = Symmetry.rdiFunctionImplications(f, state)
         constraints should have size 15
         constraints should contain { (f211 === DE(4, B)) ==> (f111 === DE(1, B)) }
         
@@ -160,14 +160,14 @@ class SymmetryBreakTests_RDI extends UnitSuite {
         
         val scopes: Map[Sort, Int] = Map(A -> 8, B -> 7)
         val used = Map(B -> usedResultValues)
-        val deView = DomainElementUsageView(scopes, used)
+        val state = StalenessState(Set(A, B), scopes, used)
         
         val f1A = App("f", DE(1, A))
         val f2A = App("f", DE(2, A))
         val f3A = App("f", DE(3, A))
         val f4A = App("f", DE(4, A))
         
-        val constraints = Symmetry.rdiFunctionImplicationsSimplified(f, deView)
+        val constraints = Symmetry.rdiFunctionImplicationsSimplified(f, state)
         
         constraints should have size 6
         
@@ -192,7 +192,7 @@ class SymmetryBreakTests_RDI extends UnitSuite {
         
         val scopes = Map(A -> 2, D -> 2, B -> 9)
         val used = Map(B -> usedResultValues)
-        val deView = DomainElementUsageView(scopes, used)
+        val state = StalenessState(Set(A, D, B), scopes, used)
         
         val f111 = App("f", DE(1, A), DE(1, D), DE(1, A))
         val f211 = App("f", DE(2, A), DE(1, D), DE(1, A))
@@ -201,7 +201,7 @@ class SymmetryBreakTests_RDI extends UnitSuite {
         val f112 = App("f", DE(1, A), DE(1, D), DE(2, A))
         val f212 = App("f", DE(2, A), DE(1, D), DE(2, A))
         
-        val constraints = Symmetry.rdiFunctionImplicationsSimplified(f, deView)
+        val constraints = Symmetry.rdiFunctionImplicationsSimplified(f, state)
         constraints should have size 15
         constraints should contain { (f211 === DE(4, B)) ==> (DE(1, B) equalsOneOfFlip Seq(f111)) }
         

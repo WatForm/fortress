@@ -14,7 +14,7 @@ abstract class SymmetryBreaker(
     protected val scopes: Map[Sort, Int]
 ) {
     
-    protected val tracker = DomainElementTracker.create(theory, scopes)
+    protected val tracker = StalenessTracker.create(theory, scopes)
     
     // Accumulates the symmetry breaking constraints
     protected val newConstraints = new mutable.ListBuffer[Term]
@@ -22,7 +22,7 @@ abstract class SymmetryBreaker(
     protected val newDeclarations = new mutable.ListBuffer[FuncDecl]
     
     final def breakConstants(constantsToBreak: Set[AnnotatedVar]): Unit = {
-        for(sort <- theory.sorts if !sort.isBuiltin && view.existsFreshValue(sort)) {
+        for(sort <- theory.sorts if !sort.isBuiltin && tracker.state.existsFreshValue(sort)) {
             breakConstants(sort, constantsToBreak.filter(_.sort == sort).toIndexedSeq)
         }
     }
@@ -35,8 +35,8 @@ abstract class SymmetryBreaker(
     def constraints: Seq[Term] = newConstraints.toList
     def rangeRestrictions: Seq[RangeRestriction] = newRangeRestrictions.toList
     def declarations: Seq[FuncDecl] = newDeclarations.toList
-    
-    def view: DomainElementUsageView = tracker.view
+
+    def stalenessState: StalenessState = tracker.state
     
     protected def addRangeRestrictions(rangeRestrictions: Set[RangeRestriction]): Unit = {
         // Add to constraints
@@ -60,8 +60,8 @@ abstract class SymmetryBreaker(
 
 trait DefaultPredicateBreaking extends SymmetryBreaker {
     override def breakPredicate(P: FuncDecl): Unit = {
-        if(P.argSorts forall (view.numFreshValues(_) >= 2)) { // Need at least 2 unused values to do any symmetry breaking
-            val pImplications = Symmetry.predicateImplications(P, view)
+        if(P.argSorts forall (tracker.state.numFreshValues(_) >= 2)) { // Need at least 2 unused values to do any symmetry breaking
+            val pImplications = Symmetry.predicateImplications(P, tracker.state)
             addGeneralConstraints(pImplications)
         }
     }
@@ -72,7 +72,7 @@ trait DependenceDifferentiation extends SymmetryBreaker {
     def breakRDIFunction(f: FuncDecl): Unit
     
     override def breakFunction(f: FuncDecl): Unit = {
-        if(view.existsFreshValue(f.resultSort)) {
+        if(tracker.state.existsFreshValue(f.resultSort)) {
             if (f.isRDD) {
                 breakRDDFunction(f)
             } else {
@@ -84,15 +84,15 @@ trait DependenceDifferentiation extends SymmetryBreaker {
 
 trait DefaultRDDScheme extends DependenceDifferentiation {
     override def breakRDDFunction(f: FuncDecl): Unit = {
-        val fRangeRestrictions = Symmetry.rddFunctionRangeRestrictions_UsedFirst(f, view)
+        val fRangeRestrictions = Symmetry.rddFunctionRangeRestrictions_UsedFirst(f, tracker.state)
         addRangeRestrictions(fRangeRestrictions)
     }
 }
 
 trait DefaultRDIScheme extends DependenceDifferentiation {
     override def breakRDIFunction(f: FuncDecl): Unit = {
-        val fRangeRestrictions = Symmetry.rdiFunctionRangeRestrictions(f, view)
-        val fImplications = Symmetry.rdiFunctionImplicationsSimplified(f, view)
+        val fRangeRestrictions = Symmetry.rdiFunctionRangeRestrictions(f, tracker.state)
+        val fImplications = Symmetry.rdiFunctionImplicationsSimplified(f, tracker.state)
         addRangeRestrictions(fRangeRestrictions)
         addGeneralConstraints(fImplications)
     }
@@ -100,8 +100,8 @@ trait DefaultRDIScheme extends DependenceDifferentiation {
 
 trait DefaultConstantScheme extends SymmetryBreaker {
     override def breakConstants(sort: Sort, constants: IndexedSeq[AnnotatedVar]): Unit = {
-        val constantRangeRestrictions = Symmetry.csConstantRangeRestrictions(sort, constants, view)
-        val constantImplications = Symmetry.csConstantImplicationsSimplified(sort, constants, view)
+        val constantRangeRestrictions = Symmetry.csConstantRangeRestrictions(sort, constants, tracker.state)
+        val constantImplications = Symmetry.csConstantImplicationsSimplified(sort, constants, tracker.state)
         
         addRangeRestrictions(constantRangeRestrictions)
         addGeneralConstraints(constantImplications)

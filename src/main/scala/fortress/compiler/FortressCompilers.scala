@@ -12,7 +12,7 @@ class FortressZEROCompiler(integerSemantics: IntegerSemantics) extends BaseFortr
 
 class FortressONECompiler(integerSemantics: IntegerSemantics) extends BaseFortressCompiler(integerSemantics) {
     override def symmetryBreakingTransformers: Seq[ProblemStateTransformer] = Seq(
-        new SymmetryBreakingTransformer(AtoAOnlyAnyOrder, DefaultSymmetryBreaker)
+        new SymmetryBreakingTransformer(MonoOnlyAnyOrder, DefaultSymmetryBreaker)
     )
 }
 

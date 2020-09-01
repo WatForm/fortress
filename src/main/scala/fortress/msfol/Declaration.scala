@@ -18,6 +18,8 @@ case class FuncDecl private (name: String, argSorts: Seq[Sort], resultSort: Sort
 
     // Range-domain independent
     def isRDI: Boolean = !isRDD
+
+    def isMonoSorted: Boolean = argSorts.forall(_ == resultSort) && !resultSort.isBuiltin
     
     def isRainbowSorted: Boolean = isRDI && (argSorts.distinct == argSorts)
     
