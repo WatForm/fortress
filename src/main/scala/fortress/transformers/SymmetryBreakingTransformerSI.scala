@@ -30,10 +30,12 @@ class SymmetryBreakingTransformerSI(
                 yield {sort -> scopes(substitution(sort))}
             }.toMap
 
-            // Perform symmetry breaking on inferred theory, but select as if it wasn't there
+            if(substitution.isIdentity) return (new SymmetryBreakingTransformer(selectionHeuristic, symmetryBreakerFactory)).apply(problemState)
 
+            // Perform symmetry breaking on inferred theory, but select as if it wasn't there
             val breaker = symmetryBreakerFactory.create(infTheory, infScopes)
-            
+            val selector = new SelectAfterSubstitution(selectionHeuristic, substitution)
+
             breaker.breakConstants(infTheory.constants)
             
             // This weirdness exists to make sure that this version performs symmetry breaking
@@ -52,13 +54,17 @@ class SymmetryBreakingTransformerSI(
             @scala.annotation.tailrec
             def loop(usedFunctionsPredicates: Set[FuncDecl]): Unit = {
                 val remaining = fp diff usedFunctionsPredicates
-                selectionHeuristic.nextFunctionPredicate(breaker.stalenessState, remaining) match {
+                selector.nextFunctionPredicate(breaker.stalenessState, remaining) match {
                     case None => ()
-                    case Some(p @ FuncDecl(_, _, BoolSort)) => {
+                    case Some(p_sub @ FuncDecl(_, _, BoolSort)) => {
+                        // Have to look up function by name since sorts are substituted
+                        val p = infTheory.signature.functionWithName(p_sub.name).get
                         breaker.breakPredicate(p)
                         loop(usedFunctionsPredicates + p)
                     }
-                    case Some(f) => {
+                    case Some(f_sub) => {
+                        // Have to look up function by name since sorts are substituted
+                        val f = infTheory.signature.functionWithName(f_sub.name).get
                         breaker.breakFunction(f)
                         loop(usedFunctionsPredicates + f)
                     }

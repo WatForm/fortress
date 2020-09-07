@@ -2,6 +2,7 @@ package fortress.symmetry
 
 import fortress.msfol._
 import fortress.operations.TermOps._
+import fortress.operations._
 
 // An immutable view to look at the current usage of domain elements.
 // Sequences of domain elements are all returned in numerical order.
@@ -27,6 +28,33 @@ class StalenessState private (
     def domainElements(sort: Sort): IndexedSeq[DomainElement] = DomainElement.range(1 to scope(sort), sort)
     
     def createTrackerWithState: StalenessTracker = StalenessTracker.create(sorts, staleMap, scopeMap)
+
+    def afterSubstitution(sortSubstitution: SortSubstitution): StalenessState = {
+        val newSorts = sorts map sortSubstitution
+        val inverse: Map[Sort, Set[Sort]] = sortSubstitution.inverse
+        val newScopeMap: Map[Sort, Int] = {
+            for(sort <- newSorts) yield {
+                sort -> {
+                    val preImage = inverse(sort)
+                    preImage.map(scope(_)).max
+                }
+            }
+        }.toMap
+        val newStaleMap: Map[Sort, IndexedSeq[DomainElement]] = {
+            for(sort <- newSorts) yield {
+                sort -> {
+                    val preImage = inverse(sort)
+                    val domElems: Set[DomainElement] = for {
+                        s <- preImage
+                        de <- staleValues(s)
+                        de_sub = sortSubstitution.applyDE(de)
+                    } yield de_sub
+                    domElems.toIndexedSeq.sorted
+                }
+            }
+        }.toMap
+        StalenessState(newSorts, newScopeMap, newStaleMap)
+    }
 }
 
 object StalenessState {
