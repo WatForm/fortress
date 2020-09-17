@@ -16,7 +16,8 @@ object Simplifier {
             case Forall(vars, body) => simplifyStep(Forall(vars, simplifyFull(body)))
             // We consider applications and equals to be atomic and have non-Boolean arguments
             // so we need not recurse on their arguments
-            case Eq(_, _) | App(_, _) | BuiltinApp(_, _) => simplifyStep(term)
+            case Eq(_, _) | App(_, _) | BuiltinApp(_, _) | Closure(_, _, _, _)
+                | ReflexiveClosure(_, _, _, _) => simplifyStep(term)
             case Top | Bottom | Var(_) | EnumValue(_) | DomainElement(_, _)
                 | IntegerLiteral(_) | BitVectorLiteral(_, _) => term
             

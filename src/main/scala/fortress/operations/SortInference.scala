@@ -157,6 +157,8 @@ object SortInference {
             case EnumValue(_) => ???
             case DomainElement(_, _) => ???
             case BuiltinApp(_, _) => ???
+            case Closure(_, _, _, _) => ???
+            case ReflexiveClosure(_, _, _, _) => ???
             case IntegerLiteral(_) => ???
             case BitVectorLiteral(_, _) => ???
             case IfThenElse(condition, ifTrue, ifFalse) => {
