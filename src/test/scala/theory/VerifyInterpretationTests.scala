@@ -1,6 +1,5 @@
 import fortress.inputs.SmtLibSubsetParser.DistinctContext
 import org.scalatest._
-import org.junit.Assert._
 import fortress.msfol._
 import fortress.modelfind._
 import fortress.interpretation._
@@ -26,6 +25,9 @@ class VerifyInterpretationTests extends UnitSuite {
         def injectAxiomAndTest(theory: Theory, interpretation: Interpretation)(axiom: Term): Boolean = {
                 theory.withAxiom(axiom).verifyInterpretation(interpretation)
         }
+
+        def assertFalse(b: => Boolean): Unit = assert(!b)
+        def assertTrue(b: => Boolean): Unit = assert(b)
 
         def runBoolTests(): Unit = {
             val bool: Sort = Sort.Bool

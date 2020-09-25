@@ -107,10 +107,6 @@ public class Errors {
         return null;
     }
     
-    public static <T> T notImplemented() {
-        throw new scala.NotImplementedError();
-    }
-    
     public static void unsupported(String message) {
         throw new UnsupportedException("Unuspported: " + message);
     }
