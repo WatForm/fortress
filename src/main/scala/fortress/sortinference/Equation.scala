@@ -24,8 +24,7 @@ object Equation {
         
         // Returns the sort of the term, and the set of equations that unify it
         def recur(term: Term, context: ContextStack): (Sort, Set[Equation]) = term match {
-            case Top => (BoolSort, Set.empty)
-            case Bottom => (BoolSort, Set.empty)
+            case Top | Bottom => (BoolSort, Set.empty)
             case Var(name) => lookup(name, context) match {
                 case Some(sort) => (sort, Set.empty)
                 case None => (constantMap(name), Set.empty)
@@ -108,11 +107,47 @@ object Equation {
                 val (bodySort, bodyEqns) = recur(body, newContext)
                 (BoolSort, bodyEqns + Equation(bodySort, BoolSort))
             }
-            case EnumValue(_) => ???
-            case DomainElement(_, _) => ???
-            case BuiltinApp(_, _) => ???
-            case IntegerLiteral(_) => ???
-            case BitVectorLiteral(_, _) => ???
+            case DomainElement(index, sort) => {
+                (sort, Set.empty)
+            }
+            case BuiltinApp(fn: UnaryIntegerFunction, args) => {
+                val recurInfo = args map {recur(_, context)}
+                val recurArgSorts = recurInfo map (_._1)
+                val recurEqns = recurInfo flatMap (_._2)
+
+                // Add to equations that the argument sorts must be Int
+                val newEqns: Seq[Equation] =
+                    for(argSort <- recurArgSorts)
+                    yield Equation(argSort, IntSort)
+                
+                (IntSort, (recurEqns ++ newEqns).toSet)
+            }
+            case BuiltinApp(fn: BinaryIntegerFunction, args) => {
+                val recurInfo = args map {recur(_, context)}
+                val recurArgSorts = recurInfo map (_._1)
+                val recurEqns = recurInfo flatMap (_._2)
+
+                // Add to equations that the argument sorts must be Int
+                val newEqns: Seq[Equation] =
+                    for(argSort <- recurArgSorts)
+                    yield Equation(argSort, IntSort)
+                
+                (IntSort, (recurEqns ++ newEqns).toSet)
+            }
+            case BuiltinApp(fn: BinaryIntegerRelation, args) => {
+                val recurInfo = args map {recur(_, context)}
+                val recurArgSorts = recurInfo map (_._1)
+                val recurEqns = recurInfo flatMap (_._2)
+
+                // Add to equations that the argument sorts must be Int
+                val newEqns: Seq[Equation] =
+                    for(argSort <- recurArgSorts)
+                    yield Equation(argSort, IntSort)
+                
+                (BoolSort, (recurEqns ++ newEqns).toSet)
+            }
+            case IntegerLiteral(_) => (IntSort, Set.empty)
+            case BitVectorLiteral(value, bitwidth) => (BitVectorSort(bitwidth), Set.empty)
             case IfThenElse(condition, ifTrue, ifFalse) => {
                 val (condSort, condEqns) = recur(condition, context)
                 val (ifTrueSort, ifTrueEqns) = recur(ifTrue, context)
@@ -121,6 +156,14 @@ object Equation {
                 Errors.assertion(ifFalseSort != BoolSort)
                 (ifTrueSort, condEqns union ifTrueEqns union ifFalseEqns + Equation(condSort, BoolSort) + Equation(ifTrueSort, ifFalseSort))
             }
+            case EnumValue(_) => ???
+            // Unclear how to support bitvector functions when we don't know the bitwidth
+            // May just have to look at arguments and see if any of them give the bitwidth:
+            // if so, then that is the bitwidth we must use
+            // otherwise, say inference is not possible
+            case BuiltinApp(fn: UnaryBitVectorFunction, _) => ???
+            case BuiltinApp(fn: BinaryBitVectorFunction, _) => ???
+            case BuiltinApp(fn: BinaryBitVectorRelation, _) => ???
         }
         
         val recurInfo = formulas map {recur(_, List.empty)}
