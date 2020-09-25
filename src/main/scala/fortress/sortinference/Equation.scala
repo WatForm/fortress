@@ -10,7 +10,7 @@ object Equation {
     def accumulate(
         constantMap: Map[String, Sort],
         functionMap: Map[String, (Seq[Sort], Sort)],
-        formulas: Set[Term]
+        formulas: Set[Term] // We assume the input formulas must be sorted as Bool (we add these equations)
     ): Set[Equation] = {
 
         type ContextStack = List[AnnotatedVar]
@@ -31,21 +31,26 @@ object Equation {
                 case None => (constantMap(name), Set.empty)
             }
             case Not(p) => {
-                val (sort, eqns) = recur(p, context)
-                Errors.assertion(sort == BoolSort)
-                (BoolSort, eqns)
+                val (pSort, eqns) = recur(p, context)
+                (BoolSort, eqns + Equation(pSort, BoolSort))
             }
             case AndList(args) => {
                 val recurInfo = args map {recur(_, context)}
                 Errors.assertion(recurInfo forall (_._1 == BoolSort))
-                val eqns = recurInfo flatMap (_._2)
-                (BoolSort, eqns.toSet)
+                val recurSorts = recurInfo map (_._1)
+                val recurEqns = recurInfo flatMap (_._2)
+                // Each argument must be a boolean
+                val boolEqns = recurSorts map (Equation(_, BoolSort))
+                (BoolSort, recurEqns.toSet ++ boolEqns)
             }
             case OrList(args) => {
                 val recurInfo = args map {recur(_, context)}
                 Errors.assertion(recurInfo forall (_._1 == BoolSort))
-                val eqns = recurInfo flatMap (_._2)
-                (BoolSort, eqns.toSet)
+                val recurSorts = recurInfo map (_._1)
+                val recurEqns = recurInfo flatMap (_._2)
+                // Each argument must be a boolean
+                val boolEqns = recurSorts map (Equation(_, BoolSort))
+                (BoolSort, recurEqns.toSet ++ boolEqns)
             }
             case Distinct(args) => {
                 val recurInfo = args map {recur(_, context)}
@@ -57,16 +62,12 @@ object Equation {
             case Implication(p, q) => {
                 val (pSort, pEqns) = recur(p, context)
                 val (qSort, qEqns) = recur(q, context)
-                Errors.assertion(pSort == BoolSort)
-                Errors.assertion(qSort == BoolSort)
-                (BoolSort, pEqns union qEqns)
+                (BoolSort, pEqns union qEqns + Equation(pSort, BoolSort) + Equation(qSort, BoolSort))
             }
             case Iff(p, q) => {
                 val (pSort, pEqns) = recur(p, context)
                 val (qSort, qEqns) = recur(q, context)
-                Errors.assertion(pSort == BoolSort)
-                Errors.assertion(qSort == BoolSort)
-                (BoolSort, pEqns union qEqns)
+                (BoolSort, pEqns union qEqns + Equation(pSort, BoolSort) + Equation(qSort, BoolSort))
             }
             case Eq(l, r) => {
                 val (lSort, lEqns) = recur(l, context)
@@ -84,21 +85,11 @@ object Equation {
                 val recurEqns = recurInfo flatMap (_._2)
                 
                 // Add to equations that the argument sorts must match up
-                val newEqns: Seq[Option[Equation]] = {
+                val newEqns: Seq[Equation] =
                     for((sort1, sort2) <- argSorts zip recurArgSorts)
-                    yield { 
-                        (sort1, sort2) match {
-                            case (s1: SortConst, s2: SortConst) => Some(Equation(s1, s2))
-                            case (BoolSort, BoolSort) => None
-                            case _ => {
-                                Errors.assertion(false)
-                                ???
-                            }
-                        }
-                    }
-                }
+                    yield Equation(sort1, sort2)
                 
-                val eqns = (recurEqns ++ newEqns.flatten).toSet
+                val eqns = (recurEqns ++ newEqns).toSet
                 (resSort, eqns)
             }
             case Exists(avars, body) => {
@@ -107,8 +98,7 @@ object Equation {
                 // List[y: B, x: A]
                 val newContext = avars.toList.reverse ::: context
                 val (bodySort, bodyEqns) = recur(body, newContext)
-                Errors.assertion(bodySort == BoolSort)
-                (BoolSort, bodyEqns)
+                (BoolSort, bodyEqns + Equation(bodySort, BoolSort))
             }
             case Forall(avars, body) => {
                 // Must put variables on context stack in reverse
@@ -116,8 +106,7 @@ object Equation {
                 // List[y: B, x: A]
                 val newContext = avars.toList.reverse ::: context
                 val (bodySort, bodyEqns) = recur(body, newContext)
-                Errors.assertion(bodySort == BoolSort)
-                (BoolSort, bodyEqns)
+                (BoolSort, bodyEqns + Equation(bodySort, BoolSort))
             }
             case EnumValue(_) => ???
             case DomainElement(_, _) => ???
@@ -128,17 +117,17 @@ object Equation {
                 val (condSort, condEqns) = recur(condition, context)
                 val (ifTrueSort, ifTrueEqns) = recur(ifTrue, context)
                 val (ifFalseSort, ifFalseEqns) = recur(ifFalse, context)
-                Errors.assertion(condSort == BoolSort)
                 Errors.assertion(ifTrueSort != BoolSort)
                 Errors.assertion(ifFalseSort != BoolSort)
-                (ifTrueSort, (condEqns union ifTrueEqns union ifFalseEqns) + Equation(ifTrueSort, ifFalseSort))
+                (ifTrueSort, condEqns union ifTrueEqns union ifFalseEqns + Equation(condSort, BoolSort) + Equation(ifTrueSort, ifFalseSort))
             }
         }
         
         val recurInfo = formulas map {recur(_, List.empty)}
         val recurSorts = recurInfo map (_._1)
-        Errors.assertion(recurSorts forall (_ == BoolSort))
         val equations = (recurInfo flatMap (_._2))
-        equations
+        // Add equations saying that all formulas must be boolean
+        val formulaEquations = recurSorts.map(Equation(_, BoolSort))
+        equations ++ formulaEquations.toSet
     }
 }
