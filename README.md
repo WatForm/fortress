@@ -1,66 +1,60 @@
 # Fortress
 
-Fortress is a library for finite model finding in many-sorted first order logic (MSFOL) with equality.
+Fortress is a command-line tool for finite model finding in many-sorted first order logic (MSFOL) with equality.
 
-Fortress consists of two main parts:
-* An internal Domain Specific Language (DSL) in Java for creating MSFOL formulas/theories/problems
-* A tool for searching for finite models that satisfy such theories
+Fortress takes as input:
+* a first-order logic theory specified in SMT-LIB 2.6 format (the UF fragment), and
+* a domain size ("scope") for each sort.
 
-Fortress is written in Scala, but is intended to be used by Java users and *not* Scala users.
+It answers whether the theory has a satisfying interpretation with respect to those domain sizes.
 
-It was original described in the paper "Finite Model Finding Using the Logic of Equality with Uninterpreted Functions", [available here](https://cs.uwaterloo.ca/~nday/pdf/refereed/2016-VaDa-fm.pdf), and has been re-implemented to create a powerful and general tool.
+Fortress was original described in the paper "Finite Model Finding Using the Logic of Equality with Uninterpreted Functions", [available here](https://cs.uwaterloo.ca/~nday/pdf/refereed/2016-VaDa-fm.pdf), and has been re-implemented to create a powerful and general tool.
 
-## System Requirements
-Fortress requires Java 10 or higher to build and run.
+## Using Fortress
 
-## Overview
-
-To use Fortress, there are three steps:
-1. Install the command line versions of the `Z3` and `CVC4` SMT solvers.
-2. Build the Fortress code.
-3. Use the Fortress library in your own project.
-
-## Setup
-
-The developers primarily use `MacOS`, with additional testing done on `Ubuntu`.
-We do not currently test on `Windows`, but building and running Fortress should still work correctly.
-
-Perform the following steps.
-
-1. Install the Z3 command line tool, version 4.8.4 or higher. Binaries are [available here](https://github.com/Z3Prover/z3/releases).
+### System Requirements
+The following are necessary to run Fortress:
+* Java 10 or higher. 
+* A command-line installation of the `Z3` SMT solver, version 4.8.4 or higher.
+    * Binaries are [available here](https://github.com/Z3Prover/z3/releases).
     * If using MacOS, we recommend using Homebrew: `brew install z3`.
     * If on `Ubuntu`, do not use `apt-get`, since its version of Z3 is out of date.
-2. Install the latest stable version of the CVC4 command line tool. Binaries are [available here](https://cvc4.github.io/downloads.html). Make sure that the executable is named `cvc4` and is on your PATH. To make sure that cvc4 is properly installed, open up terminal and type `cvc4`. CVC4 should open in interactive mode.
-    * If using MacOS, we recommend using Homebrew: `brew install cvc4`.
+
+### Running Fortress
+After unzipping Fortress, and adding its `bin` directory to your PATH, run it using the `fortress` command.
+
+Options:
+* `--mode {MODE}` - Sets the mode. The options are `decision`, `count`, and `compile`.
+* `--version {VERSION}`- Sets the version. The options are `v0`, `v1`, `v2`, `v2si`, `v3`, and `v3si`.
+* `-S {SORT}={SCOPE}` - Sets the scope of a sort.
+* `--scope {SCOPE}` - Sets the default scope to use when a sort has no specified scope. This is overriden by `-S` for a specific sort.
+
+Example usage:
+```
+fortress --mode decision -S A=3 B=2 --version v0 function.smt2
+```
+This generates a theory using the `function.smt2` file, and determines whether there is a satisfying interpretation for this theory where the scope of sort `A` is 3 and the scope of sort `B` is 2.
 
 ## Building Fortress
-Java 10 or higher is required to build Fortress.
-Fortress uses the Gradle build system through calls to `./gradlew` as described below.
-If running Windows, run `gradle.bat` instead of `./gradlew` in the steps below.
-Any use of `./gradlew` will automatically download the appropriate version of the build system, as well any additional dependencies for Fortress.
+The following are necessary to build Fortress:
+* Java 10 or higher
+* A command line installation of the `Z3` SMT solver, version 4.8.4 or higher.
+    * Binaries are [available here](https://github.com/Z3Prover/z3/releases).
+    * If using MacOS, we recommend using Homebrew: `brew install z3`.
+    * If on `Ubuntu`, do not use `apt-get`, since its version of Z3 is out of date.
+* A command line installation of the `CVC4` SMT solver.
+    * If using MacOS, we recommend using Homebrew: `brew install cvc4`.
+* The `sbt` build tool.
 
 ### Complete Build
-Run `./gradlew build`.
-This will compile the code, run unit tests, and produce archive files in both zip and tar formats that contain a Fortress jar and all of its runtime dependencies.
-The archives will be located in `build/distributions`.
+Run `sbt dist`.
+This will compile the code produce a universal zip archive in the `target/universal` directory.
 
-### Compiling
-Run `./gradlew compileScala`.
+### Compile Only
+Run `sbt compile`.
 
 ### Running Unit Tests
-Run `./gradlew test`.
-Note that you may need to run `./gradlew cleanTest test` to run all of the tests, since Gradle may not run tests that it believes are up to date.
-
-## Using the Fortress library in your own project
-
-Follow the below instructions.
-Check out the `examples/` directory for some examples of how to use Fortress in your own project.
-
-1. Follow the steps for setting up and building Fortress (above).
-2. Copy `build/distributions/fortress-2.0.tar` or `build/distributions/fortress-2.0.zip` (both archives contain the same files) to an appropriate location, such as a `libs` folder for your project.
-3. Unzip the archive.
-4. When compiling and running, ensure that the files from this archive are in your Java `classpath`.
-    * For example, if the files are in the `libs` directory of your project, you can add `-cp ".:libs/*"` to `javac`, which says to look for class files in current directory and also jars in the libs directory.
+Run `sbt test`.
     
 ## Troubleshooting
 

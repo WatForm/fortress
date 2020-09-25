@@ -1,5 +1,6 @@
-scalaVersion := "2.13.2"
-organization := "ca.uwaterloo.watform"
+ThisBuild / version      := "0.1.0"
+ThisBuild / scalaVersion := "2.13.2"
+ThisBuild / organization := "ca.uwaterloo.watform"
 
 // Antlr
 enablePlugins(Antlr4Plugin)
@@ -12,13 +13,16 @@ antlr4TreatWarningsAsErrors in Antlr4 := true // default: false
 // Scalatest
 libraryDependencies += "org.scalatest" %% "scalatest" % "3.1.0" % Test
 
-// HTML test report
-// libraryDependencies += "org.pegdown" % "pegdown" % "1.6.0" % Test
-// testOptions in Test += Tests.Argument(TestFrameworks.ScalaTest, "-h", "target/test-reports")
+// Command line tools
+libraryDependencies += "org.rogach" %% "scallop" % "3.5.1"
 
 // Use Java 10
 javacOptions ++= Seq("-source", "10", "-target", "10")
 scalacOptions += "-target:jvm-10"
 
-// Sbt assembly for creating fat jars with all dependencies
-test in assembly := {} // Do not run unit tests
+// Sbt native packaging for creating zip file
+enablePlugins(JavaAppPackaging)
+
+// Disable documentation generation
+sources in (Compile,doc) := Seq.empty
+publishArtifact in (Compile, packageDoc) := false
