@@ -4,6 +4,7 @@ import fortress.msfol._
 import fortress.operations.TermOps._
 import fortress.util.Errors
 import fortress.operations._
+import fortress.sortinference._
 
 trait SelectionHeuristic {
     

@@ -1,4 +1,4 @@
-package fortress.operations
+package fortress.sortinference
 
 import scala.language.implicitConversions
 import fortress.msfol._
@@ -11,7 +11,7 @@ import scala.collection.mutable
  * Trait that extends a function from Sort to Sort by applying it to all Sorts appearing 
  * in a term, declaration, signature, theory, etc.
  */
-trait SortApplication {
+trait GeneralSortSubstitution {
     
     // The function from Sorts to Sorts
     def apply(sort: Sort): Sort
@@ -83,21 +83,27 @@ trait SortApplication {
     def apply(rangeRestriction: RangeRestriction): RangeRestriction = rangeRestriction match {
         case RangeRestriction(term, values) => RangeRestriction(apply(term), values map applyDE)
     }
+
+    def apply(equation: Equation): Equation = equation match {
+        case Equation(s, t) => Equation(apply(s), apply(t))
+    }
     
 }
 
-object SortApplication {
+object GeneralSortSubstitution {
     // Because of type erasure we can't extend both Function[Sort, Sort] and Function[Term, Term]
     // so we use delegation and implicits to simulate this
     
-    implicit def asSortFunction(sigma: SortApplication): Sort => Sort = (sort => sigma(sort))
+    implicit def asSortFunction(sigma: GeneralSortSubstitution): Sort => Sort = (sort => sigma(sort))
     
-    implicit def asTermFunction(sigma: SortApplication): Term => Term = (term => sigma(term))
+    implicit def asTermFunction(sigma: GeneralSortSubstitution): Term => Term = (term => sigma(term))
 
-    implicit def asDeclFunction(sigma: SortApplication): FuncDecl => FuncDecl = (f => sigma(f))
+    implicit def asDeclFunction(sigma: GeneralSortSubstitution): FuncDecl => FuncDecl = (f => sigma(f))
 }
 
-class SortSubstitution(mapping: Map[Sort, Sort]) extends SortApplication {
+class SortSubstitution(_mapping: Map[Sort, Sort]) extends GeneralSortSubstitution {
+
+    private val mapping: Map[Sort, Sort] = Maps.removeFixedPoints(_mapping)
     
     override def apply(sort: Sort): Sort =
         if(mapping.isDefinedAt(sort)) mapping(sort)
@@ -115,6 +121,17 @@ class SortSubstitution(mapping: Map[Sort, Sort]) extends SortApplication {
     def isBijectiveRenaming: Boolean = Maps.isInjective(mapping)
     
     def isIdentity: Boolean = Maps.isIdentity(mapping)
+
+    def domain: Set[Sort] = mapping.keySet
+
+    def compose(other: SortSubstitution): SortSubstitution = {
+        val sigma = this
+        val gamma = other
+        // Sigma compose Gamma
+        val kind1 = for((x, t) <- gamma.mapping) yield (x -> sigma(t))
+        val kind2 = for((x, t) <- sigma.mapping if !(gamma.domain contains x)) yield (x -> t)
+        new SortSubstitution(kind1 ++ kind2)
+    }
 }
 
 object SortSubstitution {
@@ -147,4 +164,6 @@ object SortSubstitution {
     }
     
     def identity: SortSubstitution = new SortSubstitution(Map.empty)
+
+    def singleton(substitution: (Sort, Sort)): SortSubstitution = new SortSubstitution(Map(substitution))
 }

@@ -1,5 +1,7 @@
 package fortress.util
 
+import fortress.util.Errors
+
 object Maps {
     def noConflict[A, B](map1: Map[A, B], map2: Map[A, B]): Boolean = {
         val commonKeys = map1.keySet.intersect(map2.keySet)
@@ -17,5 +19,12 @@ object Maps {
     
     def isIdentity[A](map: Map[A, A]): Boolean = {
         map.forall{case (x, y) => x == y}
+    }
+
+    def removeFixedPoints[A >: Null](map: Map[A, A]): Map[A, A] = {
+        Errors.precondition(map != null)
+        Errors.precondition(!map.keySet.contains(null))
+        Errors.precondition(!map.values.toSet.contains(null))
+        map.filter{ case (k, v) => k != v }
     }
 }

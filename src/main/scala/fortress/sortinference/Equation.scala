@@ -1,55 +1,20 @@
-package fortress.operations
+package fortress.sortinference
 
 import fortress.msfol._
 import fortress.util.Errors
-import scala.collection.mutable
-import fortress.data._
-import scala.language.implicitConversions
 
 case class Equation(x: Sort, y: Sort)
 
-// Only allows for Bool and SortConst
-object SortInference {
-    
-    type ContextStack = List[AnnotatedVar]
-    
-    def inferSorts(theory: Theory): (Theory, SortSubstitution) = {
-        /** 
-            Booleans don't need to be factored into equation solving.
-            Only solve equations between type variables.
-        */
-        def sortVar(index: Int): SortConst = SortConst("S" + index.toString)
-        
-        def sortVarAsInt(s: SortConst): Int = s.name.tail.toInt
-        
-        object freshSubstitution extends SortApplication {
-            var index = 0
-            def freshInt(): Int = {
-                val temp = index
-                index += 1
-                temp
-            }
-            
-            override def apply(sort: Sort) = sort match {
-                case SortConst(_) => sortVar(freshInt())
-                case sort => sort
-            }
-        }
-        
-        // Associate each constant with a fresh sort variable
-        val constantMap: Map[String, Sort] = theory.constants.map {c => c.name -> freshSubstitution(c).sort}.toMap
-        
-        // Associate each function with a collection of fresh sorts
-        val fnMap: Map[String, (Seq[Sort], Sort)] = theory.functionDeclarations.map { f => {
-            Errors.precondition(f.argSorts.forall(!_.isBuiltin))
-            val f_sub = freshSubstitution(f)
-            f.name -> (f_sub.argSorts, f_sub.resultSort)
-        }}.toMap
-        
-        val replacedAxioms = theory.axioms map freshSubstitution
-        
-        // Gather equations
-        
+object Equation {
+
+    def accumulate(
+        constantMap: Map[String, Sort],
+        functionMap: Map[String, (Seq[Sort], Sort)],
+        formulas: Set[Term]
+    ): Set[Equation] = {
+
+        type ContextStack = List[AnnotatedVar]
+
         // Lookup the sort of a variable based on the current context
         def lookup(name: String, context: ContextStack): Option[Sort] = context match {
             case Nil => None
@@ -112,7 +77,7 @@ object SortInference {
                 (BoolSort, (lEqns union rEqns) + Equation(lSort, rSort) )
             }
             case App(name, args) => {
-                val (argSorts, resSort) = fnMap(name)
+                val (argSorts, resSort) = functionMap(name)
                 Errors.assertion(argSorts.size == args.size)
                 val recurInfo = args map {recur(_, context)}
                 val recurArgSorts = recurInfo map (_._1)
@@ -170,68 +135,10 @@ object SortInference {
             }
         }
         
-        val recurInfo = replacedAxioms map {recur(_, List.empty)}
+        val recurInfo = formulas map {recur(_, List.empty)}
         val recurSorts = recurInfo map (_._1)
         Errors.assertion(recurSorts forall (_ == BoolSort))
-        val equations = (recurInfo flatMap (_._2)).toList
-        
-        // Errors.assertion(false, equations.toString)
-        
-        // Solve Equations
-        val unionFind = new SimpleUnionFind
-        for(Equation(lsort, rsort) <- equations) {
-            (lsort, rsort) match {
-                case (lsort: SortConst, rsort: SortConst) => {
-                    val lInt = sortVarAsInt(lsort)
-                    val rInt = sortVarAsInt(rsort)
-                    unionFind.union(lInt, rInt)
-                }
-                case _ => ???
-            }
-        }
-        
-        // Substitute sorts
-        object sortSubstitution extends SortApplication {
-            override def apply(sort: Sort): Sort = sort match {
-                case s @ SortConst(indexStr) => {
-                    val index = sortVarAsInt(s)
-                    val representative = unionFind.find(index)
-                    sortVar(representative)
-                }
-                case BoolSort => BoolSort
-                case _ => ???
-            }
-        }
-        
-        val newConstants: Set[AnnotatedVar] = theory.constants map (av => {
-            Var(av.name) of sortSubstitution(constantMap(av.name))
-        })
-        
-        val newFunctions: Set[FuncDecl] = theory.functionDeclarations map (f => {
-            val (argSorts, resSort) = fnMap(f.name)
-            val newArgSorts: Seq[Sort] = argSorts map sortSubstitution
-            val newResSort = sortSubstitution(resSort)
-            FuncDecl(f.name, newArgSorts, newResSort)
-        })
-        
-        val newAxioms: Set[Term] = replacedAxioms map sortSubstitution
-        
-        val usedSorts: Set[Sort] = { for(i <- 0 to (freshSubstitution.index - 1)) yield sortVar(unionFind.find(i)) }.toSet
-        
-        val generalTheory = Theory.empty
-            .withSorts(usedSorts.toSeq : _*)
-            .withConstants(newConstants)
-            .withFunctionDeclarations(newFunctions)
-            .withAxioms(newAxioms)
-        
-        val substitution = SortSubstitution.computeSigMapping(generalTheory.signature, theory.signature)
-        
-        // If the substitution does nothing except rename sorts (i.e. sort inference did nothing)
-        // then just return the original theory
-        // Otherwise, return the more general inferred theory
-        if(substitution.isBijectiveRenaming)
-            (theory, SortSubstitution.identity)
-        else (generalTheory, substitution)
+        val equations = (recurInfo flatMap (_._2))
+        equations
     }
-    
 }

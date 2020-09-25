@@ -5,6 +5,7 @@ import scala.jdk.CollectionConverters._
 
 import fortress.msfol._
 import fortress.operations._
+import fortress.sortinference._
 
 trait Interpretation {
     def sortInterpretations: Map[Sort, Seq[Value]]

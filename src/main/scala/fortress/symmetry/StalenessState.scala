@@ -3,6 +3,7 @@ package fortress.symmetry
 import fortress.msfol._
 import fortress.operations.TermOps._
 import fortress.operations._
+import fortress.sortinference._
 
 // An immutable view to look at the current usage of domain elements.
 // Sequences of domain elements are all returned in numerical order.
