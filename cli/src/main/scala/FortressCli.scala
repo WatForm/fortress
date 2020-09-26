@@ -18,6 +18,7 @@ class Conf(arguments: Seq[String]) extends ScallopConf(arguments) {
     val file = trailArg[String](required = true)
     val scopeMap = props[Int]('S')
     val debug = opt[Boolean]()
+    val timeout = opt[Int](required = true) // Timeout in seconds
     verify()
 }
 
@@ -45,7 +46,6 @@ object FortressCli {
             scopes += (Sort.mkSortConst(sortName) -> scope)
         }
 
-        val timeout = 100000000
         val integerSemantics = Unbounded
 
         conf.mode() match {
@@ -63,7 +63,7 @@ object FortressCli {
                 for((sort, scope) <- scopes) {
                     modelFinder.setAnalysisScope(sort, scope)
                 }
-                modelFinder.setTimeout(timeout)
+                modelFinder.setTimeout(Seconds(conf.timeout()))
                 modelFinder.setBoundedIntegers(integerSemantics)
 
                 val count = modelFinder.countValidModels(theory)
@@ -82,7 +82,7 @@ object FortressCli {
                 val loggers = if(conf.debug()) {
                     Seq(new StandardLogger(new PrintWriter(System.out)))
                 } else Seq()
-                val output = compiler.compile(theory, scopes, Milliseconds(timeout), loggers)
+                val output = compiler.compile(theory, scopes, Seconds(conf.timeout()).toMilli, loggers)
                 output match {
                     case Left(err) => println(err)
                     case Right(result) => println(result.theory)
@@ -110,7 +110,7 @@ object FortressCli {
                 for((sort, scope) <- scopes) {
                     modelFinder.setAnalysisScope(sort, scope)
                 }
-                modelFinder.setTimeout(timeout)
+                modelFinder.setTimeout(Seconds(conf.timeout()))
                 modelFinder.setBoundedIntegers(integerSemantics)
 
                 val result = modelFinder.checkSat()

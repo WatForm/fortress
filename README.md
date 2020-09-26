@@ -21,7 +21,7 @@ The following are necessary to run Fortress:
     * If on `Ubuntu`, do not use `apt-get`, since its version of Z3 is out of date.
 
 ### Running Fortress
-After unzipping Fortress, and adding its `bin` directory to your PATH, run it using the `fortress` command.
+After unzipping `fortress-x.y.z.jar`, and adding its `bin` directory to your PATH, run Fortress using the `fortress` command.
 
 Options:
 * `--mode {MODE}` - Sets the mode. The options are `decision`, `count`, and `compile`.
@@ -43,12 +43,25 @@ The following are necessary to build Fortress:
     * If using MacOS, we recommend using Homebrew: `brew install z3`.
     * If on `Ubuntu`, do not use `apt-get`, since its version of Z3 is out of date.
 * A command line installation of the `CVC4` SMT solver.
-    * If using MacOS, we recommend using Homebrew: `brew install cvc4`.
-* The `sbt` build tool.
+    * If using MacOS, we recommend using Homebrew: `brew tap cvc4/cvc4 && brew install cvc4`.
+* The sbt build tool.
+
+### Build System Overview
+This repository contains a multi-project sbt build, with the following projects:
+* `fortressCore`, the main functionality of Fortress
+* `fortress`, the command line interface of Fortress (depends on `fortressCore`)
+* `fortressDebug`, a command line interface for debugging Fortress (depends on `fortressCore`)
+* `root`, the root project which aggregates `fortress` and `fortressDebug`
+
+Building the `root` project (default) is the easiest way to build Fortress.
+To use Fortress on the command line, you want the output from the `fortress` project. 
 
 ### Complete Build
 Run `sbt dist`.
-This will compile the code produce a universal zip archive in the `target/universal` directory.
+This will compile the code produce universal zip archives:
+* For the `fortress` project, the output zip is in the `cli/target/universal/` directory.
+* For the `fortressCore` project, the output zip is in the `core/target/universal/` directory.
+* For the `fortressDebug` project, the output zip is in the `debug/target/universal/` directory.
 
 ### Compile Only
 Run `sbt compile`.

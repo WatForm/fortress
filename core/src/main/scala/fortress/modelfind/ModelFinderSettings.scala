@@ -20,9 +20,9 @@ trait ModelFinderSettings extends ModelFinder {
         theory = newTheory
     }
     
-    override def setTimeout(milliseconds: Int): Unit = {
-        Errors.precondition(milliseconds >= 0)
-        timeoutMilliseconds = Milliseconds(milliseconds)
+    override def setTimeout(milliseconds: Milliseconds): Unit = {
+        Errors.precondition(milliseconds >= Milliseconds(0))
+        timeoutMilliseconds = milliseconds
     }
     
     override def setAnalysisScope(t: Sort, size: Int): Unit = {

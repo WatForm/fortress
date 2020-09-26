@@ -1,5 +1,20 @@
 package fortress.util
 
+class Seconds(val value: Int) {
+    def >(other: Seconds): Boolean = value > other.value
+    def >=(other: Seconds): Boolean = value >= other.value
+    def <(other: Seconds): Boolean = value < other.value
+    def <=(other: Seconds): Boolean = value <= other.value
+    def +(other: Seconds): Seconds = new Seconds(value + other.value)
+    def -(other: Seconds): Seconds = new Seconds(value - other.value)
+    
+    def toMilli: Milliseconds = Milliseconds(value * 1000)
+}
+
+object Seconds {
+    def apply(value: Int): Seconds = new Seconds(value)
+}
+
 class Milliseconds(val value: Int) {
     def >(other: Milliseconds): Boolean = value > other.value
     def >=(other: Milliseconds): Boolean = value >= other.value
