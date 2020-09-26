@@ -6,7 +6,7 @@ Fortress takes as input:
 * a first-order logic theory specified in SMT-LIB 2.6 format (the UF fragment), and
 * a domain size ("scope") for each sort.
 
-It answers whether the theory has a satisfying interpretation with respect to those domain sizes.
+It answers whether the theory has a satisfying interpretation (a "model") with respect to those domain sizes.
 
 Fortress was original described in the paper "Finite Model Finding Using the Logic of Equality with Uninterpreted Functions", [available here](https://cs.uwaterloo.ca/~nday/pdf/refereed/2016-VaDa-fm.pdf), and has been re-implemented to create a powerful and general tool.
 
@@ -24,16 +24,32 @@ The following are necessary to run Fortress:
 After unzipping `fortress-x.y.z.jar`, and adding its `bin` directory to your PATH, run Fortress using the `fortress` command.
 
 Options:
-* `--mode {MODE}` - Sets the mode. The options are `decision`, `count`, and `compile`.
-* `--version {VERSION}`- Sets the version. The options are `v0`, `v1`, `v2`, `v2si`, `v3`, and `v3si`.
-* `-S {SORT}={SCOPE}` - Sets the scope of a sort.
+* `--timeout {SECONDS}`- Sets the timeout in seconds.
+* `-S {SORT}={SCOPE}` - Sets the scope of a sort. This option can be used multiple times (the `-S` can be omitted after the first use).
 * `--scope {SCOPE}` - Sets the default scope to use when a sort has no specified scope. This is overriden by `-S` for a specific sort.
+* `--generate` - Generate a model if one exists.
 
 Example usage:
 ```
-fortress --mode decision -S A=3 B=2 --version v0 function.smt2
+fortress --timeout 30 -S A=3 B=2 --generate function.smt2
 ```
-This generates a theory using the `function.smt2` file, and determines whether there is a satisfying interpretation for this theory where the scope of sort `A` is 3 and the scope of sort `B` is 2.
+This creates a theory using the `function.smt2` file, and determines whether there is a satisfying interpretation for this theory where the scope of sort `A` is 3 and the scope of sort `B` is 2.
+Such a model exists, so the program outputs `Sat` and writes out the model.
+
+### Running Fortress Debug Tools (Developers)
+After unzipping `fortressdebug-x.y.z.jar`, run the debug tools using the `./fortressdebug-x.y.z/bin/fortressdebug` command.
+
+Options:
+* `--timeout {SECONDS}`- Sets the timeout in seconds.
+* `-S {SORT}={SCOPE}` - Sets the scope of a sort. This option can be used multiple times (the `-S` can be omitted after the first use).
+* `--scope {SCOPE}` - Sets the default scope to use when a sort has no specified scope. This is overriden by `-S` for a specific sort.
+* `--mode {MODE}` - Sets the mode. The options are `decision`, `count`, and `compile`.
+* `--version {VERSION}`- Sets the model finder and compiler version. The options are `v0`, `v1`, `v2`, `v2si`, `v3`, and `v3si`.
+
+Example usage:
+```
+./fortressdebug-x.y.z/bin/fortressdebug --timeout 60 --mode count -S A=3 B=2 --version v0 function.smt2
+```
 
 ## Building Fortress
 The following are necessary to build Fortress:
