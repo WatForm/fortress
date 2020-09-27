@@ -32,7 +32,7 @@ class StalenessState private (
 
     def afterSubstitution(sortSubstitution: SortSubstitution): StalenessState = {
         val newSorts = sorts map sortSubstitution
-        val inverse: Map[Sort, Set[Sort]] = sortSubstitution.inverse
+        val inverse: Sort => Set[Sort] = sortSubstitution.inverse
         val newScopeMap: Map[Sort, Int] = {
             for(sort <- newSorts) yield {
                 sort -> {

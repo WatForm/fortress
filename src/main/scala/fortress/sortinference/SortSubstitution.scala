@@ -105,17 +105,16 @@ class SortSubstitution(_mapping: Map[Sort, Sort]) extends GeneralSortSubstitutio
 
     private val mapping: Map[Sort, Sort] = Maps.removeFixedPoints(_mapping)
     
-    override def apply(sort: Sort): Sort =
-        if(mapping.isDefinedAt(sort)) mapping(sort)
-        else sort
+    override def apply(sort: Sort): Sort = mapping.getOrElse(sort, sort)
     
     override def toString: String = mapping.toString
     
-    def inverse: Map[Sort, Set[Sort]] = {
+    def inverse: Sort => Set[Sort] = {
         val tuplesByValue: Map[Sort, Seq[(Sort, Sort)]] = mapping.toSeq.groupBy(_._2)
-        tuplesByValue.map {
+        val inverseMapping: Map[Sort, Set[Sort]] = tuplesByValue.map {
             case (sort, seq) => (sort, seq.map(_._1).toSet)
         }.toMap
+        (sort: Sort) => inverseMapping.getOrElse(sort, Set(sort))
     }
     
     def isBijectiveRenaming: Boolean = Maps.isInjective(mapping)
