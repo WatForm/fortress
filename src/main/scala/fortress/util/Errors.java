@@ -110,6 +110,14 @@ public class Errors {
     public static <T> T notImplemented() {
         throw new scala.NotImplementedError();
     }
+
+    public static <T> T fail(String message) {
+        throw new RuntimeException(message);
+    }
+
+    public static <T> T preconditionFailed(String message) {
+        throw new PreconditionException(message);
+    }
     
     public static void unsupported(String message) {
         throw new UnsupportedException("Unuspported: " + message);

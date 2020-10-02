@@ -41,12 +41,13 @@ object SortInference {
             f.name -> (f_sub.argSorts, f_sub.resultSort)
         }}.toMap
         
-        val replacedAxioms = theory.axioms map freshSubstitution
+        // Maps original theory axiom to fresh axiom
+        val freshAxioms: Map[Term, Term] = { theory.axioms map (ax => ax -> freshSubstitution(ax)) }.toMap
         
         // Gather equations
-        val equations: Set[Equation] = Equation.accumulate(constantMap, fnMap, replacedAxioms)
+        val equations: Set[Equation] = Equation.accumulate(constantMap, fnMap, freshAxioms.values.toSet)
         
-        // Solve Equations
+        // Solve Equations, giving substitution from fresh theory to general theory
         val sortSubstitution = Unification.unify(equations.toList)
         
         // Create new signature and terms using substitution
@@ -61,7 +62,8 @@ object SortInference {
             FuncDecl(f.name, newArgSorts, newResSort)
         })
         
-        val newAxioms: Set[Term] = replacedAxioms map sortSubstitution
+        // Maps original theory axiom to general axiom 
+        val generalAxioms: Map[Term, Term] = for((originAx, freshAx) <- freshAxioms) yield (originAx -> sortSubstitution(freshAx))
         
         val usedSorts: Set[Sort] = (0 to (freshSubstitution.index - 1)).map(sortVar(_)).map(sortSubstitution(_)).toSet
         
@@ -69,9 +71,12 @@ object SortInference {
             .withSorts(usedSorts.toSeq : _*)
             .withConstants(newConstants)
             .withFunctionDeclarations(newFunctions)
-            .withAxioms(newAxioms)
+            .withAxioms(generalAxioms.values)
         
-        val substitution = SortSubstitution.computeSigMapping(generalTheory.signature, theory.signature)
+        // Now have to compute substitution to go from general theory to original theory
+        val substitutionsFromTerms = for((originalAx, generalAx) <- generalAxioms) yield SortSubstitution.computeTermMapping(generalAx, originalAx)
+        val substitutionFromSignature = SortSubstitution.computeSigMapping(generalTheory.signature, theory.signature)
+        val substitution = substitutionsFromTerms.foldLeft(substitutionFromSignature)((sub, next) => sub union next)
         
         // If the substitution does nothing except rename sorts (i.e. sort inference did nothing)
         // then just return the original theory
