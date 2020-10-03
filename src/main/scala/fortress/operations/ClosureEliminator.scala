@@ -4,6 +4,7 @@ import fortress.msfol._
 import fortress.data.NameGenerator
 import fortress.util.Errors
 import java.lang.IllegalArgumentException
+import java.util.ArrayList
 
 import scala.jdk.CollectionConverters._
 
@@ -66,7 +67,7 @@ class ClosureEliminator(topLevelTerm: Term, signature: Signature, scopes: Map[So
             def queryFunction(name: String): Boolean = signature.hasFunctionWithName(name) || closureFunctions.exists(f => f.name == name)
             if (!queryFunction(closureName)) {
                 val rel = signature.queryUninterpretedFunction(functionName).get
-                var argSorts = rel.argSorts.asJava
+                var argSorts = new ArrayList(rel.argSorts.asJava)
                 val sort = argSorts.get(idx)
                 closureFunctions += FuncDecl.mkFuncDecl(closureName, argSorts, Sort.Bool)
                 val vars = List.tabulate(argSorts.size-2)(_ => Var(nameGen.freshName("bv")))
@@ -77,7 +78,7 @@ class ClosureEliminator(topLevelTerm: Term, signature: Signature, scopes: Map[So
                 val az = z.of(sort)
                 val scope = scopes(sort)
                 def getVarList(v1: Var, v2: Var): List[Var] = (vars.slice(0, idx) :+ v1 :+ v2) ::: vars.slice(idx+2, vars.size)
-                if (scope < 8) {
+                if (scope < 100) {
                     for (s <- 1 until scala.math.ceil(scala.math.log(scope)/scala.math.log(2)).toInt) {
                         val newFunctionName = nameGen.freshName(functionName);
                         closureFunctions += FuncDecl.mkFuncDecl(newFunctionName, argSorts, Sort.Bool)
@@ -114,7 +115,7 @@ class ClosureEliminator(topLevelTerm: Term, signature: Signature, scopes: Map[So
             def queryFunction(name: String): Boolean = signature.hasFunctionWithName(name) || closureFunctions.exists(f => f.name == name)
             if (!queryFunction(reflexiveClosureName)) {
                 val rel = signature.queryUninterpretedFunction(functionName).get
-                var argSorts = rel.argSorts.asJava
+                var argSorts = new ArrayList(rel.argSorts.asJava)
                 val sort = argSorts.get(idx)
                 closureFunctions += FuncDecl.mkFuncDecl(reflexiveClosureName, argSorts, Sort.Bool)
                 val vars = List.tabulate(argSorts.size-2)(_ => Var(nameGen.freshName("bv")))
@@ -125,7 +126,7 @@ class ClosureEliminator(topLevelTerm: Term, signature: Signature, scopes: Map[So
                 val az = z.of(sort)
                 val scope = scopes(sort)
                 def getVarList(v1: Var, v2: Var): List[Var] = (vars.slice(0, idx) :+ v1 :+ v2) ::: vars.slice(idx+2, vars.size)
-                if (scope > 8) {
+                if (scope > 100) {
                     val helperName = nameGen.freshName(functionName);
                     argSorts.add(sort)
                     closureFunctions += FuncDecl.mkFuncDecl(helperName, argSorts, Sort.Bool);
