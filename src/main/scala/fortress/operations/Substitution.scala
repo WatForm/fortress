@@ -105,6 +105,7 @@ object FastSubstituter {
                 case Iff(p, q) => Iff(sub(sigma, p), sub(sigma, q))
                 case Eq(l, r) => Eq(sub(sigma, l), sub(sigma, r))
                 case App(f, args) => App(f, args map (sub(sigma, _)))
+                case BuiltinApp(f, args) => BuiltinApp(f, args map (sub(sigma, _)))
                 case Exists(vars, body) => {
                     // Substitute x->t in (exists x . phi) becomes (exists x . phi)
                     // Remove these from the substitution before recursive call
