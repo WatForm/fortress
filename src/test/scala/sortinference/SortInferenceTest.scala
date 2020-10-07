@@ -17,41 +17,31 @@ class SortInferenceTest extends UnitSuite {
     val _3 = Sort.mkSortConst("S3")
     val _4 = Sort.mkSortConst("S4")
     
-    test("function, no axioms", ImplSensitive) {
+    test("function, no axioms") {
         val f = FuncDecl("f", A, A, A)
         
         val theory = Theory.empty
             .withSorts(A)
             .withFunctionDeclarations(f)
         
-        val f_exp = FuncDecl("f", _0, _1, _2)
-        val expectedTheory = Theory.empty
-            .withSorts(_0, _1, _2)
-            .withFunctionDeclarations(f_exp)
-        
         val (generalTheory, substitution) = theory.inferSorts
-        generalTheory should be (expectedTheory)
+        generalTheory.sorts.size should be (3)
         substitution(generalTheory) should be (theory)
     }
     
-    test("predicate, no axioms", ImplSensitive) {
+    test("predicate, no axioms") {
         val P = FuncDecl("P", A, A, A, Sort.Bool)
         
         val theory = Theory.empty
             .withSorts(A)
             .withFunctionDeclarations(P)
-            
-        val P_exp = FuncDecl("P", _0, _1, _2, Sort.Bool)
-        val expectedTheory = Theory.empty
-            .withSorts(_0, _1, _2)
-            .withFunctionDeclarations(P_exp)
         
         val (generalTheory, substitution) = theory.inferSorts
-        generalTheory should be (expectedTheory)
+        generalTheory.sorts.size should be (3)
         substitution(generalTheory) should be (theory)
     }
     
-    test("function, axioms that do not restrict sorts", ImplSensitive) {
+    test("function, axioms that do not restrict sorts") {
         val f = FuncDecl("f", A, A, A)
         val r = Var("r")
         val r1 = Var("r1")
@@ -67,23 +57,13 @@ class SortInferenceTest extends UnitSuite {
             .withSorts(A)
             .withFunctionDeclarations(f)
             .withAxiom(rowConstraint)
-        
-        val f_exp = FuncDecl("f", _0, _1, _2)
-        
-        val rowConstraint_exp = Forall(Seq(r of _0, c1 of _1, c2 of _1),
-            (App("f", r, c1) === App("f", r, c2)) ==> (c1 === c2))
-            
-        val expectedTheory = Theory.empty
-            .withSorts(_0, _1, _2)
-            .withFunctionDeclarations(f_exp)
-            .withAxiom(rowConstraint_exp)
             
         val (generalTheory, substitution) = theory.inferSorts
-        generalTheory should be (expectedTheory)
+        generalTheory.sorts.size should be (3)
         substitution(generalTheory) should be (theory)
     }
     
-    test("predicate, axioms that do not restrict sorts", ImplSensitive) {
+    test("predicate, axioms that do not restrict sorts") {
         val P = FuncDecl("P", A, A, A, Sort.Bool)
         val x = Var("x")
         val y = Var("y")
@@ -95,71 +75,46 @@ class SortInferenceTest extends UnitSuite {
             .withSorts(A)
             .withFunctionDeclarations(P)
             .withAxiom(ax)
-            
-        val P_exp = FuncDecl("P", _0, _1, _2, Sort.Bool)
-        
-        val ax_exp = Forall(x of _0, Exists(Seq(y of _1, z of _2), App("P", x, y, z)))
-        
-        val expectedTheory = Theory.empty
-            .withSorts(_0, _1, _2)
-            .withFunctionDeclarations(P_exp)
-            .withAxiom(ax_exp)
         
         val (generalTheory, substitution) = theory.inferSorts
-        generalTheory should be (expectedTheory)
+        generalTheory.sorts.size should be (3)
         substitution(generalTheory) should be (theory)
     }
     
-    test("function, axioms that do restrict sorts", ImplSensitive) {
+    test("function, axioms that do restrict sorts") {
         val f = FuncDecl("f", A, A, A)
         val x = Var("x")
         val y = Var("y")
         
+        // Force 1st input = output
         val ax = Forall(Seq(x of A, y of A), App("f", x, y) === y)
         
         val theory = Theory.empty
             .withSorts(A)
             .withFunctionDeclarations(f)
             .withAxiom(ax)
-        
-        val f_exp = FuncDecl("f", _0, _2, _2)
-        
-        val ax_exp = Forall(Seq(x of _0, y of _2), App("f", x, y) === y)
-            
-        val expectedTheory = Theory.empty
-            .withSorts(_0, _2)
-            .withFunctionDeclarations(f_exp)
-            .withAxiom(ax_exp)
             
         val (generalTheory, substitution) = theory.inferSorts
-        generalTheory should be (expectedTheory)
+        generalTheory.sorts.size should be (2)
         substitution(generalTheory) should be (theory)
     }
     
-    test("predicate, axioms that do restrict sorts", ImplSensitive) {
+    test("predicate, axioms that do restrict sorts") {
         val P = FuncDecl("P", A, A, A, Sort.Bool)
         val x = Var("x")
         val y = Var("y")
         val z = Var("z")
         
+        // Force 1st input = 3rd input
         val ax = Forall(x of A, Not(Exists(y of A, App("P", x, y, x))))
         
         val theory = Theory.empty
             .withSorts(A)
             .withFunctionDeclarations(P)
             .withAxiom(ax)
-            
-        val P_exp = FuncDecl("P", _2, _1, _2, Sort.Bool)
-        
-        val ax_exp = Forall(x of _2, Not(Exists(y of _1, App("P", x, y, x))))
-        
-        val expectedTheory = Theory.empty
-            .withSorts(_1, _2)
-            .withFunctionDeclarations(P_exp)
-            .withAxiom(ax_exp)
         
         val (generalTheory, substitution) = theory.inferSorts
-        generalTheory should be (expectedTheory)
+        generalTheory.sorts.size should be (2)
         substitution(generalTheory) should be (theory)
     }
     

@@ -5,6 +5,7 @@ import fortress.data._
 import scala.language.implicitConversions
 import fortress.interpretation._
 import fortress.operations.TermMetrics._
+import fortress.sortinference._
 
 case class TheoryOps private (theory: Theory) {
     def mapAxioms(f: Term => Term) = Theory(theory.signature, theory.axioms map f)

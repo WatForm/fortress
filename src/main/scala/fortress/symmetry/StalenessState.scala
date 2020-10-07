@@ -3,6 +3,7 @@ package fortress.symmetry
 import fortress.msfol._
 import fortress.operations.TermOps._
 import fortress.operations._
+import fortress.sortinference._
 
 // An immutable view to look at the current usage of domain elements.
 // Sequences of domain elements are all returned in numerical order.
@@ -31,7 +32,7 @@ class StalenessState private (
 
     def afterSubstitution(sortSubstitution: SortSubstitution): StalenessState = {
         val newSorts = sorts map sortSubstitution
-        val inverse: Map[Sort, Set[Sort]] = sortSubstitution.inverse
+        val inverse: Sort => Set[Sort] = sortSubstitution.inverse
         val newScopeMap: Map[Sort, Int] = {
             for(sort <- newSorts) yield {
                 sort -> {

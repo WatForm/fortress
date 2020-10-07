@@ -235,7 +235,7 @@ object BuiltinApp {
     def apply(function: BuiltinFunction, args: Term*): Term = BuiltinApp(function, args.toList)
 }
 
-sealed abstract class Quantifier extends Term {
+sealed trait Quantifier extends Term {
     def vars: Seq[AnnotatedVar]
     def body: Term
     def mapBody(mapping: Term => Term): Term

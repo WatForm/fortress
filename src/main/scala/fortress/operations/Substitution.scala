@@ -109,6 +109,7 @@ object FastSubstituter {
                 case App(f, args) => App(f, args map (sub(sigma, _)))
                 case Closure(f, args, arg1, arg2) => Closure(f, args map (sub(sigma, _)), sub(sigma, arg1), sub(sigma, arg2))
                 case ReflexiveClosure(f, args, arg1, arg2) => ReflexiveClosure(f, args map (sub(sigma, _)), sub(sigma, arg1), sub(sigma, arg2))
+                case BuiltinApp(f, args) => BuiltinApp(f, args map (sub(sigma, _)))
                 case Exists(vars, body) => {
                     // Substitute x->t in (exists x . phi) becomes (exists x . phi)
                     // Remove these from the substitution before recursive call
