@@ -55,7 +55,7 @@ case class TheoryOps private (theory: Theory) {
 
     // Returns the number of terms in a theory
     def termCount: Int = {
-        theory.axioms.map(TermMetrics.termCount).sum
+        theory.axioms.toList.map(TermMetrics.termCount).sum
     }
 
     // Returns depth of quantification of a theory
