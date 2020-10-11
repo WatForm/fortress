@@ -44,6 +44,7 @@ class FortressTWOCompiler_SI(integerSemantics: IntegerSemantics) extends Transfo
         transformerSequence ++= symmetryBreakingTransformers
         transformerSequence += QuantifierExpansionTransformer.create()
         transformerSequence += RangeFormulaTransformer.create()
+        transformerSequence += new SplitConjunctionTransformer
         transformerSequence += new SimplifyTransformer
         transformerSequence += new DomainEliminationTransformer2
         transformerSequence.toList
