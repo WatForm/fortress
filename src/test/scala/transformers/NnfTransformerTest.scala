@@ -14,6 +14,8 @@ class NnfTransformerTest extends UnitSuite {
     val q = Var("q")
     val x = Var("x")
     val y = Var("y")
+    val _a = Var("a")
+    val _b = Var("b")
     
     val f = FuncDecl.mkFuncDecl("f", A, A)
     val P = FuncDecl.mkFuncDecl("P", A, Sort.Bool)
@@ -51,8 +53,7 @@ class NnfTransformerTest extends UnitSuite {
             .withAxiom(Iff(p, q))
             
         val expected = baseTheory
-            .withAxiom(Or(And(p, q),
-                                 And(Not(p), Not(q))))
+            .withAxiom(Or(And(p, q), And(Not(p), Not(q))))
 
         nnf(theory) should be (expected)
     }
@@ -315,5 +316,23 @@ class NnfTransformerTest extends UnitSuite {
         val theory2 = base.withAxiom(t2)
         
         nnf(theory1) should be (nnf(theory2))
+    }
+
+    test("forall iff") {
+        val theory1 = Theory.empty
+            .withSorts(A, B)
+            .withFunctionDeclaration(FuncDecl("P", A, BoolSort))
+            .withFunctionDeclaration(FuncDecl("Q", A, B, BoolSort))
+            .withAxiom(Forall(_a of A, App("P", _a) <==> Forall(_b of B, App("Q", _a, _b))))
+            // ∀a | p[a] <=> (∀b | q[a,b])
+        
+        val theory2 = Theory.empty
+            .withSorts(A, B)
+            .withFunctionDeclaration(FuncDecl("P", A, BoolSort))
+            .withFunctionDeclaration(FuncDecl("Q", A, B, BoolSort))
+            .withAxiom(Forall(_a of A, { App("P", _a) and Forall(_b of B, App("Q", _a, _b)) } or { Not(App("P", _a)) and Exists(_b of B, Not(App("Q", _a, _b))) } ) )
+            // ∀a | (p[a] && (∀b | q[a,b])) || (!p[a] && (∃b | !q[a,b]))
+        
+        nnf(theory1) should be (theory2)
     }
 }

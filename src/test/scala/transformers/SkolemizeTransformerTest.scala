@@ -15,6 +15,8 @@ class SkolemizeTransformerTest extends UnitSuite {
     val x = Var("x")
     val y = Var("y")
     val z = Var("z")
+    val _a = Var("a")
+    val _b = Var("b")
     
     val f = FuncDecl.mkFuncDecl("f", A, A)
     val P = FuncDecl.mkFuncDecl("P", A, Sort.Bool)
@@ -275,5 +277,32 @@ class SkolemizeTransformerTest extends UnitSuite {
         newProblemState.skolemFunctions should (
             equal (Set(FuncDecl("sk_1", A, A)))
             or equal (Set(FuncDecl("sk_0", A, A))))
+    }
+
+    test("old fortress bug (shadow variable)") {
+        val theory1 = Theory.empty
+            .withSorts(A, B)
+            .withFunctionDeclaration(FuncDecl("P", A, BoolSort))
+            .withFunctionDeclaration(FuncDecl("Q", A, B, BoolSort))
+            .withAxiom(Forall(Seq(_a of A, _b of B), Exists(_b of B,
+                {App("P", _a) and App("Q", _a, _b)}
+                or
+                {Not(App("P", _a)) and Not(App("Q", _a, _b))}
+            )))
+            // ∀a,b | ∃b | (p[a] && q[a,b]) || (!p[a] && !q[a,b])
+
+        val theory2 = Theory.empty
+            .withSorts(A, B)
+            .withFunctionDeclaration(FuncDecl("P", A, BoolSort))
+            .withFunctionDeclaration(FuncDecl("Q", A, B, BoolSort))
+            .withFunctionDeclaration(FuncDecl("sk_0", A, B))
+            .withAxiom(Forall(Seq(_a of A, _b of B),
+                {App("P", _a) and App("Q", _a, App("sk_0", _a))}
+                or
+                {Not(App("P", _a)) and Not(App("Q", _a, App("sk_0", _a)))}
+            ))
+        
+        val newProblemState = skolemizer(ProblemState(theory1))
+        newProblemState.theory should be (theory2)
     }
 }
