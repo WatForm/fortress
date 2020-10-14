@@ -9,12 +9,12 @@ import fortress.operations.TheoryOps._
 class SplitConjunctionTransformer extends TheoryTransformer {
     
     override def apply(theory: Theory): Theory = {
-    	val newAxioms = theory.axioms.foldLeft(Seq[Term]())(
-    		(axioms, axiom) => axioms ++ (axiom match {
-    			case AndList(body) => body.map(t => t)
-    			case _ => Seq(axiom)
-    		})
-    	)
+        var newAxioms: Set[Term] = Set.empty
+        def splitConjunctions(term: Term): Unit = term match {
+            case AndList(body) => body.map(t => splitConjunctions(t))
+            case _ => newAxioms += term
+        }
+        theory.axioms.map(splitConjunctions)
     	Theory.mkTheoryWithSignature(theory.signature).withAxioms(newAxioms)
     }
     
