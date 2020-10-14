@@ -51,8 +51,8 @@ class NnfTransformerTest extends UnitSuite {
             .withAxiom(Iff(p, q))
             
         val expected = baseTheory
-            .withAxiom(Or(And(p, q),
-                                 And(Not(p), Not(q))))
+            .withAxiom(And(Or(Not(p), q),
+                                 Or(Not(q), p)))
 
         nnf(theory) should be (expected)
     }
