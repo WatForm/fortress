@@ -3,7 +3,7 @@ package fortress.operations
 import fortress.msfol._
 import fortress.util.Errors
 
-object NormalForm {
+object NormalForms {
     /** Returns the negation normal form of a term. 
       * It is assumed that Eq is not used on sort Bool and so uses of Eq are atomic.
       * Additionally it is assumed that applications and arguments to applications

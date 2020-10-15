@@ -58,7 +58,7 @@ trait StandardProcessBuilderSolver extends ProcessBuilderSolver {
     }
     
     override def addAxiom(axiom: Term): Unit = {
-        Errors.verify(processSession.nonEmpty, "Cannot add axiom without a live process")
+        Errors.assertion(processSession.nonEmpty, "Cannot add axiom without a live process")
         val converter = new SmtlibConverter(convertedBytes)
         converter.writeAssertion(axiom)
     }

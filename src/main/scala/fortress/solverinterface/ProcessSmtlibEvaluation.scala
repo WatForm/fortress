@@ -16,7 +16,7 @@ import scala.util.matching.Regex
 trait ProcessSmtlibEvaluation extends ProcessBuilderSolver {
 
     override def solution: Interpretation = {
-        Errors.verify(processSession.nonEmpty, "Cannot get instance without a live process")
+        Errors.assertion(processSession.nonEmpty, "Cannot get instance without a live process")
 
         val fortressNameToSmtValue: Map[String, String] = getFortressNameToSmtValueMap(theory.get)
         
@@ -50,7 +50,7 @@ trait ProcessSmtlibEvaluation extends ProcessBuilderSolver {
                 val str = processSession.get.readLine()
                 val value = str match {
                     case ProcessBuilderSolver.smt2Model(name, value) => value
-                    case _ => Errors.unreachable()
+                    case _ => Errors.impossibleState
                 }
                 smtValueToFortressValue(value, f.resultSort, smtValueToDomainElement)
             }
@@ -77,10 +77,10 @@ trait ProcessSmtlibEvaluation extends ProcessBuilderSolver {
             val str = processSession.get.readLine()
             str match {
                 case ProcessBuilderSolver.smt2Model(name, value) => {
-                    Errors.verify(constant.name == name, s""""${constant.name}" should be equal to "$name"""")
+                    Errors.assertion(constant.name == name, s""""${constant.name}" should be equal to "$name"""")
                     (constant.name -> value)
                 }
-                case _ => Errors.unreachable()
+                case _ => Errors.impossibleState
             }
         }).toMap
     }
@@ -96,7 +96,7 @@ trait ProcessSmtlibEvaluation extends ProcessBuilderSolver {
             case BoolSort => value match {
                 case "true" => Top
                 case "false" => Bottom
-                case _ => Errors.unreachable()
+                case _ => Errors.impossibleState
             }
             case IntSort => value match {
                 case ProcessBuilderSolver.negativeInteger(digits) => IntegerLiteral(-(digits.toInt))
@@ -106,13 +106,13 @@ trait ProcessSmtlibEvaluation extends ProcessBuilderSolver {
                 case ProcessBuilderSolver.bitVecLiteral(radix, digits) => radix match {
                     case "x" => BitVectorLiteral(Integer.parseInt(digits, 16), bitwidth)
                     case "b" => BitVectorLiteral(Integer.parseInt(digits, 2),  bitwidth)
-                    case _ => Errors.unreachable()
+                    case _ => Errors.impossibleState
                 }
                 case ProcessBuilderSolver.bitVecExpr(digits, bitw) => {
-                    Errors.verify(bitw.toInt == bitwidth)
+                    Errors.assertion(bitw.toInt == bitwidth)
                     BitVectorLiteral(digits.toInt, bitwidth)
                 }
-                case _ => Errors.unreachable()
+                case _ => Errors.impossibleState
             }
         }
     }

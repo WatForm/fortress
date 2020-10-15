@@ -6,7 +6,7 @@ import fortress.data.CartesianSeqProduct
 import fortress.interpretation.Interpretation
 import fortress.msfol._
 import fortress.solverinterface.{SolverSession, Z3CliSolver}
-import fortress.util.Errors.AssertionException
+import fortress.util.Errors
 import fortress.util._
 import fortress.msfol.DSL._
 
@@ -17,7 +17,7 @@ class InterpretationVerifier(theory: Theory) {
     private def forceValueToBool(term: Value): Boolean = term match{
         case Top => true
         case Bottom => false
-        case _ => throw new AssertionException("Tried to cast non-Top/Bottom Term to Boolean")
+        case _ => Errors.impossibleState("Tried to cast non-Top/Bottom Term to Boolean")
     }
     
     private  def boolToValue(b: Boolean): Value = if(b) Top else Bottom
