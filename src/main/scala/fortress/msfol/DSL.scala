@@ -23,5 +23,4 @@ object DSL {
     case class FunctionalSymbolWithArgSorts(name: String, argSorts: Seq[Sort]) {
         def to(resultSort: Sort): FuncDecl = FuncDecl(name, argSorts, resultSort)
     }
-    
 }

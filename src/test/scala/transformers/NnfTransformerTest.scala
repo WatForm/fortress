@@ -3,32 +3,20 @@ import org.scalatest._
 import fortress.msfol._
 import fortress.transformers._
 
-class NnfTransformerTest extends UnitSuite {
+class NnfTransformerTest extends UnitSuite with CommonSymbols {
     
     val nnf = new NnfTransformer
-    
-    val A = Sort.mkSortConst("A")
-    val B = Sort.mkSortConst("B")
-    
-    val p = Var("p")
-    val q = Var("q")
-    val x = Var("x")
-    val y = Var("y")
     val _a = Var("a")
     val _b = Var("b")
-    
-    val f = FuncDecl.mkFuncDecl("f", A, A)
-    val P = FuncDecl.mkFuncDecl("P", A, Sort.Bool)
     
     val baseTheory = Theory.empty
         .withSort(A)
         .withSort(B)
-        .withConstant(p.of(Sort.Bool))
-        .withConstant(q.of(Sort.Bool))
-        .withFunctionDeclaration(f)
-        .withFunctionDeclaration(P)
+        .withConstant(p of BoolSort)
+        .withConstant(q of BoolSort)
+        .withFunctionDeclaration(P from A to BoolSort)
     
-    test("simple And Theory") {
+    test("and") {
         val theory = baseTheory
             .withAxiom(Not(And(p, Not(p))))
         
@@ -38,7 +26,7 @@ class NnfTransformerTest extends UnitSuite {
         nnf(theory) should be (expected)
     }
     
-    test("nnf Imp") {
+    test("imp") {
         val theory = baseTheory
             .withAxiom(Implication(p, q))
             
@@ -48,7 +36,7 @@ class NnfTransformerTest extends UnitSuite {
         nnf(theory) should be (expected)
     }
 
-    test("nnf Iff") {
+    test("iff") {
         val theory = baseTheory
             .withAxiom(Iff(p, q))
             
@@ -58,7 +46,7 @@ class NnfTransformerTest extends UnitSuite {
         nnf(theory) should be (expected)
     }
 
-    test("nnf Not And") {
+    test("not and") {
         val theory = baseTheory
             .withAxiom(Not(And(p, q)))
             
@@ -68,7 +56,7 @@ class NnfTransformerTest extends UnitSuite {
         nnf(theory) should be (expected)
     }
     
-    test("nnfNotOr") {
+    test("not or") {
         val theory = baseTheory
             .withAxiom(Not(Or(p, q)))
             
@@ -78,7 +66,7 @@ class NnfTransformerTest extends UnitSuite {
         nnf(theory) should be (expected)
     }
 
-    test("nnf Not Not") {
+    test("not not") {
         val theory = baseTheory
             .withAxiom(Not(Not(p)))
             
@@ -88,7 +76,7 @@ class NnfTransformerTest extends UnitSuite {
         nnf(theory) should be (expected)
     }
 
-    test("nnf Not Exists") {
+    test("not exists") {
         val theory = baseTheory
             .withAxiom(Not(Exists(x.of(A), App("P", x))))
             
@@ -98,7 +86,7 @@ class NnfTransformerTest extends UnitSuite {
         nnf(theory) should be (expected)
     }
 
-    test("nnf Not Forall") {
+    test("not forall") {
         val theory = baseTheory
             .withAxiom(Not(Forall(x.of(A), App("P", x))))
             
@@ -108,7 +96,7 @@ class NnfTransformerTest extends UnitSuite {
         nnf(theory) should be (expected)
     }
     
-    test("nnf Not Imp") {
+    test("not imp") {
         val theory = baseTheory
             .withAxiom(Not(Implication(p, q)))
             
@@ -118,27 +106,24 @@ class NnfTransformerTest extends UnitSuite {
         nnf(theory) should be (expected)
     }
 
-    test("nnf Not Iff") {
+    test("not iff") {
         val theory = baseTheory
             .withAxiom(Not(Iff(p, q)))
             
         val expected = baseTheory
-            .withAxiom(Or(And(p, Not(q)),
-                                 And(Not(p), q)))
+            .withAxiom(Or(And(p, Not(q)), And(Not(p), q)))
 
         nnf(theory) should be (expected)
     }
     
-    test("complex1") {
+    test("complex 1") {
         val axiom = Not(
-            Exists(
-                x.of(A),
+            Exists(x of A,
                 Iff(
                     Not(p),
                     Not(Or(q, p)))))
         val expectedAxiom =
-            Forall(
-                x.of(A),
+            Forall(x of A,
                 Or(
                     And(Not(p), Or(q, p)),
                     And(p, And(Not(q), Not(p)))))
@@ -147,73 +132,18 @@ class NnfTransformerTest extends UnitSuite {
         nnf(theory) should be (expected)
     }
     
-    test("complex2") {
+    test("complex 2") {
         // ~ ( exists x . (~p) <=> ~(q OR (forall x . ~(P(x) AND (~~q) => p))) )
-        val axiom = Not(
-            Exists(
-                x.of(A),
-                Iff(
-                    Not(p),
-                    Not(
-                        Or(
-                            q,
-                            Forall(
-                                x.of(A),
-                                Not(
-                                    And(
-                                        App("P", x),
-                                        Implication(
-                                            Not(Not(q)),
-                                            p
-                                        )
-                                    )
-                                )
-                            )
-                        )
-                    )
-                )
-            )
-        )
+        val axiom = !Exists(x of A, !p <==> !(q or Forall(x of A, !(P(x) and (!(!q) ==> p)))))
+
         // forall x. (~p AND (q OR (forall x . ~P(x) OR (q AND ~p))))
         //        OR (p AND (~q AND exists x . P(x) AND (~q OR p)))
         val expectedAxiom =
-            Forall(
-                x.of(A),
-                Or(
-                    And(
-                        Not(p),
-                        Or(
-                            q,
-                            Forall(
-                                x.of(A),
-                                Or(
-                                    Not(App("P", x)),
-                                    And(
-                                        q,
-                                        Not(p)
-                                    )
-                                )
-                            )
-                        )
-                    ),
-                    And(
-                        p,
-                        And(
-                            Not(q),
-                            Exists(
-                                x.of(A),
-                                And(
-                                    App("P", x),
-                                    Or(
-                                        Not(q),
-                                        p
-                                    )
-                                )
-                            )
-                        )
-                    )
-                )
-            )
+            Forall(x of A,
+                {!p and (q or Forall(x of A, !P(x) or (q and !p)))}
+                or
+                {p and (!q and Exists(x of A, P(x) and (!q or p)))})
+
         val theory = baseTheory
             .withAxiom(axiom)
             
@@ -223,34 +153,23 @@ class NnfTransformerTest extends UnitSuite {
         nnf(theory) should be (expected)
     }
     
-    test("distinct - former bug") { // Former bug
+    test("distinct (former bug)") {
         val U = Sort.mkSortConst("U")
-        val x = Var("x")
-        val y = Var("y")
-        val z = Var("z")
-        val P = FuncDecl.mkFuncDecl("P", U, U, U, Sort.Bool)
         
-        val t = Forall(Seq(x.of(U), y.of(U), z.of(U)),
-            Implication(App("P", x, y, z), Distinct(x, y, z)))
+        val t = Forall(Seq(x of U, y of U, z of U), P(x, y, z) ==> Distinct(x, y, z))
         
-        val e = Forall(Seq(x.of(U), y.of(U), z.of(U)),
-            Or(
-                Not(App("P", x, y, z)),
-                And(
-                    Not(Eq(x, y)),
-                    Not(Eq(x, z)),
-                    Not(Eq(y, z)))))
+        val e = Forall(Seq(x of U, y of U, z of U), !P(x, y, z) or And(!(x === y), !(x === z), !(y === z)))
                     
         val base = Theory.empty
             .withSort(U)
-            .withFunctionDeclaration(P)
+            .withFunctionDeclaration(P from (U, U, U) to BoolSort)
         val theory = base.withAxiom(t)
         val expected = base.withAxiom(e)
         
         nnf(theory) should be (expected)
     }
     
-    test("distinct2 - former bug") { // Former bug
+    test("distinct 2 (former bug)") {
         val V = Sort.mkSortConst("V")
         val adj = FuncDecl.mkFuncDecl("adj", V, V, Sort.Bool)
         val x1 = Var("x1")
@@ -284,7 +203,7 @@ class NnfTransformerTest extends UnitSuite {
         nnf(theory1) should be (nnf(theory2))
     }
     
-    test("distinct3") {
+    test("distinct 3") {
         val V = Sort.mkSortConst("V")
         val adj = FuncDecl.mkFuncDecl("adj", V, V, Sort.Bool)
         val x1 = Var("x1")
@@ -321,16 +240,18 @@ class NnfTransformerTest extends UnitSuite {
     test("forall iff") {
         val theory1 = Theory.empty
             .withSorts(A, B)
-            .withFunctionDeclaration(FuncDecl("P", A, BoolSort))
-            .withFunctionDeclaration(FuncDecl("Q", A, B, BoolSort))
-            .withAxiom(Forall(_a of A, App("P", _a) <==> Forall(_b of B, App("Q", _a, _b))))
+            .withFunctionDeclaration(P from A to BoolSort)
+            .withFunctionDeclaration(Q from (A, B) to BoolSort)
+            .withAxiom(Forall(_a of A, P(_a) <==> Forall(_b of B, Q(_a, _b))))
             // ∀a | p[a] <=> (∀b | q[a,b])
         
         val theory2 = Theory.empty
             .withSorts(A, B)
-            .withFunctionDeclaration(FuncDecl("P", A, BoolSort))
-            .withFunctionDeclaration(FuncDecl("Q", A, B, BoolSort))
-            .withAxiom(Forall(_a of A, { App("P", _a) and Forall(_b of B, App("Q", _a, _b)) } or { Not(App("P", _a)) and Exists(_b of B, Not(App("Q", _a, _b))) } ) )
+            .withFunctionDeclaration(P from A to BoolSort)
+            .withFunctionDeclaration(Q from (A, B) to BoolSort)
+            .withAxiom(Forall(_a of A,
+                { P(_a) and Forall(_b of B, Q(_a, _b)) }
+                or { !P(_a) and Exists(_b of B, !Q(_a, _b)) } ) )
             // ∀a | (p[a] && (∀b | q[a,b])) || (!p[a] && (∃b | !q[a,b]))
         
         nnf(theory1) should be (theory2)

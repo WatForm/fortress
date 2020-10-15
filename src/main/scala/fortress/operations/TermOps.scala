@@ -30,7 +30,7 @@ case class TermOps private (term: Term) {
     /** Returns the negation normal form version of this term.
       * The term must be sanitized to call this method.
       */
-    def nnf: Term = TermConverter.nnf(term)
+    def nnf: Term = NormalForms.nnf(term)
     
     /** Does not account for variable capture.
       * If in doubt do not use this function.
