@@ -8,6 +8,7 @@ import fortress.msfol._
 import fortress.solverinterface.{SolverSession, Z3CliSolver}
 import fortress.util.Errors.AssertionException
 import fortress.util._
+import fortress.msfol.DSL._
 
 import scala.collection.mutable.ListBuffer
 

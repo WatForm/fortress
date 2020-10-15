@@ -4,6 +4,7 @@ import fortress.msfol._
 import fortress.operations.TermOps._
 import fortress.util.Errors
 import fortress.util.Extensions._
+import fortress.msfol.DSL._
 
 import scala.collection.mutable
 

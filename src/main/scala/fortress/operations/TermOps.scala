@@ -3,6 +3,7 @@ package fortress.operations
 import fortress.msfol._
 import fortress.data._
 import scala.language.implicitConversions
+import fortress.msfol.DSL._
 
 case class TermOps private (term: Term) {
     /** Given a signature, typechecks the term with respect to the signature.

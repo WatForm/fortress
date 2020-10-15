@@ -13,14 +13,6 @@ sealed trait Term {
     def accept[T](visitor: TermVisitor[T]): T
     
     def freeVarConstSymbolsJava: java.util.Set[Var] = this.freeVarConstSymbols.asJava
-    
-    // Be aware if you chain this method together, you will get several nested AndLists
-    def and(other: Term): Term = AndList(Seq(this, other))
-    // Be aware if you chain this method together, you will get several nested OrLists
-    def or(other: Term): Term = OrList(Seq(this, other))
-    def ==>(other: Term): Term = Implication(this, other)
-    def ===(other: Term): Term = Eq(this, other)
-    def <==>(other: Term): Term = Iff(this, other)
 }
 
 sealed trait Value extends Term

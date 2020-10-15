@@ -3,6 +3,7 @@ package fortress.operations
 import fortress.util.Errors
 import fortress.msfol._
 import fortress.data._
+import fortress.msfol.DSL._
 
 case class TypeCheckResult(
     sanitizedTerm: Term,

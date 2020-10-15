@@ -14,6 +14,6 @@ case class RangeRestriction(term: Term, values: Seq[DomainElement]) {
     
     def asNeqs(allPossibleValues: Seq[DomainElement]): Seq[Term] = {
         val invalidValues = allPossibleValues diff values
-        invalidValues map (v => Not(term === v))
+        invalidValues map (v => Not(Eq(term, v)))
     }
 }
