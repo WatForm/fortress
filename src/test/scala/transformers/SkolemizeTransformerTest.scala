@@ -291,7 +291,7 @@ class SkolemizeTransformerTest extends UnitSuite with CommonSymbols {
         skolemizer(theory) should (equal (expected1) or equal(expected2))
     }
 
-    test("shadow variable (old fortress bug)") {
+    test("exists shadowing forall variable (old fortress bug)") {
         val theory = Theory.empty
             .withSorts(A, B)
             .withFunctionDeclaration(P from A to BoolSort)
@@ -345,7 +345,7 @@ class SkolemizeTransformerTest extends UnitSuite with CommonSymbols {
         newProblemState.skolemFunctions should be (Set(sk_0 from A to A, sk_1 from A to A))
     }
 
-    test("forall variable shadowing constant (former bug)") {
+    test("forall variable shadowing signature constant (former bug)") {
         val theory = Theory.empty
             .withSort(A)
             .withFunctionDeclaration(Q from (A, A) to BoolSort)
@@ -364,6 +364,25 @@ class SkolemizeTransformerTest extends UnitSuite with CommonSymbols {
             .withConstant(x of A)
             .withFunctionDeclaration(sk_0 from A to A)
             .withAxiom(Forall(x of A, Q(x, sk_0(x))))
+        
+        skolemizer(theory) should be (expected)
+    }
+
+    test("forall variable shadowing another forall variable") {
+        val theory = Theory.empty
+            .withSorts(A, B, C)
+            .withFunctionDeclaration(Q from (C, A) to BoolSort)
+            .withFunctionDeclaration(P from B to BoolSort)
+            .withConstant(x of A)
+            .withAxiom(Forall(x of B, P(x) and Forall(x of C, Exists(y of A, Q(x, y)))))
+        
+        val expected = Theory.empty
+            .withSorts(A, B, C)
+            .withFunctionDeclaration(Q from (C, A) to BoolSort)
+            .withFunctionDeclaration(P from B to BoolSort)
+            .withConstant(x of A)
+            .withFunctionDeclaration(sk_0 from C to A)
+            .withAxiom(Forall(x of B, P(x) and Forall(x of C, Q(x, sk_0(x)))))
         
         skolemizer(theory) should be (expected)
     }

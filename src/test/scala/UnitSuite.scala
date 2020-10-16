@@ -38,6 +38,7 @@ trait CommonVariableSymbols extends UnitSuite {
 trait CommonSortSymbols extends UnitSuite {
     val A = SortConst("A")
     val B = SortConst("B")
+    val C = SortConst("C")
 }
 
 trait CommonSymbols extends UnitSuite with CommonFunctionalSymbols with CommonVariableSymbols with CommonSortSymbols
