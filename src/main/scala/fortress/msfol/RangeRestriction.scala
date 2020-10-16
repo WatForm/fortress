@@ -4,9 +4,9 @@ import fortress.operations.TermOps._
 import fortress.util.Errors
 
 case class RangeRestriction(term: Term, values: Seq[DomainElement]) {
-    Errors.precondition(values.nonEmpty)
-    Errors.precondition(values.distinct == values)
-    Errors.precondition(values forall (de => de.sort == values.head.sort))
+    Errors.Internal.precondition(values.nonEmpty)
+    Errors.Internal.precondition(values.distinct == values)
+    Errors.Internal.precondition(values forall (de => de.sort == values.head.sort))
     
     val sort = values.head.sort
     

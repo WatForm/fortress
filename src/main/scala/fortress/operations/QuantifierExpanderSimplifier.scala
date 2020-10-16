@@ -71,7 +71,7 @@ object QuantifierExpanderSimplifier {
             
             val cartesianProduct = (new CartesianSeqProduct[Term](listOfSortSets.toIndexedSeq)).toSeq
             val instantiatedVersions: Seq[Term] = cartesianProduct map { substitution: Seq[Term] => {
-                Errors.assertion(substitution.size == vars.size)
+                Errors.Internal.assertion(substitution.size == vars.size)
                 
                 val varSubstitutions: Map[Var, Term] = (vars zip substitution).toMap
 

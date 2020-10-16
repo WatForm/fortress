@@ -7,9 +7,9 @@ import scala.annotation.varargs // So we can call Scala varargs methods from Jav
 sealed trait Declaration
 
 case class FuncDecl private (name: String, argSorts: Seq[Sort], resultSort: Sort) extends Declaration {
-    Errors.precondition(argSorts.size > 0, "Cannot create nullary functions; use a constant instead")
-    Errors.precondition(! Names.isIllegal(name), "Illegal function name " + name)
-    Errors.precondition(name.length > 0, "Cannot create function with empty name")
+    Errors.Internal.precondition(argSorts.size > 0, "Cannot create nullary functions; use a constant instead")
+    Errors.Internal.precondition(! Names.isIllegal(name), "Illegal function name " + name)
+    Errors.Internal.precondition(name.length > 0, "Cannot create function with empty name")
     
     def arity: Int = argSorts.size
 

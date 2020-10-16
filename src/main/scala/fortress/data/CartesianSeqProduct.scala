@@ -17,7 +17,7 @@ import java.lang.UnsupportedOperationException
  * to be improved and this restriction relaxed. */
 class CartesianSeqProduct[E](private val sequences: IndexedSeq[IndexedSeq[E]]) extends Iterable[Seq[E]] {
     
-    Errors.precondition(sequences.forall(_.nonEmpty))
+    Errors.Internal.precondition(sequences.forall(_.nonEmpty))
     
     private val numberOfSequences: Int = sequences.size
     
@@ -35,7 +35,7 @@ class CartesianSeqProduct[E](private val sequences: IndexedSeq[IndexedSeq[E]]) e
         override def hasNext: Boolean = (!atEnd)
         
         override def next(): Seq[E] = {
-            Errors.precondition(hasNext)
+            Errors.Internal.precondition(hasNext)
             
             // Get current item of counter, then increment
             

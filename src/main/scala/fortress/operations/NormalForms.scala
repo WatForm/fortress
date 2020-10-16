@@ -40,9 +40,9 @@ object NormalForms {
             | IntegerLiteral(_) | BitVectorLiteral(_, _) | EnumValue(_)
             | Not(Var(_)) | Not(BuiltinApp(_, _)) => term
         case Not(DomainElement(_, _)) | Not(IntegerLiteral(_))
-            |  Not(BitVectorLiteral(_, _)) | Not(EnumValue(_)) => ???
+            |  Not(BitVectorLiteral(_, _)) | Not(EnumValue(_)) => Errors.Internal.preconditionFailed(s"Term is not well-sorted: ${term}")
         case IfThenElse(condition, ifTrue, ifFalse) => IfThenElse(nnf(condition), nnf(ifTrue), nnf(ifFalse))
-        case Not(IfThenElse(condition, ifTrue, ifFalse)) => ??? // Note that ITE does not return boolean
+        case Not(IfThenElse(condition, ifTrue, ifFalse)) => Errors.Internal.preconditionFailed(s"Term is not santitized, ite cannot return Boolean: ${term}")
     }
 
     def prenex(term: Term): Term = ???

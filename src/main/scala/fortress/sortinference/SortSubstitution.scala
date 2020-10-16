@@ -54,7 +54,7 @@ trait GeneralSortSubstitution {
     // Apply the Sort function to every appearence of a Sort in a Signature.
     def apply(signature: Signature): Signature = signature match {
         case Signature(sorts, functionDeclarations, constants, enumConstants) => {
-            Errors.precondition(enumConstants.isEmpty)
+            Errors.Internal.precondition(enumConstants.isEmpty)
             Signature(
                 sorts map apply,
                 functionDeclarations map apply,
@@ -159,7 +159,7 @@ object SortSubstitution {
             } yield {
                 val inputSorts = inputDecl.argSorts :+ inputDecl.resultSort
                 val outputSorts = outputDecl.argSorts :+ outputDecl.resultSort
-                Errors.assertion(inputSorts.size == outputSorts.size)
+                Errors.Internal.assertion(inputSorts.size == outputSorts.size)
                 inputSorts zip outputSorts
             }
         }.flatten

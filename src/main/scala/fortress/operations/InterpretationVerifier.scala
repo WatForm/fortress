@@ -17,7 +17,7 @@ class InterpretationVerifier(theory: Theory) {
     private def forceValueToBool(term: Value): Boolean = term match{
         case Top => true
         case Bottom => false
-        case _ => Errors.impossibleState("Tried to cast non-Top/Bottom Term to Boolean")
+        case _ => Errors.Internal.impossibleState("Tried to cast non-Top/Bottom Term to Boolean")
     }
     
     private  def boolToValue(b: Boolean): Value = if(b) Top else Bottom

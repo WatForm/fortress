@@ -36,7 +36,7 @@ case object Bottom extends Term with LeafTerm with Value {
   * in which it is used (e.g. a signature or quantifier binding).
   */
 case class Var private(name: String) extends Term with LeafTerm {
-    Errors.precondition(name.length > 0, "Cannot create variable with empty name")
+    Errors.Internal.precondition(name.length > 0, "Cannot create variable with empty name")
     
     override def toString: String = name
     def getName: String = name
@@ -52,7 +52,7 @@ extends ConcreteFactory[Var, String]((name: String) => new Var(name))
 with Caching[Var, String] {
 
     def apply(name: String): Var = {
-        Errors.precondition(! Names.isIllegal(name), "Illegal variable name " + name)
+        Errors.Internal.precondition(! Names.isIllegal(name), "Illegal variable name " + name)
         create(name)
     }
     
@@ -60,8 +60,8 @@ with Caching[Var, String] {
 }
 
 case class EnumValue private (name: String) extends Term with LeafTerm with Value {
-    Errors.precondition(name.length > 0)
-    Errors.precondition(! Names.isIllegal(name))
+    Errors.Internal.precondition(name.length > 0)
+    Errors.Internal.precondition(! Names.isIllegal(name))
     
     override def toString: String = name
     override def accept[T](visitor: TermVisitor[T]): T = visitor.visitEnumValue(this)
@@ -83,7 +83,7 @@ case class Not private (body: Term) extends Term {
 
 /** Represents a conjunction. */
 case class AndList private (arguments: Seq[Term]) extends Term {
-    Errors.precondition(arguments.size >= 2)
+    Errors.Internal.precondition(arguments.size >= 2)
     
     override def accept[T](visitor: TermVisitor[T]): T = visitor.visitAndList(this)
     def mapArguments(mapping: Term => Term): Term =
@@ -108,7 +108,7 @@ object And {
 
 /** Represents a disjunction. */
 case class OrList private (arguments: Seq[Term]) extends Term {
-    Errors.precondition(arguments.size >= 2)
+    Errors.Internal.precondition(arguments.size >= 2)
     
     override def accept[T](visitor: TermVisitor[T]): T = visitor.visitOrList(this)
     def mapArguments(mapping: Term => Term): Term =
@@ -133,7 +133,7 @@ object Or {
 
 /** Represents a formula signifying whether its arguments have distinct values. */
 case class Distinct private (arguments: Seq[Term]) extends Term {
-    Errors.precondition(arguments.size >= 2)
+    Errors.Internal.precondition(arguments.size >= 2)
     
     override def accept[T](visitor: TermVisitor[T]): T = visitor.visitDistinct(this)
     def mapArguments(mapping: Term => Term): Term =
@@ -152,7 +152,7 @@ case class Distinct private (arguments: Seq[Term]) extends Term {
             })
         })
         val n = arguments.size
-        Errors.assertion(pairs.size() == (n*(n - 1) / 2), "" + n + " terms, but somehow generated " + pairs.size() + " pairs")
+        Errors.Internal.assertion(pairs.size() == (n*(n - 1) / 2), "" + n + " terms, but somehow generated " + pairs.size() + " pairs")
         Term.mkAnd(pairs)
     }
     
@@ -194,8 +194,8 @@ case class Eq private (left: Term, right: Term) extends Term {
 
 /** Represents a function or predicate application. */
 case class App private (functionName: String, arguments: Seq[Term]) extends Term {
-    Errors.precondition(functionName.length >= 1, "Empty function name")
-    Errors.precondition(arguments.size >= 1, "Nullary function application " + functionName + " should be a Var")
+    Errors.Internal.precondition(functionName.length >= 1, "Empty function name")
+    Errors.Internal.precondition(arguments.size >= 1, "Nullary function application " + functionName + " should be a Var")
     
     def getArguments: java.util.List[Term] = arguments.asJava
     def getFunctionName: String = functionName
@@ -215,7 +215,7 @@ with Caching[App, (String, Seq[Term])] {
 }
 
 case class BuiltinApp private (function: BuiltinFunction, arguments: Seq[Term]) extends Term {
-    Errors.precondition(arguments.size >= 1, "Nullary builtin function application " + function)
+    Errors.Internal.precondition(arguments.size >= 1, "Nullary builtin function application " + function)
     
     override def accept[T](visitor: TermVisitor[T]): T = visitor.visitBuiltinApp(this)
     
@@ -235,9 +235,9 @@ sealed trait Quantifier extends Term {
 
 /** Represents an existentially quantified Term. */
 case class Exists private (vars: Seq[AnnotatedVar], body: Term) extends Quantifier {
-    Errors.precondition(vars.size >= 1, "Quantifier must bind at least one variable");
+    Errors.Internal.precondition(vars.size >= 1, "Quantifier must bind at least one variable");
     // Check variables distinct
-    Errors.precondition(vars.map(av => av.name).toSet.size == vars.size, "Duplicate variable name in quantifier")
+    Errors.Internal.precondition(vars.map(av => av.name).toSet.size == vars.size, "Duplicate variable name in quantifier")
     
     override def accept[T](visitor: TermVisitor[T]): T = visitor.visitExists(this)
     def mapBody(mapping: Term => Term): Term = Exists(vars, mapping(body))
@@ -253,9 +253,9 @@ object Exists {
 
 /** Represents a universally quantified Term. */
 case class Forall private (vars: Seq[AnnotatedVar], body: Term) extends Quantifier {
-    Errors.precondition(vars.size >= 1, "Quantifier must bind at least one variable")
+    Errors.Internal.precondition(vars.size >= 1, "Quantifier must bind at least one variable")
     // Check variables distinct
-    Errors.precondition(vars.map(av => av.name).toSet.size == vars.size, "Duplicate variable name in quantifier")
+    Errors.Internal.precondition(vars.map(av => av.name).toSet.size == vars.size, "Duplicate variable name in quantifier")
     
     override def accept[T](visitor: TermVisitor[T]): T = visitor.visitForall(this)
     def mapBody(mapping: Term => Term): Term = Forall(vars, mapping(body))
@@ -274,7 +274,7 @@ object Forall {
   * for sort A, written as 2A.
   * DomainElements are indexed starting with 1.*/
 case class DomainElement private (index: Int, sort: Sort) extends Term with LeafTerm with Value {
-    Errors.precondition(index >= 1)
+    Errors.Internal.precondition(index >= 1)
     
     override def accept[T](visitor: TermVisitor[T]): T = visitor.visitDomainElement(this)
     
@@ -312,7 +312,7 @@ case class IntegerLiteral private (value: Int) extends Term with LeafTerm with V
 }
 
 case class BitVectorLiteral private (value: Int, bitwidth: Int) extends Term with LeafTerm with Value {
-    Errors.precondition(bitwidth > 0)
+    Errors.Internal.precondition(bitwidth > 0)
     override def accept[T](visitor: TermVisitor[T]): T = visitor.visitBitVectorLiteral(this)
 }
 
@@ -341,7 +341,7 @@ object Term {
       */
     @varargs
     def mkAnd(args: Term*): Term = {
-        Errors.precondition(args.length > 0, "One or more arguments must be given")
+        Errors.Internal.precondition(args.length > 0, "One or more arguments must be given")
         if(args.length == 1) {
             args(0);
         } else {
@@ -354,7 +354,7 @@ object Term {
       * value will be exactly t.
       */
     def mkAnd(args: java.util.List[Term]): Term = {
-        Errors.precondition(args.size > 0, "One or more arguments must be given")
+        Errors.Internal.precondition(args.size > 0, "One or more arguments must be given")
         if(args.size == 1) {
             args.get(0);
         } else {
@@ -368,7 +368,7 @@ object Term {
       */
     @varargs
     def mkOr(args: Term*): Term = {
-        Errors.precondition(args.length > 0, "One or more arguments must be given")
+        Errors.Internal.precondition(args.length > 0, "One or more arguments must be given")
         if(args.length == 1) {
             args(0);
         } else {
@@ -381,7 +381,7 @@ object Term {
       * value will be exactly t.
       */
     def mkOr(args: java.util.List[Term]): Term = {
-        Errors.precondition(args.size > 0, "One or more arguments must be given")
+        Errors.Internal.precondition(args.size > 0, "One or more arguments must be given")
         if(args.size == 1) {
             args.get(0);
         } else {
@@ -404,7 +404,7 @@ object Term {
       * distinct values. Two or more terms must be provided
       */
     def mkDistinct(arguments: java.util.List[_ <: Term]): Term = {
-        Errors.precondition(arguments.size >= 2, "Two or more arguments must be given")
+        Errors.Internal.precondition(arguments.size >= 2, "Two or more arguments must be given")
         Distinct(arguments.asScala.toList)
     }
     
@@ -413,7 +413,7 @@ object Term {
       */
     @varargs
     def mkDistinct(arguments: Term*): Term = {
-        Errors.precondition(arguments.length >= 2, "Two or more arguments must be given")
+        Errors.Internal.precondition(arguments.length >= 2, "Two or more arguments must be given")
         Distinct(arguments.toList);
     }
     

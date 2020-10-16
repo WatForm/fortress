@@ -137,43 +137,43 @@ case class Signature private (
     private
     def assertSortConsistent(t: Sort): Unit = {
         // Sort must not share a name with any function
-        Errors.precondition(! hasFunctionWithName(t.name), "Name " + t.name + " shared by sort and function")
+        Errors.Internal.precondition(! hasFunctionWithName(t.name), "Name " + t.name + " shared by sort and function")
         
         // Sort must not share a name with any constant
-        Errors.precondition(queryConstant(Var(t.name)).isEmpty, "Name " + t.name + " shared by sort and constant")
+        Errors.Internal.precondition(queryConstant(Var(t.name)).isEmpty, "Name " + t.name + " shared by sort and constant")
     }
     
     private 
     def assertConstConsistent(c: AnnotatedVar): Unit = {
         // Constant's sort must be within the set of sorts
-        Errors.precondition(c.sort.isBuiltin || hasSort(c.sort), "Constant " + c.toString + " of undeclared sort ")
+        Errors.Internal.precondition(c.sort.isBuiltin || hasSort(c.sort), "Constant " + c.toString + " of undeclared sort ")
         
         // Constant cannot share a name with a constant of a different sort
-        Errors.precondition(queryConstant(c.variable).filter(_.sort != c.sort).isEmpty, "Constant " + c.name + " declared with two different sorts")
+        Errors.Internal.precondition(queryConstant(c.variable).filter(_.sort != c.sort).isEmpty, "Constant " + c.name + " declared with two different sorts")
         
         // Constant cannot share a name with any function 
-        Errors.precondition(! hasFunctionWithName(c.name), "Name " + c.name + " shared by constant and function")
+        Errors.Internal.precondition(! hasFunctionWithName(c.name), "Name " + c.name + " shared by constant and function")
     }
     
     private
     def assertFuncDeclConsistent(fdecl: FuncDecl): Unit = {
         // Argument sorts must exist in sort set
-        Errors.precondition(fdecl.argSorts.forall(s => s.isBuiltin || hasSort(s)),
+        Errors.Internal.precondition(fdecl.argSorts.forall(s => s.isBuiltin || hasSort(s)),
             "Function " + fdecl.name + " has argument sorts that are undeclared")
             
         // Result sort must exist in sort set
-        Errors.precondition(fdecl.resultSort.isBuiltin || hasSort(fdecl.resultSort),
+        Errors.Internal.precondition(fdecl.resultSort.isBuiltin || hasSort(fdecl.resultSort),
             "Function " + fdecl.name + " has result sort that is undeclared")
             
         // Function must not share name with a constant
-        Errors.precondition(queryConstant(Var(fdecl.name)).isEmpty,
+        Errors.Internal.precondition(queryConstant(Var(fdecl.name)).isEmpty,
             "Name " + fdecl.name +  " shared by function and constant")
         
         // Function must not share name with a sort
-        Errors.precondition(! hasSortWithName(fdecl.name), "Name " + fdecl.name +  " shared by function and sort")
+        Errors.Internal.precondition(! hasSortWithName(fdecl.name), "Name " + fdecl.name +  " shared by function and sort")
         
         // Function must not share name with another function, unless it is the same function
-        Errors.precondition(
+        Errors.Internal.precondition(
             ! hasFunctionWithName(fdecl.name) || // No function has same name
             queryFunction(fdecl.name, fdecl.argSorts).filter(_ == fdecl).nonEmpty, // Same function exists
             "Function " + fdecl.name + " declared with two different sorts")

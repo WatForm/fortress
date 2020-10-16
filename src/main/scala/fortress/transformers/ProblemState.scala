@@ -12,10 +12,10 @@ case class ProblemState private(
     rangeRestrictions: Set[RangeRestriction],
     unapplyInterp: List[Interpretation => Interpretation]
 ) {
-    Errors.precondition(scopes.values.forall(_ > 0), "Scopes must be positive")
-    Errors.precondition(scopes.keySet.forall(!_.isBuiltin))
+    Errors.Internal.precondition(scopes.values.forall(_ > 0), "Scopes must be positive")
+    Errors.Internal.precondition(scopes.keySet.forall(!_.isBuiltin))
     // All scoped sorts are within the theory
-    Errors.precondition(scopes.keySet subsetOf theory.sorts)
+    Errors.Internal.precondition(scopes.keySet subsetOf theory.sorts)
     
     // TODO add precondition that theory domain elements respect the scopes
 }
@@ -30,7 +30,7 @@ object ProblemState {
         }.toMap
 
         // Check there is no conflict between the enum scopes and the provided scopes
-        Errors.precondition(fortress.util.Maps.noConflict(enumScopes, scopes))
+        Errors.Internal.precondition(fortress.util.Maps.noConflict(enumScopes, scopes))
 
         new ProblemState(
             theory,

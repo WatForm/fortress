@@ -23,7 +23,7 @@ class MapsTest extends UnitSuite {
         val map1 = Map(1 -> "cat", 2 -> "dog")
         val map2 = Map(1 -> "dog", 3 -> "sheep")
         
-        an [fortress.util.Errors.PreconditionException] should be thrownBy {Maps.merge(map1, map2)}
+        an [fortress.util.Errors.Internal.PreconditionError] should be thrownBy {Maps.merge(map1, map2)}
     }
     
     test("map merge no conflict") {

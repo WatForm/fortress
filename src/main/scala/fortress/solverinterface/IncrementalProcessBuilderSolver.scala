@@ -52,7 +52,7 @@ trait IncrementalProcessBuilderSolver extends ProcessBuilderSolver {
     }
     
     override def addAxiom(axiom: Term): Unit = {
-        Errors.assertion(processSession.nonEmpty, "Cannot add axiom without a live process")
+        Errors.Internal.assertion(processSession.nonEmpty, "Cannot add axiom without a live process")
         val converter = new SmtlibConverter(processSession.get.inputWriter)
         converter.writeAssertion(axiom)
     }

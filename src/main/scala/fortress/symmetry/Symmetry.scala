@@ -17,8 +17,8 @@ object Symmetry {
         state: StalenessState
     ): Set[RangeRestriction] = {
         
-        Errors.precondition(!sort.isBuiltin)
-        Errors.precondition(constants.forall(_.sort == sort))
+        Errors.Internal.precondition(!sort.isBuiltin)
+        Errors.Internal.precondition(constants.forall(_.sort == sort))
         
         val n = constants.size
         val m = state.numFreshValues(sort)
@@ -47,8 +47,8 @@ object Symmetry {
         state: StalenessState,
     ): Set[Term] = {
         
-        Errors.precondition(!sort.isBuiltin)
-        Errors.precondition(constants.forall(_.sort == sort))
+        Errors.Internal.precondition(!sort.isBuiltin)
+        Errors.Internal.precondition(constants.forall(_.sort == sort))
         
         val freshValues = state.freshValues(sort)
         
@@ -78,8 +78,8 @@ object Symmetry {
         state: StalenessState
     ): Set[Term] = {
         
-        Errors.precondition(!sort.isBuiltin)
-        Errors.precondition(constants.forall(_.sort == sort))
+        Errors.Internal.precondition(!sort.isBuiltin)
+        Errors.Internal.precondition(constants.forall(_.sort == sort))
         
         val freshValues = state.freshValues(sort)
         
@@ -106,9 +106,9 @@ object Symmetry {
         state: StalenessState
     ): Set[RangeRestriction] = {
         
-        Errors.precondition(f.argSorts.forall(!_.isBuiltin))
-        Errors.precondition(!f.resultSort.isBuiltin)
-        Errors.precondition(f.isRDI)
+        Errors.Internal.precondition(f.argSorts.forall(!_.isBuiltin))
+        Errors.Internal.precondition(!f.resultSort.isBuiltin)
+        Errors.Internal.precondition(f.isRDI)
         
         val freshResultValues: IndexedSeq[DomainElement] = state.freshValues(f.resultSort)
         val staleResultValues = state.staleValues(f.resultSort)
@@ -146,9 +146,9 @@ object Symmetry {
         state: StalenessState
     ): Set[Term] = {
         
-        Errors.precondition(f.argSorts.forall(!_.isBuiltin))
-        Errors.precondition(!f.resultSort.isBuiltin)
-        Errors.precondition(!(f.argSorts contains f.resultSort))
+        Errors.Internal.precondition(f.argSorts.forall(!_.isBuiltin))
+        Errors.Internal.precondition(!f.resultSort.isBuiltin)
+        Errors.Internal.precondition(!(f.argSorts contains f.resultSort))
         
         val freshResultValues: IndexedSeq[DomainElement] = state.freshValues(f.resultSort)
         
@@ -188,10 +188,10 @@ object Symmetry {
         state: StalenessState
     ): Set[Term] = {
         
-        Errors.precondition(f.argSorts.forall(!_.isBuiltin))
-        Errors.precondition(!f.resultSort.isBuiltin)
-        Errors.precondition(!(f.argSorts contains f.resultSort))
-        Errors.precondition(f.isRDI)
+        Errors.Internal.precondition(f.argSorts.forall(!_.isBuiltin))
+        Errors.Internal.precondition(!f.resultSort.isBuiltin)
+        Errors.Internal.precondition(!(f.argSorts contains f.resultSort))
+        Errors.Internal.precondition(f.isRDI)
         
         val freshResultValues: IndexedSeq[DomainElement] = state.freshValues(f.resultSort)
         
@@ -242,15 +242,15 @@ object Symmetry {
         state: StalenessState
     ): (FuncDecl, Seq[Term], Seq[RangeRestriction]) = {
         
-        Errors.precondition(f.argSorts.forall(!_.isBuiltin))
-        Errors.precondition(!f.resultSort.isBuiltin)
+        Errors.Internal.precondition(f.argSorts.forall(!_.isBuiltin))
+        Errors.Internal.precondition(!f.resultSort.isBuiltin)
         
-        Errors.precondition(f.isRainbowSorted)
-        Errors.precondition(f.arity <= 2)
-        Errors.precondition(f.argSorts forall (state.staleValues(_).isEmpty))
-        Errors.precondition(state.staleValues(f.resultSort).isEmpty)
-        Errors.precondition(f.argSorts.forall(state.scope(_) >= 2))
-        Errors.precondition(state.scope(f.resultSort) >= 2)
+        Errors.Internal.precondition(f.isRainbowSorted)
+        Errors.Internal.precondition(f.arity <= 2)
+        Errors.Internal.precondition(f.argSorts forall (state.staleValues(_).isEmpty))
+        Errors.Internal.precondition(state.staleValues(f.resultSort).isEmpty)
+        Errors.Internal.precondition(f.argSorts.forall(state.scope(_) >= 2))
+        Errors.Internal.precondition(state.scope(f.resultSort) >= 2)
         
         val (ltDecl, ltDefn) = sortLtDefinition(f.resultSort, state.scope(f.resultSort))
         
@@ -344,10 +344,10 @@ object Symmetry {
         state: StalenessState
     ): Set[Term] = {
         
-        Errors.precondition(P.resultSort == BoolSort)
-        Errors.precondition(P.argSorts.forall(!_.isBuiltin))
+        Errors.Internal.precondition(P.resultSort == BoolSort)
+        Errors.Internal.precondition(P.argSorts.forall(!_.isBuiltin))
         
-        Errors.precondition(P.argSorts forall (state.numFreshValues(_) >= 2))
+        Errors.Internal.precondition(P.argSorts forall (state.numFreshValues(_) >= 2))
         
         val r = (P.argSorts map (state.numFreshValues(_))).min // Smallest number of unused values
         
@@ -366,14 +366,14 @@ object Symmetry {
         state: StalenessState
     ): Set[Term] = {
             
-            Errors.precondition(P.resultSort == BoolSort)
-            Errors.precondition(P.argSorts forall (!_.isBuiltin))
-            Errors.precondition(P.argSorts exists (state.numFreshValues(_) >= 2))
+            Errors.Internal.precondition(P.resultSort == BoolSort)
+            Errors.Internal.precondition(P.argSorts forall (!_.isBuiltin))
+            Errors.Internal.precondition(P.argSorts exists (state.numFreshValues(_) >= 2))
             
             val tracker = state.createTrackerWithState
             
             def fillArgList(sort: Sort, d: DomainElement): ArgList = {
-                Errors.precondition(d.sort == sort)
+                Errors.Internal.precondition(d.sort == sort)
                 for(s <- P.argSorts) yield {
                     if(s == sort) d
                     else DomainElement(1, s) // TODO can we make a smarter selection for the other elements?
@@ -402,10 +402,10 @@ object Symmetry {
         argumentOrder: IndexedSeq[DomainElement]
     ): Set[RangeRestriction] = {
 
-        Errors.precondition(f.argSorts.forall(!_.isBuiltin))
-        Errors.precondition(!f.resultSort.isBuiltin)
-        Errors.precondition(f.argSorts contains f.resultSort)
-        Errors.precondition(!f.isRDI)
+        Errors.Internal.precondition(f.argSorts.forall(!_.isBuiltin))
+        Errors.Internal.precondition(!f.resultSort.isBuiltin)
+        Errors.Internal.precondition(f.argSorts contains f.resultSort)
+        Errors.Internal.precondition(!f.isRDI)
 
         // We fix particular values for the sorts not in the output
         // These stay the same for all argument lists we symmetry break using
@@ -416,7 +416,7 @@ object Symmetry {
         // given a2 it will yield: (a2, b1, a2, d1)
         // given a3 it will yield: (a3, b1, a3, d1)
         def constructArgList(resVal: DomainElement): Seq[DomainElement] = {
-            Errors.precondition(resVal.sort == f.resultSort)
+            Errors.Internal.precondition(resVal.sort == f.resultSort)
             f.argSorts map (sort => {
                 if(sort == f.resultSort) resVal
                 else DomainElement(1, sort) // for other sorts, doesn't matter what values we choose

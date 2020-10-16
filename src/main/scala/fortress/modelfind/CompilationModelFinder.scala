@@ -98,9 +98,9 @@ with ModelFinderSettings {
         checkSat() match {
             case SatResult =>
             case UnsatResult => return 0
-            case UnknownResult => Errors.solverError("Solver gave unknown result")
-            case ErrorResult(_) => Errors.solverError("An error occurred while computing result")
-            case TimeoutResult => Errors.solverError("Solver timed out while computing result")
+            case UnknownResult => Errors.Internal.solverError("Solver gave unknown result")
+            case ErrorResult(_) => Errors.Internal.solverError("An error occurred while computing result")
+            case TimeoutResult => Errors.Internal.solverError("Solver timed out while computing result")
         }
 
         var count: Int = 1
@@ -112,9 +112,9 @@ with ModelFinderSettings {
             r match {
                 case SatResult => count += 1
                 case UnsatResult => sat = false
-                case UnknownResult => Errors.solverError("Solver gave unknown result")
-                case ErrorResult(_) => Errors.solverError("An error occurred while computing result")
-                case TimeoutResult => Errors.solverError("Solver timed out while computing result")
+                case UnknownResult => Errors.Internal.solverError("Solver gave unknown result")
+                case ErrorResult(_) => Errors.Internal.solverError("An error occurred while computing result")
+                case TimeoutResult => Errors.Internal.solverError("Solver timed out while computing result")
             }
         }
 

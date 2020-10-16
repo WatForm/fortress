@@ -15,7 +15,7 @@ class TypecheckSanitizeTransformer extends TheoryTransformer {
             // Note that a formula cannot typecheck if it has any free variables (that are not constants of the signature)
             val result: TypeCheckResult = axiom.typeCheck(theory.signature)
             // System.out.println(axiom.toString + (result.sort).toString) ;
-            Errors.precondition(result.sort == BoolSort)
+            Errors.Internal.precondition(result.sort == BoolSort)
             result.sanitizedTerm
         }
 
