@@ -152,14 +152,14 @@ class SkolemizeTransformerTest extends UnitSuite with CommonSymbols {
             .withSort(A)
             .withSort(B)
             .withFunctionDeclaration(R from (A, A, B) to BoolSort)
-            .withAxiom(Forall(Seq(x of A, z.of(B)), Exists(y of A, R(x, y, z))))
+            .withAxiom(Forall(Seq(x of A, z of B), Exists(y of A, R(x, y, z))))
         
         val expected = Theory.empty
             .withSort(A)
             .withSort(B)
             .withFunctionDeclaration(R from (A, A, B) to BoolSort)
             .withFunctionDeclaration(sk_0 from (A, B) to A)
-            .withAxiom(Forall(Seq(x of A, z.of(B)), R(x, sk_0(x, z), z)))
+            .withAxiom(Forall(Seq(x of A, z of B), R(x, sk_0(x, z), z)))
         
         skolemizer(theory) should be (expected)
     }
@@ -170,14 +170,14 @@ class SkolemizeTransformerTest extends UnitSuite with CommonSymbols {
             .withSort(A)
             .withSort(B)
             .withFunctionDeclaration(R from (A, A, B) to BoolSort)
-            .withConstant(z.of(B))
+            .withConstant(z of B)
             .withAxiom(Forall(x of A, Exists(y of A, R(x, y, z))))
         
         val expected = Theory.empty
             .withSort(A)
             .withSort(B)
             .withFunctionDeclaration(R from (A, A, B) to BoolSort)
-            .withConstant(z.of(B))
+            .withConstant(z of B)
             .withFunctionDeclaration(sk_0 from A to A)
             .withAxiom(Forall(x of A, R(x, sk_0(x), z)))
         
@@ -343,5 +343,28 @@ class SkolemizeTransformerTest extends UnitSuite with CommonSymbols {
         newProblemState.theory should be (expected)
         newProblemState.skolemConstants should be (Set(Var("sk_2") of A))
         newProblemState.skolemFunctions should be (Set(sk_0 from A to A, sk_1 from A to A))
+    }
+
+    test("forall variable shadowing constant (former bug)") {
+        val theory = Theory.empty
+            .withSort(A)
+            .withFunctionDeclaration(Q from (A, A) to BoolSort)
+            .withConstant(x of A)
+            .withAxiom(Forall(x of A, Exists(y of A, Q(x, y))))
+
+        /* This used to be a bug - when deciding if the ocurrence of x in Q(x, y) is a free variable
+        *  that needs to be an argument to the skolem function, the skolemizer would just look at the
+        *  free variables of Q(x, y) and subtract away the constants of the signature.
+        *  However this fails to notice that x was quantified by an earlier forall.
+        */
+        
+        val expected = Theory.empty
+            .withSort(A)
+            .withFunctionDeclaration(Q from (A, A) to BoolSort)
+            .withConstant(x of A)
+            .withFunctionDeclaration(sk_0 from A to A)
+            .withAxiom(Forall(x of A, Q(x, sk_0(x))))
+        
+        skolemizer(theory) should be (expected)
     }
 }

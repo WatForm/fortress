@@ -69,8 +69,17 @@ class Skolemizer(topLevelTerm: Term, signature: Signature, nameGen: NameGenerato
         override def visitExistsInner(term: Exists): Term = {
             var temporaryBody = term.body
             for(av <- term.vars) {
-                val freeVars = term.freeVars(signature)
-                if(freeVars.size == 0) {
+                // To determine what arguments the skolem function needs, look at the
+                // free variables of (Exists x body), and see which of them are universally 
+                // quantified earlier (which also means we discard constants, unless they are shadowed)
+                // Note that since we remove existential quantifiers from the top down,
+                // any variable on the stack is universally quantified
+                val skolemArguments: Seq[AnnotatedVar] = for {
+                    variable <- term.freeVarConstSymbols.toList
+                    annotatedVar <- mostRecentStackAppearence(variable)
+                } yield annotatedVar
+
+                if(skolemArguments.size == 0) {
                     // Skolem constant
                     val skolemConstantName = nameGen.freshName("sk")
                     
@@ -87,21 +96,13 @@ class Skolemizer(topLevelTerm: Term, signature: Signature, nameGen: NameGenerato
                     // Skolem function
                     val skolemFunctionName = nameGen.freshName("sk")
                     
-                    val argumentSorts = new scala.collection.mutable.ListBuffer[Sort]()
-                    val arguments = new scala.collection.mutable.ListBuffer[Term]()
-                    for(v <- freeVars) {
-                        val sortMaybe: Option[Sort] = lookupSort(v)
-                        Errors.Internal.assertion(sortMaybe.nonEmpty, "Sort of variable " + v.name + " could not be found")
-                        val sort = sortMaybe.get
-                        
-                        argumentSorts += sort
-                        arguments += v
-                    }
+                    val argumentSorts = skolemArguments.map(_.sort)
+                    val arguments = skolemArguments.map(_.variable)
                     
-                    val skolemFunction = FuncDecl(skolemFunctionName, argumentSorts.toList, av.sort)
+                    val skolemFunction = FuncDecl(skolemFunctionName, argumentSorts, av.sort)
                     skolemFunctions += skolemFunction
                     
-                    val skolemApplication = App(skolemFunctionName, arguments.toList)
+                    val skolemApplication = App(skolemFunctionName, arguments)
                     temporaryBody = temporaryBody.substitute(av.variable, skolemApplication, nameGen)
                     
                     signature = signature.withFunctionDeclaration(skolemFunction)
