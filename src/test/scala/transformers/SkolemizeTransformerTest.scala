@@ -373,14 +373,12 @@ class SkolemizeTransformerTest extends UnitSuite with CommonSymbols {
             .withSorts(A, B, C)
             .withFunctionDeclaration(Q from (C, A) to BoolSort)
             .withFunctionDeclaration(P from B to BoolSort)
-            .withConstant(x of A)
             .withAxiom(Forall(x of B, P(x) and Forall(x of C, Exists(y of A, Q(x, y)))))
         
         val expected = Theory.empty
             .withSorts(A, B, C)
             .withFunctionDeclaration(Q from (C, A) to BoolSort)
             .withFunctionDeclaration(P from B to BoolSort)
-            .withConstant(x of A)
             .withFunctionDeclaration(sk_0 from C to A)
             .withAxiom(Forall(x of B, P(x) and Forall(x of C, Q(x, sk_0(x)))))
         
