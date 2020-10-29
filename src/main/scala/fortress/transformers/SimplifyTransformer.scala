@@ -13,9 +13,10 @@ class SimplifyTransformer extends TheoryTransformer {
         var newAxioms = theory.axioms.map(axiom => {
             val newAxiom = axiom.simplify(learnedLiterals)
             newAxiom match {
-                case Not(Eq(t1, t2)) => learnedLiterals = learnedLiterals + (Eq(t1, t2) -> Bottom)
+                case Not(Eq(t1, t2)) => learnedLiterals = learnedLiterals + (Eq(t1, t2) -> Bottom) + (Eq(t2, t1) -> Bottom)
                 case Not(App(fname, args)) => learnedLiterals = learnedLiterals + (App(fname, args) -> Bottom)
-                case App(_, _) | Eq(_, _) => learnedLiterals = learnedLiterals + (newAxiom -> Top)
+                case Eq(t1, t2) => learnedLiterals = learnedLiterals + (newAxiom -> Top) + (Eq(t2, t1) -> Top)
+                case App(_, _) => learnedLiterals = learnedLiterals + (newAxiom -> Top)
                 case _ =>
             }
             newAxiom
@@ -28,9 +29,10 @@ class SimplifyTransformer extends TheoryTransformer {
                 case _ => {
                     val newAxiom = axiom.simplify(learnedLiterals)
                     newAxiom match {
-                        case Not(Eq(t1, t2)) => learnedLiterals = learnedLiterals + (Eq(t1, t2) -> Bottom)
+                        case Not(Eq(t1, t2)) => learnedLiterals = learnedLiterals + (Eq(t1, t2) -> Bottom) + (Eq(t2, t1) -> Bottom)
                         case Not(App(fname, args)) => learnedLiterals = learnedLiterals + (App(fname, args) -> Bottom)
-                        case App(_, _) | Eq(_, _) => learnedLiterals = learnedLiterals + (newAxiom -> Top)
+                        case Eq(t1, t2) => learnedLiterals = learnedLiterals + (newAxiom -> Top) + (Eq(t2, t1) -> Top)
+                        case App(_, _)  => learnedLiterals = learnedLiterals + (newAxiom -> Top)
                         case _ =>
                     }
                     newAxiom
