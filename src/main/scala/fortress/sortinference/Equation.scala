@@ -35,7 +35,7 @@ object Equation {
             }
             case AndList(args) => {
                 val recurInfo = args map {recur(_, context)}
-                Errors.assertion(recurInfo forall (_._1 == BoolSort))
+                Errors.Internal.assertion(recurInfo forall (_._1 == BoolSort))
                 val recurSorts = recurInfo map (_._1)
                 val recurEqns = recurInfo flatMap (_._2)
                 // Each argument must be a boolean
@@ -44,7 +44,7 @@ object Equation {
             }
             case OrList(args) => {
                 val recurInfo = args map {recur(_, context)}
-                Errors.assertion(recurInfo forall (_._1 == BoolSort))
+                Errors.Internal.assertion(recurInfo forall (_._1 == BoolSort))
                 val recurSorts = recurInfo map (_._1)
                 val recurEqns = recurInfo flatMap (_._2)
                 // Each argument must be a boolean
@@ -71,14 +71,14 @@ object Equation {
             case Eq(l, r) => {
                 val (lSort, lEqns) = recur(l, context)
                 val (rSort, rEqns) = recur(r, context)
-                Errors.assertion(lSort != BoolSort)
-                Errors.assertion(rSort != BoolSort)
+                Errors.Internal.assertion(lSort != BoolSort)
+                Errors.Internal.assertion(rSort != BoolSort)
                 // Add this to equations!
                 (BoolSort, (lEqns union rEqns) + Equation(lSort, rSort) )
             }
             case App(name, args) => {
                 val (argSorts, resSort) = functionMap(name)
-                Errors.assertion(argSorts.size == args.size)
+                Errors.Internal.assertion(argSorts.size == args.size)
                 val recurInfo = args map {recur(_, context)}
                 val recurArgSorts = recurInfo map (_._1)
                 val recurEqns = recurInfo flatMap (_._2)
@@ -152,8 +152,8 @@ object Equation {
                 val (condSort, condEqns) = recur(condition, context)
                 val (ifTrueSort, ifTrueEqns) = recur(ifTrue, context)
                 val (ifFalseSort, ifFalseEqns) = recur(ifFalse, context)
-                Errors.assertion(ifTrueSort != BoolSort)
-                Errors.assertion(ifFalseSort != BoolSort)
+                Errors.Internal.assertion(ifTrueSort != BoolSort)
+                Errors.Internal.assertion(ifFalseSort != BoolSort)
                 (ifTrueSort, condEqns union ifTrueEqns union ifFalseEqns + Equation(condSort, BoolSort) + Equation(ifTrueSort, ifFalseSort))
             }
             case EnumValue(_) => ???

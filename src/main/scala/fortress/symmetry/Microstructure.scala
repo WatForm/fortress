@@ -63,7 +63,7 @@ class MicrostructureComplement(theory: Theory, scopes: Map[Sort, Int]) extends H
         
         var index = 0
         for(outputSequence <- possibleOutputSequences) yield {
-            Errors.assertion(argumentLists.size == outputSequence.size)
+            Errors.Internal.assertion(argumentLists.size == outputSequence.size)
             index += 1
             val tuples: List[(Seq[DomainElement], Value)] = argumentLists.toList zip outputSequence
             

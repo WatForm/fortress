@@ -23,7 +23,7 @@ class QuantifierExpansionSimplifierTransformer private (useConstForDomElem: Bool
     
     override def apply(problemState: ProblemState): ProblemState = problemState match {
         case ProblemState(theory, scopes, skc, skf, rangeRestricts, unapplyInterp) => {
-            Errors.precondition(scopes.keySet == theory.sorts.filter(!_.isBuiltin), scopes.keySet.toString)
+            Errors.Internal.precondition(scopes.keySet == theory.sorts.filter(!_.isBuiltin), scopes.keySet.toString)
         
             val domainElemsMap: Map[Sort, Seq[Term]] = scopes.map {
                 case (sort, size) => (sort, for(i <- 1 to size) yield DE(i, sort))

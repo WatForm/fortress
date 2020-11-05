@@ -17,7 +17,7 @@ object Maps {
         findConflict(map1, map2) match {
             case None => map1 ++ map2
             case Some(elem) => {
-                Errors.preconditionFailed(s"Map conflict: key: ${elem}, value1: ${map1(elem)}, value2: ${map2(elem)}")
+                Errors.Internal.preconditionFailed(s"Map conflict: key: ${elem}, value1: ${map1(elem)}, value2: ${map2(elem)}")
             }
         }
     }
@@ -31,9 +31,9 @@ object Maps {
     }
 
     def removeFixedPoints[A >: Null](map: Map[A, A]): Map[A, A] = {
-        Errors.precondition(map != null)
-        Errors.precondition(!map.keySet.contains(null))
-        Errors.precondition(!map.values.toSet.contains(null))
+        Errors.Internal.precondition(map != null)
+        Errors.Internal.precondition(!map.keySet.contains(null))
+        Errors.Internal.precondition(!map.values.toSet.contains(null))
         map.filter{ case (k, v) => k != v }
     }
 

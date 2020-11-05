@@ -29,6 +29,7 @@ abstract class TermVisitorWithTypeContext[T](protected var signature: Signature)
     protected def visitForallInner(forall: Forall): T
     protected def visitExistsInner(exists: Exists): T
     
+    protected def mostRecentStackAppearence(variable: Var): Option[AnnotatedVar] = typeContextStack.find(_.name == variable.name)
     
     final override def visitForall(forall: Forall): T = {
         // Must put variables on context stack in this order

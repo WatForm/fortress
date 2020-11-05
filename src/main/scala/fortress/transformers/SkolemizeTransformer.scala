@@ -3,7 +3,7 @@ package fortress.transformers
 import fortress.msfol._
 import fortress.data.NameGenerator
 import fortress.data.IntSuffixNameGenerator
-import fortress.operations.Skolemizer
+import fortress.operations.Skolemization
 import fortress.operations.TermOps._
 import fortress.operations.TheoryOps._
 import fortress.interpretation.Interpretation
@@ -41,12 +41,12 @@ class SkolemizeTransformer extends ProblemStateTransformer {
             val newSkolemConstants = scala.collection.mutable.Set.empty[AnnotatedVar]
             val newSkolemFunctions = scala.collection.mutable.Set.empty[FuncDecl]
             for(axiom <- theory.axioms) {
-                val skolemizer = new Skolemizer(axiom, resultTheory.signature, nameGenerator)
-                val newAxiom = skolemizer.convert()
-                newSkolemConstants ++= skolemizer.getSkolemConstants
-                newSkolemFunctions ++= skolemizer.getSkolemFunctions
-                resultTheory = resultTheory.withFunctionDeclarations(skolemizer.getSkolemFunctions.toList)
-                resultTheory = resultTheory.withConstants(skolemizer.getSkolemConstants.toList)
+                val skolemResult = Skolemization.skolemize(axiom, resultTheory.signature, nameGenerator)
+                val newAxiom = skolemResult.skolemizedTerm
+                newSkolemConstants ++= skolemResult.skolemConstants
+                newSkolemFunctions ++= skolemResult.skolemFunctions
+                resultTheory = resultTheory.withFunctionDeclarations(skolemResult.skolemFunctions.toList)
+                resultTheory = resultTheory.withConstants(skolemResult.skolemConstants.toList)
                 resultTheory = resultTheory.withAxiom(newAxiom)
             }
             

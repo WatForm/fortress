@@ -21,12 +21,12 @@ trait ModelFinderSettings extends ModelFinder {
     }
     
     override def setTimeout(milliseconds: Int): Unit = {
-        Errors.precondition(milliseconds >= 0)
+        Errors.Internal.precondition(milliseconds >= 0)
         timeoutMilliseconds = Milliseconds(milliseconds)
     }
     
     override def setAnalysisScope(t: Sort, size: Int): Unit = {
-        Errors.precondition(size >= 0)
+        Errors.Internal.precondition(size >= 0)
         analysisScopes = analysisScopes + (t -> size)
     }
     
