@@ -33,15 +33,11 @@ object NormalForms {
         case Not(Forall(vars, body)) => Exists(vars, nnf(Not(body)))
         case Not(Exists(vars, body)) => Forall(vars, nnf(Not(body)))
         case App(fname, args) => App(fname, args map nnf)
-<<<<<<< HEAD
-        case Not(App(fname, args)) => Not(App(fname, args map nnf)) 
-=======
         case Not(App(fname, args)) => Not(App(fname, args map nnf))
         case Closure(fname, args, arg1, arg2) => Closure(fname, args map nnf, nnf(arg1), nnf(arg2))
         case Not(Closure(fname, args, arg1, arg2)) => Not(Closure(fname, args map nnf, nnf(arg1), nnf(arg2)))
         case ReflexiveClosure(fname, args, arg1, arg2) => ReflexiveClosure(fname, args map nnf, nnf(arg1), nnf(arg2))
         case Not(ReflexiveClosure(fname, args, arg1, arg2)) => Not(ReflexiveClosure(fname, args map nnf, nnf(arg1), nnf(arg2)))
->>>>>>> origin/astra
         case Eq(l, r) => Eq(nnf(l), nnf(r))
         case Not(Eq(l, r)) => Not(Eq(nnf(l), nnf(r))) // Not that Eq does not compare booleans
         case Top | Bottom | Var(_) | BuiltinApp(_, _) | DomainElement(_, _)
