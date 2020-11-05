@@ -322,8 +322,8 @@ case class IfThenElse private (condition: Term, ifTrue: Term, ifFalse: Term) ext
 
 /** Represents a transitive closure application. */
 case class Closure private (functionName: String, arguments: Seq[Term], arg1: Term, arg2: Term) extends Term {
-    Errors.precondition(functionName.length >= 1, "Empty function name in transitive closure")
-    Errors.precondition(arguments.size >= 2, "Function application ^" + functionName + " should have at least 2 arguments")
+    Errors.Internal.precondition(functionName.length >= 1, "Empty function name in transitive closure")
+    Errors.Internal.precondition(arguments.size >= 2, "Function application ^" + functionName + " should have at least 2 arguments")
     
     def getArguments: java.util.List[Term] = arguments.asJava
     def getFunctionName: String = functionName
@@ -336,8 +336,8 @@ case class Closure private (functionName: String, arguments: Seq[Term], arg1: Te
 
 /** Represents a reflexive transitive closure application. */
 case class ReflexiveClosure private (functionName: String, arguments: Seq[Term], arg1: Term, arg2: Term) extends Term {
-    Errors.precondition(functionName.length >= 1, "Empty function name in reflexive transitive closure")
-    Errors.precondition(arguments.size >= 2, "Function application *" + functionName + " should have at least 2 arguments")
+    Errors.Internal.precondition(functionName.length >= 1, "Empty function name in reflexive transitive closure")
+    Errors.Internal.precondition(arguments.size >= 2, "Function application *" + functionName + " should have at least 2 arguments")
     
     def getArguments: java.util.List[Term] = arguments.asJava
     def getFunctionName: String = functionName

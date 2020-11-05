@@ -253,7 +253,7 @@ class NnfTransformerTest extends UnitSuite with CommonSymbols {
             .withAxiom(Forall(_a of A,
                 { !P(_a) or Forall(_b of B, Q(_a, _b)) }
                 and { P(_a) or Exists(_b of B, !Q(_a, _b)) } ) )
-            // ∀a | (p[a] && (∀b | q[a,b])) || (!p[a] && (∃b | !q[a,b]))
+            // ∀a | (!p[a] || (∀b | q[a,b])) && (p[a] || (∃b | !q[a,b]))
         
         nnf(theory1) should be (theory2)
     }
