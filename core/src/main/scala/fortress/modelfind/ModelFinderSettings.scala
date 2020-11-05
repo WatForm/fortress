@@ -20,9 +20,9 @@ trait ModelFinderSettings extends ModelFinder {
         theory = newTheory
     }
     
-    override def setTimeout(milliseconds: Int): Unit = {
-        Errors.Internal.precondition(milliseconds >= 0)
-        timeoutMilliseconds = Milliseconds(milliseconds)
+    override def setTimeout(milliseconds: Milliseconds): Unit = {
+        Errors.Internal.precondition(milliseconds >= Milliseconds(0))
+        timeoutMilliseconds = milliseconds
     }
     
     override def setAnalysisScope(t: Sort, size: Int): Unit = {
@@ -45,6 +45,5 @@ trait ModelFinderSettings extends ModelFinder {
     // Calculate the number of nanoseconds until we must output TIMEOUT
     protected def timeoutNano: Nanoseconds = timeoutMilliseconds.toNano
     
-    protected def notifyLoggers(notifyFn: EventLogger => Unit): Unit =
-      for(logger <- eventLoggers) notifyFn(logger)
+    protected def notifyLoggers(notifyFn: EventLogger => Unit): Unit = for(logger <- eventLoggers) notifyFn(logger)
 }

@@ -7,6 +7,7 @@ import fortress.solverinterface._
 import fortress.logging._
 
 import java.lang.AutoCloseable
+import fortress.util._
 
 /** The various return possibilities of the model finder.
 * SAT means the theory is satisfiable.
@@ -44,7 +45,10 @@ object ModelFinderResult {
 trait ModelFinder extends AutoCloseable {
     def setTheory(theory: Theory): Unit
     def setAnalysisScope(t: Sort, size: Int): Unit
-    def setTimeout(milliseconds: Int): Unit
+    def setTimeout(milliseconds: Milliseconds): Unit
+    def setTimeout(seconds: Seconds): Unit = {
+        setTimeout(seconds.toMilli)
+    }
     def setBoundedIntegers(semantics: IntegerSemantics): Unit
     // Parentheses are used rather than zero parameters to indicate that state may change.
     def checkSat(): ModelFinderResult

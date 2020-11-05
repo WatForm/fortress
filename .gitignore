@@ -19,3 +19,5 @@ examples/libs/*.zip
 examples/libs/*.dylib
 examples/libs/*.so
 examples/libs/*.dll
+target/
+fortress-0.1.0/
