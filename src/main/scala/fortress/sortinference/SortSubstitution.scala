@@ -56,7 +56,7 @@ trait GeneralSortSubstitution {
     // Apply the Sort function to every appearence of a Sort in a Signature.
     def apply(signature: Signature): Signature = signature match {
         case Signature(sorts, functionDeclarations, constants, enumConstants) => {
-            Errors.precondition(enumConstants.isEmpty)
+            Errors.Internal.precondition(enumConstants.isEmpty)
             Signature(
                 sorts map apply,
                 functionDeclarations map apply,
@@ -161,7 +161,7 @@ object SortSubstitution {
             } yield {
                 val inputSorts = inputDecl.argSorts :+ inputDecl.resultSort
                 val outputSorts = outputDecl.argSorts :+ outputDecl.resultSort
-                Errors.assertion(inputSorts.size == outputSorts.size)
+                Errors.Internal.assertion(inputSorts.size == outputSorts.size)
                 inputSorts zip outputSorts
             }
         }.flatten
@@ -169,6 +169,8 @@ object SortSubstitution {
         new SortSubstitution((constantsMapping ++ functionsMapping).toMap)
     }
 
+    // Takes two terms that have the same shape modulo sorts, and produces a substitutuion
+    // which turns the input term into the output term
     def computeTermMapping(input: Term, output: Term): SortSubstitution = {
         def recur(input: Term, output: Term): Map[Sort, Sort] = (input, output) match {
             case (Top, Top) => Map()
@@ -194,6 +196,11 @@ object SortSubstitution {
                 } yield (sort1 -> sort2)
                 Maps.merge(tuples.toMap, recur(body1, body2))
             }
+            case (DomainElement(_, s1), DomainElement(_, s2)) => Map(s1 -> s2)
+            case (EnumValue(_), EnumValue(_)) => Map()
+            case (IfThenElse(c1, t1, f1), IfThenElse(c2, t2, f2)) => recurs(Seq(c1, t1, f1), Seq(c2, t2, f2))
+            case (IntegerLiteral(_), IntegerLiteral(_)) => Map()
+            case (BitVectorLiteral(_, _), BitVectorLiteral(_, _)) => Map()
             case _ => ???
         }
 

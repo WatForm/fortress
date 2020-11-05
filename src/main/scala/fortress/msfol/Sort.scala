@@ -10,10 +10,10 @@ sealed abstract class Sort {
 }
 
 case class SortConst private (name: String) extends Sort {
-    Errors.precondition(name.length > 0, "Cannot create sort with empty name");
-    Errors.precondition(! Names.isIllegal(name), "Illegal sort name " + name);
-    Errors.precondition(! name.contains(" "), "Cannot make sort constant with space " + name)
-    Errors.precondition(! Sort.nameMimicsBuiltin(name), "Cannot make sort constant with name " + name)
+    Errors.Internal.precondition(name.length > 0, "Cannot create sort with empty name");
+    Errors.Internal.precondition(! Names.isIllegal(name), "Illegal sort name " + name);
+    Errors.Internal.precondition(! name.contains(" "), "Cannot make sort constant with space " + name)
+    Errors.Internal.precondition(! Sort.nameMimicsBuiltin(name), "Cannot make sort constant with name " + name)
     
     override def isBuiltin: Boolean = false
 }
