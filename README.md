@@ -6,7 +6,7 @@ Fortress takes as input:
 * a first-order logic theory specified in SMT-LIB 2.6 format (the UF fragment), and
 * a domain size ("scope") for each sort.
 
-It answers whether the theory has a satisfying interpretation (a "model") with respect to those domain sizes.
+It answers whether the theory has a satisfying interpretation (a "model" or "solution") with the given domain sizes.
 
 Fortress was original described in the paper "Finite Model Finding Using the Logic of Equality with Uninterpreted Functions", [available here](https://cs.uwaterloo.ca/~nday/pdf/refereed/2016-VaDa-fm.pdf), and has been re-implemented to create a powerful and general tool.
 
@@ -16,7 +16,7 @@ Fortress was original described in the paper "Finite Model Finding Using the Log
 The following are necessary to run Fortress:
 * Java 10 or higher. 
 * A command-line installation of the `Z3` SMT solver, version 4.8.4 or higher.
-    * Binaries are [available here](https://github.com/Z3Prover/z3/releases).
+    * Binaries for Z3 are [available here](https://github.com/Z3Prover/z3/releases).
     * If using MacOS, we recommend using Homebrew: `brew install z3`.
     * If on `Ubuntu`, do not use `apt-get`, since its version of Z3 is out of date.
 
@@ -70,20 +70,28 @@ This repository contains a multi-project sbt build, with the following projects:
 * `root`, the root project which aggregates `fortress` and `fortressDebug`
 
 Building the `root` project (default) is the easiest way to build Fortress.
-To use Fortress on the command line, you want the output from the `fortress` project. 
+To use Fortress on the command line, you want the output from the `fortress` project.
+
+You can read more about how to use multi-project builds in the [sbt reference manual](https://www.scala-sbt.org/1.x/docs/index.html).
 
 ### Complete Build
-Run `sbt dist`.
+```
+sbt dist
+```
 This will compile the code produce universal zip archives:
 * For the `fortress` project, the output zip is in the `cli/target/universal/` directory.
 * For the `fortressCore` project, the output zip is in the `core/target/universal/` directory.
 * For the `fortressDebug` project, the output zip is in the `debug/target/universal/` directory.
 
 ### Compile Only
-Run `sbt compile`.
+```
+sbt compile
+```
 
 ### Running Unit Tests
-Run `sbt test`.
+```
+sbt test
+```
     
 ## Troubleshooting
 
