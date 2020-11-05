@@ -36,6 +36,8 @@ object Substituter {
             case Eq(l, r) => Eq(sub(l), sub(r))
             case App(f, args) => App(f, args.map(sub))
             case BuiltinApp(function, args) => BuiltinApp(function, args map sub)
+            case Closure(f, args, arg1, arg2) => Closure(f, args.map(sub), sub(arg1), sub(arg2))
+            case ReflexiveClosure(f, args, arg1, arg2) => ReflexiveClosure(f, args.map(sub), sub(arg1), sub(arg2))
             case Exists(vars, _) if (vars.map(_.variable).contains(x)) => t
             case Forall(vars, _) if (vars.map(_.variable).contains(x)) => t
             case Exists(vars, body) => {
@@ -105,6 +107,8 @@ object FastSubstituter {
                 case Iff(p, q) => Iff(sub(sigma, p), sub(sigma, q))
                 case Eq(l, r) => Eq(sub(sigma, l), sub(sigma, r))
                 case App(f, args) => App(f, args map (sub(sigma, _)))
+                case Closure(f, args, arg1, arg2) => Closure(f, args map (sub(sigma, _)), sub(sigma, arg1), sub(sigma, arg2))
+                case ReflexiveClosure(f, args, arg1, arg2) => ReflexiveClosure(f, args map (sub(sigma, _)), sub(sigma, arg1), sub(sigma, arg2))
                 case BuiltinApp(f, args) => BuiltinApp(f, args map (sub(sigma, _)))
                 case Exists(vars, body) => {
                     // Substitute x->t in (exists x . phi) becomes (exists x . phi)

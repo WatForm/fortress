@@ -27,7 +27,7 @@ object QuantifierExpander {
             case Iff(left, right) => Iff(instantiate(left), instantiate(right))
             // We assume eq, app do not contain quantifiers, so we do not need to go further
             // If we change the implementation from just using direct substitution, we will need to change this
-            case Eq(_, _) | App(_, _) | BuiltinApp(_, _) => t 
+            case Eq(_, _) | App(_, _) | BuiltinApp(_, _) | Closure(_, _, _, _) | ReflexiveClosure(_, _, _, _) => t 
             case Forall(annotatedVars, body) => {
                 // Reorder by whether can instantiate and then call helper function
                 val (doNotInstantiate, toInstantiate) = annotatedVars.partition(_.sort.isBuiltin)
