@@ -13,9 +13,9 @@ object NormalForms {
         case OrList(args) => OrList(args.map(nnf))
         case (distinct: Distinct) => nnf(distinct.asPairwiseNotEquals)
         case Implication(p, q) => OrList(nnf(Not(p)), nnf(q))
-        case Iff(p, q) => OrList(
-            AndList(nnf(p), nnf(q)),
-            AndList(nnf(Not(p)), nnf(Not(q)))
+        case Iff(p, q) => AndList(
+            OrList(nnf(Not(p)), nnf(q)),
+            OrList(nnf(p), nnf(Not(q)))
         )
         case Forall(vars, body) => Forall(vars, nnf(body))
         case Exists(vars, body) => Exists(vars, nnf(body))

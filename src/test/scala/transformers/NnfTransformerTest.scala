@@ -42,7 +42,7 @@ class NnfTransformerTest extends UnitSuite with CommonSymbols {
             
         val expected = baseTheory
             .withAxiom(And(Or(Not(p), q),
-                                 Or(Not(q), p)))
+                                 Or(p, Not(q))))
 
         nnf(theory) should be (expected)
     }
@@ -251,8 +251,8 @@ class NnfTransformerTest extends UnitSuite with CommonSymbols {
             .withFunctionDeclaration(P from A to BoolSort)
             .withFunctionDeclaration(Q from (A, B) to BoolSort)
             .withAxiom(Forall(_a of A,
-                { P(_a) and Forall(_b of B, Q(_a, _b)) }
-                or { !P(_a) and Exists(_b of B, !Q(_a, _b)) } ) )
+                { !P(_a) or Forall(_b of B, Q(_a, _b)) }
+                and { P(_a) or Exists(_b of B, !Q(_a, _b)) } ) )
             // ∀a | (p[a] && (∀b | q[a,b])) || (!p[a] && (∃b | !q[a,b]))
         
         nnf(theory1) should be (theory2)
