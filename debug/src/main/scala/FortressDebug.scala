@@ -57,6 +57,10 @@ object FortressDebug {
                     case "v2si" => new FortressTWO_SI
                     case "v3" => new FortressTHREE
                     case "v3si" => new FortressTHREE_SI
+                    case "upperIter" => new IterativeUpperBoundModelFinder
+                    case "parIter" => new ParallelIterativeUpperBoundModelFinder
+                    case "upperND" => new NonDistUpperBoundModelFinder
+                    case "upperPred" => new PredUpperBoundModelFinder
                 }
 
                 for(logger <- loggers) {

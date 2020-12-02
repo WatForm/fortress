@@ -1,6 +1,7 @@
 import org.scalatest._
 
 import fortress.util.Maps
+import fortress.util.Maps._
 
 class MapsTest extends UnitSuite {
     test("maps with conflict") {
@@ -33,5 +34,24 @@ class MapsTest extends UnitSuite {
         
         Maps.merge(map1, map2) should be (Map(1 -> "cat", 2 -> "dog", 3 -> "sheep"))
         Maps.merge(map1, map3) should be (Map(1 -> "cat", 2 -> "dog", 3 -> "horse"))
+    }
+
+    test("nondeterministic map single step") {
+        val map = Map("cat" -> NondeterministicValue(Set(1, 2, 3)), "dog" -> NondeterministicValue(Set(4, 5, 6)))
+        val nmap = NondeterministicMap(map)
+
+        val expected: NondeterministicValue[Map[String, Int]] = NondeterministicValue(Set(
+            Map("cat" -> 1, "dog" -> 4),
+            Map("cat" -> 1, "dog" -> 5),
+            Map("cat" -> 1, "dog" -> 6),
+            Map("cat" -> 2, "dog" -> 4),
+            Map("cat" -> 2, "dog" -> 5),
+            Map("cat" -> 2, "dog" -> 6),
+            Map("cat" -> 3, "dog" -> 4),
+            Map("cat" -> 3, "dog" -> 5),
+            Map("cat" -> 3, "dog" -> 6)
+        ))
+
+        nmap.singleStepMap should be (expected)
     }
 }

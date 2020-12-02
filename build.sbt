@@ -18,13 +18,21 @@ lazy val fortress = (project in file("cli"))
     )
 
 lazy val fortressDebug = (project in file("debug"))
-    .aggregate(fortressCore)
-    .dependsOn(fortressCore)
+    .aggregate(fortressCore, fortressExperimental)
+    .dependsOn(fortressCore, fortressExperimental)
     .enablePlugins(JavaAppPackaging) // Sbt native packaging for creating zip file
     .settings(
         name := "FortressDebug",
         // Dependencies
         libraryDependencies += "org.rogach" %% "scallop" % "3.5.1" // Command line tools
+    )
+
+lazy val fortressExperimental = (project in file("experimental"))
+    .aggregate(fortressCore)
+    .dependsOn(fortressCore)
+    .settings(
+        name := "FortressExperimental",
+        libraryDependencies += "org.scala-lang.modules" %% "scala-parallel-collections" % "1.0.0", // Parallel collections
     )
 
 lazy val fortressCore = (project in file("core"))
