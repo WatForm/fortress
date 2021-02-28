@@ -25,7 +25,7 @@ class RangeFormulaTransformer private (useConstForDomElem: Boolean) extends Prob
             // Generate range constraints for constants
             val constantRangeConstraints = for {
                 c <- theory.constants
-                if !c.sort.isBuiltin
+                if !c.sort.isBuiltin && scopes.contains(c.sort)
                 // Don't generate constraints for terms that are already restricted
                 if ! (rangeRestricts exists (_.term == c.variable))
             } yield {
@@ -38,7 +38,7 @@ class RangeFormulaTransformer private (useConstForDomElem: Boolean) extends Prob
             val functionRangeConstraints = new scala.collection.mutable.ListBuffer[Term]()
             for {
                 f <- theory.functionDeclarations
-                if !f.resultSort.isBuiltin
+                if !f.resultSort.isBuiltin && scopes.contains(f.resultSort)
             } {
                 val possibleRangeValues = for(i <- 1 to scopes(f.resultSort)) yield DE(i, f.resultSort)
                 
@@ -50,7 +50,7 @@ class RangeFormulaTransformer private (useConstForDomElem: Boolean) extends Prob
                 val quantifiedVarsBuffer = new scala.collection.mutable.ListBuffer[AnnotatedVar]()
                 var counter = 0
                 val seqOfDomainSeqs: IndexedSeq[IndexedSeq[Term]] = f.argSorts.toIndexedSeq.map (sort => {
-                    val Di: IndexedSeq[Term] = if (sort.isBuiltin) {
+                    val Di: IndexedSeq[Term] = if (sort.isBuiltin || !scopes.contains(sort)) {
                         val annotatedVar = Var("$x_" + counter.toString) of sort
                         counter += 1
                         quantifiedVarsBuffer += annotatedVar

@@ -30,13 +30,13 @@ object QuantifierExpander {
             case Eq(_, _) | App(_, _) | BuiltinApp(_, _) | Closure(_, _, _, _) | ReflexiveClosure(_, _, _, _) => t 
             case Forall(annotatedVars, body) => {
                 // Reorder by whether can instantiate and then call helper function
-                val (doNotInstantiate, toInstantiate) = annotatedVars.partition(_.sort.isBuiltin)
+                val (doNotInstantiate, toInstantiate) = annotatedVars.partition(av => av.sort.isBuiltin || !sortInstantiations.contains(av.sort))
                 if (doNotInstantiate.isEmpty) And.smart(simpleQuantifiers(annotatedVars, body))
                 else Forall(doNotInstantiate, And.smart(simpleQuantifiers(toInstantiate, body)))
             }
             case Exists(annotatedVars, body) => {
                 // Reorder by whether can instantiate and then call helper function
-                val (doNotInstantiate, toInstantiate) = annotatedVars.partition(_.sort.isBuiltin)
+                val (doNotInstantiate, toInstantiate) = annotatedVars.partition(av => av.sort.isBuiltin || !sortInstantiations.contains(av.sort))
                 if (doNotInstantiate.isEmpty) Or.smart(simpleQuantifiers(annotatedVars, body))
                 else Exists(doNotInstantiate, Or.smart(simpleQuantifiers(toInstantiate, body)))
             }
