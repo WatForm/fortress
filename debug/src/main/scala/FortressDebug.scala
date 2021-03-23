@@ -26,7 +26,18 @@ object FortressDebug {
     def main(args: Array[String]): Unit = {
         val conf = new Conf(args)
         
-        val parser = new SmtLibParser
+        val parser: TheoryParser = {
+            val extension = conf.file().split('.').last
+            extension match {
+                case "p" => new TptpFofParser
+                case "smt2" => new SmtLibParser
+                case _ => {
+                    System.err.println("Invalid file extension: " + extension)
+                    System.exit(1)
+                    null
+                }
+            }
+        }
         val theory = parser.parse(new FileInputStream(conf.file()))
 
         // Default scopes
@@ -57,6 +68,10 @@ object FortressDebug {
                     case "v2si" => new FortressTWO_SI
                     case "v3" => new FortressTHREE
                     case "v3si" => new FortressTHREE_SI
+                    case "upperIter" => new IterativeUpperBoundModelFinder
+                    case "parIter" => new ParallelIterativeUpperBoundModelFinder
+                    case "upperND" => new NonDistUpperBoundModelFinder
+                    case "upperPred" => new PredUpperBoundModelFinder
                 }
 
                 for(logger <- loggers) {

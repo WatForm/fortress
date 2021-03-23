@@ -15,15 +15,15 @@ import java.lang.UnsupportedOperationException
  * instead of tuples.
  * IndexedSeq inputs are required for efficiency. The implementation may be able
  * to be improved and this restriction relaxed. */
-class CartesianSeqProduct[E](private val sequences: IndexedSeq[IndexedSeq[E]]) extends Iterable[Seq[E]] {
+class CartesianSeqProduct[E](private val sequences: IndexedSeq[IndexedSeq[E]]) extends Iterable[IndexedSeq[E]] {
     
     Errors.Internal.precondition(sequences.forall(_.nonEmpty))
     
     private val numberOfSequences: Int = sequences.size
     
-    override def iterator: Iterator[Seq[E]] = new ProductIterator()
+    override def iterator: Iterator[IndexedSeq[E]] = new ProductIterator()
     
-    class ProductIterator extends Iterator[Seq[E]] {
+    class ProductIterator extends Iterator[IndexedSeq[E]] {
         // Current position within each sequence
         private val currentPosition: Array[Int] = new Array(numberOfSequences)
         private var atEnd: Boolean = false
@@ -34,13 +34,13 @@ class CartesianSeqProduct[E](private val sequences: IndexedSeq[IndexedSeq[E]]) e
         
         override def hasNext: Boolean = (!atEnd)
         
-        override def next(): Seq[E] = {
+        override def next(): IndexedSeq[E] = {
             Errors.Internal.precondition(hasNext)
             
             // Get current item of counter, then increment
             
             // Get current item
-            val currentProductTuple: Seq[E] =
+            val currentProductTuple: IndexedSeq[E] =
                 for(i <- 0 until numberOfSequences) yield
                     sequences(i)(currentPosition(i))
             
