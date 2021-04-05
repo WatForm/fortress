@@ -21,10 +21,29 @@ abstract class SymmetryBreaker(
     protected val newRangeRestrictions = new mutable.ListBuffer[RangeRestriction]
     protected val newDeclarations = new mutable.ListBuffer[FuncDecl]
     
-    final def breakConstants(constantsToBreak: Set[AnnotatedVar]): Unit = {
+    // Returns the order of constants used
+    final def breakConstants(constantsToBreak: Set[AnnotatedVar]): IndexedSeq[AnnotatedVar] = {
+        val order = new scala.collection.mutable.ListBuffer[AnnotatedVar]()
         for(sort <- theory.sorts if !sort.isBuiltin && tracker.state.existsFreshValue(sort)) {
-            breakConstants(sort, constantsToBreak.filter(_.sort == sort).toIndexedSeq)
+            val consts = constantsToBreak.filter(_.sort == sort).toIndexedSeq
+            if(consts.nonEmpty) {
+                order ++= consts
+                breakConstants(sort, consts)
+            }
         }
+        order.toIndexedSeq
+    }
+
+    final def breakConstantsPreOrdered(constantsToBreak: IndexedSeq[AnnotatedVar]): IndexedSeq[AnnotatedVar] = {
+        val order = new scala.collection.mutable.ListBuffer[AnnotatedVar]()
+        for(sort <- theory.sorts if !sort.isBuiltin && tracker.state.existsFreshValue(sort)) {
+            val consts = constantsToBreak.filter(_.sort == sort).toIndexedSeq
+            if(consts.nonEmpty) {
+                order ++= consts
+                breakConstants(sort, consts)
+            }
+        }
+        order.toIndexedSeq
     }
     
     protected def breakConstants(sort: Sort, constants: IndexedSeq[AnnotatedVar]): Unit
