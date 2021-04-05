@@ -6,6 +6,7 @@ import scala.collection.mutable
 import fortress.symmetry._
 import fortress.operations.TermOps._
 import fortress.operations.TheoryOps._
+import scala.collection.immutable.ListSet
 
 // TODO: move this into a symmetry breaker
 
@@ -32,39 +33,89 @@ class SymmetryBreakingTransformerSI(
 
             if(substitution.isIdentity) return (new SymmetryBreakingTransformer(selectionHeuristic, symmetryBreakerFactory)).apply(problemState)
 
-            // Perform symmetry breaking on inferred theory, but select as if it wasn't there
-            val breaker = symmetryBreakerFactory.create(infTheory, infScopes)
-            val selector = new SelectAfterSubstitution(selectionHeuristic, substitution)
+            // Perform symmetry breaking on the original problem, to see what order of constants/functions we would have gotten.
+            def getOrderings: (IndexedSeq[AnnotatedVar], IndexedSeq[FuncDecl]) = {
+                val breaker = symmetryBreakerFactory.create(theory, scopes)
+            
+                val constantOrder = breaker.breakConstants(theory.constants)
+                
+                // This weirdness exists to make sure that this version performs symmetry breaking
+                // on functions in the same order as the previous version
+                // It is only here for the sake of consistency
+                val functions = theory.functionDeclarations filter { fn => {
+                    (!fn.resultSort.isBuiltin) && (fn.argSorts forall (!_.isBuiltin))
+                }}
+                val predicates = theory.functionDeclarations.filter { fn => {
+                    (fn.resultSort == BoolSort) && (fn.argSorts forall (!_.isBuiltin))
+                }}
+                
+                val fp = scala.collection.immutable.ListSet( (functions.toList ++ predicates.toList) : _* )
+                // END OF WEIRDNESS
+                
+                val fnOrder = new scala.collection.mutable.ListBuffer[FuncDecl]()
 
-            breaker.breakConstants(infTheory.constants)
-            
-            // This weirdness exists to make sure that this version performs symmetry breaking
-            // on functions in the same order as the previous version
-            // It is only here for the sake of consistency
-            val functions = infTheory.functionDeclarations filter { fn => {
-                (!fn.resultSort.isBuiltin) && (fn.argSorts forall (!_.isBuiltin))
-            }}
-            val predicates = infTheory.functionDeclarations.filter { fn => {
-                (fn.resultSort == BoolSort) && (fn.argSorts forall (!_.isBuiltin))
-            }}
-            
-            val fp = scala.collection.immutable.ListSet( (functions.toList ++ predicates.toList) : _* )
-            // END OF WEIRDNESS
-            
+                @scala.annotation.tailrec
+                def loop(usedFunctionsPredicates: Set[FuncDecl]): Unit = {
+                    val remaining = fp diff usedFunctionsPredicates
+                    selectionHeuristic.nextFunctionPredicate(breaker.stalenessState, remaining) match {
+                        case None => ()
+                        case Some(p @ FuncDecl(_, _, BoolSort)) => {
+                            fnOrder += p
+                            breaker.breakPredicate(p)
+                            loop(usedFunctionsPredicates + p)
+                        }
+                        case Some(f) => {
+                            fnOrder += f
+                            breaker.breakFunction(f)
+                            loop(usedFunctionsPredicates + f)
+                        }
+                    }
+                }
+                
+                loop(Set.empty)
+                (constantOrder, fnOrder.toIndexedSeq)
+            }
+
+            val (constantOrder, fnOrder) = getOrderings
+
+            val constantOrder_inf = constantOrder.map(av => infTheory.signature.constants.find(_.name == av.name).get)
+            val fnOrder_inf = fnOrder.map(f => infTheory.signature.functionWithName(f.name).get)
+
+            // println(constantOrder_inf.mkString("\n"))
+            // println(fnOrder_inf.mkString("\n"))
+
+            // Perform symmetry breaking on inferred theory
+            val breaker = symmetryBreakerFactory.create(infTheory, infScopes)
+
+            // Do constants in the order they would be done in the original theory
+            // do other constants only after those ones are finished
+            val order = breaker.breakConstantsPreOrdered(constantOrder_inf ++ infTheory.constants.toIndexedSeq.diff(constantOrder_inf))
+            // println(order.mkString("\n"))
+
+            // Do functions in the order they would be done in the original theory
+            for(fn <- fnOrder_inf) {
+                fn match {
+                    case p @ FuncDecl(_, _, BoolSort) => {
+                        breaker.breakPredicate(p)
+                    }
+                    case f => {
+                        breaker.breakFunction(f)
+                    }
+                }
+            }
+
+            // Do any remaining functions now
+            val fp = ListSet(infTheory.functionDeclarations.toIndexedSeq.diff(fnOrder_inf) :_*)
             @scala.annotation.tailrec
             def loop(usedFunctionsPredicates: Set[FuncDecl]): Unit = {
                 val remaining = fp diff usedFunctionsPredicates
-                selector.nextFunctionPredicate(breaker.stalenessState, remaining) match {
+                selectionHeuristic.nextFunctionPredicate(breaker.stalenessState, remaining) match {
                     case None => ()
-                    case Some(p_sub @ FuncDecl(_, _, BoolSort)) => {
-                        // Have to look up function by name since sorts are substituted
-                        val p = infTheory.signature.functionWithName(p_sub.name).get
+                    case Some(p @ FuncDecl(_, _, BoolSort)) => {
                         breaker.breakPredicate(p)
                         loop(usedFunctionsPredicates + p)
                     }
-                    case Some(f_sub) => {
-                        // Have to look up function by name since sorts are substituted
-                        val f = infTheory.signature.functionWithName(f_sub.name).get
+                    case Some(f) => {
                         breaker.breakFunction(f)
                         loop(usedFunctionsPredicates + f)
                     }

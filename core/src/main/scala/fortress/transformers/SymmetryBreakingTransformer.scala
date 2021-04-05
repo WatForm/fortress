@@ -21,7 +21,8 @@ class SymmetryBreakingTransformer(
         case ProblemState(theory, scopes, skc, skf, rangeRestricts, unapplyInterp) => {
             val breaker = symmetryBreakerFactory.create(theory, scopes)
             
-            breaker.breakConstants(theory.constants)
+            val order = breaker.breakConstants(theory.constants)
+            // println(order.mkString("\n"))
             
             // This weirdness exists to make sure that this version performs symmetry breaking
             // on functions in the same order as the previous version
