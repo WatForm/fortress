@@ -220,6 +220,8 @@ A term that is equivalent to saying a term equals one of a set of domain element
 ### Term.scala
 Constructors for creating a term.  In addition to the usual terms, EnumValue is a kind of term. DomainElement is also a kind of term.   To create a quantified variable use mkVar(x).of(Sort); this is not a term, it is an AnnotatedVar(Declaration).
 
+@Joe - we need something here to describe the explicit caching that is done (for domain elements and fcn applications) and a hint about the implicit caching that is done by the scala compiler.
+
 ### TermVisitor.scala
 Trait for Visitor for walking over terms - parameterized by return type.
 
