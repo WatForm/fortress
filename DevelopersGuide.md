@@ -4,9 +4,6 @@ This is a guide for fortress users and developers.  All sample uses are in scala
 Following the Overview sections, the packages are described in bottom-up order.
 
 @Joe 
-    - are there branches of the fortress github that are worth integrating beyond the astra branch (with the extra simplifications?) if not, can we archive them somehow so I don't get confused :-)
-    - on the fortress master branch, there is a leftover src dir that contains only an empty msfol 
-    - some of the info in the TechnicalGuide might belong here and vice versa.
     - below takes the place of the fortress TR that I had planned so have archived that folder
     - it would be good to document design decisions below also
 
@@ -47,66 +44,12 @@ Sample use:
                 .withFunctionDeclarations(P)
                 .withAxioms(term1,term2)
 
-To ensure the "sort" correctness of a theory, the TypeCheckSanitize transformer (see below) takes a theory and returns a theory and throws an error if the theory is not type correct. No type inference is done and typechecking is not done during the process of constructing terms.
-
 Enums are constants in MSFOL that are distinct and cover all possible elements of the sort. They are distinct from domain elements (also a kind of term), which are the values of the sorts used internally in fortress.  Not all sorts have enums, but all sorts have domain elements for FMF.  Domain elements are used to create range formulas.  Enums are converted to domain elements by a transformer (below).  The DomainEliminationTransformer (below) is the last step in fortress to convert all domain elements to mutually distinct constants so that the problem can be solved by an MSFOL solver.
 
 There is also a DSL that can be used to create terms in a less cumbersome way than the term API directly.
 
 Sample usage:
 @Joe - where can I find an example of the use of this DSL?
-
-### Step 2: Ways to transform the FMF problem
-
-To transform a theory to a FMF problem: a msfol.theory + a map of sorts to scopes together make a transformers.ProblemState (a FMF problem plus some hidden state info).
-
-TheoryTransformers map a theory to a theory.
-ProblemStateTransformers maps a ProblemState to a ProblemState.
-A theory,thy, and scopes map, scmap, can be turned into a problem state via thy.apply(scmap)
-A theory transformer,thyt, can be turned into a problem state transformer via thyt.asProblemStateTransformer().
-These transformers may record some details in the ProblemState to "undo" some effects such as adding skolem constants/functions to the theory.
-
-Compilers consist of commonly-used sequences of transformers and take a theory and scopes and produce a CompilerResult (which is mainly a theory).
-
-A sample use of a the compilation phase in scala is:
-@Joe - I know that much of below is wrong.  I'm having trouble peeling off the layers of when "new" or "create" are used, etc.
-
-    // create a ProblemState
-    initialProblemState = ProblemState(theory, scopes)
-
-    // typecheck the theory
-    val trans1 = new TypecheckSanitizeTransformer(initialProblemState)
-    thy1 = trans1.apply(initialProblemState)
-
-    // turn enums into domain elements 
-    val p2 = EnumEliminationTransformer.apply(thy2)
-
-    // turn integers into bit vectors 
-    val p3 = IntegerFinitizationTransformer(bitwidth).apply(p1)
-
-    // convert the theory to negation normal form
-    val p4 = NnfTransformer.apply(p3)
-
-    // perform skolemization -- the skolem constants and functions are stored
-    // as part of the ProblemState
-    val p5 = SkolemizeTransformer.apply(p4)
-
-    // Symmetry breaking
-    val p6 = 
-
-    // Expand the quantifiers with the domain elements
-    val p7 = QuantifierExpansionTransformer.create().apply(p6)
-
-    // Add range formulas
-    val p8 = RangeFormulaTransformer.create().apply(p7)
-
-    // Simplifications to reduce the theory size
-    val p9 = SimplifyTransformer.apply(p8)
-
-    // Convert all domain elements to mutually distinct constants for solving by a MSFOL solver
-    val p10 = DomainEliminationTransformer2.apply(p9)
-
-    val resultingTheory = 
 
 ### Step 3: Ways to solve the theory
 

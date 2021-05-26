@@ -2,6 +2,22 @@
 
 ## Overview
 
+## Fortress Constructs
+
+A `ProblemState` contains a theory, scopes, and additional information that is used throughout the transformation process.
+
+A `TheoryTransformer` or `ProblemStateTransformer` takes a `Theory` or `ProblemState` respectively and converts them into a new `Theory` or `ProblemState`.
+These are similar to phases in a programming language compiler.
+Examples of transformers are converting to negation normal form, performing sort inference, simplification, and skolemization.
+Transformations often need to be undone once a solution is found, and so the transformer writes instructions on how to undo its operation on the `ProblemState`.
+
+A `LogicCompiler` takes an input `Theory` and scopes, and converts into some other `Theory` that is intended to be sent to an external solver.
+Going back to the programming language compiler analogy: think of the input `Theory` and scopes as a high-level input language, and the `Theory` output by the `LogicCompiler` as machine-code.
+This "compilation" is mainly done by applying a sequence of `TheoryTransformer` and `ProblemStateTransformer` applications.
+The compiler also outputs instructions on how to undo all of its transformations to an interpretation.
+
+A `ModelFinder` is the top-level interface used to search for satisfying interpretations to a `Theory` under the given scopes.
+
 ## Idealized Fortress Pipeline
 The "idealized" algorithm which Fortress implements is given by the following steps.
 
