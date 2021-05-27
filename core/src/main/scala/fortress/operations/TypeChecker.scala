@@ -220,6 +220,85 @@ class TypeChecker(signature: Signature) extends TermVisitorWithTypeContext[TypeC
             case None => throw new TypeCheckException.WrongSort("Builtin function " + bapp.function.toString + " cannot accept arguments of sorts " + argSorts.toString)
         }
     }
+
+
+    override def visitClosure(c: Closure): TypeCheckResult = {
+        // Check argument:
+        // 1. types match function declaration
+        // 2. arguments contain no connectives or quantifiers
+        val funcName = c.functionName
+
+        if(! (signature hasFunctionWithName funcName) ) {
+            throw new TypeCheckException.UnknownFunction("Could not find function: " + funcName)
+        }
+        if (! (c.arguments.contains(c.arg1) && c.arguments.contains(c.arg2)) ) {
+            throw new TypeCheckException.BadStructure("The two given closure arguments must be included in the arguments list")
+        }
+
+        val results = c.arguments.map(visit)
+        val idx = c.arguments.indexOf(c.arg1)
+        if (results.exists(_.containsConnectives)) {
+            throw new TypeCheckException.BadStructure("Argument of ^" + c.functionName + " contains connective")
+        }
+        if (results.exists(_.containsQuantifiers)) {
+            throw new TypeCheckException.BadStructure("Argument of ^" + c.functionName + " contains quantifier")
+        }
+        if (results(idx).sort != results(idx+1).sort) {
+            throw new TypeCheckException.WrongSort("Arguments at index " + idx + " and " + (idx+1) + " of different sorts in " + c.toString)
+        }
+
+        val argSorts = results.map(_.sort)
+        val argSort = argSorts(idx)
+
+        val fdecl = signature.queryFunction(funcName, argSorts) match {
+            case None => throw new TypeCheckException.WrongSort(signature.functionWithName(funcName).get.toString + " cannot accept argument sorts " + argSorts.toString + " in " + c.toString)
+            case Some(fdecl) => fdecl
+        }
+
+        TypeCheckResult(
+            sanitizedTerm = Closure(funcName, results map (_.sanitizedTerm), c.arg1, c.arg2),
+            sort = BoolSort, containsConnectives = false, containsQuantifiers = false
+        )
+    }
+
+    override def visitReflexiveClosure(rc: ReflexiveClosure): TypeCheckResult = {
+        // Check argument:
+        // 1. types match function declaration
+        // 2. arguments contain no connectives or quantifiers
+        val funcName = rc.functionName
+
+        if(! (signature hasFunctionWithName funcName) ) {
+            throw new TypeCheckException.UnknownFunction("Could not find function: " + funcName)
+        }
+        if (! (rc.arguments.contains(rc.arg1) && rc.arguments.contains(rc.arg2)) ) {
+            throw new TypeCheckException.BadStructure("The two given closure arguments must be included in the arguments list")
+        }
+
+        val results = rc.arguments.map(visit)
+        val idx = rc.arguments.indexOf(rc.arg1)
+        if (results.exists(_.containsConnectives)) {
+            throw new TypeCheckException.BadStructure("Argument of *" + rc.functionName + " contains connective")
+        }
+        if (results.exists(_.containsQuantifiers)) {
+            throw new TypeCheckException.BadStructure("Argument of *" + rc.functionName + " contains quantifier")
+        }
+        if (results(idx).sort != results(idx+1).sort) {
+            throw new TypeCheckException.WrongSort("Arguments at index " + idx + " and " + (idx+1) + " of different sorts in " + rc.toString)
+        }
+
+        val argSorts = results.map(_.sort)
+        val argSort = argSorts(idx)
+
+        val fdecl = signature.queryFunction(funcName, argSorts) match {
+            case None => throw new TypeCheckException.WrongSort(signature.functionWithName(funcName).get.toString + " cannot accept argument sorts " + argSorts.toString + " in " + rc.toString)
+            case Some(fdecl) => fdecl
+        }
+
+        TypeCheckResult(
+            sanitizedTerm = ReflexiveClosure(funcName, results map (_.sanitizedTerm), rc.arg1, rc.arg2),
+            sort = BoolSort, containsConnectives = false, containsQuantifiers = false
+        )
+    }
     
     override def visitExistsInner(exists: Exists): TypeCheckResult = {
         // Check variables don't clash with function names

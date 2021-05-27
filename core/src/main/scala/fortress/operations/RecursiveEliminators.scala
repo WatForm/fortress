@@ -23,6 +23,8 @@ object DomainElementEliminator {
             case Eq(l, r) => Eq(eliminateDomainElements(l), eliminateDomainElements(r))
             case App(fname, args) => App(fname, args.map(eliminateDomainElements))
             case BuiltinApp(function, args) => BuiltinApp(function, args map eliminateDomainElements)
+            case Closure(fname, args, arg1, arg2) => Closure(fname, args.map(eliminateDomainElements), eliminateDomainElements(arg1), eliminateDomainElements(arg2))
+            case ReflexiveClosure(fname, args, arg1, arg2) => ReflexiveClosure(fname, args.map(eliminateDomainElements), eliminateDomainElements(arg1), eliminateDomainElements(arg2))
             case Exists(vars, body) => Exists(vars, eliminateDomainElements(body))
             case Forall(vars, body) => Forall(vars, eliminateDomainElements(body))
             case IfThenElse(condition, ifTrue, ifFalse) =>

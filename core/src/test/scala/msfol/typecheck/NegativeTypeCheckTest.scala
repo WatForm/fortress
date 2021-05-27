@@ -21,6 +21,7 @@ class NegativeTypeCheckTest extends UnitSuite {
     val g = FuncDecl.mkFuncDecl("g", B, A)
     val h = FuncDecl.mkFuncDecl("h", Sort.Bool, Sort.Bool)
     val R = FuncDecl.mkFuncDecl("R", A, A, Sort.Bool)
+    val S = FuncDecl.mkFuncDecl("S", A, B, Sort.Bool)
     
     val transitionRelation = FuncDecl.mkFuncDecl("transition", A, A, Sort.Bool)
     val transitionFunction = FuncDecl.mkFuncDecl("transition", A, Sort.Bool)
@@ -327,4 +328,174 @@ class NegativeTypeCheckTest extends UnitSuite {
             t.typeCheck(sig)
         }
     }
+
+
+    test("closure mismatch arg sort 1") {
+        val sig = Signature.empty
+            .withSorts(A, B)
+            .withConstants(x of B, y of A)
+            .withFunctionDeclarations(R)
+
+        val t = Term.mkClosure("R", x, y)
+        an [fortress.data.TypeCheckException.WrongSort] should be thrownBy {
+            t.typeCheck(sig)
+        }
+    }
+
+    test("closure mismatch arg sort 2") {
+        val sig = Signature.empty
+            .withSorts(A, B)
+            .withConstants(x of A, y of B)
+            .withFunctionDeclarations(R)
+
+        val t = Term.mkClosure("R", x, y)
+        an [fortress.data.TypeCheckException.WrongSort] should be thrownBy {
+            t.typeCheck(sig)
+        }
+    }
+
+    test("closure unknown function") {
+        val sig = Signature.empty
+            .withSorts(A)
+            .withConstants(x of A, y of A)
+
+        val t = Term.mkClosure("R", x, y)
+        an [fortress.data.TypeCheckException.UnknownFunction] should be thrownBy {
+            t.typeCheck(sig)
+        }
+    }
+
+    test("closure wrong function sort") {
+        val sig = Signature.empty
+            .withSorts(A, B)
+            .withConstants(x of A, y of A)
+            .withFunctionDeclarations(S)
+
+        val t = Term.mkClosure("S", x, y)
+        an [fortress.data.TypeCheckException.WrongSort] should be thrownBy {
+            t.typeCheck(sig)
+        }
+    }
+
+    test("closure wrong number of args") {
+        val S = FuncDecl.mkFuncDecl("S", A, A, A, Sort.Bool)
+        val sig = Signature.empty
+            .withSorts(A, B)
+            .withConstants(x of A, y of A)
+            .withFunctionDeclarations(S)
+
+        val t = Term.mkClosure("S", x, y)
+        an [fortress.data.TypeCheckException.WrongSort] should be thrownBy {
+            t.typeCheck(sig)
+        }
+    }
+
+    test("closure mismatch function sort 1") {
+        val sig = Signature.empty
+            .withSorts(A, B)
+            .withConstants(x of A, y of A)
+            .withFunctionDeclarations(S)
+
+        val t = Term.mkClosure("S", x, y)
+        an [fortress.data.TypeCheckException.WrongSort] should be thrownBy {
+            t.typeCheck(sig)
+        }
+    }
+
+    test("closure mismatch function sort 2") {
+        val sig = Signature.empty
+            .withSorts(A, B)
+            .withConstants(x of B, y of A)
+            .withFunctionDeclarations(R)
+
+        val t = Term.mkClosure("R", x, y)
+        an [fortress.data.TypeCheckException.WrongSort] should be thrownBy {
+            t.typeCheck(sig)
+        }
+    }
+
+    test("reflexive closure mismatch arg sort 1") {
+        val sig = Signature.empty
+            .withSorts(A, B)
+            .withConstants(x of B, y of A)
+            .withFunctionDeclarations(R)
+
+        val t = Term.mkReflexiveClosure("R", x, y)
+        an [fortress.data.TypeCheckException.WrongSort] should be thrownBy {
+            t.typeCheck(sig)
+        }
+    }
+
+    test("reflexive closure mismatch arg sort 2") {
+        val sig = Signature.empty
+            .withSorts(A, B)
+            .withConstants(x of A, y of B)
+            .withFunctionDeclarations(R)
+
+        val t = Term.mkReflexiveClosure("R", x, y)
+        an [fortress.data.TypeCheckException.WrongSort] should be thrownBy {
+            t.typeCheck(sig)
+        }
+    }
+
+    test("reflexive closure unknown function") {
+        val sig = Signature.empty
+            .withSorts(A)
+            .withConstants(x of A, y of A)
+
+        val t = Term.mkReflexiveClosure("R", x, y)
+        an [fortress.data.TypeCheckException.UnknownFunction] should be thrownBy {
+            t.typeCheck(sig)
+        }
+    }
+
+    test("reflexive closure wrong function sort") {
+        val sig = Signature.empty
+            .withSorts(A, B)
+            .withConstants(x of A, y of A)
+            .withFunctionDeclarations(S)
+
+        val t = Term.mkReflexiveClosure("S", x, y)
+        an [fortress.data.TypeCheckException.WrongSort] should be thrownBy {
+            t.typeCheck(sig)
+        }
+    }
+
+    test("reflexive closure wrong number of args") {
+        val S = FuncDecl.mkFuncDecl("S", A, A, A, Sort.Bool)
+        val sig = Signature.empty
+            .withSorts(A, B)
+            .withConstants(x of A, y of A)
+            .withFunctionDeclarations(S)
+
+        val t = Term.mkReflexiveClosure("S", x, y)
+        an [fortress.data.TypeCheckException.WrongSort] should be thrownBy {
+            t.typeCheck(sig)
+        }
+    }
+
+    test("reflexive closure mismatch function sort 1") {
+        val sig = Signature.empty
+            .withSorts(A, B)
+            .withConstants(x of A, y of A)
+            .withFunctionDeclarations(S)
+
+        val t = Term.mkReflexiveClosure("S", x, y)
+        an [fortress.data.TypeCheckException.WrongSort] should be thrownBy {
+            t.typeCheck(sig)
+        }
+    }
+
+    test("reflexive closure mismatch function sort 2") {
+        val sig = Signature.empty
+            .withSorts(A, B)
+            .withConstants(x of B, y of A)
+            .withFunctionDeclarations(R)
+
+        val t = Term.mkReflexiveClosure("R", x, y)
+        an [fortress.data.TypeCheckException.WrongSort] should be thrownBy {
+            t.typeCheck(sig)
+        }
+    }
+    
 }

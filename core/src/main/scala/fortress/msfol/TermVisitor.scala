@@ -24,4 +24,6 @@ trait TermVisitor[T] {
     def visitIntegerLiteral(term: IntegerLiteral): T
     def visitBitVectorLiteral(term: BitVectorLiteral): T
     def visitIfThenElse(term: IfThenElse): T
+    def visitClosure(term: Closure): T
+    def visitReflexiveClosure(term: ReflexiveClosure): T
 }

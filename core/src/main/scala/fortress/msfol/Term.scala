@@ -320,6 +320,34 @@ case class IfThenElse private (condition: Term, ifTrue: Term, ifFalse: Term) ext
     override def accept[T](visitor: TermVisitor[T]): T = visitor.visitIfThenElse(this)
 }
 
+/** Represents a transitive closure application. */
+case class Closure private (functionName: String, arguments: Seq[Term], arg1: Term, arg2: Term) extends Term {
+    Errors.Internal.precondition(functionName.length >= 1, "Empty function name in transitive closure")
+    Errors.Internal.precondition(arguments.size >= 2, "Function application ^" + functionName + " should have at least 2 arguments")
+
+    def getArguments: java.util.List[Term] = arguments.asJava
+    def getFunctionName: String = functionName
+    override def accept[T](visitor: TermVisitor[T]): T  = visitor.visitClosure(this)
+    def mapArguments(mapping: Term => Term): Term =
+        Closure(functionName, arguments.map(mapping), mapping(arg1), mapping(arg2))
+
+    override def toString: String = "^" + functionName + "(" + arguments.mkString(", ") + ")"
+}
+
+/** Represents a reflexive transitive closure application. */
+case class ReflexiveClosure private (functionName: String, arguments: Seq[Term], arg1: Term, arg2: Term) extends Term {
+    Errors.Internal.precondition(functionName.length >= 1, "Empty function name in reflexive transitive closure")
+    Errors.Internal.precondition(arguments.size >= 2, "Function application *" + functionName + " should have at least 2 arguments")
+
+    def getArguments: java.util.List[Term] = arguments.asJava
+    def getFunctionName: String = functionName
+    override def accept[T](visitor: TermVisitor[T]): T  = visitor.visitReflexiveClosure(this)
+    def mapArguments(mapping: Term => Term): Term =
+        ReflexiveClosure(functionName, arguments.map(mapping), mapping(arg1), mapping(arg2))
+
+    override def toString: String = "*" + functionName + "(" + arguments.mkString(", ") + ")"
+}
+
 /** Companion object for Term. */
 object Term {
     /** Returns a Term representing Top/Verum */
@@ -462,7 +490,17 @@ object Term {
     def mkIff(t1: Term, t2: Term): Term = Iff(t1, t2)
     
     def mkIfThenElse(condition: Term, ifTrue: Term, ifFalse: Term): Term = IfThenElse(condition, ifTrue, ifFalse)
-    
+
+    def mkClosure(functionName: String, arg1: Term, arg2: Term): Term =
+        Closure(functionName, Seq(arg1, arg2), arg1, arg2)
+    def mkClosure(app: App, arg1: Term, arg2: Term): Term =
+        Closure(app.functionName, app.arguments, arg1, arg2)
+
+    def mkReflexiveClosure(functionName: String, arg1: Term, arg2: Term): Term =
+        ReflexiveClosure(functionName, Seq(arg1, arg2), arg1, arg2)
+    def mkReflexiveClosure(app: App, arg1: Term, arg2: Term): Term =
+        ReflexiveClosure(app.functionName, app.arguments, arg1, arg2)
+
     def mkPlus(t1: Term, t2: Term): Term = BuiltinApp(IntPlus, Seq(t1, t2))
     def mkNeg(t: Term): Term = BuiltinApp(IntNeg, Seq(t))
     def mkSub(t1: Term, t2: Term): Term = BuiltinApp(IntSub, Seq(t1, t2))

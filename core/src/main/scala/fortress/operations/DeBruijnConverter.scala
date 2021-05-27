@@ -46,7 +46,11 @@ class DeBruijnConverter {
         override def visitApp(term: App): Term = term.mapArguments(visit)
         
         override def visitBuiltinApp(term: BuiltinApp) = term.mapArguments(visit)
-        
+
+        override def visitClosure(term: Closure) = term.mapArguments(visit)
+
+        override def visitReflexiveClosure(term: ReflexiveClosure) = term.mapArguments(visit)
+
         private def pushVar(av: AnnotatedVar): Unit = {
             counter += 1
             val m = DeBruijnMapping(counter, av.variable)
