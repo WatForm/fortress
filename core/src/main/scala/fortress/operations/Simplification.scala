@@ -4,8 +4,8 @@ import fortress.msfol._
 import fortress.operations.TermOps._
 
 object Simplifier {
-    def simplify(term: Term): Term = {
-        def simplifyFull(term: Term, learnedLiterals: Map[Term,LeafTerm]): Term = term match {
+    def simplify(term: Term, learnedLiterals: Map[Term,LeafTerm]): Term = {
+        def simplifyFull(term: Term): Term = term match {
             case Not(body) => simplifyStep(Not(simplifyFull(body)), learnedLiterals)
             case AndList(args) => simplifyStep(AndList(args.map(simplifyFull)), learnedLiterals)
             case OrList(args) => simplifyStep(OrList(args.map(simplifyFull)), learnedLiterals)

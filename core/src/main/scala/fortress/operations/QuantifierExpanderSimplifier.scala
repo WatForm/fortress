@@ -29,10 +29,10 @@ object QuantifierExpanderSimplifier {
             case OrList(args) => simplifyStep(OrList(args map instantiateAndSimp), learnedLiterals)
             case Distinct(args) => simplifyStep(Distinct(args map instantiateAndSimp), learnedLiterals)
             case Implication(left, right) => simplifyStep(
-                Implication(instantiateAndSimp(left), instantiateAndSimp(right), learnedLiterals)
+                Implication(instantiateAndSimp(left), instantiateAndSimp(right)), learnedLiterals
             )
             case Iff(left, right) => simplifyStep(
-                Iff(instantiateAndSimp(left), instantiateAndSimp(right), learnedLiterals)
+                Iff(instantiateAndSimp(left), instantiateAndSimp(right)), learnedLiterals
             )
             // We assume eq, app do not contain quantifiers, so we do not need to go further
             // If we change the implementation from just using direct substitution, we will need to change this
