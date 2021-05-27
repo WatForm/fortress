@@ -20,36 +20,37 @@ import fortress.operations.Simplifier._
 object QuantifierExpanderSimplifier {
     
     def apply(term: Term, sortInstantiations: Map[Sort, Seq[Term]]): Term = {
+        val learnedLiterals: Map[Term, LeafTerm] = Map.empty
         def instantiateAndSimp(t: Term): Term = t match {
             case Top | Bottom | Var(_) | DomainElement(_, _) | IntegerLiteral(_)
                 | BitVectorLiteral(_, _) | EnumValue(_) => t
-            case Not(arg) => simplifyStep(Not(instantiateAndSimp(arg)))
-            case AndList(args) => simplifyStep(AndList(args map instantiateAndSimp))
-            case OrList(args) => simplifyStep(OrList(args map instantiateAndSimp))
-            case Distinct(args) => simplifyStep(Distinct(args map instantiateAndSimp))
+            case Not(arg) => simplifyStep(Not(instantiateAndSimp(arg)), learnedLiterals)
+            case AndList(args) => simplifyStep(AndList(args map instantiateAndSimp), learnedLiterals)
+            case OrList(args) => simplifyStep(OrList(args map instantiateAndSimp), learnedLiterals)
+            case Distinct(args) => simplifyStep(Distinct(args map instantiateAndSimp), learnedLiterals)
             case Implication(left, right) => simplifyStep(
-                Implication(instantiateAndSimp(left), instantiateAndSimp(right))
+                Implication(instantiateAndSimp(left), instantiateAndSimp(right), learnedLiterals)
             )
             case Iff(left, right) => simplifyStep(
-                Iff(instantiateAndSimp(left), instantiateAndSimp(right))
+                Iff(instantiateAndSimp(left), instantiateAndSimp(right), learnedLiterals)
             )
             // We assume eq, app do not contain quantifiers, so we do not need to go further
             // If we change the implementation from just using direct substitution, we will need to change this
-            case Eq(_, _) | App(_, _) | BuiltinApp(_, _) | Closure(_, _, _, _) | ReflexiveClosure(_, _, _, _) => simplify(t)
+            case Eq(_, _) | App(_, _) | BuiltinApp(_, _) | Closure(_, _, _, _) | ReflexiveClosure(_, _, _, _) => simplify(t, learnedLiterals)
             case Forall(annotatedVars, body) => {
                 // Reorder by whether can instantiate and then call helper function
                 val (doNotInstantiate, toInstantiate) = annotatedVars.partition(_.sort.isBuiltin)
-                if (doNotInstantiate.isEmpty) simplifyStep(And.smart(simpleQuantifiers(annotatedVars, body)))
-                else simplifyStep(Forall(doNotInstantiate, simplifyStep(And.smart(simpleQuantifiers(toInstantiate, body)))))
+                if (doNotInstantiate.isEmpty) simplifyStep(And.smart(simpleQuantifiers(annotatedVars, body)), learnedLiterals)
+                else simplifyStep(Forall(doNotInstantiate, simplifyStep(And.smart(simpleQuantifiers(toInstantiate, body)), learnedLiterals)), learnedLiterals)
             }
             case Exists(annotatedVars, body) => {
                 // Reorder by whether can instantiate and then call helper function
                 val (doNotInstantiate, toInstantiate) = annotatedVars.partition(_.sort.isBuiltin)
                 if (doNotInstantiate.isEmpty) Or.smart(simpleQuantifiers(annotatedVars, body))
-                else simplifyStep(Exists(doNotInstantiate, Or.smart(simpleQuantifiers(toInstantiate, body))))
+                else simplifyStep(Exists(doNotInstantiate, Or.smart(simpleQuantifiers(toInstantiate, body))), learnedLiterals)
             }
             case IfThenElse(condition, ifTrue, ifFalse) => simplifyStep(
-                IfThenElse(instantiateAndSimp(condition), instantiateAndSimp(ifTrue), instantiateAndSimp(ifFalse))
+                IfThenElse(instantiateAndSimp(condition), instantiateAndSimp(ifTrue), instantiateAndSimp(ifFalse)), learnedLiterals
             )
         }
             
@@ -79,9 +80,9 @@ object QuantifierExpanderSimplifier {
                 // should never be any variable capture or any other name issues
                 instantiatedBody.fastSubstitute(varSubstitutions.toMap)
             }}
-            instantiatedVersions map simplify
+            instantiatedVersions map (t => simplify(t, learnedLiterals))
         }
         
-        instantiateAndSimp(term).simplify
+        instantiateAndSimp(term).simplify(learnedLiterals)
     }
 }
