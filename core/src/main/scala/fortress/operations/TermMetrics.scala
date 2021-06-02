@@ -17,6 +17,8 @@ object TermMetrics {
     case Eq(p, q) => max(depthQuantification(p), depthQuantification(q))
     case App(_, args) => args.map(depthQuantification).max
     case BuiltinApp(_, args) => args.map(depthQuantification).max
+    case Closure(_, args, _, _) => args.map(depthQuantification).max
+    case ReflexiveClosure(_, args, _, _) => args.map(depthQuantification).max
     case Top | Bottom | Var(_) | EnumValue(_) | DomainElement(_, _) | IntegerLiteral(_) | BitVectorLiteral(_, _) => 0
     case IfThenElse(condition, ifTrue, ifFalse) => (List(condition, ifTrue, ifFalse) map depthQuantification).max
   }
@@ -34,6 +36,8 @@ object TermMetrics {
     case Eq(p, q) => max(depthNestedFunc(p), depthNestedFunc(q))
     case App(_, args) => args.map(depthNestedFunc).max + 1
     case BuiltinApp(_, args) => args.map(depthNestedFunc).max + 1
+    case Closure(_, args, _, _) => args.map(depthNestedFunc).max + 1
+    case ReflexiveClosure(_, args, _, _) => args.map(depthNestedFunc).max + 1
     case Top | Bottom | Var(_) | EnumValue(_) | DomainElement(_, _) | IntegerLiteral(_) | BitVectorLiteral(_, _) => 0
     case IfThenElse(condition, ifTrue, ifFalse) => (List(condition, ifTrue, ifFalse) map depthNestedFunc).max
   }
@@ -51,6 +55,8 @@ object TermMetrics {
     case Eq(p, q) => termCount(p) + termCount(q) + 1
     case App(_, args) => args.map(termCount).sum + 1
     case BuiltinApp(_, args) => args.map(termCount).sum + 1
+    case Closure(_, args, _, _) => args.map(termCount).sum + 1
+    case ReflexiveClosure(_, args, _, _) => args.map(termCount).sum + 1
     case Top | Bottom | Var(_) | EnumValue(_) | DomainElement(_, _) | IntegerLiteral(_) | BitVectorLiteral(_, _) => 1
     case IfThenElse(condition, ifTrue, ifFalse) => (List(condition, ifTrue, ifFalse) map termCount).sum + 1
   }

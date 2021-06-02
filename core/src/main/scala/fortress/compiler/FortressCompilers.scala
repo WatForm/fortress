@@ -22,17 +22,18 @@ abstract class BaseFortressCompiler(integerSemantics: IntegerSemantics) extends 
                 transformerSequence += new IntegerFinitizationTransformer(bitwidth)
             }
         }
+        transformerSequence += new ClosureEliminationTransformer
         transformerSequence += new NnfTransformer
         transformerSequence += new SkolemizeTransformer
         transformerSequence ++= symmetryBreakingTransformers
         transformerSequence += QuantifierExpansionTransformer.create()
         transformerSequence += RangeFormulaTransformer.create()
+        transformerSequence += new SplitConjunctionTransformer
         transformerSequence += new SimplifyTransformer
         transformerSequence += new DomainEliminationTransformer2
         transformerSequence.toList
     }
     
-    /** The transformers to be used for symmetry breaking. */
     def symmetryBreakingTransformers: Seq[ProblemStateTransformer]
 }
 
@@ -74,6 +75,7 @@ class FortressTWOCompiler_SI(integerSemantics: IntegerSemantics) extends LogicCo
         transformerSequence ++= symmetryBreakingTransformers
         transformerSequence += QuantifierExpansionTransformer.create()
         transformerSequence += RangeFormulaTransformer.create()
+        transformerSequence += new SplitConjunctionTransformer
         transformerSequence += new SimplifyTransformer
         transformerSequence += new DomainEliminationTransformer2
         transformerSequence.toList
@@ -90,4 +92,31 @@ class FortressTHREECompiler_SI(integerSemantics: IntegerSemantics) extends BaseF
     override def symmetryBreakingTransformers: Seq[ProblemStateTransformer] = Seq(
         new SymmetryBreakingTransformerSI(MonoFirstThenFunctionsFirstAnyOrder, DefaultSymmetryBreaker)
     )
+}
+
+class FortressUnboundedCompiler(integerSemantics: IntegerSemantics) extends BaseFortressCompiler(integerSemantics) {
+    override def symmetryBreakingTransformers: Seq[ProblemStateTransformer] = Seq(
+        new SymmetryBreakingTransformerSI(MonoFirstThenFunctionsFirstAnyOrder, DefaultSymmetryBreaker)
+    )
+
+    override def transformerSequence: Seq[ProblemStateTransformer] = {
+        val transformerSequence = new scala.collection.mutable.ListBuffer[ProblemStateTransformer]
+        transformerSequence += new TypecheckSanitizeTransformer
+        transformerSequence += new EnumEliminationTransformer
+        integerSemantics match {
+            case Unbounded => ()
+            case ModularSigned(bitwidth) => {
+                transformerSequence += new IntegerFinitizationTransformer(bitwidth)
+            }
+        }
+        transformerSequence += new TypecheckSanitizeTransformer
+        transformerSequence += new NnfTransformer
+        transformerSequence += new SkolemizeTransformer
+        transformerSequence += QuantifierExpansionTransformer.create()
+        transformerSequence += RangeFormulaTransformer.create()
+        transformerSequence += new SplitConjunctionTransformer
+        transformerSequence += new SimplifyTransformer
+        transformerSequence += new DomainEliminationTransformer2
+        transformerSequence.toList
+    }
 }

@@ -41,3 +41,9 @@ class FortressTHREE_SI(solverInterface: SolverInterface) extends CompilationMode
     
     override def createCompiler(integerSemantics: IntegerSemantics): LogicCompiler = new FortressTHREECompiler_SI(integerSemantics)
 }
+
+class FortressUnbounded(solverInterface: SolverInterface) extends CompilationModelFinder(solverInterface) {
+    def this() = this(Z3IncCliInterface)
+
+    override def createCompiler(integerSemantics: IntegerSemantics): LogicCompiler = new FortressUnboundedCompiler(integerSemantics)
+} 
