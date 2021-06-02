@@ -24,7 +24,7 @@ class EnumEliminationTransformer extends ProblemStateTransformer {
             val newTheory = Theory.mkTheoryWithSignature(newSignature)
                 .withAxioms(newAxioms)
             
-            val unapply: Interpretation => Interpretation = _.applyEnumMapping(mapping.map(_.swap))
+            val unapply: Interpretation => Interpretation = _.replaceValuesWithEnums(mapping.map(_.swap))
             
             // The problem contain scopes for the enums, which should remain the same
             ProblemState(newTheory, scopes, skc, skf, rangeRestricts, unapply :: unapplyInterp)
