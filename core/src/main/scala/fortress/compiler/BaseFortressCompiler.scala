@@ -22,6 +22,7 @@ abstract class BaseFortressCompiler(integerSemantics: IntegerSemantics) extends 
         transformerSequence ++= symmetryBreakingTransformers
         transformerSequence += QuantifierExpansionTransformer.create()
         transformerSequence += RangeFormulaTransformer.create()
+        transformerSequence += new SplitConjunctionTransformer
         transformerSequence += new SimplifyTransformer
         transformerSequence += new DomainEliminationTransformer2
         transformerSequence.toList

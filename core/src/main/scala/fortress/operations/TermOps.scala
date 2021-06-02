@@ -59,8 +59,8 @@ case class TermOps private (term: Term) {
     def expandQuantifiersAndSimplify(sortInstantiations: Map[Sort, Seq[Term]]): Term =
         QuantifierExpanderSimplifier(term, sortInstantiations)
     
-    def simplify: Term = Simplifier.simplify(term)
-    
+    def simplify(learnedLiterals: Map[Term,LeafTerm]): Term = Simplifier.simplify(term, learnedLiterals)
+
     def simplifyWithRange(rangeRestrictions: Set[RangeRestriction]) = (new SimplifierWithRange(rangeRestrictions)).simplify(term)
     
     def eliminateDomainElements: Term = DomainElementEliminator(term)
