@@ -1,9 +1,15 @@
 package fortress.data
 
+/**
+  * Creates an object.
+  */
 trait Factory[A, I] {
     def create(arg: I): A
 }
 
+/**
+  * Mixin trait which keeps a global cache for object creation.
+  */
 trait Caching[A <: AnyRef, I] extends Factory[A, I] {
     import scala.collection.mutable
     import scala.ref.WeakReference

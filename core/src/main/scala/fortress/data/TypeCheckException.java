@@ -2,6 +2,8 @@ package fortress.data;
 
 import java.lang.RuntimeException;
 
+
+/** Exception arising during type-checking. */
 public abstract class TypeCheckException extends RuntimeException {
     protected TypeCheckException(String message) {
         super(message);

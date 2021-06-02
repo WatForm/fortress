@@ -6,6 +6,37 @@ import fortress.transformers.TheoryTransformer._ // for implicit conversion to P
 import fortress.modelfind._
 import fortress.symmetry._
 
+/**
+  * The standard Fortress compiler steps.
+  *
+  * @param integerSemantics which IntegerSemantics to use
+  */
+abstract class BaseFortressCompiler(integerSemantics: IntegerSemantics) extends LogicCompiler {
+    override def transformerSequence: Seq[ProblemStateTransformer] = {
+        val transformerSequence = new scala.collection.mutable.ListBuffer[ProblemStateTransformer]
+        transformerSequence += new TypecheckSanitizeTransformer
+        transformerSequence += new EnumEliminationTransformer
+        integerSemantics match {
+            case Unbounded => ()
+            case ModularSigned(bitwidth) => {
+                transformerSequence += new IntegerFinitizationTransformer(bitwidth)
+            }
+        }
+        transformerSequence += new ClosureEliminationTransformer
+        transformerSequence += new NnfTransformer
+        transformerSequence += new SkolemizeTransformer
+        transformerSequence ++= symmetryBreakingTransformers
+        transformerSequence += QuantifierExpansionTransformer.create()
+        transformerSequence += RangeFormulaTransformer.create()
+        transformerSequence += new SplitConjunctionTransformer
+        transformerSequence += new SimplifyTransformer
+        transformerSequence += new DomainEliminationTransformer2
+        transformerSequence.toList
+    }
+    
+    def symmetryBreakingTransformers: Seq[ProblemStateTransformer]
+}
+
 class FortressZEROCompiler(integerSemantics: IntegerSemantics) extends BaseFortressCompiler(integerSemantics) {
     override def symmetryBreakingTransformers: Seq[ProblemStateTransformer] = Seq.empty
 }
@@ -22,7 +53,7 @@ class FortressTWOCompiler(integerSemantics: IntegerSemantics) extends BaseFortre
     )
 }
 
-class FortressTWOCompiler_SI(integerSemantics: IntegerSemantics) extends TransformationCompiler {
+class FortressTWOCompiler_SI(integerSemantics: IntegerSemantics) extends LogicCompiler {
     def symmetryBreakingTransformers: Seq[ProblemStateTransformer] = Seq(
         new SymmetryBreakingTransformer(FunctionsFirstAnyOrder, DefaultSymmetryBreaker)
     )

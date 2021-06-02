@@ -3,7 +3,7 @@ package fortress.compiler
 import fortress.transformers._
 import fortress.symmetry._
 
-class PredUpperBoundCompiler extends TransformationCompiler {
+class PredUpperBoundCompiler extends LogicCompiler {
 
     // Only basics for now - need to validate optimizations work correctly
     override def transformerSequence: Seq[ProblemStateTransformer] = {

@@ -41,7 +41,9 @@ object ModelFinderResult {
     val Timeout: ModelFinderResult = TimeoutResult
 }
 
-/** Invoked to search for satisfying models to theories. */
+/**
+  * Top-level interface to search for satisfying models to theories with scopes.
+  */
 trait ModelFinder extends AutoCloseable {
     def setTheory(theory: Theory): Unit
     def setAnalysisScope(t: Sort, size: Int): Unit

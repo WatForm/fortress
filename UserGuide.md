@@ -1,5 +1,9 @@
 # Fortress User Guide
 
+> **WARNING** :warning: This guide is currently deprecated.
+For now, please use Fortress as a command-line tool as detailed in the main README.
+The internals of Fortress are rapidly changing, and we do not currently support its use as a Java/Scala library (though, it is technically possible).
+
 1. [High Level Overview](#high-level-overview)
 2. [Whirlwind Tour](#whirlwind-tour)
 3. [Theories in Depth](#theories-in-depth)

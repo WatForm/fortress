@@ -2,8 +2,10 @@ package fortress.data
 
 import scala.collection.mutable
 
-// Uses O(n) space where n is the size of the maximum integer on which
-// union or find is called.
+/** Union-Find implemented using an ArrayBuffer.
+ * Uses O(n) space where n is the size of the maximum integer on which
+ * union or find is called.
+ */
 class SimpleUnionFind extends UnionFind {
     
     private val label = mutable.ArrayBuffer.empty[Int]

@@ -6,6 +6,10 @@ import fortress.operations.TheoryOps._
 import fortress.operations._
 import fortress.util.Errors
 
+/**
+  * Type-checks a theory, and performs sanitization (for example, replacing Equals of booleans with Iff).
+  * Throws an exception if the theory does not type-check correctly.
+  */
 class TypecheckSanitizeTransformer extends TheoryTransformer {
     
     override def apply(theory: Theory): Theory = {
