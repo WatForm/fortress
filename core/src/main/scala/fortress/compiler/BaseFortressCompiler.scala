@@ -16,6 +16,7 @@ abstract class BaseFortressCompiler(integerSemantics: IntegerSemantics) extends 
                 transformerSequence += new IntegerFinitizationTransformer(bitwidth)
             }
         }
+        transformerSequence += new ClosureEliminationTransformer
         transformerSequence += new NnfTransformer
         transformerSequence += new SkolemizeTransformer
         transformerSequence ++= symmetryBreakingTransformers

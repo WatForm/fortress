@@ -179,5 +179,26 @@ class PositiveTypeCheckTest extends UnitSuite {
         val t = IfThenElse(x === y, x, y)
         t.typeCheck(sig).sort should be (A)
     }
-    
+
+
+    test("closure") {
+        val sig = Signature.empty
+            .withSort(A)
+            .withFunctionDeclarations(R)
+            .withConstants(x of A, y of A)
+
+        val t = Term.mkClosure("R", x, y)
+        t.typeCheck(sig).sort should be (Sort.Bool)
+    }
+
+    test("reflexiveClosure") {
+        val sig = Signature.empty
+            .withSort(A)
+            .withFunctionDeclarations(R)
+            .withConstants(x of A, y of A)
+
+        val t = Term.mkReflexiveClosure("R", x, y)
+        t.typeCheck(sig).sort should be (Sort.Bool)
+    }
+        
 }
