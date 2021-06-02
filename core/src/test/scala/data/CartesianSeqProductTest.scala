@@ -3,6 +3,18 @@ import org.scalatest._
 import fortress.data.CartesianSeqProduct
 
 class CartesianSeqProductTest extends UnitSuite {
+
+    test("ordering") {
+        val l1 = IndexedSeq("a", "b", "c")
+        val l2 = IndexedSeq("d", "e", "f")
+
+        val product = new CartesianSeqProduct[String](IndexedSeq(l1, l2))
+
+        product.toList should be (List(
+            Seq("a", "d"), Seq("b", "d"), Seq("c", "d"), Seq("a", "e"),
+            Seq("b", "e"), Seq("c", "e"), Seq("a", "f"), Seq("b", "f"), Seq("c", "f")  
+        ))
+    }
     
     test("iteration") {
         val l1 = IndexedSeq(1, 2, 3)
