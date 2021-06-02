@@ -9,6 +9,7 @@ import fortress.logging._
 
 import scala.collection.mutable.ListBuffer
 
+/** Trait which implements standard utilities for the model finder. */
 trait ModelFinderSettings extends ModelFinder {
     protected var timeoutMilliseconds: Milliseconds = Milliseconds(60000)
     protected var analysisScopes: Map[Sort, Int] = Map.empty

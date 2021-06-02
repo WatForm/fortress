@@ -8,12 +8,24 @@ import fortress.operations._
 import fortress.sortinference._
 import fortress.msfol.DSL._
 
+/** An interpretation of a first-order logic signature. */
 trait Interpretation {
+
+    /** Maps a sort to a sequence of values. */
     def sortInterpretations: Map[Sort, Seq[Value]]
+
+    /** Maps a constant symbol to a value. */
     def constantInterpretations: Map[AnnotatedVar, Value]
+
+    /** Maps a function symbol to a mathematical function.
+      * The function is represented as a Map itself.
+      */
     def functionInterpretations: Map[FuncDecl, Map[Seq[Value], Value]]
 
-    def applyEnumMapping(enumMapping: Map[Value, EnumValue]): Interpretation = {
+    /** Replaces the Values of an interpretation EnumValues, according to the given substitution map.
+     * Useful for undoing Enum Elimination.
+     */
+    def replaceValuesWithEnums(enumMapping: Map[Value, EnumValue]): Interpretation = {
         def applyMapping(v: Value): Value = if (enumMapping contains v) enumMapping(v) else v
         
         new BasicInterpretation(
@@ -25,6 +37,9 @@ trait Interpretation {
         )
     }
     
+    /** Replaces the sorts of the Values in the interpretation according to the given substitution.
+      * Useful for undoing sort inference.
+      */
     def applySortSubstitution(sub: SortSubstitution): Interpretation = {
         val apply: Value => Value = v => sub.applyValue(v)
         val newSortInterps = sortInterpretations map {
@@ -43,6 +58,7 @@ trait Interpretation {
         new BasicInterpretation(newSortInterps, newConstInterps, newFunctionInterps)
     }
     
+    /** Shows only the parts of the interpretation which are in the given signature. */
     def filterBySignature(signature: Signature): Interpretation = {
         val newSortInterps = sortInterpretations filter { case(sort, values) => signature hasSort sort }
         val newConstInterps = constantInterpretations filter { case(const, value) => signature.constants contains const }
@@ -50,6 +66,7 @@ trait Interpretation {
         new BasicInterpretation(newSortInterps, newConstInterps, newFunctionInterps)
     }
 
+    /** Removes the given declarations from the interpretation. */
     def withoutDeclarations(decls: Set[Declaration]): Interpretation = {
         def castConstant(decl: Declaration): Option[AnnotatedVar] = decl match {
             case c: AnnotatedVar => Some(c)
@@ -67,6 +84,7 @@ trait Interpretation {
         this.withoutConstants(constants).withoutFunctions(fdecls)
     }
     
+    /** Removes the given constants from the interpretation. */
     def withoutConstants(constants: Set[AnnotatedVar]): Interpretation = {
         new BasicInterpretation(
             sortInterpretations,
@@ -75,6 +93,7 @@ trait Interpretation {
         )
     }
     
+    /** Removes the given functions from the interpretation. */
     def withoutFunctions(funcDecls: Set[FuncDecl]): Interpretation = {
         new BasicInterpretation(
             sortInterpretations,
@@ -83,6 +102,9 @@ trait Interpretation {
         )
     }
 
+    /** Generates a set of constraints which says that an interpretation must agree
+      * with this interpretation on all of the constants and functions present.
+      */
     def toConstraints: Set[Term] = {
         val constraints: mutable.Set[Term] = mutable.Set.empty
         

@@ -10,17 +10,18 @@ import fortress.compiler._
 import fortress.logging._
 import fortress.util.Control.measureTime
 
+/** Model finder which invokes a compiler to reduce the model finding problem to satisfiability over a simpler logic. */
 abstract class CompilationModelFinder(solverInterface: SolverInterface)
 extends ModelFinder
 with ModelFinderSettings {
-    
-    // private var problemState: ProblemState = ProblemState(Theory.empty)
-    // A timer to count how much total time has elapsed
+
+    // Counts the total time elapsed
     private val totalTimer: StopWatch = new StopWatch()
     private var compiler: Option[LogicCompiler] = None
     private var solverSession: Option[SolverSession] = None
     private var compilerResult: Option[CompilerResult] = None
 
+    /** Create a compiler using the given integer semantics. */
     protected def createCompiler(integerSemantics: IntegerSemantics): LogicCompiler
     
     override def checkSat(): ModelFinderResult = {

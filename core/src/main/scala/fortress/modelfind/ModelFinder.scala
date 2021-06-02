@@ -10,12 +10,13 @@ import java.lang.AutoCloseable
 import fortress.util._
 
 /** The various return possibilities of the model finder.
-* SAT means the theory is satisfiable.
-* UNSAT means the theory is unsatisfiable.
-* TIMEOUT means the model finder could not be determined within the time limit.
-* UNKNOWN means the satisfiability of the theory could not be determined for another reason,
-* such as the underlying solver giving up, which is valid behaviour in undecidable logics.
-* ERROR means there was a fatal problem; this is not expected behaviour. */
+  * SAT means the theory is satisfiable.
+  * UNSAT means the theory is unsatisfiable.
+  * TIMEOUT means the model finder could not be determined within the time limit.
+  * UNKNOWN means the satisfiability of the theory could not be determined for another reason,
+  * such as the underlying solver giving up, which is valid behaviour in undecidable logics.
+  * ERROR means there was a fatal problem; this is not expected behaviour and indicates a bug.
+  */
 sealed trait ModelFinderResult
 
 case object SatResult extends ModelFinderResult {
@@ -43,24 +44,46 @@ object ModelFinderResult {
 
 /**
   * Top-level interface to search for satisfying models to theories with scopes.
+  * Extends AutoCloseable because it may hold a resource, such as an open connection to an SMT solver, which must be closed.
   */
 trait ModelFinder extends AutoCloseable {
+
+    /** Set the theory of the model finder. */
     def setTheory(theory: Theory): Unit
+
+    /** Set the scope of the given sort, which is the size of the domain for that sort. */
     def setAnalysisScope(t: Sort, size: Int): Unit
+
+    /** Set the timeout in milliseconds. */
     def setTimeout(milliseconds: Milliseconds): Unit
+
+    /** Set the timeout in seconds. */
     def setTimeout(seconds: Seconds): Unit = {
         setTimeout(seconds.toMilli)
     }
+
+    /** Set the semantics to use for integers (for example, modular arithmetic or unbounded). */
     def setBoundedIntegers(semantics: IntegerSemantics): Unit
+
     // Parentheses are used rather than zero parameters to indicate that state may change.
-    def checkSat(): ModelFinderResult
+
+    /** Check for a satisfying interpretation to the theory with the given scopes. */
+    def checkSat(): ModelFinderResult 
+
+    /** View the satisfying interpretation, if one exists.
+      * Otherwise, throws an error.
+      * Can only be called after checkSat.
+      */
     def viewModel(): Interpretation
 
-    // Used for counting valid models
+    /** Return the next satisfying interpretation. */
     def nextInterpretation(): ModelFinderResult
+
+    /** Count the total number of satisfying interpretations. */
     def countValidModels(newTheory: Theory): Int
     
     // Internal use only
+
     def setOutput(log: java.io.Writer): Unit
     def addLogger(logger: EventLogger): Unit
     
@@ -69,14 +92,6 @@ trait ModelFinder extends AutoCloseable {
 }
 
 object ModelFinder {
+    // todo this default definitely needs to change
     def createDefault(): ModelFinder = new FortressZERO
-}
-
-sealed trait IntegerSemantics
-case object Unbounded extends IntegerSemantics
-case class ModularSigned(bitwidth: Int) extends IntegerSemantics
-
-object IntegerSemantics {
-    val UnboundedSemantics: IntegerSemantics = Unbounded
-    def ModularSignedSemantics(bitwidth: Int): IntegerSemantics = ModularSigned(bitwidth)
 }
