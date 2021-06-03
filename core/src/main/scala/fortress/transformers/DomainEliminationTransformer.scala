@@ -1,40 +1,45 @@
 package fortress.transformers
 
+import scala.jdk.CollectionConverters._
+
 import fortress.msfol._
 import fortress.util.Errors
 import fortress.operations.TermOps._
 import fortress.operations.TheoryOps._
 
-/** Replaces occurences of domain elements in axioms with constants 
-  * that simulate them, asserting that they are distinct.
-  * Leaves all other aspects of the theory unchanged.
+/** Introduces constants to simulate the domain elements, asserting these constants are
+  * all distinct and repalacing occurrences of domain elements with the appropriate constant.
+  * Leaves other aspects of the Problem unchanged.
   */
-class DomainEliminationTransformer extends TheoryTransformer {
+object DomainEliminationTransformer extends ProblemStateTransformer {
     
-    override def apply(theory: Theory): Theory =  {
-        val domainElements: Set[DomainElement] = theory.axioms.flatMap(_.domainElements)
-        
-        val domainConstants: Set[AnnotatedVar] = domainElements.map(de => de.asSmtConstant of de.sort)
-        
-        val domainElemsMap: Map[Sort, Seq[DomainElement]] = theory.sorts.map(sort => {
-            val domElems = domainElements.filter(_.sort == sort).toSeq.sortWith(_.index < _.index) // Sort the domain elements for testing consistency
-            (sort, domElems)
-        }).toMap
-        
-        // Assert the constants are distinct
-        val distinctConstraints = for(
-            (sort, domainElems) <- domainElemsMap if (domainElems.size > 1)
-        ) yield Distinct(domainElems.map(_.asSmtConstant))
-        
-        // Eliminate domain elements in existing axioms
-        val convertedAxioms = theory.axioms.map(
-            axiom => axiom.eliminateDomainElements
-        )
-        
-        theory.withoutAxioms
-            .withConstants(domainConstants)
-            .withAxioms(distinctConstraints)
-            .withAxioms(convertedAxioms)
+    override def apply(problemState: ProblemState): ProblemState = problemState match {
+        case ProblemState(theory, scopes, skc, skf, rangeRestricts, unapplyInterp) => {
+            val domainElemsMap: Map[Sort, Seq[DomainElement]] =
+                (for(sort <- theory.sorts if !sort.isBuiltin  && scopes.contains(sort)) yield {
+                    val domElems = DomainElement.range(1 to scopes(sort), sort)
+                    (sort, domElems)
+                }).toMap
+            
+            val domainConstants: Iterable[AnnotatedVar] = domainElemsMap.values.flatten.map {
+                de => de.asSmtConstant of de.sort
+            }
+            
+            // Assert the constants are distinct
+            val distinctConstraints = for(
+                (sort, domainElems) <- domainElemsMap if (domainElems.size > 1)
+            ) yield Distinct(domainElems map (_.asSmtConstant))
+            
+            // Eliminate domain elements in existing axioms
+            val convertedAxioms = theory.axioms map (_.eliminateDomainElements)
+            
+            val newTheory = theory.withoutAxioms
+                .withConstants(domainConstants)
+                .withAxioms(distinctConstraints)
+                .withAxioms(convertedAxioms)
+            
+            ProblemState(newTheory, scopes, skc, skf, rangeRestricts, unapplyInterp)
+        }
     }
     
     override def name: String = "Domain Elimination Transformer"

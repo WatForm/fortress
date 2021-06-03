@@ -8,11 +8,10 @@ import fortress.operations.TermOps._
 import fortress.operations.TheoryOps._
 import fortress.interpretation.Interpretation
 
-/** Given a theory, with formulas all in negation normal form, eliminates existential
-* quantifiers through skolemization. The resulting theory is equisatisfiable with
-* the original.
-* Precondition: Input theory is in negation normal form.*/
-class SkolemizeTransformer extends ProblemStateTransformer {
+/** Skolemizes existential quantifiers in the theory.
+  * Requires that the theory be in negation normal form.
+  */
+object SkolemizeTransformer extends ProblemStateTransformer {
     
     override def apply(problemState: ProblemState): ProblemState = problemState match {
         case ProblemState(theory, scopes, skc, skf, rangeRestricts, unapplyInterp) => {

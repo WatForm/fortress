@@ -1,7 +1,7 @@
-package fortress.symmetry
+// package fortress.symmetry
 
-import fortress.msfol._
-import fortress.operations.TermOps._
+// import fortress.msfol._
+// import fortress.operations.TermOps._
 
 // // No implications for functions or constants (but still for predicates)
 // class Imp0SymmetryBreaker(theory: Theory, scopes: Map[Sort, Int])

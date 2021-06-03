@@ -6,6 +6,7 @@ import fortress.msfol._
 import fortress.util.Errors
 import fortress.operations.TermOps._
 
+/** Replaces integers with bitvectors of the given bitwidth. */
 class IntegerFinitizationTransformer(bitwidth: Int) extends TheoryTransformer {
     
     override def apply(theory: Theory): Theory = {

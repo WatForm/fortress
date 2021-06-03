@@ -8,12 +8,12 @@ class NonDistUpperBoundCompiler extends LogicCompiler {
     // Only basics for now - need to validate optimizations work correctly
     override def transformerSequence: Seq[ProblemStateTransformer] = {
         val transformerSequence = new scala.collection.mutable.ListBuffer[ProblemStateTransformer]
-        transformerSequence += new TypecheckSanitizeTransformer
-        transformerSequence += new NnfTransformer
-        transformerSequence += new SkolemizeTransformer
+        transformerSequence += TypecheckSanitizeTransformer
+        transformerSequence += NnfTransformer
+        transformerSequence += SkolemizeTransformer
         transformerSequence ++= symmetryBreakingTransformers
-        transformerSequence += QuantifierExpansionTransformer.create()
-        transformerSequence += RangeFormulaTransformer.create()
+        transformerSequence += StandardQuantifierExpansionTransformer
+        transformerSequence += StandardRangeFormulaTransformer
         transformerSequence += new SimplifyTransformer2
         transformerSequence += new DomainEliminationTransformer4
         transformerSequence.toList

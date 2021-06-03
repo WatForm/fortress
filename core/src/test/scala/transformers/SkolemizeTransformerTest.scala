@@ -5,7 +5,7 @@ import fortress.transformers._
 
 class SkolemizeTransformerTest extends UnitSuite with CommonSymbols {
     
-    val skolemizer = new SkolemizeTransformer with TheoryApplication
+    val skolemizer = new TheoryApplication(SkolemizeTransformer)
     
     val _a = Var("a")
     val _b = Var("b")
@@ -339,7 +339,7 @@ class SkolemizeTransformerTest extends UnitSuite with CommonSymbols {
                 Forall(z of A, Q(sk_1(z), z)),
                 P(Var("sk_2"))))
         
-        val newProblemState = skolemizer(ProblemState(theory))
+        val newProblemState = SkolemizeTransformer(ProblemState(theory))
         newProblemState.theory should be (expected)
         newProblemState.skolemConstants should be (Set(Var("sk_2") of A))
         newProblemState.skolemFunctions should be (Set(sk_0 from A to A, sk_1 from A to A))

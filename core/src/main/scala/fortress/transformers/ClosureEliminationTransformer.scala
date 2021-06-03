@@ -9,7 +9,7 @@ import fortress.interpretation.Interpretation
 
 /** Replaces transitive closure terms with a term representing the application of a new relation
  but with same arguments. **/
-class ClosureEliminationTransformer extends ProblemStateTransformer {
+object ClosureEliminationTransformer extends ProblemStateTransformer {
     override def apply(problemState: ProblemState): ProblemState = problemState match {
         case ProblemState(theory, scopes, skc, skf, rangeRestricts, unapplyInterp) => {
             val forbiddenNames = scala.collection.mutable.Set[String]()

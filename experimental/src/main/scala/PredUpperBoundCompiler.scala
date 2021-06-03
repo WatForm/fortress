@@ -8,15 +8,15 @@ class PredUpperBoundCompiler extends LogicCompiler {
     // Only basics for now - need to validate optimizations work correctly
     override def transformerSequence: Seq[ProblemStateTransformer] = {
         val transformerSequence = new scala.collection.mutable.ListBuffer[ProblemStateTransformer]
-        transformerSequence += new TypecheckSanitizeTransformer
+        transformerSequence += TypecheckSanitizeTransformer
         transformerSequence += new ScopeSubtypeTransformer // Must be before skolemization
-        transformerSequence += new NnfTransformer
-        transformerSequence += new SkolemizeTransformer
+        transformerSequence += NnfTransformer
+        transformerSequence += SkolemizeTransformer
         transformerSequence ++= symmetryBreakingTransformers
-        transformerSequence += QuantifierExpansionTransformer.create()
-        transformerSequence += RangeFormulaTransformer.create()
+        transformerSequence += StandardQuantifierExpansionTransformer
+        transformerSequence += StandardRangeFormulaTransformer
         transformerSequence += new SimplifyTransformer
-        transformerSequence += new DomainEliminationTransformer2
+        transformerSequence += DomainEliminationTransformer
         transformerSequence.toList
     }
 

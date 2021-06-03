@@ -9,12 +9,21 @@ import fortress.data.CartesianSeqProduct
 
 import scala.math.min
 
-/** Introduces range formulas restricting the ranges of
-  * function applications and constants.
-  * The resulting problem is equisatisfiable to the original and formulaically bound.
-  * Note: Symmetry breaking is not performed in this step.
+/** Introduces range formulas, restricting the output values of constants and functions.
+  * Symmetry breaking is not directly performed in this step.
+  * If a term already has range restriction imposed on it (for example, from symmetry breaking),
+  * generation of its range formula will be skipped (since it is redundant).
   */
-class RangeFormulaTransformer private (useConstForDomElem: Boolean) extends ProblemStateTransformer {
+object StandardRangeFormulaTransformer extends RangeFormulaTransformer(false)
+
+/** Introduces range formulas, restricting the output values of constants and functions.
+  * Symmetry breaking is not directly performed in this step.
+  * If a term already has range restriction imposed on it (for example, from symmetry breaking),
+  * generation of its range formula will be skipped (since it is redundant).
+  *
+  * @param useConstForDomElem if true, inserts domain elements as constants; if false, inserts domain elements directly (should be defaulted to false)
+  */
+private[transformers] class RangeFormulaTransformer (useConstForDomElem: Boolean) extends ProblemStateTransformer {
     
     private def DE(index: Integer, sort: Sort): Term =
         if (useConstForDomElem) DomainElement(index, sort).asSmtConstant
