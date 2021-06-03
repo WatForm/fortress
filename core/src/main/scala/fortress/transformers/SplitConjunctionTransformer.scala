@@ -4,9 +4,8 @@ import fortress.msfol._
 import fortress.operations.TermOps._
 import fortress.operations.TheoryOps._
 
-/** Split all conjunct formulas into separate formulas.
-  * All other aspects of the theory remain unchanged. */
-class SplitConjunctionTransformer extends TheoryTransformer {
+/** Splits all top-level conjunct formulas into separate formulas. */
+object SplitConjunctionTransformer extends TheoryTransformer {
     
     override def apply(theory: Theory): Theory = {
         var newAxioms: Set[Term] = Set.empty

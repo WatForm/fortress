@@ -35,7 +35,7 @@ class RangeFormulaTests extends UnitSuite {
             .withAxiom(Or(d1 === DomainElement(1, B), d1 === DomainElement(2, B)))
         
         val scopes = Map(A -> 2, B -> 2)
-        val transformer = RangeFormulaTransformer.create()
+        val transformer = StandardRangeFormulaTransformer
         transformer(ProblemState(theory, scopes)) should be (ProblemState(expected, scopes))
     }
     
@@ -72,7 +72,7 @@ class RangeFormulaTests extends UnitSuite {
                 App("g", DomainElement(3, B)) === DomainElement(2, A)))
         
         val scopes = Map(A -> 2, B -> 3)
-        val transformer = RangeFormulaTransformer.create()
+        val transformer = StandardRangeFormulaTransformer
         transformer(ProblemState(theory, scopes)) should be (ProblemState(expected, scopes))
     }
     
@@ -104,7 +104,7 @@ class RangeFormulaTests extends UnitSuite {
                 App("f", DomainElement(2, A), DomainElement(3, B)) === DomainElement(2, C)))
         
         val scopes = Map(A -> 2, B -> 3, C -> 2)
-        val transformer = RangeFormulaTransformer.create()
+        val transformer = StandardRangeFormulaTransformer
         transformer(ProblemState(theory, scopes)) should be (ProblemState(expected, scopes))
     }
     
@@ -128,7 +128,7 @@ class RangeFormulaTests extends UnitSuite {
             .withAxioms(rangeFormulas)
         
         val scopes = Map(A -> 5, B -> 7, C -> 2)
-        val transformer = RangeFormulaTransformer.create()
+        val transformer = StandardRangeFormulaTransformer
         transformer(ProblemState(theory, scopes)) should be (ProblemState(expected, scopes))
     }
     
@@ -146,7 +146,7 @@ class RangeFormulaTests extends UnitSuite {
             // Nothing about p, q, P
         
         val scopes = Map(A -> 2)
-        val transformer = RangeFormulaTransformer.create()
+        val transformer = StandardRangeFormulaTransformer
         transformer(ProblemState(theory, scopes)) should be (ProblemState(expected, scopes))
     }
     
@@ -167,7 +167,7 @@ class RangeFormulaTests extends UnitSuite {
             .withAxiom(App("g", DomainElement(1, B)) === DomainElement(1, A))
         
         val scopes = Map(A -> 1, B -> 1)
-        val transformer = RangeFormulaTransformer.create()
+        val transformer = StandardRangeFormulaTransformer
         transformer(ProblemState(theory, scopes)) should be (ProblemState(expected, scopes))
     }
     
@@ -197,7 +197,7 @@ class RangeFormulaTests extends UnitSuite {
                 App("g", x0, DomainElement(2, A), x1) === DomainElement(2, A))))
         
         val scopes = Map(A -> 2)
-        val transformer = RangeFormulaTransformer.create()
+        val transformer = StandardRangeFormulaTransformer
         transformer(ProblemState(theory, scopes)) should be (ProblemState(expected, scopes))
     }
     
@@ -241,7 +241,7 @@ class RangeFormulaTests extends UnitSuite {
             //     App("g", DomainElement(3, B)) === DomainElement(2, A)))
         
         val scopes = Map(A -> 2, B -> 3)
-        val transformer = RangeFormulaTransformer.create()
+        val transformer = StandardRangeFormulaTransformer
         val problemState = ProblemState(
             theory,
             scopes,

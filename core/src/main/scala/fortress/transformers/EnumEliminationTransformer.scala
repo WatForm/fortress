@@ -8,8 +8,9 @@ import fortress.operations.TermOps._
 import fortress.interpretation.Interpretation
 
 /** Replaces enum values with domain elements, following the mapping from the
-  * computeEnumSortMapping method. */
-class EnumEliminationTransformer extends ProblemStateTransformer {
+  * computeEnumSortMapping method.
+  */
+object EnumEliminationTransformer extends ProblemStateTransformer {
     override def apply(problemState: ProblemState): ProblemState = problemState match {
         case ProblemState(theory, scopes, skc, skf, rangeRestricts, unapplyInterp) => {
             val mapping = computeEnumSortMapping(theory)

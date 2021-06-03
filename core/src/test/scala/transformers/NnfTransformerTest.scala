@@ -5,7 +5,7 @@ import fortress.transformers._
 
 class NnfTransformerTest extends UnitSuite with CommonSymbols {
     
-    val nnf = new NnfTransformer
+    val nnf = NnfTransformer
     val _a = Var("a")
     val _b = Var("b")
     

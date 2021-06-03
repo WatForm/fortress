@@ -17,7 +17,7 @@ class EnumEliminationTests extends UnitSuite {
             .withSort(B)
             .withEnumSort(C, EnumValue("red"), EnumValue("blue"))
         
-        val mapping = ( new EnumEliminationTransformer ).computeEnumSortMapping(theory)
+        val mapping = EnumEliminationTransformer.computeEnumSortMapping(theory)
         val expected = Map(
             EnumValue("cat") -> DomainElement(1, A),
             EnumValue("dog") -> DomainElement(2, A),
@@ -43,7 +43,7 @@ class EnumEliminationTests extends UnitSuite {
             .withAxiom(Forall(x of B,
                 Not(App("f", DomainElement(1, A), x) === DomainElement(2, C))))
         
-        val transformer = new EnumEliminationTransformer
+        val transformer = EnumEliminationTransformer
         val result = transformer(ProblemState(theory))
         result.theory should be (expected)
         result.scopes should be (Map(A -> 3, C -> 2))

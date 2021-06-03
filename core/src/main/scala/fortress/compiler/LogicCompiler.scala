@@ -67,7 +67,7 @@ trait PervasiveTypeChecking extends LogicCompiler {
     abstract override def transformerSequence: Seq[ProblemStateTransformer] = {
         val transformers = super.transformerSequence.toList
         val n = transformers.length
-        val typecheckers: List[ProblemStateTransformer] = for(i <- (1 to n).toList) yield new TypecheckSanitizeTransformer
+        val typecheckers: List[ProblemStateTransformer] = for(i <- (1 to n).toList) yield TypecheckSanitizeTransformer
         transformers interleave typecheckers
     }
 }

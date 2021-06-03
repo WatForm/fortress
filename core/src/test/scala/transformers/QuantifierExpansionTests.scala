@@ -40,7 +40,7 @@ class QuantifierExpansionTests extends UnitSuite {
         
         val expectedScopes = scopes
         
-        val transformer = QuantifierExpansionTransformer.create()
+        val transformer = StandardQuantifierExpansionTransformer
         transformer(ProblemState(theory, scopes)) should be (ProblemState(expectedTheory, expectedScopes))
     }
     
@@ -72,7 +72,7 @@ class QuantifierExpansionTests extends UnitSuite {
         
         val expectedScopes = scopes
         
-        val transformer = QuantifierExpansionTransformer.create()
+        val transformer = StandardQuantifierExpansionTransformer
         transformer(ProblemState(theory, scopes)) should be (ProblemState(expectedTheory, expectedScopes))
     }
     
@@ -96,7 +96,7 @@ class QuantifierExpansionTests extends UnitSuite {
             .withFunctionDeclarations(P, Q, R, g)
             .withAxiom(t1A and t2A)
         
-        val transformer = QuantifierExpansionTransformer.create()
+        val transformer = StandardQuantifierExpansionTransformer
         transformer(ProblemState(theory, scopes)) should be (ProblemState(expectedTheory, scopes))
     }
     
@@ -117,7 +117,7 @@ class QuantifierExpansionTests extends UnitSuite {
                 App("f", DomainElement(1, A)) === b,
                 App("f", DomainElement(2, A)) === b))
         
-        val transformer = QuantifierExpansionTransformer.create()
+        val transformer = StandardQuantifierExpansionTransformer
         transformer(ProblemState(theory, scopes)) should be (ProblemState(expectedTheory, scopes))
     }
     
@@ -136,7 +136,7 @@ class QuantifierExpansionTests extends UnitSuite {
             .withAxiom(App("P", DomainElement(1, A)))
             .withAxiom(App("Q", DomainElement(1, B)))
         
-        val transformer = QuantifierExpansionTransformer.create()
+        val transformer = StandardQuantifierExpansionTransformer
         transformer(ProblemState(theory, scopes)) should be (ProblemState(expectedTheory, scopes))
     }
     
@@ -159,7 +159,7 @@ class QuantifierExpansionTests extends UnitSuite {
             .withAxiom(Forall( Seq(y of IntSort, z of BoolSort),
                 App("P", DomainElement(1, A), y, z) and App("P", DomainElement(2, A), y, z)))
         
-        val transformer = QuantifierExpansionTransformer.create()
+        val transformer = StandardQuantifierExpansionTransformer
         transformer(ProblemState(theory, scopes)) should be (ProblemState(expectedTheory, scopes))
     }
     

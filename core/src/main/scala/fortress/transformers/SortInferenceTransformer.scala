@@ -5,7 +5,10 @@ import fortress.operations.TheoryOps._
 import fortress.interpretation.Interpretation
 import fortress.sortinference._
 
-class SortInferenceTransformer extends ProblemStateTransformer {
+/** Infers new sorts within the theory.
+  * If no new sorts are found, returns the original theory.
+  */
+object SortInferenceTransformer extends ProblemStateTransformer {
         
     def apply(problemState: ProblemState): ProblemState = problemState match {
         case ProblemState(theory, scopes, skc, skf, rangeRestricts, unapplyInterp) => {
