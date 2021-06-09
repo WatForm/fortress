@@ -46,4 +46,10 @@ class FortressUnbounded(solverInterface: SolverInterface) extends CompilationMod
     def this() = this(Z3IncCliInterface)
 
     override def createCompiler(integerSemantics: IntegerSemantics): LogicCompiler = new FortressUnboundedCompiler(integerSemantics)
-} 
+}
+
+class FortressLearnedLiterals(solverInterface: SolverInterface) extends CompilationModelFinder(solverInterface) {
+    def this() = this(Z3IncCliInterface)
+
+    override def createCompiler(integerSemantics: IntegerSemantics): LogicCompiler = new FortressLearnedLiteralsCompiler(integerSemantics)
+}

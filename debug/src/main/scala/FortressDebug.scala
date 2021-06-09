@@ -97,6 +97,8 @@ object FortressDebug {
                     case "v2si" => new FortressTWO_SI
                     case "v3" => new FortressTHREE
                     case "v3si" => new FortressTHREE_SI
+                    case "unbounded" => new FortressUnbounded
+                    case "v3sill" => new FortressLearnedLiterals
                 }
 
                 modelFinder.setTheory(theory)

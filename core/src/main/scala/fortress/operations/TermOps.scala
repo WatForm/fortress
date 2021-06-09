@@ -58,11 +58,13 @@ case class TermOps private (term: Term) {
         
     def expandQuantifiersAndSimplify(sortInstantiations: Map[Sort, Seq[Term]]): Term =
         QuantifierExpanderSimplifier(term, sortInstantiations)
-    
-    def simplify(learnedLiterals: Map[Term,LeafTerm]): Term = Simplifier.simplify(term, learnedLiterals)
+
+    def simplify: Term = Simplifier.simplify(term)
 
     def simplifyWithRange(rangeRestrictions: Set[RangeRestriction]) = (new SimplifierWithRange(rangeRestrictions)).simplify(term)
-    
+
+    def simplifyWithLearnedLiterals(learnedLiterals: Map[Term, LeafTerm]): Term = SimplifierWithLearnedLiterals.simplify(term, learnedLiterals)
+
     def eliminateDomainElements: Term = DomainElementEliminator(term)
     
     def eliminateEnumValues(eliminationMapping: Map[EnumValue, DomainElement]): Term = EnumValueEliminator(eliminationMapping)(term)

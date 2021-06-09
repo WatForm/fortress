@@ -4,7 +4,7 @@ import fortress.msfol._
 import fortress.data.CartesianSeqProduct
 import fortress.util.Errors
 import fortress.operations.TermOps._
-import fortress.operations.Simplifier._
+import fortress.operations.SimplifierWithLearnedLiterals._
 
 // TODO can we make this faster?
 
@@ -16,7 +16,7 @@ import fortress.operations.Simplifier._
 */
 
 // Simplification during the process helps to counteract the exponential growth
-// This makes the instantation with simplification faster than without!
+// This makes the instantiation with simplification faster than without!
 object QuantifierExpanderSimplifier {
     
     def apply(term: Term, sortInstantiations: Map[Sort, Seq[Term]]): Term = {
@@ -83,6 +83,6 @@ object QuantifierExpanderSimplifier {
             instantiatedVersions map (t => simplify(t, learnedLiterals))
         }
         
-        instantiateAndSimp(term).simplify(learnedLiterals)
+        instantiateAndSimp(term).simplifyWithLearnedLiterals(learnedLiterals)
     }
 }

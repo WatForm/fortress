@@ -93,5 +93,5 @@ trait ModelFinder extends AutoCloseable {
 
 object ModelFinder {
     // todo this default definitely needs to change
-    def createDefault(): ModelFinder = new FortressZERO
+    def createDefault(): ModelFinder = new FortressLearnedLiterals
 }

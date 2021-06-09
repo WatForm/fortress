@@ -28,12 +28,11 @@ abstract class BaseFortressCompiler(integerSemantics: IntegerSemantics) extends 
         transformerSequence ++= symmetryBreakingTransformers
         transformerSequence += StandardQuantifierExpansionTransformer
         transformerSequence += StandardRangeFormulaTransformer
-        transformerSequence += SplitConjunctionTransformer
         transformerSequence += new SimplifyTransformer
         transformerSequence += DomainEliminationTransformer
         transformerSequence.toList
     }
-    
+
     def symmetryBreakingTransformers: Seq[ProblemStateTransformer]
 }
 
@@ -57,7 +56,7 @@ class FortressTWOCompiler_SI(integerSemantics: IntegerSemantics) extends LogicCo
     def symmetryBreakingTransformers: Seq[ProblemStateTransformer] = Seq(
         new SymmetryBreakingTransformer(FunctionsFirstAnyOrder, DefaultSymmetryBreaker)
     )
-    
+
     override def transformerSequence: Seq[ProblemStateTransformer] = {
         val transformerSequence = new scala.collection.mutable.ListBuffer[ProblemStateTransformer]
         transformerSequence += TypecheckSanitizeTransformer
@@ -75,7 +74,6 @@ class FortressTWOCompiler_SI(integerSemantics: IntegerSemantics) extends LogicCo
         transformerSequence ++= symmetryBreakingTransformers
         transformerSequence += StandardQuantifierExpansionTransformer
         transformerSequence += StandardRangeFormulaTransformer
-        transformerSequence += SplitConjunctionTransformer
         transformerSequence += new SimplifyTransformer
         transformerSequence += DomainEliminationTransformer
         transformerSequence.toList
@@ -114,8 +112,35 @@ class FortressUnboundedCompiler(integerSemantics: IntegerSemantics) extends Base
         transformerSequence += SkolemizeTransformer
         transformerSequence += StandardQuantifierExpansionTransformer
         transformerSequence += StandardRangeFormulaTransformer
-        transformerSequence += SplitConjunctionTransformer
         transformerSequence += new SimplifyTransformer
+        transformerSequence += DomainEliminationTransformer
+        transformerSequence.toList
+    }
+}
+
+class FortressLearnedLiteralsCompiler(integerSemantics: IntegerSemantics) extends BaseFortressCompiler(integerSemantics) {
+    override def symmetryBreakingTransformers: Seq[ProblemStateTransformer] = Seq(
+        new SymmetryBreakingTransformerSI(MonoFirstThenFunctionsFirstAnyOrder, DefaultSymmetryBreaker)
+    )
+
+    override def transformerSequence: Seq[ProblemStateTransformer] = {
+        val transformerSequence = new scala.collection.mutable.ListBuffer[ProblemStateTransformer]
+        transformerSequence += TypecheckSanitizeTransformer
+        transformerSequence += EnumEliminationTransformer
+        integerSemantics match {
+            case Unbounded => ()
+            case ModularSigned(bitwidth) => {
+                transformerSequence += new IntegerFinitizationTransformer(bitwidth)
+            }
+        }
+        transformerSequence += ClosureEliminationTransformer
+        transformerSequence += NnfTransformer
+        transformerSequence += SkolemizeTransformer
+        transformerSequence ++= symmetryBreakingTransformers
+        transformerSequence += StandardQuantifierExpansionTransformer
+        transformerSequence += StandardRangeFormulaTransformer
+        transformerSequence += SplitConjunctionTransformer
+        transformerSequence += new SimplifyLearnedLiteralsTransformer
         transformerSequence += DomainEliminationTransformer
         transformerSequence.toList
     }
