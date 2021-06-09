@@ -4,28 +4,35 @@ import fortress.util.Errors
 import scala.jdk.CollectionConverters._
 import scala.annotation.varargs // So we can call Scala varargs methods from Java
 
+/** A constant or function declaration, with sorts */
 sealed trait Declaration
 
+
+/** A function declaration, including name, argument sorts, and result sort. */
 case class FuncDecl private (name: String, argSorts: Seq[Sort], resultSort: Sort) extends Declaration {
     Errors.Internal.precondition(argSorts.size > 0, "Cannot create nullary functions; use a constant instead")
     Errors.Internal.precondition(! Names.isIllegal(name), "Illegal function name " + name)
     Errors.Internal.precondition(name.length > 0, "Cannot create function with empty name")
     
+    /** The number of argument sorts. */
     def arity: Int = argSorts.size
 
-    // Range-domain dependent
+    /** Whether the function is range-domain dependent (the result sort is one of the argument sorts). */
     def isRDD: Boolean = argSorts contains resultSort
 
-    // Range-domain independent
+    /** Whether the function is range-domain independent (the result sort is not one of the argument sorts). */
     def isRDI: Boolean = !isRDD
 
+    /** Whether all sorts, both argument and result, of the function are the same, and the sort is not builtin. */ 
     def isMonoSorted: Boolean = argSorts.forall(_ == resultSort) && !resultSort.isBuiltin
     
+    /** Whether all sorts, both argument and result, of the function are distinct. */
     def isRainbowSorted: Boolean = isRDI && (argSorts.distinct == argSorts)
     
     override def toString: String = name + ": (" + argSorts.mkString(", ") + ") -> " + resultSort.toString
 }
 
+/** Factory for [[fortress.msfol.FuncDecl]] instances. */
 object FuncDecl {
     def apply(name: String, sorts: Sort*): FuncDecl = FuncDecl(name, sorts.take(sorts.size - 1).toList, sorts.last)
     
@@ -43,11 +50,10 @@ object FuncDecl {
     }
 }
 
-/** Represents a variable together with a sort annotation.
-  * Used when quantifying a variable, or when declaring a Var to be a constant
-  * of a given Sort.
-  * AnnotatedVar is not a subclass of Term.
-  * Inside a Term it is only possible (and required) to annotate a Var when
+/** A variable together with a sort annotation.
+  * Used in quantifiers and constant declarations.
+  * Note: AnnotatedVar is not a subclass of Term;
+  * inside a Term it is only possible (and required) to annotate a Var when
   * a quantifier declares it bound.
   */
 case class AnnotatedVar private (variable: Var, sort: Sort) extends Declaration {

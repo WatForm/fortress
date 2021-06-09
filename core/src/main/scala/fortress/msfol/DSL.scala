@@ -2,7 +2,11 @@ package fortress.msfol
 
 // Syntax helpers for MSFOL Domain Specific Language in Scala
 
+
+/** Contains syntax helpers for a MSFOL Domain Specific Language in Scala. */
 object DSL {
+
+    /** Extension methods to allow use of DSL syntax. */
     implicit class DSLTerm(term: Term) {
         // Be aware if you chain this method together, you will get several nested AndLists
         def and(other: Term): Term = AndList(Seq(term, other))
@@ -14,6 +18,7 @@ object DSL {
         def unary_! : Term = Not(term)
     }
 
+    /** Allows generation of function applications Terms using standard Scala function application. */
     case class FunctionalSymbol(name: String) {
         def apply(terms: Term*): Term = App(name, terms)
 

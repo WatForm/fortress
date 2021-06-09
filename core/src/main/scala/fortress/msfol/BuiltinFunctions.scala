@@ -3,22 +3,27 @@ package fortress.msfol
 /** Represents various builtin for integers and bitvectors. */
 sealed trait BuiltinFunction {
     
-    // Given a sequence of input sorts, returns either the sort of what this
-    // builtin function will output, or None if the inputs sorts are not valid
-    // for this function.
+    /** Given a sequence of input sorts, returns either the sort of what this
+      * builtin function will output, or None if the inputs sorts are not valid
+      * for this function.
+      */
     def resultSortFromArgSorts(sorts: Seq[Sort]): Option[Sort]
 }
 
 /////////////
-// Integers
+// Integers 
 /////////////
+
+/** A function Int -> Int. */
 sealed trait UnaryIntegerFunction extends BuiltinFunction {
+
     override def resultSortFromArgSorts(sorts: Seq[Sort]): Option[Sort] = sorts match {
         case Seq(IntSort) => Some(IntSort)
         case _ => None
     }
 }
 
+/** A function Int x Int -> Int. */
 sealed trait BinaryIntegerFunction extends BuiltinFunction {
     override def resultSortFromArgSorts(sorts: Seq[Sort]): Option[Sort] = sorts match {
         case Seq(IntSort, IntSort) => Some(IntSort)
@@ -26,6 +31,7 @@ sealed trait BinaryIntegerFunction extends BuiltinFunction {
     }
 }
 
+/** A relation Int x Int -> Bool. */
 sealed trait BinaryIntegerRelation extends BuiltinFunction {
     override def resultSortFromArgSorts(sorts: Seq[Sort]): Option[Sort] = sorts match {
         case Seq(IntSort, IntSort) => Some(BoolSort)
@@ -50,6 +56,8 @@ case object IntGT extends BinaryIntegerRelation
 ///////////////
 // Bit Vectors
 ///////////////
+
+/** A function BV(n) -> BV(n). */
 sealed trait UnaryBitVectorFunction extends BuiltinFunction {
     override def resultSortFromArgSorts(sorts: Seq[Sort]): Option[Sort] = sorts match {
         case Seq(BitVectorSort(n)) => Some(BitVectorSort(n))
@@ -57,6 +65,7 @@ sealed trait UnaryBitVectorFunction extends BuiltinFunction {
     }
 }
 
+/** A function BV(n) x BV(n) -> BV(n). */
 sealed trait BinaryBitVectorFunction extends BuiltinFunction {
     override def resultSortFromArgSorts(sorts: Seq[Sort]): Option[Sort] = sorts match {
         case Seq(BitVectorSort(n), BitVectorSort(m)) if n == m => Some(BitVectorSort(n))
@@ -64,6 +73,7 @@ sealed trait BinaryBitVectorFunction extends BuiltinFunction {
     }
 }
 
+/** A function BV(n) x BV(n) -> BV(n). */
 sealed trait BinaryBitVectorRelation extends BuiltinFunction {
     override def resultSortFromArgSorts(sorts: Seq[Sort]): Option[Sort] = sorts match {
         case Seq(BitVectorSort(n), BitVectorSort(m)) if n == m => Some(BoolSort)
@@ -78,8 +88,8 @@ case object BvSignedDiv extends BinaryBitVectorFunction
 case object BvSignedRem extends BinaryBitVectorFunction
 case object BvSignedMod extends BinaryBitVectorFunction
 
+// Unary minus
 case object BvNeg extends UnaryBitVectorFunction
-
 
 case object BvSignedLE extends BinaryBitVectorRelation
 case object BvSignedLT extends BinaryBitVectorRelation

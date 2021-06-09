@@ -9,13 +9,21 @@ import scala.annotation.varargs // So we can call Scala varargs methods from Jav
 // Persistent and Immutable
 // Internally consistent
 // The constructor is private -- the only way to make signatures outside of this class
-// is through the empty and withXYZ methods 
+// is through the empty and withXYZ methods
+
+/** Stores the symbols used for the logic.
+  *
+  * @param sorts the set of sort symbols
+  * @param functionDeclarations the set of function symbols
+  * @param constants the set of constant symbols
+  * @param enumConstants maps sorts to their list of enumeration symbols (sorts which do not use enums do not appear in this map)
+  */
 case class Signature private (
     sorts: Set[Sort],
     functionDeclarations: Set[FuncDecl],
     constants: Set[AnnotatedVar],
     enumConstants: Map[Sort, Seq[EnumValue]]
-) extends TypeCheckQuerying {
+) {
     
     // TODO need to check this type is not builtin
     def withSort(t: Sort): Signature = {
@@ -97,25 +105,25 @@ case class Signature private (
     
     // TypeChecking
     
-    override def queryConstant(v: Var): Option[AnnotatedVar] = constants.find(_.variable == v)
+    def queryConstant(v: Var): Option[AnnotatedVar] = constants.find(_.variable == v)
     
-    override def queryEnum(e: EnumValue): Option[Sort] = enumConstants.find {
+    def queryEnum(e: EnumValue): Option[Sort] = enumConstants.find {
         case (sort, enumConstants) => enumConstants contains e
     }.map { case (sort, _) => sort }
     
-    override def queryFunction(name: String, argSorts: Seq[Sort]): Option[FuncDecl] =
+    def queryFunction(name: String, argSorts: Seq[Sort]): Option[FuncDecl] =
         functionDeclarations.find(fdecl => fdecl.name == name && fdecl.argSorts == argSorts)
     
-    override def queryUninterpretedFunction(name: String): Option[FuncDecl] =
+    def queryUninterpretedFunction(name: String): Option[FuncDecl] =
         functionDeclarations.find(fdecl => fdecl.name == name)
     
-    override def hasSort(sort: Sort): Boolean = sorts contains sort
+    def hasSort(sort: Sort): Boolean = sorts contains sort
     
-    override def hasSortWithName(name: String): Boolean = sorts.exists(_.name == name)
+    def hasSortWithName(name: String): Boolean = sorts.exists(_.name == name)
     
-    override def hasFunctionWithName(name: String): Boolean = functionDeclarations.exists(_.name == name)
+    def hasFunctionWithName(name: String): Boolean = functionDeclarations.exists(_.name == name)
     
-    override def functionWithName(name: String): Option[FuncDecl] = functionDeclarations.find(_.name == name)
+    def functionWithName(name: String): Option[FuncDecl] = functionDeclarations.find(_.name == name)
     
     def replaceIntegersWithBitVectors(bitwidth: Int): Signature = {
         def replaceSort(s: Sort): Sort = s match {

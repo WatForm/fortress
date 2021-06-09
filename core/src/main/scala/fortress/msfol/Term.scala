@@ -8,14 +8,17 @@ import scala.annotation.varargs // So we can call Scala varargs methods from Jav
 
 import fortress.operations.TermOps._
 
-/** Representation of a syntactic Term. */
+/** A syntactic Term in the logic. */
 sealed trait Term {
     def accept[T](visitor: TermVisitor[T]): T
     
     def freeVarConstSymbolsJava: java.util.Set[Var] = this.freeVarConstSymbols.asJava
 }
 
+/** A term which is a value (for example, True/False, or a value of a sort). */
 sealed trait Value extends Term
+
+/** A leaf term in a syntax tree. */
 sealed trait LeafTerm extends Term
 
 /** Term that represents True. */

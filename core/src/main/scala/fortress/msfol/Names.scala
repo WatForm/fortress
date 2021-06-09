@@ -1,5 +1,6 @@
 package fortress.msfol
 
+/** Stores and tests for illegal names. */ 
 object Names {
     private val illegalNames: Set[String] = Set(
         "and", "or", "not", "=>", "<=>", "iff",
