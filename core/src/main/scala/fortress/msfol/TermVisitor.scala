@@ -2,6 +2,7 @@ package fortress.msfol
 
 import fortress.msfol._
 
+/** A visitor for term syntax trees. */
 trait TermVisitor[T] {
     def visit(term: Term): T = term.accept(this)
     

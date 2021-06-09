@@ -15,6 +15,8 @@ import fortress.operations.TermOps._
 
 // The constructor is private -- the only way to make theories outside of this class
 // is through the empty and withXYZ methods 
+
+/** A first-order logic theory, with a signature of symbols and a set of axioms (logical formulas). */
 case class Theory private (signature: Signature, axioms: Set[Term]) {
     
     /** Returns a theory consisti`ng of the current theory but with the given
