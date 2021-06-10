@@ -4,11 +4,12 @@ import org.antlr.v4.runtime.tree.TerminalNode;
 
 import fortress.msfol.*;
 import java.util.List;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.Set;
 import java.util.HashSet;
 import java.util.stream.Collectors;
-
+import collection.JavaConverters.*;
 
  // Visits a parse tree and constructs a theory
  // Only visits unsorted FOL formulas; generates a sorted theory
@@ -39,7 +40,7 @@ public class TptpToFortress extends FOFTPTPBaseVisitor {
     
     @Override
     public Void visitSpec(FOFTPTPParser.SpecContext ctx) {
-        for(FOFTPTPParser.Fof_annotatedContext f : ctx.fof_annotated()) {
+        for(FOFTPTPParser.LineContext f : ctx.line()) {
             visit(f);
         }
         
@@ -81,6 +82,36 @@ public class TptpToFortress extends FOFTPTPBaseVisitor {
         }
         else {
             formulas.add(f);
+        }
+        return null;
+    }
+
+    @Override
+    public Term visitInclude(FOFTPTPParser.IncludeContext ctx) {
+        String inputFilePath = ctx.ID().getText();
+        // there is a danger here with infinite includes
+        // but let's assume that won't happen
+        File f = new File(inputFilePath);
+        FileInputStream fileStream = new FileInputStream(f);
+        TptpFofParser parser = new TptpFofParser();
+        Theory thy2 = parser.parse(fileStream);
+
+        // add the returned theory to the theory being built here
+        // no need to add universal sort again
+
+        // note that scala attributes are accessed as java methods
+
+        // Add function declarations
+        for(FuncDecl fs : thy2.functionDeclarations().asJava) {
+            theory = theory.withFunctionDeclaration(fs);
+        }
+        // Add constants
+        for(AnnotatedVar c : thy2.constants().asJava) {
+            theory = theory.withConstant(c);
+        }  
+        // Add axioms
+        for(Term ax : thy2.axioms().asJava) {
+            theory = theory.withAxiom(ax);
         }
         return null;
     }

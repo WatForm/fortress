@@ -1,8 +1,10 @@
 grammar FOFTPTP;
 
-spec : fof_annotated+ ;
+spec : line+ ;
 
-fof_annotated : 'fof' '(' ID ',' ID ',' fof_formula ')' '.' ;
+line : 'fof' '(' ID ',' ID ',' fof_formula ')' '.'     # fof_annotated
+     | 'include' '(' ID ')'                            # include
+     ;                           
 
 fof_formula : '~' fof_formula                            # not
             | '!' '[' ID (',' ID)* ']' ':' fof_formula   # forall
