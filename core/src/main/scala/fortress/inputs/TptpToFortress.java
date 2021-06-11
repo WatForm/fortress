@@ -3,13 +3,15 @@ package fortress.inputs;
 import org.antlr.v4.runtime.tree.TerminalNode;
 
 import fortress.msfol.*;
+
 import java.util.List;
 import java.io.*;
 import java.util.ArrayList;
 import java.util.Set;
 import java.util.HashSet;
 import java.util.stream.Collectors;
-import collection.JavaConverters.*;
+
+import scala.jdk.javaapi.CollectionConverters;
 
  // Visits a parse tree and constructs a theory
  // Only visits unsorted FOL formulas; generates a sorted theory
@@ -22,6 +24,7 @@ public class TptpToFortress extends FOFTPTPBaseVisitor {
     private List<Term> formulas;
     private Set<FuncDecl> functionDeclarations;
     private Set<Var> primePropositions;
+    private String filePath;
 
     public TptpToFortress(){
         this.theory = Theory.empty();
@@ -29,7 +32,15 @@ public class TptpToFortress extends FOFTPTPBaseVisitor {
         this.functionDeclarations = new HashSet<>();
         this.primePropositions = new HashSet<>();
     }
-    
+
+    public TptpToFortress(String filePath) {
+        this.theory = Theory.empty();
+        this.formulas = new ArrayList<>();
+        this.functionDeclarations = new HashSet<>();
+        this.primePropositions = new HashSet<>();
+        this.filePath = filePath;
+    }
+
     public Theory getTheory() {
         return theory;
     }
@@ -88,29 +99,42 @@ public class TptpToFortress extends FOFTPTPBaseVisitor {
 
     @Override
     public Term visitInclude(FOFTPTPParser.IncludeContext ctx) {
-        String inputFilePath = ctx.ID().getText();
+        String inputFilePath = ctx.SINGLE_STRING().getText();
+        // remove the surrounding single quotes
+        inputFilePath = inputFilePath.substring(1, inputFilePath.length() - 1);
         // there is a danger here with infinite includes
         // but let's assume that won't happen
-        File f = new File(inputFilePath);
-        FileInputStream fileStream = new FileInputStream(f);
-        TptpFofParser parser = new TptpFofParser();
-        Theory thy2 = parser.parse(fileStream);
-
+        Theory thy2;
+        try {
+            File f = new File(filePath);
+            String root_directory = f.getParentFile().getParentFile().getParent();
+            File f_include = new File(root_directory + "/" + inputFilePath);
+            FileInputStream fileStream = new FileInputStream(f_include);
+            TptpFofParser parser = new TptpFofParser();
+            thy2 = parser.parse(fileStream);
+        } catch (Exception e) {
+            System.err.println("Error when processing include statement: " + inputFilePath);
+            e.printStackTrace(System.err);
+            return null;
+        }
         // add the returned theory to the theory being built here
         // no need to add universal sort again
 
         // note that scala attributes are accessed as java methods
-
+        // Add sorts
+        for (Sort s : CollectionConverters.asJava(thy2.sorts())) {
+            theory = theory.withSort(s);
+        }
         // Add function declarations
-        for(FuncDecl fs : thy2.functionDeclarations().asJava) {
+        for (FuncDecl fs : CollectionConverters.asJava(thy2.functionDeclarations())) {
             theory = theory.withFunctionDeclaration(fs);
         }
         // Add constants
-        for(AnnotatedVar c : thy2.constants().asJava) {
+        for (AnnotatedVar c : CollectionConverters.asJava(thy2.constants())) {
             theory = theory.withConstant(c);
-        }  
+        }
         // Add axioms
-        for(Term ax : thy2.axioms().asJava) {
+        for (Term ax : CollectionConverters.asJava(thy2.axioms())) {
             theory = theory.withAxiom(ax);
         }
         return null;

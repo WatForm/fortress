@@ -1,9 +1,10 @@
-import java.io.{File, FileInputStream}
-
+import java.io.{File, FileInputStream, FileOutputStream}
 import fortress.inputs._
 import fortress.modelfind._
 import fortress.msfol._
 import org.scalatest._
+
+import java.nio.file.{Files}
 
 class TptpParserTest extends UnitSuite {
 
@@ -49,5 +50,29 @@ class TptpParserTest extends UnitSuite {
             .withAxiom(notAbelian)
         
         resultTheory should be (expectedTheory)
+    }
+
+    test("include example") {
+        // Setting up temporary directory for testing file importation
+        val tempDir = Files.createTempDirectory("tptp_folder")
+        val dest_f = new File(tempDir + "/Problems/ALG/ALG212+1.p")
+        dest_f.getParentFile().mkdirs()
+        dest_f.createNewFile()
+        val classLoader = getClass.getClassLoader
+        val src_f = new File(classLoader.getResource("ALG212+1.p").getFile)
+        new FileOutputStream(dest_f).getChannel() transferFrom(new FileInputStream(src_f).getChannel(), 0, Long.MaxValue)
+        val dest_f2 = new File(tempDir + "/Axioms/ALG002+0.ax")
+        dest_f2.getParentFile().mkdirs()
+        dest_f2.createNewFile()
+        val src_f2 = new File(classLoader.getResource("ALG002+0.ax").getFile)
+        new FileOutputStream(dest_f2).getChannel() transferFrom(new FileInputStream(src_f2).getChannel(), 0, Long.MaxValue)
+        val resultTheory = (new TptpFofParser).parse(tempDir + "/Problems/ALG/ALG212+1.p")
+
+        val file2 = new File(classLoader.getResource("ALG212+1_imported.p").getFile)
+        val fileStream2 = new FileInputStream(file2)
+        val expectedTheory = (new TptpFofParser).parse(fileStream2)
+
+        tempDir.toFile().deleteOnExit();
+        resultTheory should be(expectedTheory)
     }
 }

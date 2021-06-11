@@ -3,7 +3,7 @@ grammar FOFTPTP;
 spec : line+ ;
 
 line : 'fof' '(' ID ',' ID ',' fof_formula ')' '.'     # fof_annotated
-     | 'include' '(' ID ')'                            # include
+     | 'include' '(' SINGLE_STRING ')' '.'             # include
      ;                           
 
 fof_formula : '~' fof_formula                            # not
@@ -23,6 +23,10 @@ fof_formula : '~' fof_formula                            # not
 term : ID                          # conVar
      | ID '(' term (',' term)* ')' # apply
      ;
+
+SINGLE_STRING
+    : '\'' ~('\'')+ '\''
+    ;
 
 ID : [_a-zA-Z][_a-zA-Z0-9]* ;
 

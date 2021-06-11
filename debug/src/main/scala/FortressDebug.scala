@@ -8,6 +8,7 @@ import fortress.inputs._
 import fortress.compiler._
 import fortress.util._
 import fortress.logging._
+import fortress.operations.TheoryOps._
 
 import java.io._
 
@@ -19,6 +20,7 @@ class Conf(arguments: Seq[String]) extends ScallopConf(arguments) {
     val scopeMap = props[Int]('S')
     val debug = opt[Boolean]()
     val timeout = opt[Int](required = true) // Timeout in seconds
+    val ver = opt[Boolean]() // verify returned instance for SAT problems
     verify()
 }
 
@@ -38,7 +40,7 @@ object FortressDebug {
                 }
             }
         }
-        val theory = parser.parse(new FileInputStream(conf.file()))
+        val theory = parser.parse(conf.file())
 
         // Default scopes
         var scopes: Map[Sort, Int] = conf.scope.toOption match {
@@ -48,7 +50,7 @@ object FortressDebug {
             case None => Map()
         }
 
-        // Override with specifc scopes
+        // Override with specific scopes
         for((sortName, scope) <- conf.scopeMap) {
             scopes += (Sort.mkSortConst(sortName) -> scope)
         }
@@ -87,6 +89,9 @@ object FortressDebug {
 
                 val result = modelFinder.checkSat()
                 println(result)
+                if (result.equals(SatResult)) {
+                    println("Verifying returned instance: " + theory.verifyInterpretation(modelFinder.viewModel()))
+                }
             }
             
             case "count" => {

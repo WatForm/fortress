@@ -18,4 +18,17 @@ public class TptpFofParser implements TheoryParser {
         converter.visit(tree);
         return converter.getTheory();
     }
+
+    @Override
+    public Theory parse(String filePath) throws IOException {
+        InputStream inputStream = new FileInputStream(filePath);
+        CharStream stream = CharStreams.fromStream(inputStream);
+        FOFTPTPLexer lexer = new FOFTPTPLexer(stream);
+        CommonTokenStream tokens = new CommonTokenStream(lexer);
+        FOFTPTPParser parser = new FOFTPTPParser(tokens);
+        ParseTree tree = parser.spec();
+        TptpToFortress converter = new TptpToFortress(filePath);
+        converter.visit(tree);
+        return converter.getTheory();
+    }
 }

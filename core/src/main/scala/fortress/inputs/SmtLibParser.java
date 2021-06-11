@@ -36,6 +36,12 @@ public class SmtLibParser implements TheoryParser {
         this.logic = visitor.getLogic();
         return resultTheory;
     }
+
+    @Override
+    public Theory parse(String filePath) throws IOException {
+        InputStream inputStream = new FileInputStream(filePath);
+        return parse(inputStream);
+    }
     
     public Map<String, String> getInfo() {
         return info;
