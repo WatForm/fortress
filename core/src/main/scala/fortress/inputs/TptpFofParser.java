@@ -14,6 +14,8 @@ public class TptpFofParser implements TheoryParser {
         CommonTokenStream tokens = new CommonTokenStream(lexer);
         FOFTPTPParser parser = new FOFTPTPParser(tokens);
         ParseTree tree = parser.spec();
+        if (parser.getNumberOfSyntaxErrors() >= 1)
+            return null;
         TptpToFortress converter = new TptpToFortress();
         converter.visit(tree);
         return converter.getTheory();
@@ -27,6 +29,8 @@ public class TptpFofParser implements TheoryParser {
         CommonTokenStream tokens = new CommonTokenStream(lexer);
         FOFTPTPParser parser = new FOFTPTPParser(tokens);
         ParseTree tree = parser.spec();
+        if (parser.getNumberOfSyntaxErrors() >= 1)
+            return null;
         TptpToFortress converter = new TptpToFortress(filePath);
         converter.visit(tree);
         return converter.getTheory();

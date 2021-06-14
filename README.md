@@ -45,6 +45,9 @@ Options:
 * `--scope {SCOPE}` - Sets the default scope to use when a sort has no specified scope. This is overriden by `-S` for a specific sort.
 * `--mode {MODE}` - Sets the mode. The options are `decision`, `count`, and `compile`.
 * `--version {VERSION}`- Sets the model finder and compiler version. The options are `v0`, `v1`, `v2`, `v2si`, `v3`, and `v3si`.
+* `--debug`- Sets this flag to get more information about execution time.
+* `--rawdata`- Sets this flag to get log information in machine-friendly format, so that data can be easily collected for data analysis purpose
+* `--ver`- Sets this flag to verify the instance returned by solver satisfies the original theory before applying transformation for SAT models.
 
 Example usage:
 ```

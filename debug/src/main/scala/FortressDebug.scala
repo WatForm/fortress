@@ -19,6 +19,7 @@ class Conf(arguments: Seq[String]) extends ScallopConf(arguments) {
     val file = trailArg[String](required = true)
     val scopeMap = props[Int]('S')
     val debug = opt[Boolean]()
+    val rawdata = opt[Boolean]()
     val timeout = opt[Int](required = true) // Timeout in seconds
     val ver = opt[Boolean]() // verify returned instance for SAT problems
     verify()
@@ -41,6 +42,10 @@ object FortressDebug {
             }
         }
         val theory = parser.parse(conf.file())
+        if (theory == null) {
+            System.err.println("Parse error")
+            System.exit(1)
+        }
 
         // Default scopes
         var scopes: Map[Sort, Int] = conf.scope.toOption match {
@@ -57,8 +62,10 @@ object FortressDebug {
 
         val integerSemantics = Unbounded
 
-        val loggers = if(conf.debug()) {
+        var loggers = if (conf.debug()) {
             Seq(new StandardLogger(new PrintWriter(System.out)))
+        } else if (conf.rawdata()) {
+            Seq(new RawDataLogger(new PrintWriter(System.out)))
         } else Seq()
 
         conf.mode() match {

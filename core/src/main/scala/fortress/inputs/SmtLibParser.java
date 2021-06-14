@@ -27,8 +27,10 @@ public class SmtLibParser implements TheoryParser {
         SmtLibSubsetParser parser = new SmtLibSubsetParser(tokens);
         // Use the "give up" error handler for parser
         parser.setErrorHandler(new StopAtFirstErrorStrategy());
-        
+
         ParseTree tree = parser.commands();
+        if (parser.getNumberOfSyntaxErrors() >= 1)
+            return null;
         SmtLibVisitor visitor = new SmtLibVisitor();
         visitor.visit(tree);
         Theory resultTheory = visitor.getTheory();

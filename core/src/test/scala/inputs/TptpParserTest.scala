@@ -4,9 +4,16 @@ import fortress.modelfind._
 import fortress.msfol._
 import org.scalatest._
 
-import java.nio.file.{Files}
+import java.nio.file.Files
+import scala.reflect.io.Directory
 
 class TptpParserTest extends UnitSuite {
+
+    def createFileInTempDir(src: File, dest: File) : Unit = {
+        dest.getParentFile().mkdirs()
+        dest.createNewFile()
+        new FileOutputStream(dest).getChannel() transferFrom(new FileInputStream(src).getChannel(), 0, Long.MaxValue)
+    }
 
     test("abelian example") {
         val classLoader = getClass.getClassLoader
@@ -52,27 +59,75 @@ class TptpParserTest extends UnitSuite {
         resultTheory should be (expectedTheory)
     }
 
-    test("include example") {
+    test("include example ALG212") {
         // Setting up temporary directory for testing file importation
         val tempDir = Files.createTempDirectory("tptp_folder")
-        val dest_f = new File(tempDir + "/Problems/ALG/ALG212+1.p")
-        dest_f.getParentFile().mkdirs()
-        dest_f.createNewFile()
         val classLoader = getClass.getClassLoader
-        val src_f = new File(classLoader.getResource("ALG212+1.p").getFile)
-        new FileOutputStream(dest_f).getChannel() transferFrom(new FileInputStream(src_f).getChannel(), 0, Long.MaxValue)
-        val dest_f2 = new File(tempDir + "/Axioms/ALG002+0.ax")
-        dest_f2.getParentFile().mkdirs()
-        dest_f2.createNewFile()
-        val src_f2 = new File(classLoader.getResource("ALG002+0.ax").getFile)
-        new FileOutputStream(dest_f2).getChannel() transferFrom(new FileInputStream(src_f2).getChannel(), 0, Long.MaxValue)
+        val src1 = new File(classLoader.getResource("ALG212+1.p").getFile)
+        val dest1 = new File(tempDir + "/Problems/ALG/ALG212+1.p")
+        createFileInTempDir(src1, dest1)
+        val src2 = new File(classLoader.getResource("ALG002+0.ax").getFile)
+        val dest2 = new File(tempDir + "/Axioms/ALG002+0.ax")
+        createFileInTempDir(src2, dest2)
         val resultTheory = (new TptpFofParser).parse(tempDir + "/Problems/ALG/ALG212+1.p")
+
+        // Clean up the temporary directory
+        val directory = new Directory(tempDir.toFile)
+        directory.deleteRecursively() should be (true)
 
         val file2 = new File(classLoader.getResource("ALG212+1_imported.p").getFile)
         val fileStream2 = new FileInputStream(file2)
         val expectedTheory = (new TptpFofParser).parse(fileStream2)
 
-        tempDir.toFile().deleteOnExit();
+        resultTheory should be(expectedTheory)
+    }
+
+    test("include example GEO091") {
+        // Setting up temporary directory for testing file importation
+        val tempDir = Files.createTempDirectory("tptp_folder")
+        val classLoader = getClass.getClassLoader
+        val src1 = new File(classLoader.getResource("GEO091+1.p").getFile)
+        val dest1 = new File(tempDir + "/Problems/GEO/GEO091+1.p")
+        createFileInTempDir(src1, dest1)
+        val src2 = new File(classLoader.getResource("GEO004+0.ax").getFile)
+        val dest2 = new File(tempDir + "/Axioms/GEO004+0.ax")
+        createFileInTempDir(src2, dest2)
+        val resultTheory = (new TptpFofParser).parse(tempDir + "/Problems/GEO/GEO091+1.p")
+
+        // Clean up the temporary directory
+        val directory = new Directory(tempDir.toFile)
+        directory.deleteRecursively() should be (true)
+
+        val file2 = new File(classLoader.getResource("GEO091+1_imported.p").getFile)
+        val fileStream2 = new FileInputStream(file2)
+        val expectedTheory = (new TptpFofParser).parse(fileStream2)
+
+        resultTheory should be(expectedTheory)
+    }
+
+    test("include example MED009") {
+        // Setting up temporary directory for testing file importation
+        val tempDir = Files.createTempDirectory("tptp_folder")
+        val classLoader = getClass.getClassLoader
+        val src1 = new File(classLoader.getResource("MED009+1.p").getFile)
+        val dest1 = new File(tempDir + "/Problems/MED/MED009+1.p")
+        createFileInTempDir(src1, dest1)
+        val src2 = new File(classLoader.getResource("MED001+0.ax").getFile)
+        val dest2 = new File(tempDir + "/Axioms/MED001+0.ax")
+        createFileInTempDir(src2, dest2)
+        val src3 = new File(classLoader.getResource("MED001+1.ax").getFile)
+        val dest3 = new File(tempDir + "/Axioms/MED001+1.ax")
+        createFileInTempDir(src3, dest3)
+        val resultTheory = (new TptpFofParser).parse(tempDir + "/Problems/MED/MED009+1.p")
+
+        // Clean up the temporary directory
+        val directory = new Directory(tempDir.toFile)
+        directory.deleteRecursively() should be (true)
+
+        val file2 = new File(classLoader.getResource("MED009+1_imported.p").getFile)
+        val fileStream2 = new FileInputStream(file2)
+        val expectedTheory = (new TptpFofParser).parse(fileStream2)
+
         resultTheory should be(expectedTheory)
     }
 }

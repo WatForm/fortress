@@ -25,16 +25,17 @@ public class TptpToFortress extends FOFTPTPBaseVisitor {
     private Set<FuncDecl> functionDeclarations;
     private Set<Var> primePropositions;
     private String filePath;
+    private Boolean noParseError = true;
 
     public TptpToFortress(){
-        this.theory = Theory.empty();
+        this.theory = Theory.empty().withSort(universeSort);
         this.formulas = new ArrayList<>();
         this.functionDeclarations = new HashSet<>();
         this.primePropositions = new HashSet<>();
     }
 
     public TptpToFortress(String filePath) {
-        this.theory = Theory.empty();
+        this.theory = Theory.empty().withSort(universeSort);
         this.formulas = new ArrayList<>();
         this.functionDeclarations = new HashSet<>();
         this.primePropositions = new HashSet<>();
@@ -42,7 +43,8 @@ public class TptpToFortress extends FOFTPTPBaseVisitor {
     }
 
     public Theory getTheory() {
-        return theory;
+        if (noParseError) return theory;
+        else return null;
     }
     
     public Sort getUniverseSort() {
@@ -56,9 +58,6 @@ public class TptpToFortress extends FOFTPTPBaseVisitor {
         }
         
         // Construct theory
-        
-        theory = theory.withSort(universeSort);
-        
         // Add function declarations
         for(FuncDecl f : functionDeclarations) {
             theory = theory.withFunctionDeclaration(f);
@@ -113,18 +112,14 @@ public class TptpToFortress extends FOFTPTPBaseVisitor {
             TptpFofParser parser = new TptpFofParser();
             thy2 = parser.parse(fileStream);
         } catch (Exception e) {
-            System.err.println("Error when processing include statement: " + inputFilePath);
-            e.printStackTrace(System.err);
+            System.err.println("couldn't process include statement: " + inputFilePath);
+            noParseError = false;
             return null;
         }
         // add the returned theory to the theory being built here
         // no need to add universal sort again
 
         // note that scala attributes are accessed as java methods
-        // Add sorts
-        for (Sort s : CollectionConverters.asJava(thy2.sorts())) {
-            theory = theory.withSort(s);
-        }
         // Add function declarations
         for (FuncDecl fs : CollectionConverters.asJava(thy2.functionDeclarations())) {
             theory = theory.withFunctionDeclaration(fs);

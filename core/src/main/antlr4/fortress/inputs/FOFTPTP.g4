@@ -1,6 +1,6 @@
 grammar FOFTPTP;
 
-spec : line+ ;
+spec : line+ EOF;
 
 line : 'fof' '(' ID ',' ID ',' fof_formula ')' '.'     # fof_annotated
      | 'include' '(' SINGLE_STRING ')' '.'             # include
