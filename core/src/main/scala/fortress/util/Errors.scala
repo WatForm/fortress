@@ -57,4 +57,7 @@ object Errors {
         class SolverError(message: String) extends Error(message)
         def solverError(message: String): Unit = throw new SolverError("Solver error: " + message)
     }
+
+    // Internal error used in parser java code
+    class ParserError(message: String) extends Error(message)
 }

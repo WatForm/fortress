@@ -8,6 +8,7 @@ import fortress.inputs._
 import fortress.compiler._
 import fortress.util._
 import fortress.logging._
+import fortress.operations.TheoryOps._
 
 import java.io._
 
@@ -18,14 +19,16 @@ class Conf(arguments: Seq[String]) extends ScallopConf(arguments) {
     val file = trailArg[String](required = true)
     val scopeMap = props[Int]('S')
     val debug = opt[Boolean]()
+    val rawdata = opt[Boolean]()
     val timeout = opt[Int](required = true) // Timeout in seconds
+    val validate = opt[Boolean]() // verify returned instance for SAT problems
     verify()
 }
 
 object FortressDebug {
     def main(args: Array[String]): Unit = {
         val conf = new Conf(args)
-        
+
         val parser: TheoryParser = {
             val extension = conf.file().split('.').last
             extension match {
@@ -38,7 +41,14 @@ object FortressDebug {
                 }
             }
         }
-        val theory = parser.parse(new FileInputStream(conf.file()))
+        val result = parser.parse(conf.file())
+        val theory : Theory = result match {
+            case Left(x) =>
+                System.err.println("Parse error: " + x.getMessage);
+                System.exit(1)
+                null
+            case Right(x) => x
+        }
 
         // Default scopes
         var scopes: Map[Sort, Int] = conf.scope.toOption match {
@@ -48,15 +58,17 @@ object FortressDebug {
             case None => Map()
         }
 
-        // Override with specifc scopes
+        // Override with specific scopes
         for((sortName, scope) <- conf.scopeMap) {
             scopes += (Sort.mkSortConst(sortName) -> scope)
         }
 
         val integerSemantics = Unbounded
 
-        val loggers = if(conf.debug()) {
+        var loggers = if (conf.debug()) {
             Seq(new StandardLogger(new PrintWriter(System.out)))
+        } else if (conf.rawdata()) {
+            Seq(new RawDataLogger(new PrintWriter(System.out)))
         } else Seq()
 
         conf.mode() match {
@@ -87,8 +99,11 @@ object FortressDebug {
 
                 val result = modelFinder.checkSat()
                 println(result)
+                if (conf.validate() && result.equals(SatResult)) {
+                    println("Verifying returned instance: " + theory.verifyInterpretation(modelFinder.viewModel()))
+                }
             }
-            
+
             case "count" => {
                 val modelFinder = conf.version() match {
                     case "v0" => new FortressZERO
@@ -132,6 +147,6 @@ object FortressDebug {
                 System.err.println("Invalid mode: " + other)
                 System.exit(1)
             }
-        } 
+        }
     }
 }

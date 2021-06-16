@@ -19,7 +19,7 @@ import fortress.operations.TermOps._
 /** A first-order logic theory, with a signature of symbols and a set of axioms (logical formulas). */
 case class Theory private (signature: Signature, axioms: Set[Term]) {
     
-    /** Returns a theory consisti`ng of the current theory but with the given
+    /** Returns a theory consisting of the current theory but with the given
       * axiom added. Note that this does not modify the current Theory object,
       * but rather just returns a new Theory object.
       */

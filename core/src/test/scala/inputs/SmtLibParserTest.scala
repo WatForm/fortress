@@ -34,7 +34,7 @@ class SmtLibParserTest extends UnitSuite {
         val fileStream = new FileInputStream(file)
         
         val parser = new SmtLibParser
-        val resultTheory = parser.parse(fileStream)
+        val resultTheory = parser.parse(fileStream).getOrElse(null)
         val info: Map[String, String] = parser.getInfo.asScala.toMap
         val logic: Option[String] = parser.getLogic.toScala
         
@@ -113,7 +113,7 @@ class SmtLibParserTest extends UnitSuite {
         val fileStream = new FileInputStream(file)
         
         val parser = new SmtLibParser
-        val resultTheory = parser.parse(fileStream)
+        val resultTheory = parser.parse(fileStream).getOrElse(null)
 
         
         var expectedTheory = Theory.empty
@@ -136,7 +136,7 @@ class SmtLibParserTest extends UnitSuite {
         val fileStream = new FileInputStream(file)
         
         val parser = new SmtLibParser
-        val resultTheory = parser.parse(fileStream)
+        val resultTheory = parser.parse(fileStream).getOrElse(null)
 
         
         var expectedTheory = Theory.empty
@@ -160,7 +160,7 @@ class SmtLibParserTest extends UnitSuite {
         val fileStream = new FileInputStream(file)
         
         val parser = new SmtLibParser
-        val resultTheory = parser.parse(fileStream)
+        val resultTheory = parser.parse(fileStream).getOrElse(null)
         val info: Map[String, String] = parser.getInfo.asScala.toMap
         val logic: Option[String] = parser.getLogic.toScala
         
@@ -196,7 +196,7 @@ class SmtLibParserTest extends UnitSuite {
         val fileStream = new FileInputStream(file)
         
         val parser = new SmtLibParser
-        val resultTheory = parser.parse(fileStream)
+        val resultTheory = parser.parse(fileStream).getOrElse(null)
         
         val V = Sort.mkSortConst("V")
         val adj = FuncDecl.mkFuncDecl("adj", V, V, Sort.Bool)
@@ -233,7 +233,7 @@ class SmtLibParserTest extends UnitSuite {
         val fileStream = new FileInputStream(file)
 
         val parser = new SmtLibParser
-        val resultTheory = parser.parse(fileStream)
+        val resultTheory = parser.parse(fileStream).getOrElse(null)
 
 
 
@@ -261,7 +261,8 @@ class SmtLibParserTest extends UnitSuite {
         val fileStream = new FileInputStream(file)
 
         val parser = new SmtLibParser
-        val resultTheory = parser.parse(fileStream)
+        val resultTheory = parser.parse(fileStream).getOrElse(null)
+
 
         Using.resource(ModelFinder.createDefault) { mf => {
             mf.setTheory(resultTheory)
@@ -277,7 +278,7 @@ class SmtLibParserTest extends UnitSuite {
         val fileStream = new FileInputStream(file)
 
         val parser = new SmtLibParser
-        val resultTheory = parser.parse(fileStream)
+        val resultTheory = parser.parse(fileStream).getOrElse(null)
 
         val bv5 = BitVectorSort(5)
 
