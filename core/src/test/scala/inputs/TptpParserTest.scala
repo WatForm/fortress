@@ -20,7 +20,7 @@ class TptpParserTest extends UnitSuite {
         val file = new File(classLoader.getResource("abelian.p").getFile)
         val fileStream = new FileInputStream(file)
         
-        val resultTheory = (new TptpFofParser).parse(fileStream)
+        val resultTheory = (new TptpFofParser).parse(fileStream).getOrElse()
         val universeSort = Sort.mkSortConst("_UNIV")
         
         val A = Var("A")
@@ -69,7 +69,7 @@ class TptpParserTest extends UnitSuite {
         val src2 = new File(classLoader.getResource("ALG002+0.ax").getFile)
         val dest2 = new File(tempDir + "/Axioms/ALG002+0.ax")
         createFileInTempDir(src2, dest2)
-        val resultTheory = (new TptpFofParser).parse(tempDir + "/Problems/ALG/ALG212+1.p")
+        val resultTheory = (new TptpFofParser).parse(tempDir + "/Problems/ALG/ALG212+1.p").getOrElse()
 
         // Clean up the temporary directory
         val directory = new Directory(tempDir.toFile)
@@ -77,7 +77,7 @@ class TptpParserTest extends UnitSuite {
 
         val file2 = new File(classLoader.getResource("ALG212+1_imported.p").getFile)
         val fileStream2 = new FileInputStream(file2)
-        val expectedTheory = (new TptpFofParser).parse(fileStream2)
+        val expectedTheory = (new TptpFofParser).parse(fileStream2).getOrElse()
 
         resultTheory should be(expectedTheory)
     }
@@ -92,7 +92,7 @@ class TptpParserTest extends UnitSuite {
         val src2 = new File(classLoader.getResource("GEO004+0.ax").getFile)
         val dest2 = new File(tempDir + "/Axioms/GEO004+0.ax")
         createFileInTempDir(src2, dest2)
-        val resultTheory = (new TptpFofParser).parse(tempDir + "/Problems/GEO/GEO091+1.p")
+        val resultTheory = (new TptpFofParser).parse(tempDir + "/Problems/GEO/GEO091+1.p").getOrElse()
 
         // Clean up the temporary directory
         val directory = new Directory(tempDir.toFile)
@@ -100,7 +100,7 @@ class TptpParserTest extends UnitSuite {
 
         val file2 = new File(classLoader.getResource("GEO091+1_imported.p").getFile)
         val fileStream2 = new FileInputStream(file2)
-        val expectedTheory = (new TptpFofParser).parse(fileStream2)
+        val expectedTheory = (new TptpFofParser).parse(fileStream2).getOrElse()
 
         resultTheory should be(expectedTheory)
     }
@@ -118,7 +118,7 @@ class TptpParserTest extends UnitSuite {
         val src3 = new File(classLoader.getResource("MED001+1.ax").getFile)
         val dest3 = new File(tempDir + "/Axioms/MED001+1.ax")
         createFileInTempDir(src3, dest3)
-        val resultTheory = (new TptpFofParser).parse(tempDir + "/Problems/MED/MED009+1.p")
+        val resultTheory = (new TptpFofParser).parse(tempDir + "/Problems/MED/MED009+1.p").getOrElse()
 
         // Clean up the temporary directory
         val directory = new Directory(tempDir.toFile)
@@ -126,7 +126,7 @@ class TptpParserTest extends UnitSuite {
 
         val file2 = new File(classLoader.getResource("MED009+1_imported.p").getFile)
         val fileStream2 = new FileInputStream(file2)
-        val expectedTheory = (new TptpFofParser).parse(fileStream2)
+        val expectedTheory = (new TptpFofParser).parse(fileStream2).getOrElse()
 
         resultTheory should be(expectedTheory)
     }

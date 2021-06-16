@@ -24,8 +24,15 @@ object FortressCli {
     def main(args: Array[String]): Unit = {
         val conf = new Conf(args)
         
-        val parser = new SmtLibParser
-        val theory = parser.parse(new FileInputStream(conf.file()))
+        val parser : TheoryParser = new SmtLibParser
+        val parseResult = parser.parse(new FileInputStream(conf.file()))
+        val theory : Theory = parseResult match {
+            case Left(x) =>
+                System.err.println("Parse error: " + x.getMessage);
+                System.exit(1)
+                null
+            case Right(x) => x
+        }
 
         // Default scopes
         var scopes: Map[Sort, Int] = conf.scope.toOption match {

@@ -1,8 +1,12 @@
 package fortress.inputs;
 
+import fortress.util.Errors;
 import org.antlr.v4.runtime.*;
 import org.antlr.v4.runtime.tree.*;
 import fortress.msfol.*;
+import scala.util.Either;
+import scala.util.Right;
+
 import java.io.*;
 import java.util.Optional;
 import java.util.Map;
@@ -19,7 +23,7 @@ public class SmtLibParser implements TheoryParser {
     }
     
     @Override
-    public Theory parse(InputStream inputStream) throws IOException {
+    public Either<Errors.ParserError, Theory> parse(InputStream inputStream) throws IOException {
         CharStream stream = CharStreams.fromStream(inputStream);
         // Use the "give up" lexer
         SmtLibSubsetLexer lexer = new StopAtFirstErrorSmtLibLexer(stream);
@@ -36,11 +40,11 @@ public class SmtLibParser implements TheoryParser {
         Theory resultTheory = visitor.getTheory();
         this.info = visitor.getInfo();
         this.logic = visitor.getLogic();
-        return resultTheory;
+        return new Right<>(resultTheory);
     }
 
     @Override
-    public Theory parse(String filePath) throws IOException {
+    public Either<Errors.ParserError, Theory> parse(String filePath) throws IOException {
         InputStream inputStream = new FileInputStream(filePath);
         return parse(inputStream);
     }

@@ -1,17 +1,16 @@
 package fortress.inputs;
 
+import fortress.util.Errors;
 import org.antlr.v4.runtime.tree.TerminalNode;
 
 import fortress.msfol.*;
 
-import java.util.List;
+import java.util.*;
 import java.io.*;
-import java.util.ArrayList;
-import java.util.Set;
-import java.util.HashSet;
-import java.util.stream.Collectors;
 
-import scala.jdk.javaapi.CollectionConverters;
+import scala.util.Either;
+import scala.util.Left;
+import scala.util.Right;
 
  // Visits a parse tree and constructs a theory
  // Only visits unsorted FOL formulas; generates a sorted theory
@@ -25,7 +24,7 @@ public class TptpToFortress extends FOFTPTPBaseVisitor {
     private Set<FuncDecl> functionDeclarations;
     private Set<Var> primePropositions;
     private String filePath;
-    private Boolean noParseError = true;
+    private Optional<String> errorMessage = Optional.empty();
 
     public TptpToFortress(){
         this.theory = Theory.empty().withSort(universeSort);
@@ -42,9 +41,9 @@ public class TptpToFortress extends FOFTPTPBaseVisitor {
         this.filePath = filePath;
     }
 
-    public Theory getTheory() {
-        if (noParseError) return theory;
-        else return null;
+    public Either<Errors.ParserError, Theory> getTheory() {
+        if (errorMessage.isPresent()) return new Left<>(new Errors.ParserError(errorMessage.get()));
+        else return new Right<>(theory);
     }
     
     public Sort getUniverseSort() {
@@ -59,9 +58,7 @@ public class TptpToFortress extends FOFTPTPBaseVisitor {
         
         // Construct theory
         // Add function declarations
-        for(FuncDecl f : functionDeclarations) {
-            theory = theory.withFunctionDeclaration(f);
-        }
+        theory = theory.withFunctionDeclarations(functionDeclarations);
         
         // Add prime propositions as Bool constants
         for(Var p : primePropositions) {
@@ -76,9 +73,7 @@ public class TptpToFortress extends FOFTPTPBaseVisitor {
             .forEach(freeVar -> theory = theory.withConstant(freeVar.of(universeSort)));
 
         // Add axioms
-        for(Term formula : formulas) {
-            theory = theory.withAxiom(formula);
-        }
+        theory = theory.withAxioms(formulas);
         
         return null;
     }
@@ -110,10 +105,13 @@ public class TptpToFortress extends FOFTPTPBaseVisitor {
             File f_include = new File(root_directory + "/" + inputFilePath);
             FileInputStream fileStream = new FileInputStream(f_include);
             TptpFofParser parser = new TptpFofParser();
-            thy2 = parser.parse(fileStream);
+            Either<Errors.ParserError, Theory> result = parser.parse(fileStream);
+            if (result.isLeft()) {
+                errorMessage = Optional.of("Something bad happened when parsing the imported file: " + inputFilePath);
+            }
+            thy2 = result.right().getOrElse(null);
         } catch (Exception e) {
-            System.err.println("couldn't process include statement: " + inputFilePath);
-            noParseError = false;
+            errorMessage = Optional.of("couldn't process include statement: " + inputFilePath);
             return null;
         }
         // add the returned theory to the theory being built here
@@ -121,17 +119,14 @@ public class TptpToFortress extends FOFTPTPBaseVisitor {
 
         // note that scala attributes are accessed as java methods
         // Add function declarations
-        for (FuncDecl fs : CollectionConverters.asJava(thy2.functionDeclarations())) {
-            theory = theory.withFunctionDeclaration(fs);
-        }
+        theory = theory.withFunctionDeclarations(thy2.functionDeclarations());
+
         // Add constants
-        for (AnnotatedVar c : CollectionConverters.asJava(thy2.constants())) {
-            theory = theory.withConstant(c);
-        }
+        theory = theory.withConstants(thy2.constants());
+
         // Add axioms
-        for (Term ax : CollectionConverters.asJava(thy2.axioms())) {
-            theory = theory.withAxiom(ax);
-        }
+        theory = theory.withAxioms(thy2.axioms());
+
         return null;
     }
 

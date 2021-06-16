@@ -47,7 +47,7 @@ Options:
 * `--version {VERSION}`- Sets the model finder and compiler version. The options are `v0`, `v1`, `v2`, `v2si`, `v3`, and `v3si`.
 * `--debug`- Sets this flag to get more information about execution time.
 * `--rawdata`- Sets this flag to get log information in machine-friendly format, so that data can be easily collected for data analysis purpose
-* `--ver`- Sets this flag to verify the instance returned by solver satisfies the original theory before applying transformation for SAT models.
+* `--validate`- Sets this flag to verify the instance returned by solver satisfies the original theory before applying transformation for SAT models.
 
 Example usage:
 ```
@@ -100,3 +100,7 @@ sbt test
 
 ### General
 If the gradle build is not working properly ensure that your `JAVA_HOME` environment variable is correctly set (to the folder where the jdk that you are using is installed).
+
+## Acknowledgement
+
+Some TPTP files publicly available on the TPTP Problem Library(http://www.tptp.org/) are used for unit tests.

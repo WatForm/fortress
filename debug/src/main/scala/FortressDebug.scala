@@ -21,14 +21,14 @@ class Conf(arguments: Seq[String]) extends ScallopConf(arguments) {
     val debug = opt[Boolean]()
     val rawdata = opt[Boolean]()
     val timeout = opt[Int](required = true) // Timeout in seconds
-    val ver = opt[Boolean]() // verify returned instance for SAT problems
+    val validate = opt[Boolean]() // verify returned instance for SAT problems
     verify()
 }
 
 object FortressDebug {
     def main(args: Array[String]): Unit = {
         val conf = new Conf(args)
-        
+
         val parser: TheoryParser = {
             val extension = conf.file().split('.').last
             extension match {
@@ -41,10 +41,13 @@ object FortressDebug {
                 }
             }
         }
-        val theory = parser.parse(conf.file())
-        if (theory == null) {
-            System.err.println("Parse error")
-            System.exit(1)
+        val result = parser.parse(conf.file())
+        val theory : Theory = result match {
+            case Left(x) =>
+                System.err.println("Parse error: " + x.getMessage);
+                System.exit(1)
+                null
+            case Right(x) => x
         }
 
         // Default scopes
@@ -96,11 +99,11 @@ object FortressDebug {
 
                 val result = modelFinder.checkSat()
                 println(result)
-                if (result.equals(SatResult)) {
+                if (conf.validate() && result.equals(SatResult)) {
                     println("Verifying returned instance: " + theory.verifyInterpretation(modelFinder.viewModel()))
                 }
             }
-            
+
             case "count" => {
                 val modelFinder = conf.version() match {
                     case "v0" => new FortressZERO
@@ -144,6 +147,6 @@ object FortressDebug {
                 System.err.println("Invalid mode: " + other)
                 System.exit(1)
             }
-        } 
+        }
     }
 }
