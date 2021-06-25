@@ -15,10 +15,12 @@ trait SelectionHeuristic {
         state: StalenessState,
         remaining: Set[FuncDecl]
     ): Option[FuncDecl]
-    
+
+    // acceptable functions are functions containing no built-in sort
     protected def acceptableFunction(fn: FuncDecl): Boolean =
         (fn.argSorts :+ fn.resultSort) forall (!_.isBuiltin)
-        
+
+    // acceptable predicates are predicates containing no built-in sort
     protected def acceptablePredicate(p: FuncDecl): Boolean =
         (p.argSorts forall (!_.isBuiltin)) && (p.resultSort == BoolSort)
 }
