@@ -82,7 +82,7 @@ public class TptpToFortress extends FOFTPTPBaseVisitor {
     @Override
     public Term visitFof_annotated(FOFTPTPParser.Fof_annotatedContext ctx) {
         Term f = (Term) visit(ctx.fof_formula());
-        if (ctx.ID(1).getText().equals("conjecture")) {
+        if (ctx.ID().getText().equals("conjecture")) {
             formulas.add(Term.mkNot(f));
         }
         else {
@@ -93,7 +93,7 @@ public class TptpToFortress extends FOFTPTPBaseVisitor {
 
     @Override
     public Term visitInclude(FOFTPTPParser.IncludeContext ctx) {
-        String inputFilePath = ctx.SINGLE_STRING().getText();
+        String inputFilePath = ctx.SINGLE_QUOTED().getText();
         // remove the surrounding single quotes
         inputFilePath = inputFilePath.substring(1, inputFilePath.length() - 1);
         // there is a danger here with infinite includes
@@ -206,6 +206,16 @@ public class TptpToFortress extends FOFTPTPBaseVisitor {
         Var v = Term.mkVar(name);
         primePropositions.add(v);
         return v;
+    }
+
+    @Override
+    public Term visitDefined_prop(FOFTPTPParser.Defined_propContext ctx) {
+        String name = ctx.DEFINED_PROP().getText();
+        if(name.equals("$true"))
+            return Term.mkTop();
+        else if(name.equals("$false"))
+            return Term.mkBottom();
+        return null;
     }
 
     @Override
