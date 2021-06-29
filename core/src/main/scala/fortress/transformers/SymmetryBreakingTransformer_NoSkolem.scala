@@ -20,7 +20,8 @@ class SymmetryBreakingTransformer_NoSkolem(
     def apply(problemState: ProblemState): ProblemState = problemState match {
         case ProblemState(theory, scopes, skc, skf, rangeRestricts, unapplyInterp) => {
             val breaker = symmetryBreakerFactory.create(theory, scopes)
-            
+
+            // First, perform symmetry breaking on constants that are not skolem constants
             breaker.breakConstants(theory.constants diff skc)
             
             // This weirdness exists to make sure that this version performs symmetry breaking
@@ -36,7 +37,8 @@ class SymmetryBreakingTransformer_NoSkolem(
             val fp = scala.collection.immutable.ListSet( (functions.toList ++ predicates.toList) : _* )
             // END OF WEIRDNESS
                 .diff(skf)
-            
+
+            // Then, perform symmetry breaking on functions and predicates that are not skolem functions
             @scala.annotation.tailrec
             def loop(usedFunctionsPredicates: Set[FuncDecl]): Unit = {
                 val remaining = fp diff usedFunctionsPredicates
@@ -54,7 +56,8 @@ class SymmetryBreakingTransformer_NoSkolem(
             }
             
             loop(Set.empty)
-            
+
+            // Add symmetry breaking function declarations, constraints, and range restrictions
             val newTheory = theory.withFunctionDeclarations(breaker.declarations).withAxioms(breaker.constraints)
             ProblemState(newTheory, scopes, skc, skf, rangeRestricts union breaker.rangeRestrictions.toSet, unapplyInterp)
         }

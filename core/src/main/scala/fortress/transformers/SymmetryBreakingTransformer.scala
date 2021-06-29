@@ -20,7 +20,8 @@ class SymmetryBreakingTransformer(
     def apply(problemState: ProblemState): ProblemState = problemState match {
         case ProblemState(theory, scopes, skc, skf, rangeRestricts, unapplyInterp) => {
             val breaker = symmetryBreakerFactory.create(theory, scopes)
-            
+
+            // First, perform symmetry breaking on constants
             breaker.breakConstants(theory.constants)
             
             // This weirdness exists to make sure that this version performs symmetry breaking
@@ -35,7 +36,8 @@ class SymmetryBreakingTransformer(
             
             val fp = scala.collection.immutable.ListSet( (functions.toList ++ predicates.toList) : _* )
             // END OF WEIRDNESS
-            
+
+            // Then, perform symmetry breaking on functions and predicates
             @scala.annotation.tailrec
             def loop(usedFunctionsPredicates: Set[FuncDecl]): Unit = {
                 val remaining = fp diff usedFunctionsPredicates
@@ -53,7 +55,8 @@ class SymmetryBreakingTransformer(
             }
             
             loop(Set.empty)
-            
+
+            // Add symmetry breaking function declarations, constraints, and range restrictions
             val newTheory = theory.withFunctionDeclarations(breaker.declarations).withAxioms(breaker.constraints)
             ProblemState(newTheory, scopes, skc, skf, rangeRestricts union breaker.rangeRestrictions.toSet, unapplyInterp)
         }

@@ -20,13 +20,15 @@ abstract class SymmetryBreaker(
     protected val newConstraints = new mutable.ListBuffer[Term]
     protected val newRangeRestrictions = new mutable.ListBuffer[RangeRestriction]
     protected val newDeclarations = new mutable.ListBuffer[FuncDecl]
-    
+
+    // Perform symmetry breaking on constants, one sort by another
     final def breakConstants(constantsToBreak: Set[AnnotatedVar]): Unit = {
         for(sort <- theory.sorts if !sort.isBuiltin && tracker.state.existsFreshValue(sort)) {
             breakConstants(sort, constantsToBreak.filter(_.sort == sort).toIndexedSeq)
         }
     }
-    
+
+    // Perform symmetry breaking on constants of the input sort.
     protected def breakConstants(sort: Sort, constants: IndexedSeq[AnnotatedVar]): Unit
     
     def breakFunction(f: FuncDecl): Unit

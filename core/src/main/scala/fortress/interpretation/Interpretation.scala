@@ -49,7 +49,7 @@ trait Interpretation {
             case(const, value) => sub(const) -> apply(value)
         }
         val newFunctionInterps = functionInterpretations map {
-            case(fdecl, mapping) => fdecl -> {
+            case(fdecl, mapping) => sub(fdecl) -> {
                 mapping map {
                     case(args, value) => (args map apply) -> apply(value)
                 }

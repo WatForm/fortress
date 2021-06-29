@@ -9,12 +9,13 @@ import fortress.operations.TheoryOps._
 
 // TODO: move this into a symmetry breaker
 
-/** Applies symmetry breaking to the given Problem. The input Problem is allowed
-* to have domain elements in its formulas. The output formula will have domain
-* elements in its formulas. The resulting Problem has the same scopes, contains
-* the original axioms plus additional symmetry breaking axioms, and is
-* equisatisfiable to the original.
-*/
+/**
+  * Do sort inference, generate symmetry breaking constraints, then map those
+  * constraints back to the original sorts.
+  * For testing purposes we wanted to eliminate the question of how the solver
+  * performs when given different numbers of sorts (since we just wanted to
+  * test its impact on symmetry breaking).
+  */
 class SymmetryBreakingTransformerSI(
     selectionHeuristic: SelectionHeuristic,
     symmetryBreakerFactory: SymmetryBreakerFactory
@@ -30,6 +31,7 @@ class SymmetryBreakingTransformerSI(
                 yield {sort -> scopes(substitution(sort))}
             }.toMap
 
+            // If sort substitution is identity, perform symmetry breaking as normal
             if(substitution.isIdentity) return (new SymmetryBreakingTransformer(selectionHeuristic, symmetryBreakerFactory)).apply(problemState)
 
             // Perform symmetry breaking on inferred theory, but select as if it wasn't there
@@ -77,7 +79,8 @@ class SymmetryBreakingTransformerSI(
             val newDecls = breaker.declarations.map(substitution)
             val newConstraints = breaker.constraints.map(substitution)
             val newRangeRestrictions = breaker.rangeRestrictions.toSet.map( (rr: RangeRestriction) => substitution(rr))
-            
+
+            // Add symmetry breaking function declarations, constraints, and range restrictions
             val newTheory = theory.withFunctionDeclarations(newDecls).withAxioms(newConstraints)
             ProblemState(newTheory, scopes, skc, skf, rangeRestricts union newRangeRestrictions, unapplyInterp)
         }
