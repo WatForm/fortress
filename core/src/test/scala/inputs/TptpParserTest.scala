@@ -1,4 +1,4 @@
-import java.io.{File, FileInputStream, FileOutputStream}
+import java.io.{ByteArrayInputStream, File, FileInputStream, FileOutputStream, StringBufferInputStream}
 import fortress.inputs._
 import fortress.modelfind._
 import fortress.msfol._
@@ -130,4 +130,26 @@ class TptpParserTest extends UnitSuite {
 
         resultTheory should be(expectedTheory)
     }
+
+    test("defined proposition example") {
+        val tptp_content = "fof('defined-prop',axiom,( " +
+          "( a = a => $true ) & " +
+          "( $false  => a = a))" +
+          ")."
+        val inputStream = new ByteArrayInputStream(tptp_content.getBytes())
+
+        val resultTheory = (new TptpFofParser).parse(inputStream).getOrElse()
+        val universeSort = Sort.mkSortConst("_UNIV")
+
+        val a = Var("a")
+        val axiom1 = And(Implication(Eq(a,a),Top), Implication(Bottom,Eq(a,a)))
+
+        val expectedTheory = Theory.empty
+          .withSort(universeSort)
+          .withConstant(a.of(universeSort))
+          .withAxiom(axiom1)
+
+        resultTheory should be (expectedTheory)
+    }
+
 }

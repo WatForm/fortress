@@ -2,9 +2,11 @@ grammar FOFTPTP;
 
 spec : line+ EOF;
 
-line : 'fof' '(' ID ',' ID ',' fof_formula ')' '.'     # fof_annotated
-     | 'include' '(' SINGLE_STRING ')' '.'             # include
+line : 'fof' '(' name ',' ID ',' fof_formula ')' '.'     # fof_annotated
+     | 'include' '(' SINGLE_QUOTED ')' '.'               # include
      ;                           
+
+name : ID | SINGLE_QUOTED ;
 
 fof_formula : '~' fof_formula                            # not
             | '!' '[' ID (',' ID)* ']' ':' fof_formula   # forall
@@ -16,6 +18,7 @@ fof_formula : '~' fof_formula                            # not
             | term '=' term                              # eq
             | term '!=' term                             # neq
             | ID                                         # prop
+            | DEFINED_PROP                               # defined_prop
             | ID '(' term (',' term)* ')'                # pred
             | '(' fof_formula ')'                        # paren
             ;
@@ -24,11 +27,11 @@ term : ID                          # conVar
      | ID '(' term (',' term)* ')' # apply
      ;
 
-SINGLE_STRING
-    : '\'' ~('\'')+ '\''
-    ;
+SINGLE_QUOTED : '\'' ~('\'')+ '\'' ;
 
 ID : [_a-zA-Z][_a-zA-Z0-9]* ;
+
+DEFINED_PROP : '$true' | '$false' ;
 
 WS : [ \t\r\n] -> skip;
 COMMENT : '%'   ~('\r' | '\n')*  ('\r'? '\n')? -> skip;
