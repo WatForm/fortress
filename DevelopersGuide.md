@@ -197,6 +197,7 @@ Hierarchy:
     - SmtLibParser: Is an instances of a TheoryParser for SMT-LIB; relies on SmtLibVisitor to convert the parsed data into a theory. Returns a theory.  Also includes info and logic from the SMT-LIB parser, but these are not used further in Fortress. SmtLibVisitor has visitors over the antlr grammar for SMT-LIB.  Maps Bool and Int sorts to Fortress' built-in Bool and Int sorts.  Theory is built directly during the visitor.  Let statements (parallel substitution) are substituted to create terms.  Attributes in SMT-LIB are ignored. Ignores check-sat commands.  Not yet supported: Right/Left bitshift, unsigned div/rem, and, or, not, concat bit operations; abs val for ints.  
     @Joe: it would be good to fix the SmtLib files/parsers to use the same naming conventions - one is called a Visitor and one is called ToFortress.
     @Joe - the TPTP parser does not appear to StopAtFirstErrorStrategy or StopAtFirstErrorSmtLibLexer but the SMT-LIB strategy does??
+- Currently, we are not supporting the following operators when parsing tptp: infix <~> for non-equivalence(XOR),  infix ~| for negated disjunction (NOR), infix ~& for negated conjunction (NAND).
 
 ## operations 
 Operations on terms are wrapped up in TermOps class.
