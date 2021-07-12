@@ -54,6 +54,8 @@ Example usage:
 ./fortressdebug-x.y.z/bin/fortressdebug --timeout 60 --mode count -S A=3 B=2 --version v0 function.smt2
 ```
 
+You can increase the JVM stack size by setting option "-J-Xss<size>", for example, "-J-Xss8m" sets the max stack size to 8 MB. You might want to increase stack size, because the antlr parser causes stack overflow errors when parsing large smt2 and tptp files.
+
 ## Building Fortress
 The following are necessary to build Fortress:
 * Java 10 or higher

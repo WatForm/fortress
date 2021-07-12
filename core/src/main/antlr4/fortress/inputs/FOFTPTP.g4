@@ -6,7 +6,8 @@ line : 'fof' '(' name ',' ID ',' fof_formula ')' '.'     # fof_annotated
      | 'include' '(' SINGLE_QUOTED ')' '.'               # include
      ;                           
 
-name : ID | SINGLE_QUOTED ;
+// Currently, we are not supporting operators:
+// infix <~> for non-equivalence(XOR),  infix ~| for negated disjunction (NOR), infix ~& for negated conjunction (NAND)
 
 fof_formula : '~' fof_formula                            # not
             | '!' '[' ID (',' ID)* ']' ':' fof_formula   # forall
@@ -22,6 +23,8 @@ fof_formula : '~' fof_formula                            # not
             | ID '(' term (',' term)* ')'                # pred
             | '(' fof_formula ')'                        # paren
             ;
+
+name : ID | SINGLE_QUOTED ;
 
 term : ID                          # conVar
      | ID '(' term (',' term)* ')' # apply
