@@ -27,16 +27,16 @@ trait Interpretation {
      */
     def replaceValuesWithEnums(enumMapping: Map[Value, EnumValue]): Interpretation = {
         def applyMapping(v: Value): Value = if (enumMapping contains v) enumMapping(v) else v
-        
+
         new BasicInterpretation(
-            sortInterpretations.map{ case(sort, values) => sort -> (values map applyMapping) }, 
-            constantInterpretations.map{ case(av, value) => av -> applyMapping(value) }, 
-            functionInterpretations.map{ case(fdecl, values) => fdecl -> (values.map{ 
-                case(args, value) => (args map applyMapping) -> applyMapping(value) } 
+            sortInterpretations.map{ case(sort, values) => sort -> (values map applyMapping) },
+            constantInterpretations.map{ case(av, value) => av -> applyMapping(value) },
+            functionInterpretations.map{ case(fdecl, values) => fdecl -> (values.map{
+                case(args, value) => (args map applyMapping) -> applyMapping(value) }
             )}
         )
     }
-    
+
     /** Replaces the sorts of the Values in the interpretation according to the given substitution.
       * Useful for undoing sort inference.
       */
@@ -57,7 +57,21 @@ trait Interpretation {
         }
         new BasicInterpretation(newSortInterps, newConstInterps, newFunctionInterps)
     }
-    
+
+    /** Replaces the names of the variables and function declarations in the interpretation according to the given substitution.
+      * Useful for undoing illegal name renaming.
+      */
+    def applyNameSubstitution(renameMap: Map[String, String]): Interpretation = {
+        val inverseMap = renameMap.map(_.swap)
+        val newConstInterps = constantInterpretations map {
+            case (const, value) => (AnnotatedVar(Var(inverseMap.getOrElse(const.name, const.name)), const.sort), value)
+        }
+        val newFunctionInterps = functionInterpretations map {
+            case (fdecl, mapping) => (FuncDecl(inverseMap.getOrElse(fdecl.name, fdecl.name), fdecl.argSorts, fdecl.resultSort), mapping)
+        }
+        new BasicInterpretation(sortInterpretations, newConstInterps, newFunctionInterps)
+    }
+
     /** Shows only the parts of the interpretation which are in the given signature. */
     def filterBySignature(signature: Signature): Interpretation = {
         val newSortInterps = sortInterpretations filter { case(sort, values) => signature hasSort sort }
@@ -83,7 +97,7 @@ trait Interpretation {
 
         this.withoutConstants(constants).withoutFunctions(fdecls)
     }
-    
+
     /** Removes the given constants from the interpretation. */
     def withoutConstants(constants: Set[AnnotatedVar]): Interpretation = {
         new BasicInterpretation(
@@ -92,7 +106,7 @@ trait Interpretation {
             functionInterpretations
         )
     }
-    
+
     /** Removes the given functions from the interpretation. */
     def withoutFunctions(funcDecls: Set[FuncDecl]): Interpretation = {
         new BasicInterpretation(
@@ -107,11 +121,11 @@ trait Interpretation {
       */
     def toConstraints: Set[Term] = {
         val constraints: mutable.Set[Term] = mutable.Set.empty
-        
+
         for((const, v) <- constantInterpretations) {
             constraints += (const.variable === v)
         }
-        
+
         for {
             (fdecl, map) <- functionInterpretations
             (arguments, value) <- map
@@ -131,14 +145,14 @@ trait Interpretation {
 
     override def toString: String = {
         val buffer = new mutable.StringBuilder
-        
+
         buffer ++= "Sorts\n"
-        
+
         val sortLines = for((sort, values) <- sortInterpretations) yield {
             sort.toString + ": " + values.mkString(", ")
         }
         buffer ++= sortLines.mkString("\n")
-        
+
         if(constantInterpretations.nonEmpty) {
             buffer ++= "\nConstants\n"
             val constLines = for((const, value) <- constantInterpretations) yield {
@@ -146,7 +160,7 @@ trait Interpretation {
             }
             buffer ++= constLines.mkString("\n")
         }
-        
+
         if(functionInterpretations.nonEmpty) {
             buffer ++= "\nFunctions"
             for {
@@ -159,20 +173,20 @@ trait Interpretation {
                 buffer ++= argLines.mkString("\n")
             }
         }
-        
+
         buffer.toString
     }
-    
+
     // Java methods
-    
+
     def functionInterpretationsJava: java.util.Map[FuncDecl, java.util.Map[java.util.List[Value], Value]] = functionInterpretations.map {
         case (fdecl, values) => fdecl -> (values.map {
             case (args, ret) => args.asJava -> ret
         }).asJava
     }.asJava
-    
+
     def constantInterpretationsJava: java.util.Map[AnnotatedVar, Value] = constantInterpretations.asJava
-    
+
     def sortInterpretationsJava: java.util.Map[Sort, java.util.List[Value]] = sortInterpretations.map {
         case (sort, values) => sort -> values.asJava
     }.asJava

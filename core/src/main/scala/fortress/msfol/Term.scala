@@ -55,7 +55,6 @@ extends ConcreteFactory[Var, String]((name: String) => new Var(name))
 with Caching[Var, String] {
 
     def apply(name: String): Var = {
-        Errors.Internal.precondition(! Names.isIllegal(name), "Illegal variable name " + name)
         create(name)
     }
     

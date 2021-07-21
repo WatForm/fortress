@@ -11,7 +11,6 @@ sealed trait Declaration
 /** A function declaration, including name, argument sorts, and result sort. */
 case class FuncDecl private (name: String, argSorts: Seq[Sort], resultSort: Sort) extends Declaration {
     Errors.Internal.precondition(argSorts.size > 0, "Cannot create nullary functions; use a constant instead")
-    Errors.Internal.precondition(! Names.isIllegal(name), "Illegal function name " + name)
     Errors.Internal.precondition(name.length > 0, "Cannot create function with empty name")
     
     /** The number of argument sorts. */
