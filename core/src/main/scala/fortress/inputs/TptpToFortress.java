@@ -140,8 +140,7 @@ public class TptpToFortress extends FOFTPTPBaseVisitor {
     public Term visitForall(FOFTPTPParser.ForallContext ctx) {
         List<AnnotatedVar> variables = new ArrayList<>();
         for(TerminalNode variableNode: ctx.ID()) {
-            // add suffix “aa” to avoid illegal variable name
-            String name = variableNode.getText() + "aa";
+            String name = variableNode.getText();
             variables.add(Term.mkVar(name).of(universeSort));
         }
         Term body = (Term) visit(ctx.fof_formula());
@@ -152,8 +151,7 @@ public class TptpToFortress extends FOFTPTPBaseVisitor {
     public Term visitExists(FOFTPTPParser.ExistsContext ctx) {
         List<AnnotatedVar> variables = new ArrayList<>();
         for (TerminalNode variableNode: ctx.ID()) {
-            // add suffix “aa” to avoid illegal variable name
-            String name = variableNode.getText() + "aa";
+            String name = variableNode.getText();
             variables.add(Term.mkVar(name).of(universeSort));
         }
         Term body = (Term) visit(ctx.fof_formula());
@@ -204,8 +202,7 @@ public class TptpToFortress extends FOFTPTPBaseVisitor {
 
     @Override
     public Term visitProp(FOFTPTPParser.PropContext ctx) {
-        // add suffix “aa” to avoid illegal variable name
-        String name = ctx.ID().getText() + "aa";
+        String name = ctx.ID().getText();
         Var v = Term.mkVar(name);
         primePropositions.add(v);
         return v;
@@ -223,8 +220,7 @@ public class TptpToFortress extends FOFTPTPBaseVisitor {
 
     @Override
     public Term visitPred(FOFTPTPParser.PredContext ctx) {
-        // add suffix “aa” to avoid illegal function name
-        String name = ctx.ID().getText() + "aa";
+        String name = ctx.ID().getText();
         int numArgs = ctx.term().size();
 
         List<Sort> argSorts = new ArrayList<>();
@@ -249,15 +245,13 @@ public class TptpToFortress extends FOFTPTPBaseVisitor {
 
     @Override
     public Term visitConVar(FOFTPTPParser.ConVarContext ctx) {
-        // add suffix “aa” to avoid illegal variable name
-        String name = ctx.ID().getText() + "aa";
+        String name = ctx.ID().getText();
         return Term.mkVar(name);
     }
 
     @Override
     public Term visitApply(FOFTPTPParser.ApplyContext ctx) {
-        // add suffix “aa” to avoid illegal function name
-        String name = ctx.ID().getText() + "aa";
+        String name = ctx.ID().getText();
         int numArgs = ctx.term().size();
         
         List<Sort> argSorts = new ArrayList<>();

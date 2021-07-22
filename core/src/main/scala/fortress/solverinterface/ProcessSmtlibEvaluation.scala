@@ -38,10 +38,13 @@ trait ProcessSmtlibEvaluation extends ProcessBuilderSolver {
             
             override protected def evaluateFunction(f: FuncDecl, argList: Seq[Value]): Value = {
                 processSession.get.write("(get-value ((")
-                processSession.get.write(f.name)
+                processSession.get.write(NameConverter.nameWithAffix(f.name))
                 for(arg <- argList){
                     processSession.get.write(" ")
-                    processSession.get.write(arg.toString)
+                    if (arg.toString.equals("true") || arg.toString.equals("false"))
+                        processSession.get.write(arg.toString)
+                    else
+                        processSession.get.write(NameConverter.nameWithAffix(arg.toString))
                 }
                 processSession.get.write(")))")
                 processSession.get.write("\n")
@@ -63,11 +66,11 @@ trait ProcessSmtlibEvaluation extends ProcessBuilderSolver {
         }
         Solution
     }
-    
+
     private def getFortressNameToSmtValueMap(theory: Theory): Map[String, String] = {
         for(constant <- theory.constants){
             processSession.get.write("(get-value (")
-            processSession.get.write(constant.name)
+            processSession.get.write(NameConverter.nameWithAffix(constant.name))
             processSession.get.write("))")
         }
         processSession.get.write("\n")
@@ -77,7 +80,7 @@ trait ProcessSmtlibEvaluation extends ProcessBuilderSolver {
             val str = processSession.get.readLine()
             str match {
                 case ProcessBuilderSolver.smt2Model(name, value) => {
-                    Errors.Internal.assertion(constant.name == name, s""""${constant.name}" should be equal to "$name"""")
+                    Errors.Internal.assertion(constant.name == NameConverter.nameWithoutAffix(name), s""""${constant.name}" should be equal to "${NameConverter.nameWithoutAffix(name)}"""")
                     (constant.name -> value)
                 }
                 case _ => Errors.Internal.impossibleState

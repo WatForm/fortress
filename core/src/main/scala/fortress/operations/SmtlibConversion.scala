@@ -2,8 +2,10 @@ package fortress.operations
 
 import fortress.msfol._
 import fortress.util.Errors
+import fortress.util.NameConverter._
 
 class SmtlibConverter(writer: java.io.Writer) {
+
     // Use a writer for efficiency
     def write(t: Term): Unit = {
         def recur(term: Term): Unit = term match {
@@ -12,7 +14,7 @@ class SmtlibConverter(writer: java.io.Writer) {
             // case d @ DomainElement(index, sort) => writer.write(d.asSmtConstant.name)
             case Top => writer.write("true")
             case Bottom => writer.write("false")
-            case Var(name) => writer.write(name)
+            case Var(name) => writer.write(nameWithAffix(name))
             case Not(p) => writeGeneralApp("not", Seq(p))
             case AndList(args) => writeGeneralApp("and", args)
             case OrList(args) => writeGeneralApp("or", args)
@@ -20,7 +22,7 @@ class SmtlibConverter(writer: java.io.Writer) {
             case Implication(left, right) => writeGeneralApp("=>", Seq(left, right))
             case Iff(left, right) => writeGeneralApp("=", Seq(left, right))
             case Eq(left, right) => writeGeneralApp("=", Seq(left, right))
-            case App(fname, args) => writeGeneralApp(fname, args)
+            case App(fname, args) => writeGeneralApp(nameWithAffix(fname), args)
             case IfThenElse(condition, ifTrue, ifFalse) => writeGeneralApp("ite", Seq(condition, ifTrue, ifFalse))
             case Exists(vars, body) => {
                 writer.write("(exists (")
@@ -30,7 +32,7 @@ class SmtlibConverter(writer: java.io.Writer) {
                         writer.write(' ')
                     }
                     writer.write('(')
-                    writer.write(av.name)
+                    writer.write(nameWithAffix(av.name))
                     writer.write(' ')
                     writeSort(av.sort)
                     writer.write(')')
@@ -48,7 +50,7 @@ class SmtlibConverter(writer: java.io.Writer) {
                         writer.write(' ')
                     }
                     writer.write('(')
-                    writer.write(av.name)
+                    writer.write(nameWithAffix(av.name))
                     writer.write(' ')
                     writeSort(av.sort)
                     writer.write(')')
@@ -149,7 +151,7 @@ class SmtlibConverter(writer: java.io.Writer) {
     
     def writeFuncDecl(funcDecl: FuncDecl): Unit = {
         writer.write("(declare-fun ")
-        writer.write(funcDecl.name)
+        writer.write(nameWithAffix(funcDecl.name))
         writer.write(" (")
         writeSorts(funcDecl.argSorts)
         writer.write(") ")
@@ -159,7 +161,7 @@ class SmtlibConverter(writer: java.io.Writer) {
     
     def writeConst(constant: AnnotatedVar): Unit = {
         writer.write("(declare-const ")
-        writer.write(constant.name)
+        writer.write(nameWithAffix(constant.name))
         writer.write(' ')
         writeSort(constant.sort)
         writer.write(')')
