@@ -316,6 +316,45 @@ Functions for performing sort inference to get least specific sorts.
 
 ExperimentalSymmetryBreakers: @Joe - seems to be mostly unused.
 
+###Symmetry Breaking Code Organization
+- Remaining Identifiers tracker (generic)
+    - modified by breaker
+    - read by selection heuristic
+- Staleness tracker (generic)
+    - what DEs can still be used (generic for all symmetry breaking schemes)
+    - modified by breaker
+    - read by selection heuristic
+- breaker (generic) / factory
+    - state: point to staleness tracker, remaining
+    - store constraints
+    - Adding the symmetry constraints → does different things depending on if constant or RDI/RDD function or predicate;  stores the new constraints and adds them to the theory at the end; takes list of constants and adds implications for constants; marks stale values (generic for all symmetry breaking schemes);
+    - modifies the stalenesstracker and remaining
+    - depends on the disj limit
+    -  called by the transformer
+- selection heuristic (many options)
+    - state: point to staleness tracker, remaining, and anything else (such as preplanned order), what’s been tried
+    - reads staleness tracker, remaining
+    - decides what to break on next:
+        - list of constants (in order)
+        - or one fcn/pred
+    - could be done on the on-the-fly (may need staleness info) or could be done in a preplanned order
+    - called by transformer
+    - the selection heuristic may put forward identifiers to  break and the constraints cannot be created for some reason (e.g., disj limit) and so those identifiers are still in the renaming list
+    - how does it stop?
+        - preplanned → stop at the end of the list; it would ignore staleness tracker and remaining list
+        - greedy → infinite loop possible b/c disj limit → could be values left → only goes again on ones that have not been tried
+- top-level symmetry breaking transformer (generic)
+    - initialize staleness tracker
+    - initialize trackremaining
+    - initialize breaker(staleness tracker, trackremaining)
+    - initialize the selection heuristic(staleness tracker, trackremaining) (e.g. with a preplanned order or do nothing)
+    - selection heuristic is not passed any args b/c it can look up info in the stalenesstracker and trackrenaming)
+    - iterates:
+        - get the next thing to break on
+            - gets lists of constants all at once from heuristic so doesn’t have to collect constants
+        - call the breaker to create the symmetry breaking constraints
+        - if nothing to break on → stop
+    - get the constraints from the breaker to add to the theory
 
 ## transformers 
 All the operations that transform a theory.  The theory is packaged as a ProblemState to remember information that is needed to undo transformations (such as skolemization). With respect to efficiency, each transformer may walk over the entire theory.  After quantifier expansion, theories can be quite large and in the future, we may wish to integrate some transformers for efficiency.

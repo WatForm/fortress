@@ -80,6 +80,8 @@ object FortressDebug {
                     case "v2si" => new FortressTWO_SI
                     case "v3" => new FortressTHREE
                     case "v3si" => new FortressTHREE_SI
+                    case "v4" => new FortressFOUR
+                    case "v4si" => new FortressFOUR_SI
                     case "upperIter" => new IterativeUpperBoundModelFinder
                     case "parIter" => new ParallelIterativeUpperBoundModelFinder
                     case "upperND" => new NonDistUpperBoundModelFinder
