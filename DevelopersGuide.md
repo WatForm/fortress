@@ -218,7 +218,7 @@ Operations are:
 - Simplification: some simple simplifications (not true == false, two domain elements are not equal) @Joe - this is where Khadija's simplifications would be added I think.
 - SimplificationWithRange: like the above, but range restrictions are passed as an argument and used to simplify formulas. @Joe - aren't range formulas mostly going to be disjunctions? how does this help with simplifications?
 - Skolemization: skolemizes a term, which produces a new term, skolem constants and functions.
-- SmtlibConversion: converts a term to the strings needed for SMT-LIB.
+- SmtlibConversion: converts a term to the strings needed for SMT-LIB. We add suffixes "aa" to all variable and function names when converting to SMT-LIB to avoid having reserved keywords as identifiers. And when reading the results, we remove all the suffixes added.
 - Substitution: substitutes a term for a variable in a term.  Performs needed alpha-renaming to avoid variable capture. FastSubstitutor does a bunch of substitutions in parallel.
 - TermConvertor: Converts Ints to Signed Bit Vector operations. @Joe - perhaps this file should be renamed to be more specific to ints?
 - TermMetrics: various metrics on terms (depth of quantification, depth of nested functions, number of nodes in a term)

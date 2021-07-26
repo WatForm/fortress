@@ -23,29 +23,29 @@ class TptpParserTest extends UnitSuite {
         val resultTheory = (new TptpFofParser).parse(fileStream).getOrElse()
         val universeSort = Sort.mkSortConst("_UNIV")
 
-        val A = Var("Aaa")
-        val B = Var("Baa")
-        val C = Var("Caa")
-        val e = Var("eaa")
-        val f = FuncDecl.mkFuncDecl("faa", universeSort, universeSort, universeSort)
+        val A = Var("A")
+        val B = Var("B")
+        val C = Var("C")
+        val e = Var("e")
+        val f = FuncDecl.mkFuncDecl("f", universeSort, universeSort, universeSort)
 
         val associative = Forall(Seq(A.of(universeSort), B.of(universeSort), C.of(universeSort)),
             Eq(
-                App("faa", App("faa", A, B), C),
-                App("faa", A, App("faa", B, C))))
+                App("f", App("f", A, B), C),
+                App("f", A, App("f", B, C))))
 
         val identity = Forall(A.of(universeSort),
             And(
-                Eq(App("faa", A, e), A),
-                Eq(App("faa", e, A), A)))
+                Eq(App("f", A, e), A),
+                Eq(App("f", e, A), A)))
 
         val inverse = Forall(A.of(universeSort), Exists(B.of(universeSort),
             And(
-                Eq(App("faa", A, B), e),
-                Eq(App("faa", B, A), e))))
+                Eq(App("f", A, B), e),
+                Eq(App("f", B, A), e))))
 
         val notAbelian = Not(Forall(Seq(A.of(universeSort), B.of(universeSort)),
-            Eq(App("faa", A, B), App("faa", B, A))))
+            Eq(App("f", A, B), App("f", B, A))))
 
         val expectedTheory = Theory.empty
           .withSort(universeSort)
@@ -141,7 +141,7 @@ class TptpParserTest extends UnitSuite {
         val resultTheory = (new TptpFofParser).parse(inputStream).getOrElse()
         val universeSort = Sort.mkSortConst("_UNIV")
 
-        val a = Var("a" + "aa")
+        val a = Var("a")
         val axiom1 = And(Implication(Eq(a, a), Top), Implication(Bottom, Eq(a, a)))
 
         val expectedTheory = Theory.empty
