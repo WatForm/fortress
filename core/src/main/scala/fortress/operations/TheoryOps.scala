@@ -2,12 +2,15 @@ package fortress.operations
 
 import fortress.msfol._
 import fortress.data._
+
 import scala.language.implicitConversions
 import fortress.interpretation._
 import fortress.operations.TermMetrics._
 import fortress.sortinference._
 
-case class TheoryOps private (theory: Theory) {
+import scala.collection.mutable
+
+case class TheoryOps private(theory: Theory) {
     def mapAxioms(f: Term => Term) = Theory(theory.signature, theory.axioms map f)
 
     def verifyInterpretation(interpretation: Interpretation): Boolean =
@@ -76,6 +79,14 @@ case class TheoryOps private (theory: Theory) {
     // Returns whether sort inference found any new sorts
     def newSortsInferred: Boolean = {
         inferSortsCount > 0
+    }
+
+    // Returns whether sort inference found any new sorts
+    def mostUsedDeclarations: Map[Declaration, Int] = {
+        val helper = (r: mutable.Map[Declaration, Int], i: Declaration) => r + (i -> 0)
+        val profilingInfo = (theory.constants ++ theory.functionDeclarations).foldLeft(mutable.Map.empty[Declaration, Int])(helper)
+        theory.axioms.foreach(axiom => TermMetrics.declarationCountMap(axiom, profilingInfo))
+        profilingInfo.toMap
     }
 }
 
