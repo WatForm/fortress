@@ -41,7 +41,7 @@ class SymmetryBreakingTransformer_MostUsed(
             // Set up the selection heuristic if it is using a preplanned order
             if (selectionHeuristic.isPreplannedOrder) selectionHeuristic match {
                 case lowArityFirstAndMostUsedOrder: LowArityFirstAndMostUsedOrder =>
-                    lowArityFirstAndMostUsedOrder.prepossess(theory.mostUsedDeclarations)
+                    lowArityFirstAndMostUsedOrder.preprocess(theory.mostUsedDeclarations)
                 case _ =>
             }
 

@@ -34,7 +34,7 @@ class LowArityFirstAndMostUsedOrder(stalenessTrackerParam: StalenessTracker, rem
     var preplannedOrder: Seq[Declaration] = Seq.empty
 
     // We need profiling info to determine the preplanned order
-    def prepossess(profilingInfo: Map[Declaration, Int]): Unit = {
+    def preprocess(profilingInfo: Map[Declaration, Int]): Unit = {
         // Comparison operation for constants to determine which order to
         // perform symmetry breaking
         def consLessThan(c1: AnnotatedVar, c2: AnnotatedVar): Boolean = {
