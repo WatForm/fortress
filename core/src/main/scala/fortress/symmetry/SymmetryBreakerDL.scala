@@ -103,7 +103,7 @@ trait DependenceDifferentiationDL extends SymmetryBreakerDL {
 
 trait DefaultRDDSchemeDL extends DependenceDifferentiationDL {
     override def breakRDDFunction(f: FuncDecl): Unit = {
-        val fRangeRestrictions = Symmetry.rddFunctionRangeRestrictions_UsedFirst(f, stalenessTracker.state)
+        val fRangeRestrictions = SymmetryDL.rddFunctionRangeRestrictions_UsedFirst(f, stalenessTracker.state, disjunctsLimit)
         addRangeRestrictions(fRangeRestrictions)
         if (fRangeRestrictions.nonEmpty) remainingTracker.markUsedFuncDecls(f)
     }
@@ -112,8 +112,8 @@ trait DefaultRDDSchemeDL extends DependenceDifferentiationDL {
 
 trait DefaultRDISchemeDL extends DependenceDifferentiationDL {
     override def breakRDIFunction(f: FuncDecl): Unit = {
-        val fRangeRestrictions = Symmetry.rdiFunctionRangeRestrictions(f, stalenessTracker.state)
-        val fImplications = Symmetry.rdiFunctionImplicationsSimplified(f, stalenessTracker.state)
+        val fRangeRestrictions = SymmetryDL.rdiFunctionRangeRestrictions(f, stalenessTracker.state, disjunctsLimit)
+        val fImplications = SymmetryDL.rdiFunctionImplicationsSimplified(f, stalenessTracker.state, fRangeRestrictions.size)
         addRangeRestrictions(fRangeRestrictions)
         addGeneralConstraints(fImplications)
         if (fRangeRestrictions.nonEmpty) remainingTracker.markUsedFuncDecls(f)
@@ -123,8 +123,8 @@ trait DefaultRDISchemeDL extends DependenceDifferentiationDL {
 
 trait DefaultConstantSchemeDL extends SymmetryBreakerDL {
     override def breakConstants(sort: Sort, constants: IndexedSeq[AnnotatedVar]): Unit = {
-        val constantRangeRestrictions = Symmetry.csConstantRangeRestrictions(sort, constants, stalenessTracker.state)
-        val constantImplications = Symmetry.csConstantImplicationsSimplified(sort, constants, stalenessTracker.state)
+        val constantRangeRestrictions = SymmetryDL.csConstantRangeRestrictions(sort, constants, stalenessTracker.state, disjunctsLimit)
+        val constantImplications = SymmetryDL.csConstantImplicationsSimplified(sort, constants, stalenessTracker.state, constantRangeRestrictions.size)
 
         addRangeRestrictions(constantRangeRestrictions)
         addGeneralConstraints(constantImplications)
