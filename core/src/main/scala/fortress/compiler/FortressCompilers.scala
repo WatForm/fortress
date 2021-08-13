@@ -93,13 +93,13 @@ class FortressTHREECompiler_SI(integerSemantics: IntegerSemantics) extends BaseF
 
 class FortressFOURCompiler(integerSemantics: IntegerSemantics) extends BaseFortressCompiler(integerSemantics) {
     override def symmetryBreakingTransformers: Seq[ProblemStateTransformer] = Seq(
-        new SymmetryBreakingTransformer_MostUsed(LowArityFirstAndMostUsedOrderFactory, DefaultSymmetryBreakerFactoryDL(None))
+        new SymmetryBreakingTransformer_MostUsed(LowArityFirstMostUsedFunctionFirstOrderFactory, DefaultSymmetryBreakerFactoryDL(None))
     )
 }
 
 class FortressFOURCompiler_SI(integerSemantics: IntegerSemantics) extends LogicCompiler {
     def symmetryBreakingTransformers: Seq[ProblemStateTransformer] = Seq(
-        new SymmetryBreakingTransformer_MostUsed(LowArityFirstAndMostUsedOrderFactory, DefaultSymmetryBreakerFactoryDL(None))
+        new SymmetryBreakingTransformer_MostUsed(LowArityFirstMostUsedFunctionFirstOrderFactory, DefaultSymmetryBreakerFactoryDL(None))
     )
 
     override def transformerSequence: Seq[ProblemStateTransformer] = {
