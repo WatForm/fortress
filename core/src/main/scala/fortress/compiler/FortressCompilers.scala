@@ -177,3 +177,44 @@ class FortressLearnedLiteralsCompiler(integerSemantics: IntegerSemantics) extend
         transformerSequence.toList
     }
 }
+
+class NonDistUpperBoundCompiler extends LogicCompiler {
+    def symmetryBreakingTransformers: Seq[ProblemStateTransformer] = Seq(
+        new SymmetryBreakingTransformer_MostUsed(LowArityFirstMostUsedFunctionFirstOrderFactory, DefaultSymmetryBreakerFactoryDL(None))
+    )
+
+    // Only basics for now - need to validate optimizations work correctly
+    override def transformerSequence: Seq[ProblemStateTransformer] = {
+        val transformerSequence = new scala.collection.mutable.ListBuffer[ProblemStateTransformer]
+        transformerSequence += TypecheckSanitizeTransformer
+        transformerSequence += NnfTransformer
+        transformerSequence += SkolemizeTransformer
+        transformerSequence ++= symmetryBreakingTransformers
+        transformerSequence += StandardQuantifierExpansionTransformer
+        transformerSequence += StandardRangeFormulaTransformer
+        transformerSequence += new SimplifyTransformer2
+        transformerSequence += new DomainEliminationTransformer2
+        transformerSequence.toList
+    }
+}
+
+class PredUpperBoundCompiler extends LogicCompiler {
+    def symmetryBreakingTransformers: Seq[ProblemStateTransformer] = Seq(
+        new SymmetryBreakingTransformer_MostUsed(LowArityFirstMostUsedFunctionFirstOrderFactory, DefaultSymmetryBreakerFactoryDL(None))
+    )
+
+    // Only basics for now - need to validate optimizations work correctly
+    override def transformerSequence: Seq[ProblemStateTransformer] = {
+        val transformerSequence = new scala.collection.mutable.ListBuffer[ProblemStateTransformer]
+        transformerSequence += TypecheckSanitizeTransformer
+        transformerSequence += new ScopeSubtypeTransformer // Must be before skolemization
+        transformerSequence += NnfTransformer
+        transformerSequence += SkolemizeTransformer
+        transformerSequence ++= symmetryBreakingTransformers
+        transformerSequence += StandardQuantifierExpansionTransformer
+        transformerSequence += StandardRangeFormulaTransformer
+        transformerSequence += new SimplifyTransformer
+        transformerSequence += DomainEliminationTransformer
+        transformerSequence.toList
+    }
+}
