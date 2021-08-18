@@ -3,42 +3,52 @@ package fortress.modelfind
 import fortress.interpretation.Interpretation
 import fortress.msfol._
 import fortress.util.Maps.NondeterministicMap
-import scala.util.control.Breaks._
 import fortress.util.Seconds
-import scala.collection.parallel.immutable.ParVector
+
 import scala.collection.parallel.CollectionConverters._
+import scala.collection.parallel.immutable.ParVector
 
 class IterativeUpperBoundModelFinder
-extends ModelFinder
-with ModelFinderSettings {
+  extends ModelFinder
+    with ModelFinderSettings {
+
+    var interpretation: Option[Interpretation] = None
 
     override def checkSat(): ModelFinderResult = {
-        val scopeRanges: Map[Sort, Range] = for((sort, scope) <- analysisScopes) yield (sort -> (1 to scope))
+        val scopeRanges: Map[Sort, Range] = for ((sort, scope) <- analysisScopes) yield (sort -> (1 to scope))
         val nScopeMap: NondeterministicMap[Sort, Int] = NondeterministicMap.fromLists(scopeRanges)
 
+
         def computeResult(scopes: Map[Sort, Int]): ModelFinderResult = {
-            val modelFinder = new FortressTHREE
+            val modelFinder = new FortressFOUR_SI
             modelFinder.setTheory(theory)
-            for((sort, scope) <- scopes) {
+            for ((sort, scope) <- scopes) {
                 modelFinder.setAnalysisScope(sort, scope)
             }
             modelFinder.setTimeout(Seconds(100000))
             modelFinder.setBoundedIntegers(integerSemantics)
 
-            modelFinder.checkSat()
+            val result = modelFinder.checkSat()
+            if (result.equals(SatResult)) {
+                interpretation = Some(modelFinder.viewModel())
+            }
+
+            result
         }
         // TODO have to order these
-        for(scopes <- nScopeMap.singleStepMap.possibleValues) {
+        for (scopes <- nScopeMap.singleStepMap.possibleValues) {
             val result = computeResult(scopes)
             result match {
                 case SatResult | ErrorResult(_) | TimeoutResult | UnknownResult => return result
-                case UnsatResult  => { }
+                case UnsatResult => {}
             }
         }
         UnsatResult
     }
 
-    override def viewModel(): Interpretation = ???
+    override def viewModel(): Interpretation = {
+        interpretation.get
+    }
 
     override def nextInterpretation(): ModelFinderResult = ???
 
@@ -49,31 +59,41 @@ with ModelFinderSettings {
 }
 
 class ParallelIterativeUpperBoundModelFinder
-extends ModelFinder
-with ModelFinderSettings {
+  extends ModelFinder
+    with ModelFinderSettings {
+
+    var interpretation: Option[Interpretation] = None
+
     override def checkSat(): ModelFinderResult = {
-        val scopeRanges: Map[Sort, Range] = for((sort, scope) <- analysisScopes) yield (sort -> (1 to scope))
+        val scopeRanges: Map[Sort, Range] = for ((sort, scope) <- analysisScopes) yield (sort -> (1 to scope))
         val nScopeMap: NondeterministicMap[Sort, Int] = NondeterministicMap.fromLists(scopeRanges)
         // TODO have to order these
         val possibleScopes: ParVector[Map[Sort, Int]] = nScopeMap.singleStepMap.possibleValues.toVector.par
-        
+
         def computeResult(scopes: Map[Sort, Int]): ModelFinderResult = {
-            val modelFinder = new FortressTHREE
+            val modelFinder = new FortressFOUR_SI
             modelFinder.setTheory(theory)
-            for((sort, scope) <- scopes) {
+            for ((sort, scope) <- scopes) {
                 modelFinder.setAnalysisScope(sort, scope)
             }
             modelFinder.setTimeout(Seconds(100000))
             modelFinder.setBoundedIntegers(integerSemantics)
 
-            modelFinder.checkSat()
+            val result = modelFinder.checkSat()
+            if (result.equals(SatResult)) {
+                interpretation = Some(modelFinder.viewModel())
+            }
+
+            result
         }
 
-        if(possibleScopes.exists(scopes => computeResult(scopes) == SatResult)) SatResult
+        if (possibleScopes.exists(scopes => computeResult(scopes) == SatResult)) SatResult
         else UnsatResult
     }
 
-    override def viewModel(): Interpretation = ???
+    override def viewModel(): Interpretation = {
+        interpretation.get
+    }
 
     override def nextInterpretation(): ModelFinderResult = ???
 

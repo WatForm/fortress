@@ -65,3 +65,15 @@ class FortressLearnedLiterals(solverInterface: SolverInterface) extends Compilat
 
     override def createCompiler(integerSemantics: IntegerSemantics): LogicCompiler = new FortressLearnedLiteralsCompiler(integerSemantics)
 }
+
+class NonDistUpperBoundModelFinder(solverInterface: SolverInterface) extends CompilationModelFinder(solverInterface) {
+    def this() = this(Z3IncCliInterface)
+
+    override def createCompiler(integerSemantics: IntegerSemantics): LogicCompiler = new NonDistUpperBoundCompiler
+}
+
+class PredUpperBoundModelFinder(solverInterface: SolverInterface) extends CompilationModelFinder(solverInterface) {
+    def this() = this(Z3IncCliInterface)
+
+    override def createCompiler(integerSemantics: IntegerSemantics): LogicCompiler = new PredUpperBoundCompiler
+}

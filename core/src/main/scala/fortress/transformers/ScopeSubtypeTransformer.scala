@@ -1,10 +1,8 @@
 package fortress.transformers
 
 import fortress.msfol._
-import fortress.operations.TermOps._
-import fortress.operations.TheoryOps._
 import fortress.operations._
-
+import fortress.operations.TheoryOps._
 class ScopeSubtypeTransformer extends TheoryTransformer {
     
     override def apply(theory: Theory): Theory =  {
@@ -32,7 +30,7 @@ class ScopeSubtypeTransformer extends TheoryTransformer {
 
         theory
             .withFunctionDeclarations(scopeSubtypePreds)
-            .mapAxioms(ScopeSubtype.addBoundsPredicates(_))
+            .mapAxioms(ScopeSubtype.addBoundsPredicates)
             .withAxioms(antiVacuityAxioms)
             .withAxioms(constantAxioms)
             .withAxioms(functionAxioms)

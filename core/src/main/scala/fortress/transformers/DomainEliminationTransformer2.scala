@@ -1,17 +1,17 @@
 package fortress.transformers
 
-import scala.jdk.CollectionConverters._
-
 import fortress.msfol._
-import fortress.util.Errors
 import fortress.operations.TermOps._
 import fortress.operations.TheoryOps._
 
 /** Introduces constants to simulate the domain elements, asserting these constants are
-  * all distinct and repalacing occurrences of domain elements with the appropriate constant.
+  * all distinct and replacing occurrences of domain elements with the appropriate constant.
   * Leaves other aspects of the Problem unchanged.
+  *
+  * This variant removes constraints asserting constants are distinct, thus implements the
+  * "collapsing constants" approach for solving with non-exact scope.
   */
-class DomainEliminationTransformer4 extends ProblemStateTransformer {
+class DomainEliminationTransformer2 extends ProblemStateTransformer {
     
     override def apply(problemState: ProblemState): ProblemState = problemState match {
         case ProblemState(theory, scopes, skc, skf, rangeRestricts, unapplyInterp) => {
