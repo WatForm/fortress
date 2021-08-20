@@ -102,6 +102,15 @@ trait Interpretation {
         )
     }
 
+    /** Updates thr domain elements associated with specified sort. */
+    def updateSortInterpretations(sort: Sort, values: Seq[Value]): Interpretation = {
+        new BasicInterpretation(
+            sortInterpretations + (sort -> values),
+            constantInterpretations,
+            functionInterpretations
+        )
+    }
+
     /** Generates a set of constraints which says that an interpretation must agree
       * with this interpretation on all of the constants and functions present.
       */

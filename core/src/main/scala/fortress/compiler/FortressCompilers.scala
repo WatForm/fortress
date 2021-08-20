@@ -16,13 +16,13 @@ abstract class BaseFortressCompiler(integerSemantics: IntegerSemantics) extends 
         val transformerSequence = new scala.collection.mutable.ListBuffer[ProblemStateTransformer]
         transformerSequence += TypecheckSanitizeTransformer
         transformerSequence += EnumEliminationTransformer
-        integerSemantics match {
-            case Unbounded => ()
-            case ModularSigned(bitwidth) => {
-                transformerSequence += new IntegerFinitizationTransformer(bitwidth)
-            }
-        }
-        transformerSequence += ClosureEliminationTransformer
+//        integerSemantics match {
+//            case Unbounded => ()
+//            case ModularSigned(bitwidth) => {
+//                transformerSequence += new IntegerFinitizationTransformer(bitwidth)
+//            }
+//        }
+//        transformerSequence += ClosureEliminationTransformer
         transformerSequence += NnfTransformer
         transformerSequence += SkolemizeTransformer
         transformerSequence ++= symmetryBreakingTransformers
@@ -61,12 +61,12 @@ class FortressTWOCompiler_SI(integerSemantics: IntegerSemantics) extends LogicCo
         val transformerSequence = new scala.collection.mutable.ListBuffer[ProblemStateTransformer]
         transformerSequence += TypecheckSanitizeTransformer
         transformerSequence += EnumEliminationTransformer
-        integerSemantics match {
-            case Unbounded => ()
-            case ModularSigned(bitwidth) => {
-                transformerSequence += new IntegerFinitizationTransformer(bitwidth)
-            }
-        }
+//        integerSemantics match {
+//            case Unbounded => ()
+//            case ModularSigned(bitwidth) => {
+//                transformerSequence += new IntegerFinitizationTransformer(bitwidth)
+//            }
+//        }
         transformerSequence += SortInferenceTransformer
         transformerSequence += NnfTransformer
         transformerSequence += SkolemizeTransformer
@@ -106,12 +106,12 @@ class FortressFOURCompiler_SI(integerSemantics: IntegerSemantics) extends LogicC
         val transformerSequence = new scala.collection.mutable.ListBuffer[ProblemStateTransformer]
         transformerSequence += TypecheckSanitizeTransformer
         transformerSequence += EnumEliminationTransformer
-        integerSemantics match {
-            case Unbounded => ()
-            case ModularSigned(bitwidth) => {
-                transformerSequence += new IntegerFinitizationTransformer(bitwidth)
-            }
-        }
+//        integerSemantics match {
+//            case Unbounded => ()
+//            case ModularSigned(bitwidth) => {
+//                transformerSequence += new IntegerFinitizationTransformer(bitwidth)
+//            }
+//        }
         transformerSequence += SortInferenceTransformer
         transformerSequence += NnfTransformer
         transformerSequence += SkolemizeTransformer
@@ -133,12 +133,12 @@ class FortressUnboundedCompiler(integerSemantics: IntegerSemantics) extends Base
         val transformerSequence = new scala.collection.mutable.ListBuffer[ProblemStateTransformer]
         transformerSequence += TypecheckSanitizeTransformer
         transformerSequence += EnumEliminationTransformer
-        integerSemantics match {
-            case Unbounded => ()
-            case ModularSigned(bitwidth) => {
-                transformerSequence += new IntegerFinitizationTransformer(bitwidth)
-            }
-        }
+//        integerSemantics match {
+//            case Unbounded => ()
+//            case ModularSigned(bitwidth) => {
+//                transformerSequence += new IntegerFinitizationTransformer(bitwidth)
+//            }
+//        }
         transformerSequence += TypecheckSanitizeTransformer
         transformerSequence += NnfTransformer
         transformerSequence += SkolemizeTransformer
@@ -159,13 +159,13 @@ class FortressLearnedLiteralsCompiler(integerSemantics: IntegerSemantics) extend
         val transformerSequence = new scala.collection.mutable.ListBuffer[ProblemStateTransformer]
         transformerSequence += TypecheckSanitizeTransformer
         transformerSequence += EnumEliminationTransformer
-        integerSemantics match {
-            case Unbounded => ()
-            case ModularSigned(bitwidth) => {
-                transformerSequence += new IntegerFinitizationTransformer(bitwidth)
-            }
-        }
-        transformerSequence += ClosureEliminationTransformer
+//        integerSemantics match {
+//            case Unbounded => ()
+//            case ModularSigned(bitwidth) => {
+//                transformerSequence += new IntegerFinitizationTransformer(bitwidth)
+//            }
+//        }
+//        transformerSequence += ClosureEliminationTransformer
         transformerSequence += NnfTransformer
         transformerSequence += SkolemizeTransformer
         transformerSequence ++= symmetryBreakingTransformers
@@ -187,6 +187,7 @@ class NonDistUpperBoundCompiler extends LogicCompiler {
     override def transformerSequence: Seq[ProblemStateTransformer] = {
         val transformerSequence = new scala.collection.mutable.ListBuffer[ProblemStateTransformer]
         transformerSequence += TypecheckSanitizeTransformer
+        transformerSequence += EnumEliminationTransformer
         transformerSequence += NnfTransformer
         transformerSequence += SkolemizeTransformer
         transformerSequence ++= symmetryBreakingTransformers
@@ -208,6 +209,7 @@ class PredUpperBoundCompiler extends LogicCompiler {
         val transformerSequence = new scala.collection.mutable.ListBuffer[ProblemStateTransformer]
         transformerSequence += TypecheckSanitizeTransformer
         transformerSequence += new ScopeSubtypeTransformer // Must be before skolemization
+        transformerSequence += EnumEliminationTransformer
         transformerSequence += NnfTransformer
         transformerSequence += SkolemizeTransformer
         transformerSequence ++= symmetryBreakingTransformers
