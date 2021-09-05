@@ -31,7 +31,7 @@ abstract class EvaluationBasedInterpretation(sig: Signature) extends Interpretat
     
     override val functionInterpretations: Map[fortress.msfol.FuncDecl, Map[Seq[Value], Value]] = {
         for(f <- sig.functionDeclarations) yield (f -> {
-            for(argList <- ArgumentListGenerator.generate(f, scopes))
+            for(argList <- ArgumentListGenerator.generate(f, scopes, Some(sortInterpretations)))
             yield (argList -> evaluateFunction(f, argList))
         }.toMap)
     }.toMap

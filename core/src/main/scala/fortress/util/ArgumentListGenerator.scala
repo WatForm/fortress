@@ -3,7 +3,7 @@ package fortress.util
 import fortress.msfol._
 import fortress.data._
 
-class ArgumentListGenerator(scopes: PartialFunction[Sort, Int]) {
+class ArgumentListGenerator(scopes: PartialFunction[Sort, Int], sortInterpretations: Option[Map[Sort, Seq[Value]]] = None) {
     
     /** Given a function f: A_1 x ... x A_n -> B, returns an iterable object containing
     all the possible argument combination to the functions. Each argument combination is given as
@@ -13,7 +13,13 @@ class ArgumentListGenerator(scopes: PartialFunction[Sort, Int]) {
         // and each A_i has generated domain D_i
         // get the list [D_1, ..., D_n]
         val seqOfDomainSeqs: IndexedSeq[IndexedSeq[Value]] = f.argSorts.toIndexedSeq.map (sort => sort match {
-            case SortConst(s) => DomainElement.range(1 to scopes(sort), sort)
+            case SortConst(s) => {
+                if(sortInterpretations.nonEmpty && sortInterpretations.get.contains(sort)){
+                    sortInterpretations.get(sort).toIndexedSeq
+                } else{
+                    DomainElement.range(1 to scopes(sort), sort)
+                }
+            }
             case BoolSort => Vector(Top, Bottom)
             case _ => ???
         })
@@ -27,7 +33,7 @@ class ArgumentListGenerator(scopes: PartialFunction[Sort, Int]) {
 }
 
 object ArgumentListGenerator {
-    def generate(f: FuncDecl, scopes: PartialFunction[Sort, Int]): Iterable[Seq[Value]] = {
-        (new ArgumentListGenerator(scopes)).allArgumentListsOfFunction(f)
+    def generate(f: FuncDecl, scopes: PartialFunction[Sort, Int], sortInterpretations: Option[Map[Sort, Seq[Value]]] = None): Iterable[Seq[Value]] = {
+        (new ArgumentListGenerator(scopes, sortInterpretations)).allArgumentListsOfFunction(f)
     }
 }
