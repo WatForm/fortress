@@ -25,13 +25,15 @@ class EvaluationBasedInterpretationTest extends UnitSuite {
                 case _ => fail("Unexpected constant: " + c.toString)
             }
 
-            def evaluateFunction(func: FuncDecl, argList: Seq[Value]): Value = (func, argList) match {
-                case (`f`, Seq(DomainElement(1, A))) => DomainElement(2, A)
-                case (`f`, Seq(DomainElement(2, A))) => DomainElement(3, A)
-                case (`f`, Seq(DomainElement(3, A))) => DomainElement(4, A)
-                case (`f`, Seq(DomainElement(4, A))) => DomainElement(5, A)
-                case (`f`, Seq(DomainElement(5, A))) => DomainElement(1, A)
-                case _ => fail("Unexpected (func, argList) pair: " + (func, argList).toString)
+            def evaluateFunction(f: FuncDecl, scopes: Map[Sort, Int]): Map[Seq[Value], Value] = (f, scopes) match {
+                case (`f`, scopes) => Map(
+                    Seq(DomainElement(1, A)) -> DomainElement(2, A),
+                    Seq(DomainElement(2, A)) -> DomainElement(3, A),
+                    Seq(DomainElement(3, A)) -> DomainElement(4, A),
+                    Seq(DomainElement(4, A)) -> DomainElement(5, A),
+                    Seq(DomainElement(5, A)) -> DomainElement(1, A)
+                )
+                case _ => fail("Unexpected (f, scopes) pair: " + (f, scopes).toString)
             }
         }
 
@@ -64,11 +66,13 @@ class EvaluationBasedInterpretationTest extends UnitSuite {
                 case _ => fail("Unexpected constant: " + c.toString)
             }
 
-            def evaluateFunction(func: FuncDecl, argList: Seq[Value]): Value = (func, argList) match {
-                case (`f`, Seq(DomainElement(1, A))) => DomainElement(3, A)
-                case (`f`, Seq(DomainElement(3, A))) => DomainElement(4, A)
-                case (`f`, Seq(DomainElement(4, A))) => DomainElement(1, A)
-                case _ => fail("Unexpected (func, argList) pair: " + (func, argList).toString)
+            def evaluateFunction(f: FuncDecl, scopes: Map[Sort, Int]): Map[Seq[Value], Value] = (f, scopes) match {
+                case (`f`, scopes) => Map(
+                        Seq(DomainElement(1, A)) -> DomainElement(3, A),
+                        Seq(DomainElement(3, A)) -> DomainElement(4, A),
+                        Seq(DomainElement(4, A)) -> DomainElement(1, A)
+                )
+                case _ => fail("Unexpected (f, scopes) pair: " + (f, scopes).toString)
             }
         }
 
@@ -104,17 +108,21 @@ class EvaluationBasedInterpretationTest extends UnitSuite {
                 case _ => fail("Unexpected constant: " + c.toString)
             }
 
-            def evaluateFunction(func: FuncDecl, argList: Seq[Value]): Value = (func, argList) match {
-                case (`f`, Seq(DomainElement(1, A))) => DomainElement(3, A)
-                case (`f`, Seq(DomainElement(3, A))) => DomainElement(4, A)
-                case (`f`, Seq(DomainElement(4, A))) => DomainElement(1, A)
-                case (`t`, Seq(DomainElement(1, A), Top)) => DomainElement(3, A)
-                case (`t`, Seq(DomainElement(3, A), Top)) => DomainElement(4, A)
-                case (`t`, Seq(DomainElement(4, A), Top)) => DomainElement(1, A)
-                case (`t`, Seq(DomainElement(1, A), Bottom)) => DomainElement(4, A)
-                case (`t`, Seq(DomainElement(3, A), Bottom)) => DomainElement(1, A)
-                case (`t`, Seq(DomainElement(4, A), Bottom)) => DomainElement(3, A)
-                case _ => fail("Unexpected (func, argList) pair: " + (func, argList).toString)
+            def evaluateFunction(func: FuncDecl, scopes: Map[Sort, Int]): Map[Seq[Value], Value] = (func, scopes) match {
+                case (`f`, scopes) => Map(
+                    Seq(DomainElement(1, A)) -> DomainElement(3, A),
+                    Seq(DomainElement(3, A)) -> DomainElement(4, A),
+                    Seq(DomainElement(4, A)) -> DomainElement(1, A)
+                )
+                case (`t`, scopes) => Map(
+                    Seq(DomainElement(1, A), Top) -> DomainElement(3, A),
+                    Seq(DomainElement(3, A), Top) -> DomainElement(4, A),
+                    Seq(DomainElement(4, A), Top) -> DomainElement(1, A),
+                    Seq(DomainElement(1, A), Bottom) -> DomainElement(4, A),
+                    Seq(DomainElement(3, A), Bottom) -> DomainElement(1, A),
+                    Seq(DomainElement(4, A), Bottom) -> DomainElement(3, A)
+                )
+                case _ => fail("Unexpected (f, scopes) pair: " + (f, scopes).toString)
             }
         }
 

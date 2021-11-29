@@ -11,7 +11,7 @@ import fortress.util.ArgumentListGenerator
 abstract class EvaluationBasedInterpretation(sig: Signature) extends Interpretation {
     protected def evaluateConstant(c: AnnotatedVar): Value
     protected def evaluateSort(s: Sort): Seq[Value]
-    protected def evaluateFunction(f: FuncDecl, argList: Seq[Value]): Value
+    protected def evaluateFunction(f: FuncDecl, scopes: Map[Sort, Int]): Map[Seq[Value], Value]
     
     private def scopes: Map[Sort, Int] = for((sort, seq) <- sortInterpretations) yield (sort -> seq.size)
     
@@ -30,9 +30,6 @@ abstract class EvaluationBasedInterpretation(sig: Signature) extends Interpretat
     }.toMap
     
     override val functionInterpretations: Map[fortress.msfol.FuncDecl, Map[Seq[Value], Value]] = {
-        for(f <- sig.functionDeclarations) yield (f -> {
-            for(argList <- ArgumentListGenerator.generate(f, scopes, Some(sortInterpretations)))
-            yield (argList -> evaluateFunction(f, argList))
-        }.toMap)
+            for(f <- sig.functionDeclarations) yield (f -> evaluateFunction(f, scopes))
     }.toMap
 }
