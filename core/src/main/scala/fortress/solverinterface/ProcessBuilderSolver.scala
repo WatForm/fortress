@@ -27,7 +27,10 @@ trait ProcessBuilderSolver extends SolverSession {
 
 object ProcessBuilderSolver {
     val smt2Model: Regex = """^\(\((\S+|\(.+\)) (\S+|\(.+\))\)\)$""".r
+    val bitVecType: Regex = """\(_ BitVec (\d+)\)""".r
     val bitVecLiteral: Regex = """^#(.)(.+)$""".r
     val bitVecExpr: Regex = """\(_ bv(\d+) (\d+)\)""".r
+    val bitVecExprCondensed: Regex = """(\d+)aaBitVecExpraa(\d+)""".r
     val negativeInteger: Regex = """\(- (\d+)\)""".r
+    val negativeIntegerCondensed: Regex = """aaNegativeIntaa(\d+)""".r
 }
