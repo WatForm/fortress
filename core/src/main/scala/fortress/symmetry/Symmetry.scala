@@ -10,7 +10,14 @@ import scala.collection.mutable
 
 object Symmetry {
     private[this] type ArgList = Seq[Value]
-    
+
+    /** Produces constant range restrictions for one sort like the following:
+      *
+      * c1 = stale values + a1
+      * c2 ∈ stale values + {a1,a2}
+      * c3 ∈ stale values + {a1,a2,a3}
+      * ...
+      */
     def csConstantRangeRestrictions(
         sort: Sort,
         constants: IndexedSeq[AnnotatedVar],
@@ -38,9 +45,21 @@ object Symmetry {
         
         constraints.toSet
     }
-    
-    // Produces matching output to csConstantEqualities - meant to be used at same
-    // time with same input
+
+    /** Produces matching output to csConstantRangeRestrictions - meant to be
+      * used at same time with same input. Sample constant implications are like
+      * the following:
+      *
+      * c2 = a2 ==> a1 = c1
+      *
+      * c3 = a3 ==> a2 ∈ {c1,c2}
+      * c3 = a2 ==> a1 ∈ {c1,c2}
+      *
+      * c4 = a4 ==> a3 ∈ {c1,c2,c3}
+      * c4 = a3 ==> a2 ∈ {c1,c2,c3}
+      * c4 = a2 ==> a1 ∈ {c1,c2,c3}
+      * ...
+      */
     def csConstantImplications(
         sort: Sort,
         constants: IndexedSeq[AnnotatedVar],
@@ -69,9 +88,21 @@ object Symmetry {
         
         implications.toSet
     }
-    
-    // Produces matching output to csConstantEqualities - meant to be used at same
-    // time with same input
+
+    /** Produces matching output to csConstantRangeRestrictions - meant to be
+      * used at same time with same input. Sample simplified constant
+      * implications are like the following:
+      *
+      * c2 = a2 ==> a1 = c1
+      *
+      * c3 = a3 ==> a2 = c2
+      * c3 = a2 ==> a1 ∈ {c1,c2}
+      *
+      * c4 = a4 ==> a3 = c3
+      * c4 = a3 ==> a2 ∈ {c2,c3}
+      * c4 = a2 ==> a1 ∈ {c1,c2,c3}
+      * ...
+      */
     def csConstantImplicationsSimplified(
         sort: Sort,
         constants: IndexedSeq[AnnotatedVar],
@@ -100,7 +131,15 @@ object Symmetry {
         
         implications.toSet
     }
-    
+
+    /** Produces range restrictions for range-domain independent function.
+      * Sample rdi range restrictions are like the following:
+      *
+      * f(t1) = stale values + a1
+      * f(t2) ∈ stale values + {a1,a2}
+      * f(t3) ∈ stale values + {a1,a2,a3}
+      * ...
+      */
     def rdiFunctionRangeRestrictions(
         f: FuncDecl,
         state: StalenessState
@@ -138,9 +177,20 @@ object Symmetry {
         
         constraints.toSet
     }
-    
-    // Produces matching output to rdiFunctionEqualities - meant to be used at same
-    // time with same input
+
+    /** Produces matching output to rdiFunctionRangeRestrictions - meant to be
+      * used at same time with same input. Sample rdi function implications are
+      * like the following:
+      *
+      * f(t2) = a2 ==> a1 = f(t1)
+      *
+      * f(t3) = a3 ==> a2 ∈ {f(t1),f(t2)}
+      * f(t3) = a2 ==> a1 ∈ {f(t1),f(t2)}
+      *
+      * f(t4) = a4 ==> a3 ∈ {f(t1),f(t2),f(t3)}
+      * f(t4) = a3 ==> a2 ∈ {f(t1),f(t2),f(t3)}
+      * f(t4) = a2 ==> a1 ∈ {f(t1),f(t2),f(t3)}
+      */
     def rdiFunctionImplications(
         f: FuncDecl,
         state: StalenessState
@@ -180,9 +230,20 @@ object Symmetry {
         
         implications.toSet
     }
-    
-    // Produces matching output to rdiFunctionEqualities - meant to be used at same
-    // time with same input
+
+    /** Produces matching output to rdiFunctionRangeRestrictions - meant to be
+      * used at same time with same input. Sample simplified rdi function
+      * implications are like the following:
+      *
+      * f(t2) = a2 ==> a1 = f(t1)
+      *
+      * f(t3) = a3 ==> a2 = f(t2)
+      * f(t3) = a2 ==> a1 ∈ {f(t1),f(t2)}
+      *
+      * f(t4) = a4 ==> a3 = f(t3)
+      * f(t4) = a3 ==> a2 ∈ {f(t2),f(t3)}
+      * f(t4) = a2 ==> a1 ∈ {f(t1),f(t2),f(t3)}
+      */
     def rdiFunctionImplicationsSimplified(
         f: FuncDecl,
         state: StalenessState
@@ -221,7 +282,8 @@ object Symmetry {
         
         implications.toSet
     }
-    
+
+    // Helper method used by method rainbowFunctionLT
     def sortLtDefinition(sort: Sort, scope: Int): (FuncDecl, Seq[Term])  = {
         val LT = "_LT" + sort.name
         val assertions = for {
@@ -234,7 +296,8 @@ object Symmetry {
         }
         (FuncDecl(LT, sort, sort, BoolSort), assertions)
     }
-    
+
+    // Function used in experimental symmetry breakers
     // I don't think that I can say the constants are ordered
     // No input elements to shuffle
     def rainbowFunctionLT(
@@ -360,7 +423,14 @@ object Symmetry {
         
         predicateImplicationChain(P, argLists).toSet
     }
-    
+
+    /** Produces predicate implications, which known as ladder implications:
+      *
+      * Q(a2) ==> Q(a1)
+      * Q(a3) ==> Q(a2)
+      * ···
+      * Q(am) ==> Q(am−1)
+      */
     def predicateImplications(
         P: FuncDecl,
         state: StalenessState
@@ -395,7 +465,13 @@ object Symmetry {
             
             constraints.toSet
         }
-    
+
+    /** Produces range restrictions for range-domain dependent function as the
+      * following iteratively:
+      *
+      * f(a) ∈ Stale(A) ∪ {a, a∗}
+      * where a∗ is an arbitrary representative of Fresh(A) \ {a}
+      */
     private def rddFunctionRangeRestrictionsGeneral(
         f: FuncDecl,
         state: StalenessState,

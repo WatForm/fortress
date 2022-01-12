@@ -49,7 +49,7 @@ trait Interpretation {
             case(const, value) => sub(const) -> apply(value)
         }
         val newFunctionInterps = functionInterpretations map {
-            case(fdecl, mapping) => fdecl -> {
+            case(fdecl, mapping) => sub(fdecl) -> {
                 mapping map {
                     case(args, value) => (args map apply) -> apply(value)
                 }
@@ -99,6 +99,15 @@ trait Interpretation {
             sortInterpretations,
             constantInterpretations,
             functionInterpretations -- funcDecls
+        )
+    }
+
+    /** Updates thr domain elements associated with specified sort. */
+    def updateSortInterpretations(sort: Sort, values: Seq[Value]): Interpretation = {
+        new BasicInterpretation(
+            sortInterpretations + (sort -> values),
+            constantInterpretations,
+            functionInterpretations
         )
     }
 

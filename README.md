@@ -45,11 +45,16 @@ Options:
 * `--scope {SCOPE}` - Sets the default scope to use when a sort has no specified scope. This is overriden by `-S` for a specific sort.
 * `--mode {MODE}` - Sets the mode. The options are `decision`, `count`, and `compile`.
 * `--version {VERSION}`- Sets the model finder and compiler version. The options are `v0`, `v1`, `v2`, `v2si`, `v3`, and `v3si`.
+* `--debug`- Sets this flag to get more information about execution time.
+* `--rawdata`- Sets this flag to get log information in machine-friendly format, so that data can be easily collected for data analysis purpose
+* `--validate`- Sets this flag to verify the instance returned by solver satisfies the original theory before applying transformation for SAT models.
 
 Example usage:
 ```
 ./fortressdebug-x.y.z/bin/fortressdebug --timeout 60 --mode count -S A=3 B=2 --version v0 function.smt2
 ```
+
+You can increase the JVM stack size by setting option "-J-Xss<size>", for example, "-J-Xss8m" sets the max stack size to 8 MB. You might want to increase stack size, because the antlr parser causes stack overflow errors when parsing large smt2 and tptp files.
 
 ## Building Fortress
 The following are necessary to build Fortress:
@@ -97,3 +102,7 @@ sbt test
 
 ### General
 If the gradle build is not working properly ensure that your `JAVA_HOME` environment variable is correctly set (to the folder where the jdk that you are using is installed).
+
+## Acknowledgement
+
+Some TPTP files publicly available on the TPTP Problem Library(http://www.tptp.org/) are used for unit tests.

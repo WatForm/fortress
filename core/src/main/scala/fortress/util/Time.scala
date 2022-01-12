@@ -84,6 +84,10 @@ class Nanoseconds(val value: Long) {
         report += "s"
         report
     }
+
+    def toSeconds: String = {
+        BigDecimal(value / 1000000000f).setScale(3, BigDecimal.RoundingMode.HALF_UP).toString()
+    }
 }
 
 object Nanoseconds {

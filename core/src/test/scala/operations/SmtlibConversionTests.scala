@@ -23,15 +23,15 @@ class SmtlibConversionTests extends UnitSuite {
         val formula3 = Exists(x of A, Forall(y of B, Distinct(x, x) or App("P", x, y)))
         val formula4 = And(Top, Bottom, q, r)
         
-        formula1.smtlib should be ("(forall ((x A) (y B)) (= (f x) y))")
-        formula2.smtlib should be ("(or (and (=> q r) (=> r q)) (= (not r) q))")
-        formula3.smtlib should be ("(exists ((x A)) (forall ((y B)) (or (distinct x x) (P x y))))")
-        formula4.smtlib should be ("(and true false q r)")
+        formula1.smtlib should be ("(forall ((xaa A) (yaa B)) (= (faa xaa) yaa))")
+        formula2.smtlib should be ("(or (and (=> qaa raa) (=> raa qaa)) (= (not raa) qaa))")
+        formula3.smtlib should be ("(exists ((xaa A)) (forall ((yaa B)) (or (distinct xaa xaa) (Paa xaa yaa))))")
+        formula4.smtlib should be ("(and true false qaa raa)")
     }
     
     test("basic assertion") {
          val formula1 = Forall(Seq(x of A, y of B), App("f", x) === y)
-         formula1.smtlibAssertion should be ("(assert (forall ((x A) (y B)) (= (f x) y)))")
+         formula1.smtlibAssertion should be ("(assert (forall ((xaa A) (yaa B)) (= (faa xaa) yaa)))")
     }
     
     test("integer conversion") {
@@ -45,7 +45,7 @@ class SmtlibConversionTests extends UnitSuite {
             BuiltinApp(IntMult, x, y) === prime
         )))
         
-        formula.smtlibAssertion should be ("(assert (not (exists ((x Int) (y Int)) (and (> x 1) (> y 1) (= (* x y) prime)))))")
+        formula.smtlibAssertion should be ("(assert (not (exists ((xaa Int) (yaa Int)) (and (> xaa 1) (> yaa 1) (= (* xaa yaa) primeaa)))))")
     }
 
     test("basic theory") {
@@ -57,11 +57,11 @@ class SmtlibConversionTests extends UnitSuite {
 
         theory.smtlib should be ("(declare-sort A 0)" +
                                 "(declare-sort B 0)" +
-                                "(declare-fun f (A) B)" +
-                                "(declare-fun P (A B) Bool)" +
-                                "(declare-const x A)" +
-                                "(declare-const y B)" +
-                                "(assert (P x y))")
+                                "(declare-fun faa (A) B)" +
+                                "(declare-fun Paa (A B) Bool)" +
+                                "(declare-const xaa A)" +
+                                "(declare-const yaa B)" +
+                                "(assert (Paa xaa yaa))")
     }
     
     test("basic sorts") {

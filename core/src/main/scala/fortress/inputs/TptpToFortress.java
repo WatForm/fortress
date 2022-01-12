@@ -1,14 +1,16 @@
 package fortress.inputs;
 
+import fortress.util.Errors;
 import org.antlr.v4.runtime.tree.TerminalNode;
 
 import fortress.msfol.*;
-import java.util.List;
-import java.util.ArrayList;
-import java.util.Set;
-import java.util.HashSet;
-import java.util.stream.Collectors;
 
+import java.util.*;
+import java.io.*;
+
+import scala.util.Either;
+import scala.util.Left;
+import scala.util.Right;
 
  // Visits a parse tree and constructs a theory
  // Only visits unsorted FOL formulas; generates a sorted theory
@@ -21,16 +23,27 @@ public class TptpToFortress extends FOFTPTPBaseVisitor {
     private List<Term> formulas;
     private Set<FuncDecl> functionDeclarations;
     private Set<Var> primePropositions;
+    private String filePath;
+    private Optional<String> errorMessage = Optional.empty();
 
     public TptpToFortress(){
-        this.theory = Theory.empty();
+        this.theory = Theory.empty().withSort(universeSort);
         this.formulas = new ArrayList<>();
         this.functionDeclarations = new HashSet<>();
         this.primePropositions = new HashSet<>();
     }
-    
-    public Theory getTheory() {
-        return theory;
+
+    public TptpToFortress(String filePath) {
+        this.theory = Theory.empty().withSort(universeSort);
+        this.formulas = new ArrayList<>();
+        this.functionDeclarations = new HashSet<>();
+        this.primePropositions = new HashSet<>();
+        this.filePath = filePath;
+    }
+
+    public Either<Errors.ParserError, Theory> getTheory() {
+        if (errorMessage.isPresent()) return new Left<>(new Errors.ParserError(errorMessage.get()));
+        else return new Right<>(theory);
     }
     
     public Sort getUniverseSort() {
@@ -39,18 +52,13 @@ public class TptpToFortress extends FOFTPTPBaseVisitor {
     
     @Override
     public Void visitSpec(FOFTPTPParser.SpecContext ctx) {
-        for(FOFTPTPParser.Fof_annotatedContext f : ctx.fof_annotated()) {
+        for(FOFTPTPParser.LineContext f : ctx.line()) {
             visit(f);
         }
         
         // Construct theory
-        
-        theory = theory.withSort(universeSort);
-        
         // Add function declarations
-        for(FuncDecl f : functionDeclarations) {
-            theory = theory.withFunctionDeclaration(f);
-        }
+        theory = theory.withFunctionDeclarations(functionDeclarations);
         
         // Add prime propositions as Bool constants
         for(Var p : primePropositions) {
@@ -65,9 +73,7 @@ public class TptpToFortress extends FOFTPTPBaseVisitor {
             .forEach(freeVar -> theory = theory.withConstant(freeVar.of(universeSort)));
 
         // Add axioms
-        for(Term formula : formulas) {
-            theory = theory.withAxiom(formula);
-        }
+        theory = theory.withAxioms(formulas);
         
         return null;
     }
@@ -76,12 +82,51 @@ public class TptpToFortress extends FOFTPTPBaseVisitor {
     @Override
     public Term visitFof_annotated(FOFTPTPParser.Fof_annotatedContext ctx) {
         Term f = (Term) visit(ctx.fof_formula());
-        if (ctx.ID(1).getText().equals("conjecture")) {
+        if (ctx.ID().getText().equals("conjecture")) {
             formulas.add(Term.mkNot(f));
         }
         else {
             formulas.add(f);
         }
+        return null;
+    }
+
+    @Override
+    public Term visitInclude(FOFTPTPParser.IncludeContext ctx) {
+        String inputFilePath = ctx.SINGLE_QUOTED().getText();
+        // remove the surrounding single quotes
+        inputFilePath = inputFilePath.substring(1, inputFilePath.length() - 1);
+        // there is a danger here with infinite includes
+        // but let's assume that won't happen
+        Theory thy2;
+        try {
+            File f = new File(filePath);
+            String root_directory = f.getParentFile().getParentFile().getParent();
+            File f_include = new File(root_directory + "/" + inputFilePath);
+            FileInputStream fileStream = new FileInputStream(f_include);
+            TptpFofParser parser = new TptpFofParser();
+            Either<Errors.ParserError, Theory> result = parser.parse(fileStream);
+            if (result.isLeft()) {
+                errorMessage = Optional.of("Something bad happened when parsing the imported file: " + inputFilePath);
+            }
+            thy2 = result.right().getOrElse(null);
+        } catch (Exception e) {
+            errorMessage = Optional.of("couldn't process include statement: " + inputFilePath);
+            return null;
+        }
+        // add the returned theory to the theory being built here
+        // no need to add universal sort again
+
+        // note that scala attributes are accessed as java methods
+        // Add function declarations
+        theory = theory.withFunctionDeclarations(thy2.functionDeclarations());
+
+        // Add constants
+        theory = theory.withConstants(thy2.constants());
+
+        // Add axioms
+        theory = theory.withAxioms(thy2.axioms());
+
         return null;
     }
 
@@ -161,6 +206,16 @@ public class TptpToFortress extends FOFTPTPBaseVisitor {
         Var v = Term.mkVar(name);
         primePropositions.add(v);
         return v;
+    }
+
+    @Override
+    public Term visitDefined_prop(FOFTPTPParser.Defined_propContext ctx) {
+        String name = ctx.DEFINED_PROP().getText();
+        if(name.equals("$true"))
+            return Term.mkTop();
+        else if(name.equals("$false"))
+            return Term.mkBottom();
+        return null;
     }
 
     @Override

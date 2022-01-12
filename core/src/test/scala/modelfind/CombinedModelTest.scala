@@ -19,7 +19,7 @@ class CombinedModelTest extends UnitSuite {
         val fileStream = new FileInputStream(file)
 
         val parser = new SmtLibParser
-        val resultTheory = parser.parse(fileStream)
+        val resultTheory = parser.parse(fileStream).getOrElse(null)
         // println("Parsed theory from file:")
         // println(resultTheory)
 
@@ -48,7 +48,7 @@ class CombinedModelTest extends UnitSuite {
         val fileStream = new FileInputStream(file)
 
         val parser = new SmtLibParser
-        val resultTheory = parser.parse(fileStream)
+        val resultTheory = parser.parse(fileStream).getOrElse(null)
         // println("Parsed theory from file:")
         // println(resultTheory)
 
@@ -75,7 +75,7 @@ class CombinedModelTest extends UnitSuite {
         val fileStream = new FileInputStream(file)
 
         val parser = new SmtLibParser
-        val resultTheory = parser.parse(fileStream)
+        val resultTheory = parser.parse(fileStream).getOrElse(null)
 
         Using.resource(ModelFinder.createDefault) { finder => {
 
@@ -108,14 +108,14 @@ class CombinedModelTest extends UnitSuite {
             finder.countValidModels(resultTheory) should be (120)
         }}
     }
-    
+
     test("graph isomorphism count") {
         val classLoader: ClassLoader = getClass.getClassLoader
         val file = new File(classLoader.getResource("graph-isomorphism.smt2").getFile)
         val fileStream = new FileInputStream(file)
 
         val parser = new SmtLibParser
-        val resultTheory = parser.parse(fileStream)
+        val resultTheory = parser.parse(fileStream).getOrElse(null)
 
         Using.resource(ModelFinder.createDefault) { finder => {
 

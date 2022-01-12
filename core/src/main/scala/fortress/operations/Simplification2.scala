@@ -19,15 +19,15 @@ object Simplifier2 {
             case Eq(_, _) | App(_, _) | BuiltinApp(_, _) => simplifyStep(term)
             case Top | Bottom | Var(_) | EnumValue(_) | DomainElement(_, _)
                 | IntegerLiteral(_) | BitVectorLiteral(_, _) => term
-            
+
             case IfThenElse(condition, ifTrue, ifFalse) => simplifyStep(
                 IfThenElse(simplifyFull(condition), simplifyFull(ifTrue), simplifyFull(ifFalse))
             )
         }
-        
+
         simplifyFull(term)
     }
-    
+
     def simplifyStep(term: Term): Term = term match {
         case Not(Bottom) => Top
         case Not(Top) => Bottom
