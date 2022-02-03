@@ -9,6 +9,7 @@ import fortress.compiler._
 import fortress.util._
 import fortress.logging._
 import fortress.operations.TheoryOps._
+import fortress.transformers._
 
 import java.io._
 
@@ -145,6 +146,22 @@ object FortressDebug {
                 }
             }
 
+        case "checkfornewsorts" => {
+                val compiler = conf.version() match {
+                    case "v2si" => new FortressTWOCompiler_SI(integerSemantics)
+                    case "v3si" => new FortressTHREECompiler_SI(integerSemantics)
+                    case other => {
+                        System.err.println("Invalid model finder for looking for new scopes "+ other )
+                        System.exit(1)
+                    }
+                }
+                val theoryops = wrapTheory((new TypecheckSanitizeTransformer()).apply(theory))
+                if (theoryops.newSortsInferred()) {
+                    println("New sorts inferred")
+                } else {
+                    println("No new sorts inferred")
+                }
+        }
             case other => {
                 System.err.println("Invalid mode: " + other)
                 System.exit(1)

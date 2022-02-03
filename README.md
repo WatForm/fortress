@@ -43,7 +43,7 @@ Options:
 * `--timeout {SECONDS}`- Sets the timeout in seconds.
 * `-S {SORT}={SCOPE}` - Sets the scope of a sort. This option can be used multiple times (the `-S` can be omitted after the first use).
 * `--scope {SCOPE}` - Sets the default scope to use when a sort has no specified scope. This is overriden by `-S` for a specific sort.
-* `--mode {MODE}` - Sets the mode. The options are `decision`, `count`, and `compile`.
+* `--mode {MODE}` - Sets the mode. The options are `decision`, `count`, `compile` (convert to smt2), `checkfornewsorts` (determines if any new sorts appear in type inference).
 * `--version {VERSION}`- Sets the model finder and compiler version. The options are `v0`, `v1`, `v2`, `v2si`, `v3`, and `v3si`.
 * `--debug`- Sets this flag to get more information about execution time.
 * `--rawdata`- Sets this flag to get log information in machine-friendly format, so that data can be easily collected for data analysis purpose
