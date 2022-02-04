@@ -146,7 +146,7 @@ object FortressDebug {
                 }
             }
 
-        case "checkfornewsorts" => {
+            case "checkfornewsorts" => {
                 val compiler = conf.version() match {
                     case "v2si" => new FortressTWOCompiler_SI(integerSemantics)
                     case "v3si" => new FortressTHREECompiler_SI(integerSemantics)
@@ -155,13 +155,13 @@ object FortressDebug {
                         System.exit(1)
                     }
                 }
-                val theoryops = wrapTheory((new TypecheckSanitizeTransformer()).apply(theory))
-                if (theoryops.newSortsInferred()) {
+                val theoryops = wrapTheory(TypecheckSanitizeTransformer.apply(theory))
+                if (theoryops.newSortsInferred) {
                     println("New sorts inferred")
                 } else {
                     println("No new sorts inferred")
                 }
-        }
+            }
             case other => {
                 System.err.println("Invalid mode: " + other)
                 System.exit(1)
