@@ -15,7 +15,7 @@ import java.io._
 
 class Conf(arguments: Seq[String]) extends ScallopConf(arguments) {
     val mode = opt[String](required = true)
-    val scope = opt[Int](required = false)
+    val scope = opt[Int](required = true) // scope is required for compile/decision/count
     val version = opt[String](required = true)
     val file = trailArg[String](required = true)
     val scopeMap = props[Int]('S')
@@ -151,7 +151,7 @@ object FortressDebug {
                     case "v2si" => new FortressTWOCompiler_SI(integerSemantics)
                     case "v3si" => new FortressTHREECompiler_SI(integerSemantics)
                     case other => {
-                        System.err.println("Invalid model finder for looking for new scopes "+ other )
+                        System.err.println("Invalid model finder for looking for new sorts "+ other )
                         System.exit(1)
                     }
                 }
