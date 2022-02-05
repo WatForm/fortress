@@ -155,9 +155,21 @@ object FortressDebug {
                         System.exit(1)
                     }
                 }
-                val theoryops = wrapTheory(TypecheckSanitizeTransformer.apply(theory))
-                if (theoryops.newSortsInferred) {
-                    println("New sorts inferred")
+                val old_num_sorts = wrapTheory(theory).sortCount
+                // the following is enough to determine if there are new sorts
+                // TypecheckSanitizeTransformer: Theory -> Theory
+                val theory1 = TypecheckSanitizeTransformer.apply(theory)
+                // wrapTheory is for operations on theories
+                val new_sorts_present = wrapTheory(theory1).newSortsInferred
+                // next EnumEliminationTransformer:ProblemState -> ProblemState 
+                val ps2 = EnumEliminationTransformer.apply(ProblemState.apply(theory1))
+                // doing SortInference is necessary to actually count the new sorts 
+                //    and EnumElimination must be done before SortInference
+                // next SortInferenceTransformer: ProblemState -> ProblemState
+                val theory3 = SortInferenceTransformer(ps2).theory
+                val new_num_sorts = wrapTheory(theory3).sortCount
+                if (new_sorts_present) {
+                    println("New sorts inferred, " + old_num_sorts.toString +", " + new_num_sorts.toString)
                 } else {
                     println("No new sorts inferred")
                 }
