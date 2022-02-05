@@ -175,7 +175,7 @@ object FortressDebug {
                     // SortInferenceTransformer: ProblemState -> ProblemState
                     val theory4 = SortInferenceTransformer(ps3).theory
                     val new_num_sorts = wrapTheory(theory4).sortCount
-                    println("New sorts inferred, " + old_num_sorts.toString +", " + new_num_sorts.toString)
+                    println("New sorts inferred, original number= " + old_num_sorts.toString +" new number= " + new_num_sorts.toString)
                 } else {
                     println("No new sorts inferred")
                 }
