@@ -156,19 +156,25 @@ object FortressDebug {
                     }
                 }
                 val old_num_sorts = wrapTheory(theory).sortCount
+
                 // the following is enough to determine if there are new sorts
                 // TypecheckSanitizeTransformer: Theory -> Theory
-                val theory1 = TypecheckSanitizeTransformer.apply(theory)
+                val theory2 = TypecheckSanitizeTransformer.apply(theory)
                 // wrapTheory is for operations on theories
-                val new_sorts_present = wrapTheory(theory1).newSortsInferred
-                // next EnumEliminationTransformer:ProblemState -> ProblemState 
-                val ps2 = EnumEliminationTransformer.apply(ProblemState.apply(theory1))
-                // doing SortInference is necessary to actually count the new sorts 
-                //    and EnumElimination must be done before SortInference
-                // next SortInferenceTransformer: ProblemState -> ProblemState
-                val theory3 = SortInferenceTransformer(ps2).theory
-                val new_num_sorts = wrapTheory(theory3).sortCount
+                val new_sorts_present = wrapTheory(theory2).newSortsInferred
                 if (new_sorts_present) {
+                    var analysisScopes: Map[Sort, Int] = Map.empty
+                    for((sort, scope) <- scopes) {
+                        analysisScopes = analysisScopes + (sort -> scope)
+                    }
+                    val ps2 = ProblemState.apply(theory2,analysisScopes)
+                    // next EnumEliminationTransformer:ProblemState -> ProblemState 
+                    val ps3 = EnumEliminationTransformer.apply(ps2)
+                    // doing SortInference is necessary to actually count the new sorts 
+                    //    and EnumElimination is done before SortInference
+                    // SortInferenceTransformer: ProblemState -> ProblemState
+                    val theory4 = SortInferenceTransformer(ps3).theory
+                    val new_num_sorts = wrapTheory(theory4).sortCount
                     println("New sorts inferred, " + old_num_sorts.toString +", " + new_num_sorts.toString)
                 } else {
                     println("No new sorts inferred")
