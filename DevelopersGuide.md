@@ -1,7 +1,178 @@
 
+# Fortress Technical Guide
+
+## Overview
+
+## Fortress Constructs
+
+A `ProblemState` contains a theory, scopes, and additional information that is used throughout the transformation process.
+
+A `TheoryTransformer` or `ProblemStateTransformer` takes a `Theory` or `ProblemState` respectively and converts them into a new `Theory` or `ProblemState`.
+These are similar to phases in a programming language compiler.
+Examples of transformers are converting to negation normal form, performing sort inference, simplification, and skolemization.
+Transformations often need to be undone once a solution is found, and so the transformer writes instructions on how to undo its operation on the `ProblemState`.
+
+A `LogicCompiler` takes an input `Theory` and scopes, and converts into some other `Theory` that is intended to be sent to an external solver.
+Going back to the programming language compiler analogy: think of the input `Theory` and scopes as a high-level input language, and the `Theory` output by the `LogicCompiler` as machine-code.
+This "compilation" is mainly done by applying a sequence of `TheoryTransformer` and `ProblemStateTransformer` applications.
+The compiler also outputs instructions on how to undo all of its transformations to an interpretation.
+
+A `ModelFinder` is the top-level interface used to search for satisfying interpretations to a `Theory` under the given scopes.
+
+## Idealized Fortress Pipeline
+The "idealized" algorithm which Fortress implements is given by the following steps.
+
+1. Negation Normal Form (NNF)
+2. Skolemization
+3. Symmetry Breaking
+4. Universal Expansion
+5. Simplification
+6. Range Formulas
+7. Domain Elimination
+8. Scope Removal and SMT Invocation
+
+A note on some technical definitions.
+
+Two problems are "equivalent" when every interpretation satisfies one if and only if it satisfies the other.
+In order for two problems to be equivalent, they must have the same signature (otherwise it doesn't make sense to evaluate them using the same interpretation).
+
+Two problems are "equisatisfiable" when the answer to the question of their satisfiability is the same: that is, either both are SAT or both are UNSAT.
+Equivalent problems are always equisatisfiable, but equisatisfiable problems need not be equivalent.
+Equisatisfiable problems do not need to have the same signature; the only thing that matters is the answer to their satisfiability questions is the same.
+
+The "unbounded" version of problem is the problem obtained by removing the scopes on any bound sorts.
+
+A problem is "formulaically bound" if the following condition holds: the only interpretations that satisfy the unbounded version of the problem are those that satisfy the original (bounded) version.
+If a problem is formulaically bound, it is equisatisfiable with its unbounded version.
+
+All that Fortress needs to guarantee is that after its transformations, the final problem is equisatisfiable to the first input problem.
+
+### Explanation of Steps
+
+#### 1. Negation Normal Form
+The formulas of the problem are transformed into negation normal form, where negations are pushed down as far as possible into the formulas.
+The resulting problem is equivalent to the first.
+
+#### 2. Skolemization
+Existential quantifiers are eliminated by replacing them with functions and constants that act as witnesses for the existential quantifiers.
+The signature is changed by the introduction of new functions and constants.
+This operation must be performed after putting formulas into negation normal form, as otherwise it is impossible to tell which quantifiers are truly existential (since negations change quantifiers).
+Given this condition however, the resulting problem is equisatisfiable to the input problem.
+
+#### 3. Symmetry Breaking
+Additional constraints are added to reduce the number of interpretations that need to be checked by the solver.
+The resulting problem is equisatisfiable to the input to this step.
+
+#### 4. Universal Expansion
+Universal quantifiers of bounded sorts are expanded by taking each possible instantiation and then taking their conjunction.
+The resulting problem is equivalent to the input to this step.
+
+#### 5. Simplification
+The formulas are simplified as much as possible.
+The resulting problem is equivalent to the input to this step.
+
+#### 6. Range Formulas
+Range formulas are introduced, which use the scopes to explicitly list the possible output values of each function and constant.
+These range formulas are quantifier-free, so as to not introduce any more quantifiers after universal expansion.
+The resulting problem is both equisatisfiable to the input to this step and *formulaically bound*.
+
+#### 7. Domain Elimination
+Constants are introduced to "simulate" the domain elements.
+Specifically, for each domain element in the problem, a unique constant is generated.
+It is asserted that these constants are mutually distinct from each other.
+The domain elements are then replaced with their respective constants.
+The resulting problem is equisatisfiable to the input to this step, and contains no domain elements.
+This operation also maintains the property of being formulaically bound.
+
+#### 8. Scope Removal and SMT Invocation
+The unbounded version of this final problem is converted into a format that is accepted by an SMT solver (the problem contains no domain elements, so this can be done).
+The SMT solver is then invoked.
+Whatever result the solver returns is then returned to the user.
+
+### Correctness
+After applying the 7 transformations, the final problem is:
+* equisatisfiable to the original problem, and
+* formulaically bound (so its scopes can be removed).
+
+Therefore, removing the scopes still leaves a problem equisatisfiable to the original, and, provided the SMT solver gives a correct result, so too does Fortress.
+
+### Decision Procedure
+If the original problem gives a scope for every sort, then because of the universal expansion step, there are no quantifiers in the final unbounded problem sent to the SMT solver.
+Such problems fall under the fragment of first-order logic called the logic of equality with uninterpreted functions (EUF), which is decidable.
+In SMT literature, this logic is called the logic of quantifier-free uninterpreted functions (QF_UF).
+SMT solvers are decision procedures for such problems, and therefore so too is Fortress.
+
+## Pipeline Optimizations
+
+## Performance Notes
+When making changes to Fortress it is important that the impact on performance is empirically tested.
+Small changes can have significant impacts on performance.
+This is due both to the large formula trees that Fortress generates, as well as the inherent unpredictability of the external SMT solver.
+Some of the following results are unintuitive, but backed by empirical testing.
+
+#### Constructing Terms in the Z3 API is Slow
+For reasons not entirely clear to us, we found it significantly slower to construct expressions directly using the Z3 Java API than to simply convert them to SMTLIB2 strings and have the API parse them.
+Our best guess is that this is because the Z3 API performs some kind of typechecking when expressions are constructed, so recursively building terms bottom-up repeatedly invokes the typechecker at each expression construction, greatly slowing the process.
+
+#### Simplification is Necessary
+Without the simplification step, Z3 takes a significantly longer time to run.
+Even though simplification takes extra time in Fortress, the net gain is well worth it.
+We initially assumed that Z3 would be able to simplify both faster and more aggressively than Fortress, but this is not the case for the problems we are providing it.
+
+#### Name Changes can be Significant
+Seemingly innocuous name changes can have unexpected performance consequences.
+For example, changing the prefix used for domain constants from `@` to `%` (in order to be more compliant with the standards used by SMT solvers) caused performance in some tests to slow down, at least when using the Z3 Java API.
+Changing it to `_@` (also standards-compliant) improved performance again.
+Not only should this be investigated further, but it should serve as a lesson that performance should always be tested when making changes.
+
+## Theories in Depth
+
+### Persistence, Immutability, and Equality
+Theories are immutable and persistent.
+Methods like `withAxiom` and `withFunctionDeclarations` don't mutate `Theory` objects - they instead create new `Theory` objects.
+If there is a reference to it, the original theory object is still usable.
+Consider the following code:
+```java
+Var p = mkVar("p");
+Theory theory1 = Theory.empty().withConstants(p.of(Sort.Bool())).withAxiom(p);
+Theory theory2 = theory1.withAxiom(mkNot(p));
+```
+The `theory2` object contains both the axioms `p` and `mkNot(p)`.
+The `theory1` object still exists and contains just the axiom `p`.
+
+Terms similarly are immutable and persistent.
+Additionally, they use a natural notion of equality - structurally identical term objects, even if they reside in different locations in memory, are the same.
+Consider the following code:
+```java
+Var p = mkVar("p");
+Var p_ = mkVar("p");
+Theory theory1 = Theory.empty().withConstants(p.of(Sort.Bool())).withAxiom(p_);
+Theory theory2 = Theory.empty().withConstants(mkVar("p").of(Sort.Bool())).withAxiom(p);
+```
+While `p`, `p_` and `mkVar("p")` might be different Java objects in memory, they can all be used interchangeably and mean the same thing when used to construct terms.
+ 
+### Typechecking
+- Only performed when placing axioms within theory
+
+### Variables, Constants, and Annotations
+In MSFOL, there is a difference between *constants*, which like functions are declared parts of the theory and accessible in all of the terms, and *variables* which are used for quantification within terms.
+Fortress retains this distinction, but to simplify term construction, both are created using `Var` objects.
+- Both variables and constants are represented by `Var` objects
+- When used in a term, for example as the argument of a function, use their `Var` objects
+- Fortress determines whether a given `Var` object is a variable or a constant depending on the context.
+If it is enclosed in a quantifier that quantifies over that `Var`, then it is a variable.
+Otherwise, it is a constant.
+- Shadowing
+
+### Constructing Terms
+- list of all term constructors
+
 TOADD: how to dump SMT-LIB
 TOADD: utility for converting TPTP to Alloy
 TOADD for Symmetry breaking:
+
+
+
 
 Symmetry Breaking Code Organization
 
@@ -165,15 +336,15 @@ The following code (in scala) shows a sample usage of a ModelFinder:
     }
     // @Joe let's add something to check the correctness of the result
 
-## data 
+## data
 Useful data structures/functions for fortress such as UnionFind, Caching,
 @Joe - the typechecking exceptions here seem oddly located
 
-## util 
+## util
 Functions for timers, errors, lists, maps.
 Notably ArgumentListGenerator.scala relies on msfol._ and data._
 
-## msfol 
+## msfol
 Ways to create Sorts, constants, functions, terms.  All have toString methods defined.  Sorts are not stored in terms except for sorts of quantified variables.  
 
 ### Names.scala
@@ -236,7 +407,7 @@ Constructors:
 ### TypeCheckTraits.scala
 @Joe - could this be just added to the signature?
 
-## inputs 
+## inputs
 This is the code that maps TPTP or SMT-LIB files
 into a theory.  This code is in java (rather than scala).
 Hierarchy:
@@ -247,7 +418,7 @@ Hierarchy:
     @Joe - the TPTP parser does not appear to StopAtFirstErrorStrategy or StopAtFirstErrorSmtLibLexer but the SMT-LIB strategy does??
 - Currently, we are not supporting the following operators when parsing tptp: infix <~> for non-equivalence(XOR),  infix ~| for negated disjunction (NOR), infix ~& for negated conjunction (NAND).
 
-## operations 
+## operations
 Operations on terms are wrapped up in TermOps class.
 Operations on theories are wrapped up in TheoryOps class.
 
@@ -273,7 +444,7 @@ Operations are:
 - TermVisitorWithTypeContext/TypeCheck/Context: typechecks a term.  Builds the context of quantified variables and their types.  All primitive term parts (constants, variables, function declarations are explicitly typed) sorted so there is no type inference here.
 
 
-## compiler 
+## compiler
 A packaging mechanism for a sequence of transformations.
 Hierarchy:
 - LogicCompiler: The "compile" method of a LogicCompiler takes a theory and scopes, and returns either CompilerError of CompilerResult (theory,decompileInterpretation,skipForNextInterpretation @Joe - what's this last one?)
@@ -283,7 +454,7 @@ Hierarchy:
 @Joe - should ExperimentalCompilers be dropped?
 
 
-## modelfind 
+## modelfind
 ModelFinder is the main fortress interface.  A model finder takes a solver as an argument. Takes a theory and performs solving on it returning a result (and an interpretation when appropriate).
 Hierarchy:
 - ModelFinder
@@ -313,11 +484,11 @@ The main ModelFinders defined (which depend on certain Compilers chosen):
 @Joe - why are the ModelFinderSettings separate from ModelFinder?
 
 
-## logging 
+## logging
 EventLogging is the main trait with different classes for recording timing for various processes.
 
 
-## interpretation 
+## interpretation
 This directory is data structures for representing the interpretation returned by a solver.
 Hierarchy:
 - Interpretation: the trait for interpretations.  Includes maps for sorts, constants, and functions.  An interpretation can be turned into a String, or turned into constraints.  Methods to do substitutions and filter.
@@ -327,7 +498,7 @@ Hierarchy:
 
 
 
-## solverinterface 
+## solverinterface
 @Joe 
     - SolverTemplate is mentioned in the README here but does not appear in the files.
     - SolverStrategy is here but does not seem to connect to anything
@@ -355,7 +526,7 @@ Main methods are:
 
 
 
-## sortinference 
+## sortinference
 Functions for performing sort inference to get least specific sorts.
 @Joe - it would be good to add some explanation here.
 
@@ -404,7 +575,7 @@ ExperimentalSymmetryBreakers: @Joe - seems to be mostly unused.
         - if nothing to break on → stop
     - get the constraints from the breaker to add to the theory
 
-## transformers 
+## transformers
 All the operations that transform a theory.  The theory is packaged as a ProblemState to remember information that is needed to undo transformations (such as skolemization). With respect to efficiency, each transformer may walk over the entire theory.  After quantifier expansion, theories can be quite large and in the future, we may wish to integrate some transformers for efficiency.
 
 @Joe - README file doesn't mention problem state 
@@ -450,7 +621,7 @@ Hierarchy:
 @Joe - why do we need three DomainEliminationTransformers? DomainEliminationTransformer2 seems to be the one used in the Fortress Compilers.
 @Joe - would it be easier to just make everything ProblemStateTransformers (TheoryTransformers seem like a relic from when everything was TheoryTransformers)
 
-## antlr 
+## antlr
 FOFTPTP.g4 - parses TPTP
 SmtLibSubset.g4 - parses SMT-LIB @joe is this SMT-LIB2?
 
