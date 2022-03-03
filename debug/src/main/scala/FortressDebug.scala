@@ -9,12 +9,13 @@ import fortress.compiler._
 import fortress.util._
 import fortress.logging._
 import fortress.operations.TheoryOps._
+import fortress.transformers._
 
 import java.io._
 
 class Conf(arguments: Seq[String]) extends ScallopConf(arguments) {
     val mode = opt[String](required = true)
-    val scope = opt[Int](required = false)
+    val scope = opt[Int](required = true) // scope is required for compile/decision/count
     val version = opt[String](required = true)
     val file = trailArg[String](required = true)
     val scopeMap = props[Int]('S')
@@ -145,6 +146,40 @@ object FortressDebug {
                 }
             }
 
+            case "checkfornewsorts" => {
+                val compiler = conf.version() match {
+                    case "v2si" => new FortressTWOCompiler_SI(integerSemantics)
+                    case "v3si" => new FortressTHREECompiler_SI(integerSemantics)
+                    case other => {
+                        System.err.println("Invalid model finder for looking for new sorts "+ other )
+                        System.exit(1)
+                    }
+                }
+                val old_num_sorts = wrapTheory(theory).sortCount
+
+                // the following is enough to determine if there are new sorts
+                // TypecheckSanitizeTransformer: Theory -> Theory
+                val theory2 = TypecheckSanitizeTransformer.apply(theory)
+                // wrapTheory is for operations on theories
+                val new_sorts_present = wrapTheory(theory2).newSortsInferred
+                if (new_sorts_present) {
+                    var analysisScopes: Map[Sort, Int] = Map.empty
+                    for((sort, scope) <- scopes) {
+                        analysisScopes = analysisScopes + (sort -> scope)
+                    }
+                    val ps2 = ProblemState.apply(theory2,analysisScopes)
+                    // next EnumEliminationTransformer:ProblemState -> ProblemState 
+                    val ps3 = EnumEliminationTransformer.apply(ps2)
+                    // doing SortInference is necessary to actually count the new sorts 
+                    //    and EnumElimination is done before SortInference
+                    // SortInferenceTransformer: ProblemState -> ProblemState
+                    val theory4 = SortInferenceTransformer(ps3).theory
+                    val new_num_sorts = wrapTheory(theory4).sortCount
+                    println("New sorts inferred, original number= " + old_num_sorts.toString +" new number= " + new_num_sorts.toString)
+                } else {
+                    println("No new sorts inferred")
+                }
+            }
             case other => {
                 System.err.println("Invalid mode: " + other)
                 System.exit(1)

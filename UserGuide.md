@@ -1,8 +1,6 @@
 # Fortress User Guide
 
-> **WARNING** :warning: This guide is currently deprecated.
-For now, please use Fortress as a command-line tool as detailed in the main README.
-The internals of Fortress are rapidly changing, and we do not currently support its use as a Java/Scala library (though, it is technically possible).
+This guide is intended to provide an overview of how to create a theory and run a model finder to determine whether the theory is satisfiable or not.  Details on the internal code organization and design decisions can be found in DeverlopersGuide.md .
 
 1. [High Level Overview](#high-level-overview)
 2. [Whirlwind Tour](#whirlwind-tour)
@@ -165,44 +163,3 @@ if(result.equals(ModelFinderResult.Sat())) {
 }
 ```
 
-## Theories in Depth
-
-### Persistence, Immutability, and Equality
-Theories are immutable and persistent.
-Methods like `withAxiom` and `withFunctionDeclarations` don't mutate `Theory` objects - they instead create new `Theory` objects.
-If there is a reference to it, the original theory object is still usable.
-Consider the following code:
-```java
-Var p = mkVar("p");
-Theory theory1 = Theory.empty().withConstants(p.of(Sort.Bool())).withAxiom(p);
-Theory theory2 = theory1.withAxiom(mkNot(p));
-```
-The `theory2` object contains both the axioms `p` and `mkNot(p)`.
-The `theory1` object still exists and contains just the axiom `p`.
-
-Terms similarly are immutable and persistent.
-Additionally, they use a natural notion of equality - structurally identical term objects, even if they reside in different locations in memory, are the same.
-Consider the following code:
-```java
-Var p = mkVar("p");
-Var p_ = mkVar("p");
-Theory theory1 = Theory.empty().withConstants(p.of(Sort.Bool())).withAxiom(p_);
-Theory theory2 = Theory.empty().withConstants(mkVar("p").of(Sort.Bool())).withAxiom(p);
-```
-While `p`, `p_` and `mkVar("p")` might be different Java objects in memory, they can all be used interchangeably and mean the same thing when used to construct terms.
- 
-### Typechecking
-- Only performed when placing axioms within theory
-
-### Variables, Constants, and Annotations
-In MSFOL, there is a difference between *constants*, which like functions are declared parts of the theory and accessible in all of the terms, and *variables* which are used for quantification within terms.
-Fortress retains this distinction, but to simplify term construction, both are created using `Var` objects.
-- Both variables and constants are represented by `Var` objects
-- When used in a term, for example as the argument of a function, use their `Var` objects
-- Fortress determines whether a given `Var` object is a variable or a constant depending on the context.
-If it is enclosed in a quantifier that quantifies over that `Var`, then it is a variable.
-Otherwise, it is a constant.
-- Shadowing
-
-### Constructing Terms
-- list of all term constructors
