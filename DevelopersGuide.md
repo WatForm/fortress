@@ -262,9 +262,9 @@ Changing it to `_@` (also standards-compliant) improved performance again.
 - FortressONE - Claessen and Sorensson symmetry breaking only
 - FortressTWO - functions first for symmetry breaking
 - FortressTWO_SI - sort inference then functions first for symmetry breaking
-- FortressTHREE - 
-- FortressTHREE_SI
-- FortressFOUR_SI
+- FortressTHREE - Claessen and Sorensson, RDI, RDD, ladder
+- FortressTHREE_SI - sort inference then Claessen and Sorensson, RDI, RDD, ladder
+- FortressFOUR_SI - trial of adding heuristics to fortress three si
 
 ### interpretation
 * data structures for representing the interpretation returned by a solver.
