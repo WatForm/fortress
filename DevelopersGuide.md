@@ -1,7 +1,7 @@
 
-# Fortress Technical Guide
+# Fortress Developer's Guide
 
-## Overview
+This document contains information on how the fortress library is structured and design decisions on its implementation
 
 ## Fortress Terminology
 
