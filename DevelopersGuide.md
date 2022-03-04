@@ -34,28 +34,35 @@ If a problem is formulaically bound, it is equisatisfiable with its unbounded ve
 
 The basic algorithm that Fortress implements consists of the following steps.
 
-1. Typechecking
-2. Negation Normal Form (NNF): The formulas of the problem are transformed into negation normal form, where negations are pushed down as far as possible into the formulas. The resulting problem is equivalent to the first.
-3. Skolemization: Existential quantifiers are eliminated by replacing them with functions and constants that act as witnesses for the existential quantifiers.
+
+1. Negation Normal Form (NNF): The formulas of the problem are transformed into negation normal form, where negations are pushed down as far as possible into the formulas. The resulting problem is equivalent to the first.
+
+2. Skolemization: Existential quantifiers are eliminated by replacing them with functions and constants that act as witnesses for the existential quantifiers.
 The signature is changed by the introduction of new functions and constants.
 This operation must be performed after putting formulas into negation normal form, as otherwise it is impossible to tell which quantifiers are truly existential (since negations change quantifiers).
 Given this condition however, the resulting problem is equisatisfiable to the input problem.
-4. Symmetry Breaking: Additional constraints are added to reduce the number of interpretations that need to be checked by the solver.
+
+3. Symmetry Breaking: Additional constraints are added to reduce the number of interpretations that need to be checked by the solver.
 The resulting problem is equisatisfiable to the input to this step.
-5. Universal Quantifier Expansion: Universal quantifiers of bounded sorts are expanded by taking each possible instantiation and then taking their conjunction.
+
+4. Universal Quantifier Expansion: Universal quantifiers of bounded sorts are expanded by taking each possible instantiation and then taking their conjunction.
 The resulting problem is equivalent to the input to this step.
-6. Simplification: The formulas are simplified as much as possible.
+
+5. Simplification: The formulas are simplified as much as possible.
 The resulting problem is equivalent to the input to this step.
-7. Range Formulas: Range formulas are introduced, which use the scopes to explicitly list the possible output values of each function and constant.
+
+6. Range Formulas: Range formulas are introduced, which use the scopes to explicitly list the possible output values of each function and constant.
 These range formulas are quantifier-free, so as to not introduce any more quantifiers after universal expansion.
 The resulting problem is both equisatisfiable to the input to this step and *formulaically bound*.
-8. Domain Elimination: Constants are introduced to "simulate" the domain elements.
+
+7. Domain Elimination: Constants are introduced to "simulate" the domain elements.
 Specifically, for each domain element in the problem, a unique constant is generated.
 It is asserted that these constants are mutually distinct from each other.
 The domain elements are then replaced with their respective constants.
 The resulting problem is equisatisfiable to the input to this step, and contains no domain elements.
 This operation also maintains the property of being formulaically bound. 
-9. Scope Removal and SMT Invocation: The unbounded version of this final problem is converted into a format that is accepted by an SMT solver (the problem contains no domain elements, so this can be done).
+
+8. Scope Removal and SMT Invocation: The unbounded version of this final problem is converted into a format that is accepted by an SMT solver (the problem contains no domain elements, so this can be done).
 The SMT solver is then invoked.
 Whatever result the solver returns is then returned to the user.
 
