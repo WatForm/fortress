@@ -96,15 +96,13 @@ Example usage:
 ```
 
 You can increase the JVM stack size by setting option "-J-Xss<size>", for example, "-J-Xss8m" sets the max stack size to 8 MB. You might want to increase stack size, because the antlr parser causes stack overflow errors when parsing large smt2 and tptp files.
-
-
-
     
 ## Troubleshooting
 
-### General
 If the gradle build is not working properly ensure that your `JAVA_HOME` environment variable is correctly set (to the folder where the jdk that you are using is installed).
 
 ## Acknowledgement
 
+The original version of Fortress was created by Amirhossein Vakili and Nancy Day.  Fortress was completely rewritten in Scala by Joseph Poremba.  Joe also greatly extended the symmetry breaking used in Fortress.  Additional contributors to Fortress include: Ruomei Yan, Orson Baines, Callum Moseley, Yie Jin (James) Long, and Owen Zila.
+   
 Some TPTP files publicly available on the TPTP Problem Library(http://www.tptp.org/) are used for unit tests.
