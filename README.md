@@ -1,6 +1,6 @@
 # Fortress
 
-Fortress is a command-line tool for finite model finding in many-sorted first order logic (MSFOL) with equality.
+Fortress is a command-line tool and library for finite model finding in many-sorted first order logic (MSFOL) with equality.
 
 Fortress takes as input:
 * a first-order logic theory specified in SMT-LIB 2.6 format (the UF fragment), and
@@ -8,7 +8,13 @@ Fortress takes as input:
 
 It answers whether the theory has a satisfying interpretation (a "model" or "solution") with the given domain sizes.
 
-Fortress was original described in the paper "Finite Model Finding Using the Logic of Equality with Uninterpreted Functions", [available here](https://cs.uwaterloo.ca/~nday/pdf/refereed/2016-VaDa-fm.pdf), and has been re-implemented to create a powerful and general tool.  Details on using  Fortress as a library are available in UserGuide.md .  Details on the internal code organization and design decisions in Fortress can be found in DevelopersGuide.md .
+Fortress was original described in the paper "Finite Model Finding Using the Logic of Equality with Uninterpreted Functions", [available here](https://cs.uwaterloo.ca/~nday/pdf/refereed/2016-VaDa-fm.pdf), and has been re-implemented to create a powerful and general tool.  
+
+Details on using Fortress as the command line are available in this file.
+
+Details on using  Fortress as a library are available in UserGuide.md .  
+
+Details on the internal code organization and design decisions in Fortress can be found in DevelopersGuide.md .
 
 ## Using Fortress
 
