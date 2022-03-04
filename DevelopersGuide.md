@@ -93,6 +93,7 @@ The following refer to the packages that are part of Fortress.
     + Fortress determines whether a given `Var` object is a variable or a constant depending on the context.
     + If it is enclosed in a quantifier that quantifies over that `Var`, then it is a variable.
     + Otherwise, it is a constant.
+* Enums are constants in MSFOL that are distinct and cover all possible elements of the sort. They are distinct from domain elements (also a kind of term), which are the values of the sorts used internally in fortress.  Not all sorts have enums, but all sorts have domain elements for FMF.  Domain elements are used to create range formulas.  Enums are converted to domain elements by a transformer (below).  The DomainEliminationTransformer (below) is the last step in fortress to convert all domain elements to mutually distinct constants so that the problem can be solved by an MSFOL solver.
 * terms are created using the methods in Term.scala:
     - EnumValue is a kind of term. DomainElement is also a kind of term.   
     - To create a quantified variable use mkVar(x).of(Sort); this is not a term, it is an AnnotatedVar(Declaration), which can be passed as an argument to create a quantified term.
