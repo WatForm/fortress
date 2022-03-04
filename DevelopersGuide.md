@@ -5,32 +5,20 @@ This document contains information on how the fortress library is structured and
 
 ## Fortress Terminology
 
-* Sorts and constants/functions declared create a `signature`.  
+* Sorts and constants/functions declared create a `Signature`.  
 * `Terms`/formulas are built using the msfol package.  
-* A signature and a list of terms together create a `theory`. 
-* A `ProblemState` contains a theory, scopes, and additional information that is used throughout the transformation process.
-* An `operation` takes a term, applies a transformation to it, and returns a term.
+* A signature and a list of terms together create a `Theory`. 
+* A `ProblemState` contains a theory, scopes for the sorts, and additional information that is used throughout the fortress process.
+* An `operation` takes a term and applies a transformation to it.
 Examples of operations are converting to negation normal form, performing sort inference, simplification, and skolemization.
-* A `TheoryTransformer` or `ProblemStateTransformer` takes a `Theory` or `ProblemState` respectively and converts them into a new `Theory` or `ProblemState`by applying a transformation to all terms of the theory (using an operation usually).
-* Examples of transformers are converting to negation normal form, performing sort inference, simplification, and skolemization.
+* A `TheoryTransformer` or `ProblemStateTransformer` takes a `Theory` or `ProblemState` respectively and converts them into a new `Theory` or `ProblemState`by applying a transformation to all terms of the theory (using an operation usually).  Examples of transformers are converting to negation normal form, performing sort inference, simplification, and skolemization.
 * Transformations often need to be undone once a solution is found, and so the transformer writes instructions on how to undo its operation on the `ProblemState`.
 * A sequence of transformers is combined to create a `Compiler`.  Thus, a compiler takes as input a problem state and produces as output the problem state resulting from the sequence of transformations.
 * The compiler also outputs instructions on how to undo all of its transformations to an interpretation.
+* A `SolverSession` is an interface to an SMT solver.
 * A `ModelFinder` is the top-level interface for fortress used to search for satisfying interpretations to a `Theory` under the given scopes.  Within the model finder, we set the theory, scopes, and other options, and we can invoke its solving methods.
 
-## Idealized Fortress Pipeline
-
-The "idealized" algorithm which Fortress implements is given by the following steps.
-
-1. Typechecking
-2. Negation Normal Form (NNF)
-3. Skolemization
-4. Symmetry Breaking
-5. Universal Expansion
-6. Simplification
-7. Range Formulas
-8. Domain Elimination
-9. Scope Removal and SMT Invocation
+## Basic Algorithm of Fortress
 
 Two problems are "equivalent" when every interpretation satisfies one if and only if it satisfies the other.
 In order for two problems to be equivalent, they must have the same signature (otherwise it doesn't make sense to evaluate them using the same interpretation).
@@ -44,68 +32,54 @@ The "unbounded" version of problem is the problem obtained by removing the scope
 A problem is "formulaically bound" if the following condition holds: the only interpretations that satisfy the unbounded version of the problem are those that satisfy the original (bounded) version.
 If a problem is formulaically bound, it is equisatisfiable with its unbounded version.
 
-All that Fortress needs to guarantee is that after its transformations, the final problem is equisatisfiable to the first input problem.
+The basic algorithm that Fortress implements consists of the following steps.
 
-### Explanation of Steps
-
-#### 1. Negation Normal Form
-The formulas of the problem are transformed into negation normal form, where negations are pushed down as far as possible into the formulas.
-The resulting problem is equivalent to the first.
-
-#### 2. Skolemization
-Existential quantifiers are eliminated by replacing them with functions and constants that act as witnesses for the existential quantifiers.
+1. Typechecking
+2. Negation Normal Form (NNF): The formulas of the problem are transformed into negation normal form, where negations are pushed down as far as possible into the formulas. The resulting problem is equivalent to the first.
+3. Skolemization: Existential quantifiers are eliminated by replacing them with functions and constants that act as witnesses for the existential quantifiers.
 The signature is changed by the introduction of new functions and constants.
 This operation must be performed after putting formulas into negation normal form, as otherwise it is impossible to tell which quantifiers are truly existential (since negations change quantifiers).
 Given this condition however, the resulting problem is equisatisfiable to the input problem.
-
-#### 3. Symmetry Breaking
-Additional constraints are added to reduce the number of interpretations that need to be checked by the solver.
+4. Symmetry Breaking: Additional constraints are added to reduce the number of interpretations that need to be checked by the solver.
 The resulting problem is equisatisfiable to the input to this step.
-
-#### 4. Universal Expansion
-Universal quantifiers of bounded sorts are expanded by taking each possible instantiation and then taking their conjunction.
+5. Universal Quantifier Expansion: Universal quantifiers of bounded sorts are expanded by taking each possible instantiation and then taking their conjunction.
 The resulting problem is equivalent to the input to this step.
-
-#### 5. Simplification
-The formulas are simplified as much as possible.
+6. Simplification: The formulas are simplified as much as possible.
 The resulting problem is equivalent to the input to this step.
-
-#### 6. Range Formulas
-Range formulas are introduced, which use the scopes to explicitly list the possible output values of each function and constant.
+7. Range Formulas: Range formulas are introduced, which use the scopes to explicitly list the possible output values of each function and constant.
 These range formulas are quantifier-free, so as to not introduce any more quantifiers after universal expansion.
 The resulting problem is both equisatisfiable to the input to this step and *formulaically bound*.
-
-#### 7. Domain Elimination
-Constants are introduced to "simulate" the domain elements.
+8. Domain Elimination: Constants are introduced to "simulate" the domain elements.
 Specifically, for each domain element in the problem, a unique constant is generated.
 It is asserted that these constants are mutually distinct from each other.
 The domain elements are then replaced with their respective constants.
 The resulting problem is equisatisfiable to the input to this step, and contains no domain elements.
-This operation also maintains the property of being formulaically bound.
-
-#### 8. Scope Removal and SMT Invocation
-The unbounded version of this final problem is converted into a format that is accepted by an SMT solver (the problem contains no domain elements, so this can be done).
+This operation also maintains the property of being formulaically bound. 
+9. Scope Removal and SMT Invocation: The unbounded version of this final problem is converted into a format that is accepted by an SMT solver (the problem contains no domain elements, so this can be done).
 The SMT solver is then invoked.
 Whatever result the solver returns is then returned to the user.
 
-### Correctness
-After applying the 7 transformations, the final problem is:
+
+All that Fortress needs to guarantee is that after its transformations, the final problem is equisatisfiable to the first input problem.
+
+After applying the above transformations, the final problem is:
 * equisatisfiable to the original problem, and
 * formulaically bound (so its scopes can be removed).
 
 Therefore, removing the scopes still leaves a problem equisatisfiable to the original, and, provided the SMT solver gives a correct result, so too does Fortress.
 
-### Decision Procedure
 If the original problem gives a scope for every sort, then because of the universal expansion step, there are no quantifiers in the final unbounded problem sent to the SMT solver.
 Such problems fall under the fragment of first-order logic called the logic of equality with uninterpreted functions (EUF), which is decidable.
 In SMT literature, this logic is called the logic of quantifier-free uninterpreted functions (QF_UF).
 SMT solvers are decision procedures for such problems, and therefore so too is Fortress.
 
+The fortress library includes a number of options for the above steps.
+
 ## Fortress Architecture and Design Decisions
 
 The following refer to the packages that are part of Fortress.
 
-## msfol
+### msfol
 * Methods to create sorts, constants, functions (including built-ins), terms, and theories.  
 * a signature is created using 'with' methods in Signature.scala
 * Names.scala checks for illegal names
@@ -147,7 +121,7 @@ Theory theory2 = Theory.empty().withConstants(mkVar("p").of(Sort.Bool())).withAx
 ```
 While `p`, `p_` and `mkVar("p")` might be different Java objects in memory, they can all be used interchangeably and mean the same thing when used to construct terms.
 
-## inputs
+### inputs
 * This is the code that maps TPTP or SMT-LIB files into a theory.  This code is in java (rather than scala).
 * TheoryParser: the general class for parsing a file into a theory.
     - TptpFofParser 
@@ -164,14 +138,14 @@ While `p`, `p_` and `mkVar("p")` might be different Java objects in memory, they
         + Ignores check-sat commands.  
         + Not yet supported: Right/Left bitshift, unsigned div/rem, and, or, not, concat bit operations; abs val for ints.  
 
-## antlr
+### antlr
 * FOFTPTP.g4 - parses TPTP
 * SmtLibSubset.g4 - parses SMT-LIB @joe is this SMT-LIB2?
 
-## Sortinference
+### Sortinference
 * Functions for performing sort inference
 
-## operations
+### operations
 * Operations apply to terms. To apply an operation to a term/theory using "wrap" as in 
 ```
 operation.wrapTerm(t:term)
@@ -214,7 +188,7 @@ operation.wrapTheory(t:theory)
     - RecursivePatterns:
         + apply a function recursively over terms.     
 
-## transformers
+### transformers
 * All the operations that transform a theory or a problem state. 
 * contains ProblemStateTransformers and TheoryTransformers 
 * `apply` method 
@@ -231,12 +205,12 @@ operation.wrapTheory(t:theory)
     - SortInferenceTransformer: infers new sort; adds these sorts; unapply reverses the sort substitution
     - SymmetryBreaking: adds symmetry breaking constraints to the theory
 
-## symmetry
+### symmetry
 * code for adding symmetry breaking
 * a number of symmetry breaking schemes are implemented
 * Code could probably be simplified
-* 
-## compiler
+
+### compiler
 A packaging mechanism for a sequence of transformations.
 * LogicCompiler 
     - The "compile" method takes a theory and scopes, and returns either CompilerError of CompilerResult (theory,decompileInterpretation,skipForNextInterpretation )
@@ -246,7 +220,7 @@ A packaging mechanism for a sequence of transformations.
     - Defines the transformer sequence usually applied, parameterized by symmetry breaking transformers.
 * FortressCompilers: Define the fortress compilers (Zero, ONE, etc) as the BaseFortressCompilers plus certain symmetry breaking.
 
-## solverinterface
+### solverinterface
 * These are ways of connecting to external solvers.  
 * Main methods are:
 1) setTheory - takes a theory (returns Unit)
@@ -265,7 +239,7 @@ A packaging mechanism for a sequence of transformations.
 For example, changing the prefix used for domain constants from `@` to `%` (in order to be more compliant with the standards used by SMT solvers) caused performance in some tests to slow down, at least when using the Z3 Java API.
 Changing it to `_@` (also standards-compliant) improved performance again.
 
-## modelfind
+### modelfind
 * ModelFinder is the main fortress interface.  
 * A model finder takes a solver and a theory as arguments and performs solving on the theory returning a result (and an interpretation when appropriate).
 * important methods:
@@ -288,20 +262,20 @@ Changing it to `_@` (also standards-compliant) improved performance again.
 - FortressTHREE_SI
 - FortressFOUR_SI
 
-## interpretation
+### interpretation
 * data structures for representing the interpretation returned by a solver.
 * Interpretation
     - includes maps for sorts, constants, and functions.  
     - can be turned into a String or turned into constraints
 
-## data
+### data
 * Useful data structures/functions for fortress such as UnionFind, Caching
 
-## util
+### util
 * Functions for timers, errors, lists, maps.
 * Notably ArgumentListGenerator.scala relies on msfol._ and data._
 
-## logging
+### logging
 * EventLogging is the main trait with different classes for recording timing for various processes.
 
 
