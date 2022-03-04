@@ -101,7 +101,7 @@ You can increase the JVM stack size by setting option "-J-Xss<size>", for exampl
 
 If the gradle build is not working properly ensure that your `JAVA_HOME` environment variable is correctly set (to the folder where the jdk that you are using is installed).
 
-## Acknowledgement
+## Acknowledgements
 
 The original version of Fortress was created by Amirhossein Vakili and Nancy Day.  Fortress was completely rewritten in Scala by Joseph Poremba.  Joe also greatly extended the symmetry breaking used in Fortress.  Additional contributors to Fortress include: Ruomei Yan, Orson Baines, Callum Moseley, Yie Jin (James) Long, and Owen Zila.
    
