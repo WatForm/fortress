@@ -163,3 +163,114 @@ if(result.equals(ModelFinderResult.Sat())) {
 }
 ```
 
+
+
+
+
+### Step 1: Ways to make a MSFOL theory
+
+a) You can make a MSFOL theory from a file:
+
+inputs.TptpFofParser, inputs.SmtlibParser both make a msfol.theory from a file
+
+Sample use:
+
+    val parser = new SmtLibParser
+    val theory = parser.parse(new FileInputStream(inputFilename))
+
+b) You can make a MSFOL theory through the API:
+
+msfol.Sort (mkSortConst+builtin sorts constructor) 
++ msfol.Declaration (mkFcnDecl constructor)              
++ msfol.Declaration (AnnotatedVar constructor creates a constants)
+together make a msfol.signature
+
+msfol.signature
++ axioms (terms of Bool sort)
+together make a msfol.theory. Axioms are constructed via ms.term.
+
+Sample use:
+    val A = Sort.mkSortConst("A")
+    val c = Var("c").of(A)
+    val P = FuncDecl.mkFuncDecl("P", A, Sort.Bool)
+    val term1 = Forall(x.of(Sort.Bool), Or(x, App("P", x)))
+    val term2 = Not(App("P",c))
+    val sig = Signature.empty
+                .withSorts(A)
+                .withConstants(c)
+                .withFunctionDeclarations(P)
+                .withAxioms(term1,term2)
+
+Enums are constants in MSFOL that are distinct and cover all possible elements of the sort. They are distinct from domain elements (also a kind of term), which are the values of the sorts used internally in fortress.  Not all sorts have enums, but all sorts have domain elements for FMF.  Domain elements are used to create range formulas.  Enums are converted to domain elements by a transformer (below).  The DomainEliminationTransformer (below) is the last step in fortress to convert all domain elements to mutually distinct constants so that the problem can be solved by an MSFOL solver.
+
+There is also a DSL that can be used to create terms in a less cumbersome way than the term API directly.
+
+Sample usage:
+@Joe - where can I find an example of the use of this DSL?
+
+### Step 3: Ways to solve the theory
+
+The solvers use an external solver package to solve a MSFOL theory. For a FMF problem, the scopes are expected to be used in the transformation of an MSFOL theory to another MSFOL theory prior to solving.  The encorporation of the scopes into the MSFOL theory (via range formulas) means the theory only finite solutions of the expected scopes, thus scopes are not needed by the solver interface.
+
+A sample interaction with a solver (in scala) is:
+
+    // Open new solver session
+    val session = Z3IncCliInterface.openSession()
+    // Convert to solver format  @Joe ????
+    session.setTheory(finalTheory)
+    // Solve
+    session.solve(maxTimeMillis)
+    // s is a ModelFinderResult (one of Sat,Unsat,Unknown,Timeout)
+    s = session.checkSat()
+    // get a satisfying Interpretation
+    var i1 = session.viewModel()
+    // get the next satisfying Interpretation
+    var i2 = session.nextInterpretation() 
+    // close the session
+    session.close()
+
+Other solver interfaces are:
+Z3CliInterface
+CVC4CliInterface  
+
+There is additional logging/timing that can be added to the above session.
+
+### ModelFinders (a package of the above three steps)
+
+A ModelFinder packages up the above three steps. It takes a FMF problem (theory and scopes);transforms the problem using a compiler; and solves the problem using a solver interface. The results of solving are available via the "checkSat" and "viewModel" methods. The methods nextInterpretation/countValidModels are also useful.  A ModelFinder is parameterized by IntegerSemantics.  Different model finders are defined in FortressModelFinders.  These use the Z3 Incremental solver by default.  Details regarding wrapping the theory into a problem state are hidden in a model finder.
+
+The following code (in scala) shows a sample usage of a ModelFinder:
+
+    val modelFinder = new FortressTHREE_SI
+
+    // create the theory
+    val parser = new SmtLibParser
+    val theory = parser.parse(new FileInputStream(inputFilename))
+    modelFinder.setTheory(theory)
+
+    // Default scope to be used for all sorts
+    val defaultScope = 10
+    for((sort, scope) <- scopes) {
+        modelFinder.setAnalysisScope(sort, defaultScope)
+    }
+
+    // maximum time for the ModelFinder to run
+    val timeout = 15*60*1000  // 15 minutes in seconds
+    modelFinder.setTimeout(Seconds(timeout))
+
+    // integers will have unbounded semantics
+    // meaning Ints in the theory map to Ints in SMT-LIB
+    val integerSemantics = Unbounded
+    modelFinder.setBoundedIntegers(integerSemantics)
+
+    // solve
+    val result = modelFinder.checkSat()
+    println(result)
+    if(conf.generate()) {
+        result match {
+            case SatResult => println(modelFinder.viewModel())
+            case _ => { }
+        }
+    }
+    // @Joe let's add something to check the correctness of the result
+
