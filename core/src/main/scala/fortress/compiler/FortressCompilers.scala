@@ -36,6 +36,32 @@ abstract class BaseFortressCompiler(integerSemantics: IntegerSemantics) extends 
     def symmetryBreakingTransformers: Seq[ProblemStateTransformer]
 }
 
+abstract class BaseFortressCompilerEnums(integerSemantics: IntegerSemantics) extends LogicCompiler {
+    override def transformerSequence: Seq[ProblemStateTransformer] = {
+        val transformerSequence = new scala.collection.mutable.ListBuffer[ProblemStateTransformer]
+        transformerSequence += TypecheckSanitizeTransformer
+        transformerSequence += EnumEliminationTransformer
+        //        integerSemantics match {
+        //            case Unbounded => ()
+        //            case ModularSigned(bitwidth) => {
+        //                transformerSequence += new IntegerFinitizationTransformer(bitwidth)
+        //            }
+        //        }
+        //        transformerSequence += ClosureEliminationTransformer
+        transformerSequence += NnfTransformer
+        transformerSequence += SkolemizeTransformer
+        transformerSequence ++= symmetryBreakingTransformers
+        transformerSequence += StandardQuantifierExpansionTransformer
+        transformerSequence += StandardRangeFormulaTransformer
+        transformerSequence += new SimplifyTransformer
+        transformerSequence += DatatypeTransformer
+        transformerSequence.toList
+    }
+
+    def symmetryBreakingTransformers: Seq[ProblemStateTransformer]
+}
+
+
 class FortressZEROCompiler(integerSemantics: IntegerSemantics) extends BaseFortressCompiler(integerSemantics) {
     override def symmetryBreakingTransformers: Seq[ProblemStateTransformer] = Seq.empty
 }

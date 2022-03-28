@@ -64,7 +64,6 @@ with Caching[Var, String] {
 
 case class EnumValue private (name: String) extends Term with LeafTerm with Value {
     Errors.Internal.precondition(name.length > 0)
-    Errors.Internal.precondition(! Names.isIllegal(name))
     
     override def toString: String = name
     override def accept[T](visitor: TermVisitor[T]): T = visitor.visitEnumValue(this)
@@ -73,7 +72,13 @@ case class EnumValue private (name: String) extends Term with LeafTerm with Valu
 object EnumValue
 extends ConcreteFactory[EnumValue, String]((name: String) => new EnumValue(name))
 with Caching[EnumValue, String] {
-    def apply(name: String): EnumValue = create(name)
+
+    def apply(name: String): EnumValue = {
+        Errors.Internal.precondition(! Names.isIllegal(name))
+        create(name)
+    }
+
+    private [msfol] def mkWithoutNameRestriction(name: String): EnumValue = new EnumValue(name)
 }
 
 /** Represents a negation. */
@@ -282,8 +287,10 @@ case class DomainElement private (index: Int, sort: Sort) extends Term with Leaf
     override def accept[T](visitor: TermVisitor[T]): T = visitor.visitDomainElement(this)
     
     // TODO need to restrict any other code from using this naming convention
-    val asSmtConstant = Var.mkWithoutNameRestriction(DomainElement.prefix + index.toString + sort.toString)
-    
+    val asSmtConstant: Var = Var.mkWithoutNameRestriction(DomainElement.prefix + index.toString + sort.toString)
+
+    val asEnumValue: EnumValue = EnumValue.mkWithoutNameRestriction(DomainElement.prefix + index.toString + sort.toString)
+
     override def toString = DomainElement.prefix + index.toString + sort.toString
 }
 

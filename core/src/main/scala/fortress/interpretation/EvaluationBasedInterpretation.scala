@@ -27,7 +27,7 @@ abstract class EvaluationBasedInterpretation(sig: Signature) extends Interpretat
     
     override val sortInterpretations: Map[Sort, Seq[Value]] = {
         for(sort <- sig.sorts) yield (sort -> evaluateSort(sort))
-    }.toMap
+    }.toMap ++ sig.enumConstants
     
     override val functionInterpretations: Map[fortress.msfol.FuncDecl, Map[Seq[Value], Value]] = {
             for(f <- sig.functionDeclarations) yield (f -> evaluateFunction(f, scopes))
