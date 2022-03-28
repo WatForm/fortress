@@ -65,7 +65,9 @@ case class TermOps private (term: Term) {
 
     def simplifyWithLearnedLiterals(learnedLiterals: Map[Term, LeafTerm]): Term = SimplifierWithLearnedLiterals.simplify(term, learnedLiterals)
 
-    def eliminateDomainElements: Term = DomainElementEliminator(term)
+    def eliminateDomainElementsConstants: Term = DomainElementEliminatorConstants(term)
+
+    def eliminateDomainElementsEnums: Term = DomainElementEliminatorEnums(term)
     
     def eliminateEnumValues(eliminationMapping: Map[EnumValue, DomainElement]): Term = EnumValueEliminator(eliminationMapping)(term)
     

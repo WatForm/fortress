@@ -1,8 +1,7 @@
 package fortress.compiler
 
-import fortress.msfol.Theory
+import fortress.msfol.{Declaration, Theory}
 import fortress.interpretation.Interpretation
-import fortress.msfol.Declaration
 
 /** Result from a compiler. */
 trait CompilerResult {

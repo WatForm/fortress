@@ -31,7 +31,7 @@ class DomainEliminationTransformer2 extends ProblemStateTransformer {
             // ) yield Distinct(domainElems map (_.asSmtConstant))
             
             // Eliminate domain elements in existing axioms
-            val convertedAxioms = theory.axioms map (_.eliminateDomainElements)
+            val convertedAxioms = theory.axioms map (_.eliminateDomainElementsConstants)
             
             val newTheory = theory.withoutAxioms
                 .withConstants(domainConstants)
@@ -42,5 +42,5 @@ class DomainEliminationTransformer2 extends ProblemStateTransformer {
         }
     }
     
-    override def name: String = "Domain Elimination Transformer 2"
+    override def name: String = "Domain Elimination To Constants Transformer 2"
 }

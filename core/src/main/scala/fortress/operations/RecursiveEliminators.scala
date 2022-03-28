@@ -10,7 +10,7 @@ case class EnumValueEliminator(eliminationMapping: Map[EnumValue, DomainElement]
     def apply(term : Term): Term = naturalRecur(term)
 }
 
-object DomainElementEliminator {
+object DomainElementEliminatorConstants {
     def apply(term: Term): Term = {
         def eliminateDomainElements(term: Term): Term = term match {
             case d @ DomainElement(_, _) => d.asSmtConstant
@@ -31,6 +31,32 @@ object DomainElementEliminator {
                 IfThenElse(eliminateDomainElements(condition), eliminateDomainElements(ifTrue), eliminateDomainElements(ifFalse))
             case Top | Bottom | Var(_) | EnumValue(_)
                 | IntegerLiteral(_) | BitVectorLiteral(_, _) => term
+        }
+        eliminateDomainElements(term)
+    }
+}
+
+object DomainElementEliminatorEnums {
+    def apply(term: Term): Term = {
+        def eliminateDomainElements(term: Term): Term = term match {
+            case d @ DomainElement(_, _) => d.asEnumValue
+            case Not(p) => Not(eliminateDomainElements(p))
+            case AndList(args) => AndList(args.map(eliminateDomainElements))
+            case OrList(args) => OrList(args.map(eliminateDomainElements))
+            case Implication(l, r) => Implication(eliminateDomainElements(l), eliminateDomainElements(r))
+            case Distinct(args) => Distinct(args.map(eliminateDomainElements))
+            case Iff(l, r) => Iff(eliminateDomainElements(l), eliminateDomainElements(r))
+            case Eq(l, r) => Eq(eliminateDomainElements(l), eliminateDomainElements(r))
+            case App(fname, args) => App(fname, args.map(eliminateDomainElements))
+            case BuiltinApp(function, args) => BuiltinApp(function, args map eliminateDomainElements)
+            case Closure(fname, args, arg1, arg2) => Closure(fname, args.map(eliminateDomainElements), eliminateDomainElements(arg1), eliminateDomainElements(arg2))
+            case ReflexiveClosure(fname, args, arg1, arg2) => ReflexiveClosure(fname, args.map(eliminateDomainElements), eliminateDomainElements(arg1), eliminateDomainElements(arg2))
+            case Exists(vars, body) => Exists(vars, eliminateDomainElements(body))
+            case Forall(vars, body) => Forall(vars, eliminateDomainElements(body))
+            case IfThenElse(condition, ifTrue, ifFalse) =>
+                IfThenElse(eliminateDomainElements(condition), eliminateDomainElements(ifTrue), eliminateDomainElements(ifFalse))
+            case Top | Bottom | Var(_) | EnumValue(_)
+                 | IntegerLiteral(_) | BitVectorLiteral(_, _) => term
         }
         eliminateDomainElements(term)
     }

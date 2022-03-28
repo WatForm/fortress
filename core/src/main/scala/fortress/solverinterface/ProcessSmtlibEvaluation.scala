@@ -110,7 +110,7 @@ trait ProcessSmtlibEvaluation extends ProcessBuilderSolver {
 
                     // Parse the output based on either ite or plain boolean format
                     var index = smtInterpTokens(f.name).indexOf("ite")
-                    if (smtInterpTokens(f.name).indexOf("ite") > -1) {
+                    if (index > -1 & smtInterpTokens(f.name)(index - 1) != "=") {
                         index = index - 1
                         while (index + 1 + f.argSorts.size * 3 < smtInterpTokens(f.name).length) {
                             // Using "ite" as an anchor
@@ -128,8 +128,7 @@ trait ProcessSmtlibEvaluation extends ProcessBuilderSolver {
                             // Get value and update interpretation map
                             interpMap.update(argList, smtValueToFortressValue(smtInterpTokens(f.name)(index), f.resultSort, smtValueToDomainElement))
                         }
-                    } else if (smtInterpTokens(f.name).indexOf("=") > -1) {
-                        // Using "ite" as an anchor
+                    } else if (index == -1 & smtInterpTokens(f.name).indexOf("or") > -1 & smtInterpTokens(f.name).indexOf("=") > -1) {
                         index = smtInterpTokens(f.name).indexOf("=") - 1
                         while (index + f.argSorts.size * 3 < smtInterpTokens(f.name).length) {
                             // Get arguments
@@ -169,7 +168,7 @@ trait ProcessSmtlibEvaluation extends ProcessBuilderSolver {
     }
 
     private def getFortressNameToSmtValueMap(theory: Theory): Map[String, String] = {
-        for(constant <- theory.constants){
+        for (constant <- theory.constants) {
             processSession.get.write("(get-value (")
             processSession.get.write(NameConverter.nameWithAffix(constant.name))
             processSession.get.write("))")
@@ -196,7 +195,13 @@ trait ProcessSmtlibEvaluation extends ProcessBuilderSolver {
     ): Value = {
             
         sort match {
-            case SortConst(_) => smtValueToDomainElement(value)
+            case SortConst(_) => {
+                if (smtValueToDomainElement.keySet.contains(value))
+                    smtValueToDomainElement(value)
+                else
+                    DomainElement.interpretName(NameConverter.nameWithoutAffix(value)).get
+            }
+
             case BoolSort => value match {
                 case "true" => Top
                 case "false" => Bottom

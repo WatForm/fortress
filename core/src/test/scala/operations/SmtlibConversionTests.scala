@@ -16,6 +16,8 @@ class SmtlibConversionTests extends UnitSuite {
     val P = FuncDecl.mkFuncDecl("P", A, B, Sort.Bool)
     val q = Var("q")
     val r = Var("r")
+    val _1A = DomainElement(1, A).asEnumValue
+    val _2A = DomainElement(2, A).asEnumValue
     
     test("basic conversion") {
         val formula1 = Forall(Seq(x of A, y of B), App("f", x) === y)
@@ -53,10 +55,11 @@ class SmtlibConversionTests extends UnitSuite {
                     .withSorts(A, B)
                     .withFunctionDeclarations(f, P)
                     .withConstants(x of A, y of B)
+                    .withEnumSort(A, _1A, _2A)
                     .withAxiom(App("P", Seq(x,y)))
 
-        theory.smtlib should be ("(declare-sort A 0)" +
-                                "(declare-sort B 0)" +
+        theory.smtlib should be ("(declare-sort B 0)" +
+                                "(declare-datatypes () ((A _@1Aaa _@2Aaa)))" +
                                 "(declare-fun faa (A) B)" +
                                 "(declare-fun Paa (A B) Bool)" +
                                 "(declare-const xaa A)" +
@@ -103,5 +106,13 @@ class SmtlibConversionTests extends UnitSuite {
         
         converter.writeSortDecl(A)
         writer.toString should be ("(declare-sort A 0)")
+    }
+
+    test("enum constants declarations") {
+        val writer = new java.io.StringWriter
+        val converter = new SmtlibConverter(writer)
+
+        converter.writeEnumConst(A, Seq(_1A, _2A))
+        writer.toString should be ("(declare-datatypes () ((A _@1Aaa _@2Aaa)))")
     }
 }

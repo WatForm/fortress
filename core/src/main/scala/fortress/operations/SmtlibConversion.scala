@@ -9,9 +9,10 @@ class SmtlibConverter(writer: java.io.Writer) {
     // Use a writer for efficiency
     def write(t: Term): Unit = {
         def recur(term: Term): Unit = term match {
-            case DomainElement(_, _) | EnumValue(_) =>
-                Errors.Internal.preconditionFailed("Domain elements and enum values cannot be converted to SMTLIB2")
+            case DomainElement(_, _) =>
+                Errors.Internal.preconditionFailed("Domain elements cannot be converted to SMTLIB2")
             // case d @ DomainElement(index, sort) => writer.write(d.asSmtConstant.name)
+            case EnumValue(name) => writer.write(nameWithAffix(name))
             case Top => writer.write("true")
             case Bottom => writer.write("false")
             case Var(name) => writer.write(nameWithAffix(name))
@@ -167,8 +168,16 @@ class SmtlibConverter(writer: java.io.Writer) {
         writer.write(')')
     }
 
+    def writeEnumConst(sort: Sort, enums: Seq[EnumValue]): Unit = {
+        writer.write("(declare-datatypes () ((")
+        writer.write(sort.name)
+        enums.foreach(enum => writer.write(' ' + nameWithAffix(enum.name)))
+        writer.write(")))")
+    }
+
     def writeSignature(sig: Signature): Unit = {
-        sig.sorts.foreach(writeSortDecl)
+        sig.sorts.removedAll(sig.enumConstants.keys).foreach(writeSortDecl)
+        sig.enumConstants.foreach(x => writeEnumConst(x._1, x._2))
         sig.functionDeclarations.foreach(writeFuncDecl)
         sig.constants.foreach(writeConst)
     }
