@@ -248,7 +248,8 @@ class RangeFormulaTests extends UnitSuite {
             Set.empty,
             Set.empty,
             rangeRestrictions,
-            List.empty
+            List.empty,
+            distinctConstants = true
         )
         val expectedProblemState = ProblemState(
             expected,
@@ -256,7 +257,8 @@ class RangeFormulaTests extends UnitSuite {
             Set.empty,
             Set.empty,
             rangeRestrictions,
-            List.empty
+            List.empty,
+            distinctConstants = true
         )
         transformer(problemState) should be (expectedProblemState)
     }

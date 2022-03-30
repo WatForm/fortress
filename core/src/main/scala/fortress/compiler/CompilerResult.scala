@@ -1,6 +1,6 @@
 package fortress.compiler
 
-import fortress.msfol.{Declaration, Theory}
+import fortress.msfol.{Declaration, Term, Theory}
 import fortress.interpretation.Interpretation
 
 /** Result from a compiler. */
@@ -19,6 +19,12 @@ trait CompilerResult {
       * when negating interpretations (for example, skolem functions). 
       */
     val skipForNextInterpretation: Set[Declaration]
+
+    /**
+      * A function which eliminates domain elements in a term based on either distinct constants
+      * or datatype method.
+      */
+    def eliminateDomainElements(term: Term): Term
 }
 
 sealed trait CompilerError

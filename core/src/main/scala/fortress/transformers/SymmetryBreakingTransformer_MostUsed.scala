@@ -16,7 +16,7 @@ class SymmetryBreakingTransformer_MostUsed(
                                           ) extends ProblemStateTransformer {
 
     def apply(problemState: ProblemState): ProblemState = problemState match {
-        case ProblemState(theory, scopes, skc, skf, rangeRestricts, unapplyInterp) => {
+        case ProblemState(theory, scopes, skc, skf, rangeRestricts, unapplyInterp, distinctConstants) => {
             // This weirdness exists to make sure that this version performs symmetry breaking
             // on functions in the same order as the previous version
             // It is only here for the sake of consistency
@@ -66,7 +66,7 @@ class SymmetryBreakingTransformer_MostUsed(
             loop()
 
             val newTheory = theory.withFunctionDeclarations(breaker.declarations).withAxioms(breaker.constraints)
-            ProblemState(newTheory, scopes, skc, skf, rangeRestricts union breaker.rangeRestrictions.toSet, unapplyInterp)
+            ProblemState(newTheory, scopes, skc, skf, rangeRestricts union breaker.rangeRestrictions.toSet, unapplyInterp, distinctConstants)
         }
     }
 

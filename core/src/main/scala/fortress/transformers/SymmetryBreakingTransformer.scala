@@ -18,7 +18,7 @@ class SymmetryBreakingTransformer(
 ) extends ProblemStateTransformer {
         
     def apply(problemState: ProblemState): ProblemState = problemState match {
-        case ProblemState(theory, scopes, skc, skf, rangeRestricts, unapplyInterp) => {
+        case ProblemState(theory, scopes, skc, skf, rangeRestricts, unapplyInterp, distinctConstants) => {
             val breaker = symmetryBreakerFactory.create(theory, scopes)
 
             // First, perform symmetry breaking on constants
@@ -58,7 +58,7 @@ class SymmetryBreakingTransformer(
 
             // Add symmetry breaking function declarations, constraints, and range restrictions
             val newTheory = theory.withFunctionDeclarations(breaker.declarations).withAxioms(breaker.constraints)
-            ProblemState(newTheory, scopes, skc, skf, rangeRestricts union breaker.rangeRestrictions.toSet, unapplyInterp)
+            ProblemState(newTheory, scopes, skc, skf, rangeRestricts union breaker.rangeRestrictions.toSet, unapplyInterp, distinctConstants)
         }
     }
     

@@ -23,6 +23,7 @@ class Conf(arguments: Seq[String]) extends ScallopConf(arguments) {
     val rawdata = opt[Boolean]()
     val timeout = opt[Int](required = true) // Timeout in seconds
     val validate = opt[Boolean]() // verify returned instance for SAT problems
+    val viewModel = opt[Boolean]()
     verify()
 }
 
@@ -104,6 +105,9 @@ object FortressDebug {
                 println(result)
                 if (conf.validate() && result.equals(SatResult)) {
                     println("Verifying returned instance: " + theory.verifyInterpretation(modelFinder.viewModel()))
+                }
+                if (conf.viewModel() && result.equals(SatResult)) {
+                    println(modelFinder.viewModel())
                 }
             }
 

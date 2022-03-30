@@ -11,7 +11,7 @@ import fortress.sortinference._
 object SortInferenceTransformer extends ProblemStateTransformer {
         
     def apply(problemState: ProblemState): ProblemState = problemState match {
-        case ProblemState(theory, scopes, skc, skf, rangeRestricts, unapplyInterp) => {
+        case ProblemState(theory, scopes, skc, skf, rangeRestricts, unapplyInterp, distinctConstants) => {
             val (generalTheory, sortSubstitution) = theory.inferSorts
             // Create new scopes
             val newScopes = for {
@@ -21,7 +21,7 @@ object SortInferenceTransformer extends ProblemStateTransformer {
                 sort -> scopes(sortSubstitution(sort))
             }
             val unapply: Interpretation => Interpretation = _.applySortSubstitution(sortSubstitution)
-            ProblemState(generalTheory, newScopes.toMap, skc map (sortSubstitution(_)), skf map (sortSubstitution(_)), rangeRestricts, unapply :: unapplyInterp)
+            ProblemState(generalTheory, newScopes.toMap, skc map (sortSubstitution(_)), skf map (sortSubstitution(_)), rangeRestricts, unapply :: unapplyInterp, distinctConstants)
         }
     }
     

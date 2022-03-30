@@ -8,7 +8,7 @@ import fortress.operations.TheoryOps._
 class ScopeSubtypeTransformer extends ProblemStateTransformer {
 
     override def apply(problemState: ProblemState): ProblemState = problemState match {
-        case ProblemState(theory, scopes, skc, skf, rangeRestricts, unapplyInterp) => {
+        case ProblemState(theory, scopes, skc, skf, rangeRestricts, unapplyInterp, distinctConstants) => {
             val scopeSubtypePreds = theory.sorts.map(sort => {
                 val predName = ScopeSubtype.subtypePred(sort)
                 val predDecl = FuncDecl(predName, sort, BoolSort)
@@ -55,7 +55,8 @@ class ScopeSubtypeTransformer extends ProblemStateTransformer {
                 scopes, skc,
                 skf,
                 rangeRestricts,
-                unapply :: unapplyInterp
+                unapply :: unapplyInterp,
+                distinctConstants
             )
         }
     }

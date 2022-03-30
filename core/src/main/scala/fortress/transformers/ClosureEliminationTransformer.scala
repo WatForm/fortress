@@ -11,7 +11,7 @@ import fortress.interpretation.Interpretation
  but with same arguments. **/
 object ClosureEliminationTransformer extends ProblemStateTransformer {
     override def apply(problemState: ProblemState): ProblemState = problemState match {
-        case ProblemState(theory, scopes, skc, skf, rangeRestricts, unapplyInterp) => {
+        case ProblemState(theory, scopes, skc, skf, rangeRestricts, unapplyInterp, distinctConstants) => {
             val forbiddenNames = scala.collection.mutable.Set[String]()
             
             for(sort <- theory.sorts) {
@@ -37,7 +37,7 @@ object ClosureEliminationTransformer extends ProblemStateTransformer {
                 resultTheory = resultTheory.withAxiom(newAxiom)
             }
             
-            ProblemState(resultTheory, scopes, skc, skf, rangeRestricts, unapplyInterp)
+            ProblemState(resultTheory, scopes, skc, skf, rangeRestricts, unapplyInterp, distinctConstants)
         }
     }
     

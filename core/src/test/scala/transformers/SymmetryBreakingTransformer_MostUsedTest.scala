@@ -38,7 +38,7 @@ class SymmetryBreakingTransformer_MostUsedTest extends UnitSuite {
 
         val scopes = Map(A -> 2, B -> 2)
         val transformer = new SymmetryBreakingTransformer_MostUsed(LowArityFirstAndMostUsedOrderFactory, DefaultSymmetryBreakerFactoryDL(None))
-        transformer(ProblemState(theory, scopes)) should be(ProblemState(expected, scopes, Set.empty, Set.empty, expectedRangeFormulas, List.empty))
+        transformer(ProblemState(theory, scopes)) should be(ProblemState(expected, scopes, Set.empty, Set.empty, expectedRangeFormulas, List.empty, distinctConstants = true))
     }
 
     test("function arity 1") {
@@ -67,7 +67,7 @@ class SymmetryBreakingTransformer_MostUsedTest extends UnitSuite {
 
         val scopes = Map(A -> 2, B -> 3)
         val transformer = new SymmetryBreakingTransformer_MostUsed(LowArityFirstAndMostUsedOrderFactory, DefaultSymmetryBreakerFactoryDL(None))
-        transformer(ProblemState(theory, scopes)) should be(ProblemState(expected, scopes, Set.empty, Set.empty, expectedRangeFormulas, List.empty))
+        transformer(ProblemState(theory, scopes)) should be(ProblemState(expected, scopes, Set.empty, Set.empty, expectedRangeFormulas, List.empty, distinctConstants = true))
     }
 
     test("function arity 2") {
