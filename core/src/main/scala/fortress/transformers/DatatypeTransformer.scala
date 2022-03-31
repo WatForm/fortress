@@ -11,7 +11,7 @@ import fortress.operations.TheoryOps._
 object DatatypeTransformer extends ProblemStateTransformer {
 
     override def apply(problemState: ProblemState): ProblemState = problemState match {
-        case ProblemState(theory, scopes, skc, skf, rangeRestricts, unapplyInterp) => {
+        case ProblemState(theory, scopes, skc, skf, rangeRestricts, unapplyInterp, distinctConstants) => {
             val enumValuesMap: Map[Sort, Seq[EnumValue]] =
                 (for (sort <- theory.sorts if !sort.isBuiltin && scopes.contains(sort)) yield {
                     val enumValues = DomainElement.range(1 to scopes(sort), sort).map(_.asEnumValue)
@@ -25,12 +25,10 @@ object DatatypeTransformer extends ProblemStateTransformer {
               .withAxioms(convertedAxioms)
 
             newTheory = enumValuesMap.foldLeft(newTheory) {
-                case (t, (s, enumValueSeq)) => {
-                    t.withEnumSort(s, enumValueSeq: _*)
-                }
+                case (t, (s, enumValueSeq)) => t.withEnumSort(s, enumValueSeq: _*)
             }
 
-            ProblemState(newTheory, scopes, skc, skf, rangeRestricts, unapplyInterp)
+            ProblemState(newTheory, scopes, skc, skf, rangeRestricts, unapplyInterp, distinctConstants = false)
         }
     }
 

@@ -14,7 +14,7 @@ import fortress.interpretation.Interpretation
 object SkolemizeTransformer extends ProblemStateTransformer {
     
     override def apply(problemState: ProblemState): ProblemState = problemState match {
-        case ProblemState(theory, scopes, skc, skf, rangeRestricts, unapplyInterp) => {
+        case ProblemState(theory, scopes, skc, skf, rangeRestricts, unapplyInterp, distinctConstants) => {
             val forbiddenNames = scala.collection.mutable.Set[String]()
             
             for(sort <- theory.sorts) {
@@ -57,7 +57,8 @@ object SkolemizeTransformer extends ProblemStateTransformer {
                 scopes, skc ++ newSkolemConstants.toSet,
                 skf ++ newSkolemFunctions.toSet,
                 rangeRestricts,
-                unapply :: unapplyInterp
+                unapply :: unapplyInterp,
+                distinctConstants
             )
         }
     }

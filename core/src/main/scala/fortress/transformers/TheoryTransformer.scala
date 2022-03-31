@@ -23,7 +23,8 @@ object TheoryTransformer {
                     problemState.skolemConstants,
                     problemState.skolemFunctions,
                     problemState.rangeRestrictions,
-                    problemState.unapplyInterp
+                    problemState.unapplyInterp,
+                    problemState.distinctConstants
                 )
             }
             

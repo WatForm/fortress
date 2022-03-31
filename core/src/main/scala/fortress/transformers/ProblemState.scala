@@ -21,7 +21,8 @@ case class ProblemState private(
     skolemConstants: Set[AnnotatedVar],
     skolemFunctions: Set[FuncDecl],
     rangeRestrictions: Set[RangeRestriction],
-    unapplyInterp: List[Interpretation => Interpretation]
+    unapplyInterp: List[Interpretation => Interpretation],
+    distinctConstants: Boolean
 ) {
     Errors.Internal.precondition(scopes.values.forall(_ > 0), "Scopes must be positive")
     Errors.Internal.precondition(scopes.keySet.forall(!_.isBuiltin))
@@ -49,7 +50,8 @@ object ProblemState {
             Set.empty,
             Set.empty,
             Set.empty,
-            List.empty
+            List.empty,
+            distinctConstants = true
         )
     }
 }

@@ -14,7 +14,7 @@ import fortress.operations.TheoryOps._
 class DomainEliminationTransformer2 extends ProblemStateTransformer {
     
     override def apply(problemState: ProblemState): ProblemState = problemState match {
-        case ProblemState(theory, scopes, skc, skf, rangeRestricts, unapplyInterp) => {
+        case ProblemState(theory, scopes, skc, skf, rangeRestricts, unapplyInterp, distinctConstants) => {
             val domainElemsMap: Map[Sort, Seq[DomainElement]] =
                 (for(sort <- theory.sorts if !sort.isBuiltin) yield {
                     val domElems = DomainElement.range(1 to scopes(sort), sort)
@@ -38,7 +38,7 @@ class DomainEliminationTransformer2 extends ProblemStateTransformer {
                 // .withAxioms(distinctConstraints)
                 .withAxioms(convertedAxioms)
             
-            ProblemState(newTheory, scopes, skc, skf, rangeRestricts, unapplyInterp)
+            ProblemState(newTheory, scopes, skc, skf, rangeRestricts, unapplyInterp, distinctConstants = true)
         }
     }
     

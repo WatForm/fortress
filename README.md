@@ -89,6 +89,7 @@ Options:
 * `--debug`- Sets this flag to get more information about execution time.
 * `--rawdata`- Sets this flag to get log information in machine-friendly format, so that data can be easily collected for data analysis purpose
 * `--validate`- Sets this flag to verify the instance returned by solver satisfies the original theory before applying transformation for SAT models.
+* `--view-model`- Sets this flag to display an interpretation that satisfies the model.
 
 Example usage:
 ```

@@ -29,7 +29,7 @@ private[transformers] class QuantifierExpansionTransformer (useConstForDomElem: 
         else DomainElement(index, sort)
     
     override def apply(problemState: ProblemState): ProblemState = problemState match {
-        case ProblemState(theory, scopes, skc, skf, rangeRestricts, unapplyInterp) => {
+        case ProblemState(theory, scopes, skc, skf, rangeRestricts, unapplyInterp, distinctConstants) => {
             Errors.Internal.precondition(scopes.keySet == theory.sorts.filter(!_.isBuiltin), scopes.keySet.toString)
         
             val domainElemsMap: Map[Sort, Seq[Term]] = scopes.map {
@@ -42,7 +42,7 @@ private[transformers] class QuantifierExpansionTransformer (useConstForDomElem: 
             }
         
             val newTheory = Theory.mkTheoryWithSignature(theory.signature).withAxioms(newAxioms)
-            ProblemState(newTheory, scopes, skc, skf, rangeRestricts, unapplyInterp)
+            ProblemState(newTheory, scopes, skc, skf, rangeRestricts, unapplyInterp, distinctConstants)
         }
     }
 

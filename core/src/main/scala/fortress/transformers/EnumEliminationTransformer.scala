@@ -12,7 +12,7 @@ import fortress.interpretation.Interpretation
   */
 object EnumEliminationTransformer extends ProblemStateTransformer {
     override def apply(problemState: ProblemState): ProblemState = problemState match {
-        case ProblemState(theory, scopes, skc, skf, rangeRestricts, unapplyInterp) => {
+        case ProblemState(theory, scopes, skc, skf, rangeRestricts, unapplyInterp, distinctConstants) => {
             val mapping = computeEnumSortMapping(theory)
             
             // Since we are replacing with domain elements, which cannot be in
@@ -28,7 +28,7 @@ object EnumEliminationTransformer extends ProblemStateTransformer {
             val unapply: Interpretation => Interpretation = _.replaceValuesWithEnums(mapping.map(_.swap))
             
             // The problem contain scopes for the enums, which should remain the same
-            ProblemState(newTheory, scopes, skc, skf, rangeRestricts, unapply :: unapplyInterp)
+            ProblemState(newTheory, scopes, skc, skf, rangeRestricts, unapply :: unapplyInterp, distinctConstants)
         }
     }
     

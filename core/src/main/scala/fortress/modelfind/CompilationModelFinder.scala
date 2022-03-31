@@ -88,7 +88,7 @@ with ModelFinderSettings {
         val instance = solverSession.get.solution
             .withoutDeclarations(compilerResult.get.skipForNextInterpretation)
             
-        val newAxiom = Not(And.smart(instance.toConstraints.toList map (_.eliminateDomainElementsConstants)))
+        val newAxiom = Not(And.smart(instance.toConstraints.toList map (compilerResult.get.eliminateDomainElements(_))))
         
         solverSession.get.addAxiom(newAxiom)
         solverSession.get.solve(timeoutMilliseconds)
