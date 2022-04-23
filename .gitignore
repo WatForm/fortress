@@ -12,7 +12,6 @@ out/
 .settings
 .classpath
 .project/
-project/
 bin/
 examples/*.class
 examples/libs/*.jar
