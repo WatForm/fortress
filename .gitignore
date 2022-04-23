@@ -12,7 +12,7 @@ out/
 .settings
 .classpath
 .project/
-project
+project/
 bin/
 examples/*.class
 examples/libs/*.jar
