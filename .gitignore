@@ -11,7 +11,8 @@ out/
 .vscode/
 .settings
 .classpath
-.project
+.project/
+project
 bin/
 examples/*.class
 examples/libs/*.jar
@@ -19,5 +20,7 @@ examples/libs/*.zip
 examples/libs/*.dylib
 examples/libs/*.so
 examples/libs/*.dll
+examples/libs/fortress
+examples/libs/fortress.bat
 target/
 fortress-0.1.0/

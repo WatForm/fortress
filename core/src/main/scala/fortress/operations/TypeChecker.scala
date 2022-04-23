@@ -228,11 +228,17 @@ class TypeChecker(signature: Signature) extends TermVisitorWithTypeContext[TypeC
         // 2. arguments contain no connectives or quantifiers
         val funcName = c.functionName
 
+        // Check function we are closing over exists
         if(! (signature hasFunctionWithName funcName) ) {
             throw new TypeCheckException.UnknownFunction("Could not find function: " + funcName)
         }
         if (! (c.arguments.contains(c.arg1) && c.arguments.contains(c.arg2)) ) {
             throw new TypeCheckException.BadStructure("The two given closure arguments must be included in the arguments list")
+        }
+
+        // Temporary(?) Restriction to only 2 arguments
+        if(c.arguments.length != 2){
+            throw new TypeCheckException.BadStructure("Expected exactly 2 arguments but got " + c.arguments.length.toString + " instead")
         }
 
         val results = c.arguments.map(visit)
