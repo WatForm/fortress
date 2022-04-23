@@ -81,12 +81,11 @@ class ClosureEliminator(topLevelTerm: Term, signature: Signature, scopes: Map[So
                 val sort = argSorts.get(idx)
                 closureFunctions += FuncDecl.mkFuncDecl(closureName, argSorts, Sort.Bool)
                 // TODO ??
-                val vars = List.tabulate(argSorts.size-2)(_ => Var(nameGen.freshName("bv")))
-                val x = Var(nameGen.freshName("x"))
-                val y = Var(nameGen.freshName("y"))
+                val vars = List.tabulate(argSorts.size-2)(_ => Var(nameGen.freshName("bv")));
+                val x = Var(nameGen.freshName("x"));
+                val y = Var(nameGen.freshName("y"));
 
-                val avars = (List.tabulate(idx)(i => vars(i).of(argSorts.get(i))) :+ x.of(sort) :+ y.of(sort)) 
-                    ::: List.tabulate(vars.size-idx)(i => vars(idx+i).of(argSorts.get(idx+i+2)))
+                val avars = (List.tabulate(idx)(i => vars(i).of(argSorts.get(i))) :+ x.of(sort) :+ y.of(sort)) ::: (List.tabulate(vars.size-idx)(i => vars(idx+i).of(argSorts.get(idx+i+2))))
                 val z = Var(nameGen.freshName("z"))
                 val az = z.of(sort)
                 val scope = scopes(sort)

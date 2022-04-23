@@ -65,20 +65,17 @@ class ClosureEliminatorEijck(topLevelTerm: Term, signature: Signature, scopes: M
 
         // TODO extend for other arguments. See getVarList in ClosureEliminator
         /** Axioms to define a midpoint being closer to the starting node than the ending node along a path for the given relation */
-        def addClosenessAxioms(sort: Sort, functionName: String): String {
+        def addClosenessAxioms(sort: Sort, functionName: String): String = {
             // How to actually ensure this does not exist from something else?
-            val closenessName: String = "^Close^" + functionName
+            val closenessName: String = "^Close^" + functionName;
             // If we already made this, then we can just leave.
             if (queryFunction(closenessName)){
                 return closenessName;
             }
 
-            val closenessArgs = new ArrayList(3)
-            closenessArgs.add(sort)
-            closenessArgs.add(sort)
-            closenessArgs.add(sort)
+            val closenessArgs: List[Sort] = List(sort, sort, sort)
 
-            closureFunctions += FuncDecl.mkFuncDecl(closenessName, closenessArgs, Sort.Bool)
+            closureFunctions += FuncDecl.mkFuncDecl(closenessName, sort, sort, sort, Sort.Bool)
             
             val x = Var(nameGen.freshName("x"))
             val y = Var(nameGen.freshName("y"))
@@ -87,7 +84,7 @@ class ClosureEliminatorEijck(topLevelTerm: Term, signature: Signature, scopes: M
 
             val axy = List(x.of(sort), y.of(sort))
             val axyz = List(x.of(sort), y.of(sort), z.of(sort))
-            val au = u.ofSort(sort)
+            val au = u.of(sort)
 
             // Moved first to NNF
             closureAxioms += Forall(axyz :+ au,
@@ -99,7 +96,7 @@ class ClosureEliminatorEijck(topLevelTerm: Term, signature: Signature, scopes: M
             // No zero-distance
             closureAxioms += Forall(axy, Not(App(closenessName, List(x,x,y))))
             // Single step NNF
-            closenessAxioms += Forall(axyz,
+            closureAxioms += Forall(axyz,
                 Or(
                     Not(App(closenessName, List(x,y,y))),
                     Not(App(closenessName, List(y,z,z))),
@@ -108,31 +105,27 @@ class ClosureEliminatorEijck(topLevelTerm: Term, signature: Signature, scopes: M
                 )
             )
             // idk but NNF
-            closenessAxioms += Forall(axyz,
+            closureAxioms += Forall(axyz,
                 Or(
-                    Not(
-                        App(closenessName, List(x,y,z)),
-                        Eq(y,z),
-                        App(closenessName, List(y,z,z))
-                    )
+                    Not(App(closenessName, List(x,y,z))),
+                    Eq(y, z),
+                    App(closenessName, List(y,z,z))
                 )
             )
             // Functions using the actual relation
             // NNF
-            closenessAxioms += Forall(axy,
+            closureAxioms += Forall(axy,
                 Or(
-                    Not(
-                        App(functionName, List(x,y)),
-                        Eq(x,y),
-                        App(closenessName, List(x,y,y))
-                    )
+                    Not(App(functionName, List(x,y))),
+                    Eq(x,y),
+                    App(closenessName, List(x,y,y))
                 )
             )
             // Closest unless something is closer NNF
-            closenessAxioms += Forall(axy,
+            closureAxioms += Forall(axy,
                 Or(
                     Not(App(closenessName, List(x,y,y))),
-                    Exists(z.ofSort(sort),
+                    Exists(z.of(sort),
                         And(
                             App(functionName, List(x,z)),
                             App(closenessName, List(x,z,y))
@@ -145,11 +138,11 @@ class ClosureEliminatorEijck(topLevelTerm: Term, signature: Signature, scopes: M
 
         
         // TODO support more arguments
-        override def visitClosure(c: Closure){
+        override def visitClosure(c: Closure): Term = {
             // Iff is allowed here it seems
-            val functionName = rc.functionName
+            val functionName = c.functionName
             // idx is used for when there are more args
-            val idx = rc.arguments.indexOf(rc.arg1)
+            val idx = c.arguments.indexOf(c.arg1)
             val reflexiveClosureName = "*" + functionName
             val closureName = "^" + functionName
 
@@ -177,8 +170,15 @@ class ClosureEliminatorEijck(topLevelTerm: Term, signature: Signature, scopes: M
 
                 // define reflexive closure if we haven't already
                 if(!queryFunction(reflexiveClosureName)){
-                    val rca = makeReflexiveClosureAxiom(reflexiveClosureName, closenessName)
-                    closureAxioms += rca
+                    closureAxioms += Forall(axy,
+                        Iff(
+                            App(reflexiveClosureName, List(x,y)),
+                            Or(
+                                App(closenessName, List(x,y,y)),
+                                Eq(x,y)
+                            )
+                        )
+                    )
                 }
 
                 // Add an axiom to define how we use closeness to define closure
@@ -201,7 +201,7 @@ class ClosureEliminatorEijck(topLevelTerm: Term, signature: Signature, scopes: M
             App(closureName, c.arguments).mapArguments(visit)
         }
         // TODO support more arguments
-        override def visitReflexiveClosure(rc: ReflexiveClosure){
+        override def visitReflexiveClosure(rc: ReflexiveClosure): Term = {
             // Iff is allowed here it seems
             val functionName = rc.functionName
             // idx is used for when there are more args
@@ -238,22 +238,20 @@ class ClosureEliminatorEijck(topLevelTerm: Term, signature: Signature, scopes: M
 
             App(reflexiveClosureName, rc.arguments).mapArguments(visit)
         }
+        override def visitForallInner(term: Forall): Term = term.mapBody(visit)
+        
+        override def visitExistsInner(term: Exists): Term = term.mapBody(visit)
+        
+        override def visitDomainElement(d: DomainElement): Term = d
+        
+        override def visitIntegerLiteral(literal: IntegerLiteral): Term = literal
+        
+        override def visitBitVectorLiteral(literal: BitVectorLiteral): Term = literal
+        
+        override def visitEnumValue(e: EnumValue): Term = e
+
+        override def visitIfThenElse(ite: IfThenElse): Term = IfThenElse(visit(ite.condition), visit(ite.ifTrue), visit(ite.ifFalse))
 
     }
-
-    override def visitForallInner(term: Forall): Term = term.mapBody(visit)
-        
-    override def visitExistsInner(term: Exists): Term = term.mapBody(visit)
     
-    override def visitDomainElement(d: DomainElement): Term = d
-    
-    override def visitIntegerLiteral(literal: IntegerLiteral): Term = literal
-    
-    override def visitBitVectorLiteral(literal: BitVectorLiteral): Term = literal
-    
-    override def visitEnumValue(e: EnumValue): Term = e
-
-    override def visitIfThenElse(ite: IfThenElse): Term = IfThenElse(visit(ite.condition), visit(ite.ifTrue), visit(ite.ifFalse))
-
-
 }
