@@ -17,7 +17,7 @@ class ClosureEliminator(topLevelTerm: Term, signature: Signature, scopes: Map[So
     val closureFunctions = scala.collection.mutable.Set[FuncDecl]()
     // Generated axioms
     val closureAxioms = scala.collection.mutable.Set[Term]()
-    val visitor = new ClosureVisitor
+    val visitor: TermVisitorWithTypeContext[Term] = new ClosureVisitor
 
     /**
     * Perform the closure elimination and get the resulting term.

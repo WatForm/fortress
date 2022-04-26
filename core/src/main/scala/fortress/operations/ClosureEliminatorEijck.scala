@@ -9,12 +9,12 @@ import java.util.ArrayList
 import scala.jdk.CollectionConverters._
 
 
-class ClosureEliminatorEijck(topLevelTerm: Term, signature: Signature, scopes: Map[Sort, Int], nameGen: NameGenerator) {
+class ClosureEliminatorEijck(topLevelTerm: Term, signature: Signature, scopes: Map[Sort, Int], nameGen: NameGenerator) extends ClosureEliminator(topLevelTerm, signature, scopes, nameGen) {
     // All closure functions we have generated (helps to avoid duplicates
-    val closureFunctions = scala.collection.mutable.Set[FuncDecl]()
+    //val closureFunctions = scala.collection.mutable.Set[FuncDecl]()
     // Generated axioms
-    val closureAxioms = scala.collection.mutable.Set[Term]()
-    val visitor = new ClosureVisitorEijck
+    //val closureAxioms = scala.collection.mutable.Set[Term]()
+    override val visitor = new ClosureVisitorEijck
 
     // TODO fully understand how this is meant to be used
     /**
@@ -23,6 +23,8 @@ class ClosureEliminatorEijck(topLevelTerm: Term, signature: Signature, scopes: M
     * after this.
     * Convert should only be called once per ClosureEliminator object.
     */
+    /*
+    Remove because we extend original now    
     def convert(): Term = {
         visitor.visit(topLevelTerm)
     }
@@ -32,34 +34,9 @@ class ClosureEliminatorEijck(topLevelTerm: Term, signature: Signature, scopes: M
     
     /** Returns the set of generated skolem functions. Must be called after convert. */
     def getClosureAxioms: Set[Term] =  closureAxioms.toSet
+    */
 
-
-    class ClosureVisitorEijck extends TermVisitorWithTypeContext[Term](signature) {
-        // Basically do nothing for each of the other terms
-        override def visitTop: Term = Top
-        
-        override def visitBottom: Term = Bottom
-        
-        override def visitVar(variable: Var): Term = variable
-        
-        override def visitNot(term: Not): Term = term.mapBody(visit)
-        
-        override def visitAndList(term: AndList): Term = term.mapArguments(visit)
-        
-        override def visitOrList(term: OrList): Term = term.mapArguments(visit)
-        
-        override def visitDistinct(term: Distinct): Term = term.mapArguments(visit)
-        
-        override def visitIff(term: Iff): Term = term.mapArguments(visit)
-        
-        override def visitImplication(term: Implication): Term = term.mapArguments(visit)
-        
-        override def visitEq(term: Eq): Term = term.mapArguments(visit)
-        
-        override def visitApp(term: App): Term = term.mapArguments(visit)
-        
-        override def visitBuiltinApp(term: BuiltinApp): Term = term.mapArguments(visit)
-
+    class ClosureVisitorEijck extends ClosureVisitor {
         /** Check if a function has been defined */
         def queryFunction(name: String): Boolean = signature.hasFunctionWithName(name) || closureFunctions.exists(f => f.name == name)
 
@@ -238,20 +215,7 @@ class ClosureEliminatorEijck(topLevelTerm: Term, signature: Signature, scopes: M
 
             App(reflexiveClosureName, rc.arguments).mapArguments(visit)
         }
-        override def visitForallInner(term: Forall): Term = term.mapBody(visit)
         
-        override def visitExistsInner(term: Exists): Term = term.mapBody(visit)
-        
-        override def visitDomainElement(d: DomainElement): Term = d
-        
-        override def visitIntegerLiteral(literal: IntegerLiteral): Term = literal
-        
-        override def visitBitVectorLiteral(literal: BitVectorLiteral): Term = literal
-        
-        override def visitEnumValue(e: EnumValue): Term = e
-
-        override def visitIfThenElse(ite: IfThenElse): Term = IfThenElse(visit(ite.condition), visit(ite.ifTrue), visit(ite.ifFalse))
-
     }
     
 }
