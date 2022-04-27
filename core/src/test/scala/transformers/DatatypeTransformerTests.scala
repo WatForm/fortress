@@ -38,7 +38,14 @@ class DatatypeTransformerTests extends UnitSuite {
             .withAxiom(Not(d === _4B) ==> Exists(x of A, x === _2A))
         
         val transformer = DatatypeTransformer
-        transformer(ProblemState(theory, scopes)) should be (ProblemState(expectedTheory, scopes))
+        transformer(ProblemState(theory, scopes)) should be(ProblemState(
+            expectedTheory,
+            scopes,
+            Set.empty,
+            Set.empty,
+            Set.empty,
+            List.empty,
+            distinctConstants = false))
     }
     
     test("scope of one") {
@@ -62,6 +69,13 @@ class DatatypeTransformerTests extends UnitSuite {
             .withAxiom(d === _1B)
         
         val transformer = DatatypeTransformer
-        transformer(ProblemState(theory, scopes)) should be (ProblemState(expectedTheory, scopes))
+        transformer(ProblemState(theory, scopes)) should be(ProblemState(
+            expectedTheory,
+            scopes,
+            Set.empty,
+            Set.empty,
+            Set.empty,
+            List.empty,
+            distinctConstants = false))
     }
 }
