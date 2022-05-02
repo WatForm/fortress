@@ -33,14 +33,8 @@ class ConfigOption(optionName: String, action: ConfigurableCompiler => () = (_ =
 
 }
 
-/**
-  * An option which will only activate while it is enabled
-  *
-  * @param name
-  * @param defaultValue true if the option should start enabled
-  */
-class ToggleOption(optionName: String, action: ConfigurableCompiler => () = (_ => ()), defaultState: Boolean = true) extends ConfigOption(optionName, action) {
-  protected var enabled: Boolean = defaultState
+trait Toggleable extends ConfigOption {
+  protected var enabled: Boolean = true
 
   def isEnabled() = enabled
 
@@ -52,16 +46,33 @@ class ToggleOption(optionName: String, action: ConfigurableCompiler => () = (_ =
     enabled = false
   }
 
+  def toggle = {
+    enabled = !enabled
+  }
 
   override def modifyCompiler(compiler: ConfigurableCompiler): Unit = {
     if (enabled) {
       compilerModification(compiler)
     }
   }
-
 }
 
+/**
+  * An option which will only activate while it is enabled
+  *
+  * @param name
+  * @param defaultValue true if the option should start enabled
+  */
+class ToggleOption(optionName: String, action: ConfigurableCompiler => () = (_ => ()), defaultState: Boolean = true) extends ConfigOption(optionName, action) with Toggleable {
+  // Override enabled to default value
+  enabled = defaultState
+}
 
+/**
+  * A collection of prioritized options which can be controlled individually.
+  *
+  * @param optionName
+  */
 class GroupOption(optionName: String) extends ConfigOption(optionName) {
     protected val options: collection.mutable.Map[String, ConfigOption] = new collection.mutable.HashMap[String, ConfigOption]()
 
@@ -103,10 +114,12 @@ class GroupOption(optionName: String) extends ConfigOption(optionName) {
 
     def getOption(optionName: String): ConfigOption = options(optionName)
 
+    def getOptions(): Seq[ConfigOption] = getOptionsByPriority()
+
     def setPriority(optionName: String, newPriority: Float): Unit = {
         Errors.Internal.precondition(priorities contains optionName, f"Option '$optionName' does not exist.")
         priorities(optionName) = newPriority
-    }
+    } 
 
     private def getOptionsByPriority(): Seq[ConfigOption] = {
         val allNames = options.keys.toSeq
@@ -123,23 +136,14 @@ class GroupOption(optionName: String) extends ConfigOption(optionName) {
     
 }
 
-class ToggleGroupOption(optionName: String, defaultState: Boolean = true) extends GroupOption(optionName) {
-  protected var enabled: Boolean = defaultState
-
-  def isEnabled() = enabled
-
-  def enable() = {
-    enabled = true
-  }
-
-  def disable() = {
-    enabled = false
-  }
-
-  override def compilerModification(compiler: ConfigurableCompiler) = {
-    if (enabled) {
-      super.compilerModification(compiler)
-    }
-  }
-
+/**
+  * A Group of prioritized options, which can be collectively enabled or disabled
+  *
+  * @param optionName
+  * @param defaultState
+  */
+class ToggleGroupOption(optionName: String, defaultState: Boolean = true) extends GroupOption(optionName) with Toggleable {
+  // Override initial enabled state with default value
+  enabled = defaultState
 }
+
