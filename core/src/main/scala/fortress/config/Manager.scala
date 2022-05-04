@@ -39,7 +39,24 @@ class Manager {
         priorities remove optionName
     }
 
-    def getOption(optionName: String): ConfigOption = options(optionName)
+    def getOption(optionName: String): Option[ConfigOption] = options.get(optionName)
+
+    def getOptionPath(path: Seq[String]): Option[ConfigOption] = {
+      path match {
+        // If the list is empty return
+        case Nil => None
+        // If the list has one element, make an attempt
+        case head :: Nil => getOption(head)
+        // Find the next step and make sure it is a group object
+        case head :: tail => getOption(head) match {
+          case Some(nextOption) if nextOption.isInstanceOf[GroupOption] =>
+            nextOption.asInstanceOf[GroupOption].getOptionPath(tail)
+          case _ => None
+        }
+      }
+    }
+
+
 
     def setPriority(optionName: String, newPriority: Float): Unit = {
         Errors.Internal.precondition(priorities contains optionName, f"Option '$optionName' does not exist.")

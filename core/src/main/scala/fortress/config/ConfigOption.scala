@@ -11,7 +11,7 @@ import java.io.ObjectInputFilter.Config
   * @param optionName
   * @param action
   */
-class ConfigOption(optionName: String, action: ConfigurableCompiler => () = (_ => ())) {
+class ConfigOption(optionName: String, action: (ConfigurableCompiler => Unit) = (_ => ())) {
 
   val name = optionName
   /**
@@ -63,7 +63,7 @@ trait Toggleable extends ConfigOption {
   * @param name
   * @param defaultValue true if the option should start enabled
   */
-class ToggleOption(optionName: String, action: ConfigurableCompiler => () = (_ => ()), defaultState: Boolean = true) extends ConfigOption(optionName, action) with Toggleable {
+class ToggleOption(optionName: String, action: ConfigurableCompiler => Unit = (_ => ()), defaultState: Boolean = true) extends ConfigOption(optionName, action) with Toggleable {
   // Override enabled to default value
   enabled = defaultState
 }
@@ -112,7 +112,22 @@ class GroupOption(optionName: String) extends ConfigOption(optionName) {
         priorities remove optionName
     }
 
-    def getOption(optionName: String): ConfigOption = options(optionName)
+    def getOption(optionName: String): Option[ConfigOption] = options.get(optionName)
+    
+    def getOptionPath(path: Seq[String]): Option[ConfigOption] = {
+      path match {
+        // If the list is empty return
+        case Nil => None
+        // If the list has one element, make an attempt
+        case head :: Nil => getOption(head)
+        // Find the next step and make sure it is a group object
+        case head :: tail => getOption(head) match {
+          case Some(nextOption) if nextOption.isInstanceOf[GroupOption] =>
+            nextOption.asInstanceOf[GroupOption].getOptionPath(tail)
+          case _ => None
+        }
+      }
+    }
 
     def getOptions(): Seq[ConfigOption] = getOptionsByPriority()
 
