@@ -48,6 +48,13 @@ case object DatatypeOption extends ToggleOption(
     _.addTransformer(DatatypeTransformer)
 )
 
+
+// Closures
+case object ClosureEliminationOption extends ToggleOption(
+    "ClosureElimination",
+    _.addTransformer(ClosureEliminationTransformer)
+)
+
 /*
  * Symmetry Breaking
  */
