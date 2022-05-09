@@ -97,4 +97,6 @@ object Manager {
     manager.addOption(DatatypeOption, 5504)
     return manager
   }
+
+  def makeEmpty(): Manager = new Manager
 }
