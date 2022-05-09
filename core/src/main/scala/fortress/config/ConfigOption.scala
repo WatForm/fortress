@@ -60,7 +60,8 @@ trait Toggleable extends ConfigOption {
 /**
   * An option which will only activate while it is enabled
   *
-  * @param name
+  * @param optionName name of the option
+  * @param action action to perform on the compiler when this option is applie
   * @param defaultValue true if the option should start enabled
   */
 class ToggleOption(optionName: String, action: ConfigurableCompiler => Unit = (_ => ()), defaultState: Boolean = true) extends ConfigOption(optionName, action) with Toggleable {
