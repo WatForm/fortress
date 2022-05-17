@@ -5,6 +5,7 @@ import fortress.transformers._
 import fortress.transformers.TheoryTransformer._ // for implicit conversion to ProblemStateTransformer
 import fortress.modelfind._
 import fortress.symmetry._
+import scala.collection.mutable.ListBuffer
 
 /**
   * The standard Fortress compiler steps.
@@ -245,5 +246,22 @@ class PredUpperBoundCompiler extends LogicCompiler {
         transformerSequence += new SimplifyTransformer
         transformerSequence += DomainEliminationTransformer
         transformerSequence.toList
+    }
+}
+
+/**
+  * A compiler designed to allow manual addition of transformers to thr transformer sequence
+  *
+  */
+class ConfigurableCompiler extends LogicCompiler {
+    val transformers: ListBuffer[ProblemStateTransformer] = new collection.mutable.ListBuffer[ProblemStateTransformer]
+    override def transformerSequence: Seq[ProblemStateTransformer] = transformers.toList
+
+    def addTransformer(transformer: ProblemStateTransformer): Unit = {
+        transformers += transformer
+    }
+
+    def addTransformers(newTransformers: Seq[ProblemStateTransformer]): Unit = {
+        transformers ++= newTransformers
     }
 }

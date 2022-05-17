@@ -5,6 +5,7 @@ import fortress.transformers._
 import fortress.transformers.TheoryTransformer._ // for implicit conversion to ProblemStateTransformer
 import fortress.symmetry._
 import fortress.compiler._
+import fortress.config.Manager
 
 class FortressZERO(solverInterface: SolverInterface) extends CompilationModelFinder(solverInterface) {
     def this() = this(Z3IncCliInterface)
@@ -77,3 +78,9 @@ class PredUpperBoundModelFinder(solverInterface: SolverInterface) extends Compil
 
     override def createCompiler(integerSemantics: IntegerSemantics): LogicCompiler = new PredUpperBoundCompiler
 }
+
+class ConfigurableModelFinder(solverInterface: SolverInterface, configManager: Manager) extends CompilationModelFinder(solverInterface) {
+    def this(configManager: Manager) = this(Z3IncCliInterface, configManager)
+
+    override def createCompiler(integerSemantics: IntegerSemantics): LogicCompiler = configManager.setupCompiler()
+} 
