@@ -23,3 +23,4 @@ examples/libs/fortress
 examples/libs/fortress.bat
 target/
 fortress-0.1.0/
+.sbtopts

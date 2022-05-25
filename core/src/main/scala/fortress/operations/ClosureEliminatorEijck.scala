@@ -131,9 +131,8 @@ class ClosureEliminatorEijck(topLevelTerm: Term, signature: Signature, scopes: M
                 // TODO only use 0 instead of idx?
                 val sort = argSorts.get(idx)
 
-                // TODO should this be closureName
-                // Declare reflexive closure
-                closureFunctions += FuncDecl.mkFuncDecl(reflexiveClosureName, argSorts, Sort.Bool)
+                // Declare the new function representing the closure
+                closureFunctions += FuncDecl.mkFuncDecl(closureName, argSorts, Sort.Bool)
                 
                 // Set up variables (and their arguments) for axioms
                 val x = Var(nameGen.freshName("x"))
@@ -147,6 +146,9 @@ class ClosureEliminatorEijck(topLevelTerm: Term, signature: Signature, scopes: M
 
                 // define reflexive closure if we haven't already
                 if(!queryFunction(reflexiveClosureName)){
+                    // declare the function
+                    closureFunctions += FuncDecl.mkFuncDecl(reflexiveClosureName, argSorts, Sort.Bool)
+                    // Defined with closeness and one additional axiom
                     closureAxioms += Forall(axy,
                         Iff(
                             App(reflexiveClosureName, List(x,y)),
