@@ -44,6 +44,7 @@ lazy val fortressCore = (project in file("core"))
         // Dependencies
         libraryDependencies += "org.scalatest" %% "scalatest" % "3.1.0" % Test, // Scala test
         libraryDependencies += "org.scala-lang.modules" %% "scala-parallel-collections" % "1.0.0", // Parallel collections
+        libraryDependencies += "tools.aqua" % "z3-turnkey" % "4.8.17", // Z3-Turnkey fir java API
         // Disable documentation generation
         sources in (Compile,doc) := Seq.empty,
         publishArtifact in (Compile, packageDoc) := false

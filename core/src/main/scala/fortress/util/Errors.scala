@@ -14,6 +14,11 @@ object Errors {
 
     object API {
         // API errors are when the user of the API does something wrong - these can be catchable Exceptions
+        class WrongTypeError(message: String) extends AssertionError(message)
+        def wrongTypeError(message: String): Nothing = throw new WrongTypeError(message)
+
+        class MissingSortError(message: String) extends AssertionError(message)
+        def missingSortError(message: String): Nothing = throw new MissingSortError(message)
     }
 
     object Internal {
