@@ -140,6 +140,57 @@ class PythonZ3Converter(writer: java.io.Writer) {
         writer.write('\n')
     }
 
+    def writeConstDecl(constant: AnnotatedVar): Unit = constant match {
+        case AnnotatedVar(name, sort) => {
+            val z3name = nameWithAffix(constant.name)
+            writer.write(z3name)
+            writer.write(" = ")
+            writeNamedPyFunction("ConstDecl", z3name, sort)
+            writer.write('\n')
+        } 
+    }
+
+    def writeEnumDecl(sort: Sort, enums: Seq[EnumValue]): Unit = {
+        val sortName = nameWithAffix(sort.name)
+        val enumNames = enums.map(v => nameWithAffix(v.name))
+        
+        // Of the form
+        // Color, (red, green, blue) = EnumSort('Color', ['red','green','blue'])
+        writer.write(sortName)
+        writer.write(", (")
+        for (name <- enumNames) {
+            writer.write(name)
+            writer.write(", ")
+        }
+        writer.write(") = EnumSort('")
+        writer.write(sortName)
+        writer.write("', [")
+        for (name <- enumNames) {
+            writer.write(name)
+            writer.write(", ")
+        }
+        writer.write("])\n")
+    }
+
+    def writeSignature(sig: Signature): Unit = {
+        sig.sorts.removedAll(sig.enumConstants.keys).foreach(writeSortDecl)
+        sig.enumConstants.foreach(x => writeEnumDecl(x._1, x._2))
+        sig.functionDeclarations.foreach(writeFuncDecl)
+        sig.constants.foreach(writeConstDecl)
+    }
+
+    def writeAssertion(term: Term): Unit = {
+        writer.write("__solver.add(")
+        writeTerm(term)
+        writer.write(")\n")
+    }
+
+    def writeTheory(theory: Theory): Unit = {
+        writeSignature(theory.signature)
+        writer.write("__solver = Solver()")
+        theory.axioms.foreach(writeAssertion)
+    }
+
     // We need to declare consts as well as use them, may need separate functions?
     // Or do we need to treat vars as consts?
     /*
