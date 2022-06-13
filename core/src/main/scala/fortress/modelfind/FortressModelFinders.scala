@@ -83,4 +83,16 @@ class ConfigurableModelFinder(solverInterface: SolverInterface, configManager: M
     def this(configManager: Manager) = this(Z3IncCliInterface, configManager)
 
     override def createCompiler(integerSemantics: IntegerSemantics): LogicCompiler = configManager.setupCompiler()
-} 
+}
+
+/**
+  * A Model finder that allows the user to directly specify the compiler to use
+  *
+  * @param solverInterface the solver interface to be used
+  * @param compiler the compiler the problem will be passed through before being given to the solver
+  */
+class SimpleModelFinder(solverInterface: SolverInterface, compiler: LogicCompiler) extends CompilationModelFinder(solverInterface) {
+    def this(compiler: LogicCompiler) = this(Z3IncCliInterface, compiler)
+
+    override protected def createCompiler(integerSemantics: IntegerSemantics): LogicCompiler = compiler
+}
