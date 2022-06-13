@@ -11,4 +11,6 @@ object NameConverter {
     def nameWithoutAffix(name: String): String =
         if (name.endsWith("aa")) name.substring(0, name.length - 2)
         else name
+    
+    def nameToPython(name: String): String = name.replaceAll("@", "") + "_"
 }

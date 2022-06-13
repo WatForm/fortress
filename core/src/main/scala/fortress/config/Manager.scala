@@ -5,6 +5,7 @@ import fortress.modelfind._
 import fortress.operations._
 import fortress.config._
 import fortress.util._
+import fortress.solverinterface.SolverInterface
 
 /**
   * Used to create a compiler and modelfinder in combitionation.
@@ -82,6 +83,7 @@ class Manager {
 
     def setupModelFinder(): ConfigurableModelFinder = new ConfigurableModelFinder(this)
 
+    def setupModelFinder(interface: SolverInterface): ConfigurableModelFinder = new ConfigurableModelFinder(this, interface)
 }
 
 object Manager {

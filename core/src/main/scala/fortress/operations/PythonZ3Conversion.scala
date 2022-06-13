@@ -10,10 +10,10 @@ class PythonZ3Converter(writer: java.io.Writer) {
 
     // Writer is used for efficiency (don't keep building strings)
     def writeTerm(term: Term): Unit = term match {
-        case EnumValue(name) => writer.write(nameWithAffix(name))
+        case EnumValue(name) => writer.write(nameToPython(name))
         case Top => writer.write("True()")
         case Bottom => writer.write("False()")
-        case Var(name) => writer.write(nameWithAffix(name))
+        case Var(name) => writer.write(nameToPython(name))
         case Not(p) => writeGeneralApp("Not", p)
         case AndList(args) => writeGeneralApp("And", args)
         case OrList(args) => writeGeneralApp("Or", args)
@@ -22,7 +22,7 @@ class PythonZ3Converter(writer: java.io.Writer) {
         // (left == right)
         case Iff(left, right) => writeBinOp("==", left, right)
         case Eq(left, right) => writeBinOp("==", left, right)
-        case App(fname, args) => writeGeneralApp(nameWithAffix(fname), args)
+        case App(fname, args) => writeGeneralApp(nameToPython(fname), args)
         case IfThenElse(condition, ifTrue, ifFalse) => writeGeneralApp("If", Seq(ifTrue, ifFalse))
         case Exists(vars, body) => writeQuantifier("Exists", vars, body)
         case Forall(vars, body) => writeQuantifier("ForAll", vars, body)
@@ -95,7 +95,7 @@ class PythonZ3Converter(writer: java.io.Writer) {
         writer.write(name)
         writer.write("([")
         for (var_ <- vars){
-            writer.write(nameWithAffix(var_.name))
+            writer.write(nameToPython(var_.name))
             writer.write(", ")
         }
         writer.write("], ")
@@ -113,7 +113,7 @@ class PythonZ3Converter(writer: java.io.Writer) {
 
     // NOTE affixing sort names?
     def writeSort(sort: Sort): Unit = sort match {
-        case SortConst(name) => writer.write(nameWithAffix(name))
+        case SortConst(name) => writer.write(nameToPython(name))
         case BoolSort => writer.write("BoolSort()")
         case IntSort => writer.write("IntSort()")
         case BitVectorSort(bitwidth) => writer.write("BitVecSort("); writer.write(bitwidth.toString()); writer.write(")")
@@ -123,7 +123,7 @@ class PythonZ3Converter(writer: java.io.Writer) {
     
     def writeSortDecl(sort: Sort): Unit = sort match {
         case SortConst(name) => {
-            var z3name = nameWithAffix(name)
+            var z3name = nameToPython(name)
             writer.write(z3name)
             writer.write(" = ")
             writeNamedPyFunction("DeclareSort", z3name)
@@ -133,7 +133,7 @@ class PythonZ3Converter(writer: java.io.Writer) {
     }
 
     def writeFuncDecl(funcDecl: FuncDecl): Unit = {
-        var z3name = nameWithAffix(funcDecl.name)
+        var z3name = nameToPython(funcDecl.name)
         writer.write(z3name)
         writer.write(" = ")
         writeNamedPyFunction("Function", z3name, funcDecl.argSorts)
@@ -142,7 +142,7 @@ class PythonZ3Converter(writer: java.io.Writer) {
 
     def writeConstDecl(constant: AnnotatedVar): Unit = constant match {
         case AnnotatedVar(name, sort) => {
-            val z3name = nameWithAffix(constant.name)
+            val z3name = nameToPython(constant.name)
             writer.write(z3name)
             writer.write(" = ")
             writeNamedPyFunction("ConstDecl", z3name, sort)
@@ -151,8 +151,8 @@ class PythonZ3Converter(writer: java.io.Writer) {
     }
 
     def writeEnumDecl(sort: Sort, enums: Seq[EnumValue]): Unit = {
-        val sortName = nameWithAffix(sort.name)
-        val enumNames = enums.map(v => nameWithAffix(v.name))
+        val sortName = nameToPython(sort.name)
+        val enumNames = enums.map(v => nameToPython(v.name))
         
         // Of the form
         // Color, (red, green, blue) = EnumSort('Color', ['red','green','blue'])
@@ -166,8 +166,9 @@ class PythonZ3Converter(writer: java.io.Writer) {
         writer.write(sortName)
         writer.write("', [")
         for (name <- enumNames) {
+            writer.write('\'')
             writer.write(name)
-            writer.write(", ")
+            writer.write("', ")
         }
         writer.write("])\n")
     }
@@ -187,8 +188,9 @@ class PythonZ3Converter(writer: java.io.Writer) {
 
     def writeTheory(theory: Theory): Unit = {
         writeSignature(theory.signature)
-        writer.write("__solver = Solver()")
+        writer.write("__solver = Solver()\n")
         theory.axioms.foreach(writeAssertion)
+        writer.flush()
     }
 
     // We need to declare consts as well as use them, may need separate functions?

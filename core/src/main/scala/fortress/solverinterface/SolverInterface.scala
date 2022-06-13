@@ -15,6 +15,7 @@ object SolverInterface {
         case "Z3Cli" => Some(Z3CliInterface)
         case "Z3IncCli" => Some(Z3IncCliInterface)
         case "CVC4Cli" => Some(CVC4CliInterface)
+        case "Z3Api" => Some(Z3ApiInterface)
         case _ => None
     }
 }
@@ -29,4 +30,8 @@ case object Z3IncCliInterface extends SolverInterface {
 
 case object CVC4CliInterface extends SolverInterface {
     def openSession(): SolverSession = new CVC4CliSolver
+}
+
+case object Z3ApiInterface extends SolverInterface {
+    def openSession(): SolverSession = new Z3ApiSolver
 }

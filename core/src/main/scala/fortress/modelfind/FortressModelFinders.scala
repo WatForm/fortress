@@ -80,7 +80,9 @@ class PredUpperBoundModelFinder(solverInterface: SolverInterface) extends Compil
 }
 
 class ConfigurableModelFinder(solverInterface: SolverInterface, configManager: Manager) extends CompilationModelFinder(solverInterface) {
-    def this(configManager: Manager) = this(Z3IncCliInterface, configManager)
+    //def this(configManager: Manager) = this(Z3IncCliInterface, configManager)
+
+    def this(configManager: Manager, interface: SolverInterface = Z3IncCliInterface) = this(interface, configManager)
 
     override def createCompiler(integerSemantics: IntegerSemantics): LogicCompiler = configManager.setupCompiler()
 } 
