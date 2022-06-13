@@ -253,8 +253,16 @@ class PredUpperBoundCompiler extends LogicCompiler {
   * A compiler designed to allow manual addition of transformers to thr transformer sequence
   *
   */
-class ConfigurableCompiler extends LogicCompiler {
-    val transformers: ListBuffer[ProblemStateTransformer] = new collection.mutable.ListBuffer[ProblemStateTransformer]
+class ConfigurableCompiler(transformers: ListBuffer[ProblemStateTransformer]) extends LogicCompiler {
+    def this() {
+        this(new collection.mutable.ListBuffer[ProblemStateTransformer])
+    }
+    def this(transformers: Seq[ProblemStateTransformer]){
+        this(ListBuffer.from(transformers))
+    }
+    def this(transformers: Array[ProblemStateTransformer]){
+        this(ListBuffer.from(transformers.toSeq))
+    }
     override def transformerSequence: Seq[ProblemStateTransformer] = transformers.toList
 
     def addTransformer(transformer: ProblemStateTransformer): Unit = {
@@ -265,3 +273,4 @@ class ConfigurableCompiler extends LogicCompiler {
         transformers ++= newTransformers
     }
 }
+
