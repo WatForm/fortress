@@ -94,5 +94,11 @@ class ConfigurableModelFinder(solverInterface: SolverInterface, configManager: M
 class SimpleModelFinder(solverInterface: SolverInterface, compiler: LogicCompiler) extends CompilationModelFinder(solverInterface) {
     def this(compiler: LogicCompiler) = this(Z3IncCliInterface, compiler)
 
+    def this(solverInterface: SolverInterface, transformers: Seq[ProblemStateTransformer]) = this(solverInterface, new ConfigurableCompiler(transformers))
+
+    def this(solverInterface: SolverInterface, transformers: Array[ProblemStateTransformer]) = this(solverInterface, new ConfigurableCompiler(transformers))
+
+    def this(transformers: Array[ProblemStateTransformer]) = this(new ConfigurableCompiler(transformers))
+
     override protected def createCompiler(integerSemantics: IntegerSemantics): LogicCompiler = compiler
 }
