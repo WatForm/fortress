@@ -224,6 +224,7 @@ A packaging mechanism for a sequence of transformations.
 * BaseFortressCompiler 
     - Defines the transformer sequence usually applied, parameterized by symmetry breaking transformers.
 * FortressCompilers: Define the fortress compilers (Zero, ONE, etc) as the BaseFortressCompilers plus certain symmetry breaking.
+    - Defines the SimpleModelFinder which exposes the compiler and interface to direct control from the user
 
 ### solverinterface
 * These are ways of connecting to external solvers.  
