@@ -13,6 +13,9 @@ import java.lang.Error
 object Errors {
 
     object API {
+        class DoesNotExistError(message: String) extends Error(message)
+
+        def doesNotExist(message: String) = throw new DoesNotExistError("Does Not Exist Error: " + message)
         // API errors are when the user of the API does something wrong - these can be catchable Exceptions
     }
 
