@@ -41,8 +41,8 @@ object Transformers {
     def mkEnumEliminationTransformer() = EnumEliminationTransformer
     def mkIntegerFinitizationTransformer(bitwidth: Int): IntegerFinitizationTransformer = new IntegerFinitizationTransformer(bitwidth)
     def mkNnfTransformer() = NnfTransformer
-    def mkQuantifierExpansionTRansformer(useConstForDomElim: Boolean, useSimplification: Boolean) = new QuantifierExpansionTransformer(useConstForDomElim, useSimplification)
-    def mkRangeFormulaTransformer(useConstForDomElim: Boolean) = new RangeFormulaTransformer(useConstForDomElim)
+    def mkQuantifierExpansionTRansformer(useConstForDomElim: Boolean = false, useSimplification: Boolean = false) = new QuantifierExpansionTransformer(useConstForDomElim, useSimplification)
+    def mkRangeFormulaTransformer(useConstForDomElim: Boolean = false) = new RangeFormulaTransformer(useConstForDomElim)
     def mkScopeSubtypeTransformer() = new ScopeSubtypeTransformer()
     def mkSimplifyLearnedLiteralsTransformer() = new SimplifyLearnedLiteralsTransformer()
     def mkSimplifyTransformer() = new SimplifyTransformer()
