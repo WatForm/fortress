@@ -121,8 +121,6 @@ with ModelFinderSettings {
             }
 
         }
-        // Be sure to reset the theory
-        theory = startingTheory
         // Returning count
         count
     }
