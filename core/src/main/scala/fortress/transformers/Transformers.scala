@@ -16,8 +16,8 @@ object Transformers {
         case "EnumElimination" | "EnumEliminationTransformer" => EnumEliminationTransformer
         case "IntegerFinitization" | "IntegerFinitizationTransformer" => Errors.API.doesNotExist("Use mkIntegerFinitizationTransformer")
         case "Nnf" | "NnfTransformer" => NnfTransformer
-        case "QuantifierExpansion" | "QuantifierExpansionTransformer" => Errors.API.doesNotExist("Use mkQuantifierExpansionTransformer")
-        case "RangeFormula" | "RangeFormulaTransformer" => Errors.API.doesNotExist("Use mkRangeFormulaTransformer")
+        case "QuantifierExpansion" | "QuantifierExpansionTransformer" => mkQuantifierExpansionTRansformer()
+        case "RangeFormula" | "RangeFormulaTransformer" => mkRangeFormulaTransformer()
         case "ScopeSubtype" | "ScopeSubtypeTransformer" => new ScopeSubtypeTransformer()
         case "SimplifyLearnedLiterals" | "SimplifyLearnedLiteralsTransformer" => new SimplifyLearnedLiteralsTransformer()
         case "Simplify" | "SimplifyTransformer" => new SimplifyTransformer()
