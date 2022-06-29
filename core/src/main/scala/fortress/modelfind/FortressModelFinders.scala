@@ -85,6 +85,24 @@ class ConfigurableModelFinder(solverInterface: SolverInterface, configManager: M
     override def createCompiler(integerSemantics: IntegerSemantics): LogicCompiler = configManager.setupCompiler()
 }
 
+
+object FortressModelFinders {
+    def fromString(str: String, solverInterface: SolverInterface = Z3CliInterface): Option[ModelFinder] = {
+        str.toLowerCase() match {
+            case "zero | fortresszero" => Some(new FortressZERO(solverInterface))
+            case "one | fortressone" => Some(new FortressONE(solverInterface))
+            case "two | fortresstwo" => Some(new FortressTWO(solverInterface))
+            case "two_si | fortresstwo_si" => Some(new FortressTWO_SI(solverInterface))
+            case "three | fortressthree" => Some(new FortressTHREE(solverInterface))
+            case "three_si | fortressthree_si" => Some(new FortressTHREE_SI(solverInterface))
+            case "four | fortressfour" => Some(new FortressFOUR(solverInterface))
+            case "four_si | fortressfour_si" => Some(new FortressFOUR_SI(solverInterface))
+            case _ => None
+        }
+    }
+}
+
+
 /**
   * A Model finder that allows the user to directly specify the compiler to use
   *
@@ -96,7 +114,10 @@ class SimpleModelFinder(solverInterface: SolverInterface, compiler: LogicCompile
 
     def this(solverInterface: SolverInterface, transformers: Seq[ProblemStateTransformer]) = this(solverInterface, new ConfigurableCompiler(transformers))
 
+    def this(transformers: Seq[ProblemStateTransformer]) = this(new ConfigurableCompiler(transformers))
+
     def this(solverInterface: SolverInterface, transformers: Array[ProblemStateTransformer]) = this(solverInterface, new ConfigurableCompiler(transformers))
+
 
     def this(transformers: Array[ProblemStateTransformer]) = this(new ConfigurableCompiler(transformers))
 
