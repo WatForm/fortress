@@ -40,6 +40,16 @@ This example answers the question "Can you stuff 7 pigeons into 6 holes so that 
 The numbers provided can be changed to change the number of pigeons and holes.
 It will be satisfiable if and only if the number of pigeons is less than or equal to the number of holes.
 
+### Pigeonhole2
+A copy of the Pigeonhole example utilizing the SimpleModelFinder.
+```
+# Compile
+javac -cp ".:libs/*" Pigeonhole2.java
+
+# Run
+java -cp ".:libs/*" -Djava.library.path="libs" Pigeonhole2 7 6
+```
+
 ### Latin Square
 Run the following code to compile and run the Latin Square example.
 ```
