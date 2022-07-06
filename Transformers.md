@@ -57,7 +57,6 @@ opt = optional replacement for default
 | SimplifyLearnedLiteralsTransformer| | | | |
 | SimplifyTransfomer2| | | | |
 | SimplifyWithRangeTransformer| | | | |
-
 | DomainEliminationTransformer                      |    req           | -                 |                  |         |
 | DomainEliminationTransformer2|    req           | -                 |                  | non-exact scopes by non-distinct constants        |
 | DatatypeTransformer                               |                  | req            |                  |         |
