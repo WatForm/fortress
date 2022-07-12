@@ -25,7 +25,7 @@ In this method, only typechecking is done so that the SMT solver can work with t
 
 ## Transformers
 
-In this table, we should the transformers in order as they are used in the strategies above.  We show defaults and options for various steps.  
+In this table, we should the transformers in order as they are used in the strategies above.  We show defaults and options for various groups.  
 **Something about where transformers and compilers exist in the code**
 
 req = required
@@ -34,32 +34,32 @@ opt = optional replacement for default
 
 
 
-| Transformer                                       | Constants (EUF)       | Datatype           | Minimal          |  Description             |
-|:--------------------------------------------------|:---------------- |:-------------------|:-----------------|------------------------- |
-| TypecheckSanitizeTransformer                      |    req           | req               | req              | performs typechecking    |   
-| ScopeSubtypeTransformer                           |    req           | req               | req              | set up predicates for non-exact scopes |
-| EnumEliminationTransformer                        |    req           | req                | req              | Enums become ...         |
-| IntegerFinitizationTransformer                    |    def           | def                   |                  | Turn integers into BVs   |
-| **something about closure transformers**| | | | |
-| SortInferenceTransformer                          | def      | def                 |                  | infer sorts for more symmetry breaking                         |           
-| NnfTransformer                                    |    req           | def                 |                  |                          |
-| PnfTransformer                                    |    opt              |   opt                |                  | Not yet implemented        |
-| SkolemizeTransformer                              |    req           | def               |                  |         |
-| SymmetryBreakingMonoOnlyAnyOrder| | | | |
-| SymmetryBreakingFunctionsFirstAnyOrder| | | | |
-| SymmetryBreakingMonoFirstThenFunctionsFirstAnyOrder| | | | |
-| SymmetryBreakingLowArityFirstMostUsedFunctionFirstOrderFactory| | | | |
-| something about SI here| | | | |
-| StandardQuantifierExpansionTransformer **seems to be some options**           |    req           | def                 |                  |         |
-| StandardRangeFormulaTransformer  **seems to be some options**                  |    req           | def                 |                  |         |
-| SimplifyTransformer                               |    def           | def                 |                  |         |
-| SplitConjunctionTransformer| | | | |
-| SimplifyLearnedLiteralsTransformer| | | | |
-| SimplifyTransfomer2| | | | |
-| SimplifyWithRangeTransformer| | | | |
-| DomainEliminationTransformer                      |    req           | -                 |                  |         |
-| DomainEliminationTransformer2|    req           | -                 |                  | non-exact scopes by non-distinct constants        |
-| DatatypeTransformer                               |                  | req            |                  |         |
+| Group | Transformer                                       | Constants (EUF)       | Datatype           | Minimal          |  Description             |
+|: --------|:--------------------------------------------------|:---------------- |:-------------------|:-----------------|------------------------- |
+|| TypecheckSanitizeTransformer                      |    req           | req               | req              | performs typechecking    |   
+|| ScopeSubtypeTransformer                           |    req           | req               | req              | set up predicates for non-exact scopes |
+|| EnumEliminationTransformer                        |    req           | req                | req              | Enums become ...         |
+| Integers| IntegerFinitizationTransformer                    |    def           | def                   |                  | Turn integers into BVs   |
+| Transitive Closure | **something about closure transformers**| | | | |
+|| SortInferenceTransformer                          | def      | def                 |                  | infer sorts for more symmetry breaking                         |           
+|| NnfTransformer                                    |    req           | def                 |                  |                          |
+|| PnfTransformer                                    |    opt              |   opt                |                  | Not yet implemented        |
+|| SkolemizeTransformer                              |    req           | def               |                  |         |
+|Symmetry | SymmetryBreakingMonoOnlyAnyOrder| | | | |
+|Symmetry | SymmetryBreakingFunctionsFirstAnyOrder| | | | |
+|Symmetry | SymmetryBreakingMonoFirstThenFunctionsFirstAnyOrder| | | | |
+|Symmetry | SymmetryBreakingLowArityFirstMostUsedFunctionFirstOrderFactory| | | | |
+|Symmetry | something about SI here| | | | |
+|| StandardQuantifierExpansionTransformer **seems to be some options**           |    req           | def                 |                  |         |
+|| StandardRangeFormulaTransformer  **seems to be some options**                  |    req           | def                 |                  |         |
+| Simplify | SimplifyTransformer                               |    def           | def                 |                  |         |
+| Simplify| SplitConjunctionTransformer| | | | |
+| Simplify| SimplifyLearnedLiteralsTransformer| | | | |
+| Simplify| SimplifyTransfomer2| | | | |
+| Simplify| SimplifyWithRangeTransformer| | | | |
+| DomainElimination | DomainEliminationTransformer                      |    req           | -                 |                  |         |
+|| DomainEliminationTransformer2|    req           | -                 |                  | non-exact scopes by non-distinct constants - to remove       |
+|| DatatypeTransformer                               |                  | req            |                  |         |
 
 **missing something about DefaultSymmetryBreakerFactoryDL(None)**
 
