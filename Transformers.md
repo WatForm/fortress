@@ -35,7 +35,7 @@ opt = optional replacement for default
 
 
 | Group | Transformer                                       | Constants (EUF)       | Datatype           | Minimal          |  Description             |
-|: --------|:--------------------------------------------------|:---------------- |:-------------------|:-----------------|------------------------- |
+|:--------|:--------------------------------------------------|:---------------- |:-------------------|:-----------------|------------------------- |
 | | TypecheckSanitizeTransformer                      |    req           | req               | req              | performs typechecking    |   
 | | ScopeSubtypeTransformer                           |    req           | req               | req              | set up predicates for non-exact scopes |
 | | EnumEliminationTransformer                        |    req           | req                | req              | Enums become ...         |
