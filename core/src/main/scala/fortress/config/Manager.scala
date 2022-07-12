@@ -15,7 +15,7 @@ class Manager {
     // The options
     protected val options: collection.mutable.Map[String, ConfigOption] = new collection.mutable.HashMap[String, ConfigOption]()
 
-    // The priority given for each option
+    // The number determining the order options are applied in. Lower applies first.
     protected val priorities: collection.mutable.Map[String, Float] = new collection.mutable.HashMap[String, Float]()
 
     /**

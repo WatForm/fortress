@@ -96,6 +96,7 @@ with ModelFinderSettings {
 
     override def countValidModels(newTheory: Theory): Int = {
         theory = newTheory
+        
         checkSat() match {
             case SatResult =>
             case UnsatResult => return 0
@@ -108,19 +109,24 @@ with ModelFinderSettings {
 
         var sat: Boolean = true
         while (sat) {
-            val r: ModelFinderResult = nextInterpretation()
 
-            r match {
+            val result = nextInterpretation()
+
+            result match {
                 case SatResult => count += 1
                 case UnsatResult => sat = false
                 case UnknownResult => Errors.Internal.solverError("Solver gave unknown result")
                 case ErrorResult(_) => Errors.Internal.solverError("An error occurred while computing result")
                 case TimeoutResult => Errors.Internal.solverError("Solver timed out while computing result")
             }
-        }
 
+        }
+        // Returning count
         count
     }
+
+    // Count the Valid Models in the current theory
+    def countValidModels(): Int = countValidModels(theory)
     
     override def close(): Unit = {
         solverSession.foreach(_.close())
