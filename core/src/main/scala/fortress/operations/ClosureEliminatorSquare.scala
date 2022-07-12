@@ -19,9 +19,7 @@ class ClosureEliminatorSquare(topLevelTerm: Term, signature: Signature, scopes: 
 
 
     class ClosureVisitorSquare extends ClosureVisitor {
-        /** Check if a function has been defined */
-        def queryFunction(name: String): Boolean = signature.hasFunctionWithName(name) || closureFunctions.exists(f => f.name == name)
-
+        // Finds the maximum number of squarings we need to do to form the closure
         def max_count(sort: Sort): Int = {
             val scope = scopes(sort)
             // ceil(log_2(scope)) + 1

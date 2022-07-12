@@ -37,9 +37,6 @@ class ClosureEliminatorEijck(topLevelTerm: Term, signature: Signature, scopes: M
     */
 
     class ClosureVisitorEijck extends ClosureVisitor {
-        /** Check if a function has been defined */
-        def queryFunction(name: String): Boolean = signature.hasFunctionWithName(name) || closureFunctions.exists(f => f.name == name)
-
         // TODO extend for other arguments. See getVarList in ClosureEliminator
         /** Axioms to define a midpoint being closer to the starting node than the ending node along a path for the given relation */
         def addClosenessAxioms(sort: Sort, functionName: String): String = {
@@ -120,8 +117,8 @@ class ClosureEliminatorEijck(topLevelTerm: Term, signature: Signature, scopes: M
             val functionName = c.functionName
             // idx is used for when there are more args
             val idx = c.arguments.indexOf(c.arg1)
-            val reflexiveClosureName = "*" + functionName
-            val closureName = "^" + functionName
+            val reflexiveClosureName = getReflexiveClosureName(functionName)
+            val closureName = getClosureName(functionName)
 
             // Skip if we already did it
             if (!queryFunction(closureName)){
@@ -185,8 +182,8 @@ class ClosureEliminatorEijck(topLevelTerm: Term, signature: Signature, scopes: M
             val functionName = rc.functionName
             // idx is used for when there are more args
             val idx = rc.arguments.indexOf(rc.arg1)
-            val reflexiveClosureName = "*" + functionName
-            val closureName = "^" + functionName
+            val reflexiveClosureName = getReflexiveClosureName(functionName)
+            val closureName = getClosureName(functionName)
 
             // Skip if we already did it
             if (!queryFunction(reflexiveClosureName)){
@@ -203,7 +200,7 @@ class ClosureEliminatorEijck(topLevelTerm: Term, signature: Signature, scopes: M
                 val axy = List(x.of(sort), y.of(sort))
 
                 val closenessName = this.addClosenessAxioms(sort, functionName)
-
+                
                 closureAxioms += Forall(axy,
                     Iff(
                         App(reflexiveClosureName, List(x,y)),

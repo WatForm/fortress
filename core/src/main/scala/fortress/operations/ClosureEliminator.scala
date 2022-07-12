@@ -36,7 +36,11 @@ class ClosureEliminator(topLevelTerm: Term, signature: Signature, scopes: Map[So
     def getClosureAxioms: Set[Term] =  closureAxioms.toSet
     
     class ClosureVisitor extends TermVisitorWithTypeContext[Term](signature) {
-        
+        /** Check if a function has been defined */
+        def queryFunction(name: String): Boolean = signature.hasFunctionWithName(name) || closureFunctions.exists(f => f.name == name)
+        def getReflexiveClosureName(name: String, idx: String = ""): String = "*" + idx + name
+        def getClosureName(name: String, idx: String = ""): String = "^" + idx + name
+
         override def visitTop: Term = Top
         
         override def visitBottom: Term = Bottom
@@ -67,8 +71,8 @@ class ClosureEliminator(topLevelTerm: Term, signature: Signature, scopes: Map[So
             // TODO ??
             val idx = c.arguments.indexOf(c.arg1)
             // The name that this closure will have (idx specific)
-            val closureName = "^" + idx + functionName
-            val reflexiveClosureName = "*" + idx + functionName;
+            val closureName = getClosureName(functionName, idx.toString())
+            val reflexiveClosureName = getReflexiveClosureName(functionName, idx.toString())
 
             // Function that checks if the function already exists or we have generated it
             def queryFunction(name: String): Boolean = signature.hasFunctionWithName(name) || closureFunctions.exists(f => f.name == name)
@@ -138,9 +142,8 @@ class ClosureEliminator(topLevelTerm: Term, signature: Signature, scopes: Map[So
         override def visitReflexiveClosure(rc: ReflexiveClosure): Term = {
             var functionName = rc.functionName
             val idx = rc.arguments.indexOf(rc.arg1)
-            val reflexiveClosureName = "*" + idx + functionName
-            val closureName = "^" + idx + functionName;
-            def queryFunction(name: String): Boolean = signature.hasFunctionWithName(name) || closureFunctions.exists(f => f.name == name)
+            val closureName = getClosureName(functionName, idx.toString())
+            val reflexiveClosureName = getReflexiveClosureName(functionName, idx.toString())
             if (!queryFunction(reflexiveClosureName)) {
                 val rel = signature.queryUninterpretedFunction(functionName).get
                 var argSorts = new ArrayList(rel.argSorts.asJava)

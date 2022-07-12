@@ -24,6 +24,8 @@ trait CETransfomerBehaviors{ this: AnyFlatSpec =>
     val z = Var("z")
 
     val A  = SortConst("A")
+    
+    val axy = Seq(x.of(A), y.of(A))
 
     val relation = FuncDecl("relation", Seq(A,A), Sort.Bool)
 
@@ -39,13 +41,17 @@ trait CETransfomerBehaviors{ this: AnyFlatSpec =>
         // Create a barebones modelfinder configuration
         // This may be better as a fixture?
         val manager = Manager.makeEmpty()
-        manager.addOption(TypecheckSanitizeOption, 5001)
+        manager.addOption(TypecheckSanitizeOption, 1)
+        manager.addOption(EnumEliminationOption, 2)
+        
+
         // Add in this closure eliminator
-        manager.addOption(new ToggleOption("ClosureElim", _.addTransformer(newCE)), 5002)
-        manager.addOption(QuantifierExpansionOption, 5501)
-        manager.addOption(RangeFormulaOption, 5502)
-        manager.addOption(SimplifyOption, 5503)
-        manager.addOption(DatatypeOption, 5504)
+        manager.addOption(new ToggleOption("ClosureElim", _.addTransformer(newCE)), 102)
+        
+        manager.addOption(QuantifierExpansionOption, 5001)
+        manager.addOption(RangeFormulaOption, 5002)
+        manager.addOption(SimplifyOption, 5003)
+        manager.addOption(DatatypeOption, 5004)
 
         // TODO shouldn't change anything without a closure
         
@@ -72,30 +78,130 @@ trait CETransfomerBehaviors{ this: AnyFlatSpec =>
                     App("emptyrel", x, y)
                 ))
             )
-            // Reflexive adds x<->x and nothing else
-            val reflexiveOnly = Forall(Seq(x.of(A), y.of(A)),
-                Iff(
-                    mkReflexiveClosure("emptyrel", x, y),
-                    Eq(x,y)
+            val somethingWrong = Exists(axy,
+                Or(
+                    Term.mkClosure("emptyrel", x, y),
+                    And(Term.mkReflexiveClosure("emptyrel", x, y), Not(Eq(x, y)))
                 )
-            )
-            // Closure remains empty
-            val closureAddsNothing = Forall(Seq(x.of(A), y.of(A)),
-                Not(mkClosure("emptyrel", x, y))
             )
 
             val newTheory = baseTheory
                 .withAxiom(relIsEmpty)
-                .withAxiom(reflexiveOnly)
-                .withAxiom(closureAddsNothing)
+                //.withAxiom(reflexiveOnly)
+                //.withAxiom(closureAddsNothing)
+                .withAxiom(somethingWrong)
                 .withFunctionDeclaration(FuncDecl.mkFuncDecl("emptyrel", A, A, Sort.Bool))
             
             Using.resource(manager.setupModelFinder()){ finder => {
                 finder.setTheory(newTheory)
                 finder.setAnalysisScope(A, 3)
                 finder.setTimeout(Seconds(10))
+                val result = finder.checkSat()
+                assert(result == (ModelFinderResult.Unsat)) 
+            }}
+
+        }
+
+        it should "connect a line" in {
+            // TODO define above fix!
+            val a = EnumValue("a")
+            val b = EnumValue("b")
+            val c = EnumValue("c")
+
+            val A  = SortConst("A")
+
+            val R = FuncDecl.mkFuncDecl("R", A, A, Sort.Bool)
+
+            val initialOrder = Forall(axy,
+                Iff(App(R.name, x, y),
+                    Or(
+                        And(Eq(x, a), Eq(y, b)),
+                        And(Eq(x, b), Eq(y, c))
+                    )
+                )
+            )
+
+            val correctClosure = Forall(axy,
+                Iff(
+                    Closure(R.name, Seq(x,y), x, y),
+                    Or(
+                        And(Eq(x, a), Eq(y, b)),
+                        And(Eq(x, a), Eq(y, c)),
+                        And(Eq(x, b), Eq(y, c)),
+                    )
+                )
+            )
+            /*
+            val correctReflexiveClosure = Forall(axy,
+                Iff(ReflexiveClosure(R.name, Seq(x,y), x, y),
+                    Or(Eq(x,y), Closure(R.name, Seq(x,y), x, y))
+                )
+            )
+            */
+            val correctReflexiveClosure = Forall(axy,
+                Iff(
+                    ReflexiveClosure(R.name, Seq(x,y), x, y),
+                    Or(
+                        Eq(x, y),
+                        And(Eq(x, a), Eq(y, b)),
+                        And(Eq(x, a), Eq(y, c)),
+                        And(Eq(x, b), Eq(y, c))
+                    )
+                )
+            )
+
+            val defIsSufficient = Implication(initialOrder, And(correctClosure, correctReflexiveClosure))
+            val defIsNotSufficient = And(initialOrder, Not(correctReflexiveClosure))
+            val defIsNotSufficient2 = And(initialOrder, Not(correctClosure))
+
+            val goodTheory = baseTheory
+                            .withAxiom(defIsSufficient)
+                            .withEnumSort(A, a, b, c)
+                            .withFunctionDeclaration(R)
+            val badTheory = baseTheory
+                            .withAxiom(defIsNotSufficient)
+                            .withEnumSort(A, a, b, c)
+                            .withFunctionDeclaration(R)
+            
+            val badTheory2 = baseTheory
+                            .withAxiom(defIsNotSufficient2)
+                            .withEnumSort(A, a, b, c)
+                            .withFunctionDeclaration(R)
+            
+            Using.resource(manager.setupModelFinder()){ finder => {
+                finder.setTheory(goodTheory)
+                finder.setAnalysisScope(A, 3)
+                finder.setTimeout(Seconds(10))
                 assert(finder.checkSat() == (ModelFinderResult.Sat)) 
             }}
+            
+            Using.resource(manager.setupModelFinder()){ finder => {
+                finder.setTheory(badTheory)
+                finder.setAnalysisScope(A, 3)
+                finder.setTimeout(Seconds(10))
+
+                val result = finder.checkSat()
+                // for debugging
+                if (result == ModelFinderResult.Sat) {
+                    val modelstring = finder.viewModel().toString()
+                    print(modelstring)
+                }
+                assert(result == ModelFinderResult.Unsat) 
+            }}
+
+            Using.resource(manager.setupModelFinder()){ finder => {
+                finder.setTheory(badTheory2)
+                finder.setAnalysisScope(A, 3)
+                finder.setTimeout(Seconds(10))
+
+                val result = finder.checkSat()
+                if (result == ModelFinderResult.Sat) {
+                    val modelstring = finder.viewModel().toString()
+                    print(modelstring)
+                }
+                assert(result == ModelFinderResult.Unsat) 
+            }}  
+
 
         }
     }
@@ -113,4 +219,7 @@ class ClosureEliminationSquareTransformer extends AnyFlatSpec with CETransfomerB
     "ClosureEliminationSquareTransformer" should behave like anyClosureEliminationTransformer(ClosureEliminationSquareTransformer)
 }
 
+class ClosureEliminationLiuTransformer extends AnyFlatSpec with CETransfomerBehaviors {
+    "ClosureEliminationLiuTransformer" should behave like anyClosureEliminationTransformer(ClosureEliminationLiuTransformer)
+}
 
