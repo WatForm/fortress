@@ -25,11 +25,23 @@ case class ProblemState private(
     distinctConstants: Boolean
 ) {
     Errors.Internal.precondition(scopes.values.forall(_ > 0), "Scopes must be positive")
-    Errors.Internal.precondition(scopes.keySet.forall(!_.isBuiltin))
-    // All scoped sorts are within the theory
-    Errors.Internal.precondition(scopes.keySet subsetOf theory.sorts)
+    // allow setting scope for IntSort but not other builtins
+    Errors.Internal.precondition(scopes.keySet.forall( (x:Sort) => !x.isBuiltin || x == IntSort))
+    // All scoped sorts are within the theory or IntSort
+    Errors.Internal.precondition(scopes.keySet subsetOf theory.sorts + IntSort)
     
     // TODO add precondition that theory domain elements respect the scopes
+
+    def withTheory(newtheory: Theory): ProblemState = {
+        new ProblemState(            
+            newtheory,    // replaces just the theory
+            scopes,
+            skolemConstants,
+            skolemFunctions,
+            rangeRestrictions,
+            unapplyInterp,
+            distinctConstants)
+    }
 }
 
 object ProblemState {
@@ -54,4 +66,6 @@ object ProblemState {
             distinctConstants = true
         )
     }
+
+
 }

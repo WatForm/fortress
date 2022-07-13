@@ -26,7 +26,7 @@ class IterativeUpperBoundModelFinder
                 modelFinder.setAnalysisScope(sort, scope)
             }
             modelFinder.setTimeout(Seconds(100000))
-            modelFinder.setBoundedIntegers(integerSemantics)
+            // modelFinder.setBoundedIntegers(integerSemantics)
 
             val result = modelFinder.checkSat()
             if (result.equals(SatResult)) {
@@ -77,7 +77,7 @@ class ParallelIterativeUpperBoundModelFinder
                 modelFinder.setAnalysisScope(sort, scope)
             }
             modelFinder.setTimeout(Seconds(100000))
-            modelFinder.setBoundedIntegers(integerSemantics)
+            // modelFinder.setBoundedIntegers(integerSemantics)
 
             val result = modelFinder.checkSat()
             if (result.equals(SatResult)) {

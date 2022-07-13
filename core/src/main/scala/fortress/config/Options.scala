@@ -52,7 +52,7 @@ case object DatatypeOption extends ToggleOption(
 // Closures
 case object ClosureEliminationOption extends ToggleOption(
     "ClosureElimination",
-    _.addTransformer(ClosureEliminationTransformer)
+    _.addTransformer(ClosureEliminationIterativeTransformer)
 )
 
 /*

@@ -14,7 +14,6 @@ trait ModelFinderSettings extends ModelFinder {
     protected var timeoutMilliseconds: Milliseconds = Milliseconds(60000)
     protected var analysisScopes: Map[Sort, Int] = Map.empty
     protected var theory: Theory = Theory.empty
-    protected var integerSemantics: IntegerSemantics = Unbounded
     protected var eventLoggers: ListBuffer[EventLogger] = ListBuffer.empty
     
     override def setTheory(newTheory: Theory): Unit = {
@@ -28,11 +27,8 @@ trait ModelFinderSettings extends ModelFinder {
     
     override def setAnalysisScope(t: Sort, size: Int): Unit = {
         Errors.Internal.precondition(size >= 0)
+        // note that IntSort scopes are specified in bitwidth
         analysisScopes = analysisScopes + (t -> size)
-    }
-    
-    override def setBoundedIntegers(semantics: IntegerSemantics): Unit = {
-        integerSemantics = semantics
     }
     
     override def setOutput(writer: java.io.Writer): Unit = {
