@@ -8,29 +8,29 @@ object Transformers {
 
     // NOTE: This could be improved by making it return something ??? => ProblemStateTransformer? Is this possible?
   
-    def fromString(name: String): ProblemStateTransformer = name match {
-        case "ClosureElimination" | "ClosureEliminationTransformer" => ClosureEliminationTransformer
-        case "Datatype" | "DatatypeTransformer" => DatatypeTransformer
-        case "DomainElimination" | "DomainEliminationTransformer" => DomainEliminationTransformer
+    def fromString(name: String): ProblemStateTransformer = name.toLowerCase() match {
+        case "closureelimination" | "closureeliminationtransformer" => ClosureEliminationTransformer
+        case "datatype" | "datatypetransformer" => DatatypeTransformer
+        case "domainelimination" | "domaineliminationtransformer" => DomainEliminationTransformer
         case "DomainElimination2" | "DomainEliminationTransformer2" => new DomainEliminationTransformer2()
-        case "EnumElimination" | "EnumEliminationTransformer" => EnumEliminationTransformer
-        case "IntegerFinitization" | "IntegerFinitizationTransformer" => Errors.API.doesNotExist("Use mkIntegerFinitizationTransformer")
-        case "Nnf" | "NnfTransformer" => NnfTransformer
-        case "QuantifierExpansion" | "QuantifierExpansionTransformer" => mkQuantifierExpansionTRansformer()
-        case "RangeFormula" | "RangeFormulaTransformer" => mkRangeFormulaTransformer()
-        case "ScopeSubtype" | "ScopeSubtypeTransformer" => new ScopeSubtypeTransformer()
-        case "SimplifyLearnedLiterals" | "SimplifyLearnedLiteralsTransformer" => new SimplifyLearnedLiteralsTransformer()
-        case "Simplify" | "SimplifyTransformer" => new SimplifyTransformer()
+        case "enumelimination" | "enumeliminationtransformer" => EnumEliminationTransformer
+        case "integerfinitization" | "integerfinitizationtransformer" => Errors.API.doesNotExist("Use mkIntegerFinitizationTransformer")
+        case "nnf" | "nnftransformer" => NnfTransformer
+        case "quantifierexpansion" | "quantifierexpansiontransformer" => mkQuantifierExpansionTRansformer()
+        case "rangeformula" | "rangeformulatransformer" => mkRangeFormulaTransformer()
+        case "scopesubtype" | "scopesubtypetransformer" => new ScopeSubtypeTransformer()
+        case "simplifylearnedliterals" | "simplifylearnedliteralstransformer" => new SimplifyLearnedLiteralsTransformer()
+        case "simplify" | "simplifytransformer" => new SimplifyTransformer()
         case "Simplify2" | "SimplifyTransformer2" => new SimplifyTransformer2()
-        case "SimplifyWithRange" | "SimplifyWithRangeTransformer" => new SimplifyWithRangeTransformer()
-        case "Skolemize" | "SkolemizeTransformer" => SkolemizeTransformer
-        case "SortInference" | "SortInferenceTransformer" => SortInferenceTransformer
-        case "SplitConjunction" | "SplitConjunctionTransformer" => SplitConjunctionTransformer
+        case "simplifywithrange" | "simplifywithrangetransformer" => new SimplifyWithRangeTransformer()
+        case "skolemize" | "skolemizetransformer" => SkolemizeTransformer
+        case "sortinference" | "sortinferencetransformer" => SortInferenceTransformer
+        case "splitconjunction" | "splitconjunctiontransformer" => SplitConjunctionTransformer
         case "SymmetryBreaking_MostUsed" | "SymmetryBreakingTransformer_MostUsed" => Errors.API.doesNotExist("Use mkSymmetryBreakingTransformer_MostUsed")
         case "SymmetryBreaking_NoSkolem" | "SymmetryBreakingTransformer_NoSkolem" => Errors.API.doesNotExist("Use mkSymmetryBreakingTransformer_NoSkolem")
-        case "SymmetryBreaking" | "SymmetryBreakingTransformer" => Errors.API.doesNotExist("Use mkSymmetryBreakingTransformer")
-        case "SymmetryBreakingSI" | "SymmetryBreakingTransformerSI" => Errors.API.doesNotExist("Use mkSymmetryBreakingTransformerSI")
-        case "TypecheckSanitizer" | "TypecheckSanitizerTransformer" => TypecheckSanitizeTransformer
+        case "symmetrybreaking" | "symmetrybreakingtransformer" => Errors.API.doesNotExist("Use mkSymmetryBreakingTransformer")
+        case "symmetrybreakingsi" | "symmetrybreakingtransformersi" => Errors.API.doesNotExist("Use mkSymmetryBreakingTransformerSI")
+        case "typechecksanitizer" | "typechecksanitizertransformer" => TypecheckSanitizeTransformer
         case _ => Errors.API.doesNotExist(name + " is not a recognized Transformer.")
     }
 
