@@ -39,7 +39,7 @@ opt = optional replacement for default
 | | TypecheckSanitizeTransformer                      |    req           | req               | req              | performs typechecking    |   
 | | ScopeSubtypeTransformer                           |    req           | req               | req              | set up predicates for non-exact scopes |
 | | EnumEliminationTransformer                        |    req           | req                | req              | Enums become ...         |
-| Integers| IntegerToBitVectorTransformer                    |    def           | def                   |                  | Turn integers into BVs   |
+| Integers| IntegerToBitVectorTransformer                    |    def           | def                   |                  | Turn integers into BVs  based on bitwidth set in problem state for scope of IntSort  |
 | Transitive Closure | **something about closure transformers**| | | | |
 | | SortInferenceTransformer                          | def      | def                 |                  | infer sorts for more symmetry breaking        |           
 | | NnfTransformer                                    |    req           | def                 |                  |                          |
