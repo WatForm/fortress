@@ -40,7 +40,7 @@ opt = optional replacement for default
 | | ScopeSubtypeTransformer                           |    req           | req               | req              | set up predicates for non-exact scopes |
 | | EnumEliminationTransformer                        |    req           | req                | req              | Enums become ...         |
 | Integers| IntegerToBitVectorTransformer                    |    def           | def                   |                  | Turn integers into BVs  based on bitwidth set in problem state for scope of IntSort  |
-| Transitive Closure | **something about closure transformers**| | | | |
+| Transitive Closure | ClosureEliminationIterativeTransformer | | | | |
 | | SortInferenceTransformer                          | def      | def                 |                  | infer sorts for more symmetry breaking        |           
 | | NnfTransformer                                    |    req           | def                 |                  |                          |
 | | PnfTransformer                                    |    opt              |   opt                |                  | Not yet implemented        |
