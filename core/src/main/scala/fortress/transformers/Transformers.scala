@@ -12,7 +12,7 @@ object Transformers {
         case "closureelimination" | "closureeliminationtransformer" => ClosureEliminationTransformer
         case "datatype" | "datatypetransformer" => DatatypeTransformer
         case "domainelimination" | "domaineliminationtransformer" => DomainEliminationTransformer
-        case "DomainElimination2" | "DomainEliminationTransformer2" => new DomainEliminationTransformer2()
+        case "domainelimination2" | "domaineliminationtransformer2" => new DomainEliminationTransformer2()
         case "enumelimination" | "enumeliminationtransformer" => EnumEliminationTransformer
         case "integerfinitization" | "integerfinitizationtransformer" => Errors.API.doesNotExist("Use mkIntegerFinitizationTransformer")
         case "nnf" | "nnftransformer" => NnfTransformer
@@ -21,13 +21,13 @@ object Transformers {
         case "scopesubtype" | "scopesubtypetransformer" => new ScopeSubtypeTransformer()
         case "simplifylearnedliterals" | "simplifylearnedliteralstransformer" => new SimplifyLearnedLiteralsTransformer()
         case "simplify" | "simplifytransformer" => new SimplifyTransformer()
-        case "Simplify2" | "SimplifyTransformer2" => new SimplifyTransformer2()
+        case "simplify2" | "simplifytransformer2" => new SimplifyTransformer2()
         case "simplifywithrange" | "simplifywithrangetransformer" => new SimplifyWithRangeTransformer()
         case "skolemize" | "skolemizetransformer" => SkolemizeTransformer
         case "sortinference" | "sortinferencetransformer" => SortInferenceTransformer
         case "splitconjunction" | "splitconjunctiontransformer" => SplitConjunctionTransformer
-        case "SymmetryBreaking_MostUsed" | "SymmetryBreakingTransformer_MostUsed" => Errors.API.doesNotExist("Use mkSymmetryBreakingTransformer_MostUsed")
-        case "SymmetryBreaking_NoSkolem" | "SymmetryBreakingTransformer_NoSkolem" => Errors.API.doesNotExist("Use mkSymmetryBreakingTransformer_NoSkolem")
+        case "symmetrybreaking_mostused" | "symmetrybreakingtransformer_mostused" => Errors.API.doesNotExist("Use mkSymmetryBreakingTransformer_MostUsed")
+        case "symmetrybreaking_noskolem" | "symmetrybreakingtransformer_noskolem" => Errors.API.doesNotExist("Use mkSymmetryBreakingTransformer_NoSkolem")
         case "symmetrybreaking" | "symmetrybreakingtransformer" => Errors.API.doesNotExist("Use mkSymmetryBreakingTransformer")
         case "symmetrybreakingsi" | "symmetrybreakingtransformersi" => Errors.API.doesNotExist("Use mkSymmetryBreakingTransformerSI")
         case "typechecksanitizer" | "typechecksanitizertransformer" => TypecheckSanitizeTransformer
