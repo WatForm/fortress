@@ -12,7 +12,7 @@ object IntegerToBitVectorTransformer extends ProblemStateTransformer {
     override def apply(problemState: ProblemState): ProblemState = {
         if (problemState.scopes.contains(IntSort)) {
             val bitwidth = problemState.scopes(IntSort)
-            val newAxioms = problemState.theory.axioms.map(_.finitizeIntegers(bitwidth))
+            val newAxioms = problemState.theory.axioms.map(_.intToBitVector(bitwidth))
             val newSig = problemState.theory.signature.replaceIntegersWithBitVectors(bitwidth)
             // this is the return value
             problemState.withTheory(Theory.mkTheoryWithSignature(newSig).withAxioms(newAxioms))
