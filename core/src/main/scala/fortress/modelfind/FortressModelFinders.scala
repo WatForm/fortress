@@ -10,79 +10,79 @@ import fortress.config.Manager
 class FortressZERO(solverInterface: SolverInterface) extends CompilationModelFinder(solverInterface) {
     def this() = this(Z3IncCliInterface)
 
-    override def createCompiler(integerSemantics: IntegerSemantics): LogicCompiler = new FortressZEROCompiler(integerSemantics)
+    override def createCompiler(): LogicCompiler = new FortressZEROCompiler()
 }
 
 class FortressONE(solverInterface: SolverInterface) extends CompilationModelFinder(solverInterface) {
     def this() = this(Z3IncCliInterface)
     
-    override def createCompiler(integerSemantics: IntegerSemantics): LogicCompiler = new FortressONECompiler(integerSemantics)
+    override def createCompiler(): LogicCompiler = new FortressONECompiler()
 }
 
 class FortressTWO(solverInterface: SolverInterface) extends CompilationModelFinder(solverInterface) {
     def this() = this(Z3IncCliInterface)
     
-    override def createCompiler(integerSemantics: IntegerSemantics): LogicCompiler = new FortressTWOCompiler(integerSemantics)
+    override def createCompiler(): LogicCompiler = new FortressTWOCompiler()
 }
 
 class FortressTWO_SI(solverInterface: SolverInterface) extends CompilationModelFinder(solverInterface) {
     def this() = this(Z3IncCliInterface)
     
-    override def createCompiler(integerSemantics: IntegerSemantics): LogicCompiler = new FortressTWOCompiler_SI(integerSemantics)
+    override def createCompiler(): LogicCompiler = new FortressTWOCompiler_SI()
 }
 
 class FortressTHREE(solverInterface: SolverInterface) extends CompilationModelFinder(solverInterface) {
     def this() = this(Z3IncCliInterface)
     
-    override def createCompiler(integerSemantics: IntegerSemantics): LogicCompiler = new FortressTHREECompiler(integerSemantics)
+    override def createCompiler(): LogicCompiler = new FortressTHREECompiler()
 }
 
 class FortressTHREE_SI(solverInterface: SolverInterface) extends CompilationModelFinder(solverInterface) {
     def this() = this(Z3IncCliInterface)
     
-    override def createCompiler(integerSemantics: IntegerSemantics): LogicCompiler = new FortressTHREECompiler_SI(integerSemantics)
+    override def createCompiler(): LogicCompiler = new FortressTHREECompiler_SI()
 }
 
 class FortressFOUR(solverInterface: SolverInterface) extends CompilationModelFinder(solverInterface) {
     def this() = this(Z3IncCliInterface)
 
-    override def createCompiler(integerSemantics: IntegerSemantics): LogicCompiler = new FortressFOURCompiler(integerSemantics)
+    override def createCompiler(): LogicCompiler = new FortressFOURCompiler()
 }
 
 class FortressFOUR_SI(solverInterface: SolverInterface) extends CompilationModelFinder(solverInterface) {
     def this() = this(Z3IncCliInterface)
 
-    override def createCompiler(integerSemantics: IntegerSemantics): LogicCompiler = new FortressFOURCompiler_SI(integerSemantics)
+    override def createCompiler(): LogicCompiler = new FortressFOURCompiler_SI()
 }
 
 class FortressUnbounded(solverInterface: SolverInterface) extends CompilationModelFinder(solverInterface) {
     def this() = this(Z3IncCliInterface)
 
-    override def createCompiler(integerSemantics: IntegerSemantics): LogicCompiler = new FortressUnboundedCompiler(integerSemantics)
+    override def createCompiler(): LogicCompiler = new FortressUnboundedCompiler()
 }
 
 class FortressLearnedLiterals(solverInterface: SolverInterface) extends CompilationModelFinder(solverInterface) {
     def this() = this(Z3IncCliInterface)
 
-    override def createCompiler(integerSemantics: IntegerSemantics): LogicCompiler = new FortressLearnedLiteralsCompiler(integerSemantics)
+    override def createCompiler(): LogicCompiler = new FortressLearnedLiteralsCompiler()
 }
 
 class NonDistUpperBoundModelFinder(solverInterface: SolverInterface) extends CompilationModelFinder(solverInterface) {
     def this() = this(Z3IncCliInterface)
 
-    override def createCompiler(integerSemantics: IntegerSemantics): LogicCompiler = new NonDistUpperBoundCompiler
+    override def createCompiler(): LogicCompiler = new NonDistUpperBoundCompiler
 }
 
 class PredUpperBoundModelFinder(solverInterface: SolverInterface) extends CompilationModelFinder(solverInterface) {
     def this() = this(Z3IncCliInterface)
 
-    override def createCompiler(integerSemantics: IntegerSemantics): LogicCompiler = new PredUpperBoundCompiler
+    override def createCompiler(): LogicCompiler = new PredUpperBoundCompiler
 }
 
 class ConfigurableModelFinder(solverInterface: SolverInterface, configManager: Manager) extends CompilationModelFinder(solverInterface) {
     def this(configManager: Manager) = this(Z3IncCliInterface, configManager)
 
-    override def createCompiler(integerSemantics: IntegerSemantics): LogicCompiler = configManager.setupCompiler()
+    override def createCompiler(): LogicCompiler = configManager.setupCompiler()
 }
 
 
@@ -121,5 +121,5 @@ class SimpleModelFinder(solverInterface: SolverInterface, compiler: LogicCompile
 
     def this(transformers: Array[ProblemStateTransformer]) = this(new ConfigurableCompiler(transformers))
 
-    override protected def createCompiler(integerSemantics: IntegerSemantics): LogicCompiler = compiler
+    override protected def createCompiler(): LogicCompiler = compiler
 }

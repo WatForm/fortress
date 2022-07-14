@@ -62,9 +62,6 @@ trait ModelFinder extends AutoCloseable {
         setTimeout(seconds.toMilli)
     }
 
-    /** Set the semantics to use for integers (for example, modular arithmetic or unbounded). */
-    def setBoundedIntegers(semantics: IntegerSemantics): Unit
-
     // Parentheses are used rather than zero parameters to indicate that state may change.
 
     /** Check for a satisfying interpretation to the theory with the given scopes. */

@@ -207,8 +207,8 @@ trait CETransfomerBehaviors{ this: AnyFlatSpec =>
     }
 }
 
-class ClosureEliminationTransformerTest extends AnyFlatSpec with CETransfomerBehaviors {
-    "ClosureEliminationTransformer" should behave like anyClosureEliminationTransformer(ClosureEliminationTransformer)
+class ClosureEliminationIterativeTransformerTest extends AnyFlatSpec with CETransfomerBehaviors {
+    "ClosureEliminationIterativeTransformer" should behave like anyClosureEliminationTransformer(ClosureEliminationIterativeTransformer)
 }
 
 class ClosureEliminationEijckTransformer extends AnyFlatSpec with CETransfomerBehaviors {

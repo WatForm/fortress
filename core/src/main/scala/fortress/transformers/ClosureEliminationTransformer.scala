@@ -11,9 +11,8 @@ import fortress.interpretation.Interpretation
  but with same arguments. **/
 trait ClosureEliminationTransformer extends ProblemStateTransformer {
     // This is basically a wrapper function so we can override just this and not all of apply
-    def buildEliminator(topLevelTerm: Term, signature: Signature, scopes: Map[Sort, Int], nameGen: NameGenerator): ClosureEliminator = {
-        return new ClosureEliminator(topLevelTerm: Term, signature: Signature, scopes: Map[Sort, Int], nameGen: NameGenerator)
-    }
+    // need to make this abstract
+    def buildEliminator(topLevelTerm: Term, signature: Signature, scopes: Map[Sort, Int], nameGen: NameGenerator): ClosureEliminator
 
     override def apply(problemState: ProblemState): ProblemState = problemState match {
         case ProblemState(theory, scopes, skc, skf, rangeRestricts, unapplyInterp, distinctConstants) => {
@@ -46,10 +45,7 @@ trait ClosureEliminationTransformer extends ProblemStateTransformer {
         }
     }
     
-    override def name: String = "Closure Elimination Transformer"
+    override def name: String = "Closure Elimination Abstract"
     
 }
 
-object ClosureEliminationTransformer extends ClosureEliminationTransformer {
-
-}

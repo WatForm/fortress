@@ -1,5 +1,7 @@
 package fortress.transformers
 
+// every transformer has to be registered here
+
 import fortress.util.Errors
 import javax.xml.crypto.Data
 import fortress.symmetry._
@@ -9,14 +11,14 @@ object Transformers {
     // NOTE: This could be improved by making it return something ??? => ProblemStateTransformer? Is this possible?
   
     def fromString(name: String): ProblemStateTransformer = name match {
-        case "ClosureElimination" | "ClosureEliminationTransformer" => ClosureEliminationTransformer
+        case "ClosureEliminationIterative" | "ClosureEliminationIterativeTransformer" => ClosureEliminationIterativeTransformer
         case "Datatype" | "DatatypeTransformer" => DatatypeTransformer
         case "DomainElimination" | "DomainEliminationTransformer" => DomainEliminationTransformer
         case "DomainElimination2" | "DomainEliminationTransformer2" => new DomainEliminationTransformer2()
         case "EnumElimination" | "EnumEliminationTransformer" => EnumEliminationTransformer
-        case "IntegerFinitization" | "IntegerFinitizationTransformer" => Errors.API.doesNotExist("Use mkIntegerFinitizationTransformer")
+        case "IntegerToBitVectors" | "IntegerToBitVectorTransformer" => IntegerToBitVectorTransformer
         case "Nnf" | "NnfTransformer" => NnfTransformer
-        case "QuantifierExpansion" | "QuantifierExpansionTransformer" => mkQuantifierExpansionTRansformer()
+        case "QuantifierExpansion" | "QuantifierExpansionTransformer" => mkQuantifierExpansionTransformer()
         case "RangeFormula" | "RangeFormulaTransformer" => mkRangeFormulaTransformer()
         case "ScopeSubtype" | "ScopeSubtypeTransformer" => new ScopeSubtypeTransformer()
         case "SimplifyLearnedLiterals" | "SimplifyLearnedLiteralsTransformer" => new SimplifyLearnedLiteralsTransformer()
@@ -34,14 +36,13 @@ object Transformers {
         case _ => Errors.API.doesNotExist(name + " is not a recognized Transformer.")
     }
 
-    def mkClosureEliminationTransformer() = ClosureEliminationTransformer
+    // def mkClosureEliminationTransformer() = ClosureEliminationTransformer
     def mkDatatypeTransformer() = DatatypeTransformer
     def mkDomainEliminationTransformer() = DomainEliminationTransformer
     def mkDomainEliminationTransformer2() = new DomainEliminationTransformer2()
     def mkEnumEliminationTransformer() = EnumEliminationTransformer
-    def mkIntegerFinitizationTransformer(bitwidth: Int): IntegerFinitizationTransformer = new IntegerFinitizationTransformer(bitwidth)
     def mkNnfTransformer() = NnfTransformer
-    def mkQuantifierExpansionTRansformer(useConstForDomElim: Boolean = false, useSimplification: Boolean = false) = new QuantifierExpansionTransformer(useConstForDomElim, useSimplification)
+    def mkQuantifierExpansionTransformer(useConstForDomElim: Boolean = false, useSimplification: Boolean = false) = new QuantifierExpansionTransformer(useConstForDomElim, useSimplification)
     def mkRangeFormulaTransformer(useConstForDomElim: Boolean = false) = new RangeFormulaTransformer(useConstForDomElim)
     def mkScopeSubtypeTransformer() = new ScopeSubtypeTransformer()
     def mkSimplifyLearnedLiteralsTransformer() = new SimplifyLearnedLiteralsTransformer()

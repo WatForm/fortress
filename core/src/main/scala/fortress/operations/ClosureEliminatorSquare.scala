@@ -17,7 +17,6 @@ class ClosureEliminatorSquare(topLevelTerm: Term, signature: Signature, scopes: 
 
     override val visitor = new ClosureVisitorSquare
 
-
     class ClosureVisitorSquare extends ClosureVisitor {
         // Finds the maximum number of squarings we need to do to form the closure
         def max_count(sort: Sort): Int = {
