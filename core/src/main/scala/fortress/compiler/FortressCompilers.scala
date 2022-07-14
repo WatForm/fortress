@@ -16,7 +16,7 @@ abstract class BaseFortressCompiler() extends LogicCompiler {
         transformerSequence += TypecheckSanitizeTransformer
         transformerSequence += EnumEliminationTransformer
         transformerSequence += IntegerToBitVectorTransformer
-        transformerSequence += ClosureEliminationIterativeTransformer
+        transformerSequence += ClosureEliminationEijckTransformer
         transformerSequence += NnfTransformer
         transformerSequence += SkolemizeTransformer
         transformerSequence ++= symmetryBreakingTransformers
@@ -36,7 +36,7 @@ abstract class BaseFortressCompilerEnums() extends LogicCompiler {
         transformerSequence += TypecheckSanitizeTransformer
         transformerSequence += EnumEliminationTransformer
         transformerSequence += IntegerToBitVectorTransformer
-        transformerSequence += ClosureEliminationIterativeTransformer
+        transformerSequence += ClosureEliminationEijckTransformer
         transformerSequence += NnfTransformer
         transformerSequence += SkolemizeTransformer
         transformerSequence ++= symmetryBreakingTransformers
