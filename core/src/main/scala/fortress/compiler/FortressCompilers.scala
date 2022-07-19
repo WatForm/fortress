@@ -21,7 +21,7 @@ abstract class BaseFortressCompiler() extends LogicCompiler {
         transformerSequence += SkolemizeTransformer
         transformerSequence ++= symmetryBreakingTransformers
         transformerSequence += StandardQuantifierExpansionTransformer
-        transformerSequence += StandardRangeFormulaTransformer
+        transformerSequence += RangeFormulaStandardTransformer
         transformerSequence += new SimplifyTransformer
         transformerSequence += DomainEliminationTransformer
         transformerSequence.toList
@@ -41,7 +41,7 @@ abstract class BaseFortressCompilerEnums() extends LogicCompiler {
         transformerSequence += SkolemizeTransformer
         transformerSequence ++= symmetryBreakingTransformers
         transformerSequence += StandardQuantifierExpansionTransformer
-        transformerSequence += StandardRangeFormulaTransformer
+        transformerSequence += RangeFormulaStandardTransformer
         transformerSequence += new SimplifyTransformer
         transformerSequence += DatatypeTransformer
         transformerSequence.toList
@@ -82,7 +82,7 @@ class FortressTWOCompiler_SI() extends LogicCompiler {
         transformerSequence += SkolemizeTransformer
         transformerSequence ++= symmetryBreakingTransformers
         transformerSequence += StandardQuantifierExpansionTransformer
-        transformerSequence += StandardRangeFormulaTransformer
+        transformerSequence += RangeFormulaStandardTransformer
         transformerSequence += new SimplifyTransformer
         transformerSequence += DomainEliminationTransformer
         transformerSequence.toList
@@ -122,7 +122,7 @@ class FortressFOURCompiler_SI() extends LogicCompiler {
         transformerSequence += SkolemizeTransformer
         transformerSequence ++= symmetryBreakingTransformers
         transformerSequence += StandardQuantifierExpansionTransformer
-        transformerSequence += StandardRangeFormulaTransformer
+        transformerSequence += RangeFormulaStandardTransformer
         transformerSequence += new SimplifyTransformer
         transformerSequence += DomainEliminationTransformer
         transformerSequence.toList
@@ -143,7 +143,7 @@ class FortressUnboundedCompiler() extends BaseFortressCompiler() {
         transformerSequence += NnfTransformer
         transformerSequence += SkolemizeTransformer
         transformerSequence += StandardQuantifierExpansionTransformer
-        transformerSequence += StandardRangeFormulaTransformer
+        transformerSequence += RangeFormulaStandardTransformer
         transformerSequence += new SimplifyTransformer
         transformerSequence += DomainEliminationTransformer
         transformerSequence.toList
@@ -165,7 +165,7 @@ class FortressLearnedLiteralsCompiler() extends BaseFortressCompiler() {
         transformerSequence += SkolemizeTransformer
         transformerSequence ++= symmetryBreakingTransformers
         transformerSequence += StandardQuantifierExpansionTransformer
-        transformerSequence += StandardRangeFormulaTransformer
+        transformerSequence += RangeFormulaStandardTransformer
         transformerSequence += SplitConjunctionTransformer
         transformerSequence += new SimplifyLearnedLiteralsTransformer
         transformerSequence += DomainEliminationTransformer
@@ -187,7 +187,7 @@ class NonDistUpperBoundCompiler extends LogicCompiler {
         transformerSequence += SkolemizeTransformer
         transformerSequence ++= symmetryBreakingTransformers
         transformerSequence += StandardQuantifierExpansionTransformer
-        transformerSequence += StandardRangeFormulaTransformer
+        transformerSequence += RangeFormulaStandardTransformer
         transformerSequence += new SimplifyTransformer2
         transformerSequence += new DomainEliminationTransformer2
         transformerSequence.toList
@@ -210,7 +210,7 @@ class PredUpperBoundCompiler extends LogicCompiler {
         transformerSequence += SkolemizeTransformer
         transformerSequence ++= symmetryBreakingTransformers
         transformerSequence += StandardQuantifierExpansionTransformer
-        transformerSequence += StandardRangeFormulaTransformer
+        transformerSequence += RangeFormulaStandardTransformer
         transformerSequence += new SimplifyTransformer
         transformerSequence += DomainEliminationTransformer
         transformerSequence.toList

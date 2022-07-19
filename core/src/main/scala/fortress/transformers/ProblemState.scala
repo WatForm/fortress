@@ -42,6 +42,16 @@ case class ProblemState private(
             unapplyInterp,
             distinctConstants)
     }
+    def withScopes(newscopes: Map[Sort, Int]): ProblemState = {
+        new ProblemState(            
+            theory,    
+            newscopes, // replaces just the scopes
+            skolemConstants,
+            skolemFunctions,
+            rangeRestrictions,
+            unapplyInterp,
+            distinctConstants)
+    }
 }
 
 object ProblemState {

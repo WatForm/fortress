@@ -19,7 +19,7 @@ object Transformers {
         case "IntegerToBitVectors" | "IntegerToBitVectorTransformer" => IntegerToBitVectorTransformer
         case "Nnf" | "NnfTransformer" => NnfTransformer
         case "QuantifierExpansion" | "QuantifierExpansionTransformer" => mkQuantifierExpansionTransformer()
-        case "RangeFormula" | "RangeFormulaTransformer" => mkRangeFormulaTransformer()
+        case "RangeFormulaStandard" | "RangeFormulaStandardTransformer" => RangeFormulaStandardTransformer
         case "ScopeSubtype" | "ScopeSubtypeTransformer" => new ScopeSubtypeTransformer()
         case "SimplifyLearnedLiterals" | "SimplifyLearnedLiteralsTransformer" => new SimplifyLearnedLiteralsTransformer()
         case "Simplify" | "SimplifyTransformer" => new SimplifyTransformer()
@@ -43,7 +43,7 @@ object Transformers {
     def mkEnumEliminationTransformer() = EnumEliminationTransformer
     def mkNnfTransformer() = NnfTransformer
     def mkQuantifierExpansionTransformer(useConstForDomElim: Boolean = false, useSimplification: Boolean = false) = new QuantifierExpansionTransformer(useConstForDomElim, useSimplification)
-    def mkRangeFormulaTransformer(useConstForDomElim: Boolean = false) = new RangeFormulaTransformer(useConstForDomElim)
+    // def mkRangeFormulaTransformer(useConstForDomElim: Boolean = false) = new RangeFormulaStandardTransformer
     def mkScopeSubtypeTransformer() = new ScopeSubtypeTransformer()
     def mkSimplifyLearnedLiteralsTransformer() = new SimplifyLearnedLiteralsTransformer()
     def mkSimplifyTransformer() = new SimplifyTransformer()

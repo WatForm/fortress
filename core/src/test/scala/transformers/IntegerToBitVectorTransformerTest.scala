@@ -10,10 +10,11 @@ class IntegerToBitVectorTransformerTest extends UnitSuite {
 
         val problemState = ProblemState(theory,Map(IntSort->4))
 
-        val expected = problemState.withTheory(
+        val expected = ProblemState(
             Theory.empty
             .withAxiom(Not(
-                BitVectorLiteral(value = 1, bitwidth = 4) === BitVectorLiteral(value = 2, bitwidth = 4)))
+                BitVectorLiteral(value = 1, bitwidth = 4) === BitVectorLiteral(value = 2, bitwidth = 4))),
+            Map.empty
         )
 
         val transformer = IntegerToBitVectorTransformer
@@ -29,10 +30,11 @@ class IntegerToBitVectorTransformerTest extends UnitSuite {
 
         val problemState = ProblemState(theory,Map(IntSort->4))
 
-        val expected = problemState.withTheory(
+        val expected = ProblemState(
             Theory.empty
             .withConstant(i of BitVectorSort(4))
-            .withAxiom(i === BitVectorLiteral(value = 5, bitwidth = 4))
+            .withAxiom(i === BitVectorLiteral(value = 5, bitwidth = 4)),
+            Map.empty
         )
         
         val transformer = IntegerToBitVectorTransformer
@@ -49,10 +51,11 @@ class IntegerToBitVectorTransformerTest extends UnitSuite {
 
         val problemState = ProblemState(theory,Map(IntSort->4))
         
-        val expected = problemState.withTheory(
+        val expected = ProblemState(
             Theory.empty
             .withConstants(i of BitVectorSort(4), j of BitVectorSort(4))
-            .withAxiom(BuiltinApp(BvPlus, i, j) === BuiltinApp(BvPlus, i, j))
+            .withAxiom(BuiltinApp(BvPlus, i, j) === BuiltinApp(BvPlus, i, j)),
+            Map.empty
         )
 
         val transformer = IntegerToBitVectorTransformer
@@ -71,12 +74,13 @@ class IntegerToBitVectorTransformerTest extends UnitSuite {
 
         val problemState = ProblemState(theory,Map(IntSort->4))
         
-        val expected = problemState.withTheory(
+        val expected = ProblemState(
             Theory.empty
             .withSort(A)
             .withFunctionDeclaration(FuncDecl("f", A, BitVectorSort(4), BitVectorSort(4)))
             .withConstant(c of A)
-            .withAxiom(App("f", c, BitVectorLiteral(value = 5, bitwidth = 4)) === BitVectorLiteral(value = 7, bitwidth = 4))
+            .withAxiom(App("f", c, BitVectorLiteral(value = 5, bitwidth = 4)) === BitVectorLiteral(value = 7, bitwidth = 4)),
+            Map.empty
         )
 
         val transformer = IntegerToBitVectorTransformer
@@ -93,10 +97,11 @@ class IntegerToBitVectorTransformerTest extends UnitSuite {
 
         val problemState = ProblemState(theory,Map(IntSort->4))
         
-        val expected = problemState.withTheory(
+        val expected = ProblemState(
             Theory.empty
             .withFunctionDeclaration(FuncDecl("f", BitVectorSort(4), BitVectorSort(4), BitVectorSort(4)))
-            .withAxiom(Forall( Seq(x of BitVectorSort(4), y of BitVectorSort(4)), BuiltinApp(BvPlus, x, y) === App("f", x, y)))
+            .withAxiom(Forall( Seq(x of BitVectorSort(4), y of BitVectorSort(4)), BuiltinApp(BvPlus, x, y) === App("f", x, y))),
+            Map.empty
         )
 
         val transformer = IntegerToBitVectorTransformer

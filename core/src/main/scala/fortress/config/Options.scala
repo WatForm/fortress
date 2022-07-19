@@ -35,7 +35,7 @@ case object QuantifierExpansionOption extends ToggleOption(
 
 case object RangeFormulaOption extends ToggleOption(
     "RangeFormula",
-    _.addTransformer(StandardRangeFormulaTransformer)
+    _.addTransformer(RangeFormulaStandardTransformer)
 )
 
 case object SimplifyOption extends ToggleOption(
