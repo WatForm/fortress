@@ -1,4 +1,4 @@
-# Transformers  
+# Transformers
 
 This document describes the various transformers that have been implemented in Fortress and how to use them.
 
@@ -39,8 +39,8 @@ opt = optional replacement for default
 | | TypecheckSanitizeTransformer                      |    req           | req               | req              | performs typechecking    |   
 | | ScopeSubtypeTransformer                           |    req           | req               | req              | set up predicates for non-exact scopes |
 | | EnumEliminationTransformer                        |    req           | req                | req              | Enums become ...         |
-| Integers| IntegerFinitizationTransformer                    |    def           | def                   |                  | Turn integers into BVs   |
-| Transitive Closure | **something about closure transformers**| | | | |
+| Integers| IntegerToBitVectorTransformer                    |    def           | def                   |                  | Turn integers into BVs  based on bitwidth set in problem state for scope of IntSort  |
+| Transitive Closure | ClosureEliminationIterativeTransformer | def | def  | | |
 | | SortInferenceTransformer                          | def      | def                 |                  | infer sorts for more symmetry breaking        |           
 | | NnfTransformer                                    |    req           | def                 |                  |                          |
 | | PnfTransformer                                    |    opt              |   opt                |                  | Not yet implemented        |
@@ -51,7 +51,8 @@ opt = optional replacement for default
 |Symmetry | SymmetryBreakingLowArityFirstMostUsedFunctionFirstOrderFactory| | | | |
 |Symmetry | something about SI here| | | | |
 | | StandardQuantifierExpansionTransformer **seems to be some options**           |    req           | def                 |                  |         |
-| | StandardRangeFormulaTransformer  **seems to be some options**                  |    req           | def                 |                  |         |
+| RangeFormulas | RangeFormulaStandardTransformer                    |    req           | def                 |                  | introduced range formulas using domain elements (if not already limited by symmetry breaking)        |
+| RangeFormulas | RangeFormulaUseConstantsTransformer                    |    req           | def                 |                  | introduced range formulas using constants (if not already limited by symmetry breaking)        |
 | Simplify | SimplifyTransformer                               |    def           | def                 |                  |         |
 | Simplify| SplitConjunctionTransformer| | | | |
 | Simplify| SimplifyLearnedLiteralsTransformer| | | | |

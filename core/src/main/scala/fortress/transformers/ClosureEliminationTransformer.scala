@@ -9,7 +9,11 @@ import fortress.interpretation.Interpretation
 
 /** Replaces transitive closure terms with a term representing the application of a new relation
  but with same arguments. **/
-object ClosureEliminationTransformer extends ProblemStateTransformer {
+trait ClosureEliminationTransformer extends ProblemStateTransformer {
+    // This is basically a wrapper function so we can override just this and not all of apply
+    // need to make this abstract
+    def buildEliminator(topLevelTerm: Term, signature: Signature, scopes: Map[Sort, Int], nameGen: NameGenerator): ClosureEliminator
+
     override def apply(problemState: ProblemState): ProblemState = problemState match {
         case ProblemState(theory, scopes, skc, skf, rangeRestricts, unapplyInterp, distinctConstants) => {
             val forbiddenNames = scala.collection.mutable.Set[String]()
@@ -30,7 +34,7 @@ object ClosureEliminationTransformer extends ProblemStateTransformer {
             
             var resultTheory = theory.withoutAxioms
             for(axiom <- theory.axioms) {
-                val closureEliminator = new ClosureEliminator(axiom, resultTheory.signature, scopes, nameGenerator)
+                val closureEliminator = buildEliminator(axiom, resultTheory.signature, scopes, nameGenerator)
                 val newAxiom = closureEliminator.convert()
                 resultTheory = resultTheory.withFunctionDeclarations(closureEliminator.getClosureFunctions.toList)
                 resultTheory = resultTheory.withAxioms(closureEliminator.getClosureAxioms.toList)
@@ -41,6 +45,7 @@ object ClosureEliminationTransformer extends ProblemStateTransformer {
         }
     }
     
-    override def name: String = "Closure Elimination Transformer"
+    override def name: String = "Closure Elimination Abstract"
     
 }
+

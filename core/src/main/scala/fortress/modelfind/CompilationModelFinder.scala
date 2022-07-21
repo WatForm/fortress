@@ -22,13 +22,13 @@ with ModelFinderSettings {
     private var compilerResult: Option[CompilerResult] = None
 
     /** Create a compiler using the given integer semantics. */
-    protected def createCompiler(integerSemantics: IntegerSemantics): LogicCompiler
+    protected def createCompiler(): LogicCompiler
     
     override def checkSat(): ModelFinderResult = {
         // Restart the timer
         totalTimer.startFresh()
 
-        compiler = Some(createCompiler(integerSemantics))
+        compiler = Some(createCompiler())
 
         compiler.get.compile(theory, analysisScopes, timeoutMilliseconds, eventLoggers.toList) match {
             case Left(CompilerError.Timeout) => TimeoutResult

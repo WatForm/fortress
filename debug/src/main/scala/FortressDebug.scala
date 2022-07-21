@@ -65,7 +65,7 @@ object FortressDebug {
             scopes += (Sort.mkSortConst(sortName) -> scope)
         }
 
-        val integerSemantics = Unbounded
+        // val integerSemantics = Unbounded
 
         var loggers = if (conf.debug()) {
             Seq(new StandardLogger(new PrintWriter(System.out)))
@@ -99,7 +99,7 @@ object FortressDebug {
                     modelFinder.setAnalysisScope(sort, scope)
                 }
                 modelFinder.setTimeout(Seconds(conf.timeout()))
-                modelFinder.setBoundedIntegers(integerSemantics)
+                //modelFinder.setBoundedIntegers(integerSemantics)
 
                 val result = modelFinder.checkSat()
                 println(result)
@@ -128,7 +128,7 @@ object FortressDebug {
                     modelFinder.setAnalysisScope(sort, scope)
                 }
                 modelFinder.setTimeout(Seconds(conf.timeout()))
-                modelFinder.setBoundedIntegers(integerSemantics)
+                //modelFinder.setBoundedIntegers(integerSemantics)
 
                 val count = modelFinder.countValidModels(theory)
                 println(count)
@@ -136,12 +136,12 @@ object FortressDebug {
 
             case "compile" => {
                 val compiler = conf.version() match {
-                    case "v0" => new FortressZEROCompiler(integerSemantics)
-                    case "v1" => new FortressONECompiler(integerSemantics)
-                    case "v2" => new FortressTWOCompiler(integerSemantics)
-                    case "v2si" => new FortressTWOCompiler_SI(integerSemantics)
-                    case "v3" => new FortressTHREECompiler(integerSemantics)
-                    case "v3si" => new FortressTHREECompiler_SI(integerSemantics)
+                    case "v0" => new FortressZEROCompiler()
+                    case "v1" => new FortressONECompiler()
+                    case "v2" => new FortressTWOCompiler()
+                    case "v2si" => new FortressTWOCompiler_SI()
+                    case "v3" => new FortressTHREECompiler()
+                    case "v3si" => new FortressTHREECompiler_SI()
                 }
                 val output = compiler.compile(theory, scopes, Seconds(conf.timeout()).toMilli, loggers)
                 output match {
@@ -152,8 +152,8 @@ object FortressDebug {
 
             case "checkfornewsorts" => {
                 val compiler = conf.version() match {
-                    case "v2si" => new FortressTWOCompiler_SI(integerSemantics)
-                    case "v3si" => new FortressTHREECompiler_SI(integerSemantics)
+                    case "v2si" => new FortressTWOCompiler_SI()
+                    case "v3si" => new FortressTHREECompiler_SI()
                     case other => {
                         System.err.println("Invalid model finder for looking for new sorts "+ other )
                         System.exit(1)

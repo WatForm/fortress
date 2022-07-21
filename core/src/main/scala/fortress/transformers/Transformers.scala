@@ -1,5 +1,7 @@
 package fortress.transformers
 
+// every transformer has to be registered here
+
 import fortress.util.Errors
 import javax.xml.crypto.Data
 import fortress.symmetry._
@@ -8,41 +10,48 @@ object Transformers {
 
     // NOTE: This could be improved by making it return something ??? => ProblemStateTransformer? Is this possible?
   
-    def fromString(name: String): ProblemStateTransformer = name.toLowerCase() match {
-        case "closureelimination" | "closureeliminationtransformer" => ClosureEliminationTransformer
-        case "datatype" | "datatypetransformer" => DatatypeTransformer
-        case "domainelimination" | "domaineliminationtransformer" => DomainEliminationTransformer
-        case "domainelimination2" | "domaineliminationtransformer2" => new DomainEliminationTransformer2()
-        case "enumelimination" | "enumeliminationtransformer" => EnumEliminationTransformer
-        case "integerfinitization" | "integerfinitizationtransformer" => Errors.API.doesNotExist("Use mkIntegerFinitizationTransformer")
-        case "nnf" | "nnftransformer" => NnfTransformer
-        case "quantifierexpansion" | "quantifierexpansiontransformer" => mkQuantifierExpansionTRansformer()
-        case "rangeformula" | "rangeformulatransformer" => mkRangeFormulaTransformer()
-        case "scopesubtype" | "scopesubtypetransformer" => new ScopeSubtypeTransformer()
-        case "simplifylearnedliterals" | "simplifylearnedliteralstransformer" => new SimplifyLearnedLiteralsTransformer()
-        case "simplify" | "simplifytransformer" => new SimplifyTransformer()
-        case "simplify2" | "simplifytransformer2" => new SimplifyTransformer2()
-        case "simplifywithrange" | "simplifywithrangetransformer" => new SimplifyWithRangeTransformer()
-        case "skolemize" | "skolemizetransformer" => SkolemizeTransformer
-        case "sortinference" | "sortinferencetransformer" => SortInferenceTransformer
-        case "splitconjunction" | "splitconjunctiontransformer" => SplitConjunctionTransformer
-        case "symmetrybreaking_mostused" | "symmetrybreakingtransformer_mostused" => Errors.API.doesNotExist("Use mkSymmetryBreakingTransformer_MostUsed")
-        case "symmetrybreaking_noskolem" | "symmetrybreakingtransformer_noskolem" => Errors.API.doesNotExist("Use mkSymmetryBreakingTransformer_NoSkolem")
-        case "symmetrybreaking" | "symmetrybreakingtransformer" => Errors.API.doesNotExist("Use mkSymmetryBreakingTransformer")
-        case "symmetrybreakingsi" | "symmetrybreakingtransformersi" => Errors.API.doesNotExist("Use mkSymmetryBreakingTransformerSI")
-        case "typechecksanitizer" | "typechecksanitizertransformer" => TypecheckSanitizeTransformer
-        case _ => Errors.API.doesNotExist(name + " is not a recognized Transformer.")
+    def fromString(name: String): ProblemStateTransformer = {
+        var transformerName = name.toLowerCase()
+        // Remove "transformer tail"
+        // While this doesn't perfrectly match XTransformer2, we want to rename these anyway
+        if (transformerName.endsWith("transformer")) {
+            transformerName = transformerName.substring(transformerName.length() - 11)
+        }
+        transformerName match {
+            case "closureeliminationiterative" => ClosureEliminationIterativeTransformer
+            case "datatype" => DatatypeTransformer
+            case "domainelimination" => DomainEliminationTransformer
+            case "domainelimination2" | "domaineliminationtransformer2" => new DomainEliminationTransformer2()
+            case "enumelimination" => EnumEliminationTransformer
+            case "integertobitvectors" => IntegerToBitVectorTransformer
+            case "nnf" => NnfTransformer
+            case "quantifierexpansion" => mkQuantifierExpansionTransformer()
+            case "rangeformula" | "rangeformulastandard" => RangeFormulaStandardTransformer
+            case "scopesubtype" => new ScopeSubtypeTransformer()
+            case "simplifylearnedliterals" => new SimplifyLearnedLiteralsTransformer()
+            case "simplify" => new SimplifyTransformer()
+            case "simplify2" | "simplifytransformer2" => new SimplifyTransformer2()
+            case "simplifywithrange" => new SimplifyWithRangeTransformer()
+            case "skolemize" => SkolemizeTransformer
+            case "sortinference" => SortInferenceTransformer
+            case "splitconjunction" => SplitConjunctionTransformer
+            case "symmetrybreaking_mostused" | "symmetrybreakingtransformer_mostused" => Errors.API.doesNotExist("Use mkSymmetryBreakingTransformer_MostUsed")
+            case "symmetrybreaking_noskolem" | "symmetrybreakingtransformer_noskolem" => Errors.API.doesNotExist("Use mkSymmetryBreakingTransformer_NoSkolem")
+            case "symmetrybreaking" => Errors.API.doesNotExist("Use mkSymmetryBreakingTransformer")
+            case "symmetrybreakingsi" | "symmetrybreakingtransformersi" => Errors.API.doesNotExist("Use mkSymmetryBreakingTransformerSI")
+            case "typechecksanitizer" => TypecheckSanitizeTransformer
+            case _ => Errors.API.doesNotExist(name + " is not a recognized Transformer.")
+        }
     }
 
-    def mkClosureEliminationTransformer() = ClosureEliminationTransformer
+    // def mkClosureEliminationTransformer() = ClosureEliminationTransformer
     def mkDatatypeTransformer() = DatatypeTransformer
     def mkDomainEliminationTransformer() = DomainEliminationTransformer
     def mkDomainEliminationTransformer2() = new DomainEliminationTransformer2()
     def mkEnumEliminationTransformer() = EnumEliminationTransformer
-    def mkIntegerFinitizationTransformer(bitwidth: Int): IntegerFinitizationTransformer = new IntegerFinitizationTransformer(bitwidth)
     def mkNnfTransformer() = NnfTransformer
-    def mkQuantifierExpansionTRansformer(useConstForDomElim: Boolean = false, useSimplification: Boolean = false) = new QuantifierExpansionTransformer(useConstForDomElim, useSimplification)
-    def mkRangeFormulaTransformer(useConstForDomElim: Boolean = false) = new RangeFormulaTransformer(useConstForDomElim)
+    def mkQuantifierExpansionTransformer(useConstForDomElim: Boolean = false, useSimplification: Boolean = false) = new QuantifierExpansionTransformer(useConstForDomElim, useSimplification)
+    // def mkRangeFormulaTransformer(useConstForDomElim: Boolean = false) = new RangeFormulaStandardTransformer
     def mkScopeSubtypeTransformer() = new ScopeSubtypeTransformer()
     def mkSimplifyLearnedLiteralsTransformer() = new SimplifyLearnedLiteralsTransformer()
     def mkSimplifyTransformer() = new SimplifyTransformer()

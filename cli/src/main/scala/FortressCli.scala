@@ -91,7 +91,7 @@ object FortressCli {
             modelFinder.setAnalysisScope(sort, scope)
         }
         modelFinder.setTimeout(Seconds(conf.timeout()))
-        modelFinder.setBoundedIntegers(integerSemantics)
+        //modelFinder.setBoundedIntegers(integerSemantics)
 
         val result = modelFinder.checkSat()
         println(result)

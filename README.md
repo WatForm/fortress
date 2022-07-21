@@ -23,6 +23,7 @@ The following are necessary to build Fortress:
     * Binaries are [available here](https://github.com/Z3Prover/z3/releases).
     * If using MacOS, we recommend using Homebrew: `brew install z3`.
     * If on `Ubuntu`, do not use `apt-get`, since its version of Z3 is out of date.
+    * We have not successfully built fortress on Windows yet, however, if built elsewhere the jars should work on Windows.
 * If using CVC4, a command line installation of the `CVC4` SMT solver.
     * If using MacOS, we recommend using Homebrew: `brew tap cvc4/cvc4 && brew install cvc4`.
 * The sbt build tool.

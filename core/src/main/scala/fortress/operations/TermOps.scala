@@ -73,7 +73,7 @@ case class TermOps private (term: Term) {
     
     def allEnumValues: Set[EnumValue] = RecursiveAccumulator.enumValuesIn(term)
     
-    def finitizeIntegers(bitwidth: Int): Term = TermConverter.intToSignedBitVector(term, bitwidth)
+    def intToBitVector(bitwidth: Int): Term = TermConverter.intToSignedBitVector(term, bitwidth)
     
     /** Returns the set of all symbol names used in the term, including:
       * free variables and constants, bound variables (even those that aren't used),

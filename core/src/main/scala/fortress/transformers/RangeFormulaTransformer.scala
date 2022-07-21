@@ -9,12 +9,9 @@ import fortress.data.CartesianSeqProduct
 
 import scala.math.min
 
-/** Introduces range formulas, restricting the output values of constants and functions.
-  * Symmetry breaking is not directly performed in this step.
-  * If a term already has range restriction imposed on it (for example, from symmetry breaking),
-  * generation of its range formula will be skipped (since it is redundant).
-  */
-object StandardRangeFormulaTransformer extends RangeFormulaTransformer(false)
+
+
+
 
 /** Introduces range formulas, restricting the output values of constants and functions.
   * Symmetry breaking is not directly performed in this step.
@@ -92,7 +89,16 @@ private[transformers] class RangeFormulaTransformer (useConstForDomElem: Boolean
     override def name: String = "Range Formula Transformer"
 }
 
-object RangeFormulaTransformer {
-    def create(): RangeFormulaTransformer = new RangeFormulaTransformer(false)
-    def createWithDomElemsAsConstants(): RangeFormulaTransformer = new RangeFormulaTransformer(true)
+object RangeFormulaStandardTransformer extends RangeFormulaTransformer(false) {
+    override def name: String = "Range Formula Standard Transformer"
 }
+
+object RangeFormulaUseConstantsTransformer extends RangeFormulaTransformer(true) {
+    override def name: String = "Range Formula Use ConstantsTransformer"
+}
+
+// 2022-07-15 NAD: not sure why this is here
+//object RangeFormulaTransformer {
+//    def create(): RangeFormulaTransformer = new RangeFormulaTransformer(false)
+//    def createWithDomElemsAsConstants(): RangeFormulaTransformer = new RangeFormulaTransformer(true)
+//}
