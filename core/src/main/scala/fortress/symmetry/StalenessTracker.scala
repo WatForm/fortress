@@ -8,7 +8,7 @@ import scala.collection.mutable
 class StalenessTracker private (
     val sorts: Set[Sort],
     private var staleElements: Map[Sort, Set[DomainElement]],
-    scopes: Map[Sort, Int]
+    scopes: Map[Sort, (Int, Boolean)]
 ) {
     
     // Marks domain elements as used
@@ -23,7 +23,7 @@ class StalenessTracker private (
 }
 
 object StalenessTracker {
-    def create(theory: Theory, scopes: Map[Sort, Int]): StalenessTracker = {
+    def create(theory: Theory, scopes: Map[Sort, (Int, Boolean)]): StalenessTracker = {
         // Determine which domain elements have been used in the original theory
         val allStaleDomainElements: Set[DomainElement] = theory.axioms flatMap (_.domainElements)
         val staleMap: Map[Sort, Set[DomainElement]] = {
@@ -35,7 +35,7 @@ object StalenessTracker {
         new StalenessTracker(theory.sorts, staleMap, scopes)
     }
     
-    def create(sorts: Set[Sort], staleDomainElems: Map[Sort, Seq[DomainElement]], scopes: Map[Sort, Int]): StalenessTracker = {
+    def create(sorts: Set[Sort], staleDomainElems: Map[Sort, Seq[DomainElement]], scopes: Map[Sort, (Int, Boolean)]): StalenessTracker = {
         val map = staleDomainElems map {
             case (sort, domElems) => sort -> domElems.toSet
         }

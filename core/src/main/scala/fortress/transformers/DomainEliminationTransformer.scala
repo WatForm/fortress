@@ -17,7 +17,7 @@ object DomainEliminationTransformer extends ProblemStateTransformer {
         case ProblemState(theory, scopes, skc, skf, rangeRestricts, unapplyInterp, distinctConstants) => {
             val domainElemsMap: Map[Sort, Seq[DomainElement]] =
                 (for(sort <- theory.sorts if !sort.isBuiltin  && scopes.contains(sort)) yield {
-                    val domElems = DomainElement.range(1 to scopes(sort), sort)
+                    val domElems = DomainElement.range(1 to scopes(sort)._1, sort)
                     (sort, domElems)
                 }).toMap
             

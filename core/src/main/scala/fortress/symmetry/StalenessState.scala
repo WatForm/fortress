@@ -9,11 +9,11 @@ import fortress.sortinference._
 // Sequences of domain elements are all returned in numerical order.
 class StalenessState private (
     val sorts: Set[Sort],
-    scopeMap: Map[Sort, Int],
+    scopeMap: Map[Sort, (Int, Boolean)],
     staleMap: Map[Sort, IndexedSeq[DomainElement]]
 ) {
     
-    def scope(sort: Sort): Int = scopeMap(sort)
+    def scope(sort: Sort): (Int, Boolean) = scopeMap(sort)
     
     def staleValues(sort: Sort): IndexedSeq[DomainElement] = staleMap(sort)
     
@@ -26,19 +26,24 @@ class StalenessState private (
     
     def existsFreshValue(sort: Sort): Boolean = numFreshValues(sort) > 0
     
-    def domainElements(sort: Sort): IndexedSeq[DomainElement] = DomainElement.range(1 to scope(sort), sort)
+    def domainElements(sort: Sort): IndexedSeq[DomainElement] = DomainElement.range(1 to scope(sort)._1, sort)
     
     def createTrackerWithState: StalenessTracker = StalenessTracker.create(sorts, staleMap, scopeMap)
 
     def afterSubstitution(sortSubstitution: SortSubstitution): StalenessState = {
         val newSorts = sorts map sortSubstitution
         val inverse: Sort => Set[Sort] = sortSubstitution.inverse
-        val newScopeMap: Map[Sort, Int] = {
+        val newScopeMap: Map[Sort, (Int, Boolean)] = {
             for(sort <- newSorts) yield {
-                sort -> {
-                    val preImage = inverse(sort)
-                    preImage.map(scope(_)).max
+                val preImage = inverse(sort)
+                val M = preImage.map(scope(_)._1).max
+                var s = scope(preImage.head)
+                for (item <- preImage) {
+                    if( scope(item)._1 == M ) {
+                        s = scope(item)
+                    }
                 }
+                sort -> s
             }
         }.toMap
         val newStaleMap: Map[Sort, IndexedSeq[DomainElement]] = {
@@ -61,7 +66,7 @@ class StalenessState private (
 object StalenessState {
     def apply(
         sorts: Set[Sort],
-        scopes: Map[Sort, Int],
+        scopes: Map[Sort, (Int, Boolean)],
         staleElems: Map[Sort, Seq[DomainElement]]
     ): StalenessState = {
         
@@ -73,7 +78,7 @@ object StalenessState {
     
     def apply(
         sorts: Set[Sort],
-        scopes: Map[Sort, Int],
+        scopes: Map[Sort, (Int, Boolean)],
         staleElems: Map[Sort, Set[DomainElement]]
     )(implicit d: DummyImplicit): StalenessState = {
 

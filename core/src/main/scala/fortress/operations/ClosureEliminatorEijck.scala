@@ -9,7 +9,7 @@ import java.util.ArrayList
 import scala.jdk.CollectionConverters._
 
 
-class ClosureEliminatorEijck(topLevelTerm: Term, signature: Signature, scopes: Map[Sort, Int], nameGen: NameGenerator) extends ClosureEliminator(topLevelTerm, signature, scopes, nameGen) {
+class ClosureEliminatorEijck(topLevelTerm: Term, signature: Signature, scopes: Map[Sort, (Int, Boolean)], nameGen: NameGenerator) extends ClosureEliminator(topLevelTerm, signature, scopes, nameGen) {
     // All closure functions we have generated (helps to avoid duplicates
     //val closureFunctions = scala.collection.mutable.Set[FuncDecl]()
     // Generated axioms

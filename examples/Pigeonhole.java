@@ -51,13 +51,13 @@ public class Pigeonhole {
         // This is satisfiable if and only if numPigeons <= numHoles
             
         // Initialize a model finder
-        try(ModelFinder finder = ModelFinder.createDefault()) {
+        try(ModelFinder finder = ModelFinder.createPredUpperBoundModelFinder()) {
             // Set the theory of the model finder
             finder.setTheory(pigeonholeTheory);
             
             // Set the scopes of the model finder
-            finder.setAnalysisScope(P, numPigeons);
-            finder.setAnalysisScope(H, numHoles);
+            finder.setAnalysisScope(P, numPigeons, false);
+            finder.setAnalysisScope(H, numHoles, true);
             
             // Check if all axioms in the theory are satisfiable
             ModelFinderResult result = finder.checkSat();

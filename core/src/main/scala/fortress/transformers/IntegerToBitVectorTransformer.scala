@@ -12,8 +12,8 @@ object IntegerToBitVectorTransformer extends ProblemStateTransformer {
     override def apply(problemState: ProblemState): ProblemState = {
         if (problemState.scopes.contains(IntSort)) {
             val bitwidth = problemState.scopes(IntSort)
-            val newAxioms = problemState.theory.axioms.map(_.intToBitVector(bitwidth))
-            val newSig = problemState.theory.signature.replaceIntegersWithBitVectors(bitwidth)
+            val newAxioms = problemState.theory.axioms.map(_.intToBitVector(bitwidth._1))
+            val newSig = problemState.theory.signature.replaceIntegersWithBitVectors(bitwidth._1)
             // remove IntSort from the scopes map
             val newScopes = problemState.scopes.filter(x => !(x._1 == IntSort))
             // this is the return value

@@ -18,7 +18,7 @@ trait LogicCompiler {
     
     def compile(
         theory: Theory,
-        scopes: Map[Sort, Int],
+        scopes: Map[Sort, (Int, Boolean)],
         timeout: Milliseconds,
         loggers: Seq[EventLogger]
     ): Either[CompilerError, CompilerResult] = {

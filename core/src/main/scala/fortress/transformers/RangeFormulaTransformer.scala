@@ -35,7 +35,7 @@ private[transformers] class RangeFormulaTransformer (useConstForDomElem: Boolean
                 // Don't generate constraints for terms that are already restricted
                 if ! (rangeRestricts exists (_.term == c.variable))
             } yield {
-                val possibleValues = for(i <- 1 to scopes(c.sort)) yield DE(i, c.sort)
+                val possibleValues = for(i <- 1 to scopes(c.sort)._1) yield DE(i, c.sort)
                 val rangeFormula = c.variable equalsOneOf possibleValues
                 rangeFormula
             }
@@ -46,7 +46,7 @@ private[transformers] class RangeFormulaTransformer (useConstForDomElem: Boolean
                 f <- theory.functionDeclarations
                 if !f.resultSort.isBuiltin && scopes.contains(f.resultSort)
             } {
-                val possibleRangeValues = for(i <- 1 to scopes(f.resultSort)) yield DE(i, f.resultSort)
+                val possibleRangeValues = for(i <- 1 to scopes(f.resultSort)._1) yield DE(i, f.resultSort)
                 
                 //  f: A_1 x ... x A_n -> B
                 // and each A_i has generated domain D_i
@@ -62,7 +62,7 @@ private[transformers] class RangeFormulaTransformer (useConstForDomElem: Boolean
                         quantifiedVarsBuffer += annotatedVar
                         IndexedSeq(annotatedVar.variable)
                     } else {
-                        for(j <- 1 to scopes(sort)) yield DE(j, sort)
+                        for(j <- 1 to scopes(sort)._1) yield DE(j, sort)
                     }
                     Di
                 })

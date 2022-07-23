@@ -53,9 +53,9 @@ object FortressDebug {
         }
 
         // Default scopes
-        var scopes: Map[Sort, Int] = conf.scope.toOption match {
+        var scopes: Map[Sort, (Int, Boolean)] = conf.scope.toOption match {
             case Some(scope) => {
-                for(sort <- theory.sorts) yield (sort -> scope)
+                for(sort <- theory.sorts) yield (sort -> (scope, true))
             }.toMap
             case None => Map()
         }
@@ -84,8 +84,8 @@ object FortressDebug {
                     case "v3si" => new FortressTHREE_SI
                     case "v4" => new FortressFOUR
                     case "v4si" => new FortressFOUR_SI
-                    case "upperIter" => new IterativeUpperBoundModelFinder
-                    case "parIter" => new ParallelIterativeUpperBoundModelFinder
+//                    case "upperIter" => new IterativeUpperBoundModelFinder
+//                    case "parIter" => new ParallelIterativeUpperBoundModelFinder
                     case "upperND" => new NonDistUpperBoundModelFinder
                     case "upperPred" => new PredUpperBoundModelFinder
                 }
@@ -96,7 +96,7 @@ object FortressDebug {
 
                 modelFinder.setTheory(theory)
                 for((sort, scope) <- scopes) {
-                    modelFinder.setAnalysisScope(sort, scope)
+                    modelFinder.setAnalysisScope(sort, scope._1, scope._2)
                 }
                 modelFinder.setTimeout(Seconds(conf.timeout()))
                 //modelFinder.setBoundedIntegers(integerSemantics)
@@ -125,7 +125,7 @@ object FortressDebug {
 
                 modelFinder.setTheory(theory)
                 for((sort, scope) <- scopes) {
-                    modelFinder.setAnalysisScope(sort, scope)
+                    modelFinder.setAnalysisScope(sort, scope._1, scope._2)
                 }
                 modelFinder.setTimeout(Seconds(conf.timeout()))
                 //modelFinder.setBoundedIntegers(integerSemantics)
@@ -167,7 +167,7 @@ object FortressDebug {
                 // wrapTheory is for operations on theories
                 val new_sorts_present = wrapTheory(theory2).newSortsInferred
                 if (new_sorts_present) {
-                    var analysisScopes: Map[Sort, Int] = Map.empty
+                    var analysisScopes: Map[Sort, (Int, Boolean)] = Map.empty
                     for((sort, scope) <- scopes) {
                         analysisScopes = analysisScopes + (sort -> scope)
                     }

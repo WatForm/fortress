@@ -9,8 +9,8 @@ import fortress.operations.ClosureEliminatorLiu
 import fortress.transformers._
 
 object ClosureEliminationLiuTransformer extends ClosureEliminationTransformer {
-    override def buildEliminator(topLevelTerm: Term, signature: Signature, scopes: Map[Sort, Int], nameGen: NameGenerator): ClosureEliminator = {
-        return new ClosureEliminatorLiu(topLevelTerm: Term, signature: Signature, scopes: Map[Sort, Int], nameGen: NameGenerator)
+    override def buildEliminator(topLevelTerm: Term, signature: Signature, scopes: Map[Sort, (Int, Boolean)], nameGen: NameGenerator): ClosureEliminator = {
+        new ClosureEliminatorLiu(topLevelTerm: Term, signature: Signature, scopes: Map[Sort, (Int, Boolean)], nameGen: NameGenerator)
     }
 
     override def name: String = "Closure Elimination Liu Transformer"

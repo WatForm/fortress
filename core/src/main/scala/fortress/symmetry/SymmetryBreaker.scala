@@ -6,12 +6,12 @@ import fortress.operations.TermOps._
 import scala.collection.mutable
 
 trait SymmetryBreakerFactory {
-    def create(theory: Theory, scopes: Map[Sort, Int]): SymmetryBreaker
+    def create(theory: Theory, scopes: Map[Sort, (Int, Boolean)]): SymmetryBreaker
 }
 
 abstract class SymmetryBreaker(
     theory: Theory,
-    protected val scopes: Map[Sort, Int]
+    protected val scopes: Map[Sort, (Int, Boolean)]
 ) {
     
     protected val tracker = StalenessTracker.create(theory, scopes)
@@ -112,7 +112,7 @@ trait DefaultConstantScheme extends SymmetryBreaker {
 
 // Concrete Implementations
 
-class DefaultSymmetryBreaker(theory: Theory, scopes: Map[Sort, Int])
+class DefaultSymmetryBreaker(theory: Theory, scopes: Map[Sort, (Int, Boolean)])
 extends SymmetryBreaker(theory, scopes)
 with DefaultPredicateBreaking
 with DependenceDifferentiation
@@ -121,5 +121,5 @@ with DefaultRDIScheme
 with DefaultRDDScheme
 
 object DefaultSymmetryBreaker extends SymmetryBreakerFactory {
-    def create(theory: Theory, scopes: Map[Sort, Int]): SymmetryBreaker = new DefaultSymmetryBreaker(theory, scopes)
+    def create(theory: Theory, scopes: Map[Sort, (Int, Boolean)]): SymmetryBreaker = new DefaultSymmetryBreaker(theory, scopes)
 }

@@ -16,7 +16,7 @@ import java.{util => ju}
 class Conf(arguments: Seq[String]) extends ScallopConf(arguments) {
     val scope = opt[Int](required = false)
     val file = trailArg[String](required = true)
-    val scopeMap = props[Int]('S')
+    val scopeMap = props[String]('S')
     val timeout = opt[Int](required = true) // Timeout in seconds
 
     // modelfinder.
@@ -38,7 +38,7 @@ class Conf(arguments: Seq[String]) extends ScallopConf(arguments) {
         }
         val argType: ArgType.V = ArgType.LIST
     }
-    val transformers = trailArg[List[ProblemStateTransformer]](required=true)(transfromerConverter)
+    val transformers = trailArg[List[ProblemStateTransformer]](required=false)(transfromerConverter)
 
     mutuallyExclusive(modelFinder, transformers)
 
@@ -61,17 +61,23 @@ object FortressCli {
         }
 
         // Default scopes
-        var scopes: Map[Sort, Int] = conf.scope.toOption match {
+        var scopes: Map[Sort, (Int, Boolean)] = conf.scope.toOption match {
             case Some(scope) => {
-                for(sort <- theory.sorts) yield (sort -> scope)
+                for(sort <- theory.sorts) yield (sort -> (scope, true))
             }.toMap
             case None => Map()
         }
 
         // Override with specifc scopes
-        for((sortName, scope) <- conf.scopeMap) {
-            scopes += (Sort.mkSortConst(sortName) -> scope)
+        for ( (sort, scope) <- conf.scopeMap ) {
+            if( sort.charAt(sort.length-1) == '?' ) { // "P?=2"
+                scopes += (Sort.mkSortConst(sort.substring(0, sort.length-1)) -> (scope.toInt, false))
+            }
+            else {  // "P=2"
+                scopes += (Sort.mkSortConst(sort) -> (scope.toInt, true))
+            }
         }
+
 
         val integerSemantics = Unbounded
 
@@ -83,10 +89,11 @@ object FortressCli {
                 case None => new FortressTHREE_SI
             }
         }
+//        val modelFinder: ModelFinder = ModelFinder.createPredUpperBoundModelFinder()
 
         modelFinder.setTheory(theory)
         for((sort, scope) <- scopes) {
-            modelFinder.setAnalysisScope(sort, scope)
+            modelFinder.setAnalysisScope(sort, scope._1, scope._2)
         }
         modelFinder.setTimeout(Seconds(conf.timeout()))
         //modelFinder.setBoundedIntegers(integerSemantics)

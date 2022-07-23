@@ -8,10 +8,13 @@ import fortress.interpretation._
 import fortress.operations.TermMetrics._
 import fortress.sortinference._
 
+import scala.collection.immutable.Map
 import scala.collection.mutable
 
 case class TheoryOps private(theory: Theory) {
     def mapAxioms(f: Term => Term) = Theory(theory.signature, theory.axioms map f)
+
+    def someAxioms(f: (Term, Map[String, Boolean]) => Term, helpMap: Map[String, Boolean]) = Theory(theory.signature, theory.axioms.map(f(_, helpMap)))
 
     def verifyInterpretation(interpretation: Interpretation): Boolean =
         new InterpretationVerifier(theory).verifyInterpretation(interpretation)
