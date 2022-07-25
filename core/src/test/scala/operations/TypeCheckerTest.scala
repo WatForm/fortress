@@ -25,7 +25,7 @@ class TypeCheckerTest extends UnitSuite {
             .withConstant(x.of(A))
             .withConstant(y.of(A))
 
-        val closure = Closure("f", Seq(x, y), x, y);
+        val closure = Closure("f", x, y);
 
         val checker = new TypeChecker(sig);
         val result = checker.visitClosure(closure);
@@ -35,31 +35,16 @@ class TypeCheckerTest extends UnitSuite {
         result.containsConnectives should be (false);
         result.containsQuantifiers should be (false);
     }
-
-    test("Closure too many values"){
-        val f = FuncDecl("f", List(A,A,A), Sort.Bool);
-        val sig = Signature.empty.withSort(A).withFunctionDeclaration(f)
-            .withConstant(x.of(A))
-            .withConstant(y.of(A))
-            .withConstant(z.of(A))
-
-        val closure = Closure("f", Seq(x, y, z), x, y);
-
-        val checker = new TypeChecker(sig);
-        
-        val thrown = the [TypeCheckException.BadStructure] thrownBy checker.visitClosure(closure);
-        thrown.getMessage should startWith ("Expected exactly 2 arguments but got");  
-    }
     
     test ("Closure over different sorts") {
-         val f = FuncDecl("f", List(A,B,A), Sort.Bool);
+        val f = FuncDecl("f", List(A,B,A), Sort.Bool);
         val sig = Signature.empty.withSort(A)
             .withSort(B)
             .withFunctionDeclaration(f)
             .withConstant(x.of(A))
             .withConstant(y.of(B))
 
-        val closure = Closure("f", Seq(x, y), x, y);
+        val closure = Closure("f", x, y);
 
         val checker = new TypeChecker(sig);
         

@@ -116,7 +116,6 @@ class ClosureEliminatorEijck(topLevelTerm: Term, signature: Signature, scopes: M
             // Iff is allowed here it seems
             val functionName = c.functionName
             // idx is used for when there are more args
-            val idx = c.arguments.indexOf(c.arg1)
             val reflexiveClosureName = getReflexiveClosureName(functionName)
             val closureName = getClosureName(functionName)
 
@@ -124,12 +123,10 @@ class ClosureEliminatorEijck(topLevelTerm: Term, signature: Signature, scopes: M
             if (!queryFunction(closureName)){
                 // use index to find sort
                 val rel = signature.queryUninterpretedFunction(functionName).get
-                var argSorts = new ArrayList(rel.argSorts.asJava)
-                // TODO only use 0 instead of idx?
-                val sort = argSorts.get(idx)
+                val sort = rel.argSorts(0)
 
                 // Declare the new function representing the closure
-                closureFunctions += FuncDecl.mkFuncDecl(closureName, argSorts, Sort.Bool)
+                closureFunctions += FuncDecl.mkFuncDecl(closureName, sort, sort, Sort.Bool)
                 
                 // Set up variables (and their arguments) for axioms
                 val x = Var(nameGen.freshName("x"))
@@ -144,7 +141,7 @@ class ClosureEliminatorEijck(topLevelTerm: Term, signature: Signature, scopes: M
                 // define reflexive closure if we haven't already
                 if(!queryFunction(reflexiveClosureName)){
                     // declare the function
-                    closureFunctions += FuncDecl.mkFuncDecl(reflexiveClosureName, argSorts, Sort.Bool)
+                    closureFunctions += FuncDecl.mkFuncDecl(reflexiveClosureName, sort, sort, Sort.Bool)
                     // Defined with closeness and one additional axiom
                     closureAxioms += Forall(axy,
                         Iff(
@@ -174,14 +171,13 @@ class ClosureEliminatorEijck(topLevelTerm: Term, signature: Signature, scopes: M
                 )
 
             }
-            App(closureName, c.arguments).mapArguments(visit)
+            App(closureName, Seq(c.arg1, c.arg2)).mapArguments(visit)
         }
         // TODO support more arguments
         override def visitReflexiveClosure(rc: ReflexiveClosure): Term = {
             // Iff is allowed here it seems
             val functionName = rc.functionName
             // idx is used for when there are more args
-            val idx = rc.arguments.indexOf(rc.arg1)
             val reflexiveClosureName = getReflexiveClosureName(functionName)
             val closureName = getClosureName(functionName)
 
@@ -190,10 +186,10 @@ class ClosureEliminatorEijck(topLevelTerm: Term, signature: Signature, scopes: M
                 // use index to find sort
                 val rel = signature.queryUninterpretedFunction(functionName).get
                 var argSorts = new ArrayList(rel.argSorts.asJava)
-                val sort = argSorts.get(idx)
+                val sort = rel.argSorts(0)
 
                 // Declare reflexive closure
-                closureFunctions += FuncDecl.mkFuncDecl(reflexiveClosureName, argSorts, Sort.Bool)
+                closureFunctions += FuncDecl.mkFuncDecl(reflexiveClosureName, sort, sort, Sort.Bool)
                 
                 val x = Var(nameGen.freshName("x"))
                 val y = Var(nameGen.freshName("y"))
@@ -212,7 +208,7 @@ class ClosureEliminatorEijck(topLevelTerm: Term, signature: Signature, scopes: M
                 )
             }
 
-            App(reflexiveClosureName, rc.arguments).mapArguments(visit)
+            App(reflexiveClosureName, Seq(rc.arg1, rc.arg2)).mapArguments(visit)
         }
         
     }

@@ -123,7 +123,7 @@ trait CETransfomerBehaviors{ this: AnyFlatSpec =>
 
             val correctClosure = Forall(axy,
                 Iff(
-                    Closure(R.name, Seq(x,y), x, y),
+                    Closure(R.name, x, y),
                     Or(
                         And(Eq(x, a), Eq(y, b)),
                         And(Eq(x, a), Eq(y, c)),
@@ -140,7 +140,7 @@ trait CETransfomerBehaviors{ this: AnyFlatSpec =>
             */
             val correctReflexiveClosure = Forall(axy,
                 Iff(
-                    ReflexiveClosure(R.name, Seq(x,y), x, y),
+                    ReflexiveClosure(R.name, x, y),
                     Or(
                         Eq(x, y),
                         And(Eq(x, a), Eq(y, b)),

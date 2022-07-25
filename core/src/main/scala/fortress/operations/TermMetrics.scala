@@ -19,8 +19,8 @@ object TermMetrics {
         case Eq(p, q) => max(depthQuantification(p), depthQuantification(q))
         case App(_, args) => args.map(depthQuantification).max
         case BuiltinApp(_, args) => args.map(depthQuantification).max
-        case Closure(_, args, _, _) => args.map(depthQuantification).max
-        case ReflexiveClosure(_, args, _, _) => args.map(depthQuantification).max
+        case Closure(_, arg1, arg2) => max(depthQuantification(arg1), depthQuantification(arg2))
+        case ReflexiveClosure(_, arg1, arg2) => max(depthQuantification(arg1), depthQuantification(arg2))
         case Top | Bottom | Var(_) | EnumValue(_) | DomainElement(_, _) | IntegerLiteral(_) | BitVectorLiteral(_, _) => 0
         case IfThenElse(condition, ifTrue, ifFalse) => (List(condition, ifTrue, ifFalse) map depthQuantification).max
     }
@@ -38,8 +38,8 @@ object TermMetrics {
         case Eq(p, q) => max(depthNestedFunc(p), depthNestedFunc(q))
         case App(_, args) => args.map(depthNestedFunc).max + 1
         case BuiltinApp(_, args) => args.map(depthNestedFunc).max + 1
-        case Closure(_, args, _, _) => args.map(depthNestedFunc).max + 1
-        case ReflexiveClosure(_, args, _, _) => args.map(depthNestedFunc).max + 1
+        case Closure(_, arg1, arg2) => max(depthNestedFunc(arg1), depthNestedFunc(arg2)) + 1
+        case ReflexiveClosure(_, arg1, arg2) => max(depthNestedFunc(arg1), depthNestedFunc(arg2)) + 1
         case Top | Bottom | Var(_) | EnumValue(_) | DomainElement(_, _) | IntegerLiteral(_) | BitVectorLiteral(_, _) => 0
         case IfThenElse(condition, ifTrue, ifFalse) => (List(condition, ifTrue, ifFalse) map depthNestedFunc).max
     }
@@ -57,8 +57,8 @@ object TermMetrics {
         case Eq(p, q) => termCount(p) + termCount(q) + 1
         case App(_, args) => args.map(termCount).sum + 1
         case BuiltinApp(_, args) => args.map(termCount).sum + 1
-        case Closure(_, args, _, _) => args.map(termCount).sum + 1
-        case ReflexiveClosure(_, args, _, _) => args.map(termCount).sum + 1
+        case Closure(_, arg1, arg2) => termCount(arg1) + termCount(arg2) + 1
+        case ReflexiveClosure(_, arg1, arg2) => termCount(arg1) + termCount(arg2) + 1
         case Top | Bottom | Var(_) | EnumValue(_) | DomainElement(_, _) | IntegerLiteral(_) | BitVectorLiteral(_, _) => 1
         case IfThenElse(condition, ifTrue, ifFalse) => (List(condition, ifTrue, ifFalse) map termCount).sum + 1
     }
@@ -85,8 +85,8 @@ object TermMetrics {
             profilingInfo(funcDecl) = profilingInfo(funcDecl) + 1
             args.foreach(arg => declarationCountMap(arg, profilingInfo))
         case BuiltinApp(_, args) => args.foreach(arg => declarationCountMap(arg, profilingInfo))
-        case Closure(_, args, _, _) => args.foreach(arg => declarationCountMap(arg, profilingInfo))
-        case ReflexiveClosure(_, args, _, _) => args.foreach(arg => declarationCountMap(arg, profilingInfo))
+        case Closure(_, arg1, arg2) => Seq(arg1, arg2).foreach(arg => declarationCountMap(arg, profilingInfo))
+        case ReflexiveClosure(_, arg1, arg2) => Seq(arg1, arg2).foreach(arg => declarationCountMap(arg, profilingInfo))
         case Var(name) =>
             val annotatedVar = profilingInfo.keySet.filter(pred => pred.isInstanceOf[AnnotatedVar] && pred.asInstanceOf[AnnotatedVar].name.equals(name))
             // if it is a constant and can be found in the map keys

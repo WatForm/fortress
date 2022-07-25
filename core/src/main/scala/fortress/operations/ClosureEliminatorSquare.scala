@@ -26,15 +26,14 @@ class ClosureEliminatorSquare(topLevelTerm: Term, signature: Signature, scopes: 
         }
         // TODO support more arguments
 
-        def expandClosure(functionName: String, idx: Int): Unit = {
+        def expandClosure(functionName: String): Unit = {
             val rel = signature.queryUninterpretedFunction(functionName).get
-            var argSorts = new ArrayList(rel.argSorts.asJava)
-            val sort: Sort = rel.argSorts(idx)
+            val sort: Sort = rel.argSorts(0)
 
             val closureName = "^" + functionName
             
             // Declare the new function representing the closure
-            closureFunctions += FuncDecl.mkFuncDecl(closureName, argSorts, Sort.Bool)
+            closureFunctions += FuncDecl.mkFuncDecl(closureName, sort, sort, Sort.Bool)
 
             // Set up variables (and their arguments) for axioms
             val x = Var(nameGen.freshName("x"))
@@ -50,7 +49,7 @@ class ClosureEliminatorSquare(topLevelTerm: Term, signature: Signature, scopes: 
             for (iter <- 1 to max_count(sort)){
                 // Make the next squared level
                 val iterationName = functionName + "^" + iter.toString()
-                val iterationDecl = FuncDecl.mkFuncDecl(iterationName, argSorts, Sort.Bool)
+                val iterationDecl = FuncDecl.mkFuncDecl(iterationName, sort, sort, Sort.Bool)
                 closureFunctions += iterationDecl
                 // Define it
                 closureAxioms += Forall(axy,
@@ -91,14 +90,12 @@ class ClosureEliminatorSquare(topLevelTerm: Term, signature: Signature, scopes: 
         override def visitClosure(c: Closure): Term = {
              // Iff is allowed here it seems
             val functionName = c.functionName
-            // idx is used for when there are more args
-            val idx = c.arguments.indexOf(c.arg1)
             val reflexiveClosureName = "*" + functionName
             val closureName = "^" + functionName
 
             if (!queryFunction(closureName)){
                 // Closure has not been expanded. Do so now!
-                expandClosure(functionName, idx)
+                expandClosure(functionName)
             }
             App(closureName, c.arguments).mapArguments(visit)
         }
@@ -106,20 +103,17 @@ class ClosureEliminatorSquare(topLevelTerm: Term, signature: Signature, scopes: 
         override def visitReflexiveClosure(rc: ReflexiveClosure): Term = {
             // Iff is allowed here it seems
             val functionName = rc.functionName
-            // idx is used for when there are more args
-            val idx = rc.arguments.indexOf(rc.arg1)
             val reflexiveClosureName = "*" + functionName
             val closureName = "^" + functionName
 
             // Skip if we already did it
             if (!queryFunction(reflexiveClosureName)){
                 if (!queryFunction(closureName)) {
-                    expandClosure(functionName, idx)
+                    expandClosure(functionName)
                 }
                 val rel = signature.queryUninterpretedFunction(functionName).get
-                var argSorts = new ArrayList(rel.argSorts.asJava)
-                val sort = argSorts.get(idx)
-                closureFunctions += FuncDecl.mkFuncDecl(reflexiveClosureName, argSorts, Sort.Bool)
+                val sort = rel.argSorts(0)
+                closureFunctions += FuncDecl.mkFuncDecl(reflexiveClosureName, sort, sort, Sort.Bool)
                 
                 val x = Var(nameGen.freshName("x"))
                 val y = Var(nameGen.freshName("y"))

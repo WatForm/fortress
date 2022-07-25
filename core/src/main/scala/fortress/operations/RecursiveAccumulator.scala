@@ -21,8 +21,8 @@ object RecursiveAccumulator {
         case Eq(l, r) => allSymbolsIn(l) union allSymbolsIn(r)
         case App(fname, args) => ( (args map allSymbolsIn) reduce (_ union _) ) + fname
         case BuiltinApp(function, args) => (args map allSymbolsIn) reduce (_ union _)
-        case Closure(fname, args, _, _) => ( (args map allSymbolsIn) reduce (_ union _) ) + fname
-        case ReflexiveClosure(fname, args, _, _) => ( (args map allSymbolsIn) reduce (_ union _) ) + fname
+        case Closure(fname, arg1, arg2) => (allSymbolsIn(arg1)) union (allSymbolsIn(arg2)) + fname
+        case ReflexiveClosure(fname, arg1, arg2) => (allSymbolsIn(arg1)) union (allSymbolsIn(arg2)) + fname
         case Forall(vars, body) => allSymbolsIn(body) union (vars map (_.variable.name)).toSet union (vars map (_.sort.name)).toSet
         case Exists(vars, body) => allSymbolsIn(body) union (vars map (_.variable.name)).toSet union (vars map (_.sort.name)).toSet
         case IfThenElse(condition, ifTrue, ifFalse) => allSymbolsIn(condition) union allSymbolsIn(ifTrue) union allSymbolsIn(ifFalse)
@@ -46,21 +46,22 @@ object RecursiveAccumulator {
         case Eq(l, r) => domainElementsIn(l) union domainElementsIn(r)
         case App(fname, args) => args.map(domainElementsIn).reduce((a, b) => a union b)
         case BuiltinApp(function, args) => args.map(domainElementsIn).reduce((a, b) => a union b)
-        case Closure(_, args, _, _) => args.map(domainElementsIn).reduce((a, b) => a union b)
-        case ReflexiveClosure(_, args, _, _) => args.map(domainElementsIn).reduce((a, b) => a union b)
+        case Closure(_, arg1, arg2) => (domainElementsIn(arg1)) union (domainElementsIn(arg2))
+        case ReflexiveClosure(_, arg1, arg2) => (domainElementsIn(arg1)) union (domainElementsIn(arg2))
         case Forall(vars, body) => domainElementsIn(body)
         case Exists(vars, body) => domainElementsIn(body)
         case IfThenElse(condition, ifTrue, ifFalse) => domainElementsIn(condition) union domainElementsIn(ifTrue) union domainElementsIn(ifFalse)
     }
     
-    def enumValuesIn(term: Term): Set[EnumValue] = {
-        object EnumValueAccumulator extends NaturalSetAccumulation[EnumValue] {
+
+    object EnumValueAccumulator extends NaturalSetAccumulation[EnumValue] {
             override val exceptionalMappings: PartialFunction[Term, Set[EnumValue]] = {
                 case e @ EnumValue(_) => Set(e)
             }
             
             def apply(term: Term): Set[EnumValue] = naturalRecur(term)
-        }
+    }
+    def enumValuesIn(term: Term): Set[EnumValue] = {
         EnumValueAccumulator(term)
     }
     
@@ -76,8 +77,8 @@ object RecursiveAccumulator {
         case Eq(l, r) => functionsIn(l) union functionsIn(r)
         case App(fname, args) => args.map(functionsIn).reduce((a, b) => a union b) + fname
         case BuiltinApp(function, args) => args.map(functionsIn).reduce((a, b) => a union b)
-        case Closure(fname, args, _, _) => args.map(functionsIn).reduce((a, b) => a union b) + fname
-        case ReflexiveClosure(fname, args, _, _) => args.map(functionsIn).reduce((a, b) => a union b) + fname
+        case Closure(fname, arg1, arg2) => (functionsIn(arg1) union functionsIn(arg2)) + fname
+        case ReflexiveClosure(fname, arg1, arg2) => (functionsIn(arg1)) union (functionsIn(arg2)) + fname
         case Forall(vars, body) => functionsIn(body)
         case Exists(vars, body) => functionsIn(body)
         case IfThenElse(condition, ifTrue, ifFalse) => functionsIn(condition) union functionsIn(ifTrue) union functionsIn(ifFalse)
@@ -98,8 +99,8 @@ object RecursiveAccumulator {
             case Eq(l, r) => recur(l, variables) union recur(r, variables)
             case App(fname, args) => args.map(arg => recur(arg, variables)).reduce((a, b) => a union b)
             case BuiltinApp(function, args) => args.map(arg => recur(arg, variables)).reduce((a, b) => a union b)
-            case Closure(fname, args, _, _) => args.map(arg => recur(arg, variables)).reduce((a, b) => a union b)
-            case ReflexiveClosure(fname, args, _, _) => args.map(arg => recur(arg, variables)).reduce((a, b) => a union b)
+            case Closure(fname, arg1, arg2) => recur(arg1, variables) union recur(arg2, variables)
+            case ReflexiveClosure(fname, arg1, arg2) => recur(arg1, variables) union recur(arg2, variables)
             case Forall(vars, body) => recur(body, variables ++ vars.map(_.name))
             case Exists(vars, body) => recur(body, variables ++ vars.map(_.name))
             case IfThenElse(condition, ifTrue, ifFalse) => constantsIn(condition) union constantsIn(ifTrue) union constantsIn(ifFalse)
@@ -123,8 +124,8 @@ object RecursiveAccumulator {
         case Eq(l, r) => freeVariablesIn(l) union freeVariablesIn(r)
         case App(fname, args) => (args map freeVariablesIn) reduce (_ union _)
         case BuiltinApp(function, args) => (args map freeVariablesIn) reduce (_ union _)
-        case Closure(_, args, _, _) => (args map freeVariablesIn) reduce (_ union _)
-        case ReflexiveClosure(_, args, _, _) => (args map freeVariablesIn) reduce (_ union _)
+        case Closure(_, arg1, arg2) => freeVariablesIn(arg1) union freeVariablesIn(arg2)
+        case ReflexiveClosure(_, arg1, arg2) => freeVariablesIn(arg1) union freeVariablesIn(arg2)
         case Exists(vars, body) => freeVariablesIn(body) diff (vars map (_.variable)).toSet
         case Forall(vars, body) => freeVariablesIn(body) diff (vars map (_.variable)).toSet
         case IfThenElse(condition, ifTrue, ifFalse) => freeVariablesIn(condition) union freeVariablesIn(ifTrue) union freeVariablesIn(ifFalse)
