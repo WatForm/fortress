@@ -10,30 +10,38 @@ object Transformers {
 
     // NOTE: This could be improved by making it return something ??? => ProblemStateTransformer? Is this possible?
   
-    def fromString(name: String): ProblemStateTransformer = name match {
-        case "ClosureEliminationIterative" | "ClosureEliminationIterativeTransformer" => ClosureEliminationIterativeTransformer
-        case "Datatype" | "DatatypeTransformer" => DatatypeTransformer
-        case "DomainElimination" | "DomainEliminationTransformer" => DomainEliminationTransformer
-        case "DomainElimination2" | "DomainEliminationTransformer2" => new DomainEliminationTransformer2()
-        case "EnumElimination" | "EnumEliminationTransformer" => EnumEliminationTransformer
-        case "IntegerToBitVectors" | "IntegerToBitVectorTransformer" => IntegerToBitVectorTransformer
-        case "Nnf" | "NnfTransformer" => NnfTransformer
-        case "QuantifierExpansion" | "QuantifierExpansionTransformer" => mkQuantifierExpansionTransformer()
-        case "RangeFormulaStandard" | "RangeFormulaStandardTransformer" => RangeFormulaStandardTransformer
-        case "ScopeSubtype" | "ScopeSubtypeTransformer" => new ScopeSubtypeTransformer()
-        case "SimplifyLearnedLiterals" | "SimplifyLearnedLiteralsTransformer" => new SimplifyLearnedLiteralsTransformer()
-        case "Simplify" | "SimplifyTransformer" => new SimplifyTransformer()
-        case "Simplify2" | "SimplifyTransformer2" => new SimplifyTransformer2()
-        case "SimplifyWithRange" | "SimplifyWithRangeTransformer" => new SimplifyWithRangeTransformer()
-        case "Skolemize" | "SkolemizeTransformer" => SkolemizeTransformer
-        case "SortInference" | "SortInferenceTransformer" => SortInferenceTransformer
-        case "SplitConjunction" | "SplitConjunctionTransformer" => SplitConjunctionTransformer
-        case "SymmetryBreaking_MostUsed" | "SymmetryBreakingTransformer_MostUsed" => Errors.API.doesNotExist("Use mkSymmetryBreakingTransformer_MostUsed")
-        case "SymmetryBreaking_NoSkolem" | "SymmetryBreakingTransformer_NoSkolem" => Errors.API.doesNotExist("Use mkSymmetryBreakingTransformer_NoSkolem")
-        case "SymmetryBreaking" | "SymmetryBreakingTransformer" => Errors.API.doesNotExist("Use mkSymmetryBreakingTransformer")
-        case "SymmetryBreakingSI" | "SymmetryBreakingTransformerSI" => Errors.API.doesNotExist("Use mkSymmetryBreakingTransformerSI")
-        case "TypecheckSanitizer" | "TypecheckSanitizerTransformer" => TypecheckSanitizeTransformer
-        case _ => Errors.API.doesNotExist(name + " is not a recognized Transformer.")
+    def fromString(name: String): ProblemStateTransformer = {
+        var transformerName = name.toLowerCase()
+        // Remove "transformer tail"
+        // While this doesn't perfrectly match XTransformer2, we want to rename these anyway
+        if (transformerName.endsWith("transformer")) {
+            transformerName = transformerName.substring(transformerName.length() - 11)
+        }
+        transformerName match {
+            case "closureeliminationiterative" => ClosureEliminationIterativeTransformer
+            case "datatype" => DatatypeTransformer
+            case "domainelimination" => DomainEliminationTransformer
+            case "domainelimination2" | "domaineliminationtransformer2" => new DomainEliminationTransformer2()
+            case "enumelimination" => EnumEliminationTransformer
+            case "integertobitvectors" => IntegerToBitVectorTransformer
+            case "nnf" => NnfTransformer
+            case "quantifierexpansion" => mkQuantifierExpansionTransformer()
+            case "rangeformula" | "rangeformulastandard" => RangeFormulaStandardTransformer
+            case "scopesubtype" => new ScopeSubtypeTransformer()
+            case "simplifylearnedliterals" => new SimplifyLearnedLiteralsTransformer()
+            case "simplify" => new SimplifyTransformer()
+            case "simplify2" | "simplifytransformer2" => new SimplifyTransformer2()
+            case "simplifywithrange" => new SimplifyWithRangeTransformer()
+            case "skolemize" => SkolemizeTransformer
+            case "sortinference" => SortInferenceTransformer
+            case "splitconjunction" => SplitConjunctionTransformer
+            case "symmetrybreaking_mostused" | "symmetrybreakingtransformer_mostused" => Errors.API.doesNotExist("Use mkSymmetryBreakingTransformer_MostUsed")
+            case "symmetrybreaking_noskolem" | "symmetrybreakingtransformer_noskolem" => Errors.API.doesNotExist("Use mkSymmetryBreakingTransformer_NoSkolem")
+            case "symmetrybreaking" => Errors.API.doesNotExist("Use mkSymmetryBreakingTransformer")
+            case "symmetrybreakingsi" | "symmetrybreakingtransformersi" => Errors.API.doesNotExist("Use mkSymmetryBreakingTransformerSI")
+            case "typechecksanitizer" => TypecheckSanitizeTransformer
+            case _ => Errors.API.doesNotExist(name + " is not a recognized Transformer.")
+        }
     }
 
     // def mkClosureEliminationTransformer() = ClosureEliminationTransformer
