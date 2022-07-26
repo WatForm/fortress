@@ -244,13 +244,18 @@ class TypeChecker(signature: Signature) extends TermVisitorWithTypeContext[TypeC
             throw new TypeCheckException.WrongSort("Arguments of different sorts in " + c.toString)
         }
 
-        val argSorts = results.map(_.sort)
-        val argSort = argSorts(0)
+        val sort = results(0).sort // We know they are the same now
 
         // Check that the function being closed over has the correct sorts
-        val fdecl = signature.queryFunction(funcName, argSorts) match {
-            case None => throw new TypeCheckException.WrongSort(signature.functionWithName(funcName).get.toString + " cannot accept argument sorts " + argSorts.toString + " in " + c.toString)
+        val fdecl = signature.queryFunction(funcName, Seq(sort, sort), BoolSort) match {
             case Some(fdecl) => fdecl
+            case None => {
+                signature.queryFunction(funcName, Seq(sort), sort) match {
+                    case Some(fdecl) => fdecl
+                    case None => throw new TypeCheckException.WrongSort(signature.functionWithName(funcName).get.toString +
+                     " is not " + Seq(sort, sort).toString() + "to " + sort + " or " + sort + " to " + sort  + " in " + c.toString)
+                }
+            }
         }
 
         TypeCheckResult(
@@ -282,12 +287,18 @@ class TypeChecker(signature: Signature) extends TermVisitorWithTypeContext[TypeC
             throw new TypeCheckException.WrongSort("Arguments of different sorts in " + rc.toString)
         }
 
-        val argSorts = results.map(_.sort)
-        val argSort = argSorts(0)
+        val sort = results(0).sort // We know they are the same now
 
-        val fdecl = signature.queryFunction(funcName, argSorts) match {
-            case None => throw new TypeCheckException.WrongSort(signature.functionWithName(funcName).get.toString + " cannot accept argument sorts " + argSorts.toString + " in " + rc.toString)
+        // Check that the function being closed over has the correct sorts
+        val fdecl = signature.queryFunction(funcName, Seq(sort, sort), BoolSort) match {
             case Some(fdecl) => fdecl
+            case None => {
+                signature.queryFunction(funcName, Seq(sort), sort) match {
+                    case Some(fdecl) => fdecl
+                    case None => throw new TypeCheckException.WrongSort(signature.functionWithName(funcName).get.toString +
+                     " is not " + Seq(sort, sort).toString() + "to " + sort + " or " + sort + " to " + sort  + " in " + rc.toString)
+                }
+            }
         }
 
         TypeCheckResult(

@@ -31,7 +31,7 @@ class ClosureEliminatorLiu(topLevelTerm: Term, signature: Signature, scopes: Map
             // It takes 1 step in original function
             closureAxioms += Forall(axy,
                 Iff(
-                    App(functionName, x, y),
+                    funcContains(functionName, x, y),
                     Term.mkEq(App(p,x,y), IntegerLiteral(1))
                 )
             )

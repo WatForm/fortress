@@ -204,6 +204,107 @@ trait CETransfomerBehaviors{ this: AnyFlatSpec =>
 
 
         }
+
+        it should "work on functions" in {
+            // TODO define above fix!
+            val a = EnumValue("a")
+            val b = EnumValue("b")
+            val c = EnumValue("c")
+
+            val A  = SortConst("A")
+
+            val R = FuncDecl.mkFuncDecl("R", A, A)
+
+            val initialOrder = Forall(axy,
+                Iff(Eq(App(R.name, x), y),
+                    Or(
+                        And(Eq(x, a), Eq(y, b)),
+                        And(Eq(x, b), Eq(y, c))
+                    )
+                )
+            )
+
+            val correctClosure = Forall(axy,
+                Iff(
+                    Closure(R.name, x, y),
+                    Or(
+                        And(Eq(x, a), Eq(y, b)),
+                        And(Eq(x, a), Eq(y, c)),
+                        And(Eq(x, b), Eq(y, c)),
+                    )
+                )
+            )
+            /*
+            val correctReflexiveClosure = Forall(axy,
+                Iff(ReflexiveClosure(R.name, Seq(x,y), x, y),
+                    Or(Eq(x,y), Closure(R.name, Seq(x,y), x, y))
+                )
+            )
+            */
+            val correctReflexiveClosure = Forall(axy,
+                Iff(
+                    ReflexiveClosure(R.name, x, y),
+                    Or(
+                        Eq(x, y),
+                        And(Eq(x, a), Eq(y, b)),
+                        And(Eq(x, a), Eq(y, c)),
+                        And(Eq(x, b), Eq(y, c))
+                    )
+                )
+            )
+
+            val defIsSufficient = Implication(initialOrder, And(correctClosure, correctReflexiveClosure))
+            val defIsNotSufficient = And(initialOrder, Not(correctReflexiveClosure))
+            val defIsNotSufficient2 = And(initialOrder, Not(correctClosure))
+
+            val goodTheory = baseTheory
+                            .withAxiom(defIsSufficient)
+                            .withEnumSort(A, a, b, c)
+                            .withFunctionDeclaration(R)
+            val badTheory = baseTheory
+                            .withAxiom(defIsNotSufficient)
+                            .withEnumSort(A, a, b, c)
+                            .withFunctionDeclaration(R)
+            
+            val badTheory2 = baseTheory
+                            .withAxiom(defIsNotSufficient2)
+                            .withEnumSort(A, a, b, c)
+                            .withFunctionDeclaration(R)
+            
+            Using.resource(manager.setupModelFinder()){ finder => {
+                finder.setTheory(goodTheory)
+                finder.setAnalysisScope(A, 3)
+                finder.setTimeout(Seconds(10))
+                assert(finder.checkSat() == (ModelFinderResult.Sat)) 
+            }}
+            
+            Using.resource(manager.setupModelFinder()){ finder => {
+                finder.setTheory(badTheory)
+                finder.setAnalysisScope(A, 3)
+                finder.setTimeout(Seconds(10))
+
+                val result = finder.checkSat()
+                // for debugging
+                if (result == ModelFinderResult.Sat) {
+                    val modelstring = finder.viewModel().toString()
+                    print(modelstring)
+                }
+                assert(result == ModelFinderResult.Unsat) 
+            }}
+
+            Using.resource(manager.setupModelFinder()){ finder => {
+                finder.setTheory(badTheory2)
+                finder.setAnalysisScope(A, 3)
+                finder.setTimeout(Seconds(10))
+
+                val result = finder.checkSat()
+                if (result == ModelFinderResult.Sat) {
+                    val modelstring = finder.viewModel().toString()
+                    print(modelstring)
+                }
+                assert(result == ModelFinderResult.Unsat) 
+            }}
+        }
     }
 }
 

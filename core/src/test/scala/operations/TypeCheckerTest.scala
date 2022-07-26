@@ -19,8 +19,25 @@ class TypeCheckerTest extends UnitSuite {
 
 
 
-    test("Closure correct"){
+    test("Closure relation correct"){
         val f = FuncDecl("f", List(A,A), Sort.Bool);
+        val sig = Signature.empty.withSort(A).withFunctionDeclaration(f)
+            .withConstant(x.of(A))
+            .withConstant(y.of(A))
+
+        val closure = Closure("f", x, y);
+
+        val checker = new TypeChecker(sig);
+        val result = checker.visitClosure(closure);
+
+        result.sanitizedTerm should be (closure);
+        result.sort should be (BoolSort);
+        result.containsConnectives should be (false);
+        result.containsQuantifiers should be (false);
+    }
+
+    test("Closure function correct"){
+        val f = FuncDecl("f", List(A), A);
         val sig = Signature.empty.withSort(A).withFunctionDeclaration(f)
             .withConstant(x.of(A))
             .withConstant(y.of(A))
@@ -37,7 +54,22 @@ class TypeCheckerTest extends UnitSuite {
     }
     
     test ("Closure over different sorts") {
-        val f = FuncDecl("f", List(A,B,A), Sort.Bool);
+        val f = FuncDecl("f", List(A,B), Sort.Bool);
+        val sig = Signature.empty.withSort(A)
+            .withSort(B)
+            .withFunctionDeclaration(f)
+            .withConstant(x.of(A))
+            .withConstant(y.of(B))
+
+        val closure = Closure("f", x, y);
+
+        val checker = new TypeChecker(sig);
+        
+        an [TypeCheckException.WrongSort] should be thrownBy (checker.visitClosure(closure));
+    }
+
+    test ("Closure with bad arguments") {
+        val f = FuncDecl("f", List(A,A), Sort.Bool);
         val sig = Signature.empty.withSort(A)
             .withSort(B)
             .withFunctionDeclaration(f)

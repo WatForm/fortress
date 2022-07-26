@@ -42,6 +42,21 @@ abstract class ClosureEliminator(topLevelTerm: Term, signature: Signature, scope
         def queryFunction(name: String): Boolean = signature.hasFunctionWithName(name) || closureFunctions.exists(f => f.name == name)
         def getReflexiveClosureName(name: String, idx: String = ""): String = "*" + idx + name
         def getClosureName(name: String, idx: String = ""): String = "^" + idx + name
+
+        def funcContains(fname: String, x: Term, y: Term): Term = {
+            val fdecl = signature.functionWithName(fname) match {
+                case Some(fdecl) => fdecl
+                // Default to relation (we must have created this when building a closure)
+                case None => return App(fname, x, y)
+            }
+            
+            // Depending on arity, we check membership differently
+            fdecl.arity match {
+                case 1 => Eq(App(fname, x), y)
+                case 2 => App(fname, x, y)
+                case x => Errors.Internal.impossibleState("Trying to close function \""+fname+"\" with arity "+x+".")
+            }
+        }
         
         def visitTop: Term = Top
         

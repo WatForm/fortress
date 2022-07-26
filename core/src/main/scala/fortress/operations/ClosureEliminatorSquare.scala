@@ -27,7 +27,7 @@ class ClosureEliminatorSquare(topLevelTerm: Term, signature: Signature, scopes: 
         // TODO support more arguments
 
         def expandClosure(functionName: String): Unit = {
-            val rel = signature.queryUninterpretedFunction(functionName).get
+            val rel = signature.functionWithName(functionName).get
             val sort: Sort = rel.argSorts(0)
 
             val closureName = "^" + functionName
@@ -43,8 +43,9 @@ class ClosureEliminatorSquare(topLevelTerm: Term, signature: Signature, scopes: 
             val az = z.of(sort)
 
             
-            // Probably needs something to deal with relations that aren't just RxR->Bool
-            var previousRelation = rel.name
+            var previousRelation = functionName
+            
+
             // iteratively square the relation
             for (iter <- 1 to max_count(sort)){
                 // Make the next squared level
@@ -56,12 +57,12 @@ class ClosureEliminatorSquare(topLevelTerm: Term, signature: Signature, scopes: 
                     Iff(App(iterationName, x, y),
                         Or(
                             // At least the previous
-                            App(previousRelation, x,y),
+                            funcContains(previousRelation, x, y),
                             // One more step
                             Exists(az,
                                 And(
-                                    App(previousRelation, x, z),
-                                    App(previousRelation, z, y)
+                                    funcContains(previousRelation, x, z),
+                                    funcContains(previousRelation, z, y)
                                 )
                             )
                         )
@@ -75,12 +76,12 @@ class ClosureEliminatorSquare(topLevelTerm: Term, signature: Signature, scopes: 
                     Iff(App(closureName, x, y),
                         Or(
                             // At least the previous
-                            App(previousRelation, x,y),
+                            funcContains(previousRelation, x, y),
                             // One more step
                             Exists(az,
                                 And(
-                                    App(previousRelation, x, z),
-                                    App(previousRelation, z, y)
+                                    funcContains(previousRelation, x, z),
+                                    funcContains(previousRelation, z, y)
                                 )
                             )
                         )
@@ -111,7 +112,7 @@ class ClosureEliminatorSquare(topLevelTerm: Term, signature: Signature, scopes: 
                 if (!queryFunction(closureName)) {
                     expandClosure(functionName)
                 }
-                val rel = signature.queryUninterpretedFunction(functionName).get
+                val rel = signature.functionWithName(functionName).get
                 val sort = rel.argSorts(0)
                 closureFunctions += FuncDecl.mkFuncDecl(reflexiveClosureName, sort, sort, Sort.Bool)
                 

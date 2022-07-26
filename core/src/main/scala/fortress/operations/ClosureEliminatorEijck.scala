@@ -90,7 +90,7 @@ class ClosureEliminatorEijck(topLevelTerm: Term, signature: Signature, scopes: M
             // NNF
             closureAxioms += Forall(axy,
                 Or(
-                    Not(App(functionName, List(x,y))),
+                    Not(funcContains(functionName, x, y)),
                     Eq(x,y),
                     App(closenessName, List(x,y,y))
                 )
@@ -101,7 +101,7 @@ class ClosureEliminatorEijck(topLevelTerm: Term, signature: Signature, scopes: M
                     Not(App(closenessName, List(x,y,y))),
                     Exists(z.of(sort),
                         And(
-                            App(functionName, List(x,z)),
+                            funcContains(functionName, x, z),
                             App(closenessName, List(x,z,y))
                         )
                     )
@@ -160,7 +160,7 @@ class ClosureEliminatorEijck(topLevelTerm: Term, signature: Signature, scopes: M
                         App(closureName, List(x,y)),
                         Exists(az,
                             And(
-                                App(functionName, List(x,z)),
+                                funcContains(functionName, x, z),
                                 Or(
                                     App(closenessName, List(z,y,y)),
                                     Eq(z,y)

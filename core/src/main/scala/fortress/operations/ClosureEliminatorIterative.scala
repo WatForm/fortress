@@ -59,20 +59,20 @@ class ClosureEliminatorIterative(topLevelTerm: Term, signature: Signature, scope
                         // For every input,
                         closureAxioms += Forall(avars, Iff(App(newFunctionName, Seq(x, y)), // For every inputs R_n+1(x,y) <=>
                             Or( // 1 of 2 things
-                                App(functionName, Seq(x, y)), // R_n(x,y) already existed in the original
+                                funcContains(functionName, x, y), // R_n(x,y) already existed in the original
                                 Exists(az, // There is some z where R_n(x,z) and R_n(z,y)
                                     And(
-                                        App(functionName, Seq(x, z)), 
-                                        App(functionName, Seq(z, y))
+                                        funcContains(functionName, x, z), 
+                                        funcContains(functionName, z, y)
                                     )   
                                 ))))
                         functionName = newFunctionName;
                     }
-                    closureAxioms += Forall(avars, Iff(App(closureName, Seq(x, y)), Or(App(functionName, Seq(x, y)), Exists(az, And(App(functionName, Seq(x, z)), App(functionName, Seq(z, y)))))))
+                    closureAxioms += Forall(avars, Iff(App(closureName, Seq(x, y)), Or(funcContains(functionName, x, y), Exists(az, And(funcContains(functionName, x, z), funcContains(functionName, z, y))))))
                 } else if (queryFunction(reflexiveClosureName)) {
                     // If we have the reflexive closure, just use that
                     // Reflexive closure R(x,y) <=> exists z: R(x,z) and R(z,y)
-                    closureAxioms += Forall(avars, Iff(App(closureName, Seq(x, y)), Exists(az, And(App(functionName, Seq(x, z)), App(reflexiveClosureName, Seq(z, y))))))
+                    closureAxioms += Forall(avars, Iff(App(closureName, Seq(x, y)), Exists(az, And(funcContains(functionName, x, z), App(reflexiveClosureName, Seq(z, y))))))
                 } else {
                     val helperName = nameGen.freshName(functionName);
                     closureFunctions += FuncDecl.mkFuncDecl(reflexiveClosureName, sort, sort, Sort.Bool);
@@ -82,10 +82,10 @@ class ClosureEliminatorIterative(topLevelTerm: Term, signature: Signature, scope
                     closureAxioms += Forall(avars :+ az :+ u.of(sort), Implication(And(App(helperName, Seq(x, y) :+ u), App(helperName, Seq(y, z) :+ u)), App(helperName, Seq(x, z) :+ u)))
                     closureAxioms += Forall(avars :+ az, Implication(And(App(helperName, Seq(x, y) :+ y), App(helperName, Seq(y, z) :+ z), Not(Eq(x, z))), App(helperName, Seq(x, z) :+ z)))
                     closureAxioms += Forall(avars :+ az, Implication(And(App(helperName, Seq(x, y) :+ z), Not(Eq(y, z))), App(helperName, Seq(y, z) :+ z)))
-                    closureAxioms += Forall(avars, Implication(And(App(functionName, Seq(x, y)), Not(Eq(x, y))), App(helperName, Seq(x, y) :+ y)))
-                    closureAxioms += Forall(avars, Implication(App(helperName, Seq(x, y) :+ y), Exists(az, And(App(functionName, Seq(x, z)), App(helperName, Seq(x, z) :+ y)))))
+                    closureAxioms += Forall(avars, Implication(And(funcContains(functionName, x, y), Not(Eq(x, y))), App(helperName, Seq(x, y) :+ y)))
+                    closureAxioms += Forall(avars, Implication(App(helperName, Seq(x, y) :+ y), Exists(az, And(funcContains(functionName, x, z), App(helperName, Seq(x, z) :+ y)))))
                     closureAxioms += Forall(avars, Iff(App(reflexiveClosureName, Seq(x, y)), Or(App(helperName, Seq(x, y) :+ y), Eq(x, y))))
-                    closureAxioms += Forall(avars, Iff(App(closureName, Seq(x, y)), Exists(az, And(App(functionName, Seq(x, z)), App(reflexiveClosureName, Seq(z, y))))))
+                    closureAxioms += Forall(avars, Iff(App(closureName, Seq(x, y)), Exists(az, And(funcContains(functionName, x, z), App(reflexiveClosureName, Seq(z, y))))))
                 }
             }
             App(closureName, Seq(c.arg1, c.arg2)).mapArguments(visit)
@@ -114,8 +114,8 @@ class ClosureEliminatorIterative(topLevelTerm: Term, signature: Signature, scope
                     closureAxioms += Forall(avars :+ az :+ u.of(sort), Implication(And(App(helperName, getVarList(x, y) :+ u), App(helperName, getVarList(y, z) :+ u)), App(helperName, getVarList(x, z) :+ u)))
                     closureAxioms += Forall(avars :+ az, Implication(And(App(helperName, getVarList(x, y) :+ y), App(helperName, getVarList(y, z) :+ z), Not(Eq(x, z))), App(helperName, getVarList(x, z) :+ z)))
                     closureAxioms += Forall(avars :+ az, Implication(And(App(helperName, getVarList(x, y) :+ z), Not(Eq(y, z))), App(helperName, getVarList(y, z) :+ z)))
-                    closureAxioms += Forall(avars, Implication(And(App(functionName, getVarList(x, y)), Not(Eq(x, y))), App(helperName, getVarList(x, y) :+ y)))
-                    closureAxioms += Forall(avars, Implication(App(helperName, getVarList(x, y) :+ y), Exists(az, And(App(functionName, getVarList(x, z)), App(helperName, getVarList(x, z) :+ y)))))
+                    closureAxioms += Forall(avars, Implication(And(funcContains(functionName, x, y), Not(Eq(x, y))), App(helperName, getVarList(x, y) :+ y)))
+                    closureAxioms += Forall(avars, Implication(App(helperName, getVarList(x, y) :+ y), Exists(az, And(funcContains(functionName, x, z), App(helperName, getVarList(x, z) :+ y)))))
                     closureAxioms += Forall(avars, Iff(App(reflexiveClosureName, getVarList(x, y)), Or(App(helperName, getVarList(x, y) :+ y), Eq(x, y))))
                 } else if (queryFunction(closureName)) {
                     closureAxioms += Forall(avars, Iff(App(reflexiveClosureName, getVarList(x, y)), Or(Eq(x, y), App(closureName, getVarList(x, y)))))
@@ -124,10 +124,10 @@ class ClosureEliminatorIterative(topLevelTerm: Term, signature: Signature, scope
                     for (s <- 1 until scala.math.ceil(scala.math.log(scope)/scala.math.log(2)).toInt) {
                         val newFunctionName = nameGen.freshName(functionName);
                         closureFunctions += FuncDecl.mkFuncDecl(newFunctionName, sort, sort, Sort.Bool)
-                        closureAxioms += Forall(avars, Iff(App(newFunctionName, getVarList(x, y)), Or(App(functionName, getVarList(x, y)), Exists(az, And(App(functionName, getVarList(x, z)), App(functionName, getVarList(z, y)))))))
+                        closureAxioms += Forall(avars, Iff(App(newFunctionName, getVarList(x, y)), Or(funcContains(functionName, x, y), Exists(az, And(funcContains(functionName, x, z), funcContains(functionName, z, y))))))
                         functionName = newFunctionName;
                     }
-                    closureAxioms += Forall(avars, Iff(App(closureName, getVarList(x, y)), Or(App(functionName, getVarList(x, y)), Exists(az, And(App(functionName, getVarList(x, z)), App(functionName, getVarList(z, y)))))))
+                    closureAxioms += Forall(avars, Iff(App(closureName, getVarList(x, y)), Or(funcContains(functionName, x, y), Exists(az, And(funcContains(functionName, x, z), funcContains(functionName, z, y))))))
                     closureAxioms += Forall(avars, Iff(App(reflexiveClosureName, getVarList(x, y)), Or(Eq(x, y), App(closureName, getVarList(x, y)))))
                 }
             }
