@@ -12,7 +12,7 @@ import scala.jdk.CollectionConverters._
   * Free variables in the given term are ignored, so the top level term must be
   * closed with respect to the signature in question for this operation to be valid.
 */
-class ClosureEliminatorSquare(topLevelTerm: Term, signature: Signature, scopes: Map[Sort, (Int, Boolean)], nameGen: NameGenerator) extends ClosureEliminator(topLevelTerm, signature, scopes, nameGen) {
+class ClosureEliminatorSquare(topLevelTerm: Term, signature: Signature, scopes: Map[Sort, Scope], nameGen: NameGenerator) extends ClosureEliminator(topLevelTerm, signature, scopes, nameGen) {
     
 
     override val visitor = new ClosureVisitorSquare
@@ -22,7 +22,7 @@ class ClosureEliminatorSquare(topLevelTerm: Term, signature: Signature, scopes: 
         def max_count(sort: Sort): Int = {
             val scope = scopes(sort)
             // ceil(log_2(scope)) + 1
-            (math.ceil(math.log(scope._1) / math.log(2))).toInt + 1
+            (math.ceil(math.log(scope.asInstanceOf[BoundedScope].value) / math.log(2))).toInt + 1
         }
         // TODO support more arguments
 

@@ -4,16 +4,17 @@ import fortress.msfol._
 import fortress.operations.TermOps._
 import fortress.operations._
 import fortress.sortinference._
+import fortress.util.Errors
 
 // An immutable view to look at the current usage of domain elements.
 // Sequences of domain elements are all returned in numerical order.
 class StalenessState private (
     val sorts: Set[Sort],
-    scopeMap: Map[Sort, (Int, Boolean)],
+    scopeMap: Map[Sort, Scope],
     staleMap: Map[Sort, IndexedSeq[DomainElement]]
 ) {
     
-    def scope(sort: Sort): (Int, Boolean) = scopeMap(sort)
+    def scope(sort: Sort): Scope = scopeMap(sort)
     
     def staleValues(sort: Sort): IndexedSeq[DomainElement] = staleMap(sort)
     
@@ -26,20 +27,30 @@ class StalenessState private (
     
     def existsFreshValue(sort: Sort): Boolean = numFreshValues(sort) > 0
     
-    def domainElements(sort: Sort): IndexedSeq[DomainElement] = DomainElement.range(1 to scope(sort)._1, sort)
+    def domainElements(sort: Sort): IndexedSeq[DomainElement] = {
+        val sc = scope(sort)
+        Errors.Internal.precondition(sc.isInstanceOf[BoundedScope])
+        DomainElement.range(1 to sc.asInstanceOf[BoundedScope].value , sort)
+    }
     
     def createTrackerWithState: StalenessTracker = StalenessTracker.create(sorts, staleMap, scopeMap)
 
     def afterSubstitution(sortSubstitution: SortSubstitution): StalenessState = {
         val newSorts = sorts map sortSubstitution
         val inverse: Sort => Set[Sort] = sortSubstitution.inverse
-        val newScopeMap: Map[Sort, (Int, Boolean)] = {
+        val newScopeMap: Map[Sort, Scope] = {
             for(sort <- newSorts) yield {
                 val preImage = inverse(sort)
-                val M = preImage.map(scope(_)._1).max
+                val M: Int = {
+                    var temp = -1
+                    for(item <- preImage if scope(item).isInstanceOf[BoundedScope]) {
+                        temp = Integer.max(scope(item).asInstanceOf[BoundedScope].value, temp)
+                    }
+                    temp
+                }
                 var s = scope(preImage.head)
-                for (item <- preImage) {
-                    if( scope(item)._1 == M ) {
+                for (item <- preImage if scope(item).isInstanceOf[BoundedScope]) {
+                    if( scope(item).asInstanceOf[BoundedScope].value == M ) {
                         s = scope(item)
                     }
                 }
@@ -66,7 +77,7 @@ class StalenessState private (
 object StalenessState {
     def apply(
         sorts: Set[Sort],
-        scopes: Map[Sort, (Int, Boolean)],
+        scopes: Map[Sort, Scope],
         staleElems: Map[Sort, Seq[DomainElement]]
     ): StalenessState = {
         
@@ -78,7 +89,7 @@ object StalenessState {
     
     def apply(
         sorts: Set[Sort],
-        scopes: Map[Sort, (Int, Boolean)],
+        scopes: Map[Sort, Scope],
         staleElems: Map[Sort, Set[DomainElement]]
     )(implicit d: DummyImplicit): StalenessState = {
 

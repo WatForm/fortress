@@ -33,7 +33,7 @@ private[transformers] class QuantifierExpansionTransformer (useConstForDomElem: 
             Errors.Internal.precondition(scopes.keySet == theory.sorts.filter(!_.isBuiltin), scopes.keySet.toString)
         
             val domainElemsMap: Map[Sort, Seq[Term]] = scopes.map {
-                case (sort, (size, isExact)) => (sort, for(i <- 1 to size) yield DE(i, sort))
+                case (sort, scope: Scope) => (sort, for(i <- 1 to scope.asInstanceOf[BoundedScope].value) yield DE(i, sort))
             }
         
             val newAxioms = {

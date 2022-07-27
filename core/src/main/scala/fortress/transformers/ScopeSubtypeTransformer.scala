@@ -10,12 +10,12 @@ class ScopeSubtypeTransformer extends ProblemStateTransformer {
     override def apply(problemState: ProblemState): ProblemState = problemState match {
         case ProblemState(theory, scopes, skc, skf, rangeRestricts, unapplyInterp, distinctConstants) => {
 
-            val helpMap : Map[String, Boolean] = scopes.map(scope => (scope._1.name , scope._2._2)).toMap
-            helpMap.foreach(x => println(x._1 + " " + x._2))
+//            val helpMap : Map[String, Boolean] = scopes.map(scope => (scope._1.name , scope._2._2)).toMap
+//            helpMap.foreach(x => println(x._1 + " " + x._2))
 
             val scopeSubtypePreds = for {
                 sort <- theory.sorts
-                if !helpMap.getOrElse(sort.name, true)
+                if scopes(sort).isInstanceOf[BoundedScope] && !scopes(sort).asInstanceOf[BoundedScope].isExact
             } yield {
                 val predName = ScopeSubtype.subtypePred(sort)  // " __@Pred_{sort.name} "
                 val predDecl = FuncDecl(predName, sort, BoolSort)
@@ -25,7 +25,7 @@ class ScopeSubtypeTransformer extends ProblemStateTransformer {
             // Have to say the subtypes are nonempty
             val antiVacuityAxioms = for {
                 sort <- theory.sorts
-                if !helpMap.getOrElse(sort.name, true)
+                if scopes(sort).isInstanceOf[BoundedScope] && !scopes(sort).asInstanceOf[BoundedScope].isExact
             } yield {
                 Exists(Var("x") of sort, App(ScopeSubtype.subtypePred(sort), Var("x")))
             }
@@ -35,7 +35,7 @@ class ScopeSubtypeTransformer extends ProblemStateTransformer {
 
             val functionAxioms = for {
                 fdecl <- theory.functionDeclarations
-                if !fdecl.resultSort.isBuiltin && !helpMap.getOrElse(fdecl.resultSort.name, true)
+                if !fdecl.resultSort.isBuiltin && scopes(fdecl.resultSort).isInstanceOf[BoundedScope] && !scopes(fdecl.resultSort).asInstanceOf[BoundedScope].isExact
             } yield {
                 val argsAnnotated = fdecl.argSorts.zipWithIndex.map { case (sort, index) => Var(s"x_${sort}_${index}") of sort }
                 val outputPred = ScopeSubtype.subtypePred(fdecl.resultSort)
@@ -45,7 +45,7 @@ class ScopeSubtypeTransformer extends ProblemStateTransformer {
 
             val resultTheory = theory
               .withFunctionDeclarations(scopeSubtypePreds)
-              .someAxioms(ScopeSubtype.addBoundsPredicates, helpMap)
+              .someAxioms(ScopeSubtype.addBoundsPredicates, scopes)
               .withAxioms(antiVacuityAxioms)
               .withAxioms(constantAxioms)
               .withAxioms(functionAxioms)

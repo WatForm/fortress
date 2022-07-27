@@ -11,8 +11,8 @@ import fortress.interpretation.Interpretation
  but with same arguments. **/
 object ClosureEliminationIterativeTransformer extends ClosureEliminationTransformer  {
 
-    override def buildEliminator(topLevelTerm: Term, signature: Signature, scopes: Map[Sort, (Int, Boolean)], nameGen: NameGenerator): ClosureEliminator = {
-        return new ClosureEliminatorIterative(topLevelTerm: Term, signature: Signature, scopes: Map[Sort, (Int, Boolean)], nameGen: NameGenerator)
+    override def buildEliminator(topLevelTerm: Term, signature: Signature, scopes: Map[Sort, Scope], nameGen: NameGenerator): ClosureEliminator = {
+        new ClosureEliminatorIterative(topLevelTerm: Term, signature: Signature, scopes: Map[Sort, Scope], nameGen: NameGenerator)
     }
     
     override def name: String = "Closure Elimination Iterative Transformer"

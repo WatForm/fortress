@@ -6,7 +6,7 @@ object ScopeSubtype {
 
     def subtypePred(sort: Sort): String = s"__@Pred_${sort}"
 
-    def addBoundsPredicates(term: Term, helpMap: Map[String, Boolean]): Term = term match {
+    def addBoundsPredicates(term: Term, helpMap: Map[Sort, Scope]): Term = term match {
         case Top | Bottom | Var(_) | EnumValue(_) | DomainElement(_, _) | IntegerLiteral(_) | BitVectorLiteral(_, _) => term
         case Not(p) => Not(addBoundsPredicates(p, helpMap))
         case AndList(args) => AndList(args.map(addBoundsPredicates(_, helpMap)))
@@ -20,15 +20,24 @@ object ScopeSubtype {
         case IfThenElse(condition, ifTrue, ifFalse) => IfThenElse(addBoundsPredicates(condition, helpMap), addBoundsPredicates(ifTrue, helpMap), addBoundsPredicates(ifFalse, helpMap))
         case Exists(vars, body) => {
             val predApps = for {
-                av <- vars if !av.sort.isBuiltin && !helpMap(av.sort.name)
+                av <- vars if !av.sort.isBuiltin && helpMap(av.sort).isInstanceOf[BoundedScope] && !helpMap(av.sort).asInstanceOf[BoundedScope].isExact
             } yield App(subtypePred(av.sort), av.variable)
-            Exists(vars, And.smart(predApps :+ addBoundsPredicates(body, helpMap)))
+            if(predApps.isEmpty)
+                term
+            else
+                Exists(vars, And.smart(predApps :+ addBoundsPredicates(body, helpMap)))
         }
         case Forall(vars, body) => {
+
             val predApps = for {
-                av <- vars if !av.sort.isBuiltin && !helpMap(av.sort.name)
-            } yield App(subtypePred(av.sort), av.variable)
-            Forall(vars, Implication(And.smart(predApps), addBoundsPredicates(body, helpMap)))
+                av <- vars if !av.sort.isBuiltin && helpMap(av.sort).isInstanceOf[BoundedScope] && !helpMap(av.sort).asInstanceOf[BoundedScope].isExact
+            } yield {
+                App(subtypePred(av.sort), av.variable)
+            }
+            if(predApps.isEmpty)
+                term
+            else
+                Forall(vars, Implication(And.smart(predApps), addBoundsPredicates(body, helpMap)))
         }
     }
 }

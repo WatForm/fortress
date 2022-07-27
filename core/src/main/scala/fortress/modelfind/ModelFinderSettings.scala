@@ -12,7 +12,7 @@ import scala.collection.mutable.ListBuffer
 /** Trait which implements standard utilities for the model finder. */
 trait ModelFinderSettings extends ModelFinder {
     protected var timeoutMilliseconds: Milliseconds = Milliseconds(60000)
-    protected var analysisScopes: Map[Sort, (Int, Boolean)] = Map.empty
+    protected var analysisScopes: Map[Sort,Scope] = Map.empty
     protected var theory: Theory = Theory.empty
     protected var eventLoggers: ListBuffer[EventLogger] = ListBuffer.empty
     
@@ -26,9 +26,14 @@ trait ModelFinderSettings extends ModelFinder {
     }
     
     override def setAnalysisScope(t: Sort, size: Int, isExact: Boolean): Unit = {
-        Errors.Internal.precondition(size >= 0)
+        Errors.Internal.precondition(size > 0)
         // note that IntSort scopes are specified in bitwidth
-        analysisScopes = analysisScopes + (t -> (size, isExact))
+        val scope =  Scope.mkBoundedScope(size, isExact)
+        analysisScopes = analysisScopes + (t -> scope)
+    }
+
+    override def setUnbounded(t: Sort): Unit = {
+        analysisScopes = analysisScopes + (t -> Scope.unbounded)
     }
     
     override def setOutput(writer: java.io.Writer): Unit = {

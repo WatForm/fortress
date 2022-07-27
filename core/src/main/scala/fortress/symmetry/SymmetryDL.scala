@@ -125,8 +125,9 @@ object SymmetryDL {
         }
 
         val argumentListsIterable: Iterable[ArgList] =
-            new fortress.util.ArgumentListGenerator(state.scope(_)._1)
-              .allArgumentListsOfFunction(f)
+//            new fortress.util.ArgumentListGenerator(state.scope(_)._1)
+            new fortress.util.ArgumentListGenerator( state.scope(_).asInstanceOf[BoundedScope].value)
+                    .allArgumentListsOfFunction(f)
               .take(m) // Take up to m of them, for efficiency since we won't need more than this - the argument list generator does not generate arguments
         // until they are needed
 
@@ -177,7 +178,7 @@ object SymmetryDL {
         val m = scala.math.min(freshResultValues.size, numRangeFormulaAdded)
 
         val argumentListsIterable: Iterable[ArgList] =
-            new fortress.util.ArgumentListGenerator(state.scope(_)._1)
+            new fortress.util.ArgumentListGenerator(state.scope(_).asInstanceOf[BoundedScope].value)
               .allArgumentListsOfFunction(f)
               .take(m) // Take up to m of them, for efficiency since we won't need more than this - the argument list generator does not generate arguments
         // until they are needed

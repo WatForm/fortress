@@ -14,7 +14,7 @@ import scala.collection.mutable
 case class TheoryOps private(theory: Theory) {
     def mapAxioms(f: Term => Term) = Theory(theory.signature, theory.axioms map f)
 
-    def someAxioms(f: (Term, Map[String, Boolean]) => Term, helpMap: Map[String, Boolean]) = Theory(theory.signature, theory.axioms.map(f(_, helpMap)))
+    def someAxioms(f: (Term, Map[Sort, Scope]) => Term, helpMap: Map[Sort, Scope]) = Theory(theory.signature, theory.axioms.map(f(_, helpMap)))
 
     def verifyInterpretation(interpretation: Interpretation): Boolean =
         new InterpretationVerifier(theory).verifyInterpretation(interpretation)

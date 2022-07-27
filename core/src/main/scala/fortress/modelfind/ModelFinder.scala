@@ -54,6 +54,8 @@ trait ModelFinder extends AutoCloseable {
     /** Set the scope of the given sort, which is the size of the domain for that sort. */
     def setAnalysisScope(t: Sort, size: Int, isExact: Boolean): Unit
 
+    def setUnbounded(t: Sort): Unit
+
     /** Set the timeout in milliseconds. */
     def setTimeout(milliseconds: Milliseconds): Unit
 

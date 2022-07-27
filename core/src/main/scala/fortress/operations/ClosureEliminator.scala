@@ -12,7 +12,7 @@ import scala.jdk.CollectionConverters._
   * Free variables in the given term are ignored, so the top level term must be
   * closed with respect to the signature in question for this operation to be valid.
   */
-abstract class ClosureEliminator(topLevelTerm: Term, signature: Signature, scopes: Map[Sort, (Int, Boolean)], nameGen: NameGenerator) {
+abstract class ClosureEliminator(topLevelTerm: Term, signature: Signature, scopes: Map[Sort, Scope], nameGen: NameGenerator) {
 
     // All closure functions we have generated (helps to avoid duplicates)
     val closureFunctions = scala.collection.mutable.Set[FuncDecl]()

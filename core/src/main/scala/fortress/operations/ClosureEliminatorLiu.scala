@@ -7,7 +7,7 @@ import java.util.ArrayList
 import scala.jdk.CollectionConverters._
 
 
-class ClosureEliminatorLiu(topLevelTerm: Term, signature: Signature, scopes: Map[Sort, (Int, Boolean)], nameGen: NameGenerator) extends ClosureEliminator(topLevelTerm, signature, scopes, nameGen) {
+class ClosureEliminatorLiu(topLevelTerm: Term, signature: Signature, scopes: Map[Sort, Scope], nameGen: NameGenerator) extends ClosureEliminator(topLevelTerm, signature, scopes, nameGen) {
 
     override val visitor = new ClosureVisitorLiu
 
