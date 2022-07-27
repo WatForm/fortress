@@ -101,11 +101,8 @@ object FortressCli {
                 case None => ModelFinder.createDefault()
             }
         }
-//<<<<<<< HEAD
 //        val modelFinder: ModelFinder = ModelFinder.createPredUpperBoundModelFinder()
-//=======
-        
-//>>>>>>> master
+
 
         modelFinder.setTheory(theory)
         for((sort, scope) <- scopes) {

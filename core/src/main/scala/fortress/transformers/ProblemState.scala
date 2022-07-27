@@ -55,6 +55,7 @@ case class ProblemState private(
 }
 
 object ProblemState {
+
     def apply(theory: Theory): ProblemState = ProblemState(theory, Map.empty)
     
     def apply(theory: Theory, scopes: Map[Sort, Scope]): ProblemState = {
