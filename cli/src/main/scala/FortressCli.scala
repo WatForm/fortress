@@ -14,16 +14,23 @@ import java.io._
 import java.{util => ju}
 
 class Conf(arguments: Seq[String]) extends ScallopConf(arguments) {
-    val scope = opt[Int](required = false)
-    val file = trailArg[String](required = true)
-    val scopeMap = props[String]('S')
-    val timeout = opt[Int](required = true) // Timeout in seconds
+//<<<<<<< HEAD
+//    val scope = opt[Int](required = false)
+//    val file = trailArg[String](required = true)
+//    val scopeMap = props[String]('S')
+//    val timeout = opt[Int](required = true) // Timeout in seconds
+//=======
+    val scope = opt[Int](required = false, descr="default scope for all sorts")
+    val file = trailArg[String](required = true, descr="file(s) to run on")
+    val scopeMap = props[String]('S', descr="scope sizes for individual sorts ex: A=2 B=3")
+    val timeout = opt[Int](required = true, descr="timeout in seconds") // Timeout in seconds
+//>>>>>>> master
 
     // modelfinder.
     val mfConverter = singleArgConverter[ModelFinder](FortressModelFinders.fromString(_).get, {
         case x: ju.NoSuchElementException  => Left("Not a valid FortressModelFinder")
     })
-    val modelFinder = opt[ModelFinder](required =  false)(mfConverter)
+    val modelFinder = opt[ModelFinder](required = false, descr="modelfinder to use")(mfConverter)
 
     // transformers if manually specifying
     val transfromerConverter = new ValueConverter[List[ProblemStateTransformer]]{
@@ -38,11 +45,15 @@ class Conf(arguments: Seq[String]) extends ScallopConf(arguments) {
         }
         val argType: ArgType.V = ArgType.LIST
     }
-    val transformers = trailArg[List[ProblemStateTransformer]](required=false)(transfromerConverter)
+//<<<<<<< HEAD
+//    val transformers = trailArg[List[ProblemStateTransformer]](required=false)(transfromerConverter)
+//=======
+    val transformers = opt[List[ProblemStateTransformer]](required = false,short='T', descr="alternative to modelfinder. specify transformers in order")(transfromerConverter)
+//>>>>>>> master
 
     mutuallyExclusive(modelFinder, transformers)
 
-    val generate = opt[Boolean]() // Whether to generate a model
+    val generate = opt[Boolean](descr="whether to generate a model") // Whether to generate a model
     verify()
 }
 
@@ -81,15 +92,20 @@ object FortressCli {
 
         val integerSemantics = Unbounded
 
-        val modelFinder: ModelFinder = conf.modelFinder.toOption match {
-            case Some(mf) => mf
-            case None => conf.transformers.toOption match {
-                case Some(transformers) => new SimpleModelFinder(transformers.toSeq)
-                // Default to THREE_SI
-                case None => new FortressTHREE_SI
+
+        val modelFinder: ModelFinder = if (conf.transformers.isSupplied) {
+            new SimpleModelFinder(conf.transformers.apply())
+        } else {
+            conf.modelFinder.toOption match {
+                case Some(mf) => mf
+                case None => ModelFinder.createDefault()
             }
         }
+//<<<<<<< HEAD
 //        val modelFinder: ModelFinder = ModelFinder.createPredUpperBoundModelFinder()
+//=======
+        
+//>>>>>>> master
 
         modelFinder.setTheory(theory)
         for((sort, scope) <- scopes) {

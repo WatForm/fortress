@@ -232,37 +232,36 @@ class TypeChecker(signature: Signature) extends TermVisitorWithTypeContext[TypeC
         if(! (signature hasFunctionWithName funcName) ) {
             throw new TypeCheckException.UnknownFunction("Could not find function: " + funcName)
         }
-        if (! (c.arguments.contains(c.arg1) && c.arguments.contains(c.arg2)) ) {
-            throw new TypeCheckException.BadStructure("The two given closure arguments must be included in the arguments list")
-        }
-
-        // Temporary(?) Restriction to only 2 arguments
-        if(c.arguments.length != 2){
-            throw new TypeCheckException.BadStructure("Expected exactly 2 arguments but got " + c.arguments.length.toString + " instead")
-        }
 
         val results = c.arguments.map(visit)
-        val idx = c.arguments.indexOf(c.arg1)
         if (results.exists(_.containsConnectives)) {
             throw new TypeCheckException.BadStructure("Argument of ^" + c.functionName + " contains connective")
         }
         if (results.exists(_.containsQuantifiers)) {
             throw new TypeCheckException.BadStructure("Argument of ^" + c.functionName + " contains quantifier")
         }
-        if (results(idx).sort != results(idx+1).sort) {
-            throw new TypeCheckException.WrongSort("Arguments at index " + idx + " and " + (idx+1) + " of different sorts in " + c.toString)
+        if (results(0).sort != results(1).sort) {
+            throw new TypeCheckException.WrongSort("Arguments of different sorts in " + c.toString)
         }
 
-        val argSorts = results.map(_.sort)
-        val argSort = argSorts(idx)
+        val sort = results(0).sort // We know they are the same now
 
-        val fdecl = signature.queryFunction(funcName, argSorts) match {
-            case None => throw new TypeCheckException.WrongSort(signature.functionWithName(funcName).get.toString + " cannot accept argument sorts " + argSorts.toString + " in " + c.toString)
+        // Check that the function being closed over has the correct sorts
+        val fdecl = signature.queryFunction(funcName, Seq(sort, sort), BoolSort) match {
             case Some(fdecl) => fdecl
+            case None => {
+                signature.queryFunction(funcName, Seq(sort), sort) match {
+                    case Some(fdecl) => fdecl
+                    case None => throw new TypeCheckException.WrongSort(signature.functionWithName(funcName).get.toString +
+                     " is not " + Seq(sort, sort).toString() + "to " + sort + " or " + sort + " to " + sort  + " in " + c.toString)
+                }
+            }
         }
 
         TypeCheckResult(
-            sanitizedTerm = Closure(funcName, results map (_.sanitizedTerm), c.arg1, c.arg2),
+            // sanitizedTerm = Closure(funcName, results map (_.sanitizedTerm), c.arg1, c.arg2),
+            // Which cleaning works here?
+            sanitizedTerm = Closure(funcName, c.arg1, c.arg2),
             sort = BoolSort, containsConnectives = false, containsQuantifiers = false
         )
     }
@@ -276,32 +275,34 @@ class TypeChecker(signature: Signature) extends TermVisitorWithTypeContext[TypeC
         if(! (signature hasFunctionWithName funcName) ) {
             throw new TypeCheckException.UnknownFunction("Could not find function: " + funcName)
         }
-        if (! (rc.arguments.contains(rc.arg1) && rc.arguments.contains(rc.arg2)) ) {
-            throw new TypeCheckException.BadStructure("The two given closure arguments must be included in the arguments list")
-        }
 
         val results = rc.arguments.map(visit)
-        val idx = rc.arguments.indexOf(rc.arg1)
         if (results.exists(_.containsConnectives)) {
             throw new TypeCheckException.BadStructure("Argument of *" + rc.functionName + " contains connective")
         }
         if (results.exists(_.containsQuantifiers)) {
             throw new TypeCheckException.BadStructure("Argument of *" + rc.functionName + " contains quantifier")
         }
-        if (results(idx).sort != results(idx+1).sort) {
-            throw new TypeCheckException.WrongSort("Arguments at index " + idx + " and " + (idx+1) + " of different sorts in " + rc.toString)
+        if (results(0).sort != results(1).sort) {
+            throw new TypeCheckException.WrongSort("Arguments of different sorts in " + rc.toString)
         }
 
-        val argSorts = results.map(_.sort)
-        val argSort = argSorts(idx)
+        val sort = results(0).sort // We know they are the same now
 
-        val fdecl = signature.queryFunction(funcName, argSorts) match {
-            case None => throw new TypeCheckException.WrongSort(signature.functionWithName(funcName).get.toString + " cannot accept argument sorts " + argSorts.toString + " in " + rc.toString)
+        // Check that the function being closed over has the correct sorts
+        val fdecl = signature.queryFunction(funcName, Seq(sort, sort), BoolSort) match {
             case Some(fdecl) => fdecl
+            case None => {
+                signature.queryFunction(funcName, Seq(sort), sort) match {
+                    case Some(fdecl) => fdecl
+                    case None => throw new TypeCheckException.WrongSort(signature.functionWithName(funcName).get.toString +
+                     " is not " + Seq(sort, sort).toString() + "to " + sort + " or " + sort + " to " + sort  + " in " + rc.toString)
+                }
+            }
         }
 
         TypeCheckResult(
-            sanitizedTerm = ReflexiveClosure(funcName, results map (_.sanitizedTerm), rc.arg1, rc.arg2),
+            sanitizedTerm = ReflexiveClosure(funcName, rc.arg1, rc.arg2),
             sort = BoolSort, containsConnectives = false, containsQuantifiers = false
         )
     }

@@ -114,6 +114,9 @@ case class Signature private (
     def queryFunction(name: String, argSorts: Seq[Sort]): Option[FuncDecl] =
         functionDeclarations.find(fdecl => fdecl.name == name && fdecl.argSorts == argSorts)
     
+    def queryFunction(name: String, argSorts: Seq[Sort], resultSort: Sort): Option[FuncDecl] =
+        functionDeclarations.find(_ == FuncDecl(name, argSorts, resultSort))
+    
     def queryUninterpretedFunction(name: String): Option[FuncDecl] =
         functionDeclarations.find(fdecl => fdecl.name == name)
     

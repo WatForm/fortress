@@ -31,7 +31,7 @@ class ClosureEliminatorLiu(topLevelTerm: Term, signature: Signature, scopes: Map
             // It takes 1 step in original function
             closureAxioms += Forall(axy,
                 Iff(
-                    App(functionName, x, y),
+                    funcContains(functionName, x, y),
                     Term.mkEq(App(p,x,y), IntegerLiteral(1))
                 )
             )
@@ -65,15 +65,13 @@ class ClosureEliminatorLiu(topLevelTerm: Term, signature: Signature, scopes: Map
         override def visitReflexiveClosure(rc: ReflexiveClosure): Term = {
             val functionName = rc.functionName
             // idx is used for when there are more args
-            val idx = rc.arguments.indexOf(rc.arg1)
             val reflexiveClosureName = getReflexiveClosureName(functionName)
             val closureName = getClosureName(functionName)
 
             if (!queryFunction(reflexiveClosureName)){
                 // Build the closure
                 val rel = signature.queryUninterpretedFunction(functionName).get
-                var argSorts = new ArrayList(rel.argSorts.asJava)
-                val sort = argSorts.get(idx)
+                val sort = rel.argSorts(0)
 
                 val p = nameAuxFunction(closureName)
                 if(!queryFunction(p)){
@@ -98,13 +96,12 @@ class ClosureEliminatorLiu(topLevelTerm: Term, signature: Signature, scopes: Map
                 )
             }
 
-            App(reflexiveClosureName, rc.arguments).mapArguments(visit)
+            App(reflexiveClosureName, Seq(rc.arg1, rc.arg2)).mapArguments(visit)
         }
 
         override def visitClosure(c: Closure): Term = {
             val functionName = c.functionName
             // idx is used for when there are more args
-            val idx = c.arguments.indexOf(c.arg1)
             val reflexiveClosureName = getReflexiveClosureName(functionName)
             val closureName = getClosureName(functionName)
 
@@ -112,7 +109,7 @@ class ClosureEliminatorLiu(topLevelTerm: Term, signature: Signature, scopes: Map
                 // Build the closure
                 val rel = signature.queryUninterpretedFunction(functionName).get
                 var argSorts = new ArrayList(rel.argSorts.asJava)
-                val sort = argSorts.get(idx)
+                val sort = rel.argSorts(0)
 
                 val p = nameAuxFunction(closureName)
                 if(!queryFunction(p)){
@@ -132,7 +129,7 @@ class ClosureEliminatorLiu(topLevelTerm: Term, signature: Signature, scopes: Map
                 )
             }
 
-            App(closureName, c.arguments).mapArguments(visit)
+            App(closureName, Seq(c.arg1, c.arg2)).mapArguments(visit)
         }
 
     }

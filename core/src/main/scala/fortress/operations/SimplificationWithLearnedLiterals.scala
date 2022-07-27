@@ -16,8 +16,8 @@ object SimplifierWithLearnedLiterals {
             case Forall(vars, body) => simplifyStep(Forall(vars, simplifyFull(body)), learnedLiterals)
             // We consider applications, equals and closures to be atomic and have non-Boolean arguments
             // so we need not recurse on their arguments
-            case Eq(_, _) | App(_, _) | BuiltinApp(_, _) | Closure(_, _, _, _)
-                | ReflexiveClosure(_, _, _, _) => simplifyStep(term, learnedLiterals)
+            case Eq(_, _) | App(_, _) | BuiltinApp(_, _) | Closure(_, _, _)
+                | ReflexiveClosure(_, _, _) => simplifyStep(term, learnedLiterals)
             case Top | Bottom | Var(_) | EnumValue(_) | DomainElement(_, _)
                 | IntegerLiteral(_) | BitVectorLiteral(_, _) => term
             case IfThenElse(condition, ifTrue, ifFalse) => simplifyStep(

@@ -28,8 +28,8 @@ trait GeneralSortSubstitution {
         case Iff(p, q) => Iff(apply(p), apply(q))
         case Eq(l, r) => Eq(apply(l), apply(r))
         case App(name, args) => App(name, args map apply)
-        case Closure(name, args, arg1, arg2) => Closure(name, args map apply, apply(arg1), apply(arg2))
-        case ReflexiveClosure(name, args, arg1, arg2) => ReflexiveClosure(name, args map apply, apply(arg1), apply(arg2))
+        case Closure(name, arg1, arg2) => Closure(name, apply(arg1), apply(arg2))
+        case ReflexiveClosure(name, arg1, arg2) => ReflexiveClosure(name, apply(arg1), apply(arg2))
         case Exists(avars, body) => {
             val newVars = avars map {avar => Var(avar.name) of apply(avar.sort)}
             Exists(newVars, apply(body))
