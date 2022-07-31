@@ -298,6 +298,7 @@ trait CETransfomerBehaviors{ this: AnyFlatSpec =>
                 finder.setTimeout(Seconds(10))
 
                 val result = finder.checkSat()
+                
                 if (result == ModelFinderResult.Sat) {
                     val modelstring = finder.viewModel().toString()
                     print(modelstring)
@@ -322,5 +323,9 @@ class ClosureEliminationSquareTransformer extends AnyFlatSpec with CETransfomerB
 
 class ClosureEliminationLiuTransformer extends AnyFlatSpec with CETransfomerBehaviors {
     "ClosureEliminationLiuTransformer" should behave like anyClosureEliminationTransformer(ClosureEliminationLiuTransformer)
+}
+
+class ClosureEliminationClaessenTransformer extends AnyFlatSpec with CETransfomerBehaviors {
+    "ClosureEliminationClaessenTransformer" should behave like anyClosureEliminationTransformer(ClosureEliminationClaessenTransformer)
 }
 
