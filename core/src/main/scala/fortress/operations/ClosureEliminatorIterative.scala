@@ -50,10 +50,10 @@ class ClosureEliminatorIterative(topLevelTerm: Term, signature: Signature, scope
                 val scope = scopes(sort)
                 // ?? Is this just replacing the two we are checkign with ex R(a,b,c,x,y) we can close on xy?
                 // Why do we assume they are adjacent? Partial application?
-                def getVarList(v1: Var, v2: Var): List[Var] = (vars.slice(0, idx) :+ v1 :+ v2) ::: vars.slice(idx+2, vars.size)
-                if (scope.asInstanceOf[BoundedScope].value < 100) {
+//                def getVarList(v1: Var, v2: Var): List[Var] = (vars.slice(0, idx) :+ v1 :+ v2) ::: vars.slice(idx+2, vars.size)
+                if ( scope.size < 100) {
                     // Using the technique of repeated squaring
-                    for (s <- 1 until scala.math.ceil(scala.math.log(scope.asInstanceOf[BoundedScope].value)/scala.math.log(2)).toInt) {
+                    for (s <- 1 until scala.math.ceil(scala.math.log(scope.size)/scala.math.log(2)).toInt) {
                         // Make a new function with a similar name
                         val newFunctionName = nameGen.freshName(functionName);
                         // It uses the same arguments
@@ -108,7 +108,7 @@ class ClosureEliminatorIterative(topLevelTerm: Term, signature: Signature, scope
                 val az = z.of(sort)
                 val scope = scopes(sort)
                 def getVarList(v1: Var, v2: Var): List[Var] = List(v1, v2)
-                if (scope.asInstanceOf[BoundedScope].value > 100) {
+                if (scope.size > 100) {
                     val helperName = nameGen.freshName(functionName);
                     closureFunctions += FuncDecl.mkFuncDecl(helperName, sort, sort, sort, Sort.Bool);
                     val u = Var(nameGen.freshName("u"));
@@ -123,7 +123,7 @@ class ClosureEliminatorIterative(topLevelTerm: Term, signature: Signature, scope
                     closureAxioms += Forall(avars, Iff(App(reflexiveClosureName, getVarList(x, y)), Or(Eq(x, y), App(closureName, getVarList(x, y)))))
                 } else {
                     closureFunctions += FuncDecl.mkFuncDecl(closureName, sort, sort, Sort.Bool)
-                    for (s <- 1 until scala.math.ceil(scala.math.log(scope.asInstanceOf[BoundedScope].value)/scala.math.log(2)).toInt) {
+                    for (s <- 1 until scala.math.ceil(scala.math.log(scope.size)/scala.math.log(2)).toInt) {
                         val newFunctionName = nameGen.freshName(functionName);
                         closureFunctions += FuncDecl.mkFuncDecl(newFunctionName, sort, sort, Sort.Bool)
                         closureAxioms += Forall(avars, Iff(App(newFunctionName, getVarList(x, y)), Or(funcContains(functionName, x, y), Exists(az, And(funcContains(functionName, x, z), funcContains(functionName, z, y))))))

@@ -25,7 +25,7 @@ trait CETransfomerBehaviors{ this: AnyFlatSpec =>
 
     val A  = SortConst("A")
     
-    val axy = Seq(x.of(A), y.of(A))
+    val axy: Seq[AnnotatedVar] = Seq(x.of(A), y.of(A))
 
     val relation = FuncDecl("relation", Seq(A,A), Sort.Bool)
 
@@ -65,7 +65,7 @@ trait CETransfomerBehaviors{ this: AnyFlatSpec =>
 
             Using.resource(manager.setupModelFinder()){ finder => {
                 finder.setTheory(newTheory)
-                finder.setAnalysisScope(A, 4)
+                finder.setAnalysisScope(A, 4, isExact = true)
                 finder.setTimeout(Seconds(10))
                 assert(finder.checkSat() == (ModelFinderResult.Sat)) 
             }}
@@ -94,7 +94,7 @@ trait CETransfomerBehaviors{ this: AnyFlatSpec =>
             
             Using.resource(manager.setupModelFinder()){ finder => {
                 finder.setTheory(newTheory)
-                finder.setAnalysisScope(A, 3)
+                finder.setAnalysisScope(A, 3, isExact = true)
                 finder.setTimeout(Seconds(10))
                 val result = finder.checkSat()
                 assert(result == (ModelFinderResult.Unsat)) 
@@ -170,14 +170,14 @@ trait CETransfomerBehaviors{ this: AnyFlatSpec =>
             
             Using.resource(manager.setupModelFinder()){ finder => {
                 finder.setTheory(goodTheory)
-                finder.setAnalysisScope(A, 3)
+                finder.setAnalysisScope(A, 3, isExact = true)
                 finder.setTimeout(Seconds(10))
                 assert(finder.checkSat() == (ModelFinderResult.Sat)) 
             }}
             
             Using.resource(manager.setupModelFinder()){ finder => {
                 finder.setTheory(badTheory)
-                finder.setAnalysisScope(A, 3)
+                finder.setAnalysisScope(A, 3, isExact = true)
                 finder.setTimeout(Seconds(10))
 
                 val result = finder.checkSat()
@@ -191,7 +191,7 @@ trait CETransfomerBehaviors{ this: AnyFlatSpec =>
 
             Using.resource(manager.setupModelFinder()){ finder => {
                 finder.setTheory(badTheory2)
-                finder.setAnalysisScope(A, 3)
+                finder.setAnalysisScope(A, 3, isExact = true)
                 finder.setTimeout(Seconds(10))
 
                 val result = finder.checkSat()
@@ -273,14 +273,14 @@ trait CETransfomerBehaviors{ this: AnyFlatSpec =>
             
             Using.resource(manager.setupModelFinder()){ finder => {
                 finder.setTheory(goodTheory)
-                finder.setAnalysisScope(A, 3)
+                finder.setAnalysisScope(A, 3, isExact = true)
                 finder.setTimeout(Seconds(10))
                 assert(finder.checkSat() == (ModelFinderResult.Sat)) 
             }}
             
             Using.resource(manager.setupModelFinder()){ finder => {
                 finder.setTheory(badTheory)
-                finder.setAnalysisScope(A, 3)
+                finder.setAnalysisScope(A, 3, isExact = true)
                 finder.setTimeout(Seconds(10))
 
                 val result = finder.checkSat()
@@ -294,7 +294,7 @@ trait CETransfomerBehaviors{ this: AnyFlatSpec =>
 
             Using.resource(manager.setupModelFinder()){ finder => {
                 finder.setTheory(badTheory2)
-                finder.setAnalysisScope(A, 3)
+                finder.setAnalysisScope(A, 3, isExact = true)
                 finder.setTimeout(Seconds(10))
 
                 val result = finder.checkSat()

@@ -25,8 +25,8 @@ class ScopeSubtypeTransformerTest extends UnitSuite with CommonSymbols {
                 .withAxiom(Not(Exists(x.of(A), App("P", x))))
                 .withAxiom(Forall(x.of(A), Not(App("P", x))))
 
-        scopes = scopes + (A -> Scope.mkBoundedScope(3, isExact = true))
-        scopes = scopes + (B -> Scope.mkBoundedScope(3, isExact = true))
+        scopes = scopes + (A -> ExactScope(3))
+        scopes = scopes + (B -> ExactScope(3))
 
         transformer(theory, scopes) should be (expected)
 
@@ -48,11 +48,8 @@ class ScopeSubtypeTransformerTest extends UnitSuite with CommonSymbols {
                 .withAxiom(Not(Exists(x.of(A),And(App("__@Pred_A", x),App("P", x)))))
                 .withAxiom(Forall(x.of(A), Implication(App("__@Pred_A", x),Not(App("P", x)))))
 
-        scopes = scopes + (A -> Scope.mkBoundedScope(3, isExact = false))
-        scopes = scopes + (B -> Scope.mkBoundedScope(3, isExact = false))
-
-//        println("theory: " + theory.toString)
-//        println("result: " + transformer(theory, scopes).toString)
+        scopes = scopes + (A -> NonExactScope(3))
+        scopes = scopes + (B -> NonExactScope(3))
 
         transformer(theory, scopes) should be (expected)
 
@@ -62,8 +59,6 @@ class ScopeSubtypeTransformerTest extends UnitSuite with CommonSymbols {
         val theory = baseTheory
                 .withAxiom(Forall(x.of(A), Forall(y.of(B), Or(App("P", x), App("Q", y)))))
                 .withAxiom(Forall(x.of(A), Exists(y.of(B), And(App("P", x), App("Q", y)))))
-//                .withAxiom(Exists(x.of(A), Forall(y.of(B), Implication(App("Q", y), App("P", x)))))
-//                .withAxiom(Exists(x.of(A), Exists(y.of(B), Implication(App("P", x), App("Q", y)))))
 
         val __Pred_A = FunctionSymbol("__@Pred_A")
         val __Pred_B = FunctionSymbol("__@Pred_B")
@@ -75,11 +70,9 @@ class ScopeSubtypeTransformerTest extends UnitSuite with CommonSymbols {
                 .withAxiom(Exists(x.of(B), App("__@Pred_B", x)))
                 .withAxiom(Forall(x.of(A), Implication(App("__@Pred_A", x), Forall(y.of(B), Implication(App("__@Pred_B", y), Or(App("P", x), App("Q", y)))))))
                 .withAxiom(Forall(x.of(A), Implication(App("__@Pred_A", x),Exists(y.of(B), And(App("__@Pred_B", y),And(App("P", x), App("Q", y)))))))
-//                .withAxiom(Exists(x.of(A), Forall(y.of(B), Implication(App("Q", y), App("P", x)))))
-//                .withAxiom(Exists(x.of(A), Exists(y.of(B), Implication(App("P", x), App("Q", y)))))
 
-        scopes = scopes + (A -> Scope.mkBoundedScope(3, isExact = false))
-        scopes = scopes + (B -> Scope.mkBoundedScope(3, isExact = false))
+        scopes = scopes + (A -> NonExactScope(3))
+        scopes = scopes + (B -> NonExactScope(3))
 
                 println("theory: " + theory.toString)
                 println("result: " + transformer(theory, scopes).toString)

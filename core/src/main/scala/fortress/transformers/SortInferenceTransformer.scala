@@ -16,7 +16,7 @@ object SortInferenceTransformer extends ProblemStateTransformer {
             // Create new scopes
             val newScopes = for {
                 sort <- generalTheory.sorts
-                if !sort.isBuiltin
+                if !sort.isBuiltin && scopes.contains(sort)
             } yield {
                 sort -> scopes(sortSubstitution(sort))
             }

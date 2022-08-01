@@ -14,7 +14,7 @@ object DatatypeTransformer extends ProblemStateTransformer {
         case ProblemState(theory, scopes, skc, skf, rangeRestricts, unapplyInterp, distinctConstants) => {
             val enumValuesMap: Map[Sort, Seq[EnumValue]] =
                 (for (sort <- theory.sorts if !sort.isBuiltin && scopes.contains(sort)) yield {
-                    val enumValues = DomainElement.range(1 to scopes(sort).asInstanceOf[BoundedScope].value, sort).map(_.asEnumValue)
+                    val enumValues = DomainElement.range(1 to scopes(sort).size, sort).map(_.asEnumValue)
                     (sort, enumValues)
                 }).toMap
 

@@ -55,7 +55,7 @@ object FortressDebug {
         // Default scopes
         var scopes: Map[Sort, Scope] = conf.scope.toOption match {
             case Some(scope) => {
-                for(sort <- theory.sorts) yield (sort -> Scope.mkBoundedScope(scope, isExact = true))
+                for(sort <- theory.sorts) yield sort -> ExactScope(scope)
             }.toMap
             case None => Map()
         }
@@ -66,10 +66,10 @@ object FortressDebug {
 //        }
         for ( (sort, scope) <- conf.scopeMap ) {
             if( sort.charAt(sort.length-1) == '?' ) { // "P?=2"
-                scopes += (Sort.mkSortConst(sort.substring(0, sort.length-1)) -> Scope.mkBoundedScope(scope.toInt, isExact = false))
+                scopes += (Sort.mkSortConst(sort.substring(0, sort.length-1)) -> NonExactScope(scope.toInt))
             }
             else {  // "P=2"
-                scopes += (Sort.mkSortConst(sort) ->Scope.mkBoundedScope(scope.toInt, isExact = true))
+                scopes += (Sort.mkSortConst(sort) -> ExactScope(scope.toInt))
             }
         }
 
@@ -104,7 +104,7 @@ object FortressDebug {
 
                 modelFinder.setTheory(theory)
                 for((sort, scope) <- scopes) {
-                    modelFinder.setAnalysisScope(sort, scope.asInstanceOf[BoundedScope].value, scope.asInstanceOf[BoundedScope].isExact)
+                    modelFinder.setAnalysisScope(sort, scope.size, scope.isExact)
                 }
                 modelFinder.setTimeout(Seconds(conf.timeout()))
                 //modelFinder.setBoundedIntegers(integerSemantics)
@@ -133,7 +133,7 @@ object FortressDebug {
 
                 modelFinder.setTheory(theory)
                 for((sort, scope) <- scopes) {
-                    modelFinder.setAnalysisScope(sort, scope.asInstanceOf[BoundedScope].value , scope.asInstanceOf[BoundedScope].isExact)
+                    modelFinder.setAnalysisScope(sort, scope.size , scope.isExact)
                 }
                 modelFinder.setTimeout(Seconds(conf.timeout()))
                 //modelFinder.setBoundedIntegers(integerSemantics)

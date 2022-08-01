@@ -61,7 +61,7 @@ object ProblemState {
     def apply(theory: Theory, scopes: Map[Sort, Scope]): ProblemState = {
         // Compute the scopes for enum sorts
         val enumScopes = theory.signature.enumConstants.map {
-            case (sort, enumValues) => sort -> Scope.mkBoundedScope(enumValues.size, isExact = true)
+            case (sort, enumValues) => sort -> ExactScope(enumValues.size)
         }.toMap
 
         // Check there is no conflict between the enum scopes and the provided scopes

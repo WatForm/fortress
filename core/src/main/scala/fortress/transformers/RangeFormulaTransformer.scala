@@ -29,12 +29,11 @@ private[transformers] class RangeFormulaTransformer (useConstForDomElem: Boolean
             // Generate range constraints for constants
             val constantRangeConstraints = for {
                 c <- theory.constants
-                if !c.sort.isBuiltin && scopes.contains(c.sort)
-                if scopes(c.sort).isInstanceOf[BoundedScope]
+                if !c.sort.isBuiltin && scopes.contains(c.sort) // make sure the sort is bounded.
                 // Don't generate constraints for terms that are already restricted
                 if ! (rangeRestricts exists (_.term == c.variable))
             } yield {
-                val possibleValues = for(i <- 1 to scopes(c.sort).asInstanceOf[BoundedScope].value) yield DE(i, c.sort)
+                val possibleValues = for(i <- 1 to scopes(c.sort).size) yield DE(i, c.sort)
                 val rangeFormula = c.variable equalsOneOf possibleValues
                 rangeFormula
             }
@@ -44,9 +43,8 @@ private[transformers] class RangeFormulaTransformer (useConstForDomElem: Boolean
             for {
                 f <- theory.functionDeclarations
                 if !f.resultSort.isBuiltin && scopes.contains(f.resultSort)
-                if scopes(f.resultSort).isInstanceOf[BoundedScope]
             } {
-                val possibleRangeValues = for(i <- 1 to scopes(f.resultSort).asInstanceOf[BoundedScope].value) yield DE(i, f.resultSort)
+                val possibleRangeValues = for(i <- 1 to scopes(f.resultSort).size) yield DE(i, f.resultSort)
                 
                 //  f: A_1 x ... x A_n -> B
                 // and each A_i has generated domain D_i
@@ -56,13 +54,13 @@ private[transformers] class RangeFormulaTransformer (useConstForDomElem: Boolean
                 val quantifiedVarsBuffer = new scala.collection.mutable.ListBuffer[AnnotatedVar]()
                 var counter = 0
                 val seqOfDomainSeqs: IndexedSeq[IndexedSeq[Term]] = f.argSorts.toIndexedSeq.map (sort => {
-                    val Di: IndexedSeq[Term] = if ((sort.isBuiltin || !scopes.contains(sort)) && scopes(sort).isInstanceOf[BoundedScope] ) {
+                    val Di: IndexedSeq[Term] = if ( sort.isBuiltin || !scopes.contains(sort) ) {
                         val annotatedVar = Var("$x_" + counter.toString) of sort
                         counter += 1
                         quantifiedVarsBuffer += annotatedVar
                         IndexedSeq(annotatedVar.variable)
                     } else {
-                        for(j <- 1 to scopes(sort).asInstanceOf[BoundedScope].value) yield DE(j, sort)
+                        for(j <- 1 to scopes(sort).size) yield DE(j, sort)
                     }
                     Di
                 })

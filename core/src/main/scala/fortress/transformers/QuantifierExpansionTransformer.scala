@@ -30,10 +30,11 @@ private[transformers] class QuantifierExpansionTransformer (useConstForDomElem: 
     
     override def apply(problemState: ProblemState): ProblemState = problemState match {
         case ProblemState(theory, scopes, skc, skf, rangeRestricts, unapplyInterp, distinctConstants) => {
-            Errors.Internal.precondition(scopes.keySet == theory.sorts.filter(!_.isBuiltin), scopes.keySet.toString)
-        
+//            Errors.Internal.precondition(scopes.keySet == theory.sorts.filter(!_.isBuiltin), scopes.keySet.toString)
+
+            // scopes only contains bounded sorts, so no need to check
             val domainElemsMap: Map[Sort, Seq[Term]] = scopes.map {
-                case (sort, scope: Scope) => (sort, for(i <- 1 to scope.asInstanceOf[BoundedScope].value) yield DE(i, sort))
+                case (sort, scope: Scope) => (sort, for(i <- 1 to scope.size) yield DE(i, sort))
             }
         
             val newAxioms = {

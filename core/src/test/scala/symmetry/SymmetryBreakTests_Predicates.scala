@@ -28,7 +28,7 @@ class SymmetryBreakTests_Predicates extends UnitSuite {
         ) // Unused 3, 4, 6, 7, 8, 9
         
         val usedValues = Map(A -> usedValsA)
-        val scopes = Map(A -> 9)
+        val scopes = Map(A -> ExactScope(9))
         val state = StalenessState(Set(A), scopes, usedValues)
         
         val constraints = Symmetry.predicateImplications_OLD(P, state)
@@ -56,7 +56,7 @@ class SymmetryBreakTests_Predicates extends UnitSuite {
         ) // Unused 1, 5, 6, 7, 8
         
         val usedValues = Map(A -> usedValsA, B -> usedValsB)
-        val scopes = Map(A -> 9, B -> 8)
+        val scopes = Map(A -> ExactScope(9), B -> ExactScope(8))
         val state = StalenessState(Set(A, B), scopes, usedValues)
         
         val constraints = Symmetry.predicateImplications_OLD(P, state)
@@ -77,7 +77,7 @@ class SymmetryBreakTests_Predicates extends UnitSuite {
         ) // Unused 3, 4, 6, 7, 8, 9
         
         val usedValues = Map(A -> usedValsA)
-        val scopes = Map(A -> 9)
+        val scopes = Map(A -> ExactScope(9))
         val state = StalenessState(Set(A), scopes, usedValues)
         
         val constraints = Symmetry.predicateImplications(P, state)
@@ -105,7 +105,7 @@ class SymmetryBreakTests_Predicates extends UnitSuite {
         ) // Unused 1, 5, 6, 7, 8
         
         val usedValues = Map(A -> usedValsA, B -> usedValsB)
-        val scopes = Map(A -> 9, B -> 8)
+        val scopes = Map(A -> ExactScope(9), B -> ExactScope(8))
         val state = StalenessState(Set(A, B), scopes, usedValues)
         
         val constraints = Symmetry.predicateImplications(P, state)

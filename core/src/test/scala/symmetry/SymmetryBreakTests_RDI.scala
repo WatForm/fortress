@@ -26,7 +26,7 @@ class SymmetryBreakTests_RDI extends UnitSuite {
             DE(5, B),
         ) // Unused: 1, 4, 6, 7
         
-        val scopes = Map(A -> 8, B -> 7)
+        val scopes = Map(A -> ExactScope(8) , B -> ExactScope(7))
         val used = Map(B -> usedResultValues)
         val state = StalenessState(Set(A, B), scopes, used)
         
@@ -54,7 +54,7 @@ class SymmetryBreakTests_RDI extends UnitSuite {
             DE(5, B),
         ) // Unused: 1, 4, 6, 7, 8, 9
         
-        val scopes = Map(A -> 2, D -> 2, B -> 9)
+        val scopes = Map(A -> ExactScope(2), D -> ExactScope(2), B -> ExactScope(9))
         val used = Map(B -> usedResultValues)
         val state = StalenessState(Set(A, D, B), scopes, used)
         
@@ -84,7 +84,7 @@ class SymmetryBreakTests_RDI extends UnitSuite {
             DE(5, B),
         ) // Unused: 1, 4, 6, 7
         
-        val scopes: Map[Sort, Int] = Map(A -> 8, B -> 7)
+        val scopes: Map[Sort, Scope] = Map(A -> ExactScope(8), B -> ExactScope(7))
         val used = Map(B -> usedResultValues)
         val state = StalenessState(Set(A, B), scopes, used)
         
@@ -115,7 +115,7 @@ class SymmetryBreakTests_RDI extends UnitSuite {
             DE(5, B),
         ) // Unused: 1, 4, 6, 7, 8, 9
         
-        val scopes = Map(A -> 2, D -> 2, B -> 9)
+        val scopes = Map(A -> ExactScope(2), D -> ExactScope(2), B -> ExactScope(9))
         val used = Map(B -> usedResultValues)
         val state = StalenessState(Set(A, D, B), scopes, used)
         
@@ -158,7 +158,7 @@ class SymmetryBreakTests_RDI extends UnitSuite {
             DE(5, B),
         ) // Unused: 1, 4, 6, 7
         
-        val scopes: Map[Sort, Int] = Map(A -> 8, B -> 7)
+        val scopes: Map[Sort, Scope] = Map(A -> ExactScope(8), B -> ExactScope(7))
         val used = Map(B -> usedResultValues)
         val state = StalenessState(Set(A, B), scopes, used)
         
@@ -190,7 +190,7 @@ class SymmetryBreakTests_RDI extends UnitSuite {
             DE(5, B),
         ) // Unused: 1, 4, 6, 7, 8, 9
         
-        val scopes = Map(A -> 2, D -> 2, B -> 9)
+        val scopes = Map(A -> ExactScope(2), D -> ExactScope(2), B -> ExactScope(9))
         val used = Map(B -> usedResultValues)
         val state = StalenessState(Set(A, D, B), scopes, used)
         

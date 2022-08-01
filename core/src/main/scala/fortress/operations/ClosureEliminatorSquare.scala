@@ -22,7 +22,7 @@ class ClosureEliminatorSquare(topLevelTerm: Term, signature: Signature, scopes: 
         def max_count(sort: Sort): Int = {
             val scope = scopes(sort)
             // ceil(log_2(scope)) + 1
-            (math.ceil(math.log(scope.asInstanceOf[BoundedScope].value) / math.log(2))).toInt + 1
+            (math.ceil(math.log(scope.size) / math.log(2))).toInt + 1
         }
         // TODO support more arguments
 

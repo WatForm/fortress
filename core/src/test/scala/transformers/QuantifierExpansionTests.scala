@@ -25,7 +25,7 @@ class QuantifierExpansionTests extends UnitSuite {
             .withAxiom(Forall(x of A, App("P", x)))
             .withAxiom(Forall(y of B, App("Q", y)))
        
-        val scopes = Map(A -> 2, B -> 3)
+        val scopes = Map(A -> ExactScope(2), B -> ExactScope(3))
             
         val expectedTheory = Theory.empty
             .withSorts(A, B)
@@ -51,7 +51,7 @@ class QuantifierExpansionTests extends UnitSuite {
             .withAxiom(Forall(Seq(x of A, y of A, z of B),
                 (App("P", x) and App("P", y)) ==> App("Q", z) ))
         
-        val scopes = Map(A -> 2, B -> 3)
+        val scopes = Map(A -> ExactScope(2), B -> ExactScope(3))
         
         val expectedTheory = Theory.empty
             .withSorts(A, B)
@@ -83,7 +83,7 @@ class QuantifierExpansionTests extends UnitSuite {
             .withAxiom(Forall(x of A, (App("g", x) === x) or (Forall(y of B, App("R", x, y)))))
             
             
-        val scopes = Map(A -> 2, B -> 2)
+        val scopes = Map(A -> ExactScope(2), B -> ExactScope(2))
         
         val t1A = (App("g", DomainElement(1, A)) === DomainElement(1, A)) or 
             (App("R", DomainElement(1, A), DomainElement(1, B)) and (App("R", DomainElement(1, A), DomainElement(2, B))))
@@ -107,7 +107,7 @@ class QuantifierExpansionTests extends UnitSuite {
             .withConstant(b of B)
             .withAxiom(Forall(x of A, App("f", x) === b))
         
-        val scopes = Map(A -> 2, B -> 2)
+        val scopes = Map(A -> ExactScope(2), B -> ExactScope(2))
         
         val expectedTheory = Theory.empty
             .withSorts(A, B)
@@ -128,7 +128,7 @@ class QuantifierExpansionTests extends UnitSuite {
             .withAxiom(Forall(x of A, App("P", x)))
             .withAxiom(Forall(y of B, App("Q", y)))
         
-        val scopes = Map(A -> 1, B -> 1)
+        val scopes = Map(A -> ExactScope(1), B -> ExactScope(1))
         
         val expectedTheory = Theory.empty
             .withSorts(A, B)
@@ -151,7 +151,7 @@ class QuantifierExpansionTests extends UnitSuite {
             .withFunctionDeclaration(FuncDecl("P", A, IntSort, BoolSort, BoolSort))
             .withAxiom(Forall( Seq(x of A, y of IntSort, z of BoolSort), App("P", x, y, z)))
             
-        val scopes: Map[Sort, Int] = Map(A -> 2)
+        val scopes: Map[Sort, Scope] = Map(A -> ExactScope(2))
         
         val expectedTheory = Theory.empty
             .withSort(A)

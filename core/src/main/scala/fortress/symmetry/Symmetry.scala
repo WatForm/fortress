@@ -155,7 +155,7 @@ object Symmetry {
         val m = freshResultValues.size
         
         val argumentListsIterable: Iterable[ArgList] =
-            new fortress.util.ArgumentListGenerator(state.scope(_).asInstanceOf[BoundedScope].value)
+            new fortress.util.ArgumentListGenerator(state.scope(_).size)
             .allArgumentListsOfFunction(f)
             .take(m) // Take up to m of them, for efficiency since we won't need more than this - the argument list generator does not generate arguments
             // until they are needed
@@ -205,7 +205,7 @@ object Symmetry {
         val m = freshResultValues.size
         
         val argumentListsIterable: Iterable[ArgList] =
-            new fortress.util.ArgumentListGenerator(state.scope(_).asInstanceOf[BoundedScope].value)
+            new fortress.util.ArgumentListGenerator(state.scope(_).size)
             .allArgumentListsOfFunction(f)
             .take(m) // Take up to m of them,  for efficiency since we won't need more than this - the argument list generator does not generate arguments
             // until they are needed
@@ -259,7 +259,7 @@ object Symmetry {
         val m = freshResultValues.size
         
         val argumentListsIterable: Iterable[ArgList] =
-            new fortress.util.ArgumentListGenerator(state.scope(_).asInstanceOf[BoundedScope].value)
+            new fortress.util.ArgumentListGenerator(state.scope(_).size)
             .allArgumentListsOfFunction(f)
             .take(m) // Take up to m of them, for efficiency since we won't need more than this - the argument list generator does not generate arguments
             // until they are needed
@@ -312,10 +312,10 @@ object Symmetry {
         Errors.Internal.precondition(f.arity <= 2)
         Errors.Internal.precondition(f.argSorts forall (state.staleValues(_).isEmpty))
         Errors.Internal.precondition(state.staleValues(f.resultSort).isEmpty)
-        Errors.Internal.precondition(f.argSorts.forall(state.scope(_).asInstanceOf[BoundedScope].value >= 2))
-        Errors.Internal.precondition(state.scope(f.resultSort).asInstanceOf[BoundedScope].value >= 2)
+        Errors.Internal.precondition(f.argSorts.forall(state.scope(_).size >= 2))
+        Errors.Internal.precondition(state.scope(f.resultSort).size >= 2)
         
-        val (ltDecl, ltDefn) = sortLtDefinition(f.resultSort, state.scope(f.resultSort).asInstanceOf[BoundedScope].value)
+        val (ltDecl, ltDefn) = sortLtDefinition(f.resultSort, state.scope(f.resultSort).size)
         
         val LT = ltDecl.name
         
@@ -323,7 +323,7 @@ object Symmetry {
             // Unary
             case FuncDecl(fname, Seq(argSort), resultSort) => {
                 // Ordering constraints
-                val ltConstraints: Seq[Term] = for(i <- 1 until state.scope(argSort).asInstanceOf[BoundedScope].value) yield {
+                val ltConstraints: Seq[Term] = for(i <- 1 until state.scope(argSort).size) yield {
                     App(LT,
                         App(fname, DomainElement(i, argSort)),
                         App(fname, DomainElement(i + 1, argSort))
@@ -341,7 +341,7 @@ object Symmetry {
                 // First argument constraints
                 
                 // Ordering constraints on first argument
-                val ltConstraintsArg1: Seq[Term] = for(i <- 1 until state.scope(argSort1).asInstanceOf[BoundedScope].value ) yield {
+                val ltConstraintsArg1: Seq[Term] = for(i <- 1 until state.scope(argSort1).size ) yield {
                     App(LT,
                         App(fname, DomainElement(i, argSort1), DomainElement(1, argSort2)),
                         App(fname, DomainElement(i + 1, argSort1), DomainElement(1, argSort2))
@@ -353,7 +353,7 @@ object Symmetry {
                 // 2. if scope(resultSort) > scope(argSort1), the constraints will spill over into the second
                 // value of argSort2, which is not what we want because then we can't justify "shuffling"
                 
-                val r1 = scala.math.min(state.scope(argSort1).asInstanceOf[BoundedScope].value, state.scope(resultSort).asInstanceOf[BoundedScope].value)
+                val r1 = scala.math.min(state.scope(argSort1).size, state.scope(resultSort).size)
                 
                 val rdiRangeRestrictions: Seq[RangeRestriction] = for(i <- 1 to r1) yield {
                     RangeRestriction(
@@ -372,7 +372,7 @@ object Symmetry {
                 }
                 
                 // Second argument constraints
-                val ltConstraintsArg2: Seq[Term] = for(i <- 2 until state.scope(argSort2).asInstanceOf[BoundedScope].value) yield {
+                val ltConstraintsArg2: Seq[Term] = for(i <- 2 until state.scope(argSort2).size) yield {
                     App(LT,
                         App(fname, DomainElement(1, argSort1), DomainElement(i, argSort2)),
                         App(fname, DomainElement(1, argSort1), DomainElement(i + 1, argSort2))

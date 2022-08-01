@@ -23,7 +23,7 @@ abstract class SymmetryBreaker(
 
     // Perform symmetry breaking on constants, one sort by another
     final def breakConstants(constantsToBreak: Set[AnnotatedVar]): Unit = {
-        for(sort <- theory.sorts if !sort.isBuiltin && tracker.state.existsFreshValue(sort)) {
+        for(sort <- theory.sorts if !sort.isBuiltin && scopes.contains(sort) && tracker.state.existsFreshValue(sort)) {
             breakConstants(sort, constantsToBreak.filter(_.sort == sort).toIndexedSeq)
         }
     }
@@ -74,11 +74,13 @@ trait DependenceDifferentiation extends SymmetryBreaker {
     def breakRDIFunction(f: FuncDecl): Unit
     
     override def breakFunction(f: FuncDecl): Unit = {
-        if(tracker.state.existsFreshValue(f.resultSort)) {
-            if (f.isRDD) {
-                breakRDDFunction(f)
-            } else {
-                breakRDIFunction(f)
+        if( f.argSorts forall scopes.contains ) {
+            if(tracker.state.existsFreshValue(f.resultSort)) {
+                if (f.isRDD) {
+                    breakRDDFunction(f)
+                } else {
+                    breakRDIFunction(f)
+                }
             }
         }
     }

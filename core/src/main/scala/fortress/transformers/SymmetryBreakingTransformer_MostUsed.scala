@@ -35,7 +35,7 @@ class SymmetryBreakingTransformer_MostUsed(
             val stalnessTracker = StalenessTracker.create(theory, scopes)
             val remainingTracker = RemainingIdentifiersTracker.create(theory.constants, fp)
 
-            val breaker = symmetryBreakerFactory.create(theory, stalnessTracker, remainingTracker)
+            val breaker = symmetryBreakerFactory.create(theory, scopes, stalnessTracker, remainingTracker)
             val selectionHeuristic = selectionHeuristicFactory.create(stalnessTracker, remainingTracker)
 
             // Set up the selection heuristic if it is using a preplanned order

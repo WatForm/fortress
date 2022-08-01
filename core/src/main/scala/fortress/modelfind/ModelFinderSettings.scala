@@ -6,6 +6,7 @@ import fortress.util._
 import fortress.interpretation._
 import fortress.solverinterface._
 import fortress.logging._
+import fortress.msfol
 
 import scala.collection.mutable.ListBuffer
 
@@ -28,13 +29,10 @@ trait ModelFinderSettings extends ModelFinder {
     override def setAnalysisScope(t: Sort, size: Int, isExact: Boolean): Unit = {
         Errors.Internal.precondition(size > 0)
         // note that IntSort scopes are specified in bitwidth
-        val scope =  Scope.mkBoundedScope(size, isExact)
+        val scope = if(isExact) ExactScope(size) else NonExactScope(size)
         analysisScopes = analysisScopes + (t -> scope)
     }
 
-    override def setUnbounded(t: Sort): Unit = {
-        analysisScopes = analysisScopes + (t -> Scope.unbounded)
-    }
     
     override def setOutput(writer: java.io.Writer): Unit = {
         eventLoggers += new StandardLogger(writer)

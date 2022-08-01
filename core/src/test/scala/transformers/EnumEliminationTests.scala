@@ -46,7 +46,7 @@ class EnumEliminationTests extends UnitSuite {
         val transformer = EnumEliminationTransformer
         val result = transformer(ProblemState(theory))
         result.theory should be (expected)
-        result.scopes should be (Map(A -> 3, C -> 2))
+        result.scopes should be (Map(A -> ExactScope(3), C -> ExactScope(2)))
     }
     
 }

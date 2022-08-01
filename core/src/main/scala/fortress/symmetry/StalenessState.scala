@@ -29,8 +29,7 @@ class StalenessState private (
     
     def domainElements(sort: Sort): IndexedSeq[DomainElement] = {
         val sc = scope(sort)
-        Errors.Internal.precondition(sc.isInstanceOf[BoundedScope])
-        DomainElement.range(1 to sc.asInstanceOf[BoundedScope].value , sort)
+        DomainElement.range(1 to sc.size , sort)
     }
     
     def createTrackerWithState: StalenessTracker = StalenessTracker.create(sorts, staleMap, scopeMap)
@@ -40,17 +39,13 @@ class StalenessState private (
         val inverse: Sort => Set[Sort] = sortSubstitution.inverse
         val newScopeMap: Map[Sort, Scope] = {
             for(sort <- newSorts) yield {
-                val preImage = inverse(sort)
-                val M: Int = {
-                    var temp = -1
-                    for(item <- preImage if scope(item).isInstanceOf[BoundedScope]) {
-                        temp = Integer.max(scope(item).asInstanceOf[BoundedScope].value, temp)
-                    }
-                    temp
-                }
+                val preImage = inverse(sort).filter( item => scopeMap.contains(item) )
+
+                val M: Int = preImage.map( scope(_).size ).max
+
                 var s = scope(preImage.head)
-                for (item <- preImage if scope(item).isInstanceOf[BoundedScope]) {
-                    if( scope(item).asInstanceOf[BoundedScope].value == M ) {
+                for (item <- preImage) {
+                    if( scope(item).size == M ) {
                         s = scope(item)
                     }
                 }

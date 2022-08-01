@@ -36,7 +36,7 @@ class SymmetryBreakingTransformer_MostUsedTest extends UnitSuite {
 
         val expectedRangeFormulas = Set(RangeRestriction(c2, Vector(DomainElement(1, A))), RangeRestriction(c1, Vector(DomainElement(1, A), DomainElement(2, A))), RangeRestriction(d1, Vector(DomainElement(1, B))))
 
-        val scopes = Map(A -> 2, B -> 2)
+        val scopes = Map(A -> ExactScope(2), B -> ExactScope(2))
         val transformer = new SymmetryBreakingTransformer_MostUsed(LowArityFirstAndMostUsedOrderFactory, DefaultSymmetryBreakerFactoryDL(None))
         transformer(ProblemState(theory, scopes)) should be(ProblemState(expected, scopes, Set.empty, Set.empty, expectedRangeFormulas, List.empty, distinctConstants = true))
     }
@@ -65,7 +65,7 @@ class SymmetryBreakingTransformer_MostUsedTest extends UnitSuite {
 
         val expectedRangeFormulas = Set(RangeRestriction(App("g", DomainElement(1, B)), Vector(DomainElement(1, A), DomainElement(2, A))), RangeRestriction(d1, Vector(DomainElement(1, B))), RangeRestriction(App("f", DomainElement(2, A)), Vector(DomainElement(1, B), DomainElement(2, B), DomainElement(3, B))), RangeRestriction(c1, Vector(DomainElement(1, A))), RangeRestriction(App("f", DomainElement(1, A)), Vector(DomainElement(1, B), DomainElement(2, B))))
 
-        val scopes = Map(A -> 2, B -> 3)
+        val scopes = Map(A -> ExactScope(2), B -> ExactScope(3))
         val transformer = new SymmetryBreakingTransformer_MostUsed(LowArityFirstAndMostUsedOrderFactory, DefaultSymmetryBreakerFactoryDL(None))
         transformer(ProblemState(theory, scopes)) should be(ProblemState(expected, scopes, Set.empty, Set.empty, expectedRangeFormulas, List.empty, distinctConstants = true))
     }
@@ -78,7 +78,7 @@ class SymmetryBreakingTransformer_MostUsedTest extends UnitSuite {
           .withFunctionDeclaration(FuncDecl("g", A, B, A, C))
           .withAxiom(Forall(x of A, App("f", x, c1) === App("g", x, c1, x)))
 
-        val scopes = Map(A -> 2, B -> 3, C -> 2)
+        val scopes = Map(A -> ExactScope(2), B -> ExactScope(3), C -> ExactScope(2))
         val transformer = new SymmetryBreakingTransformer_MostUsed(LowArityFirstAndMostUsedOrderFactory, DefaultSymmetryBreakerFactoryDL(None))
         val result = transformer(ProblemState(theory, scopes))
         result.theory.axioms.size should be(5)
@@ -106,7 +106,7 @@ class SymmetryBreakingTransformer_MostUsedTest extends UnitSuite {
           .withAxiom(Forall(x of A, App("f", x, c2) === App("g", c3)))
           .withAxiom(App("h", c2, c2) === App("h", c2, c2))
 
-        val scopes = Map(A -> 4, B -> 4, C -> 4)
+        val scopes = Map(A -> ExactScope(4), B -> ExactScope(4), C -> ExactScope(4))
         val transformer = new SymmetryBreakingTransformer_MostUsed(LowArityFirstAndMostUsedOrderFactory, DefaultSymmetryBreakerFactoryDL(None))
         val result = transformer(ProblemState(theory, scopes))
 

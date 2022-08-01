@@ -14,19 +14,12 @@ import java.io._
 import java.{util => ju}
 
 class Conf(arguments: Seq[String]) extends ScallopConf(arguments) {
-//<<<<<<< HEAD
-//    val scope = opt[Int](required = false)
-//    val file = trailArg[String](required = true)
-//    val scopeMap = props[String]('S')
-//    val timeout = opt[Int](required = true) // Timeout in seconds
-//=======
     val scope = opt[Int](required = false, descr="default scope for all sorts")
     val file = trailArg[String](required = true, descr="file(s) to run on")
     val scopeMap = props[String]('S', descr="scope sizes for individual sorts ex: A=2 B=3")
     val timeout = opt[Int](required = true, descr="timeout in seconds") // Timeout in seconds
-//>>>>>>> master
 
-    // modelfinder.
+    // model finder.
     val mfConverter = singleArgConverter[ModelFinder](FortressModelFinders.fromString(_).get, {
         case x: ju.NoSuchElementException  => Left("Not a valid FortressModelFinder")
     })
@@ -45,11 +38,7 @@ class Conf(arguments: Seq[String]) extends ScallopConf(arguments) {
         }
         val argType: ArgType.V = ArgType.LIST
     }
-//<<<<<<< HEAD
-//    val transformers = trailArg[List[ProblemStateTransformer]](required=false)(transfromerConverter)
-//=======
     val transformers = opt[List[ProblemStateTransformer]](required = false,short='T', descr="alternative to modelfinder. specify transformers in order")(transfromerConverter)
-//>>>>>>> master
 
     mutuallyExclusive(modelFinder, transformers)
 
@@ -72,20 +61,20 @@ object FortressCli {
         }
 
         // Default scopes
-        var scopes: Map[Sort, (Int, Boolean)] = conf.scope.toOption match {
+        var scopes: Map[Sort, Scope] = conf.scope.toOption match {
             case Some(scope) => {
-                for(sort <- theory.sorts) yield (sort -> (scope, true))
+                for(sort <- theory.sorts) yield sort -> ExactScope(scope)
             }.toMap
             case None => Map()
         }
 
-        // Override with specifc scopes
+        // Override with specific scopes
         for ( (sort, scope) <- conf.scopeMap ) {
             if( sort.charAt(sort.length-1) == '?' ) { // "P?=2"
-                scopes += (Sort.mkSortConst(sort.substring(0, sort.length-1)) -> (scope.toInt, false))
+                scopes += (Sort.mkSortConst(sort.substring(0, sort.length-1)) -> NonExactScope(scope.toInt))
             }
             else {  // "P=2"
-                scopes += (Sort.mkSortConst(sort) -> (scope.toInt, true))
+                scopes += (Sort.mkSortConst(sort) -> ExactScope(scope.toInt))
             }
         }
 
@@ -106,7 +95,7 @@ object FortressCli {
 
         modelFinder.setTheory(theory)
         for((sort, scope) <- scopes) {
-            modelFinder.setAnalysisScope(sort, scope._1, scope._2)
+            modelFinder.setAnalysisScope(sort, scope.size, scope.isExact)
         }
         modelFinder.setTimeout(Seconds(conf.timeout()))
         //modelFinder.setBoundedIntegers(integerSemantics)

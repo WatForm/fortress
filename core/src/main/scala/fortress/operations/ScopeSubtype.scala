@@ -20,7 +20,8 @@ object ScopeSubtype {
         case IfThenElse(condition, ifTrue, ifFalse) => IfThenElse(addBoundsPredicates(condition, helpMap), addBoundsPredicates(ifTrue, helpMap), addBoundsPredicates(ifFalse, helpMap))
         case Exists(vars, body) => {
             val predApps = for {
-                av <- vars if !av.sort.isBuiltin && helpMap(av.sort).isInstanceOf[BoundedScope] && !helpMap(av.sort).asInstanceOf[BoundedScope].isExact
+                av <- vars
+                if !av.sort.isBuiltin && helpMap.contains(av.sort) && !helpMap(av.sort).isExact
             } yield App(subtypePred(av.sort), av.variable)
             if(predApps.isEmpty)
                 term
@@ -28,9 +29,9 @@ object ScopeSubtype {
                 Exists(vars, And.smart(predApps :+ addBoundsPredicates(body, helpMap)))
         }
         case Forall(vars, body) => {
-
             val predApps = for {
-                av <- vars if !av.sort.isBuiltin && helpMap(av.sort).isInstanceOf[BoundedScope] && !helpMap(av.sort).asInstanceOf[BoundedScope].isExact
+                av <- vars
+                if !av.sort.isBuiltin && helpMap.contains(av.sort) && !helpMap(av.sort).isExact
             } yield {
                 App(subtypePred(av.sort), av.variable)
             }
