@@ -50,8 +50,9 @@ class ScopeSubtypeTransformer extends ProblemStateTransformer {
             val unapply: Interpretation => Interpretation = {
                 interp => {
                     var resultInterp = interp
-                    for (pred <- scopeSubtypePreds) {
-                        val sort: Sort = pred.argSorts.head
+                    for (pred <- scopeSubtypePreds) {  // for each subtype predicate funcDecl
+                        val sort: Sort = pred.argSorts.head // get argument sort
+                        // filter: get preds whose result sort is Top(True)
                         val domainElements: Seq[Value] = interp.functionInterpretations(pred).toSeq.filter(pred => pred._2 == Top).map(_._1.head)
                         resultInterp = resultInterp.updateSortInterpretations(sort, domainElements)
                     }
