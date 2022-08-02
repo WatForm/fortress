@@ -17,10 +17,6 @@ class ClosureEliminatorIterative(topLevelTerm: Term, signature: Signature, scope
 
 
     override val visitor: ClosureVisitor = new ClosureVisitorIterative
-
-
-    
-
     
     class ClosureVisitorIterative extends ClosureVisitor {
         /** Check if a function has been defined */

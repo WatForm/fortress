@@ -40,6 +40,24 @@ class SymmetryBreakingTransformer_MostUsedTest extends UnitSuite {
         val transformer = new SymmetryBreakingTransformer_MostUsed(LowArityFirstAndMostUsedOrderFactory, DefaultSymmetryBreakerFactoryDL(None))
         transformer(ProblemState(theory, scopes)) should be(ProblemState(expected, scopes, Set.empty, Set.empty, expectedRangeFormulas, List.empty, distinctConstants = true))
     }
+    test("constants_with_unbounded") {
+        val theory = Theory.empty
+                .withSorts(A, B)
+                .withConstants(c1 of A, c2 of A, d1 of B)
+                .withAxiom(Forall(x of A, x === c2))
+
+        val expected = theory
+                .withAxiom(c2 === DomainElement(1, A))
+                .withAxiom(Or(c1 === DomainElement(1, A), c1 === DomainElement(2, A)))
+                .withAxiom((c1 === DomainElement(2, A)) ==> (c2 === DomainElement(1, A)))
+//                .withAxiom(d1 === DomainElement(1, B))
+
+        val expectedRangeFormulas = Set(RangeRestriction(c2, Vector(DomainElement(1, A))), RangeRestriction(c1, Vector(DomainElement(1, A), DomainElement(2, A))))
+
+        val scopes = Map(A -> ExactScope(2))
+        val transformer = new SymmetryBreakingTransformer_MostUsed(LowArityFirstAndMostUsedOrderFactory, DefaultSymmetryBreakerFactoryDL(None))
+        transformer(ProblemState(theory, scopes)) should be(ProblemState(expected, scopes, Set.empty, Set.empty, expectedRangeFormulas, List.empty, distinctConstants = true))
+    }
 
     test("function arity 1") {
         val theory = Theory.empty
@@ -66,6 +84,23 @@ class SymmetryBreakingTransformer_MostUsedTest extends UnitSuite {
         val expectedRangeFormulas = Set(RangeRestriction(App("g", DomainElement(1, B)), Vector(DomainElement(1, A), DomainElement(2, A))), RangeRestriction(d1, Vector(DomainElement(1, B))), RangeRestriction(App("f", DomainElement(2, A)), Vector(DomainElement(1, B), DomainElement(2, B), DomainElement(3, B))), RangeRestriction(c1, Vector(DomainElement(1, A))), RangeRestriction(App("f", DomainElement(1, A)), Vector(DomainElement(1, B), DomainElement(2, B))))
 
         val scopes = Map(A -> ExactScope(2), B -> ExactScope(3))
+        val transformer = new SymmetryBreakingTransformer_MostUsed(LowArityFirstAndMostUsedOrderFactory, DefaultSymmetryBreakerFactoryDL(None))
+        transformer(ProblemState(theory, scopes)) should be(ProblemState(expected, scopes, Set.empty, Set.empty, expectedRangeFormulas, List.empty, distinctConstants = true))
+    }
+
+    test("function arity 1 - with_unbounded") {
+        val theory = Theory.empty
+                .withSorts(A, B)
+                .withConstants(c1 of A, d1 of B)
+                .withFunctionDeclaration(FuncDecl("f", A, B))
+                .withFunctionDeclaration(FuncDecl("g", B, A))
+
+        val expected = theory
+                .withAxiom(c1 === DomainElement(1, A))
+
+        val expectedRangeFormulas = Set(RangeRestriction(c1, Vector(DomainElement(1, A))))
+
+        val scopes = Map(A -> ExactScope(2))
         val transformer = new SymmetryBreakingTransformer_MostUsed(LowArityFirstAndMostUsedOrderFactory, DefaultSymmetryBreakerFactoryDL(None))
         transformer(ProblemState(theory, scopes)) should be(ProblemState(expected, scopes, Set.empty, Set.empty, expectedRangeFormulas, List.empty, distinctConstants = true))
     }
@@ -149,5 +184,34 @@ class SymmetryBreakingTransformer_MostUsedTest extends UnitSuite {
             App("f", DomainElement(1, A), DomainElement(1, B)) === DomainElement(2, C),
             App("f", DomainElement(1, A), DomainElement(1, B)) === DomainElement(3, C),
             App("f", DomainElement(1, A), DomainElement(1, B)) === DomainElement(4, C)))
+    }
+
+    test("Multiple sorts with constants, functions and predicates - with unbounded sorts") {
+        // leave sort C unbounded
+        val theory = Theory.empty
+                .withSorts(A, B, C)
+                .withConstant(c1 of A)
+                .withConstant(c2 of B)
+                .withConstant(c3 of C)
+                .withFunctionDeclaration(FuncDecl("f", A, B, C))
+                .withFunctionDeclaration(FuncDecl("g", C, A))
+                .withFunctionDeclaration(FuncDecl("h", B, B, BoolSort))
+                .withAxiom(Forall(x of A, App("f", x, c2) === App("g", c3)))
+                .withAxiom(App("h", c2, c2) === App("h", c2, c2))
+
+        val scopes = Map(A -> ExactScope(4), B -> ExactScope(4))
+        val transformer = new SymmetryBreakingTransformer_MostUsed(LowArityFirstAndMostUsedOrderFactory, DefaultSymmetryBreakerFactoryDL(None))
+        val result = transformer(ProblemState(theory, scopes))
+
+        // Original axioms
+        result.theory.axioms should contain(Forall(x of A, App("f", x, c2) === App("g", c3)))
+        result.theory.axioms should contain(App("h", c2, c2) === App("h", c2, c2))
+        // Symmetry breaking constraints for constants
+        result.theory.axioms should contain(c1 === DomainElement(1, A))
+        result.theory.axioms should contain(c2 === DomainElement(1, B))
+
+        // Symmetry breaking constraints for predicate h
+        result.theory.axioms should contain(App("h", DomainElement(3, B), DomainElement(3, B)) ==> App("h", DomainElement(2, B), DomainElement(2, B)))
+        result.theory.axioms should contain(App("h", DomainElement(4, B), DomainElement(4, B)) ==> App("h", DomainElement(3, B), DomainElement(3, B)))
     }
 }

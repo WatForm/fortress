@@ -5,7 +5,7 @@ import fortress.msfol._
 /** A visitor for term syntax trees. */
 trait TermVisitor[T] {
     def visit(term: Term): T = term.accept(this)
-    
+
     def visitTop(): T
     def visitBottom(): T
     def visitVar(term: Var): T

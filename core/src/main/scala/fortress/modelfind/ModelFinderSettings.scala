@@ -26,14 +26,14 @@ trait ModelFinderSettings extends ModelFinder {
         timeoutMilliseconds = milliseconds
     }
     
-    override def setAnalysisScope(t: Sort, size: Int, isExact: Boolean): Unit = {
+    override def setAnalysisScope(sort: Sort, size: Int, isExact: Boolean): Unit = {
         Errors.Internal.precondition(size > 0)
+        Errors.Internal.precondition(!sort.isBuiltin, "Cannot set analysis scope for builtin sort")
         // note that IntSort scopes are specified in bitwidth
         val scope = if(isExact) ExactScope(size) else NonExactScope(size)
-        analysisScopes = analysisScopes + (t -> scope)
+        analysisScopes = analysisScopes + (sort -> scope)
     }
 
-    
     override def setOutput(writer: java.io.Writer): Unit = {
         eventLoggers += new StandardLogger(writer)
     }

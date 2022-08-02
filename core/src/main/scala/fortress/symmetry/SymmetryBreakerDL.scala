@@ -27,16 +27,18 @@ abstract class SymmetryBreakerDL(
     protected val newDeclarations = new mutable.ListBuffer[FuncDecl]
 
     // Perform symmetry breaking on constants, one sort by another
+    // only preform on bounded sorts
     final def breakConstants(constantsToBreak: Set[AnnotatedVar]): Unit = {
-        for (sort <- theory.sorts if !sort.isBuiltin && stalenessTracker.state.existsFreshValue(sort)) {
+        for (sort <- theory.sorts if !sort.isBuiltin && scopes.contains(sort) && stalenessTracker.state.existsFreshValue(sort)) {
             breakConstants(sort, constantsToBreak.filter(_.sort == sort).toIndexedSeq)
         }
     }
 
     // Perform symmetry breaking on constants, one sort by another(preserve the order)
+    // only preform on bounded sorts
     def breakListOfConstants(constantsToBreak: IndexedSeq[AnnotatedVar]): Unit = {
         val constantsGroupedBySort = constantsToBreak.groupBy(_.sort)
-        for ((sort, constants) <- constantsGroupedBySort if !sort.isBuiltin && stalenessTracker.state.existsFreshValue(sort)) {
+        for ((sort, constants) <- constantsGroupedBySort if !sort.isBuiltin && scopes.contains(sort) && stalenessTracker.state.existsFreshValue(sort)) {
             breakConstants(sort, constants)
         }
     }
@@ -78,7 +80,7 @@ abstract class SymmetryBreakerDL(
 
 trait DefaultPredicateBreakingDL extends SymmetryBreakerDL {
     override def breakPredicate(P: FuncDecl): Unit = {
-        if (P.argSorts forall (stalenessTracker.state.numFreshValues(_) >= 2)) { // Need at least 2 unused values to do any symmetry breaking
+        if (P.argSorts.forall( sort => stalenessTracker.state.numFreshValues(sort) >= 2 && scopes.contains(sort))) { // Need at least 2 unused values to do any symmetry breaking
             val pImplications = SymmetryDL.predicateImplications(P, stalenessTracker.state, disjunctsLimit)
             addGeneralConstraints(pImplications)
             if (pImplications.nonEmpty) remainingTracker.markUsedFuncDecls(P)
@@ -92,19 +94,7 @@ trait DependenceDifferentiationDL extends SymmetryBreakerDL {
     def breakRDIFunction(f: FuncDecl): Unit
 
     override def breakFunction(f: FuncDecl): Unit = {
-        def flag: Boolean = {
-            var temp = true
-            for ( item <- f.argSorts ) {
-                if (!scopes.contains(item)) {
-                    temp = false
-                }
-            }
-            if( !scopes.contains(f.resultSort) ) {
-                temp = false
-            }
-            temp
-        }
-        if( flag) {
+        if( f.argSorts.forall(sort => scopes.contains(sort)) && scopes.contains(f.resultSort) ) {
             if (stalenessTracker.state.existsFreshValue(f.resultSort)) {
                 if (f.isRDD) {
                     breakRDDFunction(f)
