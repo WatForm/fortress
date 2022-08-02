@@ -66,6 +66,11 @@ class SymmetryBreakingTransformer_MostUsed(
             loop()
 
             val newTheory = theory.withFunctionDeclarations(breaker.declarations).withAxioms(breaker.constraints)
+
+            println("Theory after symmetry breaking:")
+            println(newTheory + "\n----------------------------\n")
+
+
             ProblemState(newTheory, scopes, skc, skf, rangeRestricts union breaker.rangeRestrictions.toSet, unapplyInterp, distinctConstants)
         }
     }

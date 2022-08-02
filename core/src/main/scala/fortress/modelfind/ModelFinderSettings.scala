@@ -28,7 +28,7 @@ trait ModelFinderSettings extends ModelFinder {
     
     override def setAnalysisScope(sort: Sort, size: Int, isExact: Boolean): Unit = {
         Errors.Internal.precondition(size > 0)
-        Errors.Internal.precondition(!sort.isBuiltin, "Cannot set analysis scope for builtin sort")
+        Errors.Internal.precondition(!(sort.name == "Bool"), "Cannot set analysis scope for bool sort.")
         // note that IntSort scopes are specified in bitwidth
         val scope = if(isExact) ExactScope(size) else NonExactScope(size)
         analysisScopes = analysisScopes + (sort -> scope)

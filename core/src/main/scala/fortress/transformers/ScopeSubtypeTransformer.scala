@@ -60,6 +60,9 @@ class ScopeSubtypeTransformer extends ProblemStateTransformer {
                 }
             }
 
+            println("Theory after scope subtype transformer:\n")
+            println(resultTheory + "\n-----------------------------\n")
+
             ProblemState(
                 resultTheory,
                 scopes, skc,

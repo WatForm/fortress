@@ -83,6 +83,9 @@ private[transformers] class RangeFormulaTransformer (useConstForDomElem: Boolean
                 .withAxioms(constantRangeConstraints)
                 .withAxioms(functionRangeConstraints.toList)
 
+//            println("Theory after range formula generation:")
+//            println(newTheory + "\n-----------------------------\n")
+
             ProblemState(newTheory, scopes, skc, skf, rangeRestricts, unapplyInterp, distinctConstants)
         }
     }

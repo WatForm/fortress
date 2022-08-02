@@ -14,7 +14,6 @@ import java.io.*;
     This problem is satisfiable when there is no barber or more than one barber in town, unsatisfiable otherwise.
 */
 
-
 public class Barber {
     public static void main(String[] args) throws IOException {
         if(args.length < 1) {
@@ -67,7 +66,7 @@ public class Barber {
             finder.setTheory(barberTheory);
             
             // Set the scopes of the model finder
-            finder.setAnalysisScope(B, barberNum, true);
+            finder.setAnalysisScope(B, barberNum, false);
             
             // Check if all axioms in the theory are satisfiable
             ModelFinderResult result = finder.checkSat();
