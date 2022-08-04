@@ -52,7 +52,7 @@ trait ModelFinder extends AutoCloseable {
     def setTheory(theory: Theory): Unit
 
     /** Set the scope of the given sort, which is the size of the domain for that sort. */
-    def setAnalysisScope(t: Sort, size: Int): Unit
+    def setAnalysisScope(t: Sort, size: Int, isExact: Boolean): Unit
 
     /** Set the timeout in milliseconds. */
     def setTimeout(milliseconds: Milliseconds): Unit
@@ -89,6 +89,8 @@ trait ModelFinder extends AutoCloseable {
 }
 
 object ModelFinder {
-    def createDefault(): ModelFinder = new FortressTHREE
+    def createDefault(): ModelFinder = new FortressFOUR_SI
+
+    def createPredUpperBoundModelFinder(): ModelFinder = new PredUpperBoundModelFinder
 }
 

@@ -6,13 +6,14 @@ import fortress.util._
 import fortress.interpretation._
 import fortress.solverinterface._
 import fortress.logging._
+import fortress.msfol
 
 import scala.collection.mutable.ListBuffer
 
 /** Trait which implements standard utilities for the model finder. */
 trait ModelFinderSettings extends ModelFinder {
     protected var timeoutMilliseconds: Milliseconds = Milliseconds(60000)
-    protected var analysisScopes: Map[Sort, Int] = Map.empty
+    protected var analysisScopes: Map[Sort,Scope] = Map.empty
     protected var theory: Theory = Theory.empty
     protected var eventLoggers: ListBuffer[EventLogger] = ListBuffer.empty
     
@@ -25,12 +26,14 @@ trait ModelFinderSettings extends ModelFinder {
         timeoutMilliseconds = milliseconds
     }
     
-    override def setAnalysisScope(t: Sort, size: Int): Unit = {
-        Errors.Internal.precondition(size >= 0)
+    override def setAnalysisScope(sort: Sort, size: Int, isExact: Boolean): Unit = {
+        Errors.Internal.precondition(size > 0)
+        Errors.Internal.precondition(!(sort.name == "Bool"), "Cannot set analysis scope for bool sort.")
         // note that IntSort scopes are specified in bitwidth
-        analysisScopes = analysisScopes + (t -> size)
+        val scope = if(isExact) ExactScope(size) else NonExactScope(size)
+        analysisScopes = analysisScopes + (sort -> scope)
     }
-    
+
     override def setOutput(writer: java.io.Writer): Unit = {
         eventLoggers += new StandardLogger(writer)
     }

@@ -132,8 +132,8 @@ class CountModelTest extends UnitSuite {
             .withAxiom(colConstraint2)
         
         Using.resource(ModelFinder.createDefault) { finder => {
-            finder.setAnalysisScope(Row, 4)
-            finder.setAnalysisScope(Col, 4)
+            finder.setAnalysisScope(Row, 4, isExact = true)
+            finder.setAnalysisScope(Col, 4, isExact = true)
             finder.countValidModels(rookTheory) should be (24)
         }}
     }
@@ -152,7 +152,7 @@ class CountModelTest extends UnitSuite {
             .withAxiom(Forall(x of A, Exists(y of A, Not(App("f", x) === y))))
         
         Using.resource(ModelFinder.createDefault) { finder => {
-            finder.setAnalysisScope(A, 3) // Should be 27 functions
+            finder.setAnalysisScope(A, 3, isExact = true) // Should be 27 functions
             finder.countValidModels(theory) should be (27)
         }}
     }

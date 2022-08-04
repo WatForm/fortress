@@ -6,12 +6,12 @@ import fortress.operations.TermOps._
 import scala.collection.mutable
 
 trait SymmetryBreakerFactory {
-    def create(theory: Theory, scopes: Map[Sort, Int]): SymmetryBreaker
+    def create(theory: Theory, scopes: Map[Sort, Scope]): SymmetryBreaker
 }
 
 abstract class SymmetryBreaker(
     theory: Theory,
-    protected val scopes: Map[Sort, Int]
+    protected val scopes: Map[Sort, Scope]
 ) {
     
     protected val tracker = StalenessTracker.create(theory, scopes)
@@ -23,7 +23,7 @@ abstract class SymmetryBreaker(
 
     // Perform symmetry breaking on constants, one sort by another
     final def breakConstants(constantsToBreak: Set[AnnotatedVar]): Unit = {
-        for(sort <- theory.sorts if !sort.isBuiltin && tracker.state.existsFreshValue(sort)) {
+        for(sort <- theory.sorts if !sort.isBuiltin && scopes.contains(sort) && tracker.state.existsFreshValue(sort)) {
             breakConstants(sort, constantsToBreak.filter(_.sort == sort).toIndexedSeq)
         }
     }
@@ -74,11 +74,13 @@ trait DependenceDifferentiation extends SymmetryBreaker {
     def breakRDIFunction(f: FuncDecl): Unit
     
     override def breakFunction(f: FuncDecl): Unit = {
-        if(tracker.state.existsFreshValue(f.resultSort)) {
-            if (f.isRDD) {
-                breakRDDFunction(f)
-            } else {
-                breakRDIFunction(f)
+        if( f.argSorts forall scopes.contains ) {
+            if(tracker.state.existsFreshValue(f.resultSort)) {
+                if (f.isRDD) {
+                    breakRDDFunction(f)
+                } else {
+                    breakRDIFunction(f)
+                }
             }
         }
     }
@@ -112,7 +114,7 @@ trait DefaultConstantScheme extends SymmetryBreaker {
 
 // Concrete Implementations
 
-class DefaultSymmetryBreaker(theory: Theory, scopes: Map[Sort, Int])
+class DefaultSymmetryBreaker(theory: Theory, scopes: Map[Sort, Scope])
 extends SymmetryBreaker(theory, scopes)
 with DefaultPredicateBreaking
 with DependenceDifferentiation
@@ -121,5 +123,5 @@ with DefaultRDIScheme
 with DefaultRDDScheme
 
 object DefaultSymmetryBreaker extends SymmetryBreakerFactory {
-    def create(theory: Theory, scopes: Map[Sort, Int]): SymmetryBreaker = new DefaultSymmetryBreaker(theory, scopes)
+    def create(theory: Theory, scopes: Map[Sort, Scope]): SymmetryBreaker = new DefaultSymmetryBreaker(theory, scopes)
 }

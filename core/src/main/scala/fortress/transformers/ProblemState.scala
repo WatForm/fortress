@@ -17,14 +17,14 @@ import fortress.interpretation.Interpretation
   */
 case class ProblemState private(
     theory: Theory,
-    scopes: Map[Sort, Int],
+    scopes: Map[Sort, Scope],
     skolemConstants: Set[AnnotatedVar],
     skolemFunctions: Set[FuncDecl],
     rangeRestrictions: Set[RangeRestriction],
     unapplyInterp: List[Interpretation => Interpretation],
     distinctConstants: Boolean
 ) {
-    Errors.Internal.precondition(scopes.values.forall(_ > 0), "Scopes must be positive")
+//    Errors.Internal.precondition(scopes.values.forall(_. > 0), "Scopes must be positive")
     // allow setting scope for IntSort but not other builtins
     Errors.Internal.precondition(scopes.keySet.forall( (x:Sort) => !x.isBuiltin || x == IntSort))
     // All scoped sorts are within the theory or IntSort
@@ -42,7 +42,7 @@ case class ProblemState private(
             unapplyInterp,
             distinctConstants)
     }
-    def withScopes(newscopes: Map[Sort, Int]): ProblemState = {
+    def withScopes(newscopes: Map[Sort, Scope]): ProblemState = {
         new ProblemState(            
             theory,    
             newscopes, // replaces just the scopes
@@ -55,12 +55,13 @@ case class ProblemState private(
 }
 
 object ProblemState {
+
     def apply(theory: Theory): ProblemState = ProblemState(theory, Map.empty)
     
-    def apply(theory: Theory, scopes: Map[Sort, Int]): ProblemState = {
+    def apply(theory: Theory, scopes: Map[Sort, Scope]): ProblemState = {
         // Compute the scopes for enum sorts
         val enumScopes = theory.signature.enumConstants.map {
-            case (sort, enumValues) => sort -> enumValues.size
+            case (sort, enumValues) => sort -> ExactScope(enumValues.size)
         }.toMap
 
         // Check there is no conflict between the enum scopes and the provided scopes

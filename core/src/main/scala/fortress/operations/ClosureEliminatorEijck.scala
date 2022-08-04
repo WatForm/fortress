@@ -9,7 +9,7 @@ import java.util.ArrayList
 import scala.jdk.CollectionConverters._
 
 
-class ClosureEliminatorEijck(topLevelTerm: Term, signature: Signature, scopes: Map[Sort, Int], nameGen: NameGenerator) extends ClosureEliminator(topLevelTerm, signature, scopes, nameGen) {
+class ClosureEliminatorEijck(topLevelTerm: Term, signature: Signature, scopes: Map[Sort, Scope], nameGen: NameGenerator) extends ClosureEliminator(topLevelTerm, signature, scopes, nameGen) {
     // All closure functions we have generated (helps to avoid duplicates
     //val closureFunctions = scala.collection.mutable.Set[FuncDecl]()
     // Generated axioms
@@ -40,6 +40,9 @@ class ClosureEliminatorEijck(topLevelTerm: Term, signature: Signature, scopes: M
         // TODO extend for other arguments. See getVarList in ClosureEliminator
         /** Axioms to define a midpoint being closer to the starting node than the ending node along a path for the given relation */
         def addClosenessAxioms(sort: Sort, functionName: String): String = {
+
+            Errors.Internal.precondition(scopes.contains(sort), "sort in closure must be bounded")
+
             // How to actually ensure this does not exist from something else?
             val closenessName: String = "^Close^" + functionName;
             // If we already made this, then we can just leave.

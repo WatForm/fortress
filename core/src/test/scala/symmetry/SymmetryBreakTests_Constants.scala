@@ -32,7 +32,7 @@ class SymmetryBreakTests_Constants extends UnitSuite {
             DE(5, B),
         )
         
-        val scopes = Map(B -> 7)
+        val scopes = Map(B -> ExactScope(7))
         val used = Map(B -> usedValues)
         val state = StalenessState(Set(B), scopes, used)
         
@@ -60,7 +60,7 @@ class SymmetryBreakTests_Constants extends UnitSuite {
             DE(5, B),
         ) // Unused: 2, 4, 6, 7
         
-        val scopes = Map(B -> 7)
+        val scopes = Map(B -> ExactScope(7))
         val used = Map(B -> usedValues)
         val state = StalenessState(Set(B), scopes, used)
         
@@ -90,7 +90,7 @@ class SymmetryBreakTests_Constants extends UnitSuite {
             DE(5, B),
         ) // Unused: 2, 4, 6, 7
         
-        val scopes = Map(B -> 7)
+        val scopes = Map(B -> ExactScope(7))
         val used = Map(B -> usedValues)
         val state = StalenessState(Set(B), scopes, used)
         

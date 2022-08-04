@@ -16,10 +16,10 @@ import java.{util => ju}
 class Conf(arguments: Seq[String]) extends ScallopConf(arguments) {
     val scope = opt[Int](required = false, descr="default scope for all sorts")
     val file = trailArg[String](required = true, descr="file(s) to run on")
-    val scopeMap = props[Int]('S', descr="scope sizes for individual sorts ex: A=2 B=3")
+    val scopeMap = props[String]('S', descr="scope sizes for individual sorts ex: A=2 B=3")
     val timeout = opt[Int](required = true, descr="timeout in seconds") // Timeout in seconds
 
-    // modelfinder.
+    // model finder.
     val mfConverter = singleArgConverter[ModelFinder](FortressModelFinders.fromString(_).get, {
         case x: ju.NoSuchElementException  => Left("Not a valid FortressModelFinder")
     })
@@ -61,17 +61,23 @@ object FortressCli {
         }
 
         // Default scopes
-        var scopes: Map[Sort, Int] = conf.scope.toOption match {
+        var scopes: Map[Sort, Scope] = conf.scope.toOption match {
             case Some(scope) => {
-                for(sort <- theory.sorts) yield (sort -> scope)
+                for(sort <- theory.sorts) yield sort -> ExactScope(scope)
             }.toMap
             case None => Map()
         }
 
-        // Override with specifc scopes
-        for((sortName, scope) <- conf.scopeMap) {
-            scopes += (Sort.mkSortConst(sortName) -> scope)
+        // Override with specific scopes
+        for ( (sort, scope) <- conf.scopeMap ) {
+            if( sort.charAt(sort.length-1) == '?' ) { // "P?=2"
+                scopes += (Sort.mkSortConst(sort.substring(0, sort.length-1)) -> NonExactScope(scope.toInt))
+            }
+            else {  // "P=2"
+                scopes += (Sort.mkSortConst(sort) -> ExactScope(scope.toInt))
+            }
         }
+
 
         val integerSemantics = Unbounded
 
@@ -84,11 +90,12 @@ object FortressCli {
                 case None => ModelFinder.createDefault()
             }
         }
-        
+//        val modelFinder: ModelFinder = ModelFinder.createPredUpperBoundModelFinder()
+
 
         modelFinder.setTheory(theory)
         for((sort, scope) <- scopes) {
-            modelFinder.setAnalysisScope(sort, scope)
+            modelFinder.setAnalysisScope(sort, scope.size, scope.isExact)
         }
         modelFinder.setTimeout(Seconds(conf.timeout()))
         //modelFinder.setBoundedIntegers(integerSemantics)

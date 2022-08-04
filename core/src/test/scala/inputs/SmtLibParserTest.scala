@@ -39,10 +39,12 @@ class SmtLibParserTest extends UnitSuite {
         val logic: Option[String] = parser.getLogic.toScala
         
         logic should be (Some("UF"))
-        
+
         val source = "\nThis is just a test really.\n"
-        
-        info should be  (Map(
+
+
+
+        info should be (Map(
             "smt-lib-version" -> "2.6",
             "status" -> "sat",
             "category" -> "toyExample",
@@ -167,12 +169,12 @@ class SmtLibParserTest extends UnitSuite {
         logic should be (Some("UF"))
         
         val source = "\nTesting $ at beginning of constant/function names.\n"
-        
-        info should be  (Map(
+
+        info should be (Map(
             "smt-lib-version" -> "2.6",
-            "status" -> "sat",
+            "source" -> source,
             "category" -> "toyExample",
-            "source" -> source
+            "status" -> "sat",
         ))
         
         var expectedTheory = Theory.empty

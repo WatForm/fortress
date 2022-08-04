@@ -8,7 +8,7 @@ class IntegerToBitVectorTransformerTest extends UnitSuite {
         val theory = Theory.empty
             .withAxiom(Not(IntegerLiteral(1) === IntegerLiteral(2)))
 
-        val problemState = ProblemState(theory,Map(IntSort->4))
+        val problemState = ProblemState(theory,Map(IntSort -> ExactScope(4)))
 
         val expected = ProblemState(
             Theory.empty
@@ -28,7 +28,7 @@ class IntegerToBitVectorTransformerTest extends UnitSuite {
             .withConstant(i of IntSort)
             .withAxiom(i === IntegerLiteral(5))
 
-        val problemState = ProblemState(theory,Map(IntSort->4))
+        val problemState = ProblemState(theory,Map(IntSort->ExactScope(4)))
 
         val expected = ProblemState(
             Theory.empty
@@ -49,7 +49,7 @@ class IntegerToBitVectorTransformerTest extends UnitSuite {
             .withConstants(i of IntSort, j of IntSort)
             .withAxiom(BuiltinApp(IntPlus, i, j) === BuiltinApp(IntPlus, i, j))
 
-        val problemState = ProblemState(theory,Map(IntSort->4))
+        val problemState = ProblemState(theory,Map(IntSort->ExactScope(4)))
         
         val expected = ProblemState(
             Theory.empty
@@ -72,7 +72,7 @@ class IntegerToBitVectorTransformerTest extends UnitSuite {
             .withConstant(c of A)
             .withAxiom(App("f", c, IntegerLiteral(5)) === IntegerLiteral(7))
 
-        val problemState = ProblemState(theory,Map(IntSort->4))
+        val problemState = ProblemState(theory,Map(IntSort->ExactScope(4)))
         
         val expected = ProblemState(
             Theory.empty
@@ -95,7 +95,7 @@ class IntegerToBitVectorTransformerTest extends UnitSuite {
             .withFunctionDeclaration(FuncDecl("f", IntSort, IntSort, IntSort))
             .withAxiom(Forall( Seq(x of IntSort, y of IntSort), BuiltinApp(IntPlus, x, y) === App("f", x, y)))
 
-        val problemState = ProblemState(theory,Map(IntSort->4))
+        val problemState = ProblemState(theory,Map(IntSort->ExactScope(4)))
         
         val expected = ProblemState(
             Theory.empty
