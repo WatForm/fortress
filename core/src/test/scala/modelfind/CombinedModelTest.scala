@@ -23,7 +23,7 @@ class CombinedModelTest extends UnitSuite {
         // println("Parsed theory from file:")
         // println(resultTheory)
 
-        Using.resource(ModelFinder.createDefault) { finder => {
+        Using.resource(new FortressZERO) { finder => {
 
             finder.setTheory(resultTheory)
             finder.checkSat() should be (ModelFinderResult.Sat)
@@ -52,7 +52,7 @@ class CombinedModelTest extends UnitSuite {
         // println("Parsed theory from file:")
         // println(resultTheory)
 
-        Using.resource(ModelFinder.createDefault) { finder => {
+        Using.resource(new FortressZERO) { finder => {
 
             finder.setTheory(resultTheory)
             finder.checkSat() should be (ModelFinderResult.Sat)
@@ -77,7 +77,7 @@ class CombinedModelTest extends UnitSuite {
         val parser = new SmtLibParser
         val resultTheory = parser.parse(fileStream).getOrElse(null)
 
-        Using.resource(ModelFinder.createDefault) { finder => {
+        Using.resource(new FortressZERO) { finder => {
 
             // K_n is n-colourable
             finder.setAnalysisScope(SortConst("vert"), 3)
@@ -117,7 +117,7 @@ class CombinedModelTest extends UnitSuite {
         val parser = new SmtLibParser
         val resultTheory = parser.parse(fileStream).getOrElse(null)
 
-        Using.resource(ModelFinder.createDefault) { finder => {
+        Using.resource(new FortressZERO) { finder => {
 
             finder.setAnalysisScope(SortConst("V1"), 2)
             finder.setAnalysisScope(SortConst("V2"), 2)

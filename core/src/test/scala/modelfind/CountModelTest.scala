@@ -56,7 +56,7 @@ class CountModelTest extends UnitSuite {
           .withAxiom(Or(p, q, r))
           .withAxiom(Not(And(p, q, r)))
 
-        Using.resource(ModelFinder.createDefault) { finder =>
+        Using.resource(new FortressZERO) { finder =>
             finder.countValidModels(theory) should be (6)
         }
     }
@@ -81,7 +81,7 @@ class CountModelTest extends UnitSuite {
           .withAxiom(Not(App("next", red) === red))
           .withAxiom(c === App("next", red))
 
-        Using.resource(ModelFinder.createDefault) { finder =>
+        Using.resource(new FortressZERO) { finder =>
             finder.countValidModels(theory) should be (8)
         }
     }
@@ -131,7 +131,7 @@ class CountModelTest extends UnitSuite {
             .withAxiom(colConstraint1)
             .withAxiom(colConstraint2)
         
-        Using.resource(ModelFinder.createDefault) { finder => {
+        Using.resource(new FortressZERO) { finder => {
             finder.setAnalysisScope(Row, 4)
             finder.setAnalysisScope(Col, 4)
             finder.countValidModels(rookTheory) should be (24)
@@ -151,7 +151,7 @@ class CountModelTest extends UnitSuite {
             .withFunctionDeclarations(f)
             .withAxiom(Forall(x of A, Exists(y of A, Not(App("f", x) === y))))
         
-        Using.resource(ModelFinder.createDefault) { finder => {
+        Using.resource(new FortressZERO) { finder => {
             finder.setAnalysisScope(A, 3) // Should be 27 functions
             finder.countValidModels(theory) should be (27)
         }}
