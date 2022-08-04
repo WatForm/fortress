@@ -61,7 +61,7 @@ public class Pigeonhole {
             // Check if all axioms in the theory are satisfiable
             ModelFinderResult result = finder.checkSat();
             
-//            System.out.println("numPigeons:  " + numPigeons);
+            System.out.println("numPigeons:  " + numPigeons);
             System.out.println("numHoles:    " + numHoles);
             System.out.println("Satisiable?: " + result.toString());
             
