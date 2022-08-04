@@ -24,3 +24,5 @@ examples/libs/fortress.bat
 target/
 fortress-0.1.0/
 .sbtopts
+./build.sh
+./debug-cli.sh

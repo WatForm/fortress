@@ -15,12 +15,17 @@ class ScopeSubtypeTest extends UnitSuite {
     val a1 = Term.mkDomainElement(1, A)
     val a2 = Term.mkDomainElement(2, A)
 
+    val helpMap: Map[Sort, Scope] = Map(
+        A -> NonExactScope(3),
+        B -> NonExactScope(3)
+    )
+
     test("basic scope subtype") {
         val t1 = AndList(App("f", y) ==> Top, x === App("f", y), Top)
         val t2 = OrList(App("f", y) ==> Bottom, Not(App("f", y)), Bottom, Not(Top))
 
-        ScopeSubtype.addBoundsPredicates(t1) should be(t1)
-        ScopeSubtype.addBoundsPredicates(t2) should be(t2)
+        ScopeSubtype.addBoundsPredicates(t1, helpMap) should be(t1)
+        ScopeSubtype.addBoundsPredicates(t2, helpMap) should be(t2)
     }
 
     test("forall/exists scope subtype") {
@@ -34,9 +39,9 @@ class ScopeSubtypeTest extends UnitSuite {
         val e3 = Exists(x of A, App(ScopeSubtype.subtypePred(A), x) and App("R", z))
         val e4 = Exists(Seq(x of A, y of B), AndList(App(ScopeSubtype.subtypePred(A), x), App(ScopeSubtype.subtypePred(B), y), App("R", z)))
 
-        ScopeSubtype.addBoundsPredicates(t1) should be(e1)
-        ScopeSubtype.addBoundsPredicates(t2) should be(e2)
-        ScopeSubtype.addBoundsPredicates(t3) should be(e3)
-        ScopeSubtype.addBoundsPredicates(t4) should be(e4)
+        ScopeSubtype.addBoundsPredicates(t1, helpMap) should be(e1)
+        ScopeSubtype.addBoundsPredicates(t2, helpMap) should be(e2)
+        ScopeSubtype.addBoundsPredicates(t3, helpMap) should be(e3)
+        ScopeSubtype.addBoundsPredicates(t4, helpMap) should be(e4)
     }
 }

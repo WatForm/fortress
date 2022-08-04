@@ -18,7 +18,7 @@ class Conf(arguments: Seq[String]) extends ScallopConf(arguments) {
     val scope = opt[Int](required = true) // scope is required for compile/decision/count
     val version = opt[String](required = true)
     val file = trailArg[String](required = true)
-    val scopeMap = props[Int]('S')
+    val scopeMap = props[String]('S')
     val debug = opt[Boolean]()
     val rawdata = opt[Boolean]()
     val timeout = opt[Int](required = true) // Timeout in seconds
@@ -53,16 +53,24 @@ object FortressDebug {
         }
 
         // Default scopes
-        var scopes: Map[Sort, Int] = conf.scope.toOption match {
+        var scopes: Map[Sort, Scope] = conf.scope.toOption match {
             case Some(scope) => {
-                for(sort <- theory.sorts) yield (sort -> scope)
+                for(sort <- theory.sorts) yield sort -> ExactScope(scope)
             }.toMap
             case None => Map()
         }
 
         // Override with specific scopes
-        for((sortName, scope) <- conf.scopeMap) {
-            scopes += (Sort.mkSortConst(sortName) -> scope)
+//        for((sortName, scope) <- conf.scopeMap) {
+//            scopes += (Sort.mkSortConst(sortName) -> scope)
+//        }
+        for ( (sort, scope) <- conf.scopeMap ) {
+            if( sort.charAt(sort.length-1) == '?' ) { // "P?=2"
+                scopes += (Sort.mkSortConst(sort.substring(0, sort.length-1)) -> NonExactScope(scope.toInt))
+            }
+            else {  // "P=2"
+                scopes += (Sort.mkSortConst(sort) -> ExactScope(scope.toInt))
+            }
         }
 
         // val integerSemantics = Unbounded
@@ -84,8 +92,8 @@ object FortressDebug {
                     case "v3si" => new FortressTHREE_SI
                     case "v4" => new FortressFOUR
                     case "v4si" => new FortressFOUR_SI
-                    case "upperIter" => new IterativeUpperBoundModelFinder
-                    case "parIter" => new ParallelIterativeUpperBoundModelFinder
+//                    case "upperIter" => new IterativeUpperBoundModelFinder
+//                    case "parIter" => new ParallelIterativeUpperBoundModelFinder
                     case "upperND" => new NonDistUpperBoundModelFinder
                     case "upperPred" => new PredUpperBoundModelFinder
                 }
@@ -96,7 +104,7 @@ object FortressDebug {
 
                 modelFinder.setTheory(theory)
                 for((sort, scope) <- scopes) {
-                    modelFinder.setAnalysisScope(sort, scope)
+                    modelFinder.setAnalysisScope(sort, scope.size, scope.isExact)
                 }
                 modelFinder.setTimeout(Seconds(conf.timeout()))
                 //modelFinder.setBoundedIntegers(integerSemantics)
@@ -125,7 +133,7 @@ object FortressDebug {
 
                 modelFinder.setTheory(theory)
                 for((sort, scope) <- scopes) {
-                    modelFinder.setAnalysisScope(sort, scope)
+                    modelFinder.setAnalysisScope(sort, scope.size , scope.isExact)
                 }
                 modelFinder.setTimeout(Seconds(conf.timeout()))
                 //modelFinder.setBoundedIntegers(integerSemantics)
@@ -167,7 +175,7 @@ object FortressDebug {
                 // wrapTheory is for operations on theories
                 val new_sorts_present = wrapTheory(theory2).newSortsInferred
                 if (new_sorts_present) {
-                    var analysisScopes: Map[Sort, Int] = Map.empty
+                    var analysisScopes: Map[Sort, Scope] = Map.empty
                     for((sort, scope) <- scopes) {
                         analysisScopes = analysisScopes + (sort -> scope)
                     }

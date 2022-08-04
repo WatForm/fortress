@@ -19,6 +19,8 @@ class SymmetryBreakingTransformer(
         
     def apply(problemState: ProblemState): ProblemState = problemState match {
         case ProblemState(theory, scopes, skc, skf, rangeRestricts, unapplyInterp, distinctConstants) => {
+
+
             val breaker = symmetryBreakerFactory.create(theory, scopes)
 
             // First, perform symmetry breaking on constants
@@ -28,10 +30,10 @@ class SymmetryBreakingTransformer(
             // on functions in the same order as the previous version
             // It is only here for the sake of consistency
             val functions = theory.functionDeclarations filter { fn => {
-                (!fn.resultSort.isBuiltin) && (fn.argSorts forall (!_.isBuiltin))
+                (!fn.resultSort.isBuiltin && scopes.contains(fn.resultSort)) && (fn.argSorts forall (!_.isBuiltin)) && (fn.argSorts forall scopes.contains)
             }}
             val predicates = theory.functionDeclarations.filter { fn => {
-                (fn.resultSort == BoolSort) && (fn.argSorts forall (!_.isBuiltin))
+                (fn.resultSort == BoolSort) && (fn.argSorts forall (!_.isBuiltin)) && (fn.argSorts forall scopes.contains)
             }}
             
             val fp = scala.collection.immutable.ListSet( (functions.toList ++ predicates.toList) : _* )
@@ -44,8 +46,10 @@ class SymmetryBreakingTransformer(
                 selectionHeuristic.nextFunctionPredicate(breaker.stalenessState, remaining) match {
                     case None => ()
                     case Some(p @ FuncDecl(_, _, BoolSort)) => {
-                        breaker.breakPredicate(p)
-                        loop(usedFunctionsPredicates + p)
+                        if( p.argSorts forall scopes.contains ) {
+                            breaker.breakPredicate(p)
+                            loop(usedFunctionsPredicates + p)
+                        }
                     }
                     case Some(f) => {
                         breaker.breakFunction(f)

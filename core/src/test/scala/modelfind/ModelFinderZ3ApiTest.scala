@@ -87,7 +87,7 @@ class ModelFinderZ3ApiTest extends UnitSuite {
             
         Using.resource(ModelFinder.createDefault) { finder => {
             finder.setTheory(theory)
-            finder.setAnalysisScope(U, 3)
+            finder.setAnalysisScope(U, 3, isExact = true)
             finder.checkSat should be (ModelFinderResult.Unsat)
         }}
     }

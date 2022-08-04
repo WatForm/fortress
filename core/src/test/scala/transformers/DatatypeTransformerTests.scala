@@ -19,7 +19,7 @@ class DatatypeTransformerTests extends UnitSuite {
             .withAxiom(App("f", c, DomainElement(1, A)) === DomainElement(3, B))
             .withAxiom(Not(d === DomainElement(4, B)) ==> Exists(x of A, x === DomainElement(2, A)))
         
-        val scopes = Map(A -> 2, B -> 4)
+        val scopes = Map(A -> ExactScope(2), B -> ExactScope(4))
 
         val _1A = DomainElement(1, A).asEnumValue
         val _2A = DomainElement(2, A).asEnumValue
@@ -55,7 +55,7 @@ class DatatypeTransformerTests extends UnitSuite {
             .withAxiom(c === DomainElement(1, A))
             .withAxiom(d === DomainElement(1, B))
         
-        val scopes = Map(A -> 1, B -> 1)
+        val scopes = Map(A -> ExactScope(1), B -> ExactScope(1))
         
         val _1A = DomainElement(1, A).asEnumValue
         val _1B = DomainElement(1, B).asEnumValue

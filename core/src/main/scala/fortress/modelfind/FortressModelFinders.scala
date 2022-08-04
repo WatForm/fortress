@@ -97,6 +97,7 @@ object FortressModelFinders {
             case "three_si" | "fortressthree_si" => Some(new FortressTHREE_SI(solverInterface))
             case "four" | "fortressfour" => Some(new FortressFOUR(solverInterface))
             case "four_si" | "fortressfour_si" => Some(new FortressFOUR_SI(solverInterface))
+            case "mixed_scope" =>Some( new PredUpperBoundModelFinder(solverInterface))
             case _ => None
         }
     }
