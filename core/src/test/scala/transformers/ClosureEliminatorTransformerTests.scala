@@ -25,7 +25,7 @@ trait CETransfomerBehaviors{ this: AnyFlatSpec =>
 
     val A  = SortConst("A")
     
-    val axy = Seq(x.of(A), y.of(A))
+    val axy: Seq[AnnotatedVar] = Seq(x.of(A), y.of(A))
 
     val relation = FuncDecl("relation", Seq(A,A), Sort.Bool)
 
@@ -102,7 +102,7 @@ trait CETransfomerBehaviors{ this: AnyFlatSpec =>
 
         }
 
-        it should "connect a line" in {
+        it should "treat a line properly" in {
             // TODO define above fix!
             val a = EnumValue("a")
             val b = EnumValue("b")
@@ -146,6 +146,108 @@ trait CETransfomerBehaviors{ this: AnyFlatSpec =>
                         And(Eq(x, a), Eq(y, b)),
                         And(Eq(x, a), Eq(y, c)),
                         And(Eq(x, b), Eq(y, c))
+                    )
+                )
+            )
+
+            val defIsSufficient = Implication(initialOrder, And(correctClosure, correctReflexiveClosure))
+            val defIsNotSufficient = And(initialOrder, Not(correctReflexiveClosure))
+            val defIsNotSufficient2 = And(initialOrder, Not(correctClosure))
+
+            val goodTheory = baseTheory
+                            .withAxiom(defIsSufficient)
+                            .withEnumSort(A, a, b, c)
+                            .withFunctionDeclaration(R)
+            val badTheory = baseTheory
+                            .withAxiom(defIsNotSufficient)
+                            .withEnumSort(A, a, b, c)
+                            .withFunctionDeclaration(R)
+            
+            val badTheory2 = baseTheory
+                            .withAxiom(defIsNotSufficient2)
+                            .withEnumSort(A, a, b, c)
+                            .withFunctionDeclaration(R)
+            
+            Using.resource(manager.setupModelFinder()){ finder => {
+                finder.setTheory(goodTheory)
+                finder.setAnalysisScope(A, 3)
+                finder.setTimeout(Seconds(10))
+                assert(finder.checkSat() == (ModelFinderResult.Sat)) 
+            }}
+            
+            Using.resource(manager.setupModelFinder()){ finder => {
+                finder.setTheory(badTheory)
+                finder.setAnalysisScope(A, 3)
+                finder.setTimeout(Seconds(10))
+
+                val result = finder.checkSat()
+                // for debugging
+                if (result == ModelFinderResult.Sat) {
+                    val modelstring = finder.viewModel().toString()
+                    print(modelstring)
+                }
+                assert(result == ModelFinderResult.Unsat) 
+            }}
+
+            Using.resource(manager.setupModelFinder()){ finder => {
+                finder.setTheory(badTheory2)
+                finder.setAnalysisScope(A, 3)
+                finder.setTimeout(Seconds(10))
+
+                val result = finder.checkSat()
+                if (result == ModelFinderResult.Sat) {
+                    val modelstring = finder.viewModel().toString()
+                    print(modelstring)
+                }
+                assert(result == ModelFinderResult.Unsat) 
+            }}
+
+        }
+
+        it should "work with fixed arguments" in {
+            // TODO define above fix!
+            val a = EnumValue("a")
+            val b = EnumValue("b")
+            val c = EnumValue("c")
+
+            val A  = SortConst("A")
+
+            val R = FuncDecl.mkFuncDecl("R", A, A, Sort.Bool, Sort.Bool)
+
+            val initialOrder = Forall(axy appended z.of(Sort.Bool),
+                Iff(App(R.name, x, y, z),
+                    Or(
+                        And(Eq(x, a), Eq(y, b), Eq(z, Top)),
+                        And(Eq(x, b), Eq(y, c), Eq(z, Top))
+                    )
+                )
+            )
+
+            val correctClosure = Forall(axy appended z.of(Sort.Bool),
+                Iff(
+                    Closure(R.name, x, y, Seq(z)),
+                    Or(
+                        And(Eq(x, a), Eq(y, b), Eq(z, Top)),
+                        And(Eq(x, a), Eq(y, c), Eq(z, Top)),
+                        And(Eq(x, b), Eq(y, c), Eq(z, Top)),
+                    )
+                )
+            )
+            /*
+            val correctReflexiveClosure = Forall(axy,
+                Iff(ReflexiveClosure(R.name, Seq(x,y), x, y),
+                    Or(Eq(x,y), Closure(R.name, Seq(x,y), x, y))
+                )
+            )
+            */
+            val correctReflexiveClosure = Forall(axy appended z.of(Sort.Bool),
+                Iff(
+                    ReflexiveClosure(R.name, x, y, Seq(z)),
+                    Or(
+                        Eq(x, y),
+                        And(Eq(x, a), Eq(y, b), Eq(z, Top)),
+                        And(Eq(x, a), Eq(y, c), Eq(z, Top)),
+                        And(Eq(x, b), Eq(y, c), Eq(z, Top))
                     )
                 )
             )

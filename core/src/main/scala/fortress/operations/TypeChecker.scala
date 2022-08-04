@@ -259,7 +259,7 @@ class TypeChecker(signature: Signature) extends TermVisitorWithTypeContext[TypeC
         } else {
             // Check that arguments match the function declaration
             if (signature.queryFunction(funcName, argSorts, Sort.Bool).isEmpty) {
-                throw new TypeCheckException.WrongSort("Attempting to close over a relation that does not end in a BoolSort in " + c.toString())
+                throw new TypeCheckException.WrongSort("Attempting to close over a relation that does not end in a BoolSort or with the wrong argument sorts in " + c.toString())
             }
         }
 
