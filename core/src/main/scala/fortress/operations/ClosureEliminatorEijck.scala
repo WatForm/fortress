@@ -39,7 +39,7 @@ class ClosureEliminatorEijck(topLevelTerm: Term, signature: Signature, scopes: M
     class ClosureVisitorEijck extends ClosureVisitor {
         // TODO extend for other arguments. See getVarList in ClosureEliminator
         /** Axioms to define a midpoint being closer to the starting node than the ending node along a path for the given relation */
-        def addClosenessAxioms(sort: Sort, functionName: String): String = {
+        def addClosenessAxioms(sort: Sort, functionName: String, fixedArgs: Seq[Term]): String = {
             // How to actually ensure this does not exist from something else?
             val closenessName: String = "^Close^" + functionName;
             // If we already made this, then we can just leave.
@@ -90,7 +90,7 @@ class ClosureEliminatorEijck(topLevelTerm: Term, signature: Signature, scopes: M
             // NNF
             closureAxioms += Forall(axy,
                 Or(
-                    Not(funcContains(functionName, x, y)),
+                    Not(funcContains(functionName, x, y, fixedArgs)),
                     Eq(x,y),
                     App(closenessName, List(x,y,y))
                 )
@@ -101,7 +101,7 @@ class ClosureEliminatorEijck(topLevelTerm: Term, signature: Signature, scopes: M
                     Not(App(closenessName, List(x,y,y))),
                     Exists(z.of(sort),
                         And(
-                            funcContains(functionName, x, z),
+                            funcContains(functionName, x, z, fixedArgs),
                             App(closenessName, List(x,z,y))
                         )
                     )
@@ -136,7 +136,7 @@ class ClosureEliminatorEijck(topLevelTerm: Term, signature: Signature, scopes: M
                 val az = z.of(sort)
 
                 // Generate the axioms to define closeness (checks if already done)
-                val closenessName = this.addClosenessAxioms(sort, functionName)
+                val closenessName = this.addClosenessAxioms(sort, functionName, c.fixedArgs)
 
                 // define reflexive closure if we haven't already
                 if(!queryFunction(reflexiveClosureName)){
@@ -160,7 +160,7 @@ class ClosureEliminatorEijck(topLevelTerm: Term, signature: Signature, scopes: M
                         App(closureName, List(x,y)),
                         Exists(az,
                             And(
-                                funcContains(functionName, x, z),
+                                funcContains(functionName, x, z, c.fixedArgs),
                                 Or(
                                     App(closenessName, List(z,y,y)),
                                     Eq(z,y)
@@ -195,7 +195,7 @@ class ClosureEliminatorEijck(topLevelTerm: Term, signature: Signature, scopes: M
                 val y = Var(nameGen.freshName("y"))
                 val axy = List(x.of(sort), y.of(sort))
 
-                val closenessName = this.addClosenessAxioms(sort, functionName)
+                val closenessName = this.addClosenessAxioms(sort, functionName, rc.fixedArgs)
                 
                 closureAxioms += Forall(axy,
                     Iff(

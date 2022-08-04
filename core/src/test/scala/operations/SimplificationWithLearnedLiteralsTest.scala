@@ -43,7 +43,7 @@ class SimplificationWithLearnedLiteralsTest extends UnitSuite {
         val t1 = IfThenElse(App("f", x), Not(Bottom), App("f", x) === App("f", y))
         val learnedLiterals1 = Map(App("f", x) -> Bottom, (App("f", x) === App("f", y)) -> Bottom)
         val t2 = IfThenElse(App("f", x), Not(Bottom), App("f", x) === App("f", y))
-        val learnedLiterals2 = Map(App("f", x) -> Top)
+        val learnedLiterals2: Map[Term, LeafTerm] = Map(App("f", x) -> Top)
 
         t1.simplifyWithLearnedLiterals(learnedLiterals1) should be(Bottom)
         t2.simplifyWithLearnedLiterals(learnedLiterals2) should be(Top)

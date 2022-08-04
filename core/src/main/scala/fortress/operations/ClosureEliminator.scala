@@ -43,7 +43,7 @@ abstract class ClosureEliminator(topLevelTerm: Term, signature: Signature, scope
         def getReflexiveClosureName(name: String, idx: String = ""): String = "*" + idx + name
         def getClosureName(name: String, idx: String = ""): String = "^" + idx + name
 
-        def funcContains(fname: String, x: Term, y: Term): Term = {
+        def funcContains(fname: String, x: Term, y: Term, arguments: Seq[Term]): Term = {
             val fdecl = signature.functionWithName(fname) match {
                 case Some(fdecl) => fdecl
                 // Default to relation (we must have created this when building a closure)
@@ -52,9 +52,15 @@ abstract class ClosureEliminator(topLevelTerm: Term, signature: Signature, scope
             
             // Depending on arity, we check membership differently
             fdecl.arity match {
+                // We ignore arguments even if we take them in for the case of arity 1 or 2 so that we can leave them in for iterative methods
                 case 1 => Eq(App(fname, x), y)
                 case 2 => App(fname, x, y)
-                case x => Errors.Internal.impossibleState("Trying to close function \""+fname+"\" with arity "+x+".")
+                case arity => {
+                    // We currently assume closing non-binary relations close over arguments 0 and 1
+                    Errors.Internal.precondition(arity == arguments.length + 2, 
+                        "Closing over a function of arity " + arity.toString() + "but arguments was length " + arguments.length.toString() + "instead of " + (arity-2).toString())
+                    App(fname, Seq[Term](x, y) ++ arguments)
+                }
             }
         }
         

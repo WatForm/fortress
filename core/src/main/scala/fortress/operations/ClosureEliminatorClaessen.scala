@@ -17,7 +17,7 @@ class ClosureEliminatorClaessen(topLevelTerm: Term, signature: Signature, scopes
 
 
     class ClosureVisitorCleassen extends ClosureVisitor {
-        def defineReflexiveClosure(sort: Sort, functionName: String) = {
+        def defineReflexiveClosure(sort: Sort, functionName: String, fixedArgs: Seq[Term]) = {
             val s = nameFunctionS(functionName)
             val C = nameFunctionC(functionName)
             val reflexiveClosureName = getReflexiveClosureName(functionName)
@@ -52,7 +52,7 @@ class ClosureEliminatorClaessen(topLevelTerm: Term, signature: Signature, scopes
             closureAxioms += Forall(Seq(x,y).map(_.of(sort)),
                 Implication(
                     And(App(reflexiveClosureName, x, y), Not(Eq(x, y))),
-                    funcContains(functionName, x, App(s, x, y))
+                    funcContains(functionName, x, App(s, x, y), fixedArgs)
                 )
             )
             closureAxioms += Forall(Seq(x,y,z).map(_.of(sort)),
@@ -63,7 +63,7 @@ class ClosureEliminatorClaessen(topLevelTerm: Term, signature: Signature, scopes
             )
             closureAxioms += Forall(Seq(x,y).map(_.of(sort)),
                 Implication(
-                    funcContains(functionName, x, y),
+                    funcContains(functionName, x, y, fixedArgs),
                     App(reflexiveClosureName, x, y)
                 )
             )
@@ -75,7 +75,7 @@ class ClosureEliminatorClaessen(topLevelTerm: Term, signature: Signature, scopes
             val rel = signature.queryUninterpretedFunction(rc.functionName).get
             val sort = rel.argSorts(0)
             if (!queryFunction(reflexiveClosureName)){
-                defineReflexiveClosure(sort, rc.functionName)
+                defineReflexiveClosure(sort, rc.functionName, rc.fixedArgs)
             }
 
             App(reflexiveClosureName, Seq(rc.arg1, rc.arg2)).mapArguments(visit)
@@ -89,7 +89,7 @@ class ClosureEliminatorClaessen(topLevelTerm: Term, signature: Signature, scopes
 
             if (!queryFunction(closureName)){
                 if (!queryFunction(reflexiveClosureName)){
-                    defineReflexiveClosure(sort, c.functionName)
+                    defineReflexiveClosure(sort, c.functionName, c.fixedArgs)
                 }
                 closureFunctions += FuncDecl(closureName, sort, sort, Sort.Bool)
                 val x = Var("x")
@@ -99,7 +99,7 @@ class ClosureEliminatorClaessen(topLevelTerm: Term, signature: Signature, scopes
                     App(closureName, x, y),
                     Exists(z.of(sort), 
                         And(
-                            funcContains(c.functionName, x, z),
+                            funcContains(c.functionName, x, z, c.fixedArgs),
                             App(reflexiveClosureName, z, y)
                         )
                     )

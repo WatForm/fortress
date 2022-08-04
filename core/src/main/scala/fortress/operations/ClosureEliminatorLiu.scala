@@ -15,7 +15,7 @@ class ClosureEliminatorLiu(topLevelTerm: Term, signature: Signature, scopes: Map
 
         def nameAuxFunction(closedName: String): String = "^LiuEtAlP" + closedName
 
-        def defineAuxFunction(sort: Sort, functionName: String): Unit = {
+        def defineAuxFunction(sort: Sort, functionName: String, fixedArgs: Seq[Term]): Unit = {
             val closureName = getClosureName(functionName)
             val p = nameAuxFunction(closureName)
 
@@ -31,7 +31,7 @@ class ClosureEliminatorLiu(topLevelTerm: Term, signature: Signature, scopes: Map
             // It takes 1 step in original function
             closureAxioms += Forall(axy,
                 Iff(
-                    funcContains(functionName, x, y),
+                    funcContains(functionName, x, y, fixedArgs),
                     Term.mkEq(App(p,x,y), IntegerLiteral(1))
                 )
             )
@@ -75,7 +75,7 @@ class ClosureEliminatorLiu(topLevelTerm: Term, signature: Signature, scopes: Map
 
                 val p = nameAuxFunction(closureName)
                 if(!queryFunction(p)){
-                    defineAuxFunction(sort, functionName)
+                    defineAuxFunction(sort, functionName, rc.fixedArgs)
                 }
 
                 val x = Var(nameGen.freshName("x"))
@@ -113,7 +113,7 @@ class ClosureEliminatorLiu(topLevelTerm: Term, signature: Signature, scopes: Map
 
                 val p = nameAuxFunction(closureName)
                 if(!queryFunction(p)){
-                    defineAuxFunction(sort, functionName)
+                    defineAuxFunction(sort, functionName, c.fixedArgs)
                 }
 
                 val x = Var(nameGen.freshName("x"))

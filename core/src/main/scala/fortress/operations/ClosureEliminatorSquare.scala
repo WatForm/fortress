@@ -26,7 +26,7 @@ class ClosureEliminatorSquare(topLevelTerm: Term, signature: Signature, scopes: 
         }
         // TODO support more arguments
 
-        def expandClosure(functionName: String): Unit = {
+        def expandClosure(functionName: String, fixedArgs: Seq[Term]): Unit = {
             val rel = signature.functionWithName(functionName).get
             val sort: Sort = rel.argSorts(0)
 
@@ -57,12 +57,12 @@ class ClosureEliminatorSquare(topLevelTerm: Term, signature: Signature, scopes: 
                     Iff(App(iterationName, x, y),
                         Or(
                             // At least the previous
-                            funcContains(previousRelation, x, y),
+                            funcContains(previousRelation, x, y, fixedArgs),
                             // One more step
                             Exists(az,
                                 And(
-                                    funcContains(previousRelation, x, z),
-                                    funcContains(previousRelation, z, y)
+                                    funcContains(previousRelation, x, z, fixedArgs),
+                                    funcContains(previousRelation, z, y, fixedArgs)
                                 )
                             )
                         )
@@ -76,12 +76,12 @@ class ClosureEliminatorSquare(topLevelTerm: Term, signature: Signature, scopes: 
                     Iff(App(closureName, x, y),
                         Or(
                             // At least the previous
-                            funcContains(previousRelation, x, y),
+                            funcContains(previousRelation, x, y, fixedArgs),
                             // One more step
                             Exists(az,
                                 And(
-                                    funcContains(previousRelation, x, z),
-                                    funcContains(previousRelation, z, y)
+                                    funcContains(previousRelation, x, z, fixedArgs),
+                                    funcContains(previousRelation, z, y, fixedArgs)
                                 )
                             )
                         )
@@ -96,9 +96,9 @@ class ClosureEliminatorSquare(topLevelTerm: Term, signature: Signature, scopes: 
 
             if (!queryFunction(closureName)){
                 // Closure has not been expanded. Do so now!
-                expandClosure(functionName)
+                expandClosure(functionName, c.fixedArgs)
             }
-            App(closureName, c.arguments).mapArguments(visit)
+            App(closureName, c.arg1, c.arg2).mapArguments(visit)
         }
         // TODO support more arguments
         override def visitReflexiveClosure(rc: ReflexiveClosure): Term = {
@@ -110,7 +110,7 @@ class ClosureEliminatorSquare(topLevelTerm: Term, signature: Signature, scopes: 
             // Skip if we already did it
             if (!queryFunction(reflexiveClosureName)){
                 if (!queryFunction(closureName)) {
-                    expandClosure(functionName)
+                    expandClosure(functionName, rc.fixedArgs)
                 }
                 val rel = signature.functionWithName(functionName).get
                 val sort = rel.argSorts(0)
@@ -130,7 +130,7 @@ class ClosureEliminatorSquare(topLevelTerm: Term, signature: Signature, scopes: 
                 )
             }
 
-            App(reflexiveClosureName, rc.arguments).mapArguments(visit)
+            App(reflexiveClosureName, rc.arg1, rc.arg2).mapArguments(visit)
         }
     }
 }

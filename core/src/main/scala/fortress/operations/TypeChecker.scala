@@ -17,6 +17,8 @@ case class TypeCheckResult(
  * that is equal to the old term but with instances of Eq replaced with Iff
  * when comparing Bool sorts. Such a term is called "sanitized". */
 class TypeChecker(signature: Signature) extends TermVisitorWithTypeContext[TypeCheckResult](signature) {
+
+    
     override def visitTop(): TypeCheckResult =
         TypeCheckResult(sanitizedTerm = Top, sort = BoolSort, containsConnectives = false, containsQuantifiers = false)
         
@@ -233,35 +235,38 @@ class TypeChecker(signature: Signature) extends TermVisitorWithTypeContext[TypeC
             throw new TypeCheckException.UnknownFunction("Could not find function: " + funcName)
         }
 
-        val results = c.arguments.map(visit)
+        val results = c.allArguments.map(visit)
         if (results.exists(_.containsConnectives)) {
             throw new TypeCheckException.BadStructure("Argument of ^" + c.functionName + " contains connective")
         }
         if (results.exists(_.containsQuantifiers)) {
             throw new TypeCheckException.BadStructure("Argument of ^" + c.functionName + " contains quantifier")
         }
+        // We assunme closing over first 2 arguments
         if (results(0).sort != results(1).sort) {
-            throw new TypeCheckException.WrongSort("Arguments of different sorts in " + c.toString)
+            throw new TypeCheckException.WrongSort("Trying to close over arguments of different sorts in " + c.toString())
         }
+        // This is the arguments to the closure. Will always be at least length 2 by construction
+        val argSorts = results.map(_.sort)
+        Errors.Internal.precondition(argSorts.length >= 2, c.toString() + "has only" + argSorts.length + " arguments! 2 or more expected")        // the sort we are closing over
+        val closingSort = argSorts(0)
 
-        val sort = results(0).sort // We know they are the same now
-
-        // Check that the function being closed over has the correct sorts
-        val fdecl = signature.queryFunction(funcName, Seq(sort, sort), BoolSort) match {
-            case Some(fdecl) => fdecl
-            case None => {
-                signature.queryFunction(funcName, Seq(sort), sort) match {
-                    case Some(fdecl) => fdecl
-                    case None => throw new TypeCheckException.WrongSort(signature.functionWithName(funcName).get.toString +
-                     " is not " + Seq(sort, sort).toString() + "to " + sort + " or " + sort + " to " + sort  + " in " + c.toString)
-                }
+        if (argSorts.length == 2) {
+            // relation must be A->A or AxA-> Bool
+            if (signature.queryFunction(funcName, Seq(closingSort), closingSort).isEmpty && signature.queryFunction(funcName, Seq(closingSort, closingSort), Sort.Bool).isEmpty) {
+                throw new TypeCheckException.WrongSort("Trying to close over " + funcName +" as unary function or binary relation in " + c.toString())
+            }
+        } else {
+            // Check that arguments match the function declaration
+            if (signature.queryFunction(funcName, argSorts, Sort.Bool).isEmpty) {
+                throw new TypeCheckException.WrongSort("Attempting to close over a relation that does not end in a BoolSort in " + c.toString())
             }
         }
 
         TypeCheckResult(
             // sanitizedTerm = Closure(funcName, results map (_.sanitizedTerm), c.arg1, c.arg2),
             // Which cleaning works here?
-            sanitizedTerm = Closure(funcName, c.arg1, c.arg2),
+            sanitizedTerm = Closure(funcName, c.arg1, c.arg2, c.fixedArgs),
             sort = BoolSort, containsConnectives = false, containsQuantifiers = false
         )
     }
@@ -276,28 +281,32 @@ class TypeChecker(signature: Signature) extends TermVisitorWithTypeContext[TypeC
             throw new TypeCheckException.UnknownFunction("Could not find function: " + funcName)
         }
 
-        val results = rc.arguments.map(visit)
+        val results = rc.allArguments.map(visit)
         if (results.exists(_.containsConnectives)) {
             throw new TypeCheckException.BadStructure("Argument of *" + rc.functionName + " contains connective")
         }
         if (results.exists(_.containsQuantifiers)) {
             throw new TypeCheckException.BadStructure("Argument of *" + rc.functionName + " contains quantifier")
         }
+        // We assunme closing over first 2 arguments
         if (results(0).sort != results(1).sort) {
-            throw new TypeCheckException.WrongSort("Arguments of different sorts in " + rc.toString)
+            throw new TypeCheckException.WrongSort("Trying to close over arguments of different sorts in " + rc.toString())
         }
+        // This is the arguments to the closure. Will always be at least length 2 by construction
+        val argSorts = results.map(_.sort)
+        Errors.Internal.precondition(argSorts.length >= 2, rc.toString() + "has only" + argSorts.length + " arguments! 2 or more expected")
+        // the sort we are closing over
+        val closingSort = argSorts(0)
 
-        val sort = results(0).sort // We know they are the same now
-
-        // Check that the function being closed over has the correct sorts
-        val fdecl = signature.queryFunction(funcName, Seq(sort, sort), BoolSort) match {
-            case Some(fdecl) => fdecl
-            case None => {
-                signature.queryFunction(funcName, Seq(sort), sort) match {
-                    case Some(fdecl) => fdecl
-                    case None => throw new TypeCheckException.WrongSort(signature.functionWithName(funcName).get.toString +
-                     " is not " + Seq(sort, sort).toString() + "to " + sort + " or " + sort + " to " + sort  + " in " + rc.toString)
-                }
+        if (argSorts.length == 2) {
+            // relation must be A->A or AxA-> Bool
+            if (signature.queryFunction(funcName, Seq(closingSort), closingSort).isEmpty && signature.queryFunction(funcName, Seq(closingSort, closingSort), Sort.Bool).isEmpty) {
+                throw new TypeCheckException.WrongSort("Trying to close over " + funcName +" as unary function or binary relation in " + rc.toString())
+            }
+        } else {
+            // Check that arguments match the function declaration
+            if (signature.queryFunction(funcName, argSorts, Sort.Bool).isEmpty) {
+                throw new TypeCheckException.WrongSort("Attempting to close over a relation that does not end in a BoolSort in " + rc.toString())
             }
         }
 
