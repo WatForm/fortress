@@ -46,7 +46,7 @@ if len(args) > 1:
     print_usage(file=sys.stderr)
     exit(1)
 
-logging.info("Testing branch %s")
+logging.info("Testing branch %s", test_branch)
 
 if reset:
     print("I don't trust myself enough to script this.")
@@ -67,13 +67,17 @@ else:
 for command in commands:
     logging.info("Running command '%s'", ' '.join(command))
     testing = command[0] == 'sbt'
-    process = sp.run(command, capture_output=not testing)
+    capture = not testing and not verbose
+    process = sp.run(command, capture_output=capture)
     if process.returncode != 0:
+        print("\n\n\n")
         if not testing:
             logging.error("Got exit code %d from command %s", process.returncode, ' '.join(command))
-            logging.error("STDOUT:\n%s\n\nSTDERR:\n%s", process.stdout, process.stderr)
+            if capture:
+                logging.error("STDOUT:\n%s\n\nSTDERR:\n%s", process.stdout, process.stderr)
         else:
             print("NOT READY, FIX TESTS", sys.stderr)
+        sp.call(['git', 'status'])
         exit(1)
 
 print("READY!")
