@@ -81,7 +81,4 @@ for command in commands:
         exit(1)
 
 print("READY!")
-
-
-
-    
+exit(0)
