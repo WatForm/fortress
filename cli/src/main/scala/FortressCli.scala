@@ -95,7 +95,7 @@ object FortressCli {
 
         modelFinder.setTheory(theory)
         for((sort, scope) <- scopes) {
-            modelFinder.setAnalysisScope(sort, scope.size, scope.isExact)
+            modelFinder.setScope(sort, scope)
         }
         modelFinder.setTimeout(Seconds(conf.timeout()))
         //modelFinder.setBoundedIntegers(integerSemantics)

@@ -65,8 +65,8 @@ public class RooksRelational {
             finder.setTheory(rookTheory);
             
             // Set the scopes of the model finder
-            finder.setAnalysisScope(Row, gridSize);
-            finder.setAnalysisScope(Col, gridSize);
+            finder.setExactScope(Row, gridSize);
+            finder.setExactScope(Col, gridSize);
             
             // Check if all axioms in the theory are satisfiable
             ModelFinderResult result = finder.checkSat();

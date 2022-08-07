@@ -99,9 +99,9 @@ public class MonkeyVillage {
             finder.setTheory(monkeyTheory);
             
             // Set the scopes of the model finder
-            finder.setAnalysisScope(Tree, numTrees);
-            finder.setAnalysisScope(Monkey, numMonkeys);
-            finder.setAnalysisScope(Banana, numBananas);
+            finder.setExactScope(Tree, numTrees);
+            finder.setExactScope(Monkey, numMonkeys);
+            finder.setExactScope(Banana, numBananas);
             
             // Check if all axioms in the theory are satisfiable
             ModelFinderResult result = finder.checkSat();

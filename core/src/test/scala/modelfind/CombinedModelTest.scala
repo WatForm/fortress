@@ -80,8 +80,8 @@ class CombinedModelTest extends UnitSuite {
         Using.resource(new FortressZERO) { finder => {
 
             // K_n is n-colourable
-            finder.setAnalysisScope(SortConst("vert"), 3, isExact = true)
-            finder.setAnalysisScope(SortConst("colour"), 3, isExact = true)
+            finder.setExactScope(SortConst("vert"), 3)
+            finder.setExactScope(SortConst("colour"), 3)
             finder.setTheory(resultTheory)
             finder.checkSat() should be (ModelFinderResult.Sat)
 
@@ -92,14 +92,14 @@ class CombinedModelTest extends UnitSuite {
 
             // K_n is not k-colourable for k < n
             finder.setTheory(resultTheory)
-            finder.setAnalysisScope(SortConst("vert"), 8, isExact = true)
-            finder.setAnalysisScope(SortConst("colour"), 7, isExact = true)
+            finder.setExactScope(SortConst("vert"), 8)
+            finder.setExactScope(SortConst("colour"), 7)
             finder.checkSat() should be (ModelFinderResult.Unsat)
 
             // K_n is k-colourable for k > n
             finder.setTheory(resultTheory)
-            finder.setAnalysisScope(SortConst("vert"), 3, isExact = true)
-            finder.setAnalysisScope(SortConst("colour"), 6, isExact = true)
+            finder.setExactScope(SortConst("vert"), 3)
+            finder.setExactScope(SortConst("colour"), 6)
             finder.checkSat() should be (ModelFinderResult.Sat)
 
             model = finder.viewModel()
@@ -119,8 +119,8 @@ class CombinedModelTest extends UnitSuite {
 
         Using.resource(new FortressZERO) { finder => {
 
-            finder.setAnalysisScope(SortConst("V1"), 2, isExact = true)
-            finder.setAnalysisScope(SortConst("V2"), 2, isExact = true)
+            finder.setExactScope(SortConst("V1"), 2)
+            finder.setExactScope(SortConst("V2"), 2)
             finder.setTheory(resultTheory)
             finder.countValidModels(resultTheory) should be (4)
             /**

@@ -91,7 +91,7 @@ public class InfiniteRay {
             finder.setTheory(rayTheory);
             
             // Set the scopes of the model finder
-            finder.setAnalysisScope(V, numVertices);
+            finder.setExactScope(V, numVertices);
             
             // Check if all axioms in the theory are satisfiable
             ModelFinderResult result = finder.checkSat();

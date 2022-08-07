@@ -66,7 +66,7 @@ public class Barber {
             finder.setTheory(barberTheory);
             
             // Set the scopes of the model finder
-            finder.setAnalysisScope(B, barberNum, false);
+            finder.setExactScope(B, barberNum);
             
             // Check if all axioms in the theory are satisfiable
             ModelFinderResult result = finder.checkSat();

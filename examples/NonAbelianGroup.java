@@ -76,7 +76,7 @@ public class NonAbelianGroup {
             finder.setTheory(nonAbelianGroupTheory);
             
             // Set the scopes of the model finder
-            finder.setAnalysisScope(G, groupSize);
+            finder.setExactScope(G, groupSize);
             
             // Check if all axioms in the theory are satisfiable
             ModelFinderResult result = finder.checkSat();

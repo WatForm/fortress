@@ -51,8 +51,15 @@ trait ModelFinder extends AutoCloseable {
     /** Set the theory of the model finder. */
     def setTheory(theory: Theory): Unit
 
-    /** Set the scope of the given sort, which is the size of the domain for that sort. */
-    def setAnalysisScope(t: Sort, size: Int, isExact: Boolean): Unit
+    /** Set the exact scope of the given sort, which is the size of the domain for that sort. */
+    def setScope(t: Sort, scope: Scope):Unit
+
+    /** |A| = 3 **/
+    def setExactScope(t: Sort, size: Int): Unit
+
+    /** Set the non-exact scope of the given sort, which is the size of the domain for that sort. */
+    /** |A| <= 3 **/
+    def setNonExactScope(t: Sort, size: Int): Unit
 
     /** Set the timeout in milliseconds. */
     def setTimeout(milliseconds: Milliseconds): Unit
