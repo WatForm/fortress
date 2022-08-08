@@ -79,9 +79,6 @@ with ModelFinderSettings {
     
     def viewModel: Interpretation = {
         val instance = solverSession.get.solution
-
-
-
         compilerResult.get.decompileInterpretation(instance)
     }
 
