@@ -152,6 +152,7 @@ class CountModelTest extends UnitSuite {
             .withAxiom(Forall(x of A, Exists(y of A, Not(App("f", x) === y))))
         
         Using.resource(new FortressZERO) { finder => {
+            finder.setAnalysisScope(A, 3, isExact = true)
             finder.countValidModels(theory) should be (27)
         }}
     }
