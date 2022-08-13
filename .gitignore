@@ -26,3 +26,4 @@ fortress-0.1.0/
 .sbtopts
 ./build.sh
 ./debug-cli.sh
+./examples/smt-resources/*.smt2

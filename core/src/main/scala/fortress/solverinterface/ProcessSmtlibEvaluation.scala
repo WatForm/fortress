@@ -187,7 +187,8 @@ trait ProcessSmtlibEvaluation extends ProcessBuilderSolver {
             }
         }).toMap
     }
-    
+
+    // transfer smt values to fortress values
     private def smtValueToFortressValue(
         value: String,
         sort: Sort,

@@ -14,7 +14,7 @@ class SimpleUnboundedCheckTransformerTests extends UnitSuite with CommonSymbols 
 
     var scopes = Map.empty[Sort, Scope]
 
-    test("filter quantified sorts") {
+    test("filter quantified sorts0") {
         val theory = baseTheory
                 .withAxiom(Forall(x.of(A), App("P", x)))
                 .withAxiom(Exists(x.of(B), App("Q", x)))
@@ -29,7 +29,5 @@ class SimpleUnboundedCheckTransformerTests extends UnitSuite with CommonSymbols 
 
         transformer(theory, scopes, "flag") should be (expected)
     }
-
     //TODO: we need more unit tests
-
 }

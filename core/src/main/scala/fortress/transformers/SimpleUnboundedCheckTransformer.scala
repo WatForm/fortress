@@ -17,7 +17,6 @@ class SimpleUnboundedCheckTransformer extends ProblemStateTransformer {
             }
 
             val new_scopes = scopes.filter( scope => { sortSet.contains(scope._1) } )
-
             ProblemState(
                 theory,
                 new_scopes,
