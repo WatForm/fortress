@@ -4,9 +4,9 @@ import fortress.msfol._
 import fortress.transformers._
 
 
-class ScopeSubtypeTransformerTest extends UnitSuite with CommonSymbols {
+class ScopeNonExactPredicatesTransformerTest extends UnitSuite with CommonSymbols {
 
-    val transformer = new TheoryApplication(new ScopeSubtypeTransformer)
+    val transformer = new TheoryApplication(new ScopeNonExactPredicatesTransformer)
 
     val baseTheory = Theory.empty
             .withSort(A)
