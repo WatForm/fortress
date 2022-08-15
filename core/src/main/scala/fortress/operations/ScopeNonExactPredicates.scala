@@ -2,9 +2,9 @@ package fortress.operations
 
 import fortress.msfol._
 
-object ScopeSubtype {
+object ScopeNonExactPredicates {
 
-    def subtypePred(sort: Sort): String = s"__@Pred_${sort}"
+    def nonExactScopePred(sort: Sort): String = s"__@Pred_${sort}"
 
     def addBoundsPredicates(term: Term, helpMap: Map[Sort, Scope]): Term = term match {
         case Top | Bottom | Var(_) | EnumValue(_) | DomainElement(_, _) | IntegerLiteral(_) | BitVectorLiteral(_, _) => term
@@ -22,7 +22,7 @@ object ScopeSubtype {
             val predApps = for {
                 av <- vars
                 if !av.sort.isBuiltin && helpMap.contains(av.sort) && !helpMap(av.sort).isExact
-            } yield App(subtypePred(av.sort), av.variable)
+            } yield App(nonExactScopePred(av.sort), av.variable)
             if(predApps.isEmpty)
                 term
             else
@@ -33,7 +33,7 @@ object ScopeSubtype {
                 av <- vars
                 if !av.sort.isBuiltin && helpMap.contains(av.sort) && !helpMap(av.sort).isExact
             } yield {
-                App(subtypePred(av.sort), av.variable)
+                App(nonExactScopePred(av.sort), av.variable)
             }
             if(predApps.isEmpty)
                 term
