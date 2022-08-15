@@ -22,7 +22,7 @@ object SimpleUnboundedChecker {
         case Implication(p, q) => getBoundedSort(p) ++ getBoundedSort(q)
         case Iff(p, q) => getBoundedSort(p) ++ getBoundedSort(q)
         case Forall( vars, body ) => getBoundedSort(body) ++ vars.map(_.sort).toSet
-        case Exists( vars, body ) => getBoundedSort(body) ++ vars.map(_.sort).toSet
+        case Exists( vars, body ) => getBoundedSort(body)
         case Not(Not(p)) => getBoundedSort(p)
         case Not(AndList(args)) => getBoundedSort(args)
         case Not(OrList(args)) => getBoundedSort(args)
