@@ -10,6 +10,9 @@ import fortress.transformers._
 import fortress.config._
 
 import scala.util.Using
+import fortress.data.IntSuffixNameGenerator
+import fortress.operations.ClosureEliminatorEijck
+import fortress.data.NameGenerator
 // This should eventually be more of an integration test
 // See https://www.scalatest.org/user_guide/sharing_tests
 
@@ -214,7 +217,7 @@ trait CETransfomerBehaviors{ this: AnyFlatSpec =>
 
             val R = FuncDecl.mkFuncDecl("R", A, A, Sort.Bool, Sort.Bool)
 
-            val initialOrder = Forall(axy appended z.of(Sort.Bool),
+            val initialOrder = Forall(axy :+ z.of(Sort.Bool),
                 Iff(App(R.name, x, y, z),
                     Or(
                         And(Eq(x, a), Eq(y, b), Eq(z, Top)),
@@ -223,7 +226,7 @@ trait CETransfomerBehaviors{ this: AnyFlatSpec =>
                 )
             )
 
-            val correctClosure = Forall(axy appended z.of(Sort.Bool),
+            val correctClosure = Forall(axy :+ z.of(Sort.Bool),
                 Iff(
                     Closure(R.name, x, y, Seq(z)),
                     Or(
@@ -270,6 +273,7 @@ trait CETransfomerBehaviors{ this: AnyFlatSpec =>
                             .withEnumSort(A, a, b, c)
                             .withFunctionDeclaration(R)
             
+
             Using.resource(manager.setupModelFinder()){ finder => {
                 finder.setTheory(goodTheory)
                 finder.setAnalysisScope(A, 3)
@@ -415,19 +419,51 @@ class ClosureEliminationIterativeTransformerTest extends AnyFlatSpec with CETran
     "ClosureEliminationIterativeTransformer" should behave like anyClosureEliminationTransformer(ClosureEliminationIterativeTransformer)
 }
 
-class ClosureEliminationEijckTransformer extends AnyFlatSpec with CETransfomerBehaviors {
+class ClosureEliminationEijckTransformerTest extends AnyFlatSpec with CETransfomerBehaviors {
     "ClosureEliminationEijckTransformer" should behave like anyClosureEliminationTransformer(ClosureEliminationEijckTransformer)
 }
 
-class ClosureEliminationSquareTransformer extends AnyFlatSpec with CETransfomerBehaviors {
+class ClosureEliminationSquareTransformerTest extends AnyFlatSpec with CETransfomerBehaviors {
     "ClosureEliminationSquareTransformer" should behave like anyClosureEliminationTransformer(ClosureEliminationSquareTransformer)
 }
 
-class ClosureEliminationLiuTransformer extends AnyFlatSpec with CETransfomerBehaviors {
+class ClosureEliminationLiuTransformerTest extends AnyFlatSpec with CETransfomerBehaviors {
     "ClosureEliminationLiuTransformer" should behave like anyClosureEliminationTransformer(ClosureEliminationLiuTransformer)
 }
 
-class ClosureEliminationClaessenTransformer extends AnyFlatSpec with CETransfomerBehaviors {
+class ClosureEliminationClaessenTransformerTest extends AnyFlatSpec with CETransfomerBehaviors {
     "ClosureEliminationClaessenTransformer" should behave like anyClosureEliminationTransformer(ClosureEliminationClaessenTransformer)
 }
 
+class ClosureEliminatorTransformerTest extends UnitSuite {
+    val A = SortConst("A")
+    val B = SortConst("B")
+    val C = SortConst("C")
+
+    val sortMap: Map[Sort, Int] = Map(A -> 5, B -> 5, C -> 5)
+
+    test("correct trailing sorts"){
+        val f1 = FuncDecl("f1", A, A, B, C, BoolSort)
+        val f2 = FuncDecl("f2", A, A, BoolSort)
+        val f3 = FuncDecl("f3", A, A, A, BoolSort)
+
+        val sig = Signature.empty
+            .withSorts(A,B,C)
+            .withFunctionDeclarations(f1, f2, f3)
+
+            // These are the defined functions in the abstract class
+            // Testing with a subclass that does not overwrite
+            val ce: ClosureEliminatorEijck = new ClosureEliminatorEijck(Top, sig, sortMap, new IntSuffixNameGenerator(Set(), 0))
+
+            ce.visitor.getFixedSorts("f1") should equal (Seq(B, C))
+            ce.visitor.getFixedSorts("f2") should equal (Seq())
+            ce.visitor.getFixedSorts("f3") should equal (Seq(A))
+
+            ce.visitor.getFixedAVars("f1") should have length 2
+            ce.visitor.getFixedAVars("f2") should have length 0
+            ce.visitor.getFixedAVars("f3") should have length 1
+
+            ce.visitor.getFixedVars(0) should have length 0
+            ce.visitor.getFixedVars(5) should have length 5 
+    }
+}

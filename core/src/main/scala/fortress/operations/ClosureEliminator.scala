@@ -43,6 +43,8 @@ abstract class ClosureEliminator(topLevelTerm: Term, signature: Signature, scope
         def getReflexiveClosureName(name: String, idx: String = ""): String = "*" + idx + name
         def getClosureName(name: String, idx: String = ""): String = "^" + idx + name
 
+        def getFixedVars(numArgs: Int): Seq[Var] = for (n: Int <- 0 to numArgs - 1) yield Var("fa"+ n.toString())
+
         def funcContains(fname: String, x: Term, y: Term, arguments: Seq[Term]): Term = {
             val fdecl = signature.functionWithName(fname) match {
                 case Some(fdecl) => fdecl
@@ -61,6 +63,20 @@ abstract class ClosureEliminator(topLevelTerm: Term, signature: Signature, scope
                         "Closing over a function of arity " + arity.toString() + "but arguments was length " + arguments.length.toString() + "instead of " + (arity-2).toString())
                     App(fname, Seq[Term](x, y) ++ arguments)
                 }
+            }
+        }
+
+        // Gets the sorts for fixed arguments (everything after the first 2 args)
+        def getFixedSorts(fname: String): Seq[Sort] = signature.queryUninterpretedFunction(fname) match {
+            case None => Errors.Internal.impossibleState("Function " + fname + " does not exist when closing over it!")
+            case Some(FuncDecl(_, sorts, _)) => sorts.drop(2).toList
+        }
+
+        def getFixedAVars(fname: String): Seq[AnnotatedVar] = {
+            val fixedSorts = getFixedSorts(fname)
+            fixedSorts.zipWithIndex.map {
+                case (sort, n) =>
+                    AnnotatedVar(Var("fa" + n.toString()), sort)
             }
         }
         

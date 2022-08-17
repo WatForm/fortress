@@ -40,7 +40,11 @@ class ClosureEliminatorIterative(topLevelTerm: Term, signature: Signature, scope
                 // Look at original function to make declaration for the closure function
                 val rel = signature.queryUninterpretedFunction(functionName).get
                 val sort = rel.argSorts(0)
-                closureFunctions += FuncDecl.mkFuncDecl(closureName, sort, sort, Sort.Bool)
+
+                val fixedSorts = getFixedSorts(functionName)
+                val fixedVars = getFixedVars(fixedSorts.length)
+                val fixedArgVars = fixedVars.zip(fixedSorts) map (pair => (pair._1.of(pair._2)))
+                closureFunctions += FuncDecl(closureName, Seq(sort, sort) ++ fixedSorts, Sort.Bool)
                 val x = Var(nameGen.freshName("x"));
                 val y = Var(nameGen.freshName("y"));
 
@@ -55,40 +59,48 @@ class ClosureEliminatorIterative(topLevelTerm: Term, signature: Signature, scope
                         // Make a new function with a similar name
                         val newFunctionName = nameGen.freshName(functionName);
                         // It uses the same arguments
-                        closureFunctions += FuncDecl.mkFuncDecl(newFunctionName, sort, sort, Sort.Bool)
+                        closureFunctions += FuncDecl(newFunctionName, Seq(sort, sort) ++ fixedSorts, Sort.Bool)
                         // For every input,
-                        closureAxioms += Forall(avars, Iff(App(newFunctionName, Seq(x, y)), // For every inputs R_n+1(x,y) <=>
+                        closureAxioms += Forall(avars ++ fixedArgVars, Iff(App(newFunctionName, Seq(x, y) ++ fixedVars), // For every inputs R_n+1(x,y) <=>
                             Or( // 1 of 2 things
-                                funcContains(functionName, x, y, c.fixedArgs), // R_n(x,y) already existed in the original
+                                funcContains(functionName, x, y, fixedVars), // R_n(x,y) already existed in the original
                                 Exists(az, // There is some z where R_n(x,z) and R_n(z,y)
                                     And(
-                                        funcContains(functionName, x, z, c.fixedArgs), 
-                                        funcContains(functionName, z, y, c.fixedArgs)
+                                        funcContains(functionName, x, z, fixedVars), 
+                                        funcContains(functionName, z, y, fixedVars)
                                     )   
                                 ))))
                         functionName = newFunctionName;
                     }
-                    closureAxioms += Forall(avars, Iff(App(closureName, Seq(x, y)), Or(funcContains(functionName, x, y, c.fixedArgs), Exists(az, And(funcContains(functionName, x, z, c.fixedArgs), funcContains(functionName, z, y, c.fixedArgs))))))
+                    closureAxioms += Forall(avars ++ fixedArgVars, Iff(App(closureName, Seq(x, y) ++ fixedVars), Or(funcContains(functionName, x, y, fixedVars), Exists(az, And(funcContains(functionName, x, z, fixedVars), funcContains(functionName, z, y, fixedVars))))))
                 } else if (queryFunction(reflexiveClosureName)) {
                     // If we have the reflexive closure, just use that
                     // Reflexive closure R(x,y) <=> exists z: R(x,z) and R(z,y)
-                    closureAxioms += Forall(avars, Iff(App(closureName, Seq(x, y)), Exists(az, And(funcContains(functionName, x, z, c.fixedArgs), App(reflexiveClosureName, Seq(z, y))))))
+                    closureAxioms += Forall(avars ++ fixedArgVars,
+                        Iff(App(closureName, Seq(x, y) ++ fixedVars), Exists(az, And(funcContains(functionName, x, z, fixedVars), App(reflexiveClosureName, Seq(z, y) ++ fixedVars)))))
                 } else {
                     val helperName = nameGen.freshName(functionName);
-                    closureFunctions += FuncDecl.mkFuncDecl(reflexiveClosureName, sort, sort, Sort.Bool);
-                    closureFunctions += FuncDecl.mkFuncDecl(helperName, sort, sort, sort, Sort.Bool);
+                    closureFunctions += FuncDecl(reflexiveClosureName, Seq(sort, sort) ++ fixedSorts, Sort.Bool);
+                    closureFunctions += FuncDecl(helperName, Seq(sort, sort, sort) ++ fixedSorts, Sort.Bool);
                     val u = Var(nameGen.freshName("u"));
-                    closureAxioms += Forall(avars, Not(App(helperName, Seq(x, x) :+ y)))
-                    closureAxioms += Forall(avars :+ az :+ u.of(sort), Implication(And(App(helperName, Seq(x, y) :+ u), App(helperName, Seq(y, z) :+ u)), App(helperName, Seq(x, z) :+ u)))
-                    closureAxioms += Forall(avars :+ az, Implication(And(App(helperName, Seq(x, y) :+ y), App(helperName, Seq(y, z) :+ z), Not(Eq(x, z))), App(helperName, Seq(x, z) :+ z)))
-                    closureAxioms += Forall(avars :+ az, Implication(And(App(helperName, Seq(x, y) :+ z), Not(Eq(y, z))), App(helperName, Seq(y, z) :+ z)))
-                    closureAxioms += Forall(avars, Implication(And(funcContains(functionName, x, y, c.fixedArgs), Not(Eq(x, y))), App(helperName, Seq(x, y) :+ y)))
-                    closureAxioms += Forall(avars, Implication(App(helperName, Seq(x, y) :+ y), Exists(az, And(funcContains(functionName, x, z, c.fixedArgs), App(helperName, Seq(x, z) :+ y)))))
-                    closureAxioms += Forall(avars, Iff(App(reflexiveClosureName, Seq(x, y)), Or(App(helperName, Seq(x, y) :+ y), Eq(x, y))))
-                    closureAxioms += Forall(avars, Iff(App(closureName, Seq(x, y)), Exists(az, And(funcContains(functionName, x, z, c.fixedArgs), App(reflexiveClosureName, Seq(z, y))))))
+                    closureAxioms += Forall(avars ++ fixedArgVars, Not(App(helperName, Seq(x, x, y) ++ fixedVars)))
+                    closureAxioms += Forall((avars :+ az :+ u.of(sort)) ++ fixedArgVars,
+                        Implication(And(App(helperName, Seq(x, y, u) ++ fixedVars), App(helperName, Seq(y, z, u) ++ fixedVars)), App(helperName, Seq(x, z, u) ++ fixedVars)))
+                    closureAxioms += Forall((avars :+ az) ++ fixedArgVars,
+                        Implication(And(App(helperName, Seq(x, y, y) ++ fixedVars), App(helperName, Seq(y, z, z) ++ fixedVars), Not(Eq(x, z))), App(helperName, Seq(x, z, z) ++ fixedVars)))
+                    closureAxioms += Forall((avars :+ az) ++ fixedArgVars,
+                        Implication(And(App(helperName, Seq(x, y, z) ++ fixedVars), Not(Eq(y, z))), App(helperName, Seq(y, z, z) ++ fixedVars)))
+                    closureAxioms += Forall(avars ++ fixedArgVars,
+                        Implication(And(funcContains(functionName, x, y, fixedVars), Not(Eq(x, y))), App(helperName, Seq(x, y, y) ++ fixedVars)))
+                    closureAxioms += Forall(avars ++ fixedArgVars,
+                        Implication(App(helperName, Seq(x, y, y) ++ fixedVars), Exists(az, And(funcContains(functionName, x, z, fixedVars), App(helperName, Seq(x, z, y) ++ fixedVars)))))
+                    closureAxioms += Forall(avars ++ fixedArgVars,
+                        Iff(App(reflexiveClosureName, Seq(x, y) ++ fixedVars), Or(App(helperName, Seq(x, y, y) ++ fixedVars), Eq(x, y))))
+                    closureAxioms += Forall(avars ++ fixedArgVars,
+                        Iff(App(closureName, Seq(x, y) ++ fixedVars), Exists(az, And(funcContains(functionName, x, z, fixedVars), App(reflexiveClosureName, Seq(z, y) ++ fixedVars)))))
                 }
             }
-            App(closureName, Seq(c.arg1, c.arg2)).mapArguments(visit)
+            App(closureName, Seq(c.arg1, c.arg2) ++ c.fixedArgs).mapArguments(visit)
         }
         
         override def visitReflexiveClosure(rc: ReflexiveClosure): Term = {
@@ -96,42 +108,47 @@ class ClosureEliminatorIterative(topLevelTerm: Term, signature: Signature, scope
             val closureName = getClosureName(functionName)
             val reflexiveClosureName = getReflexiveClosureName(functionName)
             if (!queryFunction(reflexiveClosureName)) {
+                val fixedSorts = getFixedSorts(functionName)
+                val fixedVars = getFixedVars(fixedSorts.length)
+                val fixedArgVars = fixedVars.zip(fixedSorts) map (pair => (pair._1.of(pair._2)))
+                
                 val rel = signature.queryUninterpretedFunction(functionName).get
                 val sort = rel.argSorts(0)
                 closureFunctions += FuncDecl.mkFuncDecl(reflexiveClosureName, sort, sort, Sort.Bool)
                 val x = Var(nameGen.freshName("x"))
                 val y = Var(nameGen.freshName("y"))
-                val avars = List(x.of(sort), y.of(sort))
+                val avars = Seq(x.of(sort), y.of(sort)) ++ fixedArgVars
                 val z = Var(nameGen.freshName("z"))
                 val az = z.of(sort)
                 val scope = scopes(sort)
-                def getVarList(v1: Var, v2: Var): List[Var] = List(v1, v2)
+
+                
                 if (scope > 100) {
                     val helperName = nameGen.freshName(functionName);
                     closureFunctions += FuncDecl.mkFuncDecl(helperName, sort, sort, sort, Sort.Bool);
                     val u = Var(nameGen.freshName("u"));
-                    closureAxioms += Forall(avars, Not(App(helperName, getVarList(x, x) :+ y)))
-                    closureAxioms += Forall(avars :+ az :+ u.of(sort), Implication(And(App(helperName, getVarList(x, y) :+ u), App(helperName, getVarList(y, z) :+ u)), App(helperName, getVarList(x, z) :+ u)))
-                    closureAxioms += Forall(avars :+ az, Implication(And(App(helperName, getVarList(x, y) :+ y), App(helperName, getVarList(y, z) :+ z), Not(Eq(x, z))), App(helperName, getVarList(x, z) :+ z)))
-                    closureAxioms += Forall(avars :+ az, Implication(And(App(helperName, getVarList(x, y) :+ z), Not(Eq(y, z))), App(helperName, getVarList(y, z) :+ z)))
-                    closureAxioms += Forall(avars, Implication(And(funcContains(functionName, x, y, rc.fixedArgs), Not(Eq(x, y))), App(helperName, getVarList(x, y) :+ y)))
-                    closureAxioms += Forall(avars, Implication(App(helperName, getVarList(x, y) :+ y), Exists(az, And(funcContains(functionName, x, z, rc.fixedArgs), App(helperName, getVarList(x, z) :+ y)))))
-                    closureAxioms += Forall(avars, Iff(App(reflexiveClosureName, getVarList(x, y)), Or(App(helperName, getVarList(x, y) :+ y), Eq(x, y))))
+                    closureAxioms += Forall(avars, Not(App(helperName, Seq(x, x, y) ++ fixedVars)))
+                    closureAxioms += Forall(avars :+ az :+ u.of(sort), Implication(And(App(helperName, List(x, y, u) ++ fixedVars), App(helperName, List(y, z, u) ++ fixedVars)), App(helperName, List(x, z, u) ++ fixedVars)))
+                    closureAxioms += Forall(avars :+ az, Implication(And(App(helperName, Seq(x, y, y) ++ fixedVars), App(helperName, Seq(y, z, z) ++ fixedVars), Not(Eq(x, z))), App(helperName, Seq(x, z, z) ++ fixedVars)))
+                    closureAxioms += Forall(avars :+ az, Implication(And(App(helperName, Seq(x, y, z) ++ fixedVars), Not(Eq(y, z))), App(helperName, Seq(y, z, z) ++ fixedVars)))
+                    closureAxioms += Forall(avars, Implication(And(funcContains(functionName, x, y, fixedVars), Not(Eq(x, y))), App(helperName, Seq(x, y, y) ++ fixedVars)))
+                    closureAxioms += Forall(avars, Implication(App(helperName, Seq(x, y, y) ++ fixedVars), Exists(az, And(funcContains(functionName, x, z, fixedVars), App(helperName, Seq(x, z, y) ++ fixedVars)))))
+                    closureAxioms += Forall(avars, Iff(App(reflexiveClosureName, Seq(x, y) ++ fixedVars), Or(App(helperName, Seq(x, y, y) ++ fixedVars), Eq(x, y))))
                 } else if (queryFunction(closureName)) {
-                    closureAxioms += Forall(avars, Iff(App(reflexiveClosureName, getVarList(x, y)), Or(Eq(x, y), App(closureName, getVarList(x, y)))))
+                    closureAxioms += Forall(avars, Iff(App(reflexiveClosureName, Seq(x, y) ++ fixedVars), Or(Eq(x, y), App(closureName, Seq(x, y) ++ fixedVars))))
                 } else {
-                    closureFunctions += FuncDecl.mkFuncDecl(closureName, sort, sort, Sort.Bool)
+                    closureFunctions += FuncDecl(closureName, Seq(sort, sort) ++ fixedSorts, Sort.Bool)
                     for (s <- 1 until scala.math.ceil(scala.math.log(scope)/scala.math.log(2)).toInt) {
                         val newFunctionName = nameGen.freshName(functionName);
-                        closureFunctions += FuncDecl.mkFuncDecl(newFunctionName, sort, sort, Sort.Bool)
-                        closureAxioms += Forall(avars, Iff(App(newFunctionName, getVarList(x, y)), Or(funcContains(functionName, x, y, rc.fixedArgs), Exists(az, And(funcContains(functionName, x, z, rc.fixedArgs), funcContains(functionName, z, y, rc.fixedArgs))))))
+                        closureFunctions += FuncDecl(newFunctionName, Seq(sort, sort) ++ fixedSorts, Sort.Bool)
+                        closureAxioms += Forall(avars, Iff(App(newFunctionName, Seq(x, y)  ++ fixedVars), Or(funcContains(functionName, x, y, fixedVars), Exists(az, And(funcContains(functionName, x, z, fixedVars), funcContains(functionName, z, y, fixedVars))))))
                         functionName = newFunctionName;
                     }
-                    closureAxioms += Forall(avars, Iff(App(closureName, getVarList(x, y)), Or(funcContains(functionName, x, y, rc.fixedArgs), Exists(az, And(funcContains(functionName, x, z, rc.fixedArgs), funcContains(functionName, z, y, rc.fixedArgs))))))
-                    closureAxioms += Forall(avars, Iff(App(reflexiveClosureName, getVarList(x, y)), Or(Eq(x, y), App(closureName, getVarList(x, y)))))
+                    closureAxioms += Forall(avars, Iff(App(closureName, Seq(x, y) ++ fixedVars), Or(funcContains(functionName, x, y, fixedVars), Exists(az, And(funcContains(functionName, x, z, fixedVars), funcContains(functionName, z, y, fixedVars))))))
+                    closureAxioms += Forall(avars, Iff(App(reflexiveClosureName, Seq(x, y) ++ fixedVars), Or(Eq(x, y), App(closureName, Seq(x, y) ++ fixedVars))))
                 }
             }
-            App(reflexiveClosureName, Seq(rc.arg1, rc.arg2)).mapArguments(visit)
+            App(reflexiveClosureName, Seq(rc.arg1, rc.arg2) ++ rc.fixedArgs).mapArguments(visit)
         }
         
     }

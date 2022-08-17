@@ -39,7 +39,7 @@ class ClosureEliminatorEijck(topLevelTerm: Term, signature: Signature, scopes: M
     class ClosureVisitorEijck extends ClosureVisitor {
         // TODO extend for other arguments. See getVarList in ClosureEliminator
         /** Axioms to define a midpoint being closer to the starting node than the ending node along a path for the given relation */
-        def addClosenessAxioms(sort: Sort, functionName: String, fixedArgs: Seq[Term]): String = {
+        def addClosenessAxioms(sort: Sort, functionName: String): String = {
             // How to actually ensure this does not exist from something else?
             val closenessName: String = "^Close^" + functionName;
             // If we already made this, then we can just leave.
@@ -47,9 +47,13 @@ class ClosureEliminatorEijck(topLevelTerm: Term, signature: Signature, scopes: M
                 return closenessName;
             }
 
+            val fixedSorts = getFixedSorts(functionName)
+            val fixedVars = getFixedVars(fixedSorts.length)
+            val fixedArgVars = fixedVars.zip(fixedSorts) map (pair => (pair._1.of(pair._2)))
+
             val closenessArgs: List[Sort] = List(sort, sort, sort)
 
-            closureFunctions += FuncDecl.mkFuncDecl(closenessName, sort, sort, sort, Sort.Bool)
+            closureFunctions += FuncDecl.mkFuncDecl(closenessName, (Seq(sort, sort, sort) ++ fixedSorts).asJava, Sort.Bool)
             
             val x = Var(nameGen.freshName("x"))
             val y = Var(nameGen.freshName("y"))
@@ -61,48 +65,48 @@ class ClosureEliminatorEijck(topLevelTerm: Term, signature: Signature, scopes: M
             val au = u.of(sort)
 
             // Moved first to NNF
-            closureAxioms += Forall(axyz :+ au,
+            closureAxioms += Forall((axyz :+ au) ++ fixedArgVars,
                 Or(
-                    Not(App(closenessName, List(x,y,u))),
-                    Not(App(closenessName, List(y,z,u))),
-                    App(closenessName, List(x,z,u)))
+                    Not(App(closenessName, List(x,y,u) ++ fixedVars)),
+                    Not(App(closenessName, List(y,z,u) ++ fixedVars)),
+                    App(closenessName, List(x,z,u) ++ fixedVars))
             )
             // No zero-distance
-            closureAxioms += Forall(axy, Not(App(closenessName, List(x,x,y))))
+            closureAxioms += Forall(axy ++ fixedArgVars, Not(App(closenessName, List(x,x,y) ++ fixedVars)))
             // Single step NNF
-            closureAxioms += Forall(axyz,
+            closureAxioms += Forall(axyz ++ fixedArgVars,
                 Or(
-                    Not(App(closenessName, List(x,y,y))),
-                    Not(App(closenessName, List(y,z,z))),
+                    Not(App(closenessName, List(x,y,y) ++ fixedVars)),
+                    Not(App(closenessName, List(y,z,z) ++ fixedVars)),
                     Eq(x,z),
-                    App(closenessName, List(x,z,z))
+                    App(closenessName, List(x,z,z) ++ fixedVars)
                 )
             )
             // idk but NNF
-            closureAxioms += Forall(axyz,
+            closureAxioms += Forall(axyz ++ fixedArgVars,
                 Or(
-                    Not(App(closenessName, List(x,y,z))),
+                    Not(App(closenessName, List(x,y,z) ++ fixedVars)),
                     Eq(y, z),
-                    App(closenessName, List(y,z,z))
+                    App(closenessName, List(y,z,z) ++ fixedVars)
                 )
             )
             // Functions using the actual relation
             // NNF
-            closureAxioms += Forall(axy,
+            closureAxioms += Forall(axy ++ fixedArgVars,
                 Or(
-                    Not(funcContains(functionName, x, y, fixedArgs)),
+                    Not(funcContains(functionName, x, y, fixedVars)),
                     Eq(x,y),
-                    App(closenessName, List(x,y,y))
+                    App(closenessName, List(x,y,y) ++ fixedVars)
                 )
             )
             // Closest unless something is closer NNF
-            closureAxioms += Forall(axy,
+            closureAxioms += Forall(axy ++ fixedArgVars,
                 Or(
-                    Not(App(closenessName, List(x,y,y))),
+                    Not(App(closenessName, List(x,y,y) ++ fixedVars)),
                     Exists(z.of(sort),
                         And(
-                            funcContains(functionName, x, z, fixedArgs),
-                            App(closenessName, List(x,z,y))
+                            funcContains(functionName, x, z, fixedVars),
+                            App(closenessName, List(x,z,y) ++ fixedVars)
                         )
                     )
                 )
@@ -125,8 +129,12 @@ class ClosureEliminatorEijck(topLevelTerm: Term, signature: Signature, scopes: M
                 val rel = signature.queryUninterpretedFunction(functionName).get
                 val sort = rel.argSorts(0)
 
+                val fixedSorts = getFixedSorts(functionName)
+                val fixedVars = getFixedVars(fixedSorts.length)
+                val fixedArgVars = fixedVars.zip(fixedSorts) map (pair => (pair._1.of(pair._2)))
+                
                 // Declare the new function representing the closure
-                closureFunctions += FuncDecl.mkFuncDecl(closureName, sort, sort, Sort.Bool)
+                closureFunctions += FuncDecl(closureName, Seq(sort, sort) ++ fixedSorts, Sort.Bool)
                 
                 // Set up variables (and their arguments) for axioms
                 val x = Var(nameGen.freshName("x"))
@@ -136,18 +144,18 @@ class ClosureEliminatorEijck(topLevelTerm: Term, signature: Signature, scopes: M
                 val az = z.of(sort)
 
                 // Generate the axioms to define closeness (checks if already done)
-                val closenessName = this.addClosenessAxioms(sort, functionName, c.fixedArgs)
+                val closenessName = this.addClosenessAxioms(sort, functionName)
 
                 // define reflexive closure if we haven't already
                 if(!queryFunction(reflexiveClosureName)){
                     // declare the function
-                    closureFunctions += FuncDecl.mkFuncDecl(reflexiveClosureName, sort, sort, Sort.Bool)
+                    closureFunctions += FuncDecl.mkFuncDecl(reflexiveClosureName, (Seq(sort, sort) ++ fixedSorts).asJava, Sort.Bool)
                     // Defined with closeness and one additional axiom
-                    closureAxioms += Forall(axy,
+                    closureAxioms += Forall(axy ++ fixedArgVars,
                         Iff(
-                            App(reflexiveClosureName, List(x,y)),
+                            App(reflexiveClosureName, List(x,y) ++ fixedVars),
                             Or(
-                                App(closenessName, List(x,y,y)),
+                                App(closenessName, List(x,y,y) ++ fixedVars),
                                 Eq(x,y)
                             )
                         )
@@ -155,14 +163,14 @@ class ClosureEliminatorEijck(topLevelTerm: Term, signature: Signature, scopes: M
                 }
 
                 // Add an axiom to define how we use closeness to define closure
-                closureAxioms += Forall(axy,
+                closureAxioms += Forall(axy ++ fixedArgVars,
                     Iff(
-                        App(closureName, List(x,y)),
+                        App(closureName, List(x,y) ++ fixedVars),
                         Exists(az,
                             And(
-                                funcContains(functionName, x, z, c.fixedArgs),
+                                funcContains(functionName, x, z, fixedVars),
                                 Or(
-                                    App(closenessName, List(z,y,y)),
+                                    App(closenessName, List(z,y,y) ++ fixedVars),
                                     Eq(z,y)
                                 )
                             )
@@ -171,7 +179,7 @@ class ClosureEliminatorEijck(topLevelTerm: Term, signature: Signature, scopes: M
                 )
 
             }
-            App(closureName, Seq(c.arg1, c.arg2)).mapArguments(visit)
+            App(closureName, Seq(c.arg1, c.arg2) ++ c.fixedArgs).mapArguments(visit)
         }
         // TODO support more arguments
         override def visitReflexiveClosure(rc: ReflexiveClosure): Term = {
@@ -188,27 +196,31 @@ class ClosureEliminatorEijck(topLevelTerm: Term, signature: Signature, scopes: M
                 var argSorts = new ArrayList(rel.argSorts.asJava)
                 val sort = rel.argSorts(0)
 
+                val fixedSorts = getFixedSorts(functionName)
+                val fixedVars = getFixedVars(fixedSorts.length)
+                val fixedArgVars = fixedVars.zip(fixedSorts) map (pair => (pair._1.of(pair._2)))
+
                 // Declare reflexive closure
-                closureFunctions += FuncDecl.mkFuncDecl(reflexiveClosureName, sort, sort, Sort.Bool)
+                closureFunctions += FuncDecl.mkFuncDecl(reflexiveClosureName, (Seq(sort, sort) ++ fixedSorts).asJava, Sort.Bool)
                 
                 val x = Var(nameGen.freshName("x"))
                 val y = Var(nameGen.freshName("y"))
                 val axy = List(x.of(sort), y.of(sort))
 
-                val closenessName = this.addClosenessAxioms(sort, functionName, rc.fixedArgs)
+                val closenessName = this.addClosenessAxioms(sort, functionName)
                 
-                closureAxioms += Forall(axy,
+                closureAxioms += Forall(axy ++ fixedArgVars,
                     Iff(
-                        App(reflexiveClosureName, List(x,y)),
+                        App(reflexiveClosureName, List(x,y) ++ fixedVars),
                         Or(
-                            App(closenessName, List(x,y,y)),
+                            App(closenessName, List(x,y,y) ++ fixedVars),
                             Eq(x,y)
                         )
                     )
                 )
             }
 
-            App(reflexiveClosureName, Seq(rc.arg1, rc.arg2)).mapArguments(visit)
+            App(reflexiveClosureName, Seq(rc.arg1, rc.arg2) ++ rc.fixedArgs).mapArguments(visit)
         }
         
     }
