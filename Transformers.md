@@ -37,7 +37,7 @@ opt = optional replacement for default
 | Group | Transformer                                       | Constants (EUF)       | Datatype           | Minimal          |  Description             |
 |:--------|:--------------------------------------------------|:---------------- |:-------------------|:-----------------|------------------------- |
 | | TypecheckSanitizeTransformer                      |    req           | req               | req              | performs typechecking    |   
-| | ScopeSubtypeTransformer                           |    req           | req               | req              | set up predicates for non-exact scopes |
+| | ScopeNonExactPredicatesTransformer                           |    req           | req               | req              | set up predicates for non-exact scopes |
 | | EnumEliminationTransformer                        |    req           | req                | req              | Enums become ...         |
 | Integers| IntegerToBitVectorTransformer                    |    def           | def                   |                  | Turn integers into BVs  based on bitwidth set in problem state for scope of IntSort  |
 | Transitive Closure | ClosureEliminationIterativeTransformer | def | def  | | |
@@ -64,3 +64,8 @@ opt = optional replacement for default
 
 **missing something about DefaultSymmetryBreakerFactoryDL(None)**
 
+## Dependencies
+
+All built-in sorts transformations should be done before quantifier expansion (thus any integer finitization should be done before QuantifierExpansion).
+
+ScopeNonExactPredicates must be done before skolemization?

@@ -6,11 +6,12 @@ import fortress.operations.TermOps._
 import scala.collection.mutable
 
 trait SymmetryBreakerFactoryDL {
-    def create(theory: Theory, stalenessTracker: StalenessTracker, remainingTracker: RemainingIdentifiersTracker): SymmetryBreakerDL
+    def create(theory: Theory, scopes: Map[Sort, Scope], stalenessTracker: StalenessTracker, remainingTracker: RemainingIdentifiersTracker): SymmetryBreakerDL
 }
 
 abstract class SymmetryBreakerDL(
                                   theory: Theory,
+                                  protected val scopes: Map[Sort, Scope],
                                   stalenessTrackerParam: StalenessTracker,
                                   remainingTrackerParam: RemainingIdentifiersTracker,
                                   disjunctsLimitParam: Option[Int] = None
@@ -26,16 +27,18 @@ abstract class SymmetryBreakerDL(
     protected val newDeclarations = new mutable.ListBuffer[FuncDecl]
 
     // Perform symmetry breaking on constants, one sort by another
+    // only preform on bounded sorts
     final def breakConstants(constantsToBreak: Set[AnnotatedVar]): Unit = {
-        for (sort <- theory.sorts if !sort.isBuiltin && stalenessTracker.state.existsFreshValue(sort)) {
+        for (sort <- theory.sorts if !sort.isBuiltin && scopes.contains(sort) && stalenessTracker.state.existsFreshValue(sort)) {
             breakConstants(sort, constantsToBreak.filter(_.sort == sort).toIndexedSeq)
         }
     }
 
     // Perform symmetry breaking on constants, one sort by another(preserve the order)
+    // only preform on bounded sorts
     def breakListOfConstants(constantsToBreak: IndexedSeq[AnnotatedVar]): Unit = {
         val constantsGroupedBySort = constantsToBreak.groupBy(_.sort)
-        for ((sort, constants) <- constantsGroupedBySort if !sort.isBuiltin && stalenessTracker.state.existsFreshValue(sort)) {
+        for ((sort, constants) <- constantsGroupedBySort if !sort.isBuiltin && scopes.contains(sort) && stalenessTracker.state.existsFreshValue(sort)) {
             breakConstants(sort, constants)
         }
     }
@@ -77,7 +80,7 @@ abstract class SymmetryBreakerDL(
 
 trait DefaultPredicateBreakingDL extends SymmetryBreakerDL {
     override def breakPredicate(P: FuncDecl): Unit = {
-        if (P.argSorts forall (stalenessTracker.state.numFreshValues(_) >= 2)) { // Need at least 2 unused values to do any symmetry breaking
+        if (P.argSorts.forall( sort => stalenessTracker.state.numFreshValues(sort) >= 2 && scopes.contains(sort))) { // Need at least 2 unused values to do any symmetry breaking
             val pImplications = SymmetryDL.predicateImplications(P, stalenessTracker.state, disjunctsLimit)
             addGeneralConstraints(pImplications)
             if (pImplications.nonEmpty) remainingTracker.markUsedFuncDecls(P)
@@ -91,11 +94,13 @@ trait DependenceDifferentiationDL extends SymmetryBreakerDL {
     def breakRDIFunction(f: FuncDecl): Unit
 
     override def breakFunction(f: FuncDecl): Unit = {
-        if (stalenessTracker.state.existsFreshValue(f.resultSort)) {
-            if (f.isRDD) {
-                breakRDDFunction(f)
-            } else {
-                breakRDIFunction(f)
+        if( f.argSorts.forall(sort => scopes.contains(sort)) && scopes.contains(f.resultSort) ) {
+            if (stalenessTracker.state.existsFreshValue(f.resultSort)) {
+                if (f.isRDD) {
+                    breakRDDFunction(f)
+                } else {
+                    breakRDIFunction(f)
+                }
             }
         }
     }
@@ -134,8 +139,8 @@ trait DefaultConstantSchemeDL extends SymmetryBreakerDL {
 
 // Concrete Implementations
 
-class DefaultSymmetryBreakerDL(theory: Theory, stalenessTracker: StalenessTracker, remainingTracker: RemainingIdentifiersTracker, disjunctsLimitParam: Option[Int])
-  extends SymmetryBreakerDL(theory, stalenessTracker: StalenessTracker, remainingTracker: RemainingIdentifiersTracker, disjunctsLimitParam: Option[Int])
+class DefaultSymmetryBreakerDL(theory: Theory, scopes: Map[Sort, Scope], stalenessTracker: StalenessTracker, remainingTracker: RemainingIdentifiersTracker, disjunctsLimitParam: Option[Int])
+  extends SymmetryBreakerDL(theory, scopes, stalenessTracker: StalenessTracker, remainingTracker: RemainingIdentifiersTracker, disjunctsLimitParam: Option[Int])
     with DefaultPredicateBreakingDL
     with DependenceDifferentiationDL
     with DefaultConstantSchemeDL
@@ -143,6 +148,6 @@ class DefaultSymmetryBreakerDL(theory: Theory, stalenessTracker: StalenessTracke
     with DefaultRDDSchemeDL
 
 case class DefaultSymmetryBreakerFactoryDL(disjunctsLimit: Option[Int] = None) extends SymmetryBreakerFactoryDL {
-    def create(theory: Theory, stalenessTracker: StalenessTracker, remainingTracker: RemainingIdentifiersTracker): SymmetryBreakerDL = new DefaultSymmetryBreakerDL(theory, stalenessTracker, remainingTracker, disjunctsLimit)
+    def create(theory: Theory, scopes: Map[Sort, Scope], stalenessTracker: StalenessTracker, remainingTracker: RemainingIdentifiersTracker): SymmetryBreakerDL = new DefaultSymmetryBreakerDL(theory, scopes, stalenessTracker, remainingTracker, disjunctsLimit)
 }
 

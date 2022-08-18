@@ -23,7 +23,7 @@ class SymmetryBreakTests_RDD extends UnitSuite {
         
         val usedResultValues = IndexedSeq()
         
-        val scopes = Map(A -> 9)
+        val scopes = Map(A -> ExactScope(9))
         val used = Map(A -> usedResultValues)
         val state = StalenessState(Set(A), scopes, used)
         
@@ -58,7 +58,7 @@ class SymmetryBreakTests_RDD extends UnitSuite {
             DE(6, A)
         ) // Unused 2 5 7 8 9
         
-        val scopes = Map(A -> 9)
+        val scopes = Map(A -> ExactScope(9))
         val used = Map(A -> usedResultValues)
         val state = StalenessState(Set(A), scopes, used)
         
@@ -85,7 +85,7 @@ class SymmetryBreakTests_RDD extends UnitSuite {
             DE(6, A)
         ) // Unused 2 5 7 8 9
         
-        val scopes = Map(A -> 9)
+        val scopes = Map(A -> ExactScope(9))
         val used = Map(A -> usedResultValues)
         val state = StalenessState(Set(A), scopes, used)
         
@@ -112,7 +112,7 @@ class SymmetryBreakTests_RDD extends UnitSuite {
             DE(6, A)
         ) // Unused 2 5 7 8 9
         
-        val scopes = Map(A -> 9)
+        val scopes = Map(A -> ExactScope(9))
         val used = Map(A -> usedResultValues)
         val state = StalenessState(Set(A, D, B), scopes, used)
         
@@ -134,7 +134,7 @@ class SymmetryBreakTests_RDD extends UnitSuite {
         
         val usedResultValues = IndexedSeq()
         
-        val scopes = Map(A -> 9)
+        val scopes = Map(A -> ExactScope(9))
         val used = Map(A -> usedResultValues)
         val state = StalenessState(Set(A), scopes, used)
         
@@ -169,7 +169,7 @@ class SymmetryBreakTests_RDD extends UnitSuite {
             DE(6, A)
         ) // Unused 2 5 7 8 9
         
-        val scopes = Map(A -> 9)
+        val scopes = Map(A -> ExactScope(9))
         val used = Map(A -> usedResultValues)
         val state = StalenessState(Set(A), scopes, used)
         

@@ -16,11 +16,12 @@ object SortInferenceTransformer extends ProblemStateTransformer {
             // Create new scopes
             val newScopes = for {
                 sort <- generalTheory.sorts
-                if !sort.isBuiltin
+                if !sort.isBuiltin && scopes.contains(sort)
             } yield {
                 sort -> scopes(sortSubstitution(sort))
             }
             val unapply: Interpretation => Interpretation = _.applySortSubstitution(sortSubstitution)
+
             ProblemState(generalTheory, newScopes.toMap, skc map (sortSubstitution(_)), skf map (sortSubstitution(_)), rangeRestricts, unapply :: unapplyInterp, distinctConstants)
         }
     }

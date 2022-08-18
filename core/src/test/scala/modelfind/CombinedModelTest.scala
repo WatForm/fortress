@@ -23,7 +23,7 @@ class CombinedModelTest extends UnitSuite {
         // println("Parsed theory from file:")
         // println(resultTheory)
 
-        Using.resource(ModelFinder.createDefault) { finder => {
+        Using.resource(new FortressZERO) { finder => {
 
             finder.setTheory(resultTheory)
             finder.checkSat() should be (ModelFinderResult.Sat)
@@ -52,7 +52,7 @@ class CombinedModelTest extends UnitSuite {
         // println("Parsed theory from file:")
         // println(resultTheory)
 
-        Using.resource(ModelFinder.createDefault) { finder => {
+        Using.resource(new FortressZERO) { finder => {
 
             finder.setTheory(resultTheory)
             finder.checkSat() should be (ModelFinderResult.Sat)
@@ -77,11 +77,11 @@ class CombinedModelTest extends UnitSuite {
         val parser = new SmtLibParser
         val resultTheory = parser.parse(fileStream).getOrElse(null)
 
-        Using.resource(ModelFinder.createDefault) { finder => {
+        Using.resource(new FortressZERO) { finder => {
 
             // K_n is n-colourable
-            finder.setAnalysisScope(SortConst("vert"), 3)
-            finder.setAnalysisScope(SortConst("colour"), 3)
+            finder.setAnalysisScope(SortConst("vert"), 3, isExact = true)
+            finder.setAnalysisScope(SortConst("colour"), 3, isExact = true)
             finder.setTheory(resultTheory)
             finder.checkSat() should be (ModelFinderResult.Sat)
 
@@ -92,14 +92,14 @@ class CombinedModelTest extends UnitSuite {
 
             // K_n is not k-colourable for k < n
             finder.setTheory(resultTheory)
-            finder.setAnalysisScope(SortConst("vert"), 8)
-            finder.setAnalysisScope(SortConst("colour"), 7)
+            finder.setAnalysisScope(SortConst("vert"), 8, isExact = true)
+            finder.setAnalysisScope(SortConst("colour"), 7, isExact = true)
             finder.checkSat() should be (ModelFinderResult.Unsat)
 
             // K_n is k-colourable for k > n
             finder.setTheory(resultTheory)
-            finder.setAnalysisScope(SortConst("vert"), 3)
-            finder.setAnalysisScope(SortConst("colour"), 6)
+            finder.setAnalysisScope(SortConst("vert"), 3, isExact = true)
+            finder.setAnalysisScope(SortConst("colour"), 6, isExact = true)
             finder.checkSat() should be (ModelFinderResult.Sat)
 
             model = finder.viewModel()
@@ -117,10 +117,10 @@ class CombinedModelTest extends UnitSuite {
         val parser = new SmtLibParser
         val resultTheory = parser.parse(fileStream).getOrElse(null)
 
-        Using.resource(ModelFinder.createDefault) { finder => {
+        Using.resource(new FortressZERO) { finder => {
 
-            finder.setAnalysisScope(SortConst("V1"), 2)
-            finder.setAnalysisScope(SortConst("V2"), 2)
+            finder.setAnalysisScope(SortConst("V1"), 2, isExact = true)
+            finder.setAnalysisScope(SortConst("V2"), 2, isExact = true)
             finder.setTheory(resultTheory)
             finder.countValidModels(resultTheory) should be (4)
             /**

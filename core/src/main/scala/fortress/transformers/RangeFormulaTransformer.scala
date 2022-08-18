@@ -11,8 +11,6 @@ import scala.math.min
 
 
 
-
-
 /** Introduces range formulas, restricting the output values of constants and functions.
   * Symmetry breaking is not directly performed in this step.
   * If a term already has range restriction imposed on it (for example, from symmetry breaking),
@@ -31,22 +29,22 @@ private[transformers] class RangeFormulaTransformer (useConstForDomElem: Boolean
             // Generate range constraints for constants
             val constantRangeConstraints = for {
                 c <- theory.constants
-                if !c.sort.isBuiltin && scopes.contains(c.sort)
+                if !c.sort.isBuiltin && scopes.contains(c.sort) // make sure the sort is bounded.
                 // Don't generate constraints for terms that are already restricted
                 if ! (rangeRestricts exists (_.term == c.variable))
             } yield {
-                val possibleValues = for(i <- 1 to scopes(c.sort)) yield DE(i, c.sort)
+                val possibleValues = for(i <- 1 to scopes(c.sort).size) yield DE(i, c.sort)
                 val rangeFormula = c.variable equalsOneOf possibleValues
                 rangeFormula
             }
-            
+
             // Generate range constraints for functions
             val functionRangeConstraints = new scala.collection.mutable.ListBuffer[Term]()
             for {
                 f <- theory.functionDeclarations
                 if !f.resultSort.isBuiltin && scopes.contains(f.resultSort)
             } {
-                val possibleRangeValues = for(i <- 1 to scopes(f.resultSort)) yield DE(i, f.resultSort)
+                val possibleRangeValues = for(i <- 1 to scopes(f.resultSort).size) yield DE(i, f.resultSort)
                 
                 //  f: A_1 x ... x A_n -> B
                 // and each A_i has generated domain D_i
@@ -56,13 +54,13 @@ private[transformers] class RangeFormulaTransformer (useConstForDomElem: Boolean
                 val quantifiedVarsBuffer = new scala.collection.mutable.ListBuffer[AnnotatedVar]()
                 var counter = 0
                 val seqOfDomainSeqs: IndexedSeq[IndexedSeq[Term]] = f.argSorts.toIndexedSeq.map (sort => {
-                    val Di: IndexedSeq[Term] = if (sort.isBuiltin || !scopes.contains(sort)) {
+                    val Di: IndexedSeq[Term] = if ( sort.isBuiltin || !scopes.contains(sort) ) {
                         val annotatedVar = Var("$x_" + counter.toString) of sort
                         counter += 1
                         quantifiedVarsBuffer += annotatedVar
                         IndexedSeq(annotatedVar.variable)
                     } else {
-                        for(j <- 1 to scopes(sort)) yield DE(j, sort)
+                        for(j <- 1 to scopes(sort).size) yield DE(j, sort)
                     }
                     Di
                 })
@@ -81,7 +79,13 @@ private[transformers] class RangeFormulaTransformer (useConstForDomElem: Boolean
                 }
             }
             
-            val newTheory = theory.withAxioms(constantRangeConstraints).withAxioms(functionRangeConstraints.toList)
+            val newTheory = theory
+                .withAxioms(constantRangeConstraints)
+                .withAxioms(functionRangeConstraints.toList)
+
+//            println("Theory after range formula generation:")
+//            println(newTheory + "\n-----------------------------\n")
+
             ProblemState(newTheory, scopes, skc, skf, rangeRestricts, unapplyInterp, distinctConstants)
         }
     }
