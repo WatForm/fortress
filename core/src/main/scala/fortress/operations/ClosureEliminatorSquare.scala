@@ -30,10 +30,14 @@ class ClosureEliminatorSquare(topLevelTerm: Term, signature: Signature, scopes: 
             val rel = signature.functionWithName(functionName).get
             val sort: Sort = rel.argSorts(0)
 
-            val closureName = "^" + functionName
+            val closureName = getClosureName(functionName)
+
             
             // Declare the new function representing the closure
-            closureFunctions += FuncDecl.mkFuncDecl(closureName, sort, sort, Sort.Bool)
+            val fixedSorts = getFixedSorts(functionName)
+            val fixedVars = getFixedVars(fixedSorts.length)
+            val fixedArgVars = fixedVars.zip(fixedSorts) map (pair => (pair._1.of(pair._2)))
+            closureFunctions += FuncDecl(closureName, Seq(sort, sort) ++ fixedSorts, Sort.Bool)
 
             // Set up variables (and their arguments) for axioms
             val x = Var(nameGen.freshName("x"))
@@ -50,19 +54,19 @@ class ClosureEliminatorSquare(topLevelTerm: Term, signature: Signature, scopes: 
             for (iter <- 1 to max_count(sort)){
                 // Make the next squared level
                 val iterationName = functionName + "^" + iter.toString()
-                val iterationDecl = FuncDecl.mkFuncDecl(iterationName, sort, sort, Sort.Bool)
+                val iterationDecl = FuncDecl(iterationName, Seq(sort, sort) ++ fixedSorts, Sort.Bool)
                 closureFunctions += iterationDecl
                 // Define it
-                closureAxioms += Forall(axy,
-                    Iff(App(iterationName, x, y),
+                closureAxioms += Forall(axy ++ fixedArgVars,
+                    Iff(App(iterationName, Seq(x, y) ++ fixedVars),
                         Or(
                             // At least the previous
-                            funcContains(previousRelation, x, y),
+                            funcContains(previousRelation, x, y, fixedVars),
                             // One more step
                             Exists(az,
                                 And(
-                                    funcContains(previousRelation, x, z),
-                                    funcContains(previousRelation, z, y)
+                                    funcContains(previousRelation, x, z, fixedVars),
+                                    funcContains(previousRelation, z, y, fixedVars)
                                 )
                             )
                         )
@@ -72,16 +76,16 @@ class ClosureEliminatorSquare(topLevelTerm: Term, signature: Signature, scopes: 
                 previousRelation = iterationName
             }
             // Define the closure itself
-            closureAxioms += Forall(axy,
-                    Iff(App(closureName, x, y),
+            closureAxioms += Forall(axy ++ fixedArgVars,
+                    Iff(App(closureName, Seq(x, y) ++ fixedVars),
                         Or(
                             // At least the previous
-                            funcContains(previousRelation, x, y),
+                            funcContains(previousRelation, x, y, fixedVars),
                             // One more step
                             Exists(az,
                                 And(
-                                    funcContains(previousRelation, x, z),
-                                    funcContains(previousRelation, z, y)
+                                    funcContains(previousRelation, x, z, fixedVars),
+                                    funcContains(previousRelation, z, y, fixedVars)
                                 )
                             )
                         )
@@ -98,7 +102,7 @@ class ClosureEliminatorSquare(topLevelTerm: Term, signature: Signature, scopes: 
                 // Closure has not been expanded. Do so now!
                 expandClosure(functionName)
             }
-            App(closureName, c.arguments).mapArguments(visit)
+            App(closureName, c.allArguments).mapArguments(visit)
         }
         // TODO support more arguments
         override def visitReflexiveClosure(rc: ReflexiveClosure): Term = {
@@ -114,15 +118,23 @@ class ClosureEliminatorSquare(topLevelTerm: Term, signature: Signature, scopes: 
                 }
                 val rel = signature.functionWithName(functionName).get
                 val sort = rel.argSorts(0)
-                closureFunctions += FuncDecl.mkFuncDecl(reflexiveClosureName, sort, sort, Sort.Bool)
+
+                val fixedSorts = getFixedSorts(functionName)
+                val fixedVars = getFixedVars(fixedSorts.length)
+                val fixedArgVars = fixedVars.zip(fixedSorts) map (pair => (pair._1.of(pair._2)))
+
+                closureFunctions += FuncDecl(reflexiveClosureName, Seq(sort, sort) ++ fixedSorts, Sort.Bool)
                 
                 val x = Var(nameGen.freshName("x"))
                 val y = Var(nameGen.freshName("y"))
                 val axy = List(x.of(sort), y.of(sort))
-                closureAxioms += Forall(axy,
-                    Iff(App(reflexiveClosureName, x, y),
+
+                
+
+                closureAxioms += Forall(axy ++ fixedArgVars,
+                    Iff(App(reflexiveClosureName, Seq(x, y) ++ fixedVars),
                         Or(
-                            App(closureName, x, y),
+                            App(closureName, Seq(x, y) ++ fixedVars),
                             Eq(x,y)
                         )
 
@@ -130,7 +142,7 @@ class ClosureEliminatorSquare(topLevelTerm: Term, signature: Signature, scopes: 
                 )
             }
 
-            App(reflexiveClosureName, rc.arguments).mapArguments(visit)
+            App(reflexiveClosureName, rc.allArguments).mapArguments(visit)
         }
     }
 }

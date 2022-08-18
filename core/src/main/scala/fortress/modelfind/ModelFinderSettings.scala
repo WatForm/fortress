@@ -26,7 +26,7 @@ trait ModelFinderSettings extends ModelFinder {
         timeoutMilliseconds = milliseconds
     }
     
-    override def setAnalysisScope(sort: Sort, size: Int, isExact: Boolean): Unit = {
+    override def setAnalysisScope(sort: Sort, size: Int, isExact: Boolean = true): Unit = {
         Errors.Internal.precondition(size > 0)
         Errors.Internal.precondition(!(sort.name == "Bool"), "Cannot set analysis scope for bool sort.")
         // note that IntSort scopes are specified in bitwidth

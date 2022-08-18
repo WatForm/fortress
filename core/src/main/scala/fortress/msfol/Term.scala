@@ -219,7 +219,7 @@ object App
 extends ConcreteFactory[App, (String, Seq[Term])] ( (t: (String, Seq[Term])) => new App(t._1, t._2) )
 with Caching[App, (String, Seq[Term])] {
     def apply(functionName: String, arguments: Seq[Term]): App = create((functionName, arguments))
-    def apply(functionName: String, args: Term*): Term = App(functionName, args.toList)
+    def apply(functionName: String, args: Term*)(implicit d: DummyImplicit): App = App(functionName, args.toList)
 }
 
 case class BuiltinApp private (function: BuiltinFunction, arguments: Seq[Term]) extends Term {
@@ -331,32 +331,32 @@ case class IfThenElse private (condition: Term, ifTrue: Term, ifFalse: Term) ext
 }
 
 /** Represents a transitive closure application. */
-case class Closure private (functionName: String, arg1: Term, arg2: Term) extends Term {
+case class Closure private (functionName: String, arg1: Term, arg2: Term, fixedArgs: Seq[Term] = Seq()) extends Term {
     Errors.Internal.precondition(functionName.length >= 1, "Empty function name in transitive closure")
     // Errors.Internal.precondition(arguments.size >= 2, "Function application ^" + functionName + " should have at least 2 arguments")
 
-    def arguments: Seq[Term] = Seq(arg1, arg2)
-    def getArguments: java.util.List[Term] = Seq(arg1, arg2).asJava
+    def allArguments: Seq[Term] = Seq(arg1, arg2) ++ fixedArgs
+    def getArguments: java.util.List[Term] = allArguments.asJava
     def getFunctionName: String = functionName
     override def accept[T](visitor: TermVisitor[T]): T  = visitor.visitClosure(this)
     def mapArguments(mapping: Term => Term): Term =
-        Closure(functionName, mapping(arg1), mapping(arg2))
+        Closure(functionName, mapping(arg1), mapping(arg2), fixedArgs.map(mapping))
 
-    override def toString: String = "^" + functionName + "(" + arg1.toString() + ", " + arg2.toString() + ")"
+    override def toString: String = "^" + functionName + "(" + allArguments.map(_.toString()).reduce(_ + ", " + _)  + ")"
 }
 
 /** Represents a reflexive transitive closure application. */
-case class ReflexiveClosure private (functionName: String, arg1: Term, arg2: Term) extends Term {
+case class ReflexiveClosure private (functionName: String, arg1: Term, arg2: Term, fixedArgs: Seq[Term] = Seq()) extends Term {
     Errors.Internal.precondition(functionName.length >= 1, "Empty function name in reflexive transitive closure")
     // Errors.Internal.precondition(arguments.size >= 2, "Function application *" + functionName + " should have at least 2 arguments")
-    def arguments: Seq[Term] = Seq(arg1, arg2)
-    def getArguments: java.util.List[Term] = Seq(arg1, arg2).asJava
+    def allArguments: Seq[Term] = Seq(arg1, arg2) ++ fixedArgs
+    def getArguments: java.util.List[Term] = allArguments.asJava
     def getFunctionName: String = functionName
     override def accept[T](visitor: TermVisitor[T]): T  = visitor.visitReflexiveClosure(this)
     def mapArguments(mapping: Term => Term): Term =
-        ReflexiveClosure(functionName, mapping(arg1), mapping(arg2))
+        ReflexiveClosure(functionName, mapping(arg1), mapping(arg2), fixedArgs.map(mapping))
 
-    override def toString: String = "*" + functionName + "(" + arg1.toString() + ", " + arg2.toString() + ")"
+    override def toString: String = "*" + functionName + "(" + allArguments.map(_.toString()).reduce(_ + ", " + _)  + ")"
 }
 
 /** Companion object for Term. */

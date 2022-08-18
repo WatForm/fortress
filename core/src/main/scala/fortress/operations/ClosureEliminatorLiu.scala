@@ -19,7 +19,11 @@ class ClosureEliminatorLiu(topLevelTerm: Term, signature: Signature, scopes: Map
             val closureName = getClosureName(functionName)
             val p = nameAuxFunction(closureName)
 
-            closureFunctions += FuncDecl.mkFuncDecl(p, sort, sort, Sort.Int)
+            val fixedSorts = getFixedSorts(functionName)
+            val fixedVars = getFixedVars(fixedSorts.length)
+            val fixedArgVars = fixedVars.zip(fixedSorts) map (pair => (pair._1.of(pair._2)))
+
+            closureFunctions += FuncDecl(p, Seq(sort, sort) ++ fixedSorts, Sort.Int)
 
             val x = Var(nameGen.freshName("x"))
             val y = Var(nameGen.freshName("y"))
@@ -29,33 +33,33 @@ class ClosureEliminatorLiu(topLevelTerm: Term, signature: Signature, scopes: Map
             val az = z.of(sort)
             
             // It takes 1 step in original function
-            closureAxioms += Forall(axy,
+            closureAxioms += Forall(axy ++ fixedArgVars,
                 Iff(
-                    funcContains(functionName, x, y),
-                    Term.mkEq(App(p,x,y), IntegerLiteral(1))
+                    funcContains(functionName, x, y, fixedVars),
+                    Term.mkEq(App(p, Seq(x,y) ++ fixedVars), IntegerLiteral(1))
                 )
             )
             // P remains positive
-            closureAxioms += Forall(axyz,
+            closureAxioms += Forall(axyz ++ fixedArgVars,
                 Implication(
                     And(
-                        Term.mkGT(App(p,x,y), IntegerLiteral(0)),
-                        Term.mkGT(App(p,y,z), IntegerLiteral(0)),
+                        Term.mkGT(App(p, Seq(x,y) ++ fixedVars), IntegerLiteral(0)),
+                        Term.mkGT(App(p, Seq(y,z) ++ fixedVars), IntegerLiteral(0)),
                     ),
-                    Term.mkGT(App(p,x,z), IntegerLiteral(0))
+                    Term.mkGT(App(p, Seq(x,z) ++ fixedVars), IntegerLiteral(0))
                 )
             )
 
             // Take a step
-            closureAxioms += Forall(axy,
+            closureAxioms += Forall(axy ++ fixedArgVars,
                 Implication(
-                    Term.mkGT(App(p,x,y), IntegerLiteral(1)),
+                    Term.mkGT(App(p, Seq(x,y) ++ fixedVars), IntegerLiteral(1)),
                     Exists(az,
                         And(
-                            Term.mkEq(App(p,x,z), IntegerLiteral(1)),
+                            Term.mkEq(App(p, Seq(x,z) ++ fixedVars), IntegerLiteral(1)),
                             Term.mkEq(
-                                App(p,x,y),
-                                Term.mkPlus(App(p,z,y), IntegerLiteral(1))
+                                App(p, Seq(x,y) ++ fixedVars),
+                                Term.mkPlus(App(p, Seq(z,y) ++ fixedVars), IntegerLiteral(1))
                             )
                         )
                     )
@@ -82,21 +86,25 @@ class ClosureEliminatorLiu(topLevelTerm: Term, signature: Signature, scopes: Map
                 val y = Var(nameGen.freshName("y"))
                 val axy = List(x.of(sort), y.of(sort))
 
+                val fixedSorts = getFixedSorts(functionName)
+                val fixedVars = getFixedVars(fixedSorts.length)
+                val fixedArgVars = fixedVars.zip(fixedSorts) map (pair => (pair._1.of(pair._2)))
+
 
                 // Reflexive Closure when P > 0 or x = y
-                closureFunctions += FuncDecl.mkFuncDecl(reflexiveClosureName, sort, sort, Sort.Bool)
-                closureAxioms += Forall(axy,
+                closureFunctions += FuncDecl(reflexiveClosureName, Seq(sort, sort) ++ fixedSorts, Sort.Bool)
+                closureAxioms += Forall(axy ++ fixedArgVars,
                     Iff(
-                        App(reflexiveClosureName,x,y),
+                        App(reflexiveClosureName, Seq(x,y) ++ fixedVars),
                         Or(
-                            Term.mkGT(App(p,x,y), IntegerLiteral(0)),
+                            Term.mkGT(App(p, Seq(x,y) ++ fixedVars), IntegerLiteral(0)),
                             Eq(x,y)
                         )
                     )
                 )
             }
 
-            App(reflexiveClosureName, Seq(rc.arg1, rc.arg2)).mapArguments(visit)
+            App(reflexiveClosureName, Seq(rc.arg1, rc.arg2) ++ rc.fixedArgs).mapArguments(visit)
         }
 
         override def visitClosure(c: Closure): Term = {
@@ -119,17 +127,22 @@ class ClosureEliminatorLiu(topLevelTerm: Term, signature: Signature, scopes: Map
                 val x = Var(nameGen.freshName("x"))
                 val y = Var(nameGen.freshName("y"))
                 val axy = List(x.of(sort), y.of(sort))
+
+                val fixedSorts = getFixedSorts(functionName)
+                val fixedVars = getFixedVars(fixedSorts.length)
+                val fixedArgVars = fixedVars.zip(fixedSorts) map (pair => (pair._1.of(pair._2)))
+
                 // Closure when P > 0
-                closureFunctions += FuncDecl.mkFuncDecl(closureName, sort, sort, Sort.Bool)
-                closureAxioms += Forall(axy,
+                closureFunctions += FuncDecl(closureName, Seq(sort, sort) ++ fixedSorts, Sort.Bool)
+                closureAxioms += Forall(axy ++ fixedArgVars,
                     Iff(
-                        App(closureName,x,y),
-                        Term.mkGT(App(p,x,y), IntegerLiteral(0))
+                        App(closureName, Seq(x,y) ++ fixedVars),
+                        Term.mkGT(App(p, Seq(x,y) ++ fixedVars), IntegerLiteral(0))
                     )
                 )
             }
 
-            App(closureName, Seq(c.arg1, c.arg2)).mapArguments(visit)
+            App(closureName, Seq(c.arg1, c.arg2) ++ c.fixedArgs).mapArguments(visit)
         }
 
     }
