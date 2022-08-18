@@ -61,7 +61,6 @@ trait LogicCompiler {
                 }
             }
         }
-        
         Right(Result)
     }
 

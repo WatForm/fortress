@@ -81,9 +81,9 @@ public class LatinSquareClue {
             finder.setTheory(latinSquareTheory);
             
             // Set the scopes of the model finder
-            finder.setAnalysisScope(Row, gridLength);
-            finder.setAnalysisScope(Col, gridLength);
-            finder.setAnalysisScope(Num, gridLength);
+            finder.setExactScope(Row, gridLength);
+            finder.setExactScope(Col, gridLength);
+            finder.setExactScope(Num, gridLength);
             
             // Check if all axioms in the theory are satisfiable
             ModelFinderResult result = finder.checkSat();

@@ -156,7 +156,7 @@ class VerifyInterpretationTests extends UnitSuite {
             Using.resource(ModelFinder.createDefault) { finder => {
                 try {
                         finder.setTheory(theory)
-                        finder.setAnalysisScope(fruit, 5, isExact = true)
+                        finder.setExactScope(fruit, 5)
                         finder.checkSat()
                 } catch {
                         case e: Throwable => e.printStackTrace()

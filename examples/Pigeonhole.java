@@ -56,8 +56,8 @@ public class Pigeonhole {
             finder.setTheory(pigeonholeTheory);
             
             // Set the scopes of the model finder
-            finder.setAnalysisScope(P, numPigeons, false);
-            finder.setAnalysisScope(H, numHoles, true);
+            finder.setExactScope(P, numPigeons);
+            finder.setExactScope(H, numHoles);
             // Check if all axioms in the theory are satisfiable
             ModelFinderResult result = finder.checkSat();
             

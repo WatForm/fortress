@@ -9,5 +9,7 @@ class TheoryApplication(baseTransformer: ProblemStateTransformer) extends Theory
 
     def apply(theory: Theory, scopes: Map[Sort, Scope]): Theory = baseTransformer.apply(ProblemState(theory, scopes)).theory
 
+    def apply(theory: Theory, scopes: Map[Sort, Scope], flag: String): Map[Sort, Scope] = baseTransformer.apply(ProblemState(theory, scopes)).scopes
+
     override def name: String = baseTransformer.name
 }

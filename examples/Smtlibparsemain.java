@@ -43,7 +43,7 @@ public class Smtlibparsemain {
 			// Set all sorts to default scopes
 			for (Sort s: thy.sortsJava())  {
 				if (!(s.isBuiltin())) {
-					modelfinder.setAnalysisScope(s,scope);
+					modelfinder.setExactScope(s,scope);
 				}
 			}
 

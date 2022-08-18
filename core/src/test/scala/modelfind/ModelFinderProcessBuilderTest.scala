@@ -146,8 +146,8 @@ class ModelFinderProcessBuilderTest extends UnitSuite {
             
         Using.resource(new FortressTWO(solverInterface)) { finder => {
             finder setTheory theory
-            for ((sort, scope) <- scopes) {
-                finder.setAnalysisScope(sort, scope, isExact = true)
+            for ((sort, size) <- scopes) {
+                finder.setExactScope(sort, size)
             }
             finder.checkSat should be (ModelFinderResult.Sat)
             assertModel(finder.viewModel(), sortInterpretations, constantInterpretations, functionInterpretations)

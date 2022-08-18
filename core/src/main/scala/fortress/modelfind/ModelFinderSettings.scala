@@ -25,12 +25,26 @@ trait ModelFinderSettings extends ModelFinder {
         Errors.Internal.precondition(milliseconds >= Milliseconds(0))
         timeoutMilliseconds = milliseconds
     }
-    
-    override def setAnalysisScope(sort: Sort, size: Int, isExact: Boolean = true): Unit = {
+
+    override def setScope(sort: Sort, scope: Scope): Unit = {
+        Errors.Internal.precondition(!(sort.name == "Bool"), "Cannot set analysis scope for bool sort.")
+        Errors.Internal.precondition(scope.size>0)
+        analysisScopes = analysisScopes + (sort -> scope)
+    }
+
+    override def setExactScope(sort: Sort, size: Int): Unit = {
         Errors.Internal.precondition(size > 0)
         Errors.Internal.precondition(!(sort.name == "Bool"), "Cannot set analysis scope for bool sort.")
         // note that IntSort scopes are specified in bitwidth
-        val scope = if(isExact) ExactScope(size) else NonExactScope(size)
+        val scope = ExactScope(size)
+        analysisScopes = analysisScopes + (sort -> scope)
+    }
+
+    override def setNonExactScope(sort: Sort, size: Int): Unit = {
+        Errors.Internal.precondition(size > 0)
+        Errors.Internal.precondition(!(sort.name == "Bool"), "Cannot set analysis scope for bool sort.")
+        // note that IntSort scopes are specified in bitwidth
+        val scope = NonExactScope(size)
         analysisScopes = analysisScopes + (sort -> scope)
     }
 
