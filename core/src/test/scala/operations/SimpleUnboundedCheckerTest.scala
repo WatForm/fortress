@@ -33,6 +33,12 @@ class SimpleUnboundedCheckerTest extends UnitSuite {
         SimpleUnboundedChecker.getBoundedSort(axiom1) should be (expected)
     }
 
+    test("test") {
+        val axiom = Forall(Seq(x.of(A), y.of(A)), Term.mkClosure("closure", x, y) )
+        val expected : Set[Sort] = Set(A)
+        SimpleUnboundedChecker.getBoundedSort(axiom) should be (expected)
+    }
+
     test("terms set test") {
         val axiom1 = Exists( y of B, Forall( x of A, App("f", x) ==> App("P", y) ) )
         val axiom2 = Not(Forall( z of C, App("Q", z) ==> Bottom ))

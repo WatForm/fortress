@@ -319,14 +319,14 @@ trait CETransfomerBehaviors{ this: AnyFlatSpec =>
             
             Using.resource(manager.setupModelFinder()){ finder => {
                 finder.setTheory(goodTheory)
-                finder.setAnalysisScope(A, 3)
+                finder.setExactScope(A, 3)
                 finder.setTimeout(Seconds(10))
                 assert(finder.checkSat() == (ModelFinderResult.Sat)) 
             }}
             
             Using.resource(manager.setupModelFinder()){ finder => {
                 finder.setTheory(badTheory)
-                finder.setAnalysisScope(A, 3)
+                finder.setExactScope(A, 3)
                 finder.setTimeout(Seconds(10))
 
                 val result = finder.checkSat()
@@ -340,7 +340,7 @@ trait CETransfomerBehaviors{ this: AnyFlatSpec =>
 
             Using.resource(manager.setupModelFinder()){ finder => {
                 finder.setTheory(badTheory2)
-                finder.setAnalysisScope(A, 3)
+                finder.setExactScope(A, 3)
                 finder.setTimeout(Seconds(10))
 
                 val result = finder.checkSat()
