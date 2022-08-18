@@ -13,7 +13,13 @@ command : '(' 'declare-const' ID sort ')'             # declare_const
         | '(' 'set-logic' ID ')'                      # set_logic
         | '(' 'get-model' ')'                         # get_model
         | '(' 'exit' ')'                              # exit
+        | '(' 'define-fun' function_def ')'           # define_fun
+        | term                                        # constraint
         ;
+
+function_def : ID '(' sorted_var* ')' sort term ;
+
+sorted_var : '(' ID sort  ')' ;
 
 sort : ID                                             # sort_name
      | '(' '_' 'BitVec' NUMBER ')'                    # bv_sort

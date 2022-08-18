@@ -38,6 +38,8 @@ with ModelFinderSettings {
 
                 val finalTheory = compilerResult.get.theory
 
+                println("final theory: \n\n" + finalTheory + "\n\n")
+
                 notifyLoggers(_.allTransformersFinished(finalTheory, totalTimer.elapsedNano))
 
                 val finalResult: ModelFinderResult = solverPhase(finalTheory)
@@ -73,7 +75,7 @@ with ModelFinderSettings {
         notifyLoggers(_.solverFinished(elapsedSolverNano))
 
         notifyLoggers(_.finished(finalResult, totalTimer.elapsedNano()))
-        
+
         finalResult
     }
     
@@ -87,9 +89,9 @@ with ModelFinderSettings {
         // Different witnesses are not useful for counting interpretations
         val instance = solverSession.get.solution
             .withoutDeclarations(compilerResult.get.skipForNextInterpretation)
-            
+
         val newAxiom = Not(And.smart(instance.toConstraints.toList map (compilerResult.get.eliminateDomainElements(_))))
-        
+
         solverSession.get.addAxiom(newAxiom)
         solverSession.get.solve(timeoutMilliseconds)
     }

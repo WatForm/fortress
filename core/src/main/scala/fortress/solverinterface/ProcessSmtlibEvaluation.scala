@@ -1,15 +1,16 @@
 package fortress.solverinterface
 
 import java.io._
-
 import fortress.data.CartesianSeqProduct
 import fortress.msfol._
 import fortress.interpretation._
+import fortress.inputs._
 import fortress.modelfind._
 import fortress.util._
 import fortress.solverinterface._
 import fortress.operations.SmtlibConverter
 
+import java.util
 import scala.jdk.CollectionConverters._
 import scala.util.matching.Regex
 
@@ -19,6 +20,10 @@ trait ProcessSmtlibEvaluation extends ProcessBuilderSolver {
         Errors.Internal.assertion(processSession.nonEmpty, "Cannot get instance without a live process")
 
         val fortressNameToSmtValue: Map[String, String] = getFortressNameToSmtValueMap(theory.get)
+
+        println("--------------------------fortress name to smt value -----------------------------\n")
+        println(fortressNameToSmtValue.toString())
+        println("\n--------------------------------------------------------------------------------\n")
         
         val smtValueToDomainElement: Map[String, DomainElement] = (
             for {
@@ -26,6 +31,10 @@ trait ProcessSmtlibEvaluation extends ProcessBuilderSolver {
                 domainElement <- DomainElement.interpretName(name)
             } yield (value -> domainElement)
         ).toMap
+
+        println("--------------------------smt value to domain element -----------------------------\n")
+        println(smtValueToDomainElement.toString())
+        println("\n---------------------------------------------------------------------------------\n")
 
         // Get model and store it in a map from identifier to string tokens
         val smtInterpTokens: Map[String, Array[String]] = {
@@ -35,7 +44,11 @@ trait ProcessSmtlibEvaluation extends ProcessBuilderSolver {
             var line: String = null
             val smtInterpTokens = scala.collection.mutable.Map[String, Array[String]]()
             var currentFunc: String = null
+            println("Model from z3: \n")
             while ({line = processSession.get.readLine(); line != ")"}) {
+
+                println(line)
+
                 // Replace expressions that has space in them, such as bit vector type, bit vector
                 // expression and negative integer with their condensed form (remove spaces)
                 line = line.replaceAll(ProcessBuilderSolver.bitVecType.regex, """BitVec$1""")
@@ -53,10 +66,17 @@ trait ProcessSmtlibEvaluation extends ProcessBuilderSolver {
                     smtInterpTokens(currentFunc) ++= tokens
                 }
             }
+            println(")\n")
             smtInterpTokens.toMap
         }
 
+        println("--------------------------smt Intrepretation tokens -----------------------------\n")
+        println(smtInterpTokens.toString())
+        println("\n---------------------------------------------------------------------------------\n")
+
         object Solution extends EvaluationBasedInterpretation(theory.get.signature) {
+
+            // get constants
             override protected def evaluateConstant(c: AnnotatedVar): Value = {
                 smtValueToFortressValue(
                     fortressNameToSmtValue(c.name),
@@ -158,6 +178,30 @@ trait ProcessSmtlibEvaluation extends ProcessBuilderSolver {
                 }
             }
 
+            override protected def evaluateFunctionDefinition(): Set[FunctionDefinition] = {
+                var model: String = "";
+                processSession.get.write("(get-model)\n")
+                processSession.get.flush()
+                var line: String = processSession.get.readLine()
+                while ({line = processSession.get.readLine(); line != ")"}) {
+                    model ++= line + "\n"
+                }
+                val rawList: Either[Errors.ParserError, util.Set[FunctionDefinition]] = SmtModelParser.parse(model);
+                if (rawList.isLeft) {
+                    throw new Exception(rawList.left.get.toString)
+                }
+                var funcList = rawList.right.get.asScala.toSet
+
+                // TODO: modify!!!
+                funcList.foreach( item => {
+                    item.copy(name = NameConverter.nameWithoutAffix(item.name))
+                })
+
+//                println("FDlist: " + FDlist.right.get.toString)
+                funcList
+            }
+
+            // get sorts
             override protected def evaluateSort(sort: Sort): Seq[Value] = {
                 smtValueToDomainElement.values.filter(
                     domainElement => domainElement.sort == sort

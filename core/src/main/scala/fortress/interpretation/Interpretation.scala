@@ -22,6 +22,9 @@ trait Interpretation {
       */
     def functionInterpretations: Map[FuncDecl, Map[Seq[Value], Value]]
 
+    def functionDefinitions: Set[FunctionDefinition] = Set.empty
+
+
     /** Replaces the Values of an interpretation EnumValues, according to the given substitution map.
      * Useful for undoing Enum Elimination.
      */
@@ -30,9 +33,9 @@ trait Interpretation {
         
         new BasicInterpretation(
             sortInterpretations.map{ case(sort, values) => sort -> (values map applyMapping) }, 
-            constantInterpretations.map{ case(av, value) => av -> applyMapping(value) }, 
-            functionInterpretations.map{ case(fdecl, values) => fdecl -> (values.map{ 
-                case(args, value) => (args map applyMapping) -> applyMapping(value) } 
+            constantInterpretations.map{ case(av, value) => av -> applyMapping(value) },
+            functionInterpretations.map{ case(fdecl, values) => fdecl -> (values.map{
+                case(args, value) => (args map applyMapping) -> applyMapping(value) }
             )}
         )
     }
@@ -166,6 +169,13 @@ trait Interpretation {
                     fdecl.name + "(" + arguments.mkString(", ") + ") = " + value.toString
                 }
                 buffer ++= argLines.mkString("\n")
+            }
+        }
+
+        if(functionDefinitions.nonEmpty) {
+            buffer ++= "\nDefinitions"
+            for( item <- functionDefinitions) {
+                buffer ++= "\n" + item.toString
             }
         }
         
