@@ -266,7 +266,7 @@ class TypeChecker(signature: Signature) extends TermVisitorWithTypeContext[TypeC
         TypeCheckResult(
             // sanitizedTerm = Closure(funcName, results map (_.sanitizedTerm), c.arg1, c.arg2),
             // Which cleaning works here?
-            sanitizedTerm = Closure(funcName, c.arg1, c.arg2, c.fixedArgs),
+            sanitizedTerm = c,
             sort = BoolSort, containsConnectives = false, containsQuantifiers = false
         )
     }
@@ -311,7 +311,7 @@ class TypeChecker(signature: Signature) extends TermVisitorWithTypeContext[TypeC
         }
 
         TypeCheckResult(
-            sanitizedTerm = ReflexiveClosure(funcName, rc.arg1, rc.arg2),
+            sanitizedTerm = rc,
             sort = BoolSort, containsConnectives = false, containsQuantifiers = false
         )
     }

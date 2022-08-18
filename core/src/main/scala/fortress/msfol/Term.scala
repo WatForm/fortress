@@ -340,7 +340,7 @@ case class Closure private (functionName: String, arg1: Term, arg2: Term, fixedA
     def getFunctionName: String = functionName
     override def accept[T](visitor: TermVisitor[T]): T  = visitor.visitClosure(this)
     def mapArguments(mapping: Term => Term): Term =
-        Closure(functionName, mapping(arg1), mapping(arg2))
+        Closure(functionName, mapping(arg1), mapping(arg2), fixedArgs.map(mapping))
 
     override def toString: String = "^" + functionName + "(" + allArguments.map(_.toString()).reduce(_ + ", " + _)  + ")"
 }
@@ -354,7 +354,7 @@ case class ReflexiveClosure private (functionName: String, arg1: Term, arg2: Ter
     def getFunctionName: String = functionName
     override def accept[T](visitor: TermVisitor[T]): T  = visitor.visitReflexiveClosure(this)
     def mapArguments(mapping: Term => Term): Term =
-        ReflexiveClosure(functionName, mapping(arg1), mapping(arg2))
+        ReflexiveClosure(functionName, mapping(arg1), mapping(arg2), fixedArgs.map(mapping))
 
     override def toString: String = "*" + functionName + "(" + allArguments.map(_.toString()).reduce(_ + ", " + _)  + ")"
 }

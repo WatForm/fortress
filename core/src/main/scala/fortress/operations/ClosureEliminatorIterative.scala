@@ -114,7 +114,7 @@ class ClosureEliminatorIterative(topLevelTerm: Term, signature: Signature, scope
                 
                 val rel = signature.queryUninterpretedFunction(functionName).get
                 val sort = rel.argSorts(0)
-                closureFunctions += FuncDecl.mkFuncDecl(reflexiveClosureName, sort, sort, Sort.Bool)
+                closureFunctions += FuncDecl(reflexiveClosureName, Seq(sort, sort) ++ fixedSorts, Sort.Bool)
                 val x = Var(nameGen.freshName("x"))
                 val y = Var(nameGen.freshName("y"))
                 val avars = Seq(x.of(sort), y.of(sort)) ++ fixedArgVars

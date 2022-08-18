@@ -48,8 +48,8 @@ abstract class ClosureEliminator(topLevelTerm: Term, signature: Signature, scope
         def funcContains(fname: String, x: Term, y: Term, arguments: Seq[Term]): Term = {
             val fdecl = signature.functionWithName(fname) match {
                 case Some(fdecl) => fdecl
-                // Default to relation (we must have created this when building a closure)
-                case None => return App(fname, x, y)
+                //Default to just including the arguments
+                case None => return App(fname, Seq(x, y) ++ arguments)
             }
             
             // Depending on arity, we check membership differently

@@ -102,7 +102,7 @@ class ClosureEliminatorSquare(topLevelTerm: Term, signature: Signature, scopes: 
                 // Closure has not been expanded. Do so now!
                 expandClosure(functionName)
             }
-            App(closureName, c.arg1, c.arg2).mapArguments(visit)
+            App(closureName, c.allArguments).mapArguments(visit)
         }
         // TODO support more arguments
         override def visitReflexiveClosure(rc: ReflexiveClosure): Term = {
@@ -118,15 +118,23 @@ class ClosureEliminatorSquare(topLevelTerm: Term, signature: Signature, scopes: 
                 }
                 val rel = signature.functionWithName(functionName).get
                 val sort = rel.argSorts(0)
-                closureFunctions += FuncDecl.mkFuncDecl(reflexiveClosureName, sort, sort, Sort.Bool)
+
+                val fixedSorts = getFixedSorts(functionName)
+                val fixedVars = getFixedVars(fixedSorts.length)
+                val fixedArgVars = fixedVars.zip(fixedSorts) map (pair => (pair._1.of(pair._2)))
+
+                closureFunctions += FuncDecl(reflexiveClosureName, Seq(sort, sort) ++ fixedSorts, Sort.Bool)
                 
                 val x = Var(nameGen.freshName("x"))
                 val y = Var(nameGen.freshName("y"))
                 val axy = List(x.of(sort), y.of(sort))
-                closureAxioms += Forall(axy,
-                    Iff(App(reflexiveClosureName, x, y),
+
+                
+
+                closureAxioms += Forall(axy ++ fixedArgVars,
+                    Iff(App(reflexiveClosureName, Seq(x, y) ++ fixedVars),
                         Or(
-                            App(closureName, x, y),
+                            App(closureName, Seq(x, y) ++ fixedVars),
                             Eq(x,y)
                         )
 
@@ -134,7 +142,7 @@ class ClosureEliminatorSquare(topLevelTerm: Term, signature: Signature, scopes: 
                 )
             }
 
-            App(reflexiveClosureName, rc.arg1, rc.arg2).mapArguments(visit)
+            App(reflexiveClosureName, rc.allArguments).mapArguments(visit)
         }
     }
 }

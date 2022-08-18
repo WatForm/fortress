@@ -179,6 +179,7 @@ class ClosureEliminatorEijck(topLevelTerm: Term, signature: Signature, scopes: M
                 )
 
             }
+            println(closureFunctions)
             App(closureName, Seq(c.arg1, c.arg2) ++ c.fixedArgs).mapArguments(visit)
         }
         // TODO support more arguments
@@ -220,7 +221,7 @@ class ClosureEliminatorEijck(topLevelTerm: Term, signature: Signature, scopes: M
                 )
             }
 
-            App(reflexiveClosureName, Seq(rc.arg1, rc.arg2) ++ rc.fixedArgs).mapArguments(visit)
+            App(reflexiveClosureName, rc.allArguments).mapArguments(visit)
         }
         
     }
