@@ -477,7 +477,7 @@ class ClosureEliminatorTransformerTest extends UnitSuite {
     val B = SortConst("B")
     val C = SortConst("C")
 
-    val sortMap: Map[Sort, Int] = Map(A -> 5, B -> 5, C -> 5)
+    val sortMap: Map[Sort, Scope] = Map(A -> ExactScope(5), B -> ExactScope(5), C -> ExactScope(5))
 
     test("correct trailing sorts"){
         val f1 = FuncDecl("f1", A, A, B, C, BoolSort)
