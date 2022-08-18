@@ -31,7 +31,7 @@ trait ModelFinderSettings extends ModelFinder {
         Errors.Internal.precondition(scope.size>0)
         analysisScopes = analysisScopes + (sort -> scope)
     }
-    
+
     override def setExactScope(sort: Sort, size: Int): Unit = {
         Errors.Internal.precondition(size > 0)
         Errors.Internal.precondition(!(sort.name == "Bool"), "Cannot set analysis scope for bool sort.")

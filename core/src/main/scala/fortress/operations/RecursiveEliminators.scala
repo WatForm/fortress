@@ -23,8 +23,8 @@ object DomainElementEliminatorConstants {
             case Eq(l, r) => Eq(eliminateDomainElements(l), eliminateDomainElements(r))
             case App(fname, args) => App(fname, args.map(eliminateDomainElements))
             case BuiltinApp(function, args) => BuiltinApp(function, args map eliminateDomainElements)
-            case Closure(fname, arg1, arg2) => Closure(fname, eliminateDomainElements(arg1), eliminateDomainElements(arg2))
-            case ReflexiveClosure(fname, arg1, arg2) => ReflexiveClosure(fname, eliminateDomainElements(arg1), eliminateDomainElements(arg2))
+            case Closure(fname, arg1, arg2, args) => Closure(fname, eliminateDomainElements(arg1), eliminateDomainElements(arg2), args.map(eliminateDomainElements))
+            case ReflexiveClosure(fname, arg1, arg2, args) => ReflexiveClosure(fname, eliminateDomainElements(arg1), eliminateDomainElements(arg2), args.map(eliminateDomainElements))
             case Exists(vars, body) => Exists(vars, eliminateDomainElements(body))
             case Forall(vars, body) => Forall(vars, eliminateDomainElements(body))
             case IfThenElse(condition, ifTrue, ifFalse) =>
@@ -49,8 +49,8 @@ object DomainElementEliminatorEnums {
             case Eq(l, r) => Eq(eliminateDomainElements(l), eliminateDomainElements(r))
             case App(fname, args) => App(fname, args.map(eliminateDomainElements))
             case BuiltinApp(function, args) => BuiltinApp(function, args map eliminateDomainElements)
-            case Closure(fname, arg1, arg2) => Closure(fname, eliminateDomainElements(arg1), eliminateDomainElements(arg2))
-            case ReflexiveClosure(fname, arg1, arg2) => ReflexiveClosure(fname, eliminateDomainElements(arg1), eliminateDomainElements(arg2))
+            case Closure(fname, arg1, arg2, args) => Closure(fname, eliminateDomainElements(arg1), eliminateDomainElements(arg2), args map eliminateDomainElements)
+            case ReflexiveClosure(fname, arg1, arg2, args) => ReflexiveClosure(fname, eliminateDomainElements(arg1), eliminateDomainElements(arg2), args map eliminateDomainElements)
             case Exists(vars, body) => Exists(vars, eliminateDomainElements(body))
             case Forall(vars, body) => Forall(vars, eliminateDomainElements(body))
             case IfThenElse(condition, ifTrue, ifFalse) =>

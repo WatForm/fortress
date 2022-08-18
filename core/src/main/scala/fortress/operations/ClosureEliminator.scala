@@ -43,18 +43,40 @@ abstract class ClosureEliminator(topLevelTerm: Term, signature: Signature, scope
         def getReflexiveClosureName(name: String, idx: String = ""): String = "*" + idx + name
         def getClosureName(name: String, idx: String = ""): String = "^" + idx + name
 
-        def funcContains(fname: String, x: Term, y: Term): Term = {
+        def getFixedVars(numArgs: Int): Seq[Var] = for (n: Int <- 0 to numArgs - 1) yield Var("fa"+ n.toString())
+
+        def funcContains(fname: String, x: Term, y: Term, arguments: Seq[Term]): Term = {
             val fdecl = signature.functionWithName(fname) match {
                 case Some(fdecl) => fdecl
-                // Default to relation (we must have created this when building a closure)
-                case None => return App(fname, x, y)
+                //Default to just including the arguments
+                case None => return App(fname, Seq(x, y) ++ arguments)
             }
             
             // Depending on arity, we check membership differently
             fdecl.arity match {
+                // We ignore arguments even if we take them in for the case of arity 1 or 2 so that we can leave them in for iterative methods
                 case 1 => Eq(App(fname, x), y)
                 case 2 => App(fname, x, y)
-                case x => Errors.Internal.impossibleState("Trying to close function \""+fname+"\" with arity "+x+".")
+                case arity => {
+                    // We currently assume closing non-binary relations close over arguments 0 and 1
+                    Errors.Internal.precondition(arity == arguments.length + 2, 
+                        "Closing over a function of arity " + arity.toString() + "but arguments was length " + arguments.length.toString() + "instead of " + (arity-2).toString())
+                    App(fname, Seq[Term](x, y) ++ arguments)
+                }
+            }
+        }
+
+        // Gets the sorts for fixed arguments (everything after the first 2 args)
+        def getFixedSorts(fname: String): Seq[Sort] = signature.queryUninterpretedFunction(fname) match {
+            case None => Errors.Internal.impossibleState("Function " + fname + " does not exist when closing over it!")
+            case Some(FuncDecl(_, sorts, _)) => sorts.drop(2).toList
+        }
+
+        def getFixedAVars(fname: String): Seq[AnnotatedVar] = {
+            val fixedSorts = getFixedSorts(fname)
+            fixedSorts.zipWithIndex.map {
+                case (sort, n) =>
+                    AnnotatedVar(Var("fa" + n.toString()), sort)
             }
         }
         

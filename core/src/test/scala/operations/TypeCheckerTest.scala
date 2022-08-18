@@ -65,7 +65,7 @@ class TypeCheckerTest extends UnitSuite {
 
         val checker = new TypeChecker(sig);
         
-        an [TypeCheckException.WrongSort] should be thrownBy (checker.visitClosure(closure));
+        a [TypeCheckException.WrongSort] should be thrownBy (checker.visitClosure(closure));
     }
 
     test ("Closure with bad arguments") {
@@ -80,6 +80,40 @@ class TypeCheckerTest extends UnitSuite {
 
         val checker = new TypeChecker(sig);
         
-        an [TypeCheckException.WrongSort] should be thrownBy (checker.visitClosure(closure));
+        a [TypeCheckException.WrongSort] should be thrownBy (checker.visitClosure(closure));
+    }
+
+    test ("Closure with fixed arguments") {
+        val f = FuncDecl("f", List(A,A,B), Sort.Bool)
+        val sig = Signature.empty
+            .withSorts(A, B)
+            .withFunctionDeclaration(f)
+            .withConstants(x.of(A), y.of(A), z.of(B))
+
+        val closure = Closure("f", x, y, Seq(z))
+
+        val checker = new TypeChecker(sig)
+
+        val result = checker.visitClosure(closure)
+        
+        result.sanitizedTerm should be (closure);
+        result.sort should be (BoolSort);
+        result.containsConnectives should be (false);
+        result.containsQuantifiers should be (false);
+    }
+
+    test ("Closure with wrong fixed arguments") {
+        val f = FuncDecl("f", List(A,A,B), Sort.Bool)
+        val sig = Signature.empty
+            .withSorts(A, B)
+            .withFunctionDeclaration(f)
+            // note z is the wrong sort here
+            .withConstants(x.of(A), y.of(A), z.of(A))
+
+        val closure = Closure("f", x, y, Seq(z));
+
+        val checker = new TypeChecker(sig);
+        
+        a [TypeCheckException.WrongSort] should be thrownBy (checker.visitClosure(closure));
     }
 }

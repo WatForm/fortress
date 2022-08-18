@@ -3,6 +3,7 @@ package fortress.operations
 import fortress.msfol._
 import fortress.util.Errors
 import fortress.util.NameConverter._
+import java.sql.Ref
 
 class SmtlibConverter(writer: java.io.Writer) {
 
@@ -102,6 +103,9 @@ class SmtlibConverter(writer: java.io.Writer) {
             case BuiltinApp(BvSignedLT, args) => writeGeneralApp("bvslt", args)
             case BuiltinApp(BvSignedGE, args) => writeGeneralApp("bvsge", args)
             case BuiltinApp(BvSignedGT, args) => writeGeneralApp("bvsgt", args)
+
+            case Closure(_, _, _, _) => Errors.Internal.impossibleState("Cannot convert Closure to smtlib")
+            case ReflexiveClosure(_, _, _, _) =>  Errors.Internal.impossibleState("Cannot convert Reflexive Closure to smtlib")
         }
         
         def writeGeneralApp(functionName: String, args: Seq[Term]): Unit = {

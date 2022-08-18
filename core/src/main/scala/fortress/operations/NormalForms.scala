@@ -35,10 +35,10 @@ object NormalForms {
         case App(fname, args) => App(fname, args map nnf)
         case Not(App(fname, args)) => Not(App(fname, args map nnf)) 
 
-        case Closure(fname, arg1, arg2) => Closure(fname, nnf(arg1), nnf(arg2))
-        case Not(Closure(fname, arg1, arg2)) => Not(Closure(fname, nnf(arg1), nnf(arg2)))
-        case ReflexiveClosure(fname, arg1, arg2) => ReflexiveClosure(fname, nnf(arg1), nnf(arg2))
-        case Not(ReflexiveClosure(fname, arg1, arg2)) => Not(ReflexiveClosure(fname, nnf(arg1), nnf(arg2)))
+        case Closure(fname, arg1, arg2, args) => Closure(fname, nnf(arg1), nnf(arg2), args.map(nnf))
+        case Not(Closure(fname, arg1, arg2, args)) => Not(Closure(fname, nnf(arg1), nnf(arg2), args.map(nnf)))
+        case ReflexiveClosure(fname, arg1, arg2, args) => ReflexiveClosure(fname, nnf(arg1), nnf(arg2), args.map(nnf))
+        case Not(ReflexiveClosure(fname, arg1, arg2, args)) => Not(ReflexiveClosure(fname, nnf(arg1), nnf(arg2), args.map(nnf)))
             
         case Eq(l, r) => Eq(nnf(l), nnf(r))
         case Not(Eq(l, r)) => Not(Eq(nnf(l), nnf(r))) // Not that Eq does not compare booleans
