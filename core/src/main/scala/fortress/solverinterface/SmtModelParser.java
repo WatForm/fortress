@@ -15,13 +15,14 @@ import javax.imageio.IIOException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 public class SmtModelParser{
 
     public SmtModelParser() {}
 
-    public static Either<Errors.ParserError, Set<FunctionDefinition>> parse(String str) throws IOException {
+    public static Either<Errors.ParserError, Set<FunctionDefinition>> parse(String str, Map<String, DomainElement> smtValueToDomainElement) throws IOException {
         CharStream inputStream = CharStreams.fromString(str);
         SmtLibSubsetLexer lexer = new StopAtFirstErrorSmtLibLexer(inputStream);
         CommonTokenStream tokens = new CommonTokenStream(lexer);
@@ -34,7 +35,7 @@ public class SmtModelParser{
         if (parser.getNumberOfSyntaxErrors() >= 1)
             return null;
 
-        SmtModelVisitor visitor = new SmtModelVisitor();
+        SmtModelVisitor visitor = new SmtModelVisitor(smtValueToDomainElement);
         visitor.visit(tree);
         Set<FunctionDefinition> functionDefinitions = visitor.getFunctionDefinitions();
         return new Right<>(functionDefinitions);

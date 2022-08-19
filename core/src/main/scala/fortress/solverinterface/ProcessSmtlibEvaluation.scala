@@ -186,18 +186,28 @@ trait ProcessSmtlibEvaluation extends ProcessBuilderSolver {
                 while ({line = processSession.get.readLine(); line != ")"}) {
                     model ++= line + "\n"
                 }
-                val rawList: Either[Errors.ParserError, util.Set[FunctionDefinition]] = SmtModelParser.parse(model);
+                val rawList: Either[Errors.ParserError, util.Set[FunctionDefinition]] = SmtModelParser.parse(model, smtValueToDomainElement.asJava);
                 if (rawList.isLeft) {
                     throw new Exception(rawList.left.get.toString)
                 }
                 var funcList = rawList.right.get.asScala.toSet
 
-                // TODO: modify!!!
-                funcList.foreach( item => {
-                    item.copy(name = NameConverter.nameWithoutAffix(item.name))
-                })
+//                funcList.foreach(i => {println(i.name)})
 
-//                println("FDlist: " + FDlist.right.get.toString)
+                funcList = {for(func <- funcList) yield func.copy(
+                    name = NameConverter.nameWithoutAffix(func.name)
+                )}.toSet
+                funcList = funcList.filterNot(func => fortressNameToSmtValue.contains(func.name))
+
+//                val funcNameSet: Set[String] = theory.get.signature.functionDeclarations.map(item => { item.name }).toSet
+
+//                println("funcNameSet: " + funcNameSet)
+
+//                funcList = funcList.filterNot(func => funcNameSet.contains(func.name) )
+
+
+                println("Function Definitions: \n" + funcList.map(_.toString))
+
                 funcList
             }
 
