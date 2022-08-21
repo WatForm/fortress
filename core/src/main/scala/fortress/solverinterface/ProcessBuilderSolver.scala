@@ -16,6 +16,7 @@ import scala.util.matching.Regex
 trait ProcessBuilderSolver extends SolverSession {
     protected var processSession: Option[ProcessSession] = None
     protected var theory: Option[Theory] = None
+    protected var scopes: Option[Map[Sort, Scope]] = None
     
     @throws(classOf[java.io.IOException])
     override def close(): Unit = {
@@ -23,6 +24,17 @@ trait ProcessBuilderSolver extends SolverSession {
     }
     
     protected override def finalize(): Unit = close()
+
+    def getModel: String = {
+        var model: String = ""
+        processSession.get.write("(get-model)\n")
+        processSession.get.flush()
+        var line: String = processSession.get.readLine()
+        while ({line = processSession.get.readLine(); line != ")"}) {
+            model ++= line + "\n"
+        }
+        model
+    }
 }
 
 object ProcessBuilderSolver {

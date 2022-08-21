@@ -14,7 +14,7 @@ abstract class EvaluationBasedInterpretation(sig: Signature) extends Interpretat
     protected def evaluateFunction(f: FuncDecl, scopes: Map[Sort, Int]): Map[Seq[Value], Value]
     protected def evaluateFunctionDefinition(): Set[FunctionDefinition]
     
-    private def scopes: Map[Sort, Int] = for((sort, seq) <- sortInterpretations) yield (sort -> seq.size)
+    protected def scopes: Map[Sort, Int] = for((sort, seq) <- sortInterpretations) yield (sort -> seq.size)
     
     // Use vals and not defs - want to move information out of the solver immediately
     // in case we want to close the connection to it

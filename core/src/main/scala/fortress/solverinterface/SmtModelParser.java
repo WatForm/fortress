@@ -1,6 +1,7 @@
 package fortress.solverinterface;
 
 import fortress.inputs.*;
+import fortress.interpretation.BasicInterpretation;
 import fortress.interpretation.Interpretation;
 import fortress.msfol.*;
 import fortress.util.Errors;
@@ -8,6 +9,8 @@ import org.antlr.v4.runtime.CharStream;
 import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.tree.ParseTree;
+import scala.collection.Seq;
+import scala.collection.immutable.HashMap;
 import scala.util.Either;
 import scala.util.Right;
 
@@ -22,23 +25,32 @@ public class SmtModelParser{
 
     public SmtModelParser() {}
 
-    public static Either<Errors.ParserError, Set<FunctionDefinition>> parse(String str, Map<String, DomainElement> smtValueToDomainElement) throws IOException {
-        CharStream inputStream = CharStreams.fromString(str);
-        SmtLibSubsetLexer lexer = new StopAtFirstErrorSmtLibLexer(inputStream);
-        CommonTokenStream tokens = new CommonTokenStream(lexer);
-        SmtLibSubsetParser parser = new SmtLibSubsetParser(tokens);
+    public static SmtModelVisitor parse(String str) throws IOException {
+
+        CharStream inputStream = CharStreams.fromString(str); // get inputStream from input string(model return from smt solver)
+
+        SmtLibSubsetLexer lexer = new StopAtFirstErrorSmtLibLexer(inputStream); // lexer
+
+        CommonTokenStream tokens = new CommonTokenStream(lexer); // tokens
+
+        SmtLibSubsetParser parser = new SmtLibSubsetParser(tokens); // parser
 
         // Use the "give up" error handler for parser
         parser.setErrorHandler(new StopAtFirstErrorStrategy());
 
-        ParseTree tree = parser.commands();
+        ParseTree tree = parser.commands(); // get syntax tree
+
         if (parser.getNumberOfSyntaxErrors() >= 1)
             return null;
 
-        SmtModelVisitor visitor = new SmtModelVisitor(smtValueToDomainElement);
+        SmtModelVisitor visitor = new SmtModelVisitor();
         visitor.visit(tree);
-        Set<FunctionDefinition> functionDefinitions = visitor.getFunctionDefinitions();
-        return new Right<>(functionDefinitions);
+
+//        Map<Sort, Seq<Value>> sortInterpretations = visitor.getSortInterpretations();
+//        Map<AnnotatedVar, Value> constantInterpretations = visitor.getConstantInterpretations();
+//        Set<FunctionDefinition> functionDefinitions = visitor.getFunctionDefinitions();
+
+        return visitor;
     }
 
 }

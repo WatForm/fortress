@@ -11,9 +11,6 @@ import scala.annotation.varargs
 case class FunctionDefinition(name: String, argSortedVar: Set[AnnotatedVar], resultSort: Sort, body: Term) {
     override def toString: String = {
         var str = name + " ("
-//        argSortedVar.foreach(arg => {
-//            str += arg.toString + ", "
-//        })
         val n = argSortedVar.toList.size
         for (i <- 0 until n) {
             str += argSortedVar.toList(i).toString

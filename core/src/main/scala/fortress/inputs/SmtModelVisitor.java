@@ -9,10 +9,12 @@ import fortress.interpretation.*;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import fortress.util.Errors;
 import org.antlr.v4.runtime.tree.ParseTree;
 import scala.collection.JavaConverters.*;
 
 import org.antlr.v4.runtime.misc.Interval;
+import scala.collection.Seq;
 
 import java.lang.Void;
 
@@ -23,32 +25,59 @@ import java.lang.Void;
  */
 
 public class SmtModelVisitor extends SmtLibVisitor{
-    private Interpretation interpretation;
-    private Set<FunctionDefinition> functionDefinitions = null;
 
-    private Map<String, DomainElement> smtValueToDomainElement;
+//    private Signature signature;
+//    private Map<Sort, Scope> scopeMap;
+//    private Interpretation interpretation;
+//    private Map<Sort, Seq<Value>> sortInterpretations;
+//    private Map<AnnotatedVar, Value> constantInterpretations;
+    private Set<FunctionDefinition> functionDefinitions;
 
-    public SmtModelVisitor(Map<String, DomainElement> smtValueToDomainElement) {
-        this.interpretation = BasicInterpretation.empty();
+    private Map<String, DomainElement> smtValue2DomainElement = new HashMap<>();
+
+    private Map<String, String> fortressName2SmtValue = new HashMap<>();
+
+    String pattern = ".+!val![0-9]*$";
+
+
+
+    public SmtModelVisitor() {
+//        this.signature = signature;
+//        this.scopeMap = scopeMap;
+//        this.sortInterpretations = new HashMap<>();
+//        this.constantInterpretations = new HashMap<>();
         this.functionDefinitions = new HashSet<>();
-        this.smtValueToDomainElement = smtValueToDomainElement;
-        System.out.println("smtValueToDomainElement: " + smtValueToDomainElement);
     }
 
-    public Interpretation getItp() {
-        return interpretation;
-    }
 
     public Set<FunctionDefinition> getFunctionDefinitions() {
         return functionDefinitions;
+    }
+    public Map<String, String> getFortressName2SmtValue() { return fortressName2SmtValue; }
+    public Map<String, DomainElement> getSmtValue2DomainElement() { return smtValue2DomainElement; }
+
+    @Override
+    public Void visitDeclare_fun(SmtLibSubsetParser.Declare_funContext ctx) {
+        // '(' 'declare-fun' ID '(' sort* ')' sort ')'    # declare_fun
+        assert ctx.sort().size()==1 : "There shouldn't be more than one sort in the declare-fun of return smt model.";
+        Sort sort = (Sort)visit(ctx.sort(0));
+        String name = ctx.ID().getText();   //     H!val!0
+        assert name.matches(pattern): "Parse error, exit code: 1";
+        String[] temp = name.split("!val!");   // "H!val!0" => "H" "0"
+        assert temp.length == 2: "Parse error, exit code: 2";
+        assert temp[0].equals(sort.name()): "Parse error, exit code: 3";
+        DomainElement domainElement = Term.mkDomainElement(Integer.parseInt(temp[1]), sort);
+        this.smtValue2DomainElement.put(name, domainElement);
+        this.fortressName2SmtValue.put(domainElement.toString(), name);
+        return null;
     }
 
 
     @Override
     public Term visitVar(SmtLibSubsetParser.VarContext ctx) {
         String varName = ctx.getText();
-        if(smtValueToDomainElement.containsKey(varName)) {
-            varName = this.smtValueToDomainElement.get(varName).toString();
+        if(smtValue2DomainElement.containsKey(varName)) {
+            varName = this.smtValue2DomainElement.get(varName).toString();
             return DomainElement.interpretName(varName).get();
         }
         return Term.mkVar(varName);
@@ -63,19 +92,16 @@ public class SmtModelVisitor extends SmtLibVisitor{
     }
 
     @Override
-    public Void visitFunction_def(SmtLibSubsetParser.Function_defContext ctx) {
-        String name = ctx.ID().getText(); // function name
-        // arg list, ex: a:A
+    public Void visitDefine_fun(SmtLibSubsetParser.Define_funContext ctx) {
+        //'(' 'define-fun' ID '(' sorted_var* ')' sort term ')'
+        String name = ctx.ID().getText();
         Set<AnnotatedVar> args = new HashSet<>();
-        int sorted_var_num = ctx.sorted_var().size();
-        for (int i = 0; i < sorted_var_num; i++) {
-            args.add(visitSorted_var(ctx.sorted_var(i)));
+        int argNum = ctx.sorted_var().size();
+        for(int i=0; i<argNum; i++) {
+            args.add( visitSorted_var( ctx.sorted_var(i) ) );
         }
-        // save return type as a Sort
         Sort resultSort = (Sort)visit(ctx.sort());
-        // save function body as a term
         Term body = (Term)visit(ctx.term());
-        // transfer java.util.Set to scala.util.Set
         this.functionDefinitions.add(FunctionDefinition.mkFunctionDefinition(name, args, resultSort, body));
         return null;
     }

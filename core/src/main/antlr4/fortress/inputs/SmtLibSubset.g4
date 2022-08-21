@@ -4,20 +4,20 @@ grammar SmtLibSubset;
 
 commands : command+ ;
 
-command : '(' 'declare-const' ID sort ')'             # declare_const
-        | '(' 'declare-fun' ID '(' sort* ')' sort ')' # declare_fun
-        | '(' 'declare-sort' ID '0' ')'               # declare_sort
-	    | '(' 'assert' term ')'                       # assert
-        | '(' 'check-sat' ')'                         # check_sat
-        | '(' 'set-info' attribute ')'                # set_info
-        | '(' 'set-logic' ID ')'                      # set_logic
-        | '(' 'get-model' ')'                         # get_model
-        | '(' 'exit' ')'                              # exit
-        | '(' 'define-fun' function_def ')'           # define_fun
-        | term                                        # constraint
+command : '(' 'declare-const' ID sort ')'                           # declare_const
+        | '(' 'declare-fun' ID '(' sort* ')' sort ')'               # declare_fun
+        | '(' 'declare-sort' ID '0' ')'                             # declare_sort
+	    | '(' 'assert' term ')'                                     # assert
+        | '(' 'check-sat' ')'                                       # check_sat
+        | '(' 'set-info' attribute ')'                              # set_info
+        | '(' 'set-logic' ID ')'                                    # set_logic
+        | '(' 'get-model' ')'                                       # get_model
+        | '(' 'exit' ')'                                            # exit
+        | '(' 'define-fun' ID '(' sorted_var* ')' sort term ')'     # define_fun
+        | term                                                      # constraint
         ;
 
-function_def : ID '(' sorted_var* ')' sort term ;
+//function_def : ID '(' sorted_var* ')' sort term ;
 
 sorted_var : '(' ID sort  ')' ;
 

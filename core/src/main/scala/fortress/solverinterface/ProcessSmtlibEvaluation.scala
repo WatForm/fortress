@@ -179,20 +179,14 @@ trait ProcessSmtlibEvaluation extends ProcessBuilderSolver {
             }
 
             override protected def evaluateFunctionDefinition(): Set[FunctionDefinition] = {
-                var model: String = "";
-                processSession.get.write("(get-model)\n")
-                processSession.get.flush()
-                var line: String = processSession.get.readLine()
-                while ({line = processSession.get.readLine(); line != ")"}) {
-                    model ++= line + "\n"
-                }
+
+                val model:String = getModel
+
                 val rawList: Either[Errors.ParserError, util.Set[FunctionDefinition]] = SmtModelParser.parse(model, smtValueToDomainElement.asJava);
                 if (rawList.isLeft) {
                     throw new Exception(rawList.left.get.toString)
                 }
                 var funcList = rawList.right.get.asScala.toSet
-
-//                funcList.foreach(i => {println(i.name)})
 
                 funcList = {for(func <- funcList) yield func.copy(
                     name = NameConverter.nameWithoutAffix(func.name)
@@ -243,7 +237,7 @@ trait ProcessSmtlibEvaluation extends ProcessBuilderSolver {
     }
 
     // transfer smt values to fortress values
-    private def smtValueToFortressValue(
+    protected def smtValueToFortressValue(
         value: String,
         sort: Sort,
         smtValueToDomainElement: Map[String, DomainElement]

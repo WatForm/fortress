@@ -14,6 +14,7 @@ trait SolverSession extends AutoCloseable {
     
     // No event loggers, lower level
     def setTheory(theory: Theory): Unit
+    def setScope(scope: Map[Sort, Scope]): Unit
     def addAxiom(axiom: Term): Unit
     def solve(timeoutMillis: Milliseconds): ModelFinderResult
     def solution: Interpretation

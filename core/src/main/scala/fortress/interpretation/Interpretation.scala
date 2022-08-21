@@ -20,9 +20,9 @@ trait Interpretation {
     /** Maps a function symbol to a mathematical function.
       * The function is represented as a Map itself.
       */
-    def functionInterpretations: Map[FuncDecl, Map[Seq[Value], Value]]
+    def functionInterpretations: Map[FuncDecl, Map[Seq[Value], Value]] = Map.empty
 
-    def functionDefinitions: Set[FunctionDefinition] = Set.empty
+    def functionDefinitions: Set[FunctionDefinition]
 
 
     /** Replaces the Values of an interpretation EnumValues, according to the given substitution map.
@@ -36,7 +36,8 @@ trait Interpretation {
             constantInterpretations.map{ case(av, value) => av -> applyMapping(value) },
             functionInterpretations.map{ case(fdecl, values) => fdecl -> (values.map{
                 case(args, value) => (args map applyMapping) -> applyMapping(value) }
-            )}
+            )},
+            functionDefinitions
         )
     }
     
@@ -92,7 +93,8 @@ trait Interpretation {
         new BasicInterpretation(
             sortInterpretations,
             constantInterpretations -- constants,
-            functionInterpretations
+            functionInterpretations,
+            functionDefinitions
         )
     }
     
@@ -110,7 +112,8 @@ trait Interpretation {
         new BasicInterpretation(
             sortInterpretations + (sort -> values),
             constantInterpretations,
-            functionInterpretations
+            functionInterpretations,
+            functionDefinitions
         )
     }
 
@@ -144,7 +147,7 @@ trait Interpretation {
     override def toString: String = {
         val buffer = new mutable.StringBuilder
         
-        buffer ++= "Sorts\n"
+        buffer ++= "Sorts:\n"
         
         val sortLines = for((sort, values) <- sortInterpretations) yield {
             sort.toString + ": " + values.mkString(", ")
@@ -152,15 +155,22 @@ trait Interpretation {
         buffer ++= sortLines.mkString("\n")
         
         if(constantInterpretations.nonEmpty) {
-            buffer ++= "\nConstants\n"
+            buffer ++= "\nConstants: \n"
             val constLines = for((const, value) <- constantInterpretations) yield {
                 const.toString + " = " + value.toString
             }
             buffer ++= constLines.mkString("\n")
         }
-        
+
+        if(functionDefinitions.nonEmpty) {
+            buffer ++= "\nFunction Definitions:"
+            for( item <- functionDefinitions) {
+                buffer ++= "\n" + item.toString
+            }
+        }
+
         if(functionInterpretations.nonEmpty) {
-            buffer ++= "\nFunctions"
+            buffer ++= "\nFunctions values: "
             for {
                 (fdecl, map) <- functionInterpretations
             } {
@@ -172,13 +182,6 @@ trait Interpretation {
             }
         }
 
-        if(functionDefinitions.nonEmpty) {
-            buffer ++= "\nDefinitions"
-            for( item <- functionDefinitions) {
-                buffer ++= "\n" + item.toString
-            }
-        }
-        
         buffer.toString
     }
     

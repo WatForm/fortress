@@ -15,6 +15,10 @@ import scala.util.matching.Regex
 
 trait IncrementalProcessBuilderSolver extends ProcessBuilderSolver {
 
+    override def setScope(scope: Map[Sort, Scope]): Unit = {
+        this.scopes = Some(scope)
+    }
+
     override def setTheory(theory: Theory): Unit = {
         this.theory = Some(theory)
         processSession.foreach(_.close())

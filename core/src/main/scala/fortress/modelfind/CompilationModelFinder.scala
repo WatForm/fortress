@@ -38,7 +38,7 @@ with ModelFinderSettings {
 
                 val finalTheory = compilerResult.get.theory
 
-                println("final theory: \n\n" + finalTheory + "\n\n")
+                println("final theory: \n" + finalTheory + "\n\n")
 
                 notifyLoggers(_.allTransformersFinished(finalTheory, totalTimer.elapsedNano))
 
@@ -64,6 +64,7 @@ with ModelFinderSettings {
         notifyLoggers(_.convertingToSolverFormat())
         val (_, elapsedConvertNano) = measureTime[Unit] {
             session.setTheory(finalTheory)
+            session.setScope(analysisScopes)
         }
         notifyLoggers(_.convertedToSolverFormat(elapsedConvertNano))
 
@@ -98,6 +99,9 @@ with ModelFinderSettings {
 
     override def countValidModels(newTheory: Theory): Int = {
         theory = newTheory
+
+        Errors.Internal.precondition(theory.signature.sorts.size == analysisScopes.size,
+            "Sorry, we can't count valid models for a theory with unbounded sorts")
         
         checkSat() match {
             case SatResult =>
