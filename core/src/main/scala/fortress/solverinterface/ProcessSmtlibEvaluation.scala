@@ -58,6 +58,7 @@ trait ProcessSmtlibEvaluation extends ProcessBuilderSolver {
 
         object Solution extends EvaluationBasedInterpretation(theory.get.signature) {
             override protected def evaluateConstant(c: AnnotatedVar): Value = {
+                println("debug123: " + c.name)
                 smtValueToFortressValue(
                     fortressNameToSmtValue(c.name),
                     c.sort,
@@ -159,6 +160,7 @@ trait ProcessSmtlibEvaluation extends ProcessBuilderSolver {
             }
 
             override protected def evaluateSort(sort: Sort): Seq[Value] = {
+                println("debug124: " + sort.name)
                 smtValueToDomainElement.values.filter(
                     domainElement => domainElement.sort == sort
                 ).toIndexedSeq
