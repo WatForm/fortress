@@ -180,18 +180,13 @@ trait ProcessSmtlibEvaluation extends ProcessBuilderSolver {
 
             override protected def evaluateFunctionDefinition(): Set[FunctionDefinition] = {
 
-                val model:String = getModel
-
-                val rawList: Either[Errors.ParserError, util.Set[FunctionDefinition]] = SmtModelParser.parse(model, smtValueToDomainElement.asJava);
-                if (rawList.isLeft) {
-                    throw new Exception(rawList.left.get.toString)
-                }
-                var funcList = rawList.right.get.asScala.toSet
-
-                funcList = {for(func <- funcList) yield func.copy(
-                    name = NameConverter.nameWithoutAffix(func.name)
-                )}.toSet
-                funcList = funcList.filterNot(func => fortressNameToSmtValue.contains(func.name))
+//                val model:String = getModel
+//
+//                val visitor: SmtModelVisitor = SmtModelParser.parse(model, theory.get.signature);
+//
+//                var funcList = visitor.getFunctionDefinitions.asScala
+//
+//                funcList = funcList.filterNot(func => fortressNameToSmtValue.contains(func.name))
 
 //                val funcNameSet: Set[String] = theory.get.signature.functionDeclarations.map(item => { item.name }).toSet
 
@@ -200,9 +195,9 @@ trait ProcessSmtlibEvaluation extends ProcessBuilderSolver {
 //                funcList = funcList.filterNot(func => funcNameSet.contains(func.name) )
 
 
-                println("Function Definitions: \n" + funcList.map(_.toString))
+//                println("Function Definitions: \n" + funcList.map(_.toString))
 
-                funcList
+                Set.empty
             }
 
             // get sorts

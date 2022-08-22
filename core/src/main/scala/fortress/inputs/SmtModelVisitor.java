@@ -10,6 +10,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import fortress.util.Errors;
+import fortress.util.NameConverter;
 import org.antlr.v4.runtime.tree.ParseTree;
 import scala.collection.JavaConverters.*;
 
@@ -26,7 +27,8 @@ import java.lang.Void;
 
 public class SmtModelVisitor extends SmtLibVisitor{
 
-//    private Signature signature;
+    private Signature signature;
+//    private Set<AnnotatedVar> constants;
 //    private Map<Sort, Scope> scopeMap;
 //    private Interpretation interpretation;
 //    private Map<Sort, Seq<Value>> sortInterpretations;
@@ -41,8 +43,9 @@ public class SmtModelVisitor extends SmtLibVisitor{
 
 
 
-    public SmtModelVisitor() {
-//        this.signature = signature;
+    public SmtModelVisitor(Signature signature) {
+        this.signature = signature;
+//        this.constants = (Set<AnnotatedVar>) this.signature.constants();
 //        this.scopeMap = scopeMap;
 //        this.sortInterpretations = new HashMap<>();
 //        this.constantInterpretations = new HashMap<>();
@@ -66,7 +69,7 @@ public class SmtModelVisitor extends SmtLibVisitor{
         String[] temp = name.split("!val!");   // "H!val!0" => "H" "0"
         assert temp.length == 2: "Parse error, exit code: 2";
         assert temp[0].equals(sort.name()): "Parse error, exit code: 3";
-        DomainElement domainElement = Term.mkDomainElement(Integer.parseInt(temp[1]), sort);
+        DomainElement domainElement = Term.mkDomainElement(Integer.parseInt(temp[1])+1, sort);
         this.smtValue2DomainElement.put(name, domainElement);
         this.fortressName2SmtValue.put(domainElement.toString(), name);
         return null;
@@ -95,14 +98,17 @@ public class SmtModelVisitor extends SmtLibVisitor{
     public Void visitDefine_fun(SmtLibSubsetParser.Define_funContext ctx) {
         //'(' 'define-fun' ID '(' sorted_var* ')' sort term ')'
         String name = ctx.ID().getText();
-        Set<AnnotatedVar> args = new HashSet<>();
+        // faa -> f
+        name = NameConverter.nameWithoutAffix(name);
         int argNum = ctx.sorted_var().size();
+        Set<AnnotatedVar> args = new HashSet<>();
         for(int i=0; i<argNum; i++) {
             args.add( visitSorted_var( ctx.sorted_var(i) ) );
         }
         Sort resultSort = (Sort)visit(ctx.sort());
         Term body = (Term)visit(ctx.term());
         this.functionDefinitions.add(FunctionDefinition.mkFunctionDefinition(name, args, resultSort, body));
+        this.fortressName2SmtValue.put(name, body.toString());
         return null;
     }
 

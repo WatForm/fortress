@@ -59,7 +59,8 @@ trait Interpretation {
                 }
             }
         }
-        new BasicInterpretation(newSortInterps, newConstInterps, newFunctionInterps)
+        // TODO: what to do on functionDefinitions
+        new BasicInterpretation(newSortInterps, newConstInterps, newFunctionInterps, functionDefinitions)
     }
     
     /** Shows only the parts of the interpretation which are in the given signature. */
@@ -67,7 +68,13 @@ trait Interpretation {
         val newSortInterps = sortInterpretations filter { case(sort, values) => signature hasSort sort }
         val newConstInterps = constantInterpretations filter { case(const, value) => signature.constants contains const }
         val newFunctionInterps = functionInterpretations filter {case(fdecl, mapping) => signature.functionDeclarations contains fdecl }
-        new BasicInterpretation(newSortInterps, newConstInterps, newFunctionInterps)
+        val newFunctionDefinitions = functionDefinitions filter { fd => {
+            for( item <- signature.functionDeclarations ) {
+                if( item.name == fd.name ) true
+            }
+            false
+        } }
+        new BasicInterpretation(newSortInterps, newConstInterps, newFunctionInterps, newFunctionDefinitions)
     }
 
     /** Removes the given declarations from the interpretation. */
@@ -103,7 +110,9 @@ trait Interpretation {
         new BasicInterpretation(
             sortInterpretations,
             constantInterpretations,
-            functionInterpretations -- funcDecls
+            functionInterpretations -- funcDecls,
+            // TODO: what to do on functionDefinitions
+            functionDefinitions
         )
     }
 
@@ -146,8 +155,10 @@ trait Interpretation {
 
     override def toString: String = {
         val buffer = new mutable.StringBuilder
-        
-        buffer ++= "Sorts:\n"
+
+        buffer ++= "+------------------------------View Model------------------------------+\n"
+
+        buffer ++= "\nSorts:\n"
         
         val sortLines = for((sort, values) <- sortInterpretations) yield {
             sort.toString + ": " + values.mkString(", ")
@@ -155,7 +166,7 @@ trait Interpretation {
         buffer ++= sortLines.mkString("\n")
         
         if(constantInterpretations.nonEmpty) {
-            buffer ++= "\nConstants: \n"
+            buffer ++= "\n\nConstants: \n"
             val constLines = for((const, value) <- constantInterpretations) yield {
                 const.toString + " = " + value.toString
             }
@@ -163,9 +174,9 @@ trait Interpretation {
         }
 
         if(functionDefinitions.nonEmpty) {
-            buffer ++= "\nFunction Definitions:"
+            buffer ++= "\n\nFunction Definitions:\n"
             for( item <- functionDefinitions) {
-                buffer ++= "\n" + item.toString
+                buffer ++= item.toString
             }
         }
 
@@ -181,6 +192,8 @@ trait Interpretation {
                 buffer ++= argLines.mkString("\n")
             }
         }
+
+        buffer ++= "+----------------------------------------------------------------------+\n"
 
         buffer.toString
     }

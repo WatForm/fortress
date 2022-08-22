@@ -16,34 +16,81 @@ trait ProcessSmtlibParser extends ProcessBuilderSolver {
 
         val model: String = getModel
 
-        val visitor: SmtModelVisitor = SmtModelParser.parse(model)
+        println("model from z3: \n" + model + "\n")
 
-        val functionDefinitions: mutable.Set[FunctionDefinition] = visitor.getFunctionDefinitions.asScala
+        val visitor: SmtModelVisitor = SmtModelParser.parse(model, theory.get.signature)
+
+        val rawFunctionDefinitions: mutable.Set[FunctionDefinition] = visitor.getFunctionDefinitions.asScala
 
         val fortressName2SmtValue: mutable.Map[String, String] = visitor.getFortressName2SmtValue.asScala
 
         val smtValue2DomainElement: mutable.Map[String, DomainElement] = visitor.getSmtValue2DomainElement.asScala
 
-        object Solution extends ParserBasedInterpretation(signature = theory.get.signature, scopeMap = scopes.get) {
-            override protected def evaluateConstant(c: AnnotatedVar): Value = {
-                smtValueToFortressValue(fortressName2SmtValue(c.name), )
+        println("functionDefinitions: \n" + rawFunctionDefinitions + "\n")
+
+        println("fortressName2SmtValue: \n" + fortressName2SmtValue + "\n")
+
+        println("smtValue2DomainElement: \n" + smtValue2DomainElement + "\n")
+
+        object Solution extends ParserBasedInterpretation(theory.get.signature, scopes.get) {
+            override protected def getConstant(c: AnnotatedVar): Value = {
+                smtValueToFortressValue(
+                    fortressName2SmtValue(c.name),
+                    c.sort,
+                    smtValue2DomainElement
+                )
             }
 
-            override protected def evaluateSort(s: Sort): Seq[Value] = ???
+            override protected def getSort(s: Sort): Seq[Value] = {
+                smtValue2DomainElement.values.filter(
+                    domainElement => domainElement.sort == s
+                ).toIndexedSeq
+            }
 
-            override protected def evaluateFunction(f: FuncDecl, scopes: Map[Sort, Int]): Map[Seq[Value], Value] = ???
+            override protected def getFunctionDefinitions: Set[FunctionDefinition] = {
+                rawFunctionDefinitions.filter( item => {
+                    var flag: Boolean = false
+                    for( f <- theory.get.signature.functionDeclarations ) {
+                        if( f.name == item.name ) flag = true
+                    }
+                    flag
+                })
+            }.toSet
 
-            override protected def evaluateFunctionDefinition(): Set[FunctionDefinition] = ???
+            override protected def getFunctionValues(f: FuncDecl, scopes: Map[Sort, Int]): Map[Seq[Value], Value] = {
+                if( theory.get.signature.sorts.size == scopes.size ) {
+                    Map.empty
+                    // TODO: use ruomei's method
+                }
+                else Map.empty
+            }
+
+            /** Maps a sort to a sequence of values. */
+            override def sortInterpretations: Map[Sort, Seq[Value]] = {
+                for(sort<-theory.get.signature.sorts) yield sort -> getSort(sort)
+            }.toMap ++ (theory.get.signature.enumConstants transform ((_, v) => v.map(x => DomainElement.interpretName(x.name).get)))
+
+            /** Maps a constant symbol to a value. */
+            override def constantInterpretations: Map[AnnotatedVar, Value] = {
+                for{
+                    c <- theory.get.signature.constants
+                    if DomainElement.interpretName(c.name).isEmpty
+                } yield (c -> getConstant(c))
+            }.toMap
+
+            override def functionInterpretations: Map[FuncDecl, Map[Seq[Value], Value]] = {
+                for( f <- theory.get.signature.functionDeclarations ) yield (f -> getFunctionValues(f, scopes))
+            }.toMap
+
+            override def functionDefinitions: Set[FunctionDefinition] = getFunctionDefinitions
         }
-
-
-        null
+        Solution
     }
 
     protected def smtValueToFortressValue(
          value: String,
          sort: Sort,
-         smtValueToDomainElement: Map[String, DomainElement]
+         smtValueToDomainElement: mutable.Map[String, DomainElement]
      ): Value = {
         sort match {
             case SortConst(_) => {

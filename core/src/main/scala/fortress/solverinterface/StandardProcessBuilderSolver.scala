@@ -30,6 +30,10 @@ trait StandardProcessBuilderSolver extends ProcessBuilderSolver {
         val converter = new SmtlibConverter(convertedBytes)
         converter.writeTheory(theory)
     }
+
+    override def setScope(scope: Map[Sort, Scope]): Unit = {
+        this.scopes = Some(scope)
+    }
     
     override def solve(timeoutMillis: Milliseconds): ModelFinderResult = {
         processSession.foreach(_.close())

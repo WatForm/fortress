@@ -25,7 +25,7 @@ public class SmtModelParser{
 
     public SmtModelParser() {}
 
-    public static SmtModelVisitor parse(String str) throws IOException {
+    public static SmtModelVisitor parse(String str, Signature signature) throws IOException {
 
         CharStream inputStream = CharStreams.fromString(str); // get inputStream from input string(model return from smt solver)
 
@@ -43,7 +43,7 @@ public class SmtModelParser{
         if (parser.getNumberOfSyntaxErrors() >= 1)
             return null;
 
-        SmtModelVisitor visitor = new SmtModelVisitor();
+        SmtModelVisitor visitor = new SmtModelVisitor(signature);
         visitor.visit(tree);
 
 //        Map<Sort, Seq<Value>> sortInterpretations = visitor.getSortInterpretations();
