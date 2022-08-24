@@ -13,7 +13,7 @@ import fortress.operations.PythonZ3Converter
 import scala.jdk.CollectionConverters._
 import scala.util.matching.Regex
 
-trait Z3PythonProcessBuilderSolver extends ProcessBuilderSolver with ProcessZ3ApiEvaluation {
+trait Z3PythonProcessBuilderSolver extends ProcessBuilderSolver {
 
     private val convertedBytes: CharArrayWriter = new CharArrayWriter
 
@@ -52,6 +52,17 @@ trait Z3PythonProcessBuilderSolver extends ProcessBuilderSolver with ProcessZ3Ap
             case "unknown" => ModelFinderResult.Unknown
             case _ => ErrorResult(s"Unrecognized result '${resultStr}'" )
         }
+    }
+
+    override def solution: Interpretation = {
+        Errors.Internal.assertion(processSession.nonEmpty, "Cannot get instance without a live process")
+
+        object Solution extends Interpretation {
+            override def constantInterpretations: Map[AnnotatedVar,Value] = Map()
+            override def functionInterpretations: Map[FuncDecl,Map[Seq[Value],Value]] = Map()
+            override def sortInterpretations: Map[Sort,Seq[Value]] = Map()
+        }
+        Solution
     }
 
     protected def processArgs: Seq[String]

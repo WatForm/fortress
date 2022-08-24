@@ -8,7 +8,3 @@ class Z3ApiSolver extends Z3PythonProcessBuilderSolver with ProcessZ3ApiEvaluati
     // Currently no timeout implementation
     protected def timeoutArg(timeoutMillis: Milliseconds): String = ""
 }
-
-object Z3ApiSolver extends Z3ApiSolver {
-
-}
