@@ -11,7 +11,6 @@ case class TypeCheckResult(
     containsConnectives: Boolean,
     containsQuantifiers: Boolean
 )
-
 /** Given a signature and a term, typechecks the term with respect to the signature.
  * Returns a TypeCheckResult containing the sort of the term, AND a new term
  * that is equal to the old term but with instances of Eq replaced with Iff

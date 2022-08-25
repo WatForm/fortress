@@ -107,12 +107,19 @@ trait Interpretation {
     
     /** Removes the given functions from the interpretation. */
     def withoutFunctions(funcDecls: Set[FuncDecl]): Interpretation = {
+        val newFunctionDefinitions: Set[FunctionDefinition] = functionDefinitions.filter(item => {
+            var flag = true
+            for(fd <- funcDecls) {
+                if(fd.name == item.name) flag = false
+            }
+            flag
+        })
+
         new BasicInterpretation(
             sortInterpretations,
             constantInterpretations,
             functionInterpretations -- funcDecls,
-            // TODO: what to do on functionDefinitions
-            functionDefinitions
+            newFunctionDefinitions
         )
     }
 
