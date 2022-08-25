@@ -323,4 +323,30 @@ class SmtLibParserTest extends UnitSuite {
             res should be (ModelFinderResult.Sat)
         }}
     }
+
+    test("scope-info") {
+        val classLoader = getClass.getClassLoader
+        var parser = new SmtLibParser
+        var file = new File(classLoader.getResource("sample_sorts1.smt2").getFile)
+        var fileStream = new FileInputStream(file)
+        parser.parse(fileStream)
+
+        val A = SortConst("A")
+        val B = SortConst("B")
+        parser.getScopes() should contain (Entry(A, ExactScope(1)), Entry(B, ExactScope(2)))
+
+
+        parser = new SmtLibParser
+        file = new File(classLoader.getResource("sample_sorts2.smt2").getFile)
+        fileStream = new FileInputStream(file)
+        parser.parse(fileStream)
+        parser.getScopes() should contain (Entry(A, NonExactScope(1)), Entry(B, NonExactScope(2)))
+
+        parser = new SmtLibParser
+        file = new File(classLoader.getResource("sample_sorts3.smt2").getFile)
+        fileStream = new FileInputStream(file)
+        parser.parse(fileStream)
+        parser.getScopes() should contain (Entry(A, ExactScope(1)), Entry(B, NonExactScope(2)))
+
+    }
 }
