@@ -62,15 +62,18 @@ public class SmtLibParser implements TheoryParser {
         Map<Sort, Scope> scopes = new HashMap();
         String scopeInfo = this.info.getOrDefault("exact-scope", "");
         // We expect scopeInfo to be in the form "(A 5)(B 3) ..."
-        String[] exactScopes = scopeInfo.split("\)");
+        String[] exactScopes = scopeInfo.split("\\)");
+        
         // exact scopes now has "(<sort> <scope>" in each index
         for(int i = 0; i < exactScopes.length; i++){
             String info = exactScopes[i];
+            if (info.equals("")){
+                continue;
+            }
             int spaceIndex = info.lastIndexOf(' ');
             String sortName = info.substring(1, spaceIndex);
             String scopeSizeString = info.substring(spaceIndex + 1);
             int scopeSize = Integer.parseInt(scopeSizeString);
-
             Sort sort = new SortConst(sortName);
             ExactScope scope = new ExactScope(scopeSize);
             scopes.put(sort, scope);
@@ -78,10 +81,13 @@ public class SmtLibParser implements TheoryParser {
 
         scopeInfo = this.info.getOrDefault("nonexact-scope", "");
         // We expect scopeInfo to be in the form "(A 5)(B 3) ..."
-        String[] nonExactScopes = scopeInfo.split("\)");
+        String[] nonExactScopes = scopeInfo.split("\\)");
         // exact scopes now has "(<sort> <scope>" in each index
         for(int i = 0; i < nonExactScopes.length; i++){
             String info = nonExactScopes[i];
+            if (info.equals("")){
+                continue;
+            }
             int spaceIndex = info.lastIndexOf(' ');
             String sortName = info.substring(1, spaceIndex);
             String scopeSizeString = info.substring(spaceIndex + 1);
