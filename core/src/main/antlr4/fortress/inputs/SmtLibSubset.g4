@@ -7,7 +7,7 @@ commands : command+ ;
 command : '(' 'declare-const' ID sort ')'             # declare_const
         | '(' 'declare-fun' ID '(' sort* ')' sort ')' # declare_fun
         | '(' 'declare-sort' ID '0' ')'               # declare_sort
-	    | '(' 'assert' term ')'                       # assert
+	   | '(' 'assert' term ')'                       # assert
         | '(' 'check-sat' ')'                         # check_sat
         | '(' 'set-info' attribute ')'                # set_info
         | '(' 'set-logic' ID ')'                      # set_logic
@@ -40,6 +40,9 @@ term : 'true'                                         # true
      | '(' 'exists' '(' binding+ ')' term ')'         # exists
      | '(' '!' term term_attribute+ ')'               # term_with_attributes
      | ID                                             # var
+     // Expanded to support closures
+     | '(' 'closure' ID term term term* ')'           # closure
+     | '(' 'reflexive-closure' ID term term term* ')' # reflexive_closure   
 
 // Integers
      | NUMBER                                         # int_literal

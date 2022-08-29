@@ -343,8 +343,27 @@ class SmtLibParserTest extends UnitSuite {
             .withAxiom(Closure("f", x, y))
 
         resultTheory should be (expected)
+    }
 
-            
+    test("reflexive-closure") {
+        val classLoader = getClass.getClassLoader
+        val file = new File(classLoader.getResource("reflexive_closure1.smt2").getFile)
+        val fileStream = new FileInputStream(file)
+
+        val parser = new SmtLibParser
+        val resultTheory = parser.parse(fileStream).getOrElse(null)
+        
+        val A = SortConst("A")
+        val x = Var("x")
+        val y = Var("y")
+
+        val expected: Theory = Theory.empty
+            .withSorts(A)
+            .withConstants(x.of(A), y.of(A))
+            .withFunctionDeclaration(FuncDecl("f", A, A, BoolSort))
+            .withAxiom(ReflexiveClosure("f", x, y))
+
+        resultTheory should be (expected)
     }
 
     test("scope-info") {
