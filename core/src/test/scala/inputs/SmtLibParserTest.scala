@@ -323,4 +323,78 @@ class SmtLibParserTest extends UnitSuite {
             res should be (ModelFinderResult.Sat)
         }}
     }
+
+    test("closure") {
+        val classLoader = getClass.getClassLoader
+        val file = new File(classLoader.getResource("closure1.smt2").getFile)
+        val fileStream = new FileInputStream(file)
+
+        val parser = new SmtLibParser
+        val resultTheory = parser.parse(fileStream).getOrElse(null)
+        
+        val A = SortConst("A")
+        val x = Var("x")
+        val y = Var("y")
+
+        val expected: Theory = Theory.empty
+            .withSorts(A)
+            .withConstants(x.of(A), y.of(A))
+            .withFunctionDeclaration(FuncDecl("f", A, A, BoolSort))
+            .withAxiom(Closure("f", x, y))
+
+        resultTheory should be (expected)
+    }
+
+    test("reflexive-closure") {
+        val classLoader = getClass.getClassLoader
+        val file = new File(classLoader.getResource("reflexive_closure1.smt2").getFile)
+        val fileStream = new FileInputStream(file)
+
+        val parser = new SmtLibParser
+        val resultTheory = parser.parse(fileStream).getOrElse(null)
+        
+        val A = SortConst("A")
+        val x = Var("x")
+        val y = Var("y")
+
+        val expected: Theory = Theory.empty
+            .withSorts(A)
+            .withConstants(x.of(A), y.of(A))
+            .withFunctionDeclaration(FuncDecl("f", A, A, BoolSort))
+            .withAxiom(ReflexiveClosure("f", x, y))
+
+        resultTheory should be (expected)
+    }
+
+    test("scope-info") {
+        val classLoader = getClass.getClassLoader
+        var parser = new SmtLibParser
+        var file = new File(classLoader.getResource("sample_sorts1.smt2").getFile)
+        var fileStream = new FileInputStream(file)
+        parser.parse(fileStream)
+
+        val A = SortConst("A")
+        val B = SortConst("B")
+        var parsedScopes = parser.getScopes()
+        parsedScopes should contain (Entry(A, ExactScope(1)))
+        parsedScopes should contain (Entry(B, ExactScope(2)))
+
+
+        parser = new SmtLibParser
+        file = new File(classLoader.getResource("sample_sorts2.smt2").getFile)
+        fileStream = new FileInputStream(file)
+        parser.parse(fileStream)
+        parsedScopes = parser.getScopes()
+        parsedScopes should contain (Entry(A, NonExactScope(1)))
+        parsedScopes should contain (Entry(B, NonExactScope(2)))
+
+        parser = new SmtLibParser
+        file = new File(classLoader.getResource("sample_sorts3.smt2").getFile)
+        fileStream = new FileInputStream(file)
+        parser.parse(fileStream)
+        parsedScopes = parser.getScopes()
+        parsedScopes should contain (Entry(A, ExactScope(1)))
+        parsedScopes should contain (Entry(B, NonExactScope(2)))
+
+    }
 }

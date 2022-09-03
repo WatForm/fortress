@@ -7,6 +7,7 @@ import scala.jdk.CollectionConverters._
 import scala.annotation.varargs // So we can call Scala varargs methods from Java
 
 import fortress.operations.TermOps._
+import scala.collection.convert.AsJavaConverters
 
 /** A syntactic Term in the logic. */
 sealed trait Term {
@@ -504,13 +505,30 @@ object Term {
 
     def mkClosure(functionName: String, arg1: Term, arg2: Term): Term =
         Closure(functionName, arg1, arg2)
+    def mkClosure(functionName: String, arg1: Term, arg2: Term, fixedArgs: Seq[Term]): Term =
+        Closure(functionName, arg1, arg2, fixedArgs)
+    def mkClosure(functionName: String, arg1: Term, arg2: Term, fixedArgs: java.util.List[Term]): Term =
+        Closure(functionName, arg1, arg2, Seq.from(fixedArgs.asScala))
     def mkClosure(app: App, arg1: Term, arg2: Term): Term =
         Closure(app.functionName, arg1, arg2)
+    def mkClosure(app: App, arg1: Term, arg2: Term, fixedArgs: Seq[Term]): Term =
+        Closure(app.functionName, arg1, arg2, fixedArgs)
+    def mkClosure(app: App, arg1: Term, arg2: Term, fixedArgs: java.util.List[Term]): Term =
+        Closure(app.functionName, arg1, arg2, Seq.from(fixedArgs.asScala))
 
+    
     def mkReflexiveClosure(functionName: String, arg1: Term, arg2: Term): Term =
         ReflexiveClosure(functionName, arg1, arg2)
+    def mkReflexiveClosure(functionName: String, arg1: Term, arg2: Term, fixedArgs: Seq[Term]): Term =
+        ReflexiveClosure(functionName, arg1, arg2, fixedArgs)
+    def mkReflexiveClosure(functionName: String, arg1: Term, arg2: Term, fixedArgs: java.util.List[Term]): Term =
+        ReflexiveClosure(functionName, arg1, arg2, Seq.from(fixedArgs.asScala))
     def mkReflexiveClosure(app: App, arg1: Term, arg2: Term): Term =
         ReflexiveClosure(app.functionName, arg1, arg2)
+    def mkReflexiveClosure(app: App, arg1: Term, arg2: Term, fixedArgs: Seq[Term]): Term =
+        ReflexiveClosure(app.functionName, arg1, arg2, fixedArgs)
+    def mkReflexiveClosure(app: App, arg1: Term, arg2: Term, fixedArgs: java.util.List[Term]): Term =
+        ReflexiveClosure(app.functionName, arg1, arg2, Seq.from(fixedArgs.asScala))
 
     def mkPlus(t1: Term, t2: Term): Term = BuiltinApp(IntPlus, Seq(t1, t2))
     def mkNeg(t: Term): Term = BuiltinApp(IntNeg, Seq(t))

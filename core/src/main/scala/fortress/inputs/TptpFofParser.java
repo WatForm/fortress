@@ -8,6 +8,8 @@ import scala.util.Either;
 import scala.util.Left;
 
 import java.io.*;
+import java.util.HashMap;
+import java.util.Map;
 
 public class TptpFofParser implements TheoryParser {
     
@@ -38,5 +40,10 @@ public class TptpFofParser implements TheoryParser {
         TptpToFortress converter = new TptpToFortress(filePath);
         converter.visit(tree);
         return converter.getTheory();
+    }
+
+    @Override
+    public Map<Sort, Scope> getScopes(){
+        return new HashMap();
     }
 }

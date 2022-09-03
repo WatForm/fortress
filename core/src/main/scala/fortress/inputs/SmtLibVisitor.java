@@ -377,6 +377,24 @@ public class SmtLibVisitor extends SmtLibSubsetBaseVisitor {
     }
 
     @Override
+    public Term visitClosure(SmtLibSubsetParser.ClosureContext ctx) {
+        String function = ctx.ID().getText();
+        List<Term> arguments = ctx.term().stream().map(
+            t -> (Term) visit(t)
+        ).collect(Collectors.toList());
+        return Term.mkClosure(function, arguments.get(0), arguments.get(1), arguments.subList(2, arguments.size()));
+    }
+
+    @Override
+    public Term visitReflexive_closure(SmtLibSubsetParser.Reflexive_closureContext ctx) {
+        String function = ctx.ID().getText();
+        List<Term> arguments = ctx.term().stream().map(
+            t -> (Term) visit(t)
+        ).collect(Collectors.toList());
+        return Term.mkReflexiveClosure(function, arguments.get(0), arguments.get(1), arguments.subList(2, arguments.size()));
+    }
+
+    @Override
     public Term visitTerm_with_attributes(SmtLibSubsetParser.Term_with_attributesContext ctx) {
         // Ignore the attributes for now
         return (Term) visit(ctx.term());
