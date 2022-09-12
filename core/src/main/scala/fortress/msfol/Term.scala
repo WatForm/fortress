@@ -13,6 +13,9 @@ sealed trait Term {
     def accept[T](visitor: TermVisitor[T]): T
     
     def freeVarConstSymbolsJava: java.util.Set[Var] = this.freeVarConstSymbols.asJava
+
+    // for lia check
+    var isLia: Boolean = false
 }
 
 /** A term which is a value (for example, True/False, or a value of a sort). */

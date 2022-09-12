@@ -44,11 +44,58 @@ class InterpretationVerifier(theory: Theory) {
 
         // Given a function and its arguments, look inside the interpretation to find the result
         def appInterpretations(fnName: String, evaluatedArgs: Seq[Value]): Value = {
-            // Retrieve FuncDecl signature from the theory (used to index the interpretation)
-            val fnSignature = theory.signature.functionDeclarations.filter(fd => fd.name == fnName).head
-            val fnInterpretation = interpretation.functionInterpretations(fnSignature)
-            // Below type conversion is a lil sketch (narrowing conversion?)
-            fnInterpretation(evaluatedArgs.asInstanceOf[Seq[Value]])
+//            println("+--------------------------------debug begin--------------------------------+")
+//
+//            println("fnName: " + fnName)
+//            println("args: " + evaluatedArgs.mkString(" , "))
+            // get function definition by name
+            val funcDef = interpretation.functionDefinitions.filter(fd => fd.name == fnName).head
+            val formalArgs: Seq[Term] = for( item <- funcDef.argSortedVar ) yield item.variable
+            // transfer constants to domain elements, ex: p1 -> _@1P
+            val realArgs: Seq[Value] = for( item <- evaluatedArgs ) yield {
+                var temp: Value = item
+                for( a <- interpretation.constantInterpretations ) {
+                    if(a._1.variable.name == temp.toString ) temp = a._2
+                }
+                temp
+            }
+            val body = funcDef.body
+            Errors.Internal.precondition(evaluatedArgs.size == formalArgs.size, "Invalid input params.")
+            val argMap: Map[Term, Value] = formalArgs.zip(realArgs).toMap
+//            println("argMap: " + argMap)
+            val ret: Value = visitBody( body, argMap )
+//            println("return value: " + ret)
+//            println("+---------------------------------debug end---------------------------------+\n")
+            ret
+        }
+
+        def visitBody(term: Term, argMap: Map[Term, Value]): Value = term match {
+            case Top | Bottom | EnumValue(_) | DomainElement(_, _) |
+                 IntegerLiteral(_) | BitVectorLiteral(_, _) => term.asInstanceOf[Value]
+            case v @ Var(_) => argMap(v)
+            case Not(p) => boolToValue(!forceValueToBool(visitBody(p, argMap)))
+            case AndList(args) => boolToValue(args.forall(a => forceValueToBool(visitBody(a, argMap))))
+            case OrList(args) => boolToValue(args.exists(a => forceValueToBool(visitBody(a, argMap))))
+            case Distinct(args) => boolToValue(
+                args.size == args.map(a => visitBody(a, argMap)).distinct.size
+            )
+            case Implication(p, q) => boolToValue(
+                !forceValueToBool(visitBody(p, argMap)) || forceValueToBool(visitBody(q, argMap))
+            )
+            case Iff(p, q) => boolToValue(
+                forceValueToBool(visitBody(p, argMap)) == forceValueToBool(visitBody(q, argMap))
+            )
+            case Eq(l, r) => boolToValue(visitBody(l, argMap) == visitBody(r, argMap))
+            case IfThenElse(condition, ifTrue, ifFalse) => {
+                if(forceValueToBool(visitBody(condition, argMap))) visitBody(ifTrue, argMap)
+                else visitBody(ifFalse, argMap)
+            }
+            case App(fname, args) => appInterpretations(fname, args.map(arg => visitBody(arg, argMap)))
+            case BuiltinApp(fn, args) => evaluateBuiltIn(fn, args.map(arg => visitBody(arg, argMap)))
+            case _ => {
+                println("Error: get function value failed.")
+                null
+            }
         }
 
         // Given a builtin function and its arguments, run it through a throwaway Z3 solver for the result

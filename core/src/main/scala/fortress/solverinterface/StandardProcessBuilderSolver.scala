@@ -22,6 +22,10 @@ trait StandardProcessBuilderSolver extends ProcessBuilderSolver {
 
     private val convertedBytes: CharArrayWriter = new CharArrayWriter
 
+    override def setScope(scope: Map[Sort, Scope]): Unit = {
+        this.scopes = Some(scope)
+    }
+
     override def setTheory(theory: Theory): Unit = {
         this.theory = Some(theory)
         convertedBytes.reset()
@@ -29,10 +33,6 @@ trait StandardProcessBuilderSolver extends ProcessBuilderSolver {
         convertedBytes.write("(set-logic ALL)\n")
         val converter = new SmtlibConverter(convertedBytes)
         converter.writeTheory(theory)
-    }
-
-    override def setScope(scope: Map[Sort, Scope]): Unit = {
-        this.scopes = Some(scope)
     }
     
     override def solve(timeoutMillis: Milliseconds): ModelFinderResult = {

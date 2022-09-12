@@ -3,7 +3,7 @@ package fortress.interpretation
 import fortress.msfol._
 import fortress.solverinterface._
 
-abstract class ParserBasedInterpretation(signature: Signature, scopeMap: Map[Sort, Scope]) extends Interpretation {
+abstract class ParserBasedInterpretation(signature: Signature) extends Interpretation {
     protected def getConstant(c: AnnotatedVar): Value
     protected def getSort(s: Sort): Seq[Value]
     protected def getFunctionDefinitions: Set[FunctionDefinition]

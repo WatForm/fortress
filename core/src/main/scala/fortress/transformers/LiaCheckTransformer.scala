@@ -1,30 +1,8 @@
 package fortress.transformers
 import fortress.msfol._
+import fortress.operations._
 
 class LiaCheckTransformer extends ProblemStateTransformer {
-
-    def isLia(term:Term): Boolean = checkTerm(term)._1
-
-    def checkTerm(term: Term): (Boolean, Boolean) = term match {
-        case BuiltinApp(IntPlus, Seq(t1, t2)) => (isLia(t1)&isLia(t2), false)
-        case BuiltinApp(IntSub, Seq(t1, t2)) => (isLia(t1)&isLia(t2), false)
-        case BuiltinApp(IntMult, Seq(t1, t2)) => {
-            val (isLia1, hasVar1) = checkTerm(t1)
-            val (isLia2, hasVar2) = checkTerm(t2)
-            (isLia1|isLia2|(!(hasVar1&hasVar2)), hasVar1|hasVar2)
-        }
-        case Var(_) => (true, true)
-        case AndList(args) => {
-            var _isLia: Boolean = true
-            for(arg <- args) {
-                val (l, r) = checkTerm(arg)
-                _isLia = _isLia & l
-            }
-            (_isLia, false)
-        }
-        case Not(body) => checkTerm(body)
-
-    }
 
     /** Takes in a Problem, applies some transformation to it, and produces a
       * new ProblemState. Note that this does not mutate the ProblemState object, only
@@ -32,6 +10,39 @@ class LiaCheckTransformer extends ProblemStateTransformer {
     override def apply(problemState: ProblemState): ProblemState = problemState match {
         case ProblemState(theory, scopes, skolemConstants, skolemFunctions, rangeRestrictions, unapplyInterp, distinctConstants) => {
 
+            if(scopes.contains(IntSort)) {
+                var boundedSet: Set[String] = Set.empty
+                var axiomVarMap: Map[Term, Set[String]] = Map.empty
+
+                for( axiom <- problemState.theory.axioms ) {
+                    val (isLia, varSet): (Boolean, Set[String]) = LiaChecker.check(axiom)
+                    // only want IntSort
+                    varSet.filter( v => {
+                        var flag: Boolean = false
+                        for( item <- problemState.theory.signature.constants ) {
+                            if( item.variable.name == v && item.sort == IntSort) flag = true
+                        }
+                        flag
+                    })
+                    // get union of sets
+                    if(!isLia) boundedSet = boundedSet ++ varSet
+                    axiomVarMap = axiomVarMap + (axiom -> varSet)
+                }
+
+                for(axiom <- problemState.theory.axioms) {
+                    // is lia
+                    if( axiomVarMap(axiom).&(boundedSet).isEmpty ) {
+                        axiom.isLia = true
+                    }
+                }
+
+                val newSig = problemState.theory.signature.replaceIntSorts(boundedSet)
+
+                problemState.withTheory(Theory.mkTheoryWithSignature(newSig).withAxioms(problemState.theory.axioms)).withScopes(scopes)
+            }
+            else {
+                problemState
+            }
         }
     }
 

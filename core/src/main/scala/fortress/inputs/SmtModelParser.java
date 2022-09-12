@@ -1,4 +1,4 @@
-package fortress.solverinterface;
+package fortress.inputs;
 
 import fortress.inputs.*;
 import fortress.interpretation.BasicInterpretation;

@@ -130,7 +130,7 @@ case class Signature private (
     
     def replaceIntegersWithBitVectors(bitwidth: Int): Signature = {
         def replaceSort(s: Sort): Sort = s match {
-            case IntSort => BitVectorSort(bitwidth)
+            case BoundedIntSort => BitVectorSort(bitwidth)
             case _ => s
         }
         
@@ -139,6 +139,31 @@ case class Signature private (
             fdecl => FuncDecl(fdecl.name, fdecl.argSorts map replaceSort, replaceSort(fdecl.resultSort))
         )
         val newConstants = constants.map(c => c.variable of replaceSort(c.sort))
+        val newEnums = enumConstants
+        Signature(newSorts, newFunctionDeclarations, newConstants, newEnums)
+    }
+
+    def replaceIntSorts(helpSet: Set[String]): Signature = {
+        def replace(s: Sort): Sort = s match {
+            case IntSort => BoundedIntSort
+            case _ => s
+        }
+
+        val newSorts = sorts + BoundedIntSort
+        val newFunctionDeclarations = functionDeclarations.map(funcDecl => {
+            if( helpSet.contains(funcDecl.name) ) {
+                FuncDecl(funcDecl.name, funcDecl.argSorts map replace, replace(funcDecl.resultSort))
+            }
+            else{
+                funcDecl
+            }
+        })
+        val newConstants = constants.map(const => {
+            if(helpSet.contains(const.name)) {
+                const.variable of replace(const.sort)
+            }
+            else const
+        })
         val newEnums = enumConstants
         Signature(newSorts, newFunctionDeclarations, newConstants, newEnums)
     }

@@ -8,7 +8,7 @@ import scala.annotation.varargs
  */
 
 
-case class FunctionDefinition(name: String, argSortedVar: Set[AnnotatedVar], resultSort: Sort, body: Term) {
+case class FunctionDefinition(name: String, argSortedVar: Seq[AnnotatedVar], resultSort: Sort, body: Term) {
     override def toString: String = {
         var str = name + " ("
         val n = argSortedVar.toList.size
@@ -24,8 +24,8 @@ case class FunctionDefinition(name: String, argSortedVar: Set[AnnotatedVar], res
 }
 
 object FunctionDefinition {
-    def mkFunctionDefinition(name:String, argSortedVar: java.util.Set[AnnotatedVar], resultSort: Sort, body: Term): FunctionDefinition =
-        FunctionDefinition(name, argSortedVar.asScala.toSet , resultSort, body);
+    def mkFunctionDefinition(name:String, argSortedVar: java.util.List[AnnotatedVar], resultSort: Sort, body: Term): FunctionDefinition =
+        FunctionDefinition(name, argSortedVar.asScala.toSeq , resultSort, body);
 }
 
 

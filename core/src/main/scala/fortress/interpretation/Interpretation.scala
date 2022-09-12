@@ -165,23 +165,25 @@ trait Interpretation {
 
         buffer ++= "+------------------------------View Model------------------------------+\n"
 
-        buffer ++= "\nSorts:\n"
-        
-        val sortLines = for((sort, values) <- sortInterpretations) yield {
-            sort.toString + ": " + values.mkString(", ")
+        if(sortInterpretations.nonEmpty) {
+            buffer ++= "\nSorts:\n"
+            val sortLines = for((sort, values) <- sortInterpretations) yield {
+                sort.toString + ": " + values.mkString(", ")
+            }
+            buffer ++= sortLines.mkString("\n")
         }
-        buffer ++= sortLines.mkString("\n")
-        
+
         if(constantInterpretations.nonEmpty) {
             buffer ++= "\n\nConstants: \n"
             val constLines = for((const, value) <- constantInterpretations) yield {
                 const.toString + " = " + value.toString
             }
             buffer ++= constLines.mkString("\n")
+            buffer ++= "\n"
         }
 
         if(functionDefinitions.nonEmpty) {
-            buffer ++= "\n\nFunction Definitions:\n"
+            buffer ++= "\nFunction Definitions:\n"
             for( item <- functionDefinitions) {
                 buffer ++= item.toString
             }

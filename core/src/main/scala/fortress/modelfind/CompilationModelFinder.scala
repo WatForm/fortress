@@ -18,7 +18,7 @@ with ModelFinderSettings {
     // Counts the total time elapsed
     private val totalTimer: StopWatch = new StopWatch()
     private var compiler: Option[LogicCompiler] = None
-    private var solverSession: Option[SolverSession] = None
+    private var solverSession: Option[solver] = None
     private var compilerResult: Option[CompilerResult] = None
 
     /** Create a compiler using the given integer semantics. */

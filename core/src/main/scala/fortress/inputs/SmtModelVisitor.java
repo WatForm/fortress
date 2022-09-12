@@ -101,7 +101,8 @@ public class SmtModelVisitor extends SmtLibVisitor{
         // faa -> f
         name = NameConverter.nameWithoutAffix(name);
         int argNum = ctx.sorted_var().size();
-        Set<AnnotatedVar> args = new HashSet<>();
+//        Set<AnnotatedVar> args = new HashSet<>();
+        List<AnnotatedVar> args = new ArrayList<>();
         for(int i=0; i<argNum; i++) {
             args.add( visitSorted_var( ctx.sorted_var(i) ) );
         }

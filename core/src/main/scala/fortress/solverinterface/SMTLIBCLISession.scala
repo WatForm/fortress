@@ -1,22 +1,80 @@
 package fortress.solverinterface
-import fortress.inputs.{SmtModelParser, SmtModelVisitor}
-import fortress.interpretation.Interpretation
-import fortress.util.{Errors, NameConverter}
+
+import fortress.inputs._
 import fortress.interpretation._
-import fortress.msfol.{AnnotatedVar, BitVectorLiteral, BitVectorSort, BoolSort, Bottom, DomainElement, FuncDecl, FunctionDefinition, IntSort, IntegerLiteral, Sort, SortConst, Top, Value}
+import fortress.modelfind._
+import fortress.msfol._
+import fortress.operations.SmtlibConverter
+import fortress.util._
 
 import scala.jdk.CollectionConverters._
-import scala.annotation.varargs
-import scala.collection.mutable // So we can call Scala varargs methods from Java
+import java.io.CharArrayWriter
+import scala.collection.mutable
 
-trait ProcessSmtlibParser extends ProcessBuilderSolver {
+trait SMTLIBCLISession extends solver {
+    // real smt-solver process ex: z3 or cvc4
+    protected var processSession: Option[ProcessSession] = None
 
+    protected var theory: Option[Theory] = None
+
+    protected def processArgs: Seq[String]
+    protected def timeoutArg(timeoutMillis: Milliseconds): String
+
+    private val convertedBytes: CharArrayWriter = new CharArrayWriter
+
+    @throws(classOf[java.io.IOException])
+    override def close(): Unit = {
+        processSession.foreach(_.close())
+    }
+
+    override def setTheory(theory: Theory): Unit = {
+        this.theory = Some(theory)
+        convertedBytes.reset()
+        convertedBytes.write("(set-option :produce-models true)\n")
+        convertedBytes.write("(set-logic ALL)\n")
+        val converter = new SmtlibConverter(convertedBytes)
+        converter.writeTheory(theory)
+    }
+
+    override def addAxiom(axiom: Term): Unit = {
+        Errors.Internal.assertion(processSession.nonEmpty, "Cannot add axiom without a live process")
+        val converter = new SmtlibConverter(convertedBytes)
+        converter.writeAssertion(axiom)
+    }
+
+    override def solve(timeoutMillis: Milliseconds): ModelFinderResult = {
+        processSession.foreach(_.close())
+        processSession = Some(new ProcessSession( { processArgs :+ timeoutArg(timeoutMillis) }.asJava))
+        convertedBytes.writeTo(processSession.get.inputWriter)
+        processSession.get.write("(check-sat)\n")
+        processSession.get.flush()
+
+        val result = processSession.get.readLine()
+        result match {
+            case "sat" => ModelFinderResult.Sat
+            case "unsat" => ModelFinderResult.Unsat
+            case "unknown" => {
+                processSession.get.write("(get-info :reason-unknown)\n")
+                processSession.get.flush()
+
+                val reason = processSession.get.readLine()
+
+                if(reason.contains("timeout"))
+                    ModelFinderResult.Timeout
+                else
+                    ModelFinderResult.Unknown
+            }
+            case _ => ErrorResult(s"Unrecognized result '${result}'" )
+        }
+    }
+
+    // return a model if the theory is satisfiable, used by func viewModel
     override def solution: Interpretation = {
         Errors.Internal.assertion(processSession.nonEmpty, "Cannot get instance without a live process")
 
         val model: String = getModel
 
-        println("model from z3: \n" + model + "\n")
+//        println("model from z3: \n" + model + "\n")
 
         val visitor: SmtModelVisitor = SmtModelParser.parse(model, theory.get.signature)
 
@@ -26,13 +84,14 @@ trait ProcessSmtlibParser extends ProcessBuilderSolver {
 
         val smtValue2DomainElement: mutable.Map[String, DomainElement] = visitor.getSmtValue2DomainElement.asScala
 
-        println("rawFunctionDefinitions: \n" + rawFunctionDefinitions + "\n")
 
-        println("fortressName2SmtValue: \n" + fortressName2SmtValue + "\n")
+//        println("rawFunctionDefinitions: \n" + rawFunctionDefinitions + "\n")
+//
+//        println("fortressName2SmtValue: \n" + fortressName2SmtValue + "\n")
+//
+//        println("smtValue2DomainElement: \n" + smtValue2DomainElement + "\n")
 
-        println("smtValue2DomainElement: \n" + smtValue2DomainElement + "\n")
-
-        object Solution extends ParserBasedInterpretation(theory.get.signature, scopes.get) {
+        object Solution extends ParserBasedInterpretation(theory.get.signature) {
             override protected def getConstant(c: AnnotatedVar): Value = {
                 smtValueToFortressValue(
                     fortressName2SmtValue(c.name),
@@ -91,7 +150,8 @@ trait ProcessSmtlibParser extends ProcessBuilderSolver {
          value: String,
          sort: Sort,
          smtValueToDomainElement: mutable.Map[String, DomainElement]
-     ): Value = {
+    ): Value = {
+        println("*sort* : " + sort)
         sort match {
             case SortConst(_) => {
                 if (smtValueToDomainElement.keySet.contains(value))
@@ -107,7 +167,7 @@ trait ProcessSmtlibParser extends ProcessBuilderSolver {
             case IntSort => value match {
                 case ProcessBuilderSolver.negativeInteger(digits) => IntegerLiteral(-(digits.toInt))
                 case ProcessBuilderSolver.negativeIntegerCondensed(digits) => IntegerLiteral(-(digits.toInt))
-                case _ => IntegerLiteral(value.toInt)
+                case _ => IntegerLiteral(value.substring(15, value.length-1).toInt)
             }
             case BitVectorSort(bitwidth) => value match {
                 case ProcessBuilderSolver.bitVecLiteral(radix, digits) => radix match {
@@ -128,4 +188,16 @@ trait ProcessSmtlibParser extends ProcessBuilderSolver {
         }
     }
 
+
+    // get solution in smt-lib format form solver by cmd "get-model"
+    def getModel: String = {
+        var model: String = ""
+        processSession.get.write("(get-model)\n")
+        processSession.get.flush()
+        var line: String = processSession.get.readLine()
+        while ({line = processSession.get.readLine(); line != ")"}) {
+            model ++= line + "\n"
+        }
+        model
+    }
 }
