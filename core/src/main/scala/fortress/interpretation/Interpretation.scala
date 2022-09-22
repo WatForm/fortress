@@ -2,11 +2,11 @@ package fortress.interpretation
 
 import scala.collection.mutable
 import scala.jdk.CollectionConverters._
-
 import fortress.msfol._
 import fortress.operations._
 import fortress.sortinference._
 import fortress.msfol.DSL._
+import fortress.util.ArgumentListGenerator
 
 /** An interpretation of a first-order logic signature. */
 trait Interpretation {
@@ -29,7 +29,29 @@ trait Interpretation {
      * Useful for undoing Enum Elimination.
      */
     def replaceValuesWithEnums(enumMapping: Map[Value, EnumValue]): Interpretation = {
+
         def applyMapping(v: Value): Value = if (enumMapping contains v) enumMapping(v) else v
+
+        def visitBody(term: Term): Term = term match {
+            case AndList(args) => AndList(args.map(visitBody))
+            case OrList(args) => OrList(args.map(visitBody))
+            case (distinct: Distinct) => visitBody(distinct.asPairwiseNotEquals)
+            case Implication(left, right) => Implication(visitBody(left), visitBody(right))
+            case Iff(p, q) => Iff(visitBody(p), visitBody(q))
+            case Forall(vars, body) => Forall(vars, visitBody(body))
+            case Exists(vars, body) => Exists(vars, visitBody(body))
+            case Not(body) => Not(visitBody(body))
+            case App(name, args) => App(name, args.map(visitBody))
+            case Closure(name, arg1, arg2) => Closure(name, visitBody(arg1), visitBody(arg2))
+            case ReflexiveClosure(name, arg1, arg2) => ReflexiveClosure(name, visitBody(arg1), visitBody(arg2))
+            case Eq(p, q) => Eq(visitBody(p), visitBody(q))
+            case DomainElement(index, sort) => {
+                val t: Value = term.asInstanceOf[Value]
+                applyMapping(t)
+            }
+            case IfThenElse(a, b, c) => IfThenElse(visitBody(a), visitBody(b), visitBody(c))
+            case _ => term
+        }
         
         new BasicInterpretation(
             sortInterpretations.map{ case(sort, values) => sort -> (values map applyMapping) }, 
@@ -37,7 +59,14 @@ trait Interpretation {
             functionInterpretations.map{ case(fdecl, values) => fdecl -> (values.map{
                 case(args, value) => (args map applyMapping) -> applyMapping(value) }
             )},
-            functionDefinitions
+            functionDefinitions.map{ case functionDefinition: FunctionDefinition => {
+                // visit the funcBody term, replace the values with enum
+                val name: String = functionDefinition.name
+                val vars: Seq[AnnotatedVar] = functionDefinition.argSortedVar
+                val resultSort = functionDefinition.resultSort
+                val newBody: Term = visitBody(functionDefinition.body)
+                new FunctionDefinition(name, vars, resultSort, newBody)
+            } }
         )
     }
     
@@ -189,18 +218,18 @@ trait Interpretation {
             }
         }
 
-        if(functionInterpretations.nonEmpty) {
-            buffer ++= "\nFunctions values: "
-            for {
-                (fdecl, map) <- functionInterpretations
-            } {
-                buffer ++= "\n" + fdecl.toString + "\n"
-                val argLines = for((arguments, value) <- map) yield {
-                    fdecl.name + "(" + arguments.mkString(", ") + ") = " + value.toString
-                }
-                buffer ++= argLines.mkString("\n")
-            }
-        }
+//        if(functionInterpretations.nonEmpty) {
+//            buffer ++= "\nFunctions values: "
+//            for {
+//                (fdecl, map) <- functionInterpretations
+//            } {
+//                buffer ++= "\n" + fdecl.toString + "\n"
+//                val argLines = for((arguments, value) <- map) yield {
+//                    fdecl.name + "(" + arguments.mkString(", ") + ") = " + value.toString
+//                }
+//                buffer ++= argLines.mkString("\n")
+//            }
+//        }
 
         buffer ++= "+----------------------------------------------------------------------+\n"
 

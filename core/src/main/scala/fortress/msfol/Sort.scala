@@ -56,6 +56,8 @@ object BitVectorSort {
 
 object Sort {
     def mkSortConst(name: String): Sort = SortConst(name)
+
+    def mkIntSort(): Sort = IntSort
     
     val Bool: Sort = BoolSort
     val Int: Sort = IntSort

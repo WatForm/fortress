@@ -54,44 +54,53 @@ class InterpretationVerifier(theory: Theory) {
             // transfer constants to domain elements, ex: p1 -> _@1P
             val realArgs: Seq[Value] = for( item <- evaluatedArgs ) yield {
                 var temp: Value = item
-                for( a <- interpretation.constantInterpretations ) {
-                    if(a._1.variable.name == temp.toString ) temp = a._2
-                }
+                // TODO: look here! @zxt
+//                for( a <- interpretation.constantInterpretations ) {
+//                    if(a._1.variable.name == temp.toString ) temp = a._2
+//                }
                 temp
             }
             val body = funcDef.body
             Errors.Internal.precondition(evaluatedArgs.size == formalArgs.size, "Invalid input params.")
             val argMap: Map[Term, Value] = formalArgs.zip(realArgs).toMap
 //            println("argMap: " + argMap)
-            val ret: Value = visitBody( body, argMap )
+            val ret: Value = visitFunctionBody( body, argMap )
 //            println("return value: " + ret)
 //            println("+---------------------------------debug end---------------------------------+\n")
+//            println("argMap: " + argMap)
+//            println("*check*: " + fnName + "( " + evaluatedArgs.mkString(", ") + " ) = " + ret.toString )
             ret
         }
 
-        def visitBody(term: Term, argMap: Map[Term, Value]): Value = term match {
+        def visitFunctionBody(term: Term, argMap: Map[Term, Value]): Value = term match {
             case Top | Bottom | EnumValue(_) | DomainElement(_, _) |
                  IntegerLiteral(_) | BitVectorLiteral(_, _) => term.asInstanceOf[Value]
             case v @ Var(_) => argMap(v)
-            case Not(p) => boolToValue(!forceValueToBool(visitBody(p, argMap)))
-            case AndList(args) => boolToValue(args.forall(a => forceValueToBool(visitBody(a, argMap))))
-            case OrList(args) => boolToValue(args.exists(a => forceValueToBool(visitBody(a, argMap))))
+            case Not(p) => boolToValue(!forceValueToBool(visitFunctionBody(p, argMap)))
+            case AndList(args) => boolToValue(args.forall(a => forceValueToBool(visitFunctionBody(a, argMap))))
+            case OrList(args) => boolToValue(args.exists(a => forceValueToBool(visitFunctionBody(a, argMap))))
             case Distinct(args) => boolToValue(
-                args.size == args.map(a => visitBody(a, argMap)).distinct.size
+                args.size == args.map(a => visitFunctionBody(a, argMap)).distinct.size
             )
             case Implication(p, q) => boolToValue(
-                !forceValueToBool(visitBody(p, argMap)) || forceValueToBool(visitBody(q, argMap))
+                !forceValueToBool(visitFunctionBody(p, argMap)) || forceValueToBool(visitFunctionBody(q, argMap))
             )
             case Iff(p, q) => boolToValue(
-                forceValueToBool(visitBody(p, argMap)) == forceValueToBool(visitBody(q, argMap))
+                forceValueToBool(visitFunctionBody(p, argMap)) == forceValueToBool(visitFunctionBody(q, argMap))
             )
-            case Eq(l, r) => boolToValue(visitBody(l, argMap) == visitBody(r, argMap))
+            case Eq(l, r) => boolToValue(visitFunctionBody(l, argMap) == visitFunctionBody(r, argMap))
             case IfThenElse(condition, ifTrue, ifFalse) => {
-                if(forceValueToBool(visitBody(condition, argMap))) visitBody(ifTrue, argMap)
-                else visitBody(ifFalse, argMap)
+                if(forceValueToBool(visitFunctionBody(condition, argMap))) {
+//                    println(condition.toString + " true")
+                    visitFunctionBody(ifTrue, argMap)
+                }
+                else {
+//                    println(condition.toString + " false")
+                    visitFunctionBody(ifFalse, argMap)
+                }
             }
-            case App(fname, args) => appInterpretations(fname, args.map(arg => visitBody(arg, argMap)))
-            case BuiltinApp(fn, args) => evaluateBuiltIn(fn, args.map(arg => visitBody(arg, argMap)))
+            case App(fname, args) => appInterpretations(fname, args.map(arg => visitFunctionBody(arg, argMap)))
+            case BuiltinApp(fn, args) => evaluateBuiltIn(fn, args.map(arg => visitFunctionBody(arg, argMap)))
             case _ => {
                 println("Error: get function value failed.")
                 null
@@ -171,6 +180,10 @@ class InterpretationVerifier(theory: Theory) {
                 Top
             }
             case Exists(vars, body) => {
+
+                println("%%%: " + term)
+                println("%%%: " + interpretation.sortInterpretations)
+
                 val varDomains = vars.map(v =>
                     interpretation.sortInterpretations(v.sort).toIndexedSeq
                 ).toIndexedSeq

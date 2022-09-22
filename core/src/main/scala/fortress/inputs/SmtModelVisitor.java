@@ -25,17 +25,27 @@ import java.lang.Void;
       H!val!0))
  */
 
+/*
+(declare-fun P!val!0 () P)
+  (declare-fun P!val!1 () P)
+  ;; cardinality constraint:
+  (forall ((x P)) (or (= x P!val!0) (= x P!val!1)))
+  ;; -----------
+  (define-fun _@3Haa () H
+    H!val!2)
+  (define-fun _@1Paa () P
+    P!val!0)
+
+ */
+
 public class SmtModelVisitor extends SmtLibVisitor{
 
     private Signature signature;
-//    private Set<AnnotatedVar> constants;
-//    private Map<Sort, Scope> scopeMap;
-//    private Interpretation interpretation;
-//    private Map<Sort, Seq<Value>> sortInterpretations;
-//    private Map<AnnotatedVar, Value> constantInterpretations;
     private Set<FunctionDefinition> functionDefinitions;
 
+    // H!val!0 -> _@1Haa
     private Map<String, DomainElement> smtValue2DomainElement = new HashMap<>();
+
 
     private Map<String, String> fortressName2SmtValue = new HashMap<>();
 
@@ -45,10 +55,6 @@ public class SmtModelVisitor extends SmtLibVisitor{
 
     public SmtModelVisitor(Signature signature) {
         this.signature = signature;
-//        this.constants = (Set<AnnotatedVar>) this.signature.constants();
-//        this.scopeMap = scopeMap;
-//        this.sortInterpretations = new HashMap<>();
-//        this.constantInterpretations = new HashMap<>();
         this.functionDefinitions = new HashSet<>();
     }
 
@@ -68,10 +74,10 @@ public class SmtModelVisitor extends SmtLibVisitor{
         assert name.matches(pattern): "Parse error, exit code: 1";
         String[] temp = name.split("!val!");   // "H!val!0" => "H" "0"
         assert temp.length == 2: "Parse error, exit code: 2";
-        assert temp[0].equals(sort.name()): "Parse error, exit code: 3";
-        DomainElement domainElement = Term.mkDomainElement(Integer.parseInt(temp[1])+1, sort);
-        this.smtValue2DomainElement.put(name, domainElement);
-        this.fortressName2SmtValue.put(domainElement.toString(), name);
+        assert temp[0].equals(sort.name()): "Parse error, exit code: 3"; // "H"
+//        DomainElement domainElement = Term.mkDomainElement(Integer.parseInt(temp[1])+1, sort);
+        this.smtValue2DomainElement.put(name, null);
+//        this.fortressName2SmtValue.put(domainElement.toString(), name);
         return null;
     }
 
@@ -79,10 +85,10 @@ public class SmtModelVisitor extends SmtLibVisitor{
     @Override
     public Term visitVar(SmtLibSubsetParser.VarContext ctx) {
         String varName = ctx.getText();
-        if(smtValue2DomainElement.containsKey(varName)) {
-            varName = this.smtValue2DomainElement.get(varName).toString();
-            return DomainElement.interpretName(varName).get();
-        }
+//        if(smtValue2DomainElement.containsKey(varName)) {
+//            varName = this.smtValue2DomainElement.get(varName).toString();
+//            return DomainElement.interpretName(varName).get();
+//        }
         return Term.mkVar(varName);
     }
 
@@ -107,9 +113,36 @@ public class SmtModelVisitor extends SmtLibVisitor{
             args.add( visitSorted_var( ctx.sorted_var(i) ) );
         }
         Sort resultSort = (Sort)visit(ctx.sort());
+
+        String funcBody = ctx.term().getText();
+
+        System.out.println("funcbody: " + funcBody);
+
+        if( smtValue2DomainElement.containsKey(funcBody) ) {  // H!val!0
+            if(name.startsWith("_@")) { // _@1H
+                DomainElement de = DomainElement.interpretName(name).get();
+                smtValue2DomainElement.put(funcBody, de);
+            }
+        }
+
+//        if( smtValue2DomainElement.containsKey(funcBody)) {
+//            DomainElement value = smtValue2DomainElement.get(funcBody);
+//            for( Map.Entry<String, DomainElement> entry : smtValue2DomainElement.entrySet()) {
+//                String key = entry.getKey();
+//                DomainElement de = entry.getValue();
+//                if( de.toString().equals(name) ) {
+////                    System.out.println("debug* : " + name);
+//                    smtValue2DomainElement.put(funcBody, de);
+//                    smtValue2DomainElement.put( key, value );
+////                    System.out.println("@@@: " + funcBody + " ==> " + de.toString());
+//                    break;
+//                }
+//            }
+//        }
+
         Term body = (Term)visit(ctx.term());
         this.functionDefinitions.add(FunctionDefinition.mkFunctionDefinition(name, args, resultSort, body));
-        this.fortressName2SmtValue.put(name, body.toString());
+        this.fortressName2SmtValue.put(name, funcBody);
         return null;
     }
 

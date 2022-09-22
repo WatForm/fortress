@@ -43,6 +43,8 @@ object ProcessBuilderSolver {
     val bitVecLiteral: Regex = """^#(.)(.+)$""".r
     val bitVecExpr: Regex = """\(_ bv(\d+) (\d+)\)""".r
     val bitVecExprCondensed: Regex = """(\d+)aaBitVecExpraa(\d+)""".r
-    val negativeInteger: Regex = """\(- (\d+)\)""".r
+    val negativeInteger: Regex = """\(- ?(\d+)\)""".r
     val negativeIntegerCondensed: Regex = """aaNegativeIntaa(\d+)""".r
+
+    val  BitVectorLiteral: Regex = """BitVectorLiteral.+""".r
 }

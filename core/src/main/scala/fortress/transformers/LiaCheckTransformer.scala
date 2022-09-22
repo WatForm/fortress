@@ -16,6 +16,8 @@ class LiaCheckTransformer extends ProblemStateTransformer {
 
                 for( axiom <- problemState.theory.axioms ) {
                     val (isLia, varSet): (Boolean, Set[String]) = LiaChecker.check(axiom)
+
+                    println(isLia + " " + varSet)
                     // only want IntSort
                     varSet.filter( v => {
                         var flag: Boolean = false
@@ -29,16 +31,25 @@ class LiaCheckTransformer extends ProblemStateTransformer {
                     axiomVarMap = axiomVarMap + (axiom -> varSet)
                 }
 
-                for(axiom <- problemState.theory.axioms) {
-                    // is lia
-                    if( axiomVarMap(axiom).&(boundedSet).isEmpty ) {
-                        axiom.isLia = true
+//                val n = problemState.theory.axioms.count(axiom => axiom.isLia)
+                var flag: Boolean = false
+                do {
+                    flag = false
+                    for(axiom <- problemState.theory.axioms) {
+                        if( axiomVarMap(axiom).&(boundedSet).nonEmpty && axiom.isLia ) {
+                            axiom.isLia = false
+                            boundedSet = boundedSet ++ axiomVarMap(axiom)
+                            flag = true
+                        }
                     }
-                }
+                } while (flag)
+
 
                 val newSig = problemState.theory.signature.replaceIntSorts(boundedSet)
+                val newTheory = Theory.mkTheoryWithSignature(newSig).withAxioms(problemState.theory.axioms)
 
-                problemState.withTheory(Theory.mkTheoryWithSignature(newSig).withAxioms(problemState.theory.axioms)).withScopes(scopes)
+                ProblemState(newTheory, scopes, skolemConstants, skolemFunctions, rangeRestrictions, unapplyInterp, distinctConstants)
+
             }
             else {
                 problemState

@@ -390,6 +390,13 @@ public class SmtLibVisitor extends SmtLibSubsetBaseVisitor {
     }
 
     @Override
+    public Term visitInt_zero(SmtLibSubsetParser.Int_zeroContext ctx) {
+        int constant = Integer.parseInt(ctx.ZERO().getText());
+        System.out.println("###: " + constant);
+        return new IntegerLiteral(constant);
+    }
+
+    @Override
     public Term visitNeg(SmtLibSubsetParser.NegContext ctx) {
         Term argument = (Term) visit(ctx.term());
         return Term.mkNeg(argument);

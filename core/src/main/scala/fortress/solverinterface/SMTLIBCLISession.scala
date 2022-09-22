@@ -4,9 +4,9 @@ import fortress.inputs._
 import fortress.interpretation._
 import fortress.modelfind._
 import fortress.msfol._
-import fortress.operations.SmtlibConverter
+import fortress.operations._
 import fortress.util._
-
+import scala.util.matching.Regex
 import scala.jdk.CollectionConverters._
 import java.io.CharArrayWriter
 import scala.collection.mutable
@@ -27,25 +27,67 @@ trait SMTLIBCLISession extends solver {
         processSession.foreach(_.close())
     }
 
+//    override def setTheory(theory: Theory): Unit = {
+//        this.theory = Some(theory)
+//        convertedBytes.reset()
+//        convertedBytes.write("(set-option :produce-models true)\n")
+//        convertedBytes.write("(set-logic ALL)\n")
+//        val converter = new SmtlibConverter(convertedBytes)
+//        converter.writeTheory(theory)
+//    }
+
     override def setTheory(theory: Theory): Unit = {
         this.theory = Some(theory)
-        convertedBytes.reset()
-        convertedBytes.write("(set-option :produce-models true)\n")
-        convertedBytes.write("(set-logic ALL)\n")
-        val converter = new SmtlibConverter(convertedBytes)
+        processSession.foreach(_.close())
+        processSession = Some(new ProcessSession(processArgs.asJava))
+        // Convert & write theory
+        val writer = processSession.get.inputWriter
+        writer.write("(set-option :produce-models true)\n")
+        writer.write("(set-logic ALL)\n")
+        val converter = new SmtlibConverter(writer)
         converter.writeTheory(theory)
     }
 
+//    override def addAxiom(axiom: Term): Unit = {
+//        Errors.Internal.assertion(processSession.nonEmpty, "Cannot add axiom without a live process")
+//        val converter = new SmtlibConverter(convertedBytes)
+//        converter.writeAssertion(axiom)
+//    }
+
     override def addAxiom(axiom: Term): Unit = {
         Errors.Internal.assertion(processSession.nonEmpty, "Cannot add axiom without a live process")
-        val converter = new SmtlibConverter(convertedBytes)
+        val converter = new SmtlibConverter(processSession.get.inputWriter)
         converter.writeAssertion(axiom)
     }
 
+//    override def solve(timeoutMillis: Milliseconds): ModelFinderResult = {
+//        processSession.foreach(_.close())
+//        processSession = Some(new ProcessSession( { processArgs :+ timeoutArg(timeoutMillis) }.asJava))
+//        convertedBytes.writeTo(processSession.get.inputWriter)
+//        processSession.get.write("(check-sat)\n")
+//        processSession.get.flush()
+//
+//        val result = processSession.get.readLine()
+//        result match {
+//            case "sat" => ModelFinderResult.Sat
+//            case "unsat" => ModelFinderResult.Unsat
+//            case "unknown" => {
+//                processSession.get.write("(get-info :reason-unknown)\n")
+//                processSession.get.flush()
+//
+//                val reason = processSession.get.readLine()
+//
+//                if(reason.contains("timeout"))
+//                    ModelFinderResult.Timeout
+//                else
+//                    ModelFinderResult.Unknown
+//            }
+//            case _ => ErrorResult(s"Unrecognized result '${result}'" )
+//        }
+//    }
+
     override def solve(timeoutMillis: Milliseconds): ModelFinderResult = {
-        processSession.foreach(_.close())
-        processSession = Some(new ProcessSession( { processArgs :+ timeoutArg(timeoutMillis) }.asJava))
-        convertedBytes.writeTo(processSession.get.inputWriter)
+        processSession.get.write(s"(set-option :timeout ${timeoutMillis.value})") // Doesn't work for CVC4
         processSession.get.write("(check-sat)\n")
         processSession.get.flush()
 
@@ -74,7 +116,7 @@ trait SMTLIBCLISession extends solver {
 
         val model: String = getModel
 
-//        println("model from z3: \n" + model + "\n")
+        println("model from z3: \n" + model + "\n")
 
         val visitor: SmtModelVisitor = SmtModelParser.parse(model, theory.get.signature)
 
@@ -82,20 +124,34 @@ trait SMTLIBCLISession extends solver {
 
         val fortressName2SmtValue: mutable.Map[String, String] = visitor.getFortressName2SmtValue.asScala
 
-        val smtValue2DomainElement: mutable.Map[String, DomainElement] = visitor.getSmtValue2DomainElement.asScala
+        val smtValue2DomainElement: mutable.Map[String, DomainElement] = { // H!val!0 -> _@1H
+            val pattern = ".+!val![0-9]*$"
+            val raw: mutable.Map[String, DomainElement] = visitor.getSmtValue2DomainElement.asScala
+            for( (s, d) <- raw ) {
+                if( d == null ) {
+                    assert(s.matches(pattern), "Parse error, exit code: 1")
+                    val temp = s.split("!val!") // "H!val!0" => "H" "0"
+                    assert(temp.length == 2, "Parse error, exit code: 2")
+                    val sort: Sort = Sort.mkSortConst(temp(0))
+                    val de: DomainElement = Term.mkDomainElement(Integer.parseInt(temp(1)) + 1, sort);
+                    raw.put(s, de)
+                }
+            }
+            raw
+        }
 
 
-//        println("rawFunctionDefinitions: \n" + rawFunctionDefinitions + "\n")
-//
-//        println("fortressName2SmtValue: \n" + fortressName2SmtValue + "\n")
-//
-//        println("smtValue2DomainElement: \n" + smtValue2DomainElement + "\n")
+        println("rawFunctionDefinitions: \n" + rawFunctionDefinitions + "\n")
+
+        println("fortressName2SmtValue: \n" + fortressName2SmtValue + "\n")
+
+        println("smtValue2DomainElement: \n" + smtValue2DomainElement + "\n")
 
         object Solution extends ParserBasedInterpretation(theory.get.signature) {
             override protected def getConstant(c: AnnotatedVar): Value = {
                 smtValueToFortressValue(
-                    fortressName2SmtValue(c.name),
-                    c.sort,
+                    fortressName2SmtValue(c.name), // H!val!0
+                    c.sort, // H
                     smtValue2DomainElement
                 )
             }
@@ -106,20 +162,50 @@ trait SMTLIBCLISession extends solver {
                 ).toIndexedSeq
             }
 
+            // replace smt-value in function definition with fortress domainElements
+            // eg: H!val!0 -> _@1H
+            def updateFunc(func: Term): Term = func match {
+                case IfThenElse(a, b, c) => IfThenElse(updateFunc(a), updateFunc(b), updateFunc(c))
+                case AndList(args) => AndList(args.map(updateFunc))
+                case OrList(args) => AndList(args.map(updateFunc))
+                case (distinct: Distinct) => updateFunc(distinct.asPairwiseNotEquals)
+                case Implication(left, right) => Implication(updateFunc(left), updateFunc(right))
+                case Iff(p, q) => Iff(updateFunc(p), updateFunc(q))
+                case Forall(vars, body) => Forall(vars, updateFunc(body))
+                case Exists(vars, body) => Exists(vars, updateFunc(body))
+                case Not(body) => Not(updateFunc(body))
+                case App(name, args) => App(name, args.map(updateFunc))
+                case Closure(name, arg1, arg2) => Closure(name, updateFunc(arg1), updateFunc(arg2))
+                case ReflexiveClosure(name, arg1, arg2) => ReflexiveClosure(name, updateFunc(arg1), updateFunc(arg2))
+                case Eq(p, q) => Eq(updateFunc(p), updateFunc(q))
+                case Var(name) => {
+                    if(smtValue2DomainElement.contains(name)) smtValue2DomainElement(name)
+                    else func
+                }
+                case _ => func
+            }
+
             override protected def getFunctionDefinitions: Set[FunctionDefinition] = {
-                rawFunctionDefinitions.filter( item => {
+                val functionDefinitions = rawFunctionDefinitions.filter(item => {
                     var flag: Boolean = false
-                    for( f <- theory.get.signature.functionDeclarations ) {
-                        if( f.name == item.name ) flag = true
+                    for (f <- theory.get.signature.functionDeclarations) {
+                        if (f.name == item.name) flag = true
                     }
                     flag
+                })
+                functionDefinitions.map(fd => {
+                    new FunctionDefinition(
+                        fd.name,
+                        fd.argSortedVar,
+                        fd.resultSort,
+                        updateFunc(fd.body)
+                    )
                 })
             }.toSet
 
             override protected def getFunctionValues(f: FuncDecl, scopes: Map[Sort, Int]): Map[Seq[Value], Value] = {
                 if( theory.get.signature.sorts.size == scopes.size ) {
                     Map.empty
-                    // TODO: use ruomei's method
                 }
                 else Map.empty
             }
@@ -137,21 +223,21 @@ trait SMTLIBCLISession extends solver {
                 } yield (c -> getConstant(c))
             }.toMap
 
+            override def functionDefinitions: Set[FunctionDefinition] = getFunctionDefinitions
+
             override def functionInterpretations: Map[FuncDecl, Map[Seq[Value], Value]] = {
                 for( f <- theory.get.signature.functionDeclarations ) yield (f -> getFunctionValues(f, scopes))
             }.toMap
 
-            override def functionDefinitions: Set[FunctionDefinition] = getFunctionDefinitions
         }
         Solution
     }
 
     protected def smtValueToFortressValue(
-         value: String,
-         sort: Sort,
+         value: String, // H!val!0
+         sort: Sort,   // H
          smtValueToDomainElement: mutable.Map[String, DomainElement]
     ): Value = {
-        println("*sort* : " + sort)
         sort match {
             case SortConst(_) => {
                 if (smtValueToDomainElement.keySet.contains(value))
@@ -167,12 +253,14 @@ trait SMTLIBCLISession extends solver {
             case IntSort => value match {
                 case ProcessBuilderSolver.negativeInteger(digits) => IntegerLiteral(-(digits.toInt))
                 case ProcessBuilderSolver.negativeIntegerCondensed(digits) => IntegerLiteral(-(digits.toInt))
-                case _ => IntegerLiteral(value.substring(15, value.length-1).toInt)
+                case _ => IntegerLiteral(value.toInt)
             }
             case BitVectorSort(bitwidth) => value match {
                 case ProcessBuilderSolver.bitVecLiteral(radix, digits) => radix match {
                     case "x" => BitVectorLiteral(Integer.parseInt(digits, 16), bitwidth)
-                    case "b" => BitVectorLiteral(Integer.parseInt(digits, 2),  bitwidth)
+                    case "b" => {
+                        BitVectorLiteral(Integer.parseInt(digits, 2),  bitwidth)
+                    }
                     case _ => Errors.Internal.impossibleState
                 }
                 case ProcessBuilderSolver.bitVecExpr(digits, bitw) => {

@@ -49,6 +49,7 @@ term : 'true'                                         # true
 
 // Integers
      | NUMBER                                         # int_literal
+     | ZERO                                           # int_zero
      | '(' '-' term ')'                               # neg
      | '(' '-' term term+ ')'                         # sub
      | '(' '+' term term+ ')'                         # plus
@@ -91,12 +92,13 @@ term_attribute: ':named' ID                           # namedAttribute
 ID: (LETTER | SPECIAL) (LETTER | DIGIT | SPECIAL)* ;
 QUOTE: '|' (PRINTABLE_NOT_PIPE_BS | WS)* '|' ;
 STRING: '"' (PRINTABLE_NOT_QUOTE | WS)* '"' ;
-NUMBER: POS_NUMBER | '0' | '-' POS_NUMBER ;
+NUMBER: POS_NUMBER | '-' POS_NUMBER ;
 BIN_NUMBER: '#b' BIN_DIGIT+ ;
 HEX_NUMBER: '#x' HEX_DIGIT+ ;
 
 POS_NUMBER: NON_ZERO DIGIT* ;
 
+ZERO: '0';
 
 LETTER: [A-Za-z] ;
 NON_ZERO: [1-9] ;

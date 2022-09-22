@@ -16,7 +16,7 @@ trait ProcessSmtlibParser extends ProcessBuilderSolver {
 
         val model: String = getModel
 
-        println("model from z3: \n" + model + "\n")
+//        println("model from z3: \n" + model + "\n")
 
         val visitor: SmtModelVisitor = SmtModelParser.parse(model, theory.get.signature)
 
@@ -32,7 +32,7 @@ trait ProcessSmtlibParser extends ProcessBuilderSolver {
 
         println("smtValue2DomainElement: \n" + smtValue2DomainElement + "\n")
 
-        object Solution extends ParserBasedInterpretation(theory.get.signature, scopes.get) {
+        object Solution extends ParserBasedInterpretation(theory.get.signature) {
             override protected def getConstant(c: AnnotatedVar): Value = {
                 smtValueToFortressValue(
                     fortressName2SmtValue(c.name),

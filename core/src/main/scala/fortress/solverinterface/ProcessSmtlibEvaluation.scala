@@ -44,7 +44,7 @@ trait ProcessSmtlibEvaluation extends ProcessBuilderSolver {
             var line: String = null
             val smtInterpTokens = scala.collection.mutable.Map[String, Array[String]]()
             var currentFunc: String = null
-            println("Model from z3: \n")
+//            println("Model from z3: \n")
             while ({line = processSession.get.readLine(); line != ")"}) {
 
                 println(line)
@@ -259,7 +259,10 @@ trait ProcessSmtlibEvaluation extends ProcessBuilderSolver {
             case BitVectorSort(bitwidth) => value match {
                 case ProcessBuilderSolver.bitVecLiteral(radix, digits) => radix match {
                     case "x" => BitVectorLiteral(Integer.parseInt(digits, 16), bitwidth)
-                    case "b" => BitVectorLiteral(Integer.parseInt(digits, 2),  bitwidth)
+                    case "b" => {
+                        println("value:" + value)
+                        BitVectorLiteral(Integer.parseInt(digits, 2),  bitwidth)
+                    }
                     case _ => Errors.Internal.impossibleState
                 }
                 case ProcessBuilderSolver.bitVecExpr(digits, bitw) => {

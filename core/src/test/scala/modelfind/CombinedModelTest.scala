@@ -20,10 +20,10 @@ class CombinedModelTest extends UnitSuite {
 
         val parser = new SmtLibParser
         val resultTheory = parser.parse(fileStream).getOrElse(null)
-        // println("Parsed theory from file:")
-        // println(resultTheory)
+//         println("Parsed theory from file:")
+//         println(resultTheory)
 
-        Using.resource(new FortressZERO) { finder => {
+        Using.resource(new FortressTHREE()) { finder => {
 
             finder.setTheory(resultTheory)
             finder.checkSat() should be (ModelFinderResult.Sat)
