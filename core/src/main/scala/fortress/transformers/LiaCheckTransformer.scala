@@ -2,7 +2,7 @@ package fortress.transformers
 import fortress.msfol._
 import fortress.operations._
 
-class LiaCheckTransformer extends ProblemStateTransformer {
+object LiaCheckTransformer extends ProblemStateTransformer {
 
     /** Takes in a Problem, applies some transformation to it, and produces a
       * new ProblemState. Note that this does not mutate the ProblemState object, only
@@ -10,14 +10,15 @@ class LiaCheckTransformer extends ProblemStateTransformer {
     override def apply(problemState: ProblemState): ProblemState = problemState match {
         case ProblemState(theory, scopes, skolemConstants, skolemFunctions, rangeRestrictions, unapplyInterp, distinctConstants) => {
 
-            if(scopes.contains(IntSort)) {
+            if(scopes.contains(IntSort) || true) {
                 var boundedSet: Set[String] = Set.empty
                 var axiomVarMap: Map[Term, Set[String]] = Map.empty
 
                 for( axiom <- problemState.theory.axioms ) {
                     val (isLia, varSet): (Boolean, Set[String]) = LiaChecker.check(axiom)
 
-                    println(isLia + " " + varSet)
+//                    println(isLia + " " + varSet)
+
                     // only want IntSort
                     varSet.filter( v => {
                         var flag: Boolean = false
@@ -43,6 +44,8 @@ class LiaCheckTransformer extends ProblemStateTransformer {
                         }
                     }
                 } while (flag)
+
+//                println("total: " + problemState.theory.axioms.size + ", lia count: " + problemState.theory.axioms.count(ax => ax.isLia))
 
 
                 val newSig = problemState.theory.signature.replaceIntSorts(boundedSet)

@@ -39,7 +39,7 @@ with ModelFinderSettings {
 
                 val finalTheory = compilerResult.get.theory
 
-                println("final theory: \n" + finalTheory + "\n\n")
+//                println("final theory: \n" + finalTheory + "\n\n")
 
                 notifyLoggers(_.allTransformersFinished(finalTheory, totalTimer.elapsedNano))
 
@@ -99,30 +99,22 @@ with ModelFinderSettings {
         def boolToValue(b: Boolean): Value = if(b) Top else Bottom
 
 
-        def appInterpretations(fnName: String, evaluatedArgs: Seq[Value]): Value = {
-            //            println("+--------------------------------debug begin--------------------------------+")
-            //
-            //            println("fnName: " + fnName)
-            //            println("args: " + evaluatedArgs.mkString(" , "))
-            // get function definition by name
+        def getFunctionValue(fnName: String, evaluatedArgs: Seq[Value]): Value = {
             val funcDef = instance.functionDefinitions.filter(fd => fd.name == fnName).head
             val formalArgs: Seq[Term] = for( item <- funcDef.argSortedVar ) yield item.variable
             // transfer constants to domain elements, ex: p1 -> _@1P
             val realArgs: Seq[Value] = for( item <- evaluatedArgs ) yield {
                 var temp: Value = item
                 // TODO: look here! @zxt
-                for( a <- instance.constantInterpretations ) {
-                    if(a._1.variable.name == temp.toString ) temp = a._2
-                }
+//                for( a <- instance.constantInterpretations ) {
+//                    if(a._1.variable.name == temp.toString ) temp = a._2
+//                }
                 temp
             }
             val body = funcDef.body
             Errors.Internal.precondition(evaluatedArgs.size == formalArgs.size, "Invalid input params.")
             val argMap: Map[Term, Value] = formalArgs.zip(realArgs).toMap
-            //            println("argMap: " + argMap)
             val ret: Value = visitFunctionBody( body, argMap )
-            //            println("return value: " + ret)
-            //            println("+---------------------------------debug end---------------------------------+\n")
             ret
         }
 
@@ -151,7 +143,7 @@ with ModelFinderSettings {
                     visitFunctionBody(ifFalse, argMap)
                 }
             }
-            case App(fname, args) => appInterpretations(fname, args.map(arg => visitFunctionBody(arg, argMap)))
+            case App(fname, args) => getFunctionValue(fname, args.map(arg => visitFunctionBody(arg, argMap)))
             case BuiltinApp(fn, args) => evaluateBuiltIn(fn, args.map(arg => visitFunctionBody(arg, argMap)))
             case _ => {
                 println("Error: get function value failed.")
@@ -175,7 +167,7 @@ with ModelFinderSettings {
                     .withConstant(evalResultAnnotated)
                     .withAxiom(evalResult === BuiltinApp(fn, evalArgs))
 
-            val solver = new Z3CliSolver
+            val solver = new Z3IncSolver
             solver.setTheory(theory)
             solver.solve(Milliseconds(1000))
             val solvedInstance = solver.solution
@@ -191,7 +183,7 @@ with ModelFinderSettings {
                 for(f <- theory.signature.functionDeclarations)
                     yield f -> {
                         for (argList <- ArgumentListGenerator.generate(f, scopes, Some(instance.sortInterpretations)))
-                            yield argList -> appInterpretations(f.name, argList)
+                            yield argList -> getFunctionValue(f.name, argList)
                         }.toMap
 
             }.toMap

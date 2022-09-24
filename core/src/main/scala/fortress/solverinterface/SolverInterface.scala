@@ -20,11 +20,11 @@ object SolverInterface {
 }
 
 case object Z3CliInterface extends SolverInterface {
-    def openSession(): solver = new Z3CliSolver
+    def openSession(): solver = new Z3IncSolver
 }
 
 case object Z3IncCliInterface extends SolverInterface {
-    def openSession(): solver = new Z3CliSolver
+    def openSession(): solver = new Z3IncSolver
 }
 
 case object CVC4CliInterface extends SolverInterface {

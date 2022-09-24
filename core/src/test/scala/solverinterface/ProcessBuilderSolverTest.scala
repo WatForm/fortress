@@ -34,7 +34,7 @@ class ProcessBuilderSolverTest extends UnitSuite {
     }
     
     test("z3 basic incremental solve") {
-        Using.resource(new Z3CliSolver) { solver => {
+        Using.resource(new Z3IncSolver) { solver => {
             solver.setTheory(theory)
             solver.solve(timeout) should be (ModelFinderResult.Sat)
             solver.addAxiom(x)
@@ -64,7 +64,7 @@ class ProcessBuilderSolverTest extends UnitSuite {
     
     test("z3 solve 2 different theories with 1 solver") {
         pending
-        Using.resource(new Z3CliSolver) { solver => {
+        Using.resource(new Z3IncSolver) { solver => {
             // solver.solve(theory, timeout, Seq()) should be (ModelFinderResult.Sat);
             // solver.solve(theory2, timeout, Seq()) should be (ModelFinderResult.Sat);
         }}
@@ -83,14 +83,14 @@ class Z3ProcessBuilderTest2 extends UnitSuite {
     val timeout = new Milliseconds(10000)
         
     test("basic solve") {
-        Using.resource(new Z3CliSolver) { solver => {
+        Using.resource(new Z3IncSolver) { solver => {
             solver.setTheory(theory)
             solver.solve(timeout) should be (ModelFinderResult.Sat)
         }}
     }
     
     test("basic solution") {
-        Using.resource(new Z3CliSolver) { solver => {
+        Using.resource(new Z3IncSolver) { solver => {
             solver.setTheory(theory)
             solver.solve(timeout) should be (ModelFinderResult.Sat)
             val soln = solver.solution

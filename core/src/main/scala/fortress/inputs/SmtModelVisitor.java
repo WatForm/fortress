@@ -116,7 +116,7 @@ public class SmtModelVisitor extends SmtLibVisitor{
 
         String funcBody = ctx.term().getText();
 
-        System.out.println("funcbody: " + funcBody);
+//        System.out.println("funcbody: " + funcBody);
 
         if( smtValue2DomainElement.containsKey(funcBody) ) {  // H!val!0
             if(name.startsWith("_@")) { // _@1H

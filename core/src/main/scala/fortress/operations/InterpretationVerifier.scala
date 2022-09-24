@@ -5,7 +5,7 @@ import java.io.StringWriter
 import fortress.data.CartesianSeqProduct
 import fortress.interpretation.Interpretation
 import fortress.msfol._
-import fortress.solverinterface.{SolverSession, Z3CliSolver}
+import fortress.solverinterface.{SolverSession, Z3IncSolver}
 import fortress.util.Errors
 import fortress.util._
 import fortress.msfol.DSL._
@@ -43,12 +43,7 @@ class InterpretationVerifier(theory: Theory) {
         }
 
         // Given a function and its arguments, look inside the interpretation to find the result
-        def appInterpretations(fnName: String, evaluatedArgs: Seq[Value]): Value = {
-//            println("+--------------------------------debug begin--------------------------------+")
-//
-//            println("fnName: " + fnName)
-//            println("args: " + evaluatedArgs.mkString(" , "))
-            // get function definition by name
+        def getFunctionValue(fnName: String, evaluatedArgs: Seq[Value]): Value = {
             val funcDef = interpretation.functionDefinitions.filter(fd => fd.name == fnName).head
             val formalArgs: Seq[Term] = for( item <- funcDef.argSortedVar ) yield item.variable
             // transfer constants to domain elements, ex: p1 -> _@1P
@@ -63,12 +58,7 @@ class InterpretationVerifier(theory: Theory) {
             val body = funcDef.body
             Errors.Internal.precondition(evaluatedArgs.size == formalArgs.size, "Invalid input params.")
             val argMap: Map[Term, Value] = formalArgs.zip(realArgs).toMap
-//            println("argMap: " + argMap)
             val ret: Value = visitFunctionBody( body, argMap )
-//            println("return value: " + ret)
-//            println("+---------------------------------debug end---------------------------------+\n")
-//            println("argMap: " + argMap)
-//            println("*check*: " + fnName + "( " + evaluatedArgs.mkString(", ") + " ) = " + ret.toString )
             ret
         }
 
@@ -91,15 +81,13 @@ class InterpretationVerifier(theory: Theory) {
             case Eq(l, r) => boolToValue(visitFunctionBody(l, argMap) == visitFunctionBody(r, argMap))
             case IfThenElse(condition, ifTrue, ifFalse) => {
                 if(forceValueToBool(visitFunctionBody(condition, argMap))) {
-//                    println(condition.toString + " true")
                     visitFunctionBody(ifTrue, argMap)
                 }
                 else {
-//                    println(condition.toString + " false")
                     visitFunctionBody(ifFalse, argMap)
                 }
             }
-            case App(fname, args) => appInterpretations(fname, args.map(arg => visitFunctionBody(arg, argMap)))
+            case App(fname, args) => getFunctionValue(fname, args.map(arg => visitFunctionBody(arg, argMap)))
             case BuiltinApp(fn, args) => evaluateBuiltIn(fn, args.map(arg => visitFunctionBody(arg, argMap)))
             case _ => {
                 println("Error: get function value failed.")
@@ -123,7 +111,7 @@ class InterpretationVerifier(theory: Theory) {
                 .withConstant(evalResultAnnotated)
                 .withAxiom(evalResult === BuiltinApp(fn, evalArgs))
                 
-            val solver = new Z3CliSolver
+            val solver = new Z3IncSolver
             solver.setTheory(theory)
             solver.solve(Milliseconds(1000))
             val solvedInstance = solver.solution
@@ -156,7 +144,7 @@ class InterpretationVerifier(theory: Theory) {
                 if(forceValueToBool(evaluate(condition))) evaluate(ifTrue)
                 else evaluate(ifFalse)
             }
-            case App(fname, args) => appInterpretations(fname, args.map(arg => evaluate(arg)))
+            case App(fname, args) => getFunctionValue(fname, args.map(arg => evaluate(arg)))
             case BuiltinApp(fn, args) => evaluateBuiltIn(fn, args.map(arg => evaluate(arg)))
             case Forall(vars, body) => {
                 val varDomains = vars.map(v =>
@@ -165,7 +153,7 @@ class InterpretationVerifier(theory: Theory) {
                 val allPossibleValueLists = new CartesianSeqProduct[Value](varDomains)
                 // Going through all possible combinations of the domain elements:
                 // append to the context, recurse, then remove from the context
-                for(valueList <- allPossibleValueLists){
+                for(valueList <- allPossibleValueLists) {
                     valueList.zipWithIndex.foreach {
                         case (value, index) => pushToContext(vars(index).variable, value)
                     }
@@ -180,9 +168,6 @@ class InterpretationVerifier(theory: Theory) {
                 Top
             }
             case Exists(vars, body) => {
-
-                println("%%%: " + term)
-                println("%%%: " + interpretation.sortInterpretations)
 
                 val varDomains = vars.map(v =>
                     interpretation.sortInterpretations(v.sort).toIndexedSeq

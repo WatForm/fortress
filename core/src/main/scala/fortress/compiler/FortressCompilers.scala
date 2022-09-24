@@ -15,6 +15,7 @@ abstract class BaseFortressCompiler() extends LogicCompiler {
         val transformerSequence = new scala.collection.mutable.ListBuffer[ProblemStateTransformer]
         transformerSequence += TypecheckSanitizeTransformer
         transformerSequence += EnumEliminationTransformer
+        transformerSequence += LiaCheckTransformer
         transformerSequence += IntegerToBitVectorTransformer
         transformerSequence += ClosureEliminationEijckTransformer
         transformerSequence += NnfTransformer

@@ -36,7 +36,7 @@ class LiaCheckTransformerTest extends UnitSuite {
             Map(IntSort->ExactScope(5))
         )
 
-        val transformer = new LiaCheckTransformer
+        val transformer = LiaCheckTransformer
         transformer(problemState) should be (expect)
     }
 
@@ -50,7 +50,7 @@ class LiaCheckTransformerTest extends UnitSuite {
         val problemState = ProblemState(theory, Map(IntSort->ExactScope(5)))
 
 
-        val transformer = new LiaCheckTransformer
+        val transformer = LiaCheckTransformer
         transformer(problemState) should be (problemState)
     }
 
@@ -76,7 +76,7 @@ class LiaCheckTransformerTest extends UnitSuite {
             Map(IntSort->ExactScope(5))
         )
 
-        val transformer = new LiaCheckTransformer
+        val transformer = LiaCheckTransformer
         transformer(problemState) should be (expect)
     }
 
@@ -102,7 +102,7 @@ class LiaCheckTransformerTest extends UnitSuite {
             Map(IntSort->ExactScope(5))
         )
 
-        val transformer = new LiaCheckTransformer
+        val transformer = LiaCheckTransformer
         transformer(problemState) should be (expect)
     }
 
@@ -128,7 +128,7 @@ class LiaCheckTransformerTest extends UnitSuite {
             Map(IntSort->ExactScope(5))
         )
 
-        val transformer = new LiaCheckTransformer
+        val transformer = LiaCheckTransformer
         transformer(problemState) should be (expect)
     }
 
@@ -143,7 +143,7 @@ class LiaCheckTransformerTest extends UnitSuite {
 
         val problemState = ProblemState(theory, Map(IntSort->ExactScope(5)))
 
-        val transformer = new LiaCheckTransformer
+        val transformer = LiaCheckTransformer
         transformer(problemState) should be (problemState)
     }
 
@@ -161,7 +161,7 @@ class LiaCheckTransformerTest extends UnitSuite {
 
         val problemState = ProblemState(theory, Map(IntSort->ExactScope(5)))
 
-        val transformer = new LiaCheckTransformer
+        val transformer = LiaCheckTransformer
         transformer(problemState) should be (problemState)
     }
 
@@ -193,7 +193,7 @@ class LiaCheckTransformerTest extends UnitSuite {
             Map(IntSort->ExactScope(5))
         )
 
-        val transformer = new LiaCheckTransformer
+        val transformer = LiaCheckTransformer
         transformer(problemState) should be (expect)
     }
 
@@ -211,7 +211,7 @@ class LiaCheckTransformerTest extends UnitSuite {
 
         val problemState = ProblemState(theory, Map(IntSort->ExactScope(5)))
 
-        val transformer = new LiaCheckTransformer
+        val transformer = LiaCheckTransformer
         transformer(problemState) should be (problemState)
     }
 

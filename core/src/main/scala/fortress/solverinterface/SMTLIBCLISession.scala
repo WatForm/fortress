@@ -20,21 +20,11 @@ trait SMTLIBCLISession extends solver {
     protected def processArgs: Seq[String]
     protected def timeoutArg(timeoutMillis: Milliseconds): String
 
-    private val convertedBytes: CharArrayWriter = new CharArrayWriter
 
     @throws(classOf[java.io.IOException])
     override def close(): Unit = {
         processSession.foreach(_.close())
     }
-
-//    override def setTheory(theory: Theory): Unit = {
-//        this.theory = Some(theory)
-//        convertedBytes.reset()
-//        convertedBytes.write("(set-option :produce-models true)\n")
-//        convertedBytes.write("(set-logic ALL)\n")
-//        val converter = new SmtlibConverter(convertedBytes)
-//        converter.writeTheory(theory)
-//    }
 
     override def setTheory(theory: Theory): Unit = {
         this.theory = Some(theory)
@@ -48,11 +38,6 @@ trait SMTLIBCLISession extends solver {
         converter.writeTheory(theory)
     }
 
-//    override def addAxiom(axiom: Term): Unit = {
-//        Errors.Internal.assertion(processSession.nonEmpty, "Cannot add axiom without a live process")
-//        val converter = new SmtlibConverter(convertedBytes)
-//        converter.writeAssertion(axiom)
-//    }
 
     override def addAxiom(axiom: Term): Unit = {
         Errors.Internal.assertion(processSession.nonEmpty, "Cannot add axiom without a live process")
@@ -60,31 +45,6 @@ trait SMTLIBCLISession extends solver {
         converter.writeAssertion(axiom)
     }
 
-//    override def solve(timeoutMillis: Milliseconds): ModelFinderResult = {
-//        processSession.foreach(_.close())
-//        processSession = Some(new ProcessSession( { processArgs :+ timeoutArg(timeoutMillis) }.asJava))
-//        convertedBytes.writeTo(processSession.get.inputWriter)
-//        processSession.get.write("(check-sat)\n")
-//        processSession.get.flush()
-//
-//        val result = processSession.get.readLine()
-//        result match {
-//            case "sat" => ModelFinderResult.Sat
-//            case "unsat" => ModelFinderResult.Unsat
-//            case "unknown" => {
-//                processSession.get.write("(get-info :reason-unknown)\n")
-//                processSession.get.flush()
-//
-//                val reason = processSession.get.readLine()
-//
-//                if(reason.contains("timeout"))
-//                    ModelFinderResult.Timeout
-//                else
-//                    ModelFinderResult.Unknown
-//            }
-//            case _ => ErrorResult(s"Unrecognized result '${result}'" )
-//        }
-//    }
 
     override def solve(timeoutMillis: Milliseconds): ModelFinderResult = {
         processSession.get.write(s"(set-option :timeout ${timeoutMillis.value})") // Doesn't work for CVC4
@@ -116,7 +76,7 @@ trait SMTLIBCLISession extends solver {
 
         val model: String = getModel
 
-        println("model from z3: \n" + model + "\n")
+//        println("model from z3: \n" + model + "\n")
 
         val visitor: SmtModelVisitor = SmtModelParser.parse(model, theory.get.signature)
 
@@ -141,11 +101,11 @@ trait SMTLIBCLISession extends solver {
         }
 
 
-        println("rawFunctionDefinitions: \n" + rawFunctionDefinitions + "\n")
-
-        println("fortressName2SmtValue: \n" + fortressName2SmtValue + "\n")
-
-        println("smtValue2DomainElement: \n" + smtValue2DomainElement + "\n")
+//        println("rawFunctionDefinitions: \n" + rawFunctionDefinitions + "\n")
+//
+//        println("fortressName2SmtValue: \n" + fortressName2SmtValue + "\n")
+//
+//        println("smtValue2DomainElement: \n" + smtValue2DomainElement + "\n")
 
         object Solution extends ParserBasedInterpretation(theory.get.signature) {
             override protected def getConstant(c: AnnotatedVar): Value = {
@@ -251,6 +211,11 @@ trait SMTLIBCLISession extends solver {
                 case _ => Errors.Internal.impossibleState
             }
             case IntSort => value match {
+                case ProcessBuilderSolver.negativeInteger(digits) => IntegerLiteral(-(digits.toInt))
+                case ProcessBuilderSolver.negativeIntegerCondensed(digits) => IntegerLiteral(-(digits.toInt))
+                case _ => IntegerLiteral(value.toInt)
+            }
+            case UnBoundedIntSort => value match {
                 case ProcessBuilderSolver.negativeInteger(digits) => IntegerLiteral(-(digits.toInt))
                 case ProcessBuilderSolver.negativeIntegerCondensed(digits) => IntegerLiteral(-(digits.toInt))
                 case _ => IntegerLiteral(value.toInt)

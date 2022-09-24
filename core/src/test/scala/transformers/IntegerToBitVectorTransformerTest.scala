@@ -107,4 +107,34 @@ class IntegerToBitVectorTransformerTest extends UnitSuite {
         val transformer = IntegerToBitVectorTransformer
         transformer(problemState) should be (expected)
     }
+
+    test("IntSort & UnboundedIntSort") {
+        val x = Var("x")
+        val y = Var("y")
+        val z = Var("z")
+        val t = Var("t")
+
+        val axiom1: Term = Forall( Seq(z of IntSort, t of IntSort), BuiltinApp(IntPlus, z, t) === App("g", z, t))
+        axiom1.isLia = true
+
+        val theory = Theory.empty
+                .withFunctionDeclaration(FuncDecl("f", IntSort, IntSort, IntSort))
+                .withFunctionDeclaration(FuncDecl("g", UnBoundedIntSort, UnBoundedIntSort, UnBoundedIntSort))
+                .withAxiom(Forall( Seq(x of IntSort, y of IntSort), BuiltinApp(IntPlus, x, y) === App("f", x, y)))
+                .withAxiom(axiom1)
+
+        val problemState = ProblemState(theory,Map(IntSort->ExactScope(4)))
+
+        val expected = ProblemState(
+            Theory.empty
+                    .withFunctionDeclaration(FuncDecl("f", BitVectorSort(4), BitVectorSort(4), BitVectorSort(4)))
+                    .withFunctionDeclaration(FuncDecl("g", UnBoundedIntSort, UnBoundedIntSort, UnBoundedIntSort))
+                    .withAxiom(Forall( Seq(x of BitVectorSort(4), y of BitVectorSort(4)), BuiltinApp(BvPlus, x, y) === App("f", x, y)))
+                    .withAxiom(axiom1),
+                    Map.empty
+        )
+
+        val transformer = IntegerToBitVectorTransformer
+        transformer(problemState) should be (expected)
+    }
 }

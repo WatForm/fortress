@@ -38,7 +38,8 @@ case object BoundedIntSort extends Sort {
 }
 
 case object UnBoundedIntSort extends Sort {
-    override def name: String = "UnBoundedIntSort"
+    // use the same name with Int, because UnboundedIntSort & IntSort make no difference to user, only used for fortress transformer
+    override def name: String = "Int"
 
     override def isBuiltin: Boolean = true
 }
