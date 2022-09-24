@@ -52,6 +52,10 @@ if reset:
     print("I don't trust myself enough to script this.")
     print("Checkout whatever branch you want and run:")
     print("git reset --hard")
+    print("or if that wasn't enough")
+    print("git checkout <branch>; git reset --hard origin/<branch>")
+    
+    
 else:
     commands = [
         ['git', 'fetch'],
@@ -60,7 +64,8 @@ else:
         ['git', 'pull'],
         ['git', 'checkout', 'master'],
         ['git', 'pull'],
-        ['git', 'merge', test_branch],
+        ['git', 'checkout', test_branch],
+        ['git', 'merge', 'master'],
         ['sbt', 'test'],
     ]
 

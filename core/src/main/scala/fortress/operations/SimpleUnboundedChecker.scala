@@ -33,10 +33,10 @@ object SimpleUnboundedChecker {
         case App(f, args) => getBoundedSort(args)
         case Not(App(f, args)) => getBoundedSort(args)
 
-        case Closure(f, arg1, arg2) => getBoundedSort(arg1) ++ getBoundedSort(arg2)
-        case Not(Closure(f, arg1, arg2)) => getBoundedSort(arg1) ++ getBoundedSort(arg2)
-        case ReflexiveClosure(f, arg1, arg2) => getBoundedSort(arg1) ++ getBoundedSort(arg2)
-        case Not(ReflexiveClosure(f, arg1, arg2)) => getBoundedSort(arg1) ++ getBoundedSort(arg2)
+        case Closure(f, arg1, arg2, fixedArgs) => getBoundedSort(arg1) ++ getBoundedSort(arg2) ++ getBoundedSort(fixedArgs)
+        case Not(Closure(f, arg1, arg2, fixedArgs)) => getBoundedSort(arg1) ++ getBoundedSort(arg2) ++ getBoundedSort(fixedArgs)
+        case ReflexiveClosure(f, arg1, arg2, fixedArgs) => getBoundedSort(arg1) ++ getBoundedSort(arg2) ++ getBoundedSort(fixedArgs)
+        case Not(ReflexiveClosure(f, arg1, arg2, fixedArgs)) => getBoundedSort(arg1) ++ getBoundedSort(arg2) ++ getBoundedSort(fixedArgs)
 
         case Eq(l, r) => getBoundedSort(l) ++ getBoundedSort(r)
         case Not(Eq(l, r)) => getBoundedSort(l) ++ getBoundedSort(r)
