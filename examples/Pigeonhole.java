@@ -35,6 +35,7 @@ public class Pigeonhole {
         Var h = mkVar("h");
         Var p1 = mkVar("p1");
         Var p2 = mkVar("p2");
+        Var p = mkVar("p");
         Var c = mkVar("c");
 
 
@@ -47,6 +48,8 @@ public class Pigeonhole {
                     mkNot(mkEq(mkApp("f", p1), h)),
                     mkNot(mkEq(mkApp("f", p2), h))
                 )));
+
+        Term axiom1 = mkExists(p.of(P), mkEq(mkApp("f", p), mkApp("f", c)));
                 
         // Begin with the empty theory
         Theory theory =  Theory.empty()
@@ -56,8 +59,10 @@ public class Pigeonhole {
         // Add declarations
             .withFunctionDeclarations(f)
         // Add constraints
-            .withAxiom(axiom);
-            
+            .withAxiom(axiom)
+            .withAxiom(axiom1);
+
+
         // This is satisfiable if and only if numPigeons <= numHoles
             
         // Initialize a model finder
@@ -66,8 +71,8 @@ public class Pigeonhole {
             finder.setTheory(theory);
             
             // Set the scopes of the model finder
-//            finder.setExactScope(P, 2);
-//            finder.setExactScope(H, 3);
+            finder.setExactScope(P, 2);
+            finder.setExactScope(H, 3);
             // Check if all axioms in the theory are satisfiable
             ModelFinderResult result = finder.checkSat();
             
