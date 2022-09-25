@@ -4,16 +4,22 @@ grammar SmtLibSubset;
 
 commands : command+ ;
 
-command : '(' 'declare-const' ID sort ')'             # declare_const
-        | '(' 'declare-fun' ID '(' sort* ')' sort ')' # declare_fun
-        | '(' 'declare-sort' ID '0' ')'               # declare_sort
-	   | '(' 'assert' term ')'                       # assert
-        | '(' 'check-sat' ')'                         # check_sat
-        | '(' 'set-info' attribute ')'                # set_info
-        | '(' 'set-logic' ID ')'                      # set_logic
-        | '(' 'get-model' ')'                         # get_model
-        | '(' 'exit' ')'                              # exit
+command : '(' 'declare-const' ID sort ')'                           # declare_const
+        | '(' 'declare-fun' ID '(' sort* ')' sort ')'               # declare_fun
+        | '(' 'declare-sort' ID '0' ')'                             # declare_sort
+	    | '(' 'assert' term ')'                                     # assert
+        | '(' 'check-sat' ')'                                       # check_sat
+        | '(' 'set-info' attribute ')'                              # set_info
+        | '(' 'set-logic' ID ')'                                    # set_logic
+        | '(' 'get-model' ')'                                       # get_model
+        | '(' 'exit' ')'                                            # exit
+        | '(' 'define-fun' ID '(' sorted_var* ')' sort term ')'     # define_fun
+        | term                                                      # constraint
         ;
+
+//function_def : ID '(' sorted_var* ')' sort term ;
+
+sorted_var : '(' ID sort  ')' ;
 
 sort : ID                                             # sort_name
      | '(' '_' 'BitVec' NUMBER ')'                    # bv_sort
@@ -46,6 +52,7 @@ term : 'true'                                         # true
 
 // Integers
      | NUMBER                                         # int_literal
+     | ZERO                                           # int_zero
      | '(' '-' term ')'                               # neg
      | '(' '-' term term+ ')'                         # sub
      | '(' '+' term term+ ')'                         # plus
@@ -88,12 +95,13 @@ term_attribute: ':named' ID                           # namedAttribute
 ID: (LETTER | SPECIAL) (LETTER | DIGIT | SPECIAL)* ;
 QUOTE: '|' (PRINTABLE_NOT_PIPE_BS | WS)* '|' ;
 STRING: '"' (PRINTABLE_NOT_QUOTE | WS)* '"' ;
-NUMBER: POS_NUMBER | '0' | '-' POS_NUMBER ;
+NUMBER: POS_NUMBER | '-' POS_NUMBER ;
 BIN_NUMBER: '#b' BIN_DIGIT+ ;
 HEX_NUMBER: '#x' HEX_DIGIT+ ;
 
 POS_NUMBER: NON_ZERO DIGIT* ;
 
+ZERO: '0';
 
 LETTER: [A-Za-z] ;
 NON_ZERO: [1-9] ;

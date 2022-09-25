@@ -2,11 +2,11 @@ package fortress.interpretation
 
 import scala.collection.mutable
 import scala.jdk.CollectionConverters._
-
 import fortress.msfol._
 import fortress.operations._
 import fortress.sortinference._
 import fortress.msfol.DSL._
+import fortress.util.ArgumentListGenerator
 
 /** An interpretation of a first-order logic signature. */
 trait Interpretation {
@@ -20,20 +20,53 @@ trait Interpretation {
     /** Maps a function symbol to a mathematical function.
       * The function is represented as a Map itself.
       */
-    def functionInterpretations: Map[FuncDecl, Map[Seq[Value], Value]]
+    def functionInterpretations: Map[FuncDecl, Map[Seq[Value], Value]] = Map.empty
+
+    def functionDefinitions: Set[FunctionDefinition]
+
 
     /** Replaces the Values of an interpretation EnumValues, according to the given substitution map.
      * Useful for undoing Enum Elimination.
      */
     def replaceValuesWithEnums(enumMapping: Map[Value, EnumValue]): Interpretation = {
+
         def applyMapping(v: Value): Value = if (enumMapping contains v) enumMapping(v) else v
+
+        def visitBody(term: Term): Term = term match {
+            case AndList(args) => AndList(args.map(visitBody))
+            case OrList(args) => OrList(args.map(visitBody))
+            case (distinct: Distinct) => visitBody(distinct.asPairwiseNotEquals)
+            case Implication(left, right) => Implication(visitBody(left), visitBody(right))
+            case Iff(p, q) => Iff(visitBody(p), visitBody(q))
+            case Forall(vars, body) => Forall(vars, visitBody(body))
+            case Exists(vars, body) => Exists(vars, visitBody(body))
+            case Not(body) => Not(visitBody(body))
+            case App(name, args) => App(name, args.map(visitBody))
+            case Closure(name, arg1, arg2, fixedArgs) => Closure(name, visitBody(arg1), visitBody(arg2), fixedArgs.map(visitBody))
+            case ReflexiveClosure(name, arg1, arg2, fixedArgs) => ReflexiveClosure(name, visitBody(arg1), visitBody(arg2), fixedArgs.map(visitBody))
+            case Eq(p, q) => Eq(visitBody(p), visitBody(q))
+            case DomainElement(index, sort) => {
+                val t: Value = term.asInstanceOf[Value]
+                applyMapping(t)
+            }
+            case IfThenElse(a, b, c) => IfThenElse(visitBody(a), visitBody(b), visitBody(c))
+            case _ => term
+        }
         
         new BasicInterpretation(
             sortInterpretations.map{ case(sort, values) => sort -> (values map applyMapping) }, 
-            constantInterpretations.map{ case(av, value) => av -> applyMapping(value) }, 
-            functionInterpretations.map{ case(fdecl, values) => fdecl -> (values.map{ 
-                case(args, value) => (args map applyMapping) -> applyMapping(value) } 
-            )}
+            constantInterpretations.map{ case(av, value) => av -> applyMapping(value) },
+            functionInterpretations.map{ case(fdecl, values) => fdecl -> (values.map{
+                case(args, value) => (args map applyMapping) -> applyMapping(value) }
+            )},
+            functionDefinitions.map{ case functionDefinition: FunctionDefinition => {
+                // visit the funcBody term, replace the values with enum
+                val name: String = functionDefinition.name
+                val vars: Seq[AnnotatedVar] = functionDefinition.argSortedVar
+                val resultSort = functionDefinition.resultSort
+                val newBody: Term = visitBody(functionDefinition.body)
+                new FunctionDefinition(name, vars, resultSort, newBody)
+            } }
         )
     }
     
@@ -55,7 +88,8 @@ trait Interpretation {
                 }
             }
         }
-        new BasicInterpretation(newSortInterps, newConstInterps, newFunctionInterps)
+        // TODO: what to do on functionDefinitions
+        new BasicInterpretation(newSortInterps, newConstInterps, newFunctionInterps, functionDefinitions)
     }
     
     /** Shows only the parts of the interpretation which are in the given signature. */
@@ -63,7 +97,13 @@ trait Interpretation {
         val newSortInterps = sortInterpretations filter { case(sort, values) => signature hasSort sort }
         val newConstInterps = constantInterpretations filter { case(const, value) => signature.constants contains const }
         val newFunctionInterps = functionInterpretations filter {case(fdecl, mapping) => signature.functionDeclarations contains fdecl }
-        new BasicInterpretation(newSortInterps, newConstInterps, newFunctionInterps)
+        val newFunctionDefinitions = functionDefinitions filter { fd => {
+            for( item <- signature.functionDeclarations ) {
+                if( item.name == fd.name ) true
+            }
+            false
+        } }
+        new BasicInterpretation(newSortInterps, newConstInterps, newFunctionInterps, newFunctionDefinitions)
     }
 
     /** Removes the given declarations from the interpretation. */
@@ -89,16 +129,26 @@ trait Interpretation {
         new BasicInterpretation(
             sortInterpretations,
             constantInterpretations -- constants,
-            functionInterpretations
+            functionInterpretations,
+            functionDefinitions
         )
     }
     
     /** Removes the given functions from the interpretation. */
     def withoutFunctions(funcDecls: Set[FuncDecl]): Interpretation = {
+        val newFunctionDefinitions: Set[FunctionDefinition] = functionDefinitions.filter(item => {
+            var flag = true
+            for(fd <- funcDecls) {
+                if(fd.name == item.name) flag = false
+            }
+            flag
+        })
+
         new BasicInterpretation(
             sortInterpretations,
             constantInterpretations,
-            functionInterpretations -- funcDecls
+            functionInterpretations -- funcDecls,
+            newFunctionDefinitions
         )
     }
 
@@ -107,7 +157,8 @@ trait Interpretation {
         new BasicInterpretation(
             sortInterpretations + (sort -> values),
             constantInterpretations,
-            functionInterpretations
+            functionInterpretations,
+            functionDefinitions
         )
     }
 
@@ -140,35 +191,48 @@ trait Interpretation {
 
     override def toString: String = {
         val buffer = new mutable.StringBuilder
-        
-        buffer ++= "Sorts\n"
-        
-        val sortLines = for((sort, values) <- sortInterpretations) yield {
-            sort.toString + ": " + values.mkString(", ")
+
+        buffer ++= "+------------------------------View Model------------------------------+\n"
+
+        if(sortInterpretations.nonEmpty) {
+            buffer ++= "\nSorts:\n"
+            val sortLines = for((sort, values) <- sortInterpretations) yield {
+                sort.toString + ": " + values.mkString(", ")
+            }
+            buffer ++= sortLines.mkString("\n")
         }
-        buffer ++= sortLines.mkString("\n")
-        
+
         if(constantInterpretations.nonEmpty) {
-            buffer ++= "\nConstants\n"
+            buffer ++= "\n\nConstants: \n"
             val constLines = for((const, value) <- constantInterpretations) yield {
                 const.toString + " = " + value.toString
             }
             buffer ++= constLines.mkString("\n")
+            buffer ++= "\n"
         }
-        
-        if(functionInterpretations.nonEmpty) {
-            buffer ++= "\nFunctions"
-            for {
-                (fdecl, map) <- functionInterpretations
-            } {
-                buffer ++= "\n" + fdecl.toString + "\n"
-                val argLines = for((arguments, value) <- map) yield {
-                    fdecl.name + "(" + arguments.mkString(", ") + ") = " + value.toString
-                }
-                buffer ++= argLines.mkString("\n")
+
+        if(functionDefinitions.nonEmpty) {
+            buffer ++= "\nFunction Definitions:\n"
+            for( item <- functionDefinitions) {
+                buffer ++= item.toString
             }
         }
-        
+
+//        if(functionInterpretations.nonEmpty) {
+//            buffer ++= "\nFunctions values: "
+//            for {
+//                (fdecl, map) <- functionInterpretations
+//            } {
+//                buffer ++= "\n" + fdecl.toString + "\n"
+//                val argLines = for((arguments, value) <- map) yield {
+//                    fdecl.name + "(" + arguments.mkString(", ") + ") = " + value.toString
+//                }
+//                buffer ++= argLines.mkString("\n")
+//            }
+//        }
+
+        buffer ++= "+----------------------------------------------------------------------+\n"
+
         buffer.toString
     }
     

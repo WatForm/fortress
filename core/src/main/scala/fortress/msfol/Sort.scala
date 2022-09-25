@@ -31,6 +31,20 @@ case object IntSort extends Sort {
     override def isBuiltin: Boolean = true
 }
 
+case object BoundedIntSort extends Sort {
+    override def name: String = "BoundedIntSort"
+
+    override def isBuiltin: Boolean = true
+}
+
+case object UnBoundedIntSort extends Sort {
+    // use the same name with Int, because UnboundedIntSort & IntSort make no difference to user, only used for fortress transformer
+    override def name: String = "Int"
+
+    override def isBuiltin: Boolean = true
+}
+
+
 /** The BitVector sort for a given bitwidth. */
 case class BitVectorSort private (bitwidth: Int) extends Sort {
     def name: String = "BitVec" + bitwidth.toString
@@ -43,9 +57,14 @@ object BitVectorSort {
 
 object Sort {
     def mkSortConst(name: String): Sort = SortConst(name)
+
+    def mkIntSort(): Sort = IntSort
     
     val Bool: Sort = BoolSort
     val Int: Sort = IntSort
+    val BoundedInt: Sort = BoundedIntSort
+    val unBoundedInt: Sort = UnBoundedIntSort
+
     def BitVector(bitwidth: Int): Sort = BitVectorSort(bitwidth)
     
     def nameMimicsBuiltin(name: String): Boolean = {

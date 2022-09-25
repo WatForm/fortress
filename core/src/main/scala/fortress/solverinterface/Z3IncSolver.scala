@@ -13,13 +13,14 @@ import fortress.operations.SmtlibConverter
 import scala.jdk.CollectionConverters._
 import scala.util.matching.Regex
 
-class Z3CliSolver extends StandardProcessBuilderSolver with ProcessSmtlibEvaluation {
+/*
+    Default solving mode used by fortress.
+    Write axioms to one z3 process and call check-sat multiple times.
+ */
+
+
+class Z3IncSolver extends SMTLIBCLISession {
     def processArgs: Seq[String] = Seq("z3", "-smt2", "-in")
-    
+
     def timeoutArg(timeoutMillis: Milliseconds): String = "-t:" + timeoutMillis.value
 }
-
-class Z3IncCliSolver extends IncrementalProcessBuilderSolver with ProcessSmtlibEvaluation {
-    def processArgs: Seq[String] = Seq("z3", "-smt2", "-in")
-}
-

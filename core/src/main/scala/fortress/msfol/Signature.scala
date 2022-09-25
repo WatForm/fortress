@@ -142,6 +142,31 @@ case class Signature private (
         val newEnums = enumConstants
         Signature(newSorts, newFunctionDeclarations, newConstants, newEnums)
     }
+
+    def replaceIntSorts(boundedSet: Set[String]): Signature = {
+        def replace(s: Sort): Sort = s match {
+            case IntSort => UnBoundedIntSort
+            case _ => s
+        }
+
+        val newSorts = sorts
+        val newFunctionDeclarations = functionDeclarations.map(funcDecl => {
+            if( !boundedSet.contains(funcDecl.name) ) {
+                FuncDecl(funcDecl.name, funcDecl.argSorts map replace, replace(funcDecl.resultSort))
+            }
+            else{
+                funcDecl
+            }
+        })
+        val newConstants = constants.map(const => {
+            if(!boundedSet.contains(const.name)) {
+                const.variable of replace(const.sort)
+            }
+            else const
+        })
+        val newEnums = enumConstants
+        Signature(newSorts, newFunctionDeclarations, newConstants, newEnums)
+    }
     
     def withoutEnums = Signature(sorts, functionDeclarations, constants, Map.empty)
     

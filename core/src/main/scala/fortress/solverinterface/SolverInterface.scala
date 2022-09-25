@@ -6,7 +6,7 @@ import fortress.modelfind._
 import fortress.util._
 
 trait SolverInterface {
-    def openSession(): SolverSession
+    def openSession(): solver
 }
 
 object SolverInterface {
@@ -20,13 +20,13 @@ object SolverInterface {
 }
 
 case object Z3CliInterface extends SolverInterface {
-    def openSession(): SolverSession = new Z3CliSolver
+    def openSession(): solver = new Z3NonIncSolver
 }
 
 case object Z3IncCliInterface extends SolverInterface {
-    def openSession(): SolverSession = new Z3IncCliSolver
+    def openSession(): solver = new Z3IncSolver
 }
 
 case object CVC4CliInterface extends SolverInterface {
-    def openSession(): SolverSession = new CVC4CliSolver
+    def openSession(): solver = new CVC4CliSolver
 }

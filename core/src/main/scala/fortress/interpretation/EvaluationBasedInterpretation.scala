@@ -12,8 +12,9 @@ abstract class EvaluationBasedInterpretation(sig: Signature) extends Interpretat
     protected def evaluateConstant(c: AnnotatedVar): Value
     protected def evaluateSort(s: Sort): Seq[Value]
     protected def evaluateFunction(f: FuncDecl, scopes: Map[Sort, Int]): Map[Seq[Value], Value]
+    protected def evaluateFunctionDefinition(): Set[FunctionDefinition]
     
-    private def scopes: Map[Sort, Int] = for((sort, seq) <- sortInterpretations) yield (sort -> seq.size)
+    protected def scopes: Map[Sort, Int] = for((sort, seq) <- sortInterpretations) yield (sort -> seq.size)
     
     // Use vals and not defs - want to move information out of the solver immediately
     // in case we want to close the connection to it
@@ -32,4 +33,6 @@ abstract class EvaluationBasedInterpretation(sig: Signature) extends Interpretat
     override val functionInterpretations: Map[fortress.msfol.FuncDecl, Map[Seq[Value], Value]] = {
             for(f <- sig.functionDeclarations) yield (f -> evaluateFunction(f, scopes))
     }.toMap
+
+    override val functionDefinitions: Set[FunctionDefinition] = evaluateFunctionDefinition()
 }

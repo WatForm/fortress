@@ -115,7 +115,7 @@ class MicrostructureComplement(theory: Theory, scopes: Map[Sort, Int]) extends H
             val values: Seq[Value] = DomainElement.range(1 to scopes(sort), sort)
             (sort, values)
         }).toMap
-        
+
         val possibleInterpretationsConstants: Seq[Map[AnnotatedVar, Value]] = {
             // Constants c1, ..., ck
             // Each has a sequence of possible bindings Ai
@@ -146,7 +146,9 @@ class MicrostructureComplement(theory: Theory, scopes: Map[Sort, Int]) extends H
             new BasicInterpretation(
                 sortInterpretations,
                 interpretationForConstants,
-                interpretationForFunctions
+                interpretationForFunctions,
+                // TODO: modification is needed
+                functionDefinitions = Set.empty
             )
     }
     
@@ -188,7 +190,7 @@ class MicrostructureComplement(theory: Theory, scopes: Map[Sort, Int]) extends H
                         }}.toSet
                     }
                     hyperEdgesForAxiom += relevantConstBindings ++ relevantFunctionBindings
-                }   
+                }
             }
             mutMap += (axiom -> hyperEdgesForAxiom.toSet)
         }
