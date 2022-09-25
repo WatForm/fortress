@@ -42,8 +42,8 @@ trait Interpretation {
             case Exists(vars, body) => Exists(vars, visitBody(body))
             case Not(body) => Not(visitBody(body))
             case App(name, args) => App(name, args.map(visitBody))
-            case Closure(name, arg1, arg2) => Closure(name, visitBody(arg1), visitBody(arg2))
-            case ReflexiveClosure(name, arg1, arg2) => ReflexiveClosure(name, visitBody(arg1), visitBody(arg2))
+            case Closure(name, arg1, arg2, fixedArgs) => Closure(name, visitBody(arg1), visitBody(arg2), fixedArgs.map(visitBody))
+            case ReflexiveClosure(name, arg1, arg2, fixedArgs) => ReflexiveClosure(name, visitBody(arg1), visitBody(arg2), fixedArgs.map(visitBody))
             case Eq(p, q) => Eq(visitBody(p), visitBody(q))
             case DomainElement(index, sort) => {
                 val t: Value = term.asInstanceOf[Value]

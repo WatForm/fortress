@@ -6,7 +6,7 @@ import fortress.msfol._
 import fortress.operations._
 
 import java.io.CharArrayWriter
-
+import scala.jdk.CollectionConverters._
 
 /*
     Non-Incremental solving:

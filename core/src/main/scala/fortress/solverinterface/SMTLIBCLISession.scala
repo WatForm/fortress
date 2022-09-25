@@ -135,8 +135,8 @@ trait SMTLIBCLISession extends solver {
                 case Exists(vars, body) => Exists(vars, updateFunc(body))
                 case Not(body) => Not(updateFunc(body))
                 case App(name, args) => App(name, args.map(updateFunc))
-                case Closure(name, arg1, arg2) => Closure(name, updateFunc(arg1), updateFunc(arg2))
-                case ReflexiveClosure(name, arg1, arg2) => ReflexiveClosure(name, updateFunc(arg1), updateFunc(arg2))
+                case Closure(name, arg1, arg2, fixedArgs) => Closure(name, updateFunc(arg1), updateFunc(arg2), fixedArgs.map(updateFunc))
+                case ReflexiveClosure(name, arg1, arg2, fixedArgs) => ReflexiveClosure(name, updateFunc(arg1), updateFunc(arg2), fixedArgs.map(updateFunc))
                 case Eq(p, q) => Eq(updateFunc(p), updateFunc(q))
                 case Var(name) => {
                     if(smtValue2DomainElement.contains(name)) smtValue2DomainElement(name)
@@ -198,6 +198,20 @@ trait SMTLIBCLISession extends solver {
          sort: Sort,   // H
          smtValueToDomainElement: mutable.Map[String, DomainElement]
     ): Value = {
+
+        object ProcessBuilderSolver {
+            val smt2Model: Regex = """^\(\((\S+|\(.+\)) (\S+|\(.+\))\)\)$""".r
+            val bitVecType: Regex = """\(_ BitVec (\d+)\)""".r
+            val bitVecLiteral: Regex = """^#(.)(.+)$""".r
+            val bitVecExpr: Regex = """\(_ bv(\d+) (\d+)\)""".r
+            val bitVecExprCondensed: Regex = """(\d+)aaBitVecExpraa(\d+)""".r
+            val negativeInteger: Regex = """\(- ?(\d+)\)""".r
+            val negativeIntegerCondensed: Regex = """aaNegativeIntaa(\d+)""".r
+
+            val  BitVectorLiteral: Regex = """BitVectorLiteral.+""".r
+        }
+
+
         sort match {
             case SortConst(_) => {
                 if (smtValueToDomainElement.keySet.contains(value))
