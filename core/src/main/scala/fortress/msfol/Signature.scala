@@ -5,6 +5,7 @@ import fortress.util.Errors
 import fortress.operations.TypeCheckResult
 import scala.jdk.CollectionConverters._
 import scala.annotation.varargs // So we can call Scala varargs methods from Java
+import fortress.operations._
 
 // Persistent and Immutable
 // Internally consistent
@@ -21,6 +22,7 @@ import scala.annotation.varargs // So we can call Scala varargs methods from Jav
 case class Signature private (
     sorts: Set[Sort],
     functionDeclarations: Set[FuncDecl],
+    functionDefinitions: Set[FunctionDefinition],
     constants: Set[AnnotatedVar],
     enumConstants: Map[Sort, Seq[EnumValue]]
 ) {
@@ -30,7 +32,7 @@ case class Signature private (
         if(t.isBuiltin) this
         else {
             assertSortConsistent(t)
-            Signature(sorts + t, functionDeclarations, constants, enumConstants)
+            Signature(sorts + t, functionDeclarations, functionDefinitions, constants, enumConstants)
         }
     }
     
@@ -47,7 +49,7 @@ case class Signature private (
     
     def withFunctionDeclaration(fdecl: FuncDecl): Signature = {
         assertFuncDeclConsistent(fdecl)
-        Signature(sorts, functionDeclarations + fdecl, constants, enumConstants)
+        Signature(sorts, functionDeclarations + fdecl, functionDefinitions, constants, enumConstants)
     }
     
     def withFunctionDeclarations(fdecls: java.lang.Iterable[FuncDecl]): Signature = {
@@ -71,7 +73,7 @@ case class Signature private (
     
     def withConstant(c: AnnotatedVar): Signature = {
         assertConstConsistent(c);
-        Signature(sorts, functionDeclarations, constants + c, enumConstants)
+        Signature(sorts, functionDeclarations, functionDefinitions, constants + c, enumConstants)
     }
     
     def withConstants(constants: java.lang.Iterable[AnnotatedVar]): Signature = {
@@ -95,14 +97,60 @@ case class Signature private (
     
     def withEnumSort(t: Sort, values: Seq[EnumValue]) = {
         // TODO more consistency checking
-        Signature(sorts + t, functionDeclarations, constants, enumConstants + (t -> values))
+        Signature(sorts + t, functionDeclarations, functionDefinitions, constants, enumConstants + (t -> values))
     }
     
     def withEnumSort(t: Sort, values: java.util.List[EnumValue]) = {
         // TODO more consistency checking
-        Signature(sorts + t, functionDeclarations, constants, enumConstants + (t -> values.asScala.toList))
+        Signature(sorts + t, functionDeclarations, functionDefinitions, constants, enumConstants + (t -> values.asScala.toList))
     }
-    
+
+    def withFunctionDefinition(funcDef: FunctionDefinition): Signature = {
+        assertFuncDefConsistent(funcDef)
+        Signature(sorts, functionDeclarations, functionDefinitions + funcDef, constants, enumConstants)
+    }
+
+    def withFunctionDefinitions(funcdefs: java.lang.Iterable[FunctionDefinition]): Signature = {
+        var sig: Signature = this
+        funcdefs.forEach { f =>
+            sig = sig.withFunctionDefinition(f)
+        }
+        sig
+    }
+
+    def withFunctionDefinitions(funcDefs: Iterable[FunctionDefinition]): Signature = {
+        var sig = this
+        funcDefs.foreach { f =>
+            sig = sig.withFunctionDefinition(f)
+        }
+        sig
+    }
+
+    @varargs
+    def withFunctionDefinitions(funcDefs: FunctionDefinition*): Signature = withFunctionDefinitions(funcDefs.asJava)
+
+    def withoutFunctionDefinition(funcDef: FunctionDefinition): Signature = {
+        Signature(sorts, functionDeclarations, functionDefinitions - funcDef, constants, enumConstants)
+    }
+
+    def withoutFunctionDefinitions(funcDefs: java.lang.Iterable[FunctionDefinition]): Signature = {
+        var sig: Signature = this
+        funcDefs.forEach( f => {
+            sig = sig.withoutFunctionDefinition(f)
+        })
+        sig
+    }
+
+    def withoutFunctionDefinitions(funcDefs: Iterable[FunctionDefinition]): Signature = {
+        var sig: Signature = this
+        funcDefs.foreach( f => {
+            sig = sig.withoutFunctionDefinition(f)
+        })
+        sig
+    }
+
+    def withoutFunctionDefinitions(funcDefs: FunctionDefinition*): Signature = withoutFunctionDefinitions(funcDefs.asJava)
+
     // TypeChecking
     
     def queryConstant(v: Var): Option[AnnotatedVar] = constants.find(_.variable == v)
@@ -133,20 +181,44 @@ case class Signature private (
             case IntSort => BitVectorSort(bitwidth)
             case _ => s
         }
+
+        def replaceSortInAnnVar(v: AnnotatedVar): AnnotatedVar = {
+            if(v.sort == IntSort) AnnotatedVar(v.variable, BitVectorSort(bitwidth))
+            else v
+        }
         
         val newSorts = sorts
         val newFunctionDeclarations = functionDeclarations.map(
             fdecl => FuncDecl(fdecl.name, fdecl.argSorts map replaceSort, replaceSort(fdecl.resultSort))
         )
+
+        val newFunctionDefinitions = functionDefinitions.map(
+            funcDef => {
+                if( funcDef.resultSort == UnBoundedIntSort ) funcDef
+                else
+                FunctionDefinition(
+                    funcDef.name,
+                    funcDef.argSortedVar.map(replaceSortInAnnVar),
+                    replaceSort(funcDef.resultSort),
+                    TermConverter.intToSignedBitVector(funcDef.body, bitwidth)
+                )
+            }
+        )
+
         val newConstants = constants.map(c => c.variable of replaceSort(c.sort))
         val newEnums = enumConstants
-        Signature(newSorts, newFunctionDeclarations, newConstants, newEnums)
+        Signature(newSorts, newFunctionDeclarations, newFunctionDefinitions, newConstants, newEnums)
     }
 
     def replaceIntSorts(boundedSet: Set[String]): Signature = {
         def replace(s: Sort): Sort = s match {
             case IntSort => UnBoundedIntSort
             case _ => s
+        }
+
+        def replaceAnnVar(v: AnnotatedVar): AnnotatedVar = {
+            if( v.sort == IntSort ) AnnotatedVar(v.variable, UnBoundedIntSort)
+            else v
         }
 
         val newSorts = sorts
@@ -158,6 +230,13 @@ case class Signature private (
                 funcDecl
             }
         })
+
+        val newFunctionDefinitions = functionDefinitions.map(funcDef => {
+            if(!boundedSet.contains(funcDef.name)) {
+                FunctionDefinition(funcDef.name, funcDef.argSortedVar.map(replaceAnnVar), replace(funcDef.resultSort), funcDef.body)
+            }
+            else funcDef
+        })
         val newConstants = constants.map(const => {
             if(!boundedSet.contains(const.name)) {
                 const.variable of replace(const.sort)
@@ -165,10 +244,10 @@ case class Signature private (
             else const
         })
         val newEnums = enumConstants
-        Signature(newSorts, newFunctionDeclarations, newConstants, newEnums)
+        Signature(newSorts, newFunctionDeclarations, newFunctionDefinitions, newConstants, newEnums)
     }
     
-    def withoutEnums = Signature(sorts, functionDeclarations, constants, Map.empty)
+    def withoutEnums = Signature(sorts, functionDeclarations, functionDefinitions, constants, Map.empty)
     
     private
     def assertSortConsistent(t: Sort): Unit = {
@@ -214,6 +293,11 @@ case class Signature private (
             queryFunction(fdecl.name, fdecl.argSorts).filter(_ == fdecl).nonEmpty, // Same function exists
             "Function " + fdecl.name + " declared with two different sorts")
     }
+
+    private
+    def assertFuncDefConsistent(fdef: FunctionDefinition): Unit = {
+        ???
+    }
     
     override def toString: String = {
         val sortString = "Sorts: " + sorts.mkString(", ")
@@ -222,14 +306,18 @@ case class Signature private (
             case(sort, enumValues) => sort.name + " = {" + enumValues.mkString(", ") + "}"
         }.mkString("\n")
         
-        val funcString = "Function declarations:\n" + functionDeclarations.mkString("\n")
+        val funcDeclString = "Function declarations:\n" + functionDeclarations.mkString("\n")
+
+        val funcDefString = "Function Definitions:\n" + functionDefinitions.mkString("\n")
+
         val constString = "Constants:\n" + constants.mkString("\n")
         
         // Slow but doesn't matter
         var result = "Signature"
         if(sorts.nonEmpty) { result += "\n" + sortString }
         if(enumConstants.nonEmpty) { result += "\n" + enumString }
-        if(functionDeclarations.nonEmpty) { result += "\n" + funcString }
+        if(functionDeclarations.nonEmpty) { result += "\n" + funcDeclString }
+        if(functionDefinitions.nonEmpty) { result += "\n" + funcDefString }
         if(constants.nonEmpty) { result += "\n" + constString }
         result
     }
@@ -238,5 +326,5 @@ case class Signature private (
 object Signature {
     def empty: Signature = 
         // For testing consistency for symmetry breaking, use an insertion ordered set
-        Signature(InsertionOrderedSet.empty[Sort], InsertionOrderedSet.empty, InsertionOrderedSet.empty, Map.empty)
+        Signature(InsertionOrderedSet.empty[Sort], InsertionOrderedSet.empty, InsertionOrderedSet.empty, InsertionOrderedSet.empty, Map.empty)
 }

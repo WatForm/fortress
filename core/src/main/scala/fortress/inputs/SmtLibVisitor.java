@@ -131,6 +131,29 @@ public class SmtLibVisitor extends SmtLibSubsetBaseVisitor {
     }
 
     @Override
+    public Void visitDefine_fun(SmtLibSubsetParser.Define_funContext ctx) { // '(' 'define-fun' ID '(' sorted_var* ')' sort term ')'
+        String funcName = ctx.ID().getText();
+        int argNum = ctx.sorted_var().size();
+        List<AnnotatedVar> argList = new ArrayList<>();
+        for(int i=0; i<argNum; i++) {
+            argList.add( visitSorted_var( ctx.sorted_var(i) ) );
+        }
+        Sort resultSort = (Sort)visit(ctx.sort());
+        Term funcBody = (Term)visit(ctx.term());
+        FunctionDefinition funcDef = FunctionDefinition.mkFunctionDefinition(funcName, argList, resultSort, funcBody);
+        theory = this.theory.withFunctionDefinition(funcDef);
+        return null;
+    }
+
+    @Override
+    public AnnotatedVar visitSorted_var(SmtLibSubsetParser.Sorted_varContext ctx) {
+        String name = ctx.ID().getText();
+        Var var = Term.mkVar(name);
+        Sort sort = (Sort)visit(ctx.sort());
+        return new AnnotatedVar(var, sort);
+    }
+
+    @Override
     public Void visitDeclare_sort(SmtLibSubsetParser.Declare_sortContext ctx) {
         Sort t = Sort.mkSortConst(ctx.ID().getText());
         // Parser requires this number to be 0 now (no more NAT_NUMBER)

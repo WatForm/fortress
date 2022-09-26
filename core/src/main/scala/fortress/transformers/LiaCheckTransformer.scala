@@ -10,6 +10,7 @@ object LiaCheckTransformer extends ProblemStateTransformer {
     override def apply(problemState: ProblemState): ProblemState = problemState match {
         case ProblemState(theory, scopes, skolemConstants, skolemFunctions, rangeRestrictions, unapplyInterp, distinctConstants) => {
 
+            // @zxt: change back before merging
             if(scopes.contains(IntSort) || true) {
                 var boundedSet: Set[String] = Set.empty
                 var axiomVarMap: Map[Term, Set[String]] = Map.empty
