@@ -177,7 +177,7 @@ class SmtlibConverter(writer: java.io.Writer) {
         funcDef.argSortedVar.foreach(writeArgSortedVar)
         writer.write(") ")
         writeSort(funcDef.resultSort)
-        writer.write("\n  ")
+        writer.write(" ")
         write(funcDef.body)
         writer.write(')')
     }

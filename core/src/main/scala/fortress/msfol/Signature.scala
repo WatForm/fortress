@@ -296,7 +296,9 @@ case class Signature private (
 
     private
     def assertFuncDefConsistent(fdef: FunctionDefinition): Unit = {
-        ???
+        // Argument sorts must exist in sort set
+        Errors.Internal.precondition(fdef.argSortedVar.forall(arg => arg.sort.isBuiltin || hasSort(arg.sort)),
+            "Function " + fdef.name + " has argument sorts that are undeclared")
     }
     
     override def toString: String = {

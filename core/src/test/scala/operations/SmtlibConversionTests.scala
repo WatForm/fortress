@@ -5,7 +5,7 @@ import fortress.operations.TermOps._
 import fortress.operations.TheoryOps._
 import fortress.operations.SmtlibConverter
 
-class SmtlibConversionTests extends UnitSuite {
+class  SmtlibConversionTests extends UnitSuite {
     
     val A = Sort.mkSortConst("A")
     val B = Sort.mkSortConst("B")
@@ -114,5 +114,39 @@ class SmtlibConversionTests extends UnitSuite {
 
         converter.writeEnumConst(A, Seq(_1A, _2A))
         writer.toString should be ("(declare-datatypes () ((A _@1Aaa _@2Aaa)))")
+    }
+
+    test("function definition1") {
+        val writer = new java.io.StringWriter
+        val converter = new SmtlibConverter(writer)
+
+        converter.writeFunctionDefinition(
+            FunctionDefinition(
+                "max",
+                List(AnnotatedVar(Var("x"), IntSort), AnnotatedVar(Var("y"), IntSort)),
+                IntSort,
+                IfThenElse(BuiltinApp(IntLT, Var("x"), Var("y")), Var("y"), Var("x"))
+            )
+        )
+
+        println(writer.toString)
+
+        writer.toString should be ("(define-fun maxaa ((xaa Int) (yaa Int) ) Int (ite (< xaa yaa) yaa xaa))")
+    }
+
+    test("function definition2") {
+        val writer = new java.io.StringWriter
+        val converter = new SmtlibConverter(writer)
+
+        converter.writeFunctionDefinition(
+            FunctionDefinition(
+                "power2",
+                List(AnnotatedVar(Var("x"), IntSort)),
+                BoolSort,
+                OrList(Eq(Var("x"), IntegerLiteral(8)), Eq(Var("x"), IntegerLiteral(4)), Eq(Var("x"), IntegerLiteral(2)), Eq(Var("x"), IntegerLiteral(1)))
+            )
+        )
+
+        writer.toString should be ("(define-fun power2aa ((xaa Int) ) Bool (or (= xaa 8) (= xaa 4) (= xaa 2) (= xaa 1)))")
     }
 }

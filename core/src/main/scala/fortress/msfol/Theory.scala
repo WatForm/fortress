@@ -112,6 +112,8 @@ case class Theory private (signature: Signature, axioms: Set[Term]) {
 
     def withFunctionDefinitions(funcDefs: Iterable[FunctionDefinition]): Theory = Theory(signature.withFunctionDefinitions(funcDefs), axioms)
 
+    def withFunctionDefinitions(funcDefs: FunctionDefinition*): Theory = Theory(signature.withFunctionDefinitions(funcDefs), axioms)
+
     def withoutFunctionDefinition(funcDef: FunctionDefinition): Theory = Theory(signature.withoutFunctionDefinition(funcDef), axioms)
 
     def withoutFunctionDefinitions(funcDefs: java.lang.Iterable[FunctionDefinition]): Theory = Theory(signature.withoutFunctionDefinitions(funcDefs), axioms)
