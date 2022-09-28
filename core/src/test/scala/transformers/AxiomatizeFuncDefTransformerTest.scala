@@ -7,6 +7,7 @@ class AxiomatizeFuncDefTransformerTest extends UnitSuite with CommonSymbols {
 
     val baseTheory = Theory.empty
             .withSort(IntSort)
+            .withSort(A)
 
     test("simple functions") {
 
@@ -24,6 +25,13 @@ class AxiomatizeFuncDefTransformerTest extends UnitSuite with CommonSymbols {
             OrList(Eq(Var("x"), IntegerLiteral(8)), Eq(Var("x"), IntegerLiteral(4)), Eq(Var("x"), IntegerLiteral(2)), Eq(Var("x"), IntegerLiteral(1)))
         )
 
+        val fd3 = FunctionDefinition(
+            "AAA",
+            List(AnnotatedVar(Var("x"), A)),
+            BoolSort,
+            Top
+        )
+
         val axiom1 = Forall(
             fd1.argSortedVar, Eq(App(fd1.name, fd1.argSortedVar.map(av => av.variable)), fd1.body)
         )
@@ -32,14 +40,20 @@ class AxiomatizeFuncDefTransformerTest extends UnitSuite with CommonSymbols {
             fd2.argSortedVar, Eq(App(fd2.name, fd2.argSortedVar.map(av => av.variable)), fd2.body)
         )
 
+        val axiom3 = Forall(
+            fd3.argSortedVar, Eq(App(fd3.name, fd3.argSortedVar.map(av => av.variable)), fd3.body)
+        )
+
         val theory = baseTheory
-                .withFunctionDefinitions(fd1, fd2)
+                .withFunctionDefinitions(fd1, fd2, fd3)
 
         val expected = baseTheory
                 .withFunctionDeclaration(FuncDecl("max", IntSort, IntSort, IntSort))
                 .withFunctionDeclaration(FuncDecl("power2", IntSort, BoolSort))
+                .withFunctionDeclaration(FuncDecl("AAA", A, BoolSort))
                 .withAxiom(axiom1)
                 .withAxiom(axiom2)
+                .withAxiom(axiom3)
 
         axiomatize(theory) should be (expected)
 
