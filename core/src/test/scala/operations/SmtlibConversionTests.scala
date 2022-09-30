@@ -115,4 +115,9 @@ class SmtlibConversionTests extends UnitSuite {
         converter.writeEnumConst(A, Seq(_1A, _2A))
         writer.toString should be ("(declare-datatypes () ((A _@1Aaa _@2Aaa)))")
     }
+
+    test ("bitvector concat") {
+        val formula = BuiltinApp(BvConcat, BitVectorLiteral(0, 4), x)
+        formula.smtlib should be ("(concat (_ bv0 4) xaa)")
+    }
 }

@@ -81,6 +81,14 @@ sealed trait BinaryBitVectorRelation extends BuiltinFunction {
     }
 }
 
+/** A function BV(n) x BV(m) -> BV(n + m) */
+sealed trait BitVectorConcatFunction extends BuiltinFunction {
+    override def resultSortFromArgSorts(sorts: Seq[Sort]): Option[Sort] = sorts match {
+        case Seq(BitVectorSort(n), BitVectorSort(m)) => Some(BitVectorSort(n + m))
+        case _ => None
+    }
+}
+
 case object BvPlus extends BinaryBitVectorFunction
 case object BvSub extends BinaryBitVectorFunction
 case object BvMult extends BinaryBitVectorFunction
@@ -95,3 +103,6 @@ case object BvSignedLE extends BinaryBitVectorRelation
 case object BvSignedLT extends BinaryBitVectorRelation
 case object BvSignedGE extends BinaryBitVectorRelation
 case object BvSignedGT extends BinaryBitVectorRelation
+
+
+case object BvConcat extends BitVectorConcatFunction

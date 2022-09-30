@@ -236,7 +236,7 @@ case class BuiltinApp private (function: BuiltinFunction, arguments: Seq[Term]) 
 }
 
 object BuiltinApp {
-    def apply(function: BuiltinFunction, args: Term*): Term = BuiltinApp(function, args.toList)
+    def apply(function: BuiltinFunction, args: Term*): Term = BuiltinApp(function, args)
 }
 
 sealed trait Quantifier extends Term {
