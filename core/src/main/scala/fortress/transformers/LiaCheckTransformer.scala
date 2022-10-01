@@ -11,7 +11,7 @@ object LiaCheckTransformer extends ProblemStateTransformer {
         case ProblemState(theory, scopes, skolemConstants, skolemFunctions, rangeRestrictions, unapplyInterp, distinctConstants) => {
 
             // @zxt: change back before merging
-            if(scopes.contains(IntSort) || true) {
+            if(scopes.contains(IntSort)) {
                 var boundedSet: Set[String] = Set.empty
                 var axiomVarMap: Map[Term, Set[String]] = Map.empty
 
