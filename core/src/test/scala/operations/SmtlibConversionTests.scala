@@ -147,6 +147,11 @@ class  SmtlibConversionTests extends UnitSuite {
             )
         )
 
-        writer.toString should be ("(define-fun power2aa ((xaa Int) ) Bool (or (= xaa 8) (= xaa 4) (= xaa 2) (= xaa 1)))")
+        writer.toString should be("(define-fun power2aa ((xaa Int) ) Bool (or (= xaa 8) (= xaa 4) (= xaa 2) (= xaa 1)))")
+    }
+
+    test ("bitvector concat") {
+        val formula = BuiltinApp(BvConcat, BitVectorLiteral(0, 4), x)
+        formula.smtlib should be ("(concat (_ bv0 4) xaa)")
     }
 }

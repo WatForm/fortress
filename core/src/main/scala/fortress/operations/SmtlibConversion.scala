@@ -103,6 +103,7 @@ class SmtlibConverter(writer: java.io.Writer) {
             case BuiltinApp(BvSignedLT, args) => writeGeneralApp("bvslt", args)
             case BuiltinApp(BvSignedGE, args) => writeGeneralApp("bvsge", args)
             case BuiltinApp(BvSignedGT, args) => writeGeneralApp("bvsgt", args)
+            case BuiltinApp(BvConcat, args) => writeGeneralApp("concat", args)
 
             case Closure(_, _, _, _) => Errors.Internal.impossibleState("Cannot convert Closure to smtlib")
             case ReflexiveClosure(_, _, _, _) =>  Errors.Internal.impossibleState("Cannot convert Reflexive Closure to smtlib")
