@@ -29,7 +29,7 @@ class ClosureEliminatorIterative(topLevelTerm: Term, signature: Signature, scope
             val reflexiveClosureName = getReflexiveClosureName(functionName)
 
             // Function that checks if the function already exists or we have generated it
-            def queryFunction(name: String): Boolean = signature.hasFunctionWithName(name) || closureFunctions.exists(f => f.name == name)
+            def queryFunction(name: String): Boolean = signature.hasFuncDeclWithName(name) || closureFunctions.exists(f => f.name == name)
 
             // If we have not generated the function yet
             if (!queryFunction(closureName)) {

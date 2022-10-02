@@ -29,7 +29,11 @@ class TypeChecker(signature: Signature) extends TermVisitorWithTypeContext[TypeC
         // This must be done even with a consistent signature
         // TODO: this behaviour should be documented
         // TODO: is this considered poorly typed or a different kind of error?
-        if(signature hasFunctionWithName variable.name) {
+        if(signature hasFuncDeclWithName variable.name) {
+            throw new TypeCheckException.NameConflict("Variable or constant name " + variable.name + " conflicts with existing function symbol")
+        }
+
+        if(signature hasFuncDefWithName variable.name) {
             throw new TypeCheckException.NameConflict("Variable or constant name " + variable.name + " conflicts with existing function symbol")
         }
         
@@ -179,7 +183,7 @@ class TypeChecker(signature: Signature) extends TermVisitorWithTypeContext[TypeC
         // 2. arguments contain no connectives or quantifiers
         val funcName = app.functionName
         
-        if(! (signature hasFunctionWithName funcName) ) {
+        if(! ( (signature hasFuncDeclWithName funcName) || (signature hasFuncDefWithName funcName) ) ) {
             throw new TypeCheckException.UnknownFunction("Could not find function: " + funcName)
         }
         
@@ -230,7 +234,7 @@ class TypeChecker(signature: Signature) extends TermVisitorWithTypeContext[TypeC
         val funcName = c.functionName
 
         // Check function we are closing over exists
-        if(! (signature hasFunctionWithName funcName) ) {
+        if(! (signature hasFuncDeclWithName  funcName) ) {
             throw new TypeCheckException.UnknownFunction("Could not find function: " + funcName)
         }
 
@@ -276,7 +280,7 @@ class TypeChecker(signature: Signature) extends TermVisitorWithTypeContext[TypeC
         // 2. arguments contain no connectives or quantifiers
         val funcName = rc.functionName
 
-        if(! (signature hasFunctionWithName funcName) ) {
+        if(! (signature hasFuncDeclWithName  funcName) ) {
             throw new TypeCheckException.UnknownFunction("Could not find function: " + funcName)
         }
 
@@ -319,9 +323,14 @@ class TypeChecker(signature: Signature) extends TermVisitorWithTypeContext[TypeC
         // Check variables don't clash with function names
         // and that their sort exists
         for(av <- exists.vars) {
-            if(signature hasFunctionWithName av.name) {
+            if(signature hasFuncDeclWithName  av.name) {
                 throw new TypeCheckException.NameConflict("Variable name " + av.name + " conflicts with existing function symbol")
             }
+
+            if(signature hasFuncDefWithName  av.name) {
+                throw new TypeCheckException.NameConflict("Variable name " + av.name + " conflicts with existing function symbol")
+            }
+
             if(!av.sort.isBuiltin && !(signature hasSort av.sort) ) {
                 throw new TypeCheckException.UndeclaredSort("Undeclared sort " + av.sort.name + " in " + exists.toString)
             }
@@ -338,9 +347,14 @@ class TypeChecker(signature: Signature) extends TermVisitorWithTypeContext[TypeC
         // Check variables don't clash with function names
         // and that their sort exists
         for(av <- forall.vars) {
-            if(signature hasFunctionWithName av.name) {
+            if(signature hasFuncDeclWithName  av.name) {
                 throw new TypeCheckException.NameConflict("Variable name " + av.name + " conflicts with existing function symbol")
             }
+
+            if(signature hasFuncDefWithName   av.name) {
+                throw new TypeCheckException.NameConflict("Variable name " + av.name + " conflicts with existing function symbol")
+            }
+
             if(!av.sort.isBuiltin && !(signature hasSort av.sort) ) {
                 throw new TypeCheckException.UndeclaredSort("Undeclared sort " + av.sort.name + " in " + forall.toString)
             }

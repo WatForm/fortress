@@ -5,6 +5,9 @@ import scala.annotation.varargs
   (define-fun faa ((x!0 P)) H
     (ite (= x!0 P!val!0) H!val!1
       H!val!0))
+
+  (define-fun max ((x Int) (y Int)) Int
+    (ite (< x y) y x))
  */
 
 
