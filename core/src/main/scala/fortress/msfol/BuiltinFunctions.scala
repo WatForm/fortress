@@ -73,7 +73,7 @@ sealed trait BinaryBitVectorFunction extends BuiltinFunction {
     }
 }
 
-/** A function BV(n) x BV(n) -> BV(n). */
+/** A function BV(n) x BV(n) -> Bool. */
 sealed trait BinaryBitVectorRelation extends BuiltinFunction {
     override def resultSortFromArgSorts(sorts: Seq[Sort]): Option[Sort] = sorts match {
         case Seq(BitVectorSort(n), BitVectorSort(m)) if n == m => Some(BoolSort)
