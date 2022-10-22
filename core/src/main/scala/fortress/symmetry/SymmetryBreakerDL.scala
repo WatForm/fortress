@@ -2,6 +2,7 @@ package fortress.symmetry
 
 import fortress.msfol._
 import fortress.operations.TermOps._
+import fortress.problemstate._
 
 import scala.collection.mutable
 

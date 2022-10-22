@@ -1,4 +1,5 @@
 import fortress.msfol._
+import fortress.problemstate._
 import fortress.transformers._
 
 class SimpleUnboundedCheckTransformerTests extends UnitSuite with CommonSymbols {

@@ -1,13 +1,13 @@
 package fortress.cli
 
 import org.rogach.scallop._
-
 import fortress.msfol._
 import fortress.modelfind._
 import fortress.inputs._
 import fortress.compiler._
 import fortress.util._
 import fortress.logging._
+import fortress.problemstate._
 import fortress.transformers._
 
 import java.io._

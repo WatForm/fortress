@@ -6,6 +6,7 @@ import scala.collection.mutable
 import fortress.symmetry._
 import fortress.operations.TermOps._
 import fortress.operations.TheoryOps._
+import fortress.problemstate.ProblemState
 
 // TODO: move this into a symmetry breaker
 

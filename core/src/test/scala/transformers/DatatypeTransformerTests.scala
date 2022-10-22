@@ -1,6 +1,6 @@
 import org.scalatest._
-
 import fortress.msfol._
+import fortress.problemstate._
 import fortress.transformers._
 
 class DatatypeTransformerTests extends UnitSuite {

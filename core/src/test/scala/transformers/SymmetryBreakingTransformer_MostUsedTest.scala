@@ -1,5 +1,6 @@
 import org.scalatest._
 import fortress.msfol._
+import fortress.problemstate._
 import fortress.symmetry.{DefaultSymmetryBreakerFactoryDL, LowArityFirstAndMostUsedOrderFactory}
 import fortress.transformers._
 

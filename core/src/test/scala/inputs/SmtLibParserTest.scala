@@ -1,9 +1,10 @@
 import java.io.{File, FileInputStream}
-
 import fortress.inputs._
 import fortress.modelfind._
 import fortress.msfol._
+import fortress.problemstate.{ExactScope, NonExactScope}
 import org.scalatest._
+
 import scala.jdk.CollectionConverters._
 import scala.jdk.OptionConverters._
 import scala.util.Using

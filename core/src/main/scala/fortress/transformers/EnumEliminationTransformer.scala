@@ -1,11 +1,11 @@
 package fortress.transformers
 
 import scala.jdk.CollectionConverters._
-
 import fortress.msfol._
 import fortress.util.Errors
 import fortress.operations.TermOps._
 import fortress.interpretation.Interpretation
+import fortress.problemstate.ProblemState
 
 /** Replaces enum values with domain elements, following the mapping from the
   * computeEnumSortMapping method.

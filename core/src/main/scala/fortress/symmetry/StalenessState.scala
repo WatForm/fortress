@@ -3,6 +3,7 @@ package fortress.symmetry
 import fortress.msfol._
 import fortress.operations.TermOps._
 import fortress.operations._
+import fortress.problemstate._
 import fortress.sortinference._
 import fortress.util.Errors
 

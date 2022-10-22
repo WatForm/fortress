@@ -1,5 +1,6 @@
 package fortress.inputs;
 
+import fortress.problemstate.*;
 import fortress.util.Errors;
 import org.antlr.v4.runtime.*;
 import org.antlr.v4.runtime.tree.*;

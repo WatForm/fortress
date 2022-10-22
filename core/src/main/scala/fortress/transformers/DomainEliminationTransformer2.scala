@@ -3,6 +3,7 @@ package fortress.transformers
 import fortress.msfol._
 import fortress.operations.TermOps._
 import fortress.operations.TheoryOps._
+import fortress.problemstate.ProblemState
 
 /** Introduces constants to simulate the domain elements, asserting these constants are
   * all distinct and replacing occurrences of domain elements with the appropriate constant.

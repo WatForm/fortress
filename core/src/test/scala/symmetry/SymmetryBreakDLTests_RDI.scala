@@ -1,7 +1,7 @@
 import org.scalatest._
-
 import fortress.msfol._
 import fortress.operations.TermOps._
+import fortress.problemstate.{ExactScope, Scope}
 import fortress.symmetry._
 
 class SymmetryBreakDLTests_RDI extends UnitSuite {

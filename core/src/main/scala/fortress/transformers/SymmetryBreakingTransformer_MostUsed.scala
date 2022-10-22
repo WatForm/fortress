@@ -3,6 +3,7 @@ package fortress.transformers
 import fortress.msfol._
 import fortress.symmetry._
 import fortress.operations.TheoryOps._
+import fortress.problemstate.ProblemState
 
 /** Applies symmetry breaking to the given Problem. The input Problem is allowed
   * to have domain elements in its formulas. The output formula will have domain
