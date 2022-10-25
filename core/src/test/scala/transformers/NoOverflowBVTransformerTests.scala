@@ -31,7 +31,7 @@ class NoOverflowBVTransformerTests extends UnitSuite with CommonSymbols {
       managerWithOverflow.addOption(new ConfigOption("NoBVOverflow", _.addTransformer(NoOverflowBVTransformer)))
       managerWithOverflow.addOption(QuantifierExpansionOption, 5001)
       managerWithOverflow.addOption(RangeFormulaOption, 5002)
-      managerWithOverflow.addOption(SimplifyOption, 5003)
+      // managerWithOverflow.addOption(SimplifyOption, 5003)
       managerWithOverflow.addOption(DatatypeOption, 5004)
 
 
@@ -45,8 +45,21 @@ class NoOverflowBVTransformerTests extends UnitSuite with CommonSymbols {
           if (result == ModelFinderResult.Sat) {
                     val modelstring = finder.viewModel().toString()
                     println(modelstring)
-                }
-                assert(result == ModelFinderResult.Unsat)
+          }
+          result shouldBe (ModelFinderResult.Unsat)
+          //assert(result == ModelFinderResult.Unsat)
+        }
+      }
+    }
+
+    def ensureSat(theory: Theory) {
+      Using.resource(managerWithOverflow.setupModelFinder()) {
+        finder => {
+          finder.setTheory(theory)
+          finder.setTimeout(Seconds(10))
+          val result = finder.checkSat()
+          result shouldBe (ModelFinderResult.Sat)
+          //assert(result == ModelFinderResult.Sat)
         }
       }
     }
@@ -206,4 +219,98 @@ class NoOverflowBVTransformerTests extends UnitSuite with CommonSymbols {
 
     // TODO test in other structures
 
+    test("In Or") {
+      val body = Or(Eq(BuiltinApp(BvSignedDiv, x1, zero4), x1), Bottom)
+
+      val theory = Theory.empty
+      .withConstant(x1 of BV4)
+      .withAxiom(body)
+
+      ensureUnsat(theory)
+
+      val theoryForall = Theory.empty
+      .withAxiom(Forall(x1 of BV4, body))
+
+      ensureSat(theoryForall)
+    }
+
+    test("In And") {
+      val body = And(Eq(BuiltinApp(BvSignedDiv, x1, zero4), x1), Top)
+
+      val theory = Theory.empty
+      .withConstant(x1 of BV4)
+      .withAxiom(body)
+
+      ensureUnsat(theory)
+
+      val theoryForall = Theory.empty
+      .withAxiom(Forall(x1 of BV4, body))
+
+      ensureSat(theoryForall)
+    }
+
+    test("In Implication Left") {
+      val body = Implication(Eq(BuiltinApp(BvSignedDiv, x1, zero4), x1), Bottom)
+
+      val theory = Theory.empty
+      .withConstant(x1 of BV4)
+      .withAxiom(body)
+
+      ensureUnsat(theory)
+
+      val theoryForall = Theory.empty
+      .withAxiom(Forall(x1 of BV4, body))
+
+      ensureSat(theoryForall)
+    }
+
+    test("In Implication Right") {
+      val body = Implication(Top, Eq(BuiltinApp(BvSignedDiv, x1, zero4), x1))
+
+      val theory = Theory.empty
+      .withConstant(x1 of BV4)
+      .withAxiom(body)
+
+      ensureUnsat(theory)
+
+      val theoryForall = Theory.empty
+      .withAxiom(Forall(x1 of BV4, body))
+
+      ensureSat(theoryForall)
+    }
+
+    test("In Iff vs True"){
+      val bodyTrue = Iff(Eq(BuiltinApp(BvSignedDiv, x1, zero4), x1), Top)
+
+      val theoryTrue = Theory.empty
+      .withConstant(x1 of BV4)
+      .withAxiom(bodyTrue)
+
+      ensureUnsat(theoryTrue)
+
+      val theoryForallTrue = Theory.empty
+      .withAxiom(Forall(x1 of BV4, bodyTrue))
+      ensureSat(theoryForallTrue)
+    }
+
+    test("In Iff vs False"){
+      val bodyFalse = Iff(Eq(BuiltinApp(BvSignedDiv, x1, zero4), x1), Bottom)
+
+      val theoryFalse = Theory.empty
+      .withConstant(x1 of BV4)
+      .withAxiom(bodyFalse)
+      
+      ensureUnsat(theoryFalse)
+
+      val theoryForallFalse = Theory.empty
+      .withAxiom(Forall(x1 of BV4, bodyFalse))
+      ensureSat(theoryForallFalse)
+    }
+    /*
+    test("In ITE condition")
+    test("In ITE then")
+    test("In ITE else")
+    test("In EQ")
+    test("In Function Arguments")
+    */
 }
