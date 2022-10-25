@@ -1,4 +1,4 @@
-package fortress.operations
+package fortress.transformers
 
 import fortress.msfol._
 import fortress.data.NameGenerator
@@ -7,12 +7,24 @@ import fortress.util.IntegerSize._
 import fortress.util.Extensions.IntExtension
 import java.lang.IllegalArgumentException
 import java.util.ArrayList
+import fortress.operations.TheoryOps._
 
 import scala.jdk.CollectionConverters._
-import com.sourcegraph.semanticdb_javac.Result
+import scala.util.Using
 
+class NoOverflowBVTransformer extends ProblemStateTransformer (){
 
-class NoOverflowBVTransformer (topLevelTerm: Term, signature: Signature, scopes: Map[Sort, Scope], nameGen: NameGenerator){
+  def name = "NoOverflowBVTransformer"
+
+  def apply(problemState: ProblemState): ProblemState = {
+    val oldTheory = problemState.theory
+    
+    
+    val newAxioms = oldTheory.axioms.map(fixOverflow(_, oldTheory.signature).cleanTerm)
+    val newTheory = oldTheory.withoutAxioms.withAxioms(newAxioms)
+
+    problemState.withTheory(newTheory)
+  }
 
     case class ResultInfo(cleanTerm: Term, univChecks: Set[Term], extChecks: Set[Term], containsUnivVar: Boolean){
         // Combines two results into a sequence of subterms, unions the checks and contains a univVar if anysubterm does
@@ -69,7 +81,7 @@ class NoOverflowBVTransformer (topLevelTerm: Term, signature: Signature, scopes:
       * @param extVars Set of existentially quantified vars
       * @return (cleanTerm, Overflow checks for subexpressions with a universally quantified var, Overflow checks for other subexpressions )
       */
-    def fixOverflow(term: Term, sig: Signature, polarity: Boolean, univVars: Set[Var], extVars: Set[Var]): ResultInfo = term match {
+    def fixOverflow(term: Term, sig: Signature, polarity: Boolean = true, univVars: Set[Var] = Set.empty, extVars: Set[Var] = Set.empty): ResultInfo = term match {
       case Var(x) => ResultInfo(Var(x), Set.empty, Set.empty, univVars.contains(Var(x)))
       case _: LeafTerm => ResultInfo(term, Set.empty, Set.empty, false)
 
@@ -84,6 +96,7 @@ class NoOverflowBVTransformer (topLevelTerm: Term, signature: Signature, scopes:
         
         applyChecks(resCombined, polarity)
       }
+
       // TODO change to have predicates 
       case BuiltinApp(function, arguments) => {
           // clean up arguments and get their checks
@@ -91,7 +104,7 @@ class NoOverflowBVTransformer (topLevelTerm: Term, signature: Signature, scopes:
           val newTerm = BuiltinApp(function, cleanArgs)
           // include this term if it can overflow
           val allOverflowTerms = if (canOverflow(term)) {
-            val newChecks = overflowCheck(newTerm)
+            val newChecks = overflowCheck(newTerm, sig)
             // Place it in the correct set based on if we have a univVar or not
             if(containsUnivVar){
               return ResultInfo(newTerm, univChecks.incl(newChecks), extChecks, containsUnivVar)
@@ -157,13 +170,15 @@ class NoOverflowBVTransformer (topLevelTerm: Term, signature: Signature, scopes:
       // TODO if then else
 
       case Iff(left, right) => {
+        // NOTE unsure about polarity here? They have to match...
+        // It might need to be two implications?
         val resLeft = fixOverflow(left, sig, polarity, univVars, extVars)
         val resRight = fixOverflow(right, sig, polarity, univVars, extVars)
         return resLeft.combine(Iff(_, _))(resRight)
       }
 
       case Implication(left, right) => {
-        val resLeft = fixOverflow(left, sig, polarity, univVars, extVars)
+        val resLeft = fixOverflow(left, sig, !polarity, univVars, extVars)
         val resRight = fixOverflow(right, sig, polarity, univVars, extVars)
         return resLeft.combine(Implication(_, _))(resRight)
       }
@@ -218,9 +233,11 @@ class NoOverflowBVTransformer (topLevelTerm: Term, signature: Signature, scopes:
       */
     def applyChecks(currentInfo: ResultInfo, polarity: Boolean): ResultInfo = {
       // bdef = no existentials or all existentials are defined
-        // so bdef = all existential checks are false (so no existentials overflow)
+      // so bdef = all existential checks are false (so no existentials overflow)
         val bDef: Term = if (currentInfo.extChecks.isEmpty) {
           Top
+        } else if (currentInfo.extChecks.size == 1){
+          currentInfo.extChecks.toSeq.map(Not(_))(0)
         } else {
           // TODO make this more efficient by 
           val definedChecks = currentInfo.extChecks.toSeq.map(Not(_))
@@ -228,7 +245,9 @@ class NoOverflowBVTransformer (topLevelTerm: Term, signature: Signature, scopes:
         }
           
         // bundef = some universals and any univ is undefined
-        val bUndef = if (currentInfo.containsUnivVar) {
+        val bUndef = if (currentInfo.univChecks.size == 1){
+          currentInfo.univChecks.toSeq(0)
+        } else if (currentInfo.containsUnivVar) {
           OrList(currentInfo.univChecks.toSeq)
         } else {
           Bottom
@@ -289,7 +308,7 @@ class NoOverflowBVTransformer (topLevelTerm: Term, signature: Signature, scopes:
     }
 
     // Adds a check to ensure a division does not divide by zero
-    def checkDivideByZero(arguments: Seq[Term]): Term = {
+    def checkDivideByZero(arguments: Seq[Term], signature: Signature): Term = {
       Errors.Internal.precondition(arguments.length == 2)
       val denominator = arguments(1)
       val bitwidth = bitvectorWidth(denominator, signature).get
@@ -297,7 +316,14 @@ class NoOverflowBVTransformer (topLevelTerm: Term, signature: Signature, scopes:
       return Eq(denominator, zero)
     }
 
-    def overflowCheck(term: Term): Term = term match {
+    /**
+      * 
+      *
+      * @param term
+      * @param signature
+      * @return A `Term` that will evaluate to true when `term` would cause an overflow.
+      */
+    def overflowCheck(term: Term, signature: Signature): Term = term match {
       case BuiltinApp(function, arguments) => function match {
         case BvNeg => {
           // Overflow occurs when the value negated is the minimum value
@@ -329,12 +355,14 @@ class NoOverflowBVTransformer (topLevelTerm: Term, signature: Signature, scopes:
             )
           )
         }
-        // Negate and check for addition
-        case BvSub => overflowCheck(bvSubtoPlus(term))
+        // Negate and check for addition, check both for overflow
+        case BvSub => {
+          Or(overflowCheck(bvSubtoPlus(term), signature), overflowCheck(BuiltinApp(BvNeg, arguments(1)), signature))
+        }
         // Division will over/underflow with divide by zero
-        case BvSignedDiv => checkDivideByZero(arguments)
-        case BvSignedMod => checkDivideByZero(arguments)
-        case BvSignedRem => checkDivideByZero(arguments)
+        case BvSignedDiv => checkDivideByZero(arguments, signature)
+        case BvSignedMod => checkDivideByZero(arguments, signature)
+        case BvSignedRem => checkDivideByZero(arguments, signature)
         // multiply will not overflow buffers of double width.
         // Do the multiplication and check
         case BvMult => {
@@ -361,3 +389,5 @@ class NoOverflowBVTransformer (topLevelTerm: Term, signature: Signature, scopes:
       case _ => Errors.Internal.impossibleState("Cannot find overflow check for term " + term.toString())
     }
 }
+
+object NoOverflowBVTransformer extends NoOverflowBVTransformer {}

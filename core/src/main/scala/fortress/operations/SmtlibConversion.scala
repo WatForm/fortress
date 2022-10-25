@@ -85,12 +85,16 @@ class SmtlibConverter(writer: java.io.Writer) {
             // BitVectors
             case BitVectorLiteral(value, bitwidth) => {
                 // (_ bv10 32) is a bitvector of size 32 that representes the numeral 10
-                // TODO what about negatives?
-                writer.write("(_ bv")
-                writer.write(value.toString)
-                writer.write(' ')
-                writer.write(bitwidth.toString)
-                writer.write(')')
+                if (value >= 0 ) {
+                    writer.write("(_ bv")
+                    writer.write(value.toString)
+                    writer.write(' ')
+                    writer.write(bitwidth.toString)
+                    writer.write(')')
+                } else {
+                    // handle negatives
+                    recur(BuiltinApp(BvNeg, BitVectorLiteral(-value, bitwidth)))
+                }
             }
             case BuiltinApp(BvPlus, args) => writeGeneralApp("bvadd", args)
             case BuiltinApp(BvNeg, args) => writeGeneralApp("bvneg", args)
@@ -181,10 +185,11 @@ class SmtlibConverter(writer: java.io.Writer) {
     }
 
     def writeSignature(sig: Signature): Unit = {
-        sig.sorts.removedAll(sig.enumConstants.keys).foreach(writeSortDecl)
+        sig.sorts.removedAll(sig.enumConstants.keys).foreach(sort => {writeSortDecl(sort); writer.write('\n')})
         sig.enumConstants.foreach(x => writeEnumConst(x._1, x._2))
-        sig.functionDeclarations.foreach(writeFuncDecl)
-        sig.constants.foreach(writeConst)
+        writer.write('\n')
+        sig.functionDeclarations.foreach(fdecl => {writeFuncDecl(fdecl); writer.write('\n')})
+        sig.constants.foreach(const => {writeConst(const); writer.write('\n')})
     }
     
     def writeAssertion(term: Term): Unit = {
@@ -195,6 +200,6 @@ class SmtlibConverter(writer: java.io.Writer) {
     
     def writeTheory(theory: Theory): Unit = {
         writeSignature(theory.signature)
-        theory.axioms.foreach(writeAssertion)
+        theory.axioms.foreach(axiom => {writeAssertion(axiom); writer.write('\n')})
     }
 }

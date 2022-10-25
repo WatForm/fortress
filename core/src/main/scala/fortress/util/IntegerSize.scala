@@ -29,6 +29,7 @@ object IntegerSize {
             case BvSub => bitvectorWidth(arguments(0), sig)
             case _ => None
         }
+        case _ => Errors.Internal.impossibleState("Trying to get bitwidth of '" + term.toString() + "'")
     }
     /** The minimum value which can be stored in a two's complement bitvector of width `bitwidth`. */
     def minimumIntValue(bitwidth: Int): Int = -(2 ** (bitwidth - 1))
