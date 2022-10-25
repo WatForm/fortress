@@ -130,6 +130,7 @@ class SmtlibConverter(writer: java.io.Writer) {
         case SortConst(name) => writer.write(name)
         case BoolSort => writer.write("Bool")
         case IntSort => writer.write("Int")
+        case UnBoundedIntSort => writer.write("Int")
         case BitVectorSort(bitwidth) => {
             writer.write("(_ BitVec ")
             writer.write(bitwidth.toString)
@@ -167,6 +168,35 @@ class SmtlibConverter(writer: java.io.Writer) {
         writer.write(") ")
         writeSort(funcDecl.resultSort)
         writer.write(')')
+    }
+
+    /*
+        (define-fun min ((x Int) (y Int)) Int
+        (ite (< x y) x y))
+     */
+    def writeFunctionDefinition(funcDef: FunctionDefinition): Unit = {
+        writer.write("(define-fun ")
+        writer.write(nameWithAffix(funcDef.name))
+        writer.write(" (")
+//        writeArgSortedVars(funcDef.argSortedVar)
+        funcDef.argSortedVar.foreach(writeArgSortedVar)
+        writer.write(") ")
+        writeSort(funcDef.resultSort)
+        writer.write(" ")
+        write(funcDef.body)
+        writer.write(')')
+    }
+
+    def writeArgSortedVar(arg: AnnotatedVar): Unit = {
+        writer.write("(")
+        writer.write(nameWithAffix(arg.variable.name))
+        writer.write(" ")
+        writeSort(arg.sort)
+        writer.write(") ")
+    }
+
+    def writeArgSortedVars(args: Seq[AnnotatedVar]): Unit = {
+        args.foreach(writeArgSortedVar)
     }
     
     def writeConst(constant: AnnotatedVar): Unit = {

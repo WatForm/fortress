@@ -47,6 +47,10 @@ trait GeneralSortSubstitution {
     def apply(f: FuncDecl): FuncDecl = f match {
         case FuncDecl(name, argSorts, resultSort) => FuncDecl(name, argSorts map apply, apply(resultSort))
     }
+
+    def apply(fd: FunctionDefinition): FunctionDefinition = fd match {
+        case FunctionDefinition(name, argSortedVar, resultSort, body) => FunctionDefinition(name, argSortedVar map apply, apply(resultSort), apply(body))
+    }
     
     // Apply the Sort function to every appearence of a Sort in an AnnotatedVar.
     def apply(avar: AnnotatedVar): AnnotatedVar = avar match {
@@ -55,11 +59,12 @@ trait GeneralSortSubstitution {
     
     // Apply the Sort function to every appearence of a Sort in a Signature.
     def apply(signature: Signature): Signature = signature match {
-        case Signature(sorts, functionDeclarations, constants, enumConstants) => {
+        case Signature(sorts, functionDeclarations, functionDefinitions, constants, enumConstants) => {
             Errors.Internal.precondition(enumConstants.isEmpty)
             Signature(
                 sorts map apply,
                 functionDeclarations map apply,
+                functionDefinitions map apply,
                 constants map apply,
                 Map.empty
             )

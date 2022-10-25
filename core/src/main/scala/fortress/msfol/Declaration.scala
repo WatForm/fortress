@@ -56,7 +56,7 @@ object FuncDecl {
   * inside a Term it is only possible (and required) to annotate a Var when
   * a quantifier declares it bound.
   */
-case class AnnotatedVar private (variable: Var, sort: Sort) extends Declaration {
+case class AnnotatedVar (variable: Var, sort: Sort) extends Declaration {
     def name: String = variable.name
     
     override def toString: String = variable.toString + ": " + sort.toString

@@ -1,24 +1,23 @@
 package fortress.solverinterface
 
-import java.io._
-
-import fortress.data.CartesianSeqProduct
-import fortress.msfol._
-import fortress.interpretation._
-import fortress.modelfind._
+import fortress.modelfind.{ErrorResult, ModelFinderResult}
 import fortress.util._
-import fortress.solverinterface._
-import fortress.operations.SmtlibConverter
+import fortress.msfol._
+import fortress.operations._
 
+import java.io.CharArrayWriter
 import scala.jdk.CollectionConverters._
-import scala.util.matching.Regex
 
-trait StandardProcessBuilderSolver extends ProcessBuilderSolver {
+/*
+    Non-Incremental solving:
+        close current process and open a new one every time,
+        write theory from buffer to z3 process and call check-sat only once in one process.
+ */
 
-    // TODO: the extra write to the CharArrayWriter is likely increasing time and memory usage
-    // The interface will need to be changed to accomodate its removal
-    // It could be removed easily without an interface change, but this would affect the measured
-    // time to convert the theory
+class Z3NonIncSolver extends SMTLIBCLISession {
+    def processArgs: Seq[String] = Seq("z3", "-smt2", "-in")
+
+    def timeoutArg(timeoutMillis: Milliseconds): String = "-t:" + timeoutMillis.value
 
     private val convertedBytes: CharArrayWriter = new CharArrayWriter
 
@@ -30,14 +29,20 @@ trait StandardProcessBuilderSolver extends ProcessBuilderSolver {
         val converter = new SmtlibConverter(convertedBytes)
         converter.writeTheory(theory)
     }
-    
+
+    override def addAxiom(axiom: Term): Unit = {
+        Errors.Internal.assertion(processSession.nonEmpty, "Cannot add axiom without a live process")
+        val converter = new SmtlibConverter(convertedBytes)
+        converter.writeAssertion(axiom)
+    }
+
     override def solve(timeoutMillis: Milliseconds): ModelFinderResult = {
         processSession.foreach(_.close())
         processSession = Some(new ProcessSession( { processArgs :+ timeoutArg(timeoutMillis) }.asJava))
         convertedBytes.writeTo(processSession.get.inputWriter)
         processSession.get.write("(check-sat)\n")
         processSession.get.flush()
-        
+
         val result = processSession.get.readLine()
         result match {
             case "sat" => ModelFinderResult.Sat
@@ -56,13 +61,6 @@ trait StandardProcessBuilderSolver extends ProcessBuilderSolver {
             case _ => ErrorResult(s"Unrecognized result '${result}'" )
         }
     }
-    
-    override def addAxiom(axiom: Term): Unit = {
-        Errors.Internal.assertion(processSession.nonEmpty, "Cannot add axiom without a live process")
-        val converter = new SmtlibConverter(convertedBytes)
-        converter.writeAssertion(axiom)
-    }
 
-    protected def processArgs: Seq[String]
-    protected def timeoutArg(timeoutMillis: Milliseconds): String
+
 }

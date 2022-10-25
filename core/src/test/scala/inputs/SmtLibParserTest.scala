@@ -397,4 +397,33 @@ class SmtLibParserTest extends UnitSuite {
         parsedScopes should contain (Entry(B, NonExactScope(2)))
 
     }
+
+    test("test function definition") {
+        val classLoader = getClass.getClassLoader
+        val file = new File(classLoader.getResource("funcDef.smt2").getFile)
+        val fileStream = new FileInputStream(file)
+
+        val parser = new SmtLibParser
+        val resultTheory = parser.parse(fileStream).getOrElse(null)
+
+
+        val fd_max: FunctionDefinition = FunctionDefinition(
+            "max",
+            List(AnnotatedVar(Var("x"), IntSort), AnnotatedVar(Var("y"), IntSort)),
+            IntSort,
+            IfThenElse(BuiltinApp(IntLT, Var("x"), Var("y")), Var("y"), Var("x"))
+        )
+
+        val fd_power2: FunctionDefinition = FunctionDefinition(
+            "power2",
+            List(AnnotatedVar(Var("x"), IntSort)),
+            BoolSort,
+            OrList(Eq(Var("x"), IntegerLiteral(8)), Eq(Var("x"), IntegerLiteral(4)), Eq(Var("x"), IntegerLiteral(2)), Eq(Var("x"), IntegerLiteral(1)))
+        )
+
+        resultTheory.functionDefinitions should contain (fd_max)
+
+        resultTheory.functionDefinitions should contain (fd_power2)
+
+    }
 }

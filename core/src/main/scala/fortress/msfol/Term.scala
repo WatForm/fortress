@@ -14,6 +14,9 @@ sealed trait Term {
     def accept[T](visitor: TermVisitor[T]): T
     
     def freeVarConstSymbolsJava: java.util.Set[Var] = this.freeVarConstSymbols.asJava
+
+    // for lia check
+    var isLia: Boolean = false
 }
 
 /** A term which is a value (for example, True/False, or a value of a sort). */
@@ -329,6 +332,8 @@ case class BitVectorLiteral private (value: Int, bitwidth: Int) extends Term wit
 
 case class IfThenElse private (condition: Term, ifTrue: Term, ifFalse: Term) extends Term {
     override def accept[T](visitor: TermVisitor[T]): T = visitor.visitIfThenElse(this)
+
+    override def toString: String = "if (" + condition.toString + ") then { " + ifTrue.toString + " } else { " + ifFalse.toString + "} "
 }
 
 /** Represents a transitive closure application. */

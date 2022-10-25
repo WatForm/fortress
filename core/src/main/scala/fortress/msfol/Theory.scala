@@ -105,6 +105,20 @@ case class Theory private (signature: Signature, axioms: Set[Term]) {
       */
     @varargs
     def withFunctionDeclarations(fdecls: FuncDecl*): Theory = withFunctionDeclarations(fdecls.asJava)
+
+    def withFunctionDefinition(funcDef: FunctionDefinition): Theory = Theory(signature.withFunctionDefinition(funcDef), axioms)
+
+    def withFunctionDefinitions(funcDefs: java.lang.Iterable[FunctionDefinition]): Theory = Theory(signature.withFunctionDefinitions(funcDefs), axioms)
+
+    def withFunctionDefinitions(funcDefs: Iterable[FunctionDefinition]): Theory = Theory(signature.withFunctionDefinitions(funcDefs), axioms)
+
+    def withFunctionDefinitions(funcDefs: FunctionDefinition*): Theory = Theory(signature.withFunctionDefinitions(funcDefs), axioms)
+
+    def withoutFunctionDefinition(funcDef: FunctionDefinition): Theory = Theory(signature.withoutFunctionDefinition(funcDef), axioms)
+
+    def withoutFunctionDefinitions(funcDefs: java.lang.Iterable[FunctionDefinition]): Theory = Theory(signature.withoutFunctionDefinitions(funcDefs), axioms)
+
+    def withoutFunctionDefinitions(funcDefs: Iterable[FunctionDefinition]): Theory = Theory(signature.withoutFunctionDefinitions(funcDefs), axioms)
     
     @varargs
     def withEnumSort(t: Sort, values: EnumValue*): Theory = {
@@ -122,6 +136,9 @@ case class Theory private (signature: Signature, axioms: Set[Term]) {
     def sorts: Set[Sort] = signature.sorts
     def sortsJava: java.util.Set[Sort] = signature.sorts.asJava
     def functionDeclarations: Set[FuncDecl] = signature.functionDeclarations
+
+    def functionDefinitions: Set[FunctionDefinition] = signature.functionDefinitions
+
     def constants: Set[AnnotatedVar] = signature.constants
     def enumConstants: Map[Sort, Seq[EnumValue]] = signature.enumConstants
 
