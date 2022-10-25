@@ -52,6 +52,10 @@ class NoOverflowBVTransformer extends ProblemStateTransformer (){
         def mapTerm(op: Term => Term): ResultInfo = {
           ResultInfo(op(cleanTerm), univChecks, extChecks, containsUnivVar)
         }
+
+        def replaceTerm(newTerm: Term): ResultInfo = {
+          ResultInfo(newTerm, univChecks, extChecks, containsUnivVar)
+        }
     }
 
     def combineResults(infos: Seq[ResultInfo]): (Seq[Term], Set[Term], Set[Term], Boolean) = {
@@ -159,7 +163,7 @@ class NoOverflowBVTransformer extends ProblemStateTransformer (){
         val resRight = fixOverflow(right, sig, polarity, univVars, extVars)
         val resCombined = resLeft.combine((a,b) => Eq(a, b))(resRight)
 
-        // If uncaught overflows, this must be comparing BVs
+        // If uncaught overflows, check
         if (!resCombined.univChecks.isEmpty || !resCombined.extChecks.isEmpty){
           applyChecks(resCombined, polarity)
         } else {
@@ -174,7 +178,14 @@ class NoOverflowBVTransformer extends ProblemStateTransformer (){
         // It might need to be two implications?
         val resLeft = fixOverflow(left, sig, polarity, univVars, extVars)
         val resRight = fixOverflow(right, sig, polarity, univVars, extVars)
-        return resLeft.combine(Iff(_, _))(resRight)
+        val resCombined =  resLeft.combine(Iff(_, _))(resRight)
+      
+        // If uncaught overflows, check
+        if (!resCombined.univChecks.isEmpty || !resCombined.extChecks.isEmpty){
+          applyChecks(resCombined, polarity)
+        } else {
+          resCombined
+        }
       }
 
       case Implication(left, right) => {
@@ -196,15 +207,24 @@ class NoOverflowBVTransformer extends ProblemStateTransformer (){
         val (cleanArgs, univChecks, extChecks, containsUnivVar) = combineResults(arguments.map(fixOverflow(_, sig, polarity, univVars, extVars)))
         ResultInfo(OrList(cleanArgs), univChecks, extChecks, containsUnivVar)
       }
+
       
       case App(functionName, arguments) => {
         val (cleanArgs, univChecks, extChecks, containsUnivVar) = combineResults(arguments.map(fixOverflow(_, sig, polarity, univVars, extVars)))
-        ResultInfo(App(functionName, cleanArgs), univChecks, extChecks, containsUnivVar)
+        val combined = ResultInfo(App(functionName, cleanArgs), univChecks, extChecks, containsUnivVar)
+        // Non-predicate, no check needed. Predicate, add checks
+        if (isPredicate(functionName, sig)){
+          applyChecks(combined, polarity)
+        } else {
+          combined
+        }
       }
 
+      // Distinct is a predicate, so we need checks!
       case Distinct(arguments) => {
         val (cleanArgs, univChecks, extChecks, containsUnivVar) = combineResults(arguments.map(fixOverflow(_, sig, polarity, univVars, extVars)))
-        ResultInfo(Distinct(cleanArgs), univChecks, extChecks, containsUnivVar)
+        val combined = ResultInfo(Distinct(cleanArgs), univChecks, extChecks, containsUnivVar)
+        applyChecks(combined, polarity)
       }
 
       /*
@@ -224,9 +244,16 @@ class NoOverflowBVTransformer extends ProblemStateTransformer (){
       
     }
     
+    def isPredicate(functionName: String, sig: Signature): Boolean = {
+      sig.functionWithName(functionName) match {
+        case None => Errors.Internal.impossibleState("Trying to check if function '" + functionName + "' is a predicate, but it is not in the signature.")
+        case Some(fdecl) => fdecl.resultSort == BoolSort
+      }
+    }
+
     /**
-      * Applies the checks in `currentInfo` to "hide" overflows. Replaces the checks with the empty set so they are not reused later
-      *
+      * Applies the checks in `currentInfo` to "hide" overflows. 
+      * Keeps checks so they can be applied again if another comparison is used
       * @param currentInfo 
       * @param polarity
       * @return
@@ -275,7 +302,8 @@ class NoOverflowBVTransformer extends ProblemStateTransformer (){
         }
 
         // Not sure if containsUnivVar should be reset here.
-        ResultInfo(cleanTerm, Set.empty, Set.empty, currentInfo.containsUnivVar)
+        // Pretty sure no
+        currentInfo.replaceTerm(cleanTerm)
     }
 
     def canOverflow(term: Term): Boolean = term match {

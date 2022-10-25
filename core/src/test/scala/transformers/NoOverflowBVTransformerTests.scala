@@ -64,6 +64,14 @@ class NoOverflowBVTransformerTests extends UnitSuite with CommonSymbols {
       }
     }
 
+    def printConverted(theory: Theory, scopes: Map[Sort, Scope] = Map.empty){
+      val compiler = managerWithOverflow.setupCompiler()
+      compiler.compile(theory, scopes, Seconds(10).toMilli, Seq.empty) match {
+        case Left(_) => ()
+        case Right(result) => println(result.theory)
+      }
+    }
+
     test("addition wrapped") {
 
         val core = BuiltinApp(BvSignedLE,BuiltinApp(BvPlus, x1, x2), BitVectorLiteral(7, 4))
@@ -299,18 +307,120 @@ class NoOverflowBVTransformerTests extends UnitSuite with CommonSymbols {
       val theoryFalse = Theory.empty
       .withConstant(x1 of BV4)
       .withAxiom(bodyFalse)
-      
+
+      /*
+      val compiler = managerWithOverflow.setupCompiler()
+      compiler.compile(theoryFalse, Map.empty, Seconds(10).toMilli, Seq.empty) match {
+        case Left(_) => "Failed to compile"
+        case Right(res) => println(res.theory.toString()); println("=== SMT ==="); println(Dump.theoryToSmtlib(res.theory))
+      }
+      */
       ensureUnsat(theoryFalse)
 
       val theoryForallFalse = Theory.empty
       .withAxiom(Forall(x1 of BV4, bodyFalse))
       ensureSat(theoryForallFalse)
     }
+
+    test("In Eq vs False"){
+      val bodyFalse = Eq(Eq(BuiltinApp(BvSignedDiv, x1, zero4), x1), Bottom)
+
+      val theoryFalse = Theory.empty
+      .withConstant(x1 of BV4)
+      .withAxiom(bodyFalse)
+
+      /*
+      val compiler = managerWithOverflow.setupCompiler()
+      compiler.compile(theoryFalse, Map.empty, Seconds(10).toMilli, Seq.empty) match {
+        case Left(_) => "Failed to compile"
+        case Right(res) => println(res.theory.toString()); println("=== SMT ==="); println(Dump.theoryToSmtlib(res.theory))
+      }
+      */
+      ensureUnsat(theoryFalse)
+
+      val theoryForallFalse = Theory.empty
+      .withAxiom(Forall(x1 of BV4, bodyFalse))
+      ensureSat(theoryForallFalse)
+    }
+
+    test("In Eq vs True"){
+      val bodyFalse = Eq(Eq(BuiltinApp(BvSignedDiv, x1, zero4), x1), Top)
+
+      val theoryFalse = Theory.empty
+      .withConstant(x1 of BV4)
+      .withAxiom(bodyFalse)
+
+      /*
+      val compiler = managerWithOverflow.setupCompiler()
+      compiler.compile(theoryFalse, Map.empty, Seconds(10).toMilli, Seq.empty) match {
+        case Left(_) => "Failed to compile"
+        case Right(res) => println(res.theory.toString()); println("=== SMT ==="); println(Dump.theoryToSmtlib(res.theory))
+      }
+      */
+      ensureUnsat(theoryFalse)
+
+      val theoryForallFalse = Theory.empty
+      .withAxiom(Forall(x1 of BV4, bodyFalse))
+      ensureSat(theoryForallFalse)
+    }
+
+    test("In Function arguments") {
+      val f = FuncDecl("f", BV4, BV4)
+      // x1 / 0 == x1
+      val body = Eq(App("f", BuiltinApp(BvSignedDiv, x1, zero4)), x1)
+
+      val theory = Theory.empty
+      .withConstant(x1 of BV4)
+      .withFunctionDeclaration(f)
+      .withAxiom(body)
+
+      ensureUnsat(theory)
+
+      val theoryForall = Theory.empty
+      .withFunctionDeclaration(f)
+      .withAxiom(Forall(x1 of BV4, body))
+
+      ensureSat(theoryForall)
+    }
+
+    test("In Predicate Arguments"){
+      val f = FuncDecl("f", BV4, BoolSort)
+      // x1 / 0 == x1
+      val body = App("f", BuiltinApp(BvSignedDiv, x1, zero4))
+
+      val theory = Theory.empty
+      .withConstant(x1 of BV4)
+      .withFunctionDeclaration(f)
+      .withAxiom(body)
+
+      printConverted(theory)
+      ensureUnsat(theory)
+
+      val theoryForall = Theory.empty
+      .withFunctionDeclaration(f)
+      .withAxiom(Forall(x1 of BV4, body))
+
+      ensureSat(theoryForall)
+    }
+
+    test("In Distinct"){
+      val body = Distinct(BuiltinApp(BvSignedDiv, x1, zero4), x2)
+
+      val theory = Theory.empty
+      .withConstants(x1 of BV4, x2 of BV4)
+      .withAxiom(body)
+
+      ensureUnsat(theory)
+
+      val theoryForall = Theory.empty
+      .withAxiom(Forall(Seq(x1 of BV4, x2 of BV4), body))
+
+      ensureSat(theoryForall)
+    }
+
     /*
     test("In ITE condition")
     test("In ITE then")
     test("In ITE else")
-    test("In EQ")
-    test("In Function Arguments")
     */
 }
