@@ -1,4 +1,4 @@
-package fortress.msfol
+package fortress.problemstate
 
 import fortress.util.Errors
 

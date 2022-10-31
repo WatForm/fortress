@@ -1,8 +1,8 @@
 import org.scalatest._
-
 import fortress.msfol._
 import fortress.operations.ScopeNonExactPredicates
 import fortress.operations.TermOps._
+import fortress.problemstate.{NonExactScope, Scope}
 
 class ScopeNonExactPredicatesTest extends UnitSuite {
 

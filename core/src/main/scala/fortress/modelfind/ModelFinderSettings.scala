@@ -7,6 +7,7 @@ import fortress.interpretation._
 import fortress.solverinterface._
 import fortress.logging._
 import fortress.msfol
+import fortress.problemstate._
 
 import scala.collection.mutable.ListBuffer
 

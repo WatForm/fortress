@@ -1,11 +1,11 @@
 package fortress.transformers
 
 import scala.jdk.CollectionConverters._
-
 import fortress.msfol._
 import fortress.operations.TermOps._
 import fortress.util.Errors
 import fortress.data.CartesianSeqProduct
+import fortress.problemstate.ProblemState
 
 import scala.math.min
 

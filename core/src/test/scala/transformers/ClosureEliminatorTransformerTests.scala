@@ -1,11 +1,9 @@
 import org.scalatest._
 import org.scalatest.flatspec._
-
 import fortress.util.Seconds
 import fortress.modelfind._
 import fortress.msfol._
 import fortress.msfol.Term._
-
 import fortress.transformers._
 import fortress.config._
 
@@ -14,6 +12,8 @@ import fortress.data.IntSuffixNameGenerator
 import fortress.operations.ClosureEliminatorEijck
 import fortress.data.NameGenerator
 import fortress.operations.SmtlibConverter
+import fortress.problemstate._
+
 import java.io.StringWriter
 import fortress.util.Dump
 

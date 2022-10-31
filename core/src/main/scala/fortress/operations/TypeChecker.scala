@@ -17,7 +17,6 @@ case class TypeCheckResult(
  * when comparing Bool sorts. Such a term is called "sanitized". */
 class TypeChecker(signature: Signature) extends TermVisitorWithTypeContext[TypeCheckResult](signature) {
 
-    
     override def visitTop(): TypeCheckResult =
         TypeCheckResult(sanitizedTerm = Top, sort = BoolSort, containsConnectives = false, containsQuantifiers = false)
         

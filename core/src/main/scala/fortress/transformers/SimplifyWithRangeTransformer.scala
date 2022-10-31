@@ -4,6 +4,7 @@ import fortress.msfol._
 import fortress.operations.TermOps._
 import fortress.operations.TheoryOps._
 import fortress.interpretation.Interpretation
+import fortress.problemstate.ProblemState
 
 class SimplifyWithRangeTransformer extends ProblemStateTransformer {
         

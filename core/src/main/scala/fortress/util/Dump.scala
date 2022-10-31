@@ -1,9 +1,11 @@
 package fortress.util
 
 import fortress.msfol._
+
 import java.io.StringWriter
 import fortress.operations.SmtlibConverter
-import fortress.transformers.ProblemState
+import fortress.problemstate._
+
 import java.io.PrintWriter
 
 class Dump {

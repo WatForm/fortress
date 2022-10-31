@@ -2,6 +2,7 @@ package fortress.transformers
 
 import scala.language.implicitConversions
 import fortress.msfol.Theory
+import fortress.problemstate.ProblemState
 
 /** A transformation from Theory to Theory. */
 trait TheoryTransformer extends Function[Theory, Theory] {

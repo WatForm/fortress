@@ -1,11 +1,11 @@
 package fortress.transformers
 
 import scala.jdk.CollectionConverters._
-
 import fortress.msfol._
 import fortress.util.Errors
 import fortress.operations.TermOps._
 import fortress.operations.TheoryOps._
+import fortress.problemstate.ProblemState
 
 /** Introduces constants to simulate the domain elements, asserting these constants are
   * all distinct and repalacing occurrences of domain elements with the appropriate constant.

@@ -7,6 +7,7 @@ import fortress.operations.Skolemization
 import fortress.operations.TermOps._
 import fortress.operations.TheoryOps._
 import fortress.interpretation.Interpretation
+import fortress.problemstate.ProblemState
 
 /** Skolemizes existential quantifiers in the theory.
   * Requires that the theory be in negation normal form.

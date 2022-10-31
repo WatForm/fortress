@@ -1,6 +1,7 @@
 package fortress.transformers
 import fortress.msfol._
 import fortress.operations._
+import fortress.problemstate.ProblemState
 
 object LiaCheckTransformer extends ProblemStateTransformer {
 

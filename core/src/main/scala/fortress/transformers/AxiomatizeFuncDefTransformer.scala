@@ -3,6 +3,11 @@ package fortress.transformers
 import fortress.msfol._
 import fortress.operations._
 
+/*
+    Transfer a function definition to a axiom and a function declaration.
+    This is just a temporary solution to deal with function definition.
+ */
+
 object AxiomatizeFuncDefTransformer extends TheoryTransformer {
     override def apply(theory: Theory): Theory = {
         val funcDefAxioms: Set[Term] = for( fd <- theory.functionDefinitions ) yield {

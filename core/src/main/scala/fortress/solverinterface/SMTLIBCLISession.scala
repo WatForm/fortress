@@ -88,8 +88,8 @@ trait SMTLIBCLISession extends solver {
             val pattern = ".+!val![0-9]*$"
             val raw: mutable.Map[String, DomainElement] = visitor.getSmtValue2DomainElement.asScala
             for( (s, d) <- raw ) {
-                if( d == null ) {
-                    assert(s.matches(pattern), "Parse error, exit code: 1")
+                if( d == null && s.matches(pattern) ) {
+//                    assert(s.matches(pattern), "Parse error, exit code: 1")
                     val temp = s.split("!val!") // "H!val!0" => "H" "0"
                     assert(temp.length == 2, "Parse error, exit code: 2")
                     val sort: Sort = Sort.mkSortConst(temp(0))
@@ -118,7 +118,7 @@ trait SMTLIBCLISession extends solver {
 
             override protected def getSort(s: Sort): Seq[Value] = {
                 smtValue2DomainElement.values.filter(
-                    domainElement => domainElement.sort == s
+                    domainElement => domainElement!=null && domainElement.sort == s
                 ).toIndexedSeq
             }
 

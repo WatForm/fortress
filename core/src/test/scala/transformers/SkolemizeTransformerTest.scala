@@ -2,6 +2,7 @@ import org.scalatest._
 
 import fortress.msfol._
 import fortress.transformers._
+import fortress.problemstate._
 
 class SkolemizeTransformerTest extends UnitSuite with CommonSymbols {
     

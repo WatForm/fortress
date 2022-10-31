@@ -2,10 +2,11 @@ package fortress.operations
 
 import fortress.msfol._
 import fortress.data.NameGenerator
+import fortress.problemstate._
 import fortress.util.Errors
+
 import java.lang.IllegalArgumentException
 import java.util.ArrayList
-
 import scala.jdk.CollectionConverters._
 
 class ClosureEliminatorClaessen(topLevelTerm: Term, signature: Signature, scopes: Map[Sort, Scope], nameGen: NameGenerator) extends ClosureEliminator(topLevelTerm, signature, scopes, nameGen) {

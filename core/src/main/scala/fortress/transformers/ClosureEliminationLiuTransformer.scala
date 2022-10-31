@@ -5,6 +5,7 @@ import fortress.msfol._
 import fortress.data.NameGenerator
 import fortress.operations.ClosureEliminator
 import fortress.operations.ClosureEliminatorLiu
+import fortress.problemstate._
 import fortress.transformers._
 
 object ClosureEliminationLiuTransformer extends ClosureEliminationTransformer {

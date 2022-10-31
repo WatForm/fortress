@@ -1,11 +1,11 @@
 package fortress.transformers
 
 import scala.jdk.CollectionConverters._
-
 import fortress.msfol._
 import fortress.util.Errors
 import fortress.operations.TermOps._
 import fortress.interpretation.Interpretation
+import fortress.problemstate.ProblemState
 
 /** Replaces enum values with domain elements, following the mapping from the
   * computeEnumSortMapping method.
@@ -27,9 +27,6 @@ object EnumEliminationTransformer extends ProblemStateTransformer {
             
             val unapply: Interpretation => Interpretation = _.replaceValuesWithEnums(mapping.map(_.swap))
 
-//            println("Theory after enum elimination transformer :\n")
-//            println(newTheory + "\n---------------------------------\n")
-            
             // The problem contain scopes for the enums, which should remain the same
             ProblemState(newTheory, scopes, skc, skf, rangeRestricts, unapply :: unapplyInterp, distinctConstants)
         }
