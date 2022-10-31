@@ -76,7 +76,7 @@ trait SMTLIBCLISession extends solver {
 
         val model: String = getModel
 
-        println("model from z3: \n" + model + "\n")
+//        println("model from z3: \n" + model + "\n")
 
         val visitor: SmtModelVisitor = SmtModelParser.parse(model, theory.get.signature)
 
