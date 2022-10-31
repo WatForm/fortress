@@ -2,6 +2,7 @@ package fortress.operations
 
 import fortress.msfol._
 import fortress.data.NameGenerator
+import fortress.problemstate._
 import fortress.util.Errors
 import fortress.util.IntegerSize._
 import fortress.util.Extensions.IntExtension
@@ -9,6 +10,7 @@ import java.lang.IllegalArgumentException
 import java.util.ArrayList
 
 import scala.jdk.CollectionConverters._
+
 
 /** Transforms expressions so that operations that cause overflows
   * cause the quantified instance they are in to be ignored.

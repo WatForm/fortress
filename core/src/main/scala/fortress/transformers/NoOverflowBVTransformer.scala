@@ -11,6 +11,7 @@ import fortress.operations.TheoryOps._
 
 import scala.jdk.CollectionConverters._
 import scala.util.Using
+import fortress.problemstate.ProblemState
 
 class NoOverflowBVTransformer extends ProblemStateTransformer (){
 
