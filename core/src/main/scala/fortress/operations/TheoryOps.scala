@@ -6,6 +6,7 @@ import fortress.data._
 import scala.language.implicitConversions
 import fortress.interpretation._
 import fortress.operations.TermMetrics._
+import fortress.problemstate._
 import fortress.sortinference._
 
 import scala.collection.immutable.Map

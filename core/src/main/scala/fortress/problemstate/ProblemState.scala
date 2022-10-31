@@ -1,8 +1,8 @@
-package fortress.transformers
+package fortress.problemstate
 
+import fortress.interpretation.Interpretation
 import fortress.msfol._
 import fortress.util.Errors
-import fortress.interpretation.Interpretation
 
 /**
   * Contains a theory, scopes, and additional information that is used throughout the transformation process.

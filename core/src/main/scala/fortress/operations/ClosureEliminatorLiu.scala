@@ -2,8 +2,9 @@ package fortress.operations
 
 import fortress.msfol._
 import fortress.data.NameGenerator
-import java.util.ArrayList
+import fortress.problemstate._
 
+import java.util.ArrayList
 import scala.jdk.CollectionConverters._
 
 

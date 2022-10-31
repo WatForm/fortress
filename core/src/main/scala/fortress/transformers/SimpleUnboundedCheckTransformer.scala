@@ -4,6 +4,7 @@ import fortress.interpretation.Interpretation
 import fortress.msfol._
 import fortress.operations._
 import fortress.operations.TheoryOps._
+import fortress.problemstate.ProblemState
 
 
 class SimpleUnboundedCheckTransformer extends ProblemStateTransformer {

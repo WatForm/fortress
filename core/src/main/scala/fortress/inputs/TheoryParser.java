@@ -1,6 +1,7 @@
 package fortress.inputs;
 
 import fortress.msfol.*;
+import fortress.problemstate.*;
 import fortress.util.Errors;
 import scala.util.Either;
 

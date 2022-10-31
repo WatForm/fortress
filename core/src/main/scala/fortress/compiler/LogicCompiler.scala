@@ -6,6 +6,7 @@ import fortress.util._
 import fortress.interpretation._
 import fortress.logging._
 import fortress.operations.TermOps._
+import fortress.problemstate._
 import fortress.util.Control.measureTime
 import fortress.util.Control.withCountdown
 import fortress.util.Extensions._

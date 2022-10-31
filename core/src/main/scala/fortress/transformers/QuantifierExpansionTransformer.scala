@@ -1,10 +1,10 @@
 package fortress.transformers
 
 import scala.jdk.CollectionConverters._
-
 import fortress.msfol._
 import fortress.util.Errors
 import fortress.operations.TermOps._
+import fortress.problemstate.{ProblemState, Scope}
 
 /** Instantiates quantifiers with domain elements, according to the scopes of the problem.
   * The scopes must provide sizes for all sorts in the theory.

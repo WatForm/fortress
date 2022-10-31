@@ -5,6 +5,7 @@ import fortress.msfol._
 import fortress.operations.LiaChecker
 import fortress.util.Errors
 import fortress.operations.TermOps._
+import fortress.problemstate.ProblemState
 
 /** Replaces integers with bitvectors of the given bitwidth. */
 object IntegerToBitVectorTransformer extends ProblemStateTransformer {

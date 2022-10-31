@@ -6,6 +6,7 @@ import fortress.data.IntSuffixNameGenerator
 import fortress.operations.ClosureEliminator
 import fortress.operations.TheoryOps._
 import fortress.interpretation.Interpretation
+import fortress.problemstate._
 
 /** Replaces transitive closure terms with a term representing the application of a new relation
  but with same arguments. **/

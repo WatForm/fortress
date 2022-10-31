@@ -3,6 +3,7 @@ package fortress.transformers
 import fortress.msfol._
 import fortress.operations.TermOps._
 import fortress.operations.TheoryOps._
+import fortress.problemstate._
 
 /** Introduces enum values to simulate the domain elements, replacing occurrences
   * of domain elements with the appropriate constant. Leaves other aspects of the

@@ -118,12 +118,12 @@ public class SmtModelVisitor extends SmtLibVisitor{
 
 //        System.out.println("funcbody: " + funcBody);
 
-        if( smtValue2DomainElement.containsKey(funcBody) ) {  // H!val!0
+//        if( smtValue2DomainElement.containsKey(funcBody) ) {  // H!val!0
             if(name.startsWith("_@")) { // _@1H
                 DomainElement de = DomainElement.interpretName(name).get();
                 smtValue2DomainElement.put(funcBody, de);
             }
-        }
+//        }
 
 //        if( smtValue2DomainElement.containsKey(funcBody)) {
 //            DomainElement value = smtValue2DomainElement.get(funcBody);

@@ -1,6 +1,7 @@
 package fortress.operations
 
 import fortress.msfol._
+import fortress.problemstate._
 
 object ScopeNonExactPredicates {
 

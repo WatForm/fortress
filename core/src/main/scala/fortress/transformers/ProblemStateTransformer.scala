@@ -1,6 +1,7 @@
 package fortress.transformers
 
 import fortress.msfol._
+import fortress.problemstate.ProblemState
 
 /** A transformation from ProblemState to ProblemState. */
 trait ProblemStateTransformer extends Function[ProblemState, ProblemState] {

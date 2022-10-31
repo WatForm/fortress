@@ -1,10 +1,10 @@
 package fortress.modelfind
 
 import fortress.msfol._
-
 import fortress.interpretation._
 import fortress.solverinterface._
 import fortress.logging._
+import fortress.problemstate._
 
 import java.lang.AutoCloseable
 import fortress.util._

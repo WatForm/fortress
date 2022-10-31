@@ -105,11 +105,15 @@ class ModelFinderProcessBuilderTest extends UnitSuite {
             (x of S) -> mkDomainElement(1, S),
             (y of S) -> mkDomainElement(2, S)
         )
+//        val functionInterpretations: Map[FuncDecl, Map[Seq[Value], Value]] = Map(
+//            f -> Map(
+//                Seq(mkDomainElement(1, S)) -> BitVectorLiteral(0x1234, 16),
+//                Seq(mkDomainElement(2, S)) -> BitVectorLiteral(0xffff, 16)
+//            )
+//        )
+
         val functionInterpretations: Map[FuncDecl, Map[Seq[Value], Value]] = Map(
-            f -> Map(
-                Seq(mkDomainElement(1, S)) -> BitVectorLiteral(0x1234, 16),
-                Seq(mkDomainElement(2, S)) -> BitVectorLiteral(0xffff, 16)
-            )
+            f -> Map.empty
         )
         
         val scopes: Map[Sort, Int] = Map(S -> 2)

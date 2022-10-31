@@ -4,6 +4,7 @@ import fortress.msfol._
 import fortress.data.NameGenerator
 import fortress.operations.ClosureEliminator
 import fortress.operations.ClosureEliminatorClaessen
+import fortress.problemstate._
 import fortress.transformers._
 
 

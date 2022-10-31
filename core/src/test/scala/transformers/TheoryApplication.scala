@@ -1,5 +1,6 @@
 
 import fortress.msfol._
+import fortress.problemstate._
 import fortress.transformers._
 
 // Separate trait to emphasize that this is not the main use of ProblemStateTransformer
