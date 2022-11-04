@@ -14,7 +14,7 @@ object SolverInterface {
     def makeByName(name: String): Option[SolverInterface] = name match {
         case "Z3Cli" => Some(Z3CliInterface)
         case "Z3IncCli" => Some(Z3IncCliInterface)
-        case "CVC4Cli" => Some(CVC4CliInterface)
+        case "CVC5Cli" => Some(CVC5CliInterface)
         case _ => None
     }
 }
@@ -27,6 +27,6 @@ case object Z3IncCliInterface extends SolverInterface {
     def openSession(): solver = new Z3IncSolver
 }
 
-case object CVC4CliInterface extends SolverInterface {
-    def openSession(): solver = new CVC4CliSolver
+case object CVC5CliInterface extends SolverInterface {
+    def openSession(): solver = new CVC5CliSolver
 }
