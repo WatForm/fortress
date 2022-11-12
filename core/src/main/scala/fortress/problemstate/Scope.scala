@@ -5,10 +5,10 @@ import fortress.util.Errors
 sealed trait Scope {
     def isExact: Boolean // If false solution can use up to size elements
     def size: Int
-    def isFixed: Boolean // For dumping only, the problem cannot be attempted at different scope sizes
+    def isUnchanging: Boolean // For dumping only (currently) the problem cannot be attempted at different scope sizes
 }
 
-case class ExactScope(size: Int, isFixed: Boolean = false) extends Scope {
+case class ExactScope(size: Int, isUnchanging: Boolean) extends Scope {
     Errors.Internal.precondition(size > 0, "ExactScope size must be positive")
     def isExact = true
 }
@@ -17,7 +17,7 @@ object ExactScope{
     def apply(size: Int, fixed: Boolean) = new ExactScope(size, fixed)
 }
 
-case class NonExactScope(size: Int, isFixed: Boolean = false) extends Scope {
+case class NonExactScope(size: Int, isUnchanging: Boolean) extends Scope {
     Errors.Internal.precondition(size > 0, "NonExactScope size must be positive")
     def isExact = false
 }
