@@ -17,6 +17,11 @@ object Errors {
 
         def doesNotExist(message: String) = throw new DoesNotExistError("Does Not Exist Error: " + message)
         // API errors are when the user of the API does something wrong - these can be catchable Exceptions
+
+        class CliError(message: String) extends Error(message)
+        def cliError(message: String) = throw new CliError("CLI Error: " + message)
+
+        def checkCliInput(condition: Boolean, message: String): Unit = if (!condition) cliError(message) else ()
     }
 
     object Internal {

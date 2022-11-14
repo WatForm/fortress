@@ -50,7 +50,7 @@ object Dump {
             case (sort, ExactScope(scope,_)) => (sort, scope)
             case (sort, NonExactScope(scope,_)) => (sort, scope)
         })
-        val fixedSorts: Seq[Sort] = scopes.filter(_ match {case (_, scope) => scope.isUnchanging}).keys.toSeq
+        
 
         writer.write("(set-info :exact-scope \"")
         scopesByType.getOrElse("exact", Seq.empty).foreach(info => {
@@ -72,8 +72,10 @@ object Dump {
         })
         writer.write("\")\n")
 
-        writer.write("(set-info :fixed-scopes \"")
-        fixedSorts.foreach(sort => {
+        val unchangingSorts: Seq[Sort] = scopes.filter(_ match {case (_, scope) => scope.isUnchanging}).keys.toSeq
+
+        writer.write("(set-info :unchanging-scopes \"")
+        unchangingSorts.foreach(sort => {
             writer.write('(')
             writer.write(sort.name)
             writer.write(')')

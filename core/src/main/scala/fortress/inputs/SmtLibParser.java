@@ -63,17 +63,17 @@ public class SmtLibParser implements TheoryParser {
     public Map<Sort, Scope> getScopes() {
         Map<Sort, Scope> scopes = new HashMap();
 
-        String fixedSortInfo = info.getOrDefault("fixed-scopes", "");
+        String unchangingSortInfo = info.getOrDefault("unchanging-scope", "");
         // Split at closing parens
-        String[] fixedSortStrings = fixedSortInfo.split("\\)");
-        HashSet<String> fixedSorts = new HashSet<String>();
-        for(int i = 0; i < fixedSortStrings.length; i++){
-            String sortName = fixedSortStrings[i];
+        String[] unchangingSortStrings = unchangingSortInfo.split("\\)");
+        HashSet<String> unchangingSorts = new HashSet<String>();
+        for(int i = 0; i < unchangingSortStrings.length; i++){
+            String sortName = unchangingSortStrings[i];
             if (sortName.equals("")){
                 continue;
             }
             // Add name to the set of fixed sorts (trim out opening paren)
-            fixedSorts.add(sortName.substring(1, sortName.length()));
+            unchangingSorts.add(sortName.substring(1, sortName.length()));
         }
         
 
@@ -94,7 +94,7 @@ public class SmtLibParser implements TheoryParser {
             String scopeSizeString = info.substring(spaceIndex + 1);
             int scopeSize = Integer.parseInt(scopeSizeString);
             Sort sort = new SortConst(sortName);
-            ExactScope scope = new ExactScope(scopeSize, fixedSorts.contains(sortName));
+            ExactScope scope = new ExactScope(scopeSize, unchangingSorts.contains(sortName));
             scopes.put(sort, scope);
         }
 
@@ -113,7 +113,7 @@ public class SmtLibParser implements TheoryParser {
             int scopeSize = Integer.parseInt(scopeSizeString);
 
             Sort sort = new SortConst(sortName);
-            NonExactScope scope = new NonExactScope(scopeSize, fixedSorts.contains(sortName));
+            NonExactScope scope = new NonExactScope(scopeSize, unchangingSorts.contains(sortName));
             scopes.put(sort, scope);
         }
 
