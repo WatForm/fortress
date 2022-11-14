@@ -43,6 +43,9 @@ case class ProblemState private(
             distinctConstants)
     }
     def withScopes(newscopes: Map[Sort, Scope]): ProblemState = {
+        val unchangingScopeSorts = scopes.filter((scopeInfo: (Sort, Scope)) => scopeInfo._2.isUnchanging)
+        // Check that every unchanging scope is unchanged
+        Errors.Internal.precondition(unchangingScopeSorts.forall((scopeInfo: (Sort, Scope)) => newscopes.get(scopeInfo._1) == Some(scopeInfo._2)), "Attempted to change an unchanging scope!")
         new ProblemState(            
             theory,    
             newscopes, // replaces just the scopes

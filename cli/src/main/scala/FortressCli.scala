@@ -16,7 +16,9 @@ import java.{util => ju}
 class Conf(arguments: Seq[String]) extends ScallopConf(arguments) {
     val scope = opt[Int](required = false, descr="default scope for all sorts")
     val file = trailArg[String](required = true, descr="file(s) to run on")
-    val scopeMap = props[String]('S', descr="scope sizes for individual sorts ex: A=2 B=3")
+
+    // Scope Map could be props[Scope] with a special converter, but we already change the keys so its not a huge deal
+    val scopeMap = props[String]('S', descr="scope sizes for individual sorts in the form <sort>[?]=<scope>[u] ex: A=2 B?=3 C=4u ... where ? = non-exact and u = unchanging.")
     val timeout = opt[Int](required = true, descr="timeout in seconds") // Timeout in seconds
 
     // model finder.
@@ -70,11 +72,23 @@ object FortressCli {
 
         // Override with specific scopes
         for ( (sort, scope) <- conf.scopeMap ) {
+            var scopeValue: Int = 0
+            var isUnchanging = false
+            if (scope.charAt(sort.length-1) == 'u'){
+                scopeValue = scope.substring(0, scope.length - 1).toInt
+                isUnchanging = true
+            } else {
+                scopeValue = scope.toInt
+                isUnchanging = false
+            }
+            Errors.API.checkCliInput(scopeValue > 0, "Scope must be > 0. Got " + scopeValue.toString()+".")
+
             if( sort.charAt(sort.length-1) == '?' ) { // "P?=2"
-                scopes += (Sort.mkSortConst(sort.substring(0, sort.length-1)) -> NonExactScope(scope.toInt))
+                val sortName =  sort.substring(0, sort.length-1)
+                scopes += (Sort.mkSortConst(sortName) -> NonExactScope(scopeValue, isUnchanging))
             }
             else {  // "P=2"
-                scopes += (Sort.mkSortConst(sort) -> ExactScope(scope.toInt))
+                scopes += (Sort.mkSortConst(sort) -> ExactScope(scopeValue, isUnchanging))
             }
         }
 

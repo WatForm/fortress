@@ -12,6 +12,7 @@ import java.io.*;
 import java.util.Optional;
 import java.util.Map;
 import java.util.HashMap;
+import java.util.HashSet;
 
 public class SmtLibParser implements TheoryParser {
     
@@ -61,6 +62,22 @@ public class SmtLibParser implements TheoryParser {
     @Override
     public Map<Sort, Scope> getScopes() {
         Map<Sort, Scope> scopes = new HashMap();
+
+        String unchangingSortInfo = info.getOrDefault("unchanging-scope", "");
+        // Split at closing parens
+        String[] unchangingSortStrings = unchangingSortInfo.split("\\)");
+        HashSet<String> unchangingSorts = new HashSet<String>();
+        for(int i = 0; i < unchangingSortStrings.length; i++){
+            String sortName = unchangingSortStrings[i];
+            if (sortName.equals("")){
+                continue;
+            }
+            // Add name to the set of fixed sorts (trim out opening paren)
+            unchangingSorts.add(sortName.substring(1, sortName.length()));
+        }
+        
+
+
         String scopeInfo = this.info.getOrDefault("exact-scope", "");
         // We expect scopeInfo to be in the form "(A 5)(B 3) ..."
         String[] exactScopes = scopeInfo.split("\\)");
@@ -72,11 +89,12 @@ public class SmtLibParser implements TheoryParser {
                 continue;
             }
             int spaceIndex = info.lastIndexOf(' ');
+            // Trim the first paren and take the name (up to the space)
             String sortName = info.substring(1, spaceIndex);
             String scopeSizeString = info.substring(spaceIndex + 1);
             int scopeSize = Integer.parseInt(scopeSizeString);
             Sort sort = new SortConst(sortName);
-            ExactScope scope = new ExactScope(scopeSize);
+            ExactScope scope = new ExactScope(scopeSize, unchangingSorts.contains(sortName));
             scopes.put(sort, scope);
         }
 
@@ -95,7 +113,7 @@ public class SmtLibParser implements TheoryParser {
             int scopeSize = Integer.parseInt(scopeSizeString);
 
             Sort sort = new SortConst(sortName);
-            NonExactScope scope = new NonExactScope(scopeSize);
+            NonExactScope scope = new NonExactScope(scopeSize, unchangingSorts.contains(sortName));
             scopes.put(sort, scope);
         }
 

@@ -44,12 +44,13 @@ object Dump {
 
         val asTuples = scopes.toSeq
         val scopesByType = asTuples.groupMap[String, (Sort, Int)](info => info match {
-            case (_, ExactScope(_)) => "exact"
-            case (_, NonExactScope(_)) => "nonexact"
+            case (_, ExactScope(_,_)) => "exact"
+            case (_, NonExactScope(_,_)) => "nonexact"
         })(info => info match {
-            case (sort, ExactScope(scope)) => (sort, scope)
-            case (sort, NonExactScope(scope)) => (sort, scope)
+            case (sort, ExactScope(scope,_)) => (sort, scope)
+            case (sort, NonExactScope(scope,_)) => (sort, scope)
         })
+        
 
         writer.write("(set-info :exact-scope \"")
         scopesByType.getOrElse("exact", Seq.empty).foreach(info => {
@@ -67,6 +68,16 @@ object Dump {
             writer.write(info._1.name)
             writer.write(' ')
             writer.write(info._2.toString())
+            writer.write(')')
+        })
+        writer.write("\")\n")
+
+        val unchangingSorts: Seq[Sort] = scopes.filter(_ match {case (_, scope) => scope.isUnchanging}).keys.toSeq
+
+        writer.write("(set-info :unchanging-scopes \"")
+        unchangingSorts.foreach(sort => {
+            writer.write('(')
+            writer.write(sort.name)
             writer.write(')')
         })
         writer.write("\")\n")
