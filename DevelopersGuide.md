@@ -1,7 +1,6 @@
-
 # Fortress Developer's Guide
 
-This document contains information on how the fortress library is structured and design decisions on its implementation
+This document contains information on how the Fortress library is structured and design decisions in its implementation.
 
 ## Fortress Terminology
 
@@ -9,75 +8,257 @@ This document contains information on how the fortress library is structured and
 * `Terms`/formulas are built using the msfol package.  
 * A signature and a list of terms together create a `Theory`. 
 * A `ProblemState` contains a theory, scopes for the sorts, and additional information that is used throughout the fortress process.
+* Elements of a bounded sort are called `domain elements`.
+* A sort scope can be 
+    - `unbound` or `bound` (with a scope size)
+    - `exact` or `inexact`
+    - `changeable` or `unchangeable` (once)
 * An `operation` takes a term and applies a transformation to it.
 Examples of operations are converting to negation normal form, performing sort inference, simplification, and skolemization.
 * A `TheoryTransformer` or `ProblemStateTransformer` takes a `Theory` or `ProblemState` respectively and converts them into a new `Theory` or `ProblemState`by applying a transformation to all terms of the theory (using an operation usually).  Examples of transformers are converting to negation normal form, performing sort inference, simplification, and skolemization.
-* Transformations often need to be undone once a solution is found, and so the transformer writes instructions on how to undo its operation on the `ProblemState`.
+* Transformations often need to be undone once a solution is found, and so the transformer writes instructions (called unapply) on how to undo its operation on the `ProblemState`.
 * A sequence of transformers is combined to create a `Compiler`.  Thus, a compiler takes as input a problem state and produces as output the problem state resulting from the sequence of transformations.
 * The compiler also outputs instructions on how to undo all of its transformations to an interpretation.
 * A `SolverSession` is an interface to an SMT solver.
-* A `ModelFinder` is the top-level interface for fortress used to search for satisfying interpretations to a `Theory` under the given scopes.  Within the model finder, we set the theory, scopes, and other options, and we can invoke its solving methods.
+* A `ModelFinder` is the top-level interface for fortress used to search for satisfying interpretations to a `ProblemState`.  Within the model finder, we set the theory, scopes, and other options, and we can invoke its solving methods.
 
-## Basic Algorithm of Fortress
+## Basic Algorithms of Fortress
 
-Two problems are "equivalent" when every interpretation satisfies one if and only if it satisfies the other.
-In order for two problems to be equivalent, they must have the same signature (otherwise it doesn't make sense to evaluate them using the same interpretation).
+Fortress applies a ModelFinder to an problem state.  The steps of a model finder are: 1) apply a compiler (a sequence of transformers) and 2) convert the problem to SMT-LIB and pass the problem to a solver.
 
-Two problems are "equisatisfiable" when the answer to the question of their satisfiability is the same: that is, either both are SAT or both are UNSAT.
-Equivalent problems are always equisatisfiable, but equisatisfiable problems need not be equivalent.
-Equisatisfiable problems do not need to have the same signature; the only thing that matters is the answer to their satisfiability questions is the same.
+There are three standard model finders available in Fortress, which differ in 
+the compiler used.  In all existing model finders, the non-incremental Z
+3 solver is used.
 
-Elements of a bounded sort are called domain elements.
-The "unbounded" version of problem is the problem obtained by removing the scopes on any bound sorts.
+1. Constants Method
 
-A problem is "formulaically bound" if the following condition holds: the only interpretations that satisfy the unbounded version of the problem are those that satisfy the original (bounded) version.
-If a problem is formulaically bound, it is equisatisfiable with its unbounded version.
+This is the method described in the original paper on Fortress 
+where a finite set of distinct 
+constants (called domain elements) are created to represent the 
+values of elements in the sort, quantifier expansion is done over these 
+domain elements and every function application/constant in the theory is 
+constrained to return a value of the sort (these constraints are 
+called range axioms).  Symmetry reduction axioms are added.
+This method results in a theory in EUF - a decidable subset of FOL.
 
-The basic algorithm that Fortress implements consists of the following steps.
+2. Datatype Method
+
+SMT solvers provide datatypes declarations where the values of a 
+sort can be enumerated.  In this method, datatype values are created 
+for domain values.  Range axioms are not needed.  Symmetry reduction axioms 
+are added.
+* __is quantifier expansion needed__?
+* __is it decidable__
+
+3. Minimal Method
+
+In this method, only typechecking is done so that the SMT solver can work with 
+the problem directly. The problem may not be decidable.
+
+Please see the code for the sequence of transformers used for each method 
+above.
+
+There are also a number of experimental model finders present in the code that implement various forms of symmetry breaking in the constants method:
+    + FortressZERO - no symmetry breaking
+    + FortressONE - Claessen and Sorensson symmetry breaking only
+    + FortressTWO - functions first for symmetry breaking
+    + FortressTWO_SI - sort inference then functions first for symmetry breaking
+    + FortressTHREE - Claessen and Sorensson, RDI, RDD, ladder
+    + FortressTHREE_SI - sort inference then Claessen and Sorensson, RDI, RDD, ladder
+    + FortressFOUR_SI - trial of adding heuristics to fortress three si
 
 
-1. Negation Normal Form (NNF): The formulas of the problem are transformed into negation normal form, where negations are pushed down as far as possible into the formulas. The resulting problem is equivalent to the original problem.
+## Attributes of problemState
 
-2. Skolemization: Existential quantifiers are eliminated by replacing them with functions and constants that act as witnesses for the existential quantifiers.
-The signature is changed by the introduction of new functions and constants.
-This operation must be performed after putting formulas into negation normal form, as otherwise it is impossible to tell which quantifiers are truly existential (since negations change quantifiers).
-Given this condition however, the resulting problem is equisatisfiable to the input problem.
+* typechecked (boolean within problemState)
+* defn (can check in theory)
+* nnf (boolean within problemState)
+* onlyForall (boolean within problemState)
+* noQuant (boolean within problemState)
+* decidable (boolean within problemState)
+* unbounded (can check in sorts of problemState)
+* ints (boolean within problemState)
+* tc (boolean within problemState)
+* exactScopes (boolean within problemState)
+* Enums (boolean within problemState)
+* DEs (can check within theory??)
 
-3. Symmetry Breaking: Additional constraints are added to reduce the number of interpretations that need to be checked by the solver.
-The resulting problem is equisatisfiable to the input to this step.
+We use !attribute to mean not having the attribute as in !nnf.
+If an attribute of the problemState is not mentioned below when describing
+the transformers, then its value does not change
 
-4. Universal Quantifier Expansion: Universal quantifiers of bounded sorts are expanded by taking each possible instantiation of the domain elements and then taking their conjunction.
-The resulting problem is equivalent to the input to this step.
+## Transformers
 
-5. Simplification: The formulas are simplified as much as possible.
-The resulting problem is equivalent to the input of this step.
+Below is a brief description of the transformers implemented in Fortress. 
+Some transformers below are for experimentation and thus not used in 
 
-6. Range Formulas: Range formulas are introduced, which use the domain elements of the bounded scopes to explicitly list the possible output values of each function and constant.
-These range formulas are quantifier-free, and do not introduce any more quantifiers after universal expansion.
-The resulting problem is both equisatisfiable to the input to this step and *formulaically bound*.
+* TypecheckSanitizeTransformer
+    - theory -> theory
+    - purpose: 
+        + performs typechecking (no type inference) on theory
+        + can handle defns
+    - methods: constants, datatype, minimal
+    - preconditions: none
+    - postconditions: typechecked
+    - unapply: none
+    
+* ScopesNoExactPredicatesTransformer
+    - problemState -> problemState
+    - purpose: set up predicates for non-exact scopes
+    - methods: constants, datatype
+    - preconditions: typechecked
+    - postconditions: exactScopes
+    - unapply: ??
 
-7. Domain Elimination: Constants are introduced to "simulate" the domain elements.
-Specifically, for each domain element in the problem, a unique constant is generated.
-It is asserted that these constants are mutually distinct from each other.
-The domain elements are then replaced with their respective constants.
-The resulting problem is equisatisfiable to the input to this step, and contains no domain elements.
-This operation also maintains the property of being formulaically bound. 
+* EnumEliminationTransformer 
+    - problemState -> problemState
+    - purpose: enums become DEs (?)
+    - methods: constants, datatype, minimal
+    - preconditions: typechecked
+    - postconditions: !Enums 
+    - unapply: ?? 
 
-8. SMT solving: The problem is converted into a format that is accepted by an SMT solver (the problem contains no domain elements, so this can be done).
-The SMT solver is then invoked.
-Whatever result the solver returns is returned to the user.
+* AxiomatizeDefintionsTransformer
+    - theory -> theory
+    - purpose: 
+        + turn the defns into axioms and defn names become uninterpreted functions
+    - methods: constants, datatype
+    - preconditions: typechecked
+    - postcondition: !defns
+    - unapply: ???
+    
+* Handling Integers (use one of these)
+    - IntegerToBitVectors 
+        + problemState -> problemState
+        + purpose: 
+            * Turn integer sorts into twos complement BVs based on bitwidth ??
+            * no change to formulas
+            * removes IntSort from sorts
+        + preconditions: typechecked
+        + postconditions: !ints
+        + unapply: ??
+    - NoOverflow 
+        + problemState -> problemState
+        + purpose: 
+            * Turn integer sorts into twos complement BVs based on bitwidth ??
+            * converts formulas for Alloy no overflow semantics 
+            * removes IntSort from sorts
+        + methods: constants, datatype
+        + preconditions: typechecked
+        + postconditions: !ints
+        + unapply: ??
+        
 
-After applying the above transformations to a problem with bounds for every sort, the final problem is:
-* equisatisfiable to the original problem, and
-* formulaically bound (so its scopes can be removed).
-All that Fortress needs to guarantee is that after its transformations, the final problem is equisatisfiable to the first input problem.
+* Transitive Closure (use one of these)
+    - ClosurePositiveTransformer 
+        + problemState -> problemState
+        + purpose: 
+            * if the tc of an expr is only uses positively
+            * replaces the tc with ...
+            * may still be negative uses of tc remaining
+        + methods: constants, datatype, minimal
+        + preconditions: nnf, typechecked
+        + postconditions: ??
+        + unapply: ??
+    - ClosureEliminationIterativeTransformer 
+        + problemState -> problemState
+        + purpose: 
+            * remove all uses of transitive closure
+            * replaces the tc with ...
+        + methods: constants, datatype, minimal
+        + preconditions: typechecked
+        + postconditions: !tc
+        + unapply: ??
+    
+* SortInferenceTransformer       
+    - theory -> theory
+    - purpose: infer sorts for more symmetry SymmetryBreaking
+    - methods: constants, datatype
+    - preconditions: none
+    - postconditions: no change
+    - unapply: ??
 
-If the original problem gives a scope for every sort, then because of the universal expansion step, there are no quantifiers in the final unbounded problem sent to the SMT solver.
-Such problems fall under the fragment of first-order logic called the logic of equality with uninterpreted functions (EUF), which is decidable.
-In SMT literature, this logic is called the logic of quantifier-free uninterpreted functions (QF_UF).
-SMT solvers are decision procedures for such problems, and therefore so too is Fortress.
 
-The fortress library includes a number of options for the above steps.
+* NnfTransformer 
+    - theory -> theory
+    - purpose: put all axioms in nnf
+    - methods: constants, datatype
+    - preconditions: nodefs, typechecked
+    - postconditions: nodefs, typechecked, nnf
+    - unapply: ??
+
+* PnfTransformer
+    - not yet implemented
+
+* SkolemizeTransformer 
+    - theory -> theory
+    - purpose: 
+        + skolemize all axioms
+        + skolem constants/functions are added to the signature
+    - methods: constants, datatype
+    - preconditions: nodefs, typechecked, nnf
+    - postconditions: nodefs, typechecked, nnf, onlyForall
+    - unapply: ??
+
+* Symmetry
+    - SymmetryBreakingMonoOnlyAnyOrder
+    - SymmetryBreakingFunctionsFirstAnyOrder
+    - SymmetryBreakingMonoFirstThenFunctionsFirstAnyOrder
+    - SymmetryBreakingLowArityFirstMostUsedFunctionFirstOrderFactory
+            * symmetry axioms are quantifier-free
+
+* StandardQuantifierExpansionTransformer
+    - purpose:
+        + remove all universal quantifiers
+        + replace with the conjunction of the substitution all DE values for 
+        + all bound scopes become unchangeable
+    - methods: constants
+
+* RangeFormulas 
+    - RangeFormulaStandardTransformer 
+        + purpose: 
+            * introduce range formulas using domain elements 
+            * if not already limited by symmetry breaking) 
+            * all bound scopes become unchangeable
+            * range formulas are quantifier-free
+        + methods: constants
+    - RangeFormulaUseConstantsTransformer 
+        + purpose
+            * introduce range formulas using constants 
+            * if not already limited by symmetry breaking)  
+            * all bound scopes become unchangeable      |
+
+* Simplify 
+    - SimplifyTransformer 
+    - SplitConjunctionTransformer
+    - SimplifyLearnedLiteralsTransformer
+    - SimplifyTransfomer2
+    - SimplifyWithRangeTransformer
+    
+* DomainElimination 
+    - DomainEliminationTransformer 
+        + purpose: 
+            * add constant to theory for each domain element
+            * add axiom that these constants are mutually distinct
+            * replace DEs with constants
+            * remove DEs from theory (?)
+        + methods: constants
+        + preconditions: !tc, !ints ...
+        + postconditions: !DEs, euf
+    - DomainEliminationTransformer2
+        + non-exact scopes by non-distinct constants - to remove       |
+    - DatatypeTransformer 
+        + purpose: 
+            * replace DEs with datatypes
+            * adds datatype definition to theory
+        + methods: datatypes
+
+## Solvers
+
+* non-incremental Z3 session
+* CVC5 session
+* Z3 API
+
 
 ## Fortress Architecture and Design Decisions
 
@@ -202,13 +383,6 @@ operation.wrapTheory(t:theory)
     - takes a problem state and produces a problem state
 - `asProblemStateTransformer` for a theoryTransformer it into a problem state transformer
 * With respect to efficiency, each transformer may walk over the entire theory.  After quantifier expansion, theories can be quite large and in the future, we may wish to integrate some transformers for efficiency.
-* mostly the list of transformers matches the list of operations with the following additions:
-    - DomainEliminationTransformer:
-    - EnumEliminationTransformer: replace enum elements with constants; assert these constants are distinct
-    - IntegerFinitization: under development
-    - RangeFormulaTransformer/RangeFormulaTransformer_NoElision: adds range formulas
-    - SortInferenceTransformer: infers new sort; adds these sorts; unapply reverses the sort substitution
-    - SymmetryBreaking: adds symmetry breaking constraints to the theory
 
 ### symmetry
 * code for adding symmetry breaking
@@ -258,15 +432,6 @@ Changing it to `_@` (also standards-compliant) improved performance again.
 7) nextInterpretation(): ModelFinderResult
 8) countValidModels(newTheory: Theory): Int
 * Integer semantics can be: UnboundedSemantics, ModularSignedSemantics(bitwidth: Int)
-* The default ModelFinder is FortressZero.
-* The main ModelFinders defined (which depend on certain Compilers chosen):
-- FortressZERO - no symmetry breaking
-- FortressONE - Claessen and Sorensson symmetry breaking only
-- FortressTWO - functions first for symmetry breaking
-- FortressTWO_SI - sort inference then functions first for symmetry breaking
-- FortressTHREE - Claessen and Sorensson, RDI, RDD, ladder
-- FortressTHREE_SI - sort inference then Claessen and Sorensson, RDI, RDD, ladder
-- FortressFOUR_SI - trial of adding heuristics to fortress three si
 
 ### interpretation
 * data structures for representing the interpretation returned by a solver.
