@@ -109,7 +109,7 @@ class NoOverflowBVTransformer extends ProblemStateTransformer (){
           val newTerm = BuiltinApp(function, cleanArgs)
           // include this term if it can overflow
           val allOverflowTerms = if (canOverflow(term)) {
-            val newChecks = overflowCheck(newTerm, sig)
+            val newChecks = overflowCheck(newTerm, sig).get
             // Place it in the correct set based on if we have a univVar or not
             if(containsUnivVar){
               return ResultInfo(newTerm, univChecks.incl(newChecks), extChecks, containsUnivVar)
@@ -242,7 +242,38 @@ class NoOverflowBVTransformer extends ProblemStateTransformer (){
         return (cleanITE, overflows)
       }
       */
-      
+      /* If (C) T else E === C & T | !C & E
+       * So This lazily does overflows for T and E (just do the normal recursive handling)
+       * condition's Issues should be applied to ITE if it can overflow?
+       */
+      case IfThenElse(condition, ifTrue, ifFalse) => {
+        val conditionResult = fixOverflow(condition, sig)
+        val ifTrueResult = fixOverflow(ifTrue, sig)
+        val ifFalseResult = fixOverflow(ifFalse, sig)
+
+        val cleanedInside = IfThenElse(conditionResult.cleanTerm, ifTrueResult.cleanTerm, ifFalseResult.cleanTerm)
+
+        // Make checks just for condition on outside
+        val uncheckedResult = conditionResult.replaceTerm(cleanedInside)
+        val cleanedConditionResult = applyChecks(uncheckedResult, polarity)
+        val cleanedTerm = cleanedConditionResult.cleanTerm
+
+        // New checks for overflow:
+        // Anything from C
+        // C & OR(anything from T), !C & (anything from E)
+        val trueExtChecks = AndList(conditionResult.cleanTerm, OrList(ifTrueResult.extChecks.toSeq))
+        val trueUnivChecks = AndList(conditionResult.cleanTerm, OrList(ifTrueResult.univChecks.toSeq))
+
+        val falseExtChecks = AndList(conditionResult.cleanTerm, OrList(ifFalseResult.extChecks.toSeq))
+        val falseUnivChecks = AndList(conditionResult.cleanTerm, OrList(ifFalseResult.univChecks.toSeq))
+        
+        val univChecks = cleanedConditionResult.univChecks + trueUnivChecks + falseUnivChecks
+        val extChecks = cleanedConditionResult.extChecks + trueExtChecks + falseExtChecks
+
+        val containsUnivVar = conditionResult.containsUnivVar || ifTrueResult.containsUnivVar || ifFalseResult.containsUnivVar
+
+        ResultInfo(cleanedTerm, univChecks, extChecks, containsUnivVar)
+      }
     }
     
     def isPredicate(functionName: String, sig: Signature): Boolean = {
@@ -255,7 +286,7 @@ class NoOverflowBVTransformer extends ProblemStateTransformer (){
     /**
       * Applies the checks in `currentInfo` to "hide" overflows. 
       * Keeps checks so they can be applied again if another comparison is used
-      * @param currentInfo 
+      * @param currentInfo
       * @param polarity
       * @return
       */
@@ -346,20 +377,20 @@ class NoOverflowBVTransformer extends ProblemStateTransformer (){
     }
 
     /**
-      * 
+      * Gets a term that will evaluate to true when `term` would overflow.
       *
       * @param term
       * @param signature
       * @return A `Term` that will evaluate to true when `term` would cause an overflow.
       */
-    def overflowCheck(term: Term, signature: Signature): Term = term match {
+    def overflowCheck(term: Term, signature: Signature): Option[Term] = term match {
       case BuiltinApp(function, arguments) => function match {
         case BvNeg => {
           // Overflow occurs when the value negated is the minimum value
           val body: Term = arguments(0)
           val bitwidth = bitvectorWidth(body, signature).get
           val minBV = BitVectorLiteral(minimumIntValue(bitwidth), bitwidth)
-          return Eq(body, minBV)
+          return Some(Eq(body, minBV))
         }
         // These need some double checking
         case BvPlus => {
@@ -371,7 +402,7 @@ class NoOverflowBVTransformer extends ProblemStateTransformer (){
           // (x > 0) & (y > 0) => (x + y > 0)
           // So overflow if (x > 0) & (y > 0) & !(x + y > 0)
           // and underflow if (x < 0) & (y < 0) & !(x + y < 0_
-          return Or(
+          return Some(Or(
             And(
               BuiltinApp(BvSignedGT, x, zero), 
               BuiltinApp(BvSignedGT, y, zero),
@@ -382,16 +413,14 @@ class NoOverflowBVTransformer extends ProblemStateTransformer (){
               BuiltinApp(BvSignedLT, y, zero),
               Not(BuiltinApp(BvSignedLT, BuiltinApp(BvPlus, x, y), zero))
             )
-          )
+          ))
         }
         // Negate and check for addition, check both for overflow
         case BvSub => {
-          Or(overflowCheck(bvSubtoPlus(term), signature), overflowCheck(BuiltinApp(BvNeg, arguments(1)), signature))
+          Some(Or(overflowCheck(bvSubtoPlus(term), signature).get, overflowCheck(BuiltinApp(BvNeg, arguments(1)), signature).get))
         }
         // Division will over/underflow with divide by zero
-        case BvSignedDiv => checkDivideByZero(arguments, signature)
-        case BvSignedMod => checkDivideByZero(arguments, signature)
-        case BvSignedRem => checkDivideByZero(arguments, signature)
+        case BvSignedDiv | BvSignedMod | BvSignedRem => Some(checkDivideByZero(arguments, signature))
         // multiply will not overflow buffers of double width.
         // Do the multiplication and check
         case BvMult => {
@@ -411,11 +440,11 @@ class NoOverflowBVTransformer extends ProblemStateTransformer (){
           val underflow = BuiltinApp(BvSignedLT, multResult, smallMin)
           val overflow = BuiltinApp(BvSignedGT, multResult, smallMax)
 
-          Or(underflow, overflow)
+          Some(Or(underflow, overflow))
         }
-        case _ => Errors.Internal.impossibleState("Cannot find overflow check for term " + term.toString())
+        case _ => None
       }
-      case _ => Errors.Internal.impossibleState("Cannot find overflow check for term " + term.toString())
+      case _ => None
     }
 }
 

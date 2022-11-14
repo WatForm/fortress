@@ -419,8 +419,63 @@ class NoOverflowBVTransformerTests extends UnitSuite with CommonSymbols {
     }
 
     /*
-    test("In ITE condition")
-    test("In ITE then")
-    test("In ITE else")
+    TODO
+    test("Nested ITE")
     */
+    test("In ITE Condition"){
+      val theory = Theory.empty
+      .withConstants(x1 of BV4, x2 of BV4, x3 of BV4)
+      .withAxioms(Seq(
+        BuiltinApp(BvSignedGT, x1, zero4),
+        BuiltinApp(BvSignedGT, x2, zero4),
+        // x1 + x2 <= 0
+        IfThenElse(BuiltinApp(BvSignedLE, BuiltinApp(BvPlus, x1, x2), zero4), Top, Bottom)
+      ))
+
+      ensureUnsat(theory)
+    }
+
+    test("In ITE then"){
+      val theory = Theory.empty
+      .withConstants(x1 of BV4, x2 of BV4, x3 of BV4)
+      .withAxioms(Seq(
+        BuiltinApp(BvSignedGT, x1, zero4),
+        BuiltinApp(BvSignedGT, x2, zero4),
+        // x1 + x2 <= 0
+        IfThenElse(Eq(x3, zero4), BuiltinApp(BvSignedLE, BuiltinApp(BvPlus, x1, x2), zero4), Bottom)
+      ))
+
+      ensureUnsat(theory)
+    }
+
+    test("In ITE else"){
+      val theory = Theory.empty
+      .withConstants(x1 of BV4, x2 of BV4, x3 of BV4)
+      .withAxioms(Seq(
+        BuiltinApp(BvSignedGT, x1, zero4),
+        BuiltinApp(BvSignedGT, x2, zero4),
+        // x1 + x2 <= 0
+        IfThenElse(Eq(x3, zero4), Bottom, BuiltinApp(BvSignedLE, BuiltinApp(BvPlus, x1, x2), zero4))
+      ))
+
+      ensureUnsat(theory)
+    }
+
+    test("In ITE nested") {
+      // Should be True except when it overflows
+      val condition = IfThenElse(BuiltinApp(BvSignedLE, BuiltinApp(BvPlus, x1, x2), zero4), Bottom, Top)
+      val big = IfThenElse(condition, Bottom, Top)
+      val theory = Theory.empty
+      .withConstants(x1 of BV4, x2 of BV4, x3 of BV4)
+      .withAxioms(Seq(
+        BuiltinApp(BvSignedGT, x1, zero4),
+        BuiltinApp(BvSignedGT, x2, zero4),
+        big
+      ))
+
+      ensureUnsat(theory)
+    }
+    
+
+
 }
