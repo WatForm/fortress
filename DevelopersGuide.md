@@ -228,12 +228,49 @@ Some transformers below are for experimentation and thus not used in
             * if not already limited by symmetry breaking)  
             * all bound scopes become unchangeable      |
 
-* Simplify 
+* Simplify
+    - Note: most of these likely can be combined. Simplifiers for specific methods just won't simplify for others.
     - SimplifyTransformer 
+        + Purpose
+            * Reduces double negations and negation of Boolean constants
+            * Simplify `AndList` and `OrList` containing Boolean constants
+            * Simplify `Implication` and `Iff` s containing Boolean constants
+            * Simplify `Eq` of domain elements
+            * Simplify `Eq` of the same variable (`Eq(Var('x'), Var('x'))`) or where they have different interpretations
+            * Simplify `Eq` with identical content
+            * Simplifies `Exists` and `Forall` to remove unused variables
+            * Simplifies `ITE` with known condition
+        + methods: constants (?), datatypes
+        + preconditions: none
+        + postconditions: none 
     - SplitConjunctionTransformer
+        + Purpose
+            * Splits all top-level conjunct formulas into separate formulas
+        + methods: constants, datatypes
+        + preconditions: none
+        + postconditions: none
     - SimplifyLearnedLiteralsTransformer
+        + Purpose
+            * Same as `SimplifyTransformer` unless otherwise stated
+            * Replaces subterms with any learned literal during the simplification process
+        + methods: datatypes
+        + preconditions: none
+        + postconditions: none
     - SimplifyTransfomer2
+        + Purpose
+            * Same as `SimplifyTransformer` unless otherwise stated
+            * Only checks `Eq` for left and right being equal
+        + methods: datatypes
+        + preconditions: none
+        + postconditions: none
     - SimplifyWithRangeTransformer
+        + Purpose
+            * Same as `SimplifyTransformer` unless otherwise stated
+            * Uses range restrictions to check if equality between a term and a domain element is impossible
+        + methods: datatypes
+        + preconditions: none
+        + postconditions: none
+
     
 * DomainElimination 
     - DomainEliminationTransformer 
