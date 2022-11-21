@@ -91,6 +91,8 @@ We use !attribute to mean not having the attribute as in !nnf.
 If an attribute of the problemState is not mentioned below when describing
 the transformers, then its value does not change
 
+Modifies can contain: axioms, scopes, signature, ?? (theory and problemState seems to broad)
+
 ## Transformers
 
 Below is a brief description of the transformers implemented in Fortress. 
@@ -112,6 +114,7 @@ Some transformers below are for experimentation and thus not used in
     - purpose: set up predicates for non-exact scopes
     - methods: constants, datatype
     - preconditions: typechecked
+    - modifies: scopes
     - postconditions: exactScopes
     - unapply: ???
 
@@ -120,6 +123,7 @@ Some transformers below are for experimentation and thus not used in
     - purpose: enums become DEs (?)
     - methods: constants, datatype, minimal
     - preconditions: typechecked
+    - modifies:
     - postconditions: !Enums 
     - unapply: Enums 
 
@@ -130,6 +134,7 @@ Some transformers below are for experimentation and thus not used in
         + turn the defns into axioms and defn names become uninterpreted functions
     - methods: constants, datatype
     - preconditions: typechecked
+    - modifies: signature? adds axioms
     - postcondition: !defns
     - unapply: none
     
@@ -181,7 +186,8 @@ Some transformers below are for experimentation and thus not used in
     - theory -> theory
     - purpose: infer sorts for more symmetry SymmetryBreaking
     - methods: constants, datatype
-    - preconditions: typechecked
+    - preconditions: typechecked, !defns
+    - modifies: add sorts to signature, changes types of constants/functions in signature; modifies axioms with new sorts
     - postconditions: no change
     - unapply: ??
 
@@ -191,6 +197,7 @@ Some transformers below are for experimentation and thus not used in
     - purpose: put all axioms in nnf
     - methods: constants, datatype
     - preconditions: nodefs, typechecked
+    - modifies:
     - postconditions: nnf
     - unapply: ??
 
@@ -222,6 +229,8 @@ Some transformers below are for experimentation and thus not used in
         + replace with the conjunction of the substitution all DE values for 
         + all bound scopes become unchangeable
     - methods: constants
+    - preconditions: onlyForall, !defns, typechecked
+    - methods: modifies axioms
     - postcondition: !quantifiers
 
 * RangeFormulas @Nancy
@@ -232,6 +241,8 @@ Some transformers below are for experimentation and thus not used in
             * all bound scopes become unchangeable
             * range formulas are quantifier-free
         + methods: constants
+        + preconditions:
+        + modifies: adds axioms, all scopes become unchangeable
         + postconditions: de
     - RangeFormulaUseConstantsTransformer 
         + purpose
