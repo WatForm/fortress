@@ -84,6 +84,8 @@ There are also a number of experimental model finders present in the code that i
 * DEs (can check within theory??)
 * datatype - possible to have in input theory
 
+Anything that changes the scopes needs to be noted.
+
 We use !attribute to mean not having the attribute as in !nnf.
 
 If an attribute of the problemState is not mentioned below when describing
