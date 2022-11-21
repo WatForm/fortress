@@ -111,15 +111,16 @@ Some transformers below are for experimentation and thus not used in
     - methods: constants, datatype
     - preconditions: typechecked
     - postconditions: exactScopes
-    - unapply: ??
+    - unapply: ???
 
 * EnumEliminationTransformer @Nancy
     - problemState -> problemState
     - purpose: enums become DEs (?)
     - methods: constants, datatype, minimal
     - preconditions: typechecked
-    - postconditions: !enums 
-    - unapply: ?? 
+    - postconditions: !Enums 
+    - unapply: Enums 
+
 
 * AxiomatizeDefinitionsTransformer @Xintong
     - theory -> theory
@@ -128,7 +129,7 @@ Some transformers below are for experimentation and thus not used in
     - methods: constants, datatype
     - preconditions: typechecked
     - postcondition: !defns
-    - unapply: ???
+    - unapply: none
     
 * Handling Integers (use one of these) @Owen
     - IntegerToBitVectors 
@@ -161,8 +162,9 @@ Some transformers below are for experimentation and thus not used in
             * may still be negative uses of tc remaining
         + methods: constants, datatype, minimal
         + preconditions: nnf, typechecked
-        + postconditions: 
-        + unapply: ??
+        + postconditions: ??
+        + unapply: none (FIX THIS)
+
     - ClosureEliminationIterativeTransformer 
         + problemState -> problemState
         + purpose: 
@@ -171,7 +173,7 @@ Some transformers below are for experimentation and thus not used in
         + methods: constants, datatype, minimal
         + preconditions: typechecked
         + postconditions: !tc
-        + unapply: ??
+        + unapply: none (FIX THIS)
     
 * SortInferenceTransformer    @Nancy    
     - theory -> theory
@@ -201,7 +203,9 @@ Some transformers below are for experimentation and thus not used in
     - methods: constants, datatype
     - preconditions: nodefs, typechecked, nnf
     - postconditions: onlyForall
-    - unapply: ??
+    - postconditions: nodefs, typechecked, nnf, onlyForall
+    - unapply: nodefs, typechecked, nnf, onlyForall
+
 
 * Symmetry @Nancy
     - SymmetryBreakingMonoOnlyAnyOrder
@@ -233,12 +237,51 @@ Some transformers below are for experimentation and thus not used in
             * if not already limited by symmetry breaking)  
             * all bound scopes become unchangeable      |
 
+
 * Simplify @Owen
+    - Note: most of these likely can be combined. Simplifiers for specific methods just won't simplify for others.
+    - None of these currenlty have an unapply
     - SimplifyTransformer 
+        + Purpose
+            * Reduces double negations and negation of Boolean constants
+            * Simplify `AndList` and `OrList` containing Boolean constants
+            * Simplify `Implication` and `Iff` s containing Boolean constants
+            * Simplify `Eq` of domain elements
+            * Simplify `Eq` of the same variable (`Eq(Var('x'), Var('x'))`) or where they have different interpretations
+            * Simplify `Eq` with identical content
+            * Simplifies `Exists` and `Forall` to remove unused variables
+            * Simplifies `ITE` with known condition
+        + methods: constants (?), datatypes
+        + preconditions: none
+        + postconditions: none 
     - SplitConjunctionTransformer
+        + Purpose
+            * Splits all top-level conjunct formulas into separate formulas
+        + methods: constants, datatypes
+        + preconditions: none
+        + postconditions: none
     - SimplifyLearnedLiteralsTransformer
+        + Purpose
+            * Same as `SimplifyTransformer` unless otherwise stated
+            * Replaces subterms with any learned literal during the simplification process
+        + methods: datatypes
+        + preconditions: none
+        + postconditions: none
     - SimplifyTransfomer2
+        + Purpose
+            * Same as `SimplifyTransformer` unless otherwise stated
+            * Only checks `Eq` for left and right being equal
+        + methods: datatypes
+        + preconditions: none
+        + postconditions: none
     - SimplifyWithRangeTransformer
+        + Purpose
+            * Same as `SimplifyTransformer` unless otherwise stated
+            * Uses range restrictions to check if equality between a term and a domain element is impossible
+        + methods: datatypes
+        + preconditions: none
+        + postconditions: none
+
     
 * DomainElimination @Owen
     - DomainEliminationTransformer 
