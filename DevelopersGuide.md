@@ -70,9 +70,9 @@ There are also a number of experimental model finders present in the code that i
 
 ## Attributes of problemState
 
-* typechecked (boolean within problemState)
-* defn (can check in theory)
-* nnf (boolean within problemState)
+* typechecked - boolean within problemState
+* defn - can check in theory; possible to have in input theory
+* nnf - boolean within problemState
 * onlyForall (boolean within problemState)
 * noQuant (boolean within problemState)
 * decidable (boolean within problemState)
@@ -82,8 +82,10 @@ There are also a number of experimental model finders present in the code that i
 * exactScopes (boolean within problemState)
 * Enums (boolean within problemState)
 * DEs (can check within theory??)
+* datatype - possible to have in input theory
 
 We use !attribute to mean not having the attribute as in !nnf.
+
 If an attribute of the problemState is not mentioned below when describing
 the transformers, then its value does not change
 
@@ -92,8 +94,9 @@ the transformers, then its value does not change
 Below is a brief description of the transformers implemented in Fortress. 
 Some transformers below are for experimentation and thus not used in 
 
-* TypecheckSanitizeTransformer
+* TypecheckSanitizeTransformer @Nancy
     - theory -> theory
+    - no change in theory
     - purpose: 
         + performs typechecking (no type inference) on theory
         + can handle defns
@@ -102,7 +105,7 @@ Some transformers below are for experimentation and thus not used in
     - postconditions: typechecked
     - unapply: none
     
-* ScopesNoExactPredicatesTransformer
+* ScopesNonExactPredicatesTransformer @Xintong
     - problemState -> problemState
     - purpose: set up predicates for non-exact scopes
     - methods: constants, datatype
@@ -110,15 +113,15 @@ Some transformers below are for experimentation and thus not used in
     - postconditions: exactScopes
     - unapply: ??
 
-* EnumEliminationTransformer 
+* EnumEliminationTransformer @Nancy
     - problemState -> problemState
     - purpose: enums become DEs (?)
     - methods: constants, datatype, minimal
     - preconditions: typechecked
-    - postconditions: !Enums 
+    - postconditions: !enums 
     - unapply: ?? 
 
-* AxiomatizeDefintionsTransformer
+* AxiomatizeDefinitionsTransformer @Xintong
     - theory -> theory
     - purpose: 
         + turn the defns into axioms and defn names become uninterpreted functions
@@ -127,7 +130,7 @@ Some transformers below are for experimentation and thus not used in
     - postcondition: !defns
     - unapply: ???
     
-* Handling Integers (use one of these)
+* Handling Integers (use one of these) @Owen
     - IntegerToBitVectors 
         + problemState -> problemState
         + purpose: 
@@ -149,8 +152,8 @@ Some transformers below are for experimentation and thus not used in
         + unapply: ??
         
 
-* Transitive Closure (use one of these)
-    - ClosurePositiveTransformer 
+* Transitive Closure (use one of these) @Owen
+    - ClosureNegativeTransformer 
         + problemState -> problemState
         + purpose: 
             * if the tc of an expr is only uses positively
@@ -158,7 +161,7 @@ Some transformers below are for experimentation and thus not used in
             * may still be negative uses of tc remaining
         + methods: constants, datatype, minimal
         + preconditions: nnf, typechecked
-        + postconditions: ??
+        + postconditions: 
         + unapply: ??
     - ClosureEliminationIterativeTransformer 
         + problemState -> problemState
@@ -170,72 +173,74 @@ Some transformers below are for experimentation and thus not used in
         + postconditions: !tc
         + unapply: ??
     
-* SortInferenceTransformer       
+* SortInferenceTransformer    @Nancy    
     - theory -> theory
     - purpose: infer sorts for more symmetry SymmetryBreaking
     - methods: constants, datatype
-    - preconditions: none
+    - preconditions: typechecked
     - postconditions: no change
     - unapply: ??
 
 
-* NnfTransformer 
+* NnfTransformer @Xintong
     - theory -> theory
     - purpose: put all axioms in nnf
     - methods: constants, datatype
     - preconditions: nodefs, typechecked
-    - postconditions: nodefs, typechecked, nnf
+    - postconditions: nnf
     - unapply: ??
 
-* PnfTransformer
+* PnfTransformer (not yet written)
     - not yet implemented
 
-* SkolemizeTransformer 
+* SkolemizeTransformer @Xintong
     - theory -> theory
     - purpose: 
         + skolemize all axioms
         + skolem constants/functions are added to the signature
     - methods: constants, datatype
     - preconditions: nodefs, typechecked, nnf
-    - postconditions: nodefs, typechecked, nnf, onlyForall
+    - postconditions: onlyForall
     - unapply: ??
 
-* Symmetry
+* Symmetry @Nancy
     - SymmetryBreakingMonoOnlyAnyOrder
     - SymmetryBreakingFunctionsFirstAnyOrder
     - SymmetryBreakingMonoFirstThenFunctionsFirstAnyOrder
     - SymmetryBreakingLowArityFirstMostUsedFunctionFirstOrderFactory
             * symmetry axioms are quantifier-free
 
-* StandardQuantifierExpansionTransformer
+* StandardQuantifierExpansionTransformer @Nancy
     - purpose:
         + remove all universal quantifiers
         + replace with the conjunction of the substitution all DE values for 
         + all bound scopes become unchangeable
     - methods: constants
+    - postcondition: !quantifiers
 
-* RangeFormulas 
+* RangeFormulas @Nancy
     - RangeFormulaStandardTransformer 
         + purpose: 
             * introduce range formulas using domain elements 
-            * if not already limited by symmetry breaking) 
+            * if not already limited by symmetry breaking
             * all bound scopes become unchangeable
             * range formulas are quantifier-free
         + methods: constants
+        + postconditions: de
     - RangeFormulaUseConstantsTransformer 
         + purpose
             * introduce range formulas using constants 
             * if not already limited by symmetry breaking)  
             * all bound scopes become unchangeable      |
 
-* Simplify 
+* Simplify @Owen
     - SimplifyTransformer 
     - SplitConjunctionTransformer
     - SimplifyLearnedLiteralsTransformer
     - SimplifyTransfomer2
     - SimplifyWithRangeTransformer
     
-* DomainElimination 
+* DomainElimination @Owen
     - DomainEliminationTransformer 
         + purpose: 
             * add constant to theory for each domain element
@@ -244,7 +249,7 @@ Some transformers below are for experimentation and thus not used in
             * remove DEs from theory (?)
         + methods: constants
         + preconditions: !tc, !ints ...
-        + postconditions: !DEs, euf
+        + postconditions: !de, euf
     - DomainEliminationTransformer2
         + non-exact scopes by non-distinct constants - to remove       |
     - DatatypeTransformer 
