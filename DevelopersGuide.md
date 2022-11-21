@@ -102,13 +102,13 @@ Some transformers below are for experimentation and thus not used in
     - postconditions: typechecked
     - unapply: none
     
-* ScopesNoExactPredicatesTransformer
+* ScopesNonExactPredicatesTransformer
     - problemState -> problemState
     - purpose: set up predicates for non-exact scopes
     - methods: constants, datatype
     - preconditions: typechecked
     - postconditions: exactScopes
-    - unapply: ??
+    - unapply: ???
 
 * EnumEliminationTransformer 
     - problemState -> problemState
@@ -116,7 +116,7 @@ Some transformers below are for experimentation and thus not used in
     - methods: constants, datatype, minimal
     - preconditions: typechecked
     - postconditions: !Enums 
-    - unapply: ?? 
+    - unapply: Enums 
 
 * AxiomatizeDefintionsTransformer
     - theory -> theory
@@ -125,7 +125,7 @@ Some transformers below are for experimentation and thus not used in
     - methods: constants, datatype
     - preconditions: typechecked
     - postcondition: !defns
-    - unapply: ???
+    - unapply: none
     
 * Handling Integers (use one of these)
     - IntegerToBitVectors 
@@ -159,7 +159,7 @@ Some transformers below are for experimentation and thus not used in
         + methods: constants, datatype, minimal
         + preconditions: nnf, typechecked
         + postconditions: ??
-        + unapply: ??
+        + unapply: none (FIX THIS)
     - ClosureEliminationIterativeTransformer 
         + problemState -> problemState
         + purpose: 
@@ -168,7 +168,7 @@ Some transformers below are for experimentation and thus not used in
         + methods: constants, datatype, minimal
         + preconditions: typechecked
         + postconditions: !tc
-        + unapply: ??
+        + unapply: none (FIX THIS)
     
 * SortInferenceTransformer       
     - theory -> theory
@@ -198,7 +198,7 @@ Some transformers below are for experimentation and thus not used in
     - methods: constants, datatype
     - preconditions: nodefs, typechecked, nnf
     - postconditions: nodefs, typechecked, nnf, onlyForall
-    - unapply: ??
+    - unapply: nodefs, typechecked, nnf, onlyForall
 
 * Symmetry
     - SymmetryBreakingMonoOnlyAnyOrder
@@ -230,6 +230,7 @@ Some transformers below are for experimentation and thus not used in
 
 * Simplify
     - Note: most of these likely can be combined. Simplifiers for specific methods just won't simplify for others.
+    - None of these currenlty have an unapply
     - SimplifyTransformer 
         + Purpose
             * Reduces double negations and negation of Boolean constants
