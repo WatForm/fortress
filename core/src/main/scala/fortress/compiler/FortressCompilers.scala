@@ -8,7 +8,7 @@ import fortress.symmetry._
 import scala.collection.mutable.ListBuffer
 
 /* constants method */
-class ConstantsMethodCompiler() extends LogicCompiler {
+abstract class ConstantsMethodCompiler() extends LogicCompiler {
     override def transformerSequence: Seq[ProblemStateTransformer] = {
         val transformerSequence = new scala.collection.mutable.ListBuffer[ProblemStateTransformer]
         transformerSequence += TypecheckSanitizeTransformer
