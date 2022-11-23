@@ -15,10 +15,12 @@ import java.{util => ju}
 
 class Conf(arguments: Seq[String]) extends ScallopConf(arguments) {
     val scope = opt[Int](required = false, descr="default scope for all sorts")
-    val file = trailArg[String](required = true, descr="file(s) to run on")
-
     // Scope Map could be props[Scope] with a special converter, but we already change the keys so its not a huge deal
     val scopeMap = props[String]('S', descr="scope sizes for individual sorts in the form <sort>[?]=<scope>[u] ex: A=2 B?=3 C=4u ... where ? = non-exact and u = unchanging.")
+    val file = trailArg[String](required = true, descr="file(s) to run on")
+
+    val debug = opt[Boolean](required= false, descr="Writes debug output to console")
+    
     val timeout = opt[Int](required = true, descr="timeout in seconds") // Timeout in seconds
 
     // model finder.
@@ -105,6 +107,13 @@ object FortressCli {
             }
         }
 //        val modelFinder: ModelFinder = ModelFinder.createPredUpperBoundModelFinder()
+        val loggers = if(conf.debug()) {
+            Seq(new StandardLogger(new PrintWriter(System.out)))
+        } else Seq()
+
+        for (logger <- loggers){
+            modelFinder.addLogger(logger)
+        }
 
 
         modelFinder.setTheory(theory)

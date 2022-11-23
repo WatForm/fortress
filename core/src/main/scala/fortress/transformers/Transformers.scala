@@ -18,6 +18,10 @@ object Transformers {
             transformerName = transformerName.substring(transformerName.length() - 11)
         }
         transformerName match {
+            case "closureeliminationeijck" => ClosureEliminationEijckTransformer
+            case "closureeliminationliu" => ClosureEliminationLiuTransformer
+            case "closureeliminationsquare" => ClosureEliminationSquareTransformer
+            case "closureeliminationclaessen" => ClosureEliminationClaessenTransformer
             case "closureeliminationiterative" => ClosureEliminationIterativeTransformer
             case "datatype" => DatatypeTransformer
             case "domainelimination" => DomainEliminationTransformer
