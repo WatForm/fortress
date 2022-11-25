@@ -48,6 +48,7 @@ trait ClosureEliminationTransformer extends ProblemStateTransformer {
                 resultTheory = resultTheory.withAxiom(newAxiom)
             }
 
+            // Remove the added functions
             def unapply(interp: Interpretation) = {
                 interp.withoutFunctions(closureFunctions.toSet).withoutFunctions(auxilaryFunctions.toSet)
             }
