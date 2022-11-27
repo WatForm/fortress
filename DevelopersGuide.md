@@ -116,8 +116,10 @@ Some transformers below are for experimentation and thus not used in
     - preconditions: typechecked
     - modifies: scopes
     - postconditions: exactScopes
-    - unapply: ???
-
+    - unapply: 
+      - remove predicate functions, like  `__@Pred_A`
+      - for each sort, remove domain elements whose predicate value is `false`
+    
 * EnumEliminationTransformer @Nancy
     - problemState -> problemState
     - purpose: enums become DEs (?)
