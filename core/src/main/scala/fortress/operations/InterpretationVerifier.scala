@@ -42,83 +42,6 @@ class InterpretationVerifier(theory: Theory) {
             else context(key).remove(0)
         }
 
-        // Given a function and its arguments, look inside the interpretation to find the result
-        def getFunctionValue(fnName: String, evaluatedArgs: Seq[Value]): Value = {
-            val funcDef = interpretation.functionDefinitions.filter(fd => fd.name == fnName).head
-            val formalArgs: Seq[Term] = for( item <- funcDef.argSortedVar ) yield item.variable
-            // transfer constants to domain elements, ex: p1 -> _@1P
-            val realArgs: Seq[Value] = for( item <- evaluatedArgs ) yield {
-                var temp: Value = item
-                // TODO: look here! @zxt
-//                for( a <- interpretation.constantInterpretations ) {
-//                    if(a._1.variable.name == temp.toString ) temp = a._2
-//                }
-                temp
-            }
-            val body = funcDef.body
-            Errors.Internal.precondition(evaluatedArgs.size == formalArgs.size, "Invalid input params.")
-            val argMap: Map[Term, Value] = formalArgs.zip(realArgs).toMap
-            val ret: Value = visitFunctionBody( body, argMap )
-            ret
-        }
-
-        def visitFunctionBody(term: Term, argMap: Map[Term, Value]): Value = term match {
-            case Top | Bottom | EnumValue(_) | DomainElement(_, _) |
-                 IntegerLiteral(_) | BitVectorLiteral(_, _) => term.asInstanceOf[Value]
-            case v @ Var(_) => argMap(v)
-            case Not(p) => boolToValue(!forceValueToBool(visitFunctionBody(p, argMap)))
-            case AndList(args) => boolToValue(args.forall(a => forceValueToBool(visitFunctionBody(a, argMap))))
-            case OrList(args) => boolToValue(args.exists(a => forceValueToBool(visitFunctionBody(a, argMap))))
-            case Distinct(args) => boolToValue(
-                args.size == args.map(a => visitFunctionBody(a, argMap)).distinct.size
-            )
-            case Implication(p, q) => boolToValue(
-                !forceValueToBool(visitFunctionBody(p, argMap)) || forceValueToBool(visitFunctionBody(q, argMap))
-            )
-            case Iff(p, q) => boolToValue(
-                forceValueToBool(visitFunctionBody(p, argMap)) == forceValueToBool(visitFunctionBody(q, argMap))
-            )
-            case Eq(l, r) => boolToValue(visitFunctionBody(l, argMap) == visitFunctionBody(r, argMap))
-            case IfThenElse(condition, ifTrue, ifFalse) => {
-                if(forceValueToBool(visitFunctionBody(condition, argMap))) {
-                    visitFunctionBody(ifTrue, argMap)
-                }
-                else {
-                    visitFunctionBody(ifFalse, argMap)
-                }
-            }
-            case App(fname, args) => getFunctionValue(fname, args.map(arg => visitFunctionBody(arg, argMap)))
-            case BuiltinApp(fn, args) => evaluateBuiltIn(fn, args.map(arg => visitFunctionBody(arg, argMap)))
-            case _ => {
-                println("Error: get function value failed.")
-                null
-            }
-        }
-
-        // Given a builtin function and its arguments, run it through a throwaway Z3 solver for the result
-        // (to avoid having to implement every function manually on our end)
-        def evaluateBuiltIn(fn: BuiltinFunction, evalArgs: Seq[Value]): Value = {
-            val evalResult: Var = Var("!VERIFY_INTERPRETATION_RES")
-            val evalResultAnnotated: AnnotatedVar = fn match {
-                case IntPlus | IntNeg | IntSub | IntMult | IntDiv | IntMod => evalResult of Sort.Int
-                case BvPlus | BvNeg | BvSub | BvMult | BvSignedDiv | BvSignedRem | BvSignedMod =>
-                    evalResult of Sort.BitVector(evalArgs.head.asInstanceOf[BitVectorLiteral].bitwidth);
-                case IntLE | IntLT | IntGE | IntGT |
-                     BvSignedLE | BvSignedLT | BvSignedGE | BvSignedGT => evalResult of Sort.Bool
-                case _ => throw new scala.NotImplementedError("Builtin function not accounted for")
-            }
-            val theory: Theory = Theory.empty
-                .withConstant(evalResultAnnotated)
-                .withAxiom(evalResult === BuiltinApp(fn, evalArgs))
-                
-            val solver = new Z3IncSolver
-            solver.setTheory(theory)
-            solver.solve(Milliseconds(1000))
-            val solvedInstance = solver.solution
-            solver.close()
-            solvedInstance.constantInterpretations(evalResultAnnotated)
-        }
-
         // Recursively evaluates a given expression to either Top or Bottom, starting from the root
         def evaluate(term: Term): Value = term match {
             // "Atomic" terms should be maintained as-is
@@ -144,8 +67,8 @@ class InterpretationVerifier(theory: Theory) {
                 if(forceValueToBool(evaluate(condition))) evaluate(ifTrue)
                 else evaluate(ifFalse)
             }
-            case App(fname, args) => getFunctionValue(fname, args.map(arg => evaluate(arg)))
-            case BuiltinApp(fn, args) => evaluateBuiltIn(fn, args.map(arg => evaluate(arg)))
+            case App(fname, args) => interpretation.getFunctionValue(fname, args.map(arg => evaluate(arg)))
+            case BuiltinApp(fn, args) => interpretation.evaluateBuiltIn(fn, args.map(arg => evaluate(arg)))
             case Forall(vars, body) => {
                 val varDomains = vars.map(v =>
                     interpretation.sortInterpretations(v.sort).toIndexedSeq
