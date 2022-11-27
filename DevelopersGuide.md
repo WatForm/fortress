@@ -12,7 +12,7 @@ This document contains information on how the Fortress library is structured and
 * A sort scope can be 
     - `unbound` or `bound` (with a scope size)
     - `exact` or `inexact`
-    - `changeable` or `unchangeable` (once)
+    - `changeable` or `unchangeable` (once)  
 * An `operation` takes a term and applies a transformation to it.
 Examples of operations are converting to negation normal form, performing sort inference, simplification, and skolemization.
 * A `TheoryTransformer` or `ProblemStateTransformer` takes a `Theory` or `ProblemState` respectively and converts them into a new `Theory` or `ProblemState`by applying a transformation to all terms of the theory (using an operation usually).  Examples of transformers are converting to negation normal form, performing sort inference, simplification, and skolemization.
@@ -24,7 +24,7 @@ Examples of operations are converting to negation normal form, performing sort i
 
 ## Basic Algorithms of Fortress
 
-Fortress applies a ModelFinder to an problem state.  The steps of a model finder are: 1) apply a compiler (a sequence of transformers) and 2) convert the problem to SMT-LIB and pass the problem to a solver.
+Fortress applies a ModelFinder to a problem state.  The steps of a model finder are: 1) apply a compiler (a sequence of transformers) and 2) convert the problem to SMT-LIB and pass the problem to a solver.
 
 There are three standard model finders available in Fortress, which differ in 
 the compiler used.  In all existing model finders, the non-incremental Z
@@ -47,6 +47,7 @@ SMT solvers provide datatypes declarations where the values of a
 sort can be enumerated.  In this method, datatype values are created 
 for domain values.  Range axioms are not needed.  Symmetry reduction axioms 
 are added.
+
 * __is quantifier expansion needed__?
 * __is it decidable__
 
@@ -60,12 +61,12 @@ above.
 
 There are also a number of experimental model finders present in the code that implement various forms of symmetry breaking in the constants method:
     + FortressZERO - no symmetry breaking
-    + FortressONE - Claessen and Sorensson symmetry breaking only
-    + FortressTWO - functions first for symmetry breaking
-    + FortressTWO_SI - sort inference then functions first for symmetry breaking
-    + FortressTHREE - Claessen and Sorensson, RDI, RDD, ladder
-    + FortressTHREE_SI - sort inference then Claessen and Sorensson, RDI, RDD, ladder
-    + FortressFOUR_SI - trial of adding heuristics to fortress three si
+        + FortressONE - Claessen and Sorensson symmetry breaking only
+        + FortressTWO - functions first for symmetry breaking
+        + FortressTWO_SI - sort inference then functions first for symmetry breaking
+        + FortressTHREE - Claessen and Sorensson, RDI, RDD, ladder
+        + FortressTHREE_SI - sort inference then Claessen and Sorensson, RDI, RDD, ladder
+        + FortressFOUR_SI - trial of adding heuristics to fortress three si
 
 
 ## Attributes of problemState
@@ -174,7 +175,7 @@ Some transformers below are for experimentation and thus not used in
     - theory -> theory
     - purpose: infer sorts for more symmetry SymmetryBreaking
     - methods: constants, datatype
-    - preconditions: none
+    - preconditions: none(typechecked?)
     - postconditions: no change
     - unapply: ??
 
@@ -186,10 +187,8 @@ Some transformers below are for experimentation and thus not used in
     - preconditions: nodefs, typechecked
     - postconditions: nodefs, typechecked, nnf
     - unapply: ??
-
 * PnfTransformer
     - not yet implemented
-
 * SkolemizeTransformer 
     - theory -> theory
     - purpose: 
@@ -199,21 +198,18 @@ Some transformers below are for experimentation and thus not used in
     - preconditions: nodefs, typechecked, nnf
     - postconditions: nodefs, typechecked, nnf, onlyForall
     - unapply: ??
-
 * Symmetry
     - SymmetryBreakingMonoOnlyAnyOrder
     - SymmetryBreakingFunctionsFirstAnyOrder
     - SymmetryBreakingMonoFirstThenFunctionsFirstAnyOrder
     - SymmetryBreakingLowArityFirstMostUsedFunctionFirstOrderFactory
             * symmetry axioms are quantifier-free
-
 * StandardQuantifierExpansionTransformer
     - purpose:
         + remove all universal quantifiers
         + replace with the conjunction of the substitution all DE values for 
         + all bound scopes become unchangeable
     - methods: constants
-
 * RangeFormulas 
     - RangeFormulaStandardTransformer 
         + purpose: 
@@ -226,15 +222,17 @@ Some transformers below are for experimentation and thus not used in
         + purpose
             * introduce range formulas using constants 
             * if not already limited by symmetry breaking)  
-            * all bound scopes become unchangeable      |
-
+            * all bound scopes become unchangeable     
+        + methods: constants
+        + preconditions: typechecked
+        + postconditions: typechecked
+        + unapply: ??
 * Simplify 
     - SimplifyTransformer 
     - SplitConjunctionTransformer
     - SimplifyLearnedLiteralsTransformer
     - SimplifyTransfomer2
     - SimplifyWithRangeTransformer
-    
 * DomainElimination 
     - DomainEliminationTransformer 
         + purpose: 
@@ -247,11 +245,11 @@ Some transformers below are for experimentation and thus not used in
         + postconditions: !DEs, euf
     - DomainEliminationTransformer2
         + non-exact scopes by non-distinct constants - to remove       |
-    - DatatypeTransformer 
-        + purpose: 
-            * replace DEs with datatypes
-            * adds datatype definition to theory
-        + methods: datatypes
+* DatatypeTransformer 
+    + purpose: 
+        * replace DEs with datatypes
+        * adds datatype definition to theory
+    + methods: datatypes
 
 ## Solvers
 
@@ -448,7 +446,6 @@ Changing it to `_@` (also standards-compliant) improved performance again.
 
 ### logging
 * EventLogging is the main trait with different classes for recording timing for various processes.
-
 
 
 
