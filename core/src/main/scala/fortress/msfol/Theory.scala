@@ -42,6 +42,14 @@ case class Theory private (signature: Signature, axioms: Set[Term]) {
     def withAxioms(newAxioms: Iterable[Term]): Theory = {
         Theory(signature, axioms ++ newAxioms)
     }
+
+    def withoutAxiom(axiom: Term): Theory = {
+        Theory(signature, axioms - axiom)
+    }
+
+    def withoutAxioms(_axioms: Iterable[Term]): Theory = {
+        Theory(signature, axioms -- _axioms)
+    }
     
     /** Returns a theory consisting of the current theory but with the given
       * sort declaration added. Note that this does not modify the current Theory object,
