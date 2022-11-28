@@ -58,7 +58,7 @@ class ClosureEliminatorIterative(topLevelTerm: Term, signature: Signature, scope
                         // Make a new function with a similar name
                         val newFunctionName = nameGen.freshName(functionName);
                         // It uses the same arguments
-                        closureFunctions += FuncDecl(newFunctionName, Seq(sort, sort) ++ fixedSorts, Sort.Bool)
+                        auxilaryFunctions += FuncDecl(newFunctionName, Seq(sort, sort) ++ fixedSorts, Sort.Bool)
                         // For every input,
                         closureAxioms += Forall(avars ++ fixedArgVars, Iff(App(newFunctionName, Seq(x, y) ++ fixedVars), // For every inputs R_n+1(x,y) <=>
                             Or( // 1 of 2 things
@@ -80,7 +80,7 @@ class ClosureEliminatorIterative(topLevelTerm: Term, signature: Signature, scope
                 } else {
                     val helperName = nameGen.freshName(functionName);
                     closureFunctions += FuncDecl(reflexiveClosureName, Seq(sort, sort) ++ fixedSorts, Sort.Bool);
-                    closureFunctions += FuncDecl(helperName, Seq(sort, sort, sort) ++ fixedSorts, Sort.Bool);
+                    auxilaryFunctions += FuncDecl(helperName, Seq(sort, sort, sort) ++ fixedSorts, Sort.Bool);
                     val u = Var(nameGen.freshName("u"));
                     closureAxioms += Forall(avars ++ fixedArgVars, Not(App(helperName, Seq(x, x, y) ++ fixedVars)))
                     closureAxioms += Forall((avars :+ az :+ u.of(sort)) ++ fixedArgVars,
@@ -124,7 +124,7 @@ class ClosureEliminatorIterative(topLevelTerm: Term, signature: Signature, scope
                 
                 if (scope.size > 100) {
                     val helperName = nameGen.freshName(functionName);
-                    closureFunctions += FuncDecl.mkFuncDecl(helperName, sort, sort, sort, Sort.Bool);
+                    auxilaryFunctions += FuncDecl.mkFuncDecl(helperName, sort, sort, sort, Sort.Bool);
                     val u = Var(nameGen.freshName("u"));
                     closureAxioms += Forall(avars, Not(App(helperName, Seq(x, x, y) ++ fixedVars)))
                     closureAxioms += Forall(avars :+ az :+ u.of(sort), Implication(And(App(helperName, List(x, y, u) ++ fixedVars), App(helperName, List(y, z, u) ++ fixedVars)), App(helperName, List(x, z, u) ++ fixedVars)))
@@ -139,7 +139,7 @@ class ClosureEliminatorIterative(topLevelTerm: Term, signature: Signature, scope
                     closureFunctions += FuncDecl(closureName, Seq(sort, sort) ++ fixedSorts, Sort.Bool)
                     for (s <- 1 until scala.math.ceil(scala.math.log(scope.size)/scala.math.log(2)).toInt) {
                         val newFunctionName = nameGen.freshName(functionName);
-                        closureFunctions += FuncDecl(newFunctionName, Seq(sort, sort) ++ fixedSorts, Sort.Bool)
+                        auxilaryFunctions += FuncDecl(newFunctionName, Seq(sort, sort) ++ fixedSorts, Sort.Bool)
                         closureAxioms += Forall(avars, Iff(App(newFunctionName, Seq(x, y)  ++ fixedVars), Or(funcContains(functionName, x, y, fixedVars), Exists(az, And(funcContains(functionName, x, z, fixedVars), funcContains(functionName, z, y, fixedVars))))))
                         functionName = newFunctionName;
                     }
