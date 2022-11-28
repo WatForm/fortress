@@ -10,6 +10,7 @@ trait solver extends AutoCloseable {
     def addAxiom(axiom: Term): Unit
     def solve(timeoutMillis: Milliseconds): ModelFinderResult
     def solution: Interpretation
+    def unsatCore: String
 
     @throws(classOf[java.io.IOException])
     override def close(): Unit

@@ -17,6 +17,8 @@ sealed trait Term {
 
     // for lia check
     var isLia: Boolean = false
+
+    var label: String = ""
 }
 
 /** A term which is a value (for example, True/False, or a value of a sort). */

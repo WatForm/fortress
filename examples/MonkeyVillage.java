@@ -94,7 +94,7 @@ public class MonkeyVillage {
         // This is satisfiable if and only if numPigeons <= numHoles
             
         // Initialize a model finder
-        try(ModelFinder finder = ModelFinder.createDefault()){
+        try(ModelFinder finder = ModelFinder.searchSpaceModelFinder()){
             // Set the theory of the model finder
             finder.setTheory(monkeyTheory);
             
@@ -104,7 +104,7 @@ public class MonkeyVillage {
 //            finder.setExactScope(Banana, numBananas);
             
             // Check if all axioms in the theory are satisfiable
-            ModelFinderResult result = finder.checkSat();
+            ModelFinderResult result = finder.checkSat1();
             
             System.out.println("numTrees:   " + numTrees);
             System.out.println("numMonkeys: " + numMonkeys);

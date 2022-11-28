@@ -47,7 +47,7 @@ case class Theory private (signature: Signature, axioms: Set[Term]) {
         Theory(signature, axioms - axiom)
     }
 
-    def withoutAxioms(_axioms: Iterable[Term]): Theory = {
+    def withoutAxiomList(_axioms: Iterable[Term]): Theory = {
         Theory(signature, axioms -- _axioms)
     }
     

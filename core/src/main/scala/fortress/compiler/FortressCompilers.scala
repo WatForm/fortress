@@ -241,6 +241,31 @@ class PredUpperBoundCompiler extends LogicCompiler {
     }
 }
 
+class SearchSpaceCompiler extends LogicCompiler {
+
+    def symmetryBreakingTransformers: Seq[ProblemStateTransformer] = Seq(
+        new SymmetryBreakingTransformer_MostUsed(LowArityFirstMostUsedFunctionFirstOrderFactory, DefaultSymmetryBreakerFactoryDL(None))
+    )
+
+    override def transformerSequence: Seq[ProblemStateTransformer] = {
+        val transformerSequence = new scala.collection.mutable.ListBuffer[ProblemStateTransformer]
+        transformerSequence += TypecheckSanitizeTransformer
+        transformerSequence += EnumEliminationTransformer
+        transformerSequence += LiaCheckTransformer
+        transformerSequence += IntegerToBitVectorTransformer
+        transformerSequence += ClosureEliminationEijckTransformer
+        transformerSequence += NnfTransformer
+        transformerSequence += SkolemizeTransformer
+//        transformerSequence ++= symmetryBreakingTransformers
+        transformerSequence += AddScopeConstraintsTransformer
+        transformerSequence += StandardQuantifierExpansionTransformer
+        transformerSequence += RangeFormulaStandardTransformer
+        transformerSequence += new SimplifyTransformer
+        transformerSequence += DomainEliminationTransformer
+        transformerSequence.toList
+    }
+}
+
 /**
   * A compiler designed to allow manual addition of transformers to the transformer sequence
   *

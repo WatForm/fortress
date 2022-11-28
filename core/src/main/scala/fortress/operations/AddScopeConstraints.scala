@@ -26,11 +26,11 @@ object AddScopeConstraints {
         case Exists(vars, body) => Exists(vars, addScopeConstraints(body, clauses))
 
         case Forall(vars, body) => {
-            var ret: Term = axiom
-            for(av <- vars) {
-                ret = Or(ret, clauses(av.sort).head)
+            var newBody: Seq[Term] = Seq(body)
+            for( av <- vars ) {
+                newBody = newBody.+:(clauses(av.sort).head)
             }
-            ret
+            Forall(vars, Or.smart(newBody))
         }
     }
 }

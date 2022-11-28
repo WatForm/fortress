@@ -33,6 +33,7 @@ trait SMTLIBCLISession extends solver {
         // Convert & write theory
         val writer = processSession.get.inputWriter
         writer.write("(set-option :produce-models true)\n")
+        writer.write("(set-option :produce-unsat-cores true)\n")
         writer.write("(set-logic ALL)\n")
         val converter = new SmtlibConverter(writer)
         converter.writeTheory(theory)
@@ -69,6 +70,8 @@ trait SMTLIBCLISession extends solver {
             case _ => ErrorResult(s"Unrecognized result '${result}'" )
         }
     }
+
+    override def unsatCore: String = getUnsatCore
 
     // return a model if the theory is satisfiable, used by func viewModel
     override def solution: Interpretation = {
@@ -266,5 +269,16 @@ trait SMTLIBCLISession extends solver {
             model ++= line + "\n"
         }
         model
+    }
+
+    def getUnsatCore: String = {
+        var core: String = ""
+        processSession.get.write("(get-unsat-core)\n")
+        processSession.get.flush()
+        var line: String = processSession.get.readLine()
+        while ({line = processSession.get.readLine(); line != ")"}) {
+            core ++= line + "\n"
+        }
+        core
     }
 }

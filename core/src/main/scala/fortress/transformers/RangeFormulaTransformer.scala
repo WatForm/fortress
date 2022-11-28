@@ -7,7 +7,7 @@ import fortress.util.Errors
 import fortress.data.CartesianSeqProduct
 import fortress.problemstate.ProblemState
 
-import scala.math.min
+import scala.math.{min, random}
 
 
 
@@ -27,7 +27,7 @@ private[transformers] class RangeFormulaTransformer (useConstForDomElem: Boolean
     override def apply(problemState: ProblemState): ProblemState = problemState match {
         case ProblemState(theory, scopes, skc, skf, rangeRestricts, unapplyInterp, distinctConstants) => {
             // Generate range constraints for constants
-            val constantRangeConstraints = for {
+            val constantRangeConstraints: Set[Term] = for {
                 c <- theory.constants
                 if !c.sort.isBuiltin && scopes.contains(c.sort) // make sure the sort is bounded.
                 // Don't generate constraints for terms that are already restricted
@@ -35,7 +35,8 @@ private[transformers] class RangeFormulaTransformer (useConstForDomElem: Boolean
             } yield {
                 val possibleValues = for(i <- 1 to scopes(c.sort).size) yield DE(i, c.sort)
                 val rangeFormula = c.variable equalsOneOf possibleValues
-                rangeFormula
+                val rangeFormulaWithScope = Or(rangeFormula, Var(c.sort.name + "_GT"))
+                rangeFormulaWithScope
             }
 
             // Generate range constraints for functions
@@ -74,7 +75,7 @@ private[transformers] class RangeFormulaTransformer (useConstForDomElem: Boolean
                     if(quantifiedVarsBuffer.nonEmpty) {
                         functionRangeConstraints += Forall(quantifiedVars, app equalsOneOf possibleRangeValues)
                     } else if (! (rangeRestricts exists (_.term == app))) { // Don't generate constraints for terms that are already restricted
-                        functionRangeConstraints += app equalsOneOf possibleRangeValues
+                        functionRangeConstraints += Or(app equalsOneOf possibleRangeValues, Var(f.resultSort.name + "_GT"))
                     }
                 }
             }

@@ -72,7 +72,9 @@ trait ModelFinder extends AutoCloseable {
     // Parentheses are used rather than zero parameters to indicate that state may change.
 
     /** Check for a satisfying interpretation to the theory with the given scopes. */
-    def checkSat(): ModelFinderResult 
+    def checkSat(): ModelFinderResult
+
+    def checkSat1(): ModelFinderResult
 
     /** View the satisfying interpretation, if one exists.
       * Otherwise, throws an error.
@@ -99,5 +101,7 @@ object ModelFinder {
     def createDefault(): ModelFinder = new FortressTHREE
 
     def createPredUpperBoundModelFinder(): ModelFinder = new PredUpperBoundModelFinder
+
+    def searchSpaceModelFinder(): ModelFinder = new SearchSpaceModelFinder
 }
 

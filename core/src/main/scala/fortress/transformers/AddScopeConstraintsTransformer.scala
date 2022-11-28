@@ -9,8 +9,7 @@ object AddScopeConstraintsTransformer extends ProblemStateTransformer {
       * new ProblemState. Note that this does not mutate the ProblemState object, only
       * produces a new one. */
 
-    override def apply(problemState: ProblemState): ProblemState = {
-
+    override def apply(problemState: ProblemState): ProblemState = problemState match {
         case ProblemState(theory, scopes, skc, skf, rangeRestricts, unapplyInterp, distinctConstants) => {
 
             val constants: Set[AnnotatedVar] = {
@@ -21,12 +20,12 @@ object AddScopeConstraintsTransformer extends ProblemStateTransformer {
                 temp
             }
 
-            val clauses: Map[Sort, Seq[Term]] = {
-                var temp : Map[Sort, Seq[Term]] = Map.empty
+            val clauses: Map[Sort, Seq[Var]] = {
+                var temp : Map[Sort, Seq[Var]] = Map.empty
                 for( sort <- problemState.theory.sorts ) {
-                    val c1: Term = Var(sort.name + "_LT")
-                    val c2: Term = Var(sort.name + "_GT")
-                    temp = temp + (sort, Seq(c1, c2))
+                    val c1: Var = Var(sort.name + "_LT")
+                    val c2: Var = Var(sort.name + "_GT")
+                    temp = temp + (sort -> Seq(c1, c2))
                 }
                 temp
             }
@@ -34,15 +33,23 @@ object AddScopeConstraintsTransformer extends ProblemStateTransformer {
             var newAxioms: Set[Term] = for( axiom <- problemState.theory.axioms ) yield AddScopeConstraints.addScopeConstraints(axiom, clauses)
 
             for( sort <- problemState.theory.sorts ) {
-                newAxioms = newAxioms + Not(clauses(sort).head) + Not(clauses(sort).last)
+                val t1: Term = Not(clauses(sort).head)
+                t1.label = clauses(sort).head.name
+                val t2: Term = Not(clauses(sort).last)
+                t2.label = clauses(sort).last.name
+                newAxioms = newAxioms + t1 + t2
             }
 
             val resultTheory = theory
                     .withConstants(constants) // add scope constants, two new constants for each sort
-                    .withoutAxioms(theory.axioms) // remove old axioms
+                    .withoutAxiomList(theory.axioms) // remove old axioms
                     .withAxioms(newAxioms) // add new axioms with scope constraints
 
-            val unapply: Interpretation => Interpretation = ???
+            val unapply: Interpretation => Interpretation = {
+                interp => {
+                    interp.withoutConstants(constants)
+                }
+            }
 
             ProblemState(
                 resultTheory,

@@ -218,9 +218,16 @@ class SmtlibConverter(writer: java.io.Writer) {
     }
     
     def writeAssertion(term: Term): Unit = {
-        writer.write("(assert ")
-        write(term)
-        writer.write(')')
+        if(term.label != "") {
+            writer.write("(assert (! ")
+            write(term)
+            writer.write(":named " + term.label + "))")
+        }
+        else {
+            writer.write("(assert ")
+            write(term)
+            writer.write(')')
+        }
     }
     
     def writeTheory(theory: Theory): Unit = {

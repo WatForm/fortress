@@ -5,11 +5,10 @@ import fortress.transformers._
 import fortress.util._
 import fortress.interpretation._
 import fortress.solverinterface._
-import fortress.operations.TermOps._
 import fortress.compiler._
-import fortress.logging._
 import fortress.msfol.DSL.DSLTerm
 import fortress.util.Control.measureTime
+import fortress.problemstate._
 
 /** Model finder which invokes a compiler to reduce the model finding problem to satisfiability over a simpler logic. */
 abstract class CompilationModelFinder(solverInterface: SolverInterface)
@@ -36,18 +35,101 @@ with ModelFinderSettings {
             case Left(CompilerError.Other(errMsg)) => ErrorResult(errMsg)
             case Right(compilerRes) => {
                 compilerResult = Some(compilerRes)
-
                 val finalTheory = compilerResult.get.theory
-
-//                println("final theory: \n" + finalTheory + "\n\n")
-
+                println("final theory: \n" + finalTheory + "\n\n")
                 notifyLoggers(_.allTransformersFinished(finalTheory, totalTimer.elapsedNano))
-
                 val finalResult: ModelFinderResult = solverPhase(finalTheory)
-
                 finalResult
             }
         }
+    }
+
+    override def checkSat1(): ModelFinderResult = {
+
+        totalTimer.startFresh() // restart the timer
+        compiler = Some(createCompiler()) // init compiler
+
+        val sorts: IndexedSeq[Sort] = theory.sorts.toSeq.toIndexedSeq
+
+        case class Node(sizes: IndexedSeq[Int]) {
+            val scopes: IndexedSeq[Scope] = sizes.map(s => ExactScope(s))
+            val scope: Map[Sort, Scope] = {
+                var temp: Map[Sort, Scope] = Map.empty
+                for( i <- sorts.indices) temp = temp + (sorts(i) -> scopes(i))
+                temp
+            }
+//            val children: Seq[Node] = for( i <- sizes.indices) yield {
+//                val tempSizes: IndexedSeq[Int] = for( j <- sizes.indices ) yield {
+//                    if(i==j) sizes(i) + 1
+//                    else sizes(i)
+//                }
+//                Node(tempSizes)
+//            }
+        }
+
+        var space: Set[Node] = Set( Node( sorts.map(_ => 1)) )
+//        println("space:" + space)
+
+        val constraints: Map[Sort, (Int, Int)] = {
+            var temp: Map[Sort, (Int, Int)] = Map.empty
+            theory.sorts.foreach(sort => temp = temp + (sort -> (1, 9999)))
+            temp
+        }
+
+        var curNode: Node = space.head
+
+        var result: ModelFinderResult = UnsatResult
+
+        def isValidScope(node: Node): Boolean = {
+            for(sort <- theory.sorts) {
+                if(!(node.scope(sort).size >= constraints(sort)._1 && node.scope(sort).size <= constraints(sort)._2)) return false
+            }
+            true
+        }
+
+        def children(node: Node): Seq[Node] = for( i <- node.sizes.indices) yield {
+            val tempSizes: IndexedSeq[Int] = for( j <- node.sizes.indices ) yield {
+                if(i==j) node.sizes(i) + 1
+                else node.sizes(i)
+            }
+            Node(tempSizes)
+        }
+
+        do {
+            space = space ++ children(curNode) - curNode
+            while(!isValidScope(curNode)) {
+                curNode = space.head
+                space = space ++ children(curNode) - curNode
+            }
+
+            println("Current scope: " + curNode.scope + "\n")
+            println("Current space: " + space + "\n")
+
+            println("Original theory: " + theory + "\n")
+
+            result = compiler.get.compile(theory, curNode.scope, timeoutMilliseconds, eventLoggers.toList) match {
+                case Left(CompilerError.Timeout) => TimeoutResult
+                case Left(CompilerError.Other(errMsg)) => ErrorResult(errMsg)
+                case Right(compilerRes) => {
+                    compilerResult = Some(compilerRes)
+                    val finalTheory = compilerResult.get.theory
+                    println("final theory: \n" + finalTheory + "\n\n")
+                    notifyLoggers(_.allTransformersFinished(finalTheory, totalTimer.elapsedNano))
+                    val finalResult: ModelFinderResult = solverPhase(finalTheory)
+                    finalResult
+                }
+            }
+
+            if(result == UnsatResult) {
+                val UnsatCore: String = getUnsatCore
+                // TODO: update constraints map
+            }
+
+            println("current result: " + result + "\n")
+
+        } while (result == UnsatResult)
+
+        result
     }
     
     // Returns the final ModelFinderResult
@@ -84,6 +166,8 @@ with ModelFinderSettings {
         val instance = solverSession.get.solution
         compilerResult.get.decompileInterpretation(instance)
     }
+
+    def getUnsatCore: String = solverSession.get.unsatCore
 
     def nextInterpretation(): ModelFinderResult = {
         // Negate the current interpretation, but leave out the skolem functions

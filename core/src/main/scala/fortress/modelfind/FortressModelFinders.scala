@@ -79,6 +79,13 @@ class PredUpperBoundModelFinder(solverInterface: SolverInterface) extends Compil
     override def createCompiler(): LogicCompiler = new PredUpperBoundCompiler
 }
 
+class SearchSpaceModelFinder(solverInterface: SolverInterface) extends CompilationModelFinder(solverInterface) {
+    def this() = this(Z3IncCliInterface)
+
+    /** Create a compiler using the given integer semantics. */
+    override protected def createCompiler(): LogicCompiler = new SearchSpaceCompiler
+}
+
 class ConfigurableModelFinder(solverInterface: SolverInterface, configManager: Manager) extends CompilationModelFinder(solverInterface) {
     def this(configManager: Manager) = this(Z3IncCliInterface, configManager)
 
