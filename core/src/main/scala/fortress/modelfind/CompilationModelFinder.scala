@@ -77,12 +77,12 @@ with ModelFinderSettings {
 
         def isValidScope(node: Node): Boolean = {
             for(sort <- theory.sorts) {
-                if(!(node.scope(sort).size >= constraints(sort)._1 && node.scope(sort).size <= constraints(sort)._2)) return false
+                if(!(node.scope(sort).size > constraints(sort)._1 && node.scope(sort).size < constraints(sort)._2)) return false
             }
             true
         }
 
-        def children(node: Node): Seq[Node] = for( i <- node.sizes.indices) yield {
+        def getValidChildren(node: Node): Seq[Node] = for( i <- node.sizes.indices if node.sizes(i)+1 < constraints(sorts(i))._2 ) yield {
             val tempSizes: IndexedSeq[Int] = for( j <- node.sizes.indices ) yield {
                 if(i==j) node.sizes(j) + 1
                 else node.sizes(j)
@@ -92,10 +92,10 @@ with ModelFinderSettings {
 
         do {
             curNode = space.dequeue()
-            space ++= children(curNode)
+            space ++= getValidChildren(curNode)
             while(!isValidScope(curNode)) {
                 curNode = space.dequeue()
-                space ++= children(curNode)
+                space ++= getValidChildren(curNode)
             }
 
             println("Current scope: " + curNode.scope)
@@ -121,6 +121,7 @@ with ModelFinderSettings {
                 println("Unsat-core: " + unsatCore)
                 val cons: Seq[String] = unsatCore.substring(1, unsatCore.length-1).split(" ")
                 println("constraints: " + cons)
+                // update constraint set
                 for( con <- cons ) {
                     val sort: Sort = SortConst(con.split("_").head)
                     val flag: String = con.split("_").last
@@ -133,7 +134,7 @@ with ModelFinderSettings {
             }
 
 
-            println("current result: " + result + "\n----------------------------------------------------\n")
+            println("current result: " + result + "\n\n---------------------------------------------------------------------------------------------------")
 
         } while (result == UnsatResult)
 

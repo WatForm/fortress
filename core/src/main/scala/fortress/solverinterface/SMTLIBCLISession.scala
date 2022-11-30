@@ -37,6 +37,7 @@ trait SMTLIBCLISession extends solver {
         val writer = processSession.get.inputWriter
         writer.write("(set-option :produce-models true)\n")
         writer.write("(set-option :produce-unsat-cores true)\n")
+        writer.write("(set-option :smt.core.minimize true)\n")
         writer.write("(set-logic ALL)\n")
         val converter = new SmtlibConverter(writer)
         converter.writeTheory(theory)
