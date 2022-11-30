@@ -136,7 +136,7 @@ Some transformers below are for experimentation and thus not used in
         + turn the defns into axioms and defn names become uninterpreted functions
     - methods: constants, datatype
     - preconditions: typechecked
-    - modifies: signature? adds axioms
+    - modifies: theory, adds axioms and function declarations
     - postcondition: !defns
     - unapply: none
 
@@ -199,13 +199,11 @@ Some transformers below are for experimentation and thus not used in
     - purpose: put all axioms in nnf
     - methods: constants, datatype
     - preconditions: nodefs, typechecked
-    - modifies:
+    - modifies: axioms
     - postconditions: nnf
-    - unapply: ??
-
+    - unapply: none
 * PnfTransformer (not yet written)
     - not yet implemented
-
 * SkolemizeTransformer @Xintong
     - theory -> theory
     - purpose:
@@ -213,9 +211,8 @@ Some transformers below are for experimentation and thus not used in
         + skolem constants/functions are added to the signature
     - methods: constants, datatype
     - preconditions: nodefs, typechecked, nnf
-    - postconditions: onlyForall
     - postconditions: nodefs, typechecked, nnf, onlyForall
-    - unapply: nodefs, typechecked, nnf, onlyForall
+    - unapply: remove constants and functions introduced by skolemization.
 
 
 * Symmetry @Nancy
