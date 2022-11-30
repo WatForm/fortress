@@ -32,7 +32,9 @@ object DomainElementEliminatorConstants {
             case Top | Bottom | Var(_) | EnumValue(_)
                 | IntegerLiteral(_) | BitVectorLiteral(_, _) => term
         }
-        eliminateDomainElements(term)
+        val ret: Term = eliminateDomainElements(term)
+        ret.label = term.label
+        ret
     }
 }
 

@@ -150,7 +150,7 @@ class SmtlibConverter(writer: java.io.Writer) {
             case SortConst(name) => {
                 writer.write("(declare-sort ")
                 writer.write(sort.name)
-                writer.write(" 0)")
+                writer.write(" 0)\n")
             }
             case _ =>
         }
@@ -163,7 +163,7 @@ class SmtlibConverter(writer: java.io.Writer) {
         writeSorts(funcDecl.argSorts)
         writer.write(") ")
         writeSort(funcDecl.resultSort)
-        writer.write(')')
+        writer.write(")\n")
     }
 
     /*
@@ -180,7 +180,7 @@ class SmtlibConverter(writer: java.io.Writer) {
         writeSort(funcDef.resultSort)
         writer.write(" ")
         write(funcDef.body)
-        writer.write(')')
+        writer.write(")\n")
     }
 
     def writeArgSortedVar(arg: AnnotatedVar): Unit = {
@@ -200,14 +200,14 @@ class SmtlibConverter(writer: java.io.Writer) {
         writer.write(nameWithAffix(constant.name))
         writer.write(' ')
         writeSort(constant.sort)
-        writer.write(')')
+        writer.write(")\n")
     }
 
     def writeEnumConst(sort: Sort, enums: Seq[EnumValue]): Unit = {
         writer.write("(declare-datatypes () ((")
         writer.write(sort.name)
         enums.foreach(enum => writer.write(' ' + nameWithAffix(enum.name)))
-        writer.write(")))")
+        writer.write(")))\n")
     }
 
     def writeSignature(sig: Signature): Unit = {
@@ -218,15 +218,16 @@ class SmtlibConverter(writer: java.io.Writer) {
     }
     
     def writeAssertion(term: Term): Unit = {
+//        println("label: " + term.label + "\n")
         if(term.label != "") {
             writer.write("(assert (! ")
             write(term)
-            writer.write(":named " + term.label + "))")
+            writer.write(":named " + term.label + "))\n")
         }
         else {
             writer.write("(assert ")
             write(term)
-            writer.write(')')
+            writer.write(")\n")
         }
     }
     

@@ -257,11 +257,14 @@ class SearchSpaceCompiler extends LogicCompiler {
         transformerSequence += NnfTransformer
         transformerSequence += SkolemizeTransformer
 //        transformerSequence ++= symmetryBreakingTransformers
-        transformerSequence += AddScopeConstraintsTransformer
+//        transformerSequence += AddScopeConstraintsTransformer
         transformerSequence += StandardQuantifierExpansionTransformer
+//        transformerSequence += AddScopeConstraintsTransformer
         transformerSequence += RangeFormulaStandardTransformer
         transformerSequence += new SimplifyTransformer
         transformerSequence += DomainEliminationTransformer
+        transformerSequence += AddScopeConstraintsTransformer
+        transformerSequence += AddGlobalScopeConstraintsTransformer
         transformerSequence.toList
     }
 }

@@ -17,7 +17,7 @@ object Dump {
         val writer = new StringWriter()
         val converter = new SmtlibConverter(writer)
         converter.writeTheory(theory)
-        return writer.toString()
+        writer.toString()
     }
 
     def termToSmtlib(term: Term): String = {

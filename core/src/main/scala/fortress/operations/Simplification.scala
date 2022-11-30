@@ -24,8 +24,10 @@ object Simplifier {
                 IfThenElse(simplifyFull(condition), simplifyFull(ifTrue), simplifyFull(ifFalse))
             )
         }
-
-        simplifyFull(term)
+        val ret = simplifyFull(term)
+        ret.label = term.label
+//        println("debug label: " + ret.label)
+        ret
     }
 
     def simplifyStep(term: Term): Term = term match {

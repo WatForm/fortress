@@ -9,6 +9,7 @@ import fortress.compiler._
 import fortress.msfol.DSL.DSLTerm
 import fortress.util.Control.measureTime
 import fortress.problemstate._
+import scala.collection.mutable
 
 /** Model finder which invokes a compiler to reduce the model finding problem to satisfiability over a simpler logic. */
 abstract class CompilationModelFinder(solverInterface: SolverInterface)
@@ -58,25 +59,19 @@ with ModelFinderSettings {
                 for( i <- sorts.indices) temp = temp + (sorts(i) -> scopes(i))
                 temp
             }
-//            val children: Seq[Node] = for( i <- sizes.indices) yield {
-//                val tempSizes: IndexedSeq[Int] = for( j <- sizes.indices ) yield {
-//                    if(i==j) sizes(i) + 1
-//                    else sizes(i)
-//                }
-//                Node(tempSizes)
-//            }
         }
 
-        var space: Set[Node] = Set( Node( sorts.map(_ => 1)) )
-//        println("space:" + space)
+//        var space: Set[Node] = Set( Node( sorts.map(_ => 1)) )
+        val space = new mutable.Queue[Node]
+        space += Node(sorts.map(_ => 1))
 
-        val constraints: Map[Sort, (Int, Int)] = {
+        var constraints: Map[Sort, (Int, Int)] = {
             var temp: Map[Sort, (Int, Int)] = Map.empty
-            theory.sorts.foreach(sort => temp = temp + (sort -> (1, 9999)))
+            theory.sorts.foreach(sort => temp = temp + (sort -> (0, 9999)))
             temp
         }
 
-        var curNode: Node = space.head
+        var curNode: Node = null
 
         var result: ModelFinderResult = UnsatResult
 
@@ -89,43 +84,56 @@ with ModelFinderSettings {
 
         def children(node: Node): Seq[Node] = for( i <- node.sizes.indices) yield {
             val tempSizes: IndexedSeq[Int] = for( j <- node.sizes.indices ) yield {
-                if(i==j) node.sizes(i) + 1
-                else node.sizes(i)
+                if(i==j) node.sizes(j) + 1
+                else node.sizes(j)
             }
             Node(tempSizes)
         }
 
         do {
-            space = space ++ children(curNode) - curNode
+            curNode = space.dequeue()
+            space ++= children(curNode)
             while(!isValidScope(curNode)) {
-                curNode = space.head
-                space = space ++ children(curNode) - curNode
+                curNode = space.dequeue()
+                space ++= children(curNode)
             }
 
-            println("Current scope: " + curNode.scope + "\n")
-            println("Current space: " + space + "\n")
+            println("Current scope: " + curNode.scope)
+//            println("Current space: " + space )
 
-            println("Original theory: " + theory + "\n")
-
-            result = compiler.get.compile(theory, curNode.scope, timeoutMilliseconds, eventLoggers.toList) match {
-                case Left(CompilerError.Timeout) => TimeoutResult
-                case Left(CompilerError.Other(errMsg)) => ErrorResult(errMsg)
-                case Right(compilerRes) => {
-                    compilerResult = Some(compilerRes)
-                    val finalTheory = compilerResult.get.theory
-                    println("final theory: \n" + finalTheory + "\n\n")
-                    notifyLoggers(_.allTransformersFinished(finalTheory, totalTimer.elapsedNano))
-                    val finalResult: ModelFinderResult = solverPhase(finalTheory)
-                    finalResult
+            result = {
+                compiler.get.compile(theory, curNode.scope, timeoutMilliseconds, eventLoggers.toList) match {
+                    case Left(CompilerError.Timeout) => TimeoutResult
+                    case Left(CompilerError.Other(errMsg)) => ErrorResult(errMsg)
+                    case Right(compilerRes) => {
+                        compilerResult = Some(compilerRes)
+                        val finalTheory = compilerResult.get.theory
+//                        println("final theory: \n" + finalTheory + "\n\n")
+                        notifyLoggers(_.allTransformersFinished(finalTheory, totalTimer.elapsedNano))
+                        val finalResult: ModelFinderResult = solverPhase(finalTheory)
+                        finalResult
+                    }
                 }
             }
 
             if(result == UnsatResult) {
-                val UnsatCore: String = getUnsatCore
-                // TODO: update constraints map
+                val unsatCore: String = getUnsatCore
+                println("Unsat-core: " + unsatCore)
+                val cons: Seq[String] = unsatCore.substring(1, unsatCore.length-1).split(" ")
+                println("constraints: " + cons)
+                for( con <- cons ) {
+                    val sort: Sort = SortConst(con.split("_").head)
+                    val flag: String = con.split("_").last
+                    val lower: Int = if( flag == "GT" ) (if(curNode.scope(sort).size > constraints(sort)._1) curNode.scope(sort).size else constraints(sort)._1) else constraints(sort)._1
+                    val upper: Int = if( flag == "LT" ) (if(curNode.scope(sort).size < constraints(sort)._2) curNode.scope(sort).size else constraints(sort)._2) else constraints(sort)._2
+                    if( lower > upper ) return UnsatResult
+                    constraints = constraints + (sort -> (lower, upper))
+                }
+                println("current constraints: " + constraints)
             }
 
-            println("current result: " + result + "\n")
+
+            println("current result: " + result + "\n----------------------------------------------------\n")
 
         } while (result == UnsatResult)
 

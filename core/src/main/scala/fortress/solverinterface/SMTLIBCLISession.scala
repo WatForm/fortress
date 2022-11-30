@@ -10,6 +10,9 @@ import scala.util.matching.Regex
 import scala.jdk.CollectionConverters._
 import java.io.CharArrayWriter
 import scala.collection.mutable
+import fortress.util._
+import java.io.{File, PrintWriter}
+
 
 trait SMTLIBCLISession extends solver {
     // real smt-solver process ex: z3 or cvc4
@@ -37,6 +40,10 @@ trait SMTLIBCLISession extends solver {
         writer.write("(set-logic ALL)\n")
         val converter = new SmtlibConverter(writer)
         converter.writeTheory(theory)
+//        println("SMT-LIB:" + Dump.theoryToSmtlib(theory))
+        val write = new PrintWriter(new File("../test.smt2"))//输入文件名称
+        write.println(Dump.theoryToSmtlib(theory))
+        write.close()
     }
 
 
@@ -69,6 +76,7 @@ trait SMTLIBCLISession extends solver {
             }
             case _ => ErrorResult(s"Unrecognized result '${result}'" )
         }
+
     }
 
     override def unsatCore: String = getUnsatCore
@@ -276,9 +284,9 @@ trait SMTLIBCLISession extends solver {
         processSession.get.write("(get-unsat-core)\n")
         processSession.get.flush()
         var line: String = processSession.get.readLine()
-        while ({line = processSession.get.readLine(); line != ")"}) {
-            core ++= line + "\n"
-        }
-        core
+//        while ({line = processSession.get.readLine(); line != null}) {
+//            core ++= line + "\n"
+//        }
+        line
     }
 }
