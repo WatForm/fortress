@@ -104,7 +104,7 @@ public class MonkeyVillage {
 //            finder.setExactScope(Banana, numBananas);
             
             // Check if all axioms in the theory are satisfiable
-            ModelFinderResult result = finder.checkSat1();
+            ModelFinderResult result = finder.heuristicCheckSat();
             
             System.out.println("numTrees:   " + numTrees);
             System.out.println("numMonkeys: " + numMonkeys);

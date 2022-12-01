@@ -256,8 +256,7 @@ class SearchSpaceCompiler extends LogicCompiler {
         transformerSequence += ClosureEliminationEijckTransformer
         transformerSequence += NnfTransformer
         transformerSequence += SkolemizeTransformer
-//        transformerSequence ++= symmetryBreakingTransformers
-//        transformerSequence += AddScopeConstraintsTransformer
+        transformerSequence ++= symmetryBreakingTransformers
         transformerSequence += StandardQuantifierExpansionTransformer
 //        transformerSequence += AddScopeConstraintsTransformer
         transformerSequence += RangeFormulaStandardTransformer

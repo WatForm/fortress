@@ -45,7 +45,7 @@ with ModelFinderSettings {
         }
     }
 
-    override def checkSat1(): ModelFinderResult = {
+    override def heuristicCheckSat(): ModelFinderResult = {
 
         totalTimer.startFresh() // restart the timer
         compiler = Some(createCompiler()) // init compiler
@@ -73,6 +73,8 @@ with ModelFinderSettings {
 
         var curNode: Node = null
 
+        var times: Int = 0
+
         var result: ModelFinderResult = UnsatResult
 
         def isValidScope(node: Node): Boolean = {
@@ -82,26 +84,30 @@ with ModelFinderSettings {
             true
         }
 
-        def getValidChildren(node: Node): Seq[Node] = for( i <- node.sizes.indices if node.sizes(i)+1 < constraints(sorts(i))._2 ) yield {
-            val tempSizes: IndexedSeq[Int] = for( j <- node.sizes.indices ) yield {
-                if(i==j) node.sizes(j) + 1
-                else node.sizes(j)
+        def getValidChildren(node: Node): Seq[Node] = {
+            val temp: Seq[Node] = for( i <- node.sizes.indices
+                 if node.sizes(i)+1 < constraints(sorts(i))._2 && node.sizes(i)+1 > constraints(sorts(i))._1) yield {
+                    val tempSizes: IndexedSeq[Int] = for( j <- node.sizes.indices ) yield {
+                        if(i==j) node.sizes(j) + 1
+                        else node.sizes(j)
+                    }
+                Node(tempSizes)
             }
-            Node(tempSizes)
+            temp.filter(t => isValidScope(t))
         }
 
         do {
             curNode = space.dequeue()
-            space ++= getValidChildren(curNode)
+//            space ++= getValidChildren(curNode)
             while(!isValidScope(curNode)) {
                 curNode = space.dequeue()
-                space ++= getValidChildren(curNode)
+//                space ++= getValidChildren(curNode)
             }
 
             println("Current scope: " + curNode.scope)
-//            println("Current space: " + space )
 
             result = {
+                times += 1
                 compiler.get.compile(theory, curNode.scope, timeoutMilliseconds, eventLoggers.toList) match {
                     case Left(CompilerError.Timeout) => TimeoutResult
                     case Left(CompilerError.Other(errMsg)) => ErrorResult(errMsg)
@@ -133,10 +139,15 @@ with ModelFinderSettings {
                 println("current constraints: " + constraints)
             }
 
+            space ++= getValidChildren(curNode)
+
+            //            println("current space: " + space)
 
             println("current result: " + result + "\n\n---------------------------------------------------------------------------------------------------")
 
         } while (result == UnsatResult)
+
+        println("Got result in " + times + " times checking.")
 
         result
     }

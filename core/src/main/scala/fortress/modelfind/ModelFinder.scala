@@ -74,7 +74,7 @@ trait ModelFinder extends AutoCloseable {
     /** Check for a satisfying interpretation to the theory with the given scopes. */
     def checkSat(): ModelFinderResult
 
-    def checkSat1(): ModelFinderResult
+    def heuristicCheckSat(): ModelFinderResult
 
     /** View the satisfying interpretation, if one exists.
       * Otherwise, throws an error.
