@@ -122,9 +122,11 @@ Some transformers below are for experimentation and thus not used in
         + performs typechecking (no type inference) on theory
         + can handle defns
         + what does it return if it fails?
+        + replace instances of Eq with Iff
+ * when comparing Bool sort
     - methods: all
     - preconditions: none
-    - modifies: none
+    - modifies: axioms
     - postconditions: typechecked
     - unapply: none
     
