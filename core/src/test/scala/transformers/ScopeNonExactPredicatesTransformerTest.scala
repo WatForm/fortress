@@ -6,7 +6,7 @@ import fortress.transformers._
 
 class ScopeNonExactPredicatesTransformerTest extends UnitSuite with CommonSymbols {
 
-    val transformer = new TheoryApplication(new ScopeNonExactPredicatesTransformer)
+    val transformer = new TheoryApplication(ScopeNonExactPredicatesTransformer)
 
     val baseTheory = Theory.empty
             .withSort(A)

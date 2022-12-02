@@ -227,7 +227,7 @@ class PredUpperBoundCompiler extends LogicCompiler {
     override def transformerSequence: Seq[ProblemStateTransformer] = {
         val transformerSequence = new scala.collection.mutable.ListBuffer[ProblemStateTransformer]
         transformerSequence += TypecheckSanitizeTransformer
-        transformerSequence += new ScopeNonExactPredicatesTransformer // Must be before skolemization
+        transformerSequence += ScopeNonExactPredicatesTransformer // Must be before skolemization
         transformerSequence += EnumEliminationTransformer
         transformerSequence += SortInferenceTransformer
         transformerSequence += NnfTransformer
