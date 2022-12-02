@@ -171,22 +171,24 @@ Some transformers below are for experimentation and thus not used in
         + problemState -> problemState
         + purpose: 
             * if the tc of an expr is only uses positively
-            * replaces the tc with ...
+            * replaces the tc with a new, uninterpreted, axiomatixed function
             * may still be negative uses of tc remaining
         + methods: constants, datatype, minimal
         + preconditions: nnf, typechecked
-        + postconditions: ??
-        + unapply: none (FIX THIS)
+        + postconditions: !nnf, !skolemized, !noQuant, !onlyForall
+        + unapply: removes all functions it created from the interpretation
 
-    - ClosureEliminationIterativeTransformer 
+    - ClosureEliminationEijckTransformer
+    - ClosureEliminationLiuTransformer
+    - ClosureEliminationClaessenTransformer
         + problemState -> problemState
         + purpose: 
             * remove all uses of transitive closure
-            * replaces the tc with ...
+            * replaces the tc with a new, uninterpreted, axiomatized function
         + methods: constants, datatype, minimal
         + preconditions: typechecked
-        + postconditions: !tc
-        + unapply: none (FIX THIS)
+        + postconditions: !tc, !nnf, !skolemized, !noQuant, !onlyForall
+        + unapply: removes all functions it created from the interpretation
     
 * SortInferenceTransformer    @Nancy    
     - theory -> theory
@@ -259,7 +261,8 @@ Some transformers below are for experimentation and thus not used in
 
 * Simplify @Owen
     - Note: most of these likely can be combined. Simplifiers for specific methods just won't simplify for others.
-    - None of these currenlty have an unapply
+    - Note: None of these unapply
+    - Note: It is probably best to use these after adding range restrictions and quantifier expansion (second to last transformer).
     - SimplifyTransformer 
         + Purpose
             * Reduces double negations and negation of Boolean constants
@@ -270,34 +273,34 @@ Some transformers below are for experimentation and thus not used in
             * Simplify `Eq` with identical content
             * Simplifies `Exists` and `Forall` to remove unused variables
             * Simplifies `ITE` with known condition
-        + methods: constants (?), datatypes
+        + methods: any
         + preconditions: none
         + postconditions: none 
     - SplitConjunctionTransformer
         + Purpose
             * Splits all top-level conjunct formulas into separate formulas
-        + methods: constants, datatypes
+        + methods: any
         + preconditions: none
         + postconditions: none
     - SimplifyLearnedLiteralsTransformer
         + Purpose
             * Same as `SimplifyTransformer` unless otherwise stated
             * Replaces subterms with any learned literal during the simplification process
-        + methods: datatypes
+        + methods: any
         + preconditions: none
         + postconditions: none
     - SimplifyTransfomer2
         + Purpose
             * Same as `SimplifyTransformer` unless otherwise stated
             * Only checks `Eq` for left and right being equal
-        + methods: datatypes
+        + methods: any
         + preconditions: none
         + postconditions: none
     - SimplifyWithRangeTransformer
         + Purpose
             * Same as `SimplifyTransformer` unless otherwise stated
             * Uses range restrictions to check if equality between a term and a domain element is impossible
-        + methods: datatypes
+        + methods: any
         + preconditions: none
         + postconditions: none
 
