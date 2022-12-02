@@ -7,7 +7,12 @@ This document contains information on how the Fortress library is structured and
 * Sorts and constants/functions declared create a `Signature`.  
 * `Terms`/formulas are built using the msfol package.  
 * A signature and a list of terms together create a `Theory`. 
-* A `ProblemState` contains a theory, scopes for the sorts, and additional information that is used throughout the fortress process.
+* A `ProblemState` contains
+    - a theory 
+    - scopes for the sorts
+    - unapply (see below)
+    - rangeRestricts (where added? symmetry and range formulas - duplicate info?)
+    - anything else?
 * Elements of a bounded sort are called `domain elements`.
 * A sort scope can be 
     - `unbound` or `bound` (with a scope size)=
@@ -16,7 +21,7 @@ This document contains information on how the Fortress library is structured and
 * An `operation` takes a term and applies a transformation to it.
 Examples of operations are converting to negation normal form, performing sort inference, simplification, and skolemization.
 * A `TheoryTransformer` or `ProblemStateTransformer` takes a `Theory` or `ProblemState` respectively and converts them into a new `Theory` or `ProblemState`by applying a transformation to all terms of the theory (using an operation usually).  Examples of transformers are converting to negation normal form, performing sort inference, symmetry breaking, adding range formulas.
-* Transformations often need to be undone once a solution is found, and so the transformer writes instructions (called unapply) on how to undo its operation on an interpretation of the ProblemState.
+* Transformations often need to be undone once a solution is found, and so the transformer writes instructions (called `unapply`) in the problem state on how to undo its operation on an interpretation of the ProblemState to make it understandable to the user in terms of the original theory.
 * A sequence of transformers is combined to create a `Compiler`.  Thus, a compiler takes as input a problem state and produces as output the problem state resulting from the sequence of transformations.
 * The compiler also outputs instructions on how to undo all of its transformations to an interpretation.
 * A `SolverSession` is an interface to an SMT solver.
