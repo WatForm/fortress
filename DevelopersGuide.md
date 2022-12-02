@@ -82,18 +82,24 @@ There are also a number of experimental model finders present in the code that i
 * unbounded 
     - there are unbounded sorts in the problemSate
     - can check in sorts of problemState
-* ints
+* int
     - the built-in IntSort is used in the theory 
     - boolean within problemState
 * tc 
     - transitive closure is used in the axioms of the theory
     - boolean within problemState)
-* exactScopes 
+* exactScope 
     - all scopes are finite and exact
     - boolean within problemState
-* Enums (boolean within problemState)
-* DEs (can check within theory??)
-* datatype - possible to have in input theory
+* enum
+    - contains enums 
+    - can we check this in the theory? 
+* de 
+    - where are these stores?
+    - can we check this within the theory?
+* datatype 
+    - possible to have in input theory
+    - can we check this in the theory?
 
 Anything that changes the scopes needs to be noted.
 
@@ -102,7 +108,7 @@ We use !attribute to mean not having the attribute as in !nnf.
 If an attribute of the problemState is not mentioned below when describing
 the transformers, then its value does not change
 
-Modifies can contain: axioms, scopes, signature, ?? (theory and problemState seems to broad)
+Modifies can contain: theory (signature, axioms), problemState (scopes, rangeRestricts, unapply)
 
 ## Transformers
 
@@ -115,8 +121,10 @@ Some transformers below are for experimentation and thus not used in
     - purpose: 
         + performs typechecking (no type inference) on theory
         + can handle defns
-    - methods: constants, datatype, minimal
+        + what does it return if it fails?
+    - methods: all
     - preconditions: none
+    - modifies: none
     - postconditions: typechecked
     - unapply: none
     
@@ -131,12 +139,13 @@ Some transformers below are for experimentation and thus not used in
 
 * EnumEliminationTransformer @Nancy
     - problemState -> problemState
-    - purpose: enums become DEs (?)
-    - methods: constants, datatype, minimal
+    - purpose: 
+        - enums become domain elements (?)
+    - methods: all
     - preconditions: typechecked
-    - modifies:
-    - postconditions: !Enums 
-    - unapply: Enums 
+    - modifies: signature
+    - postconditions: !enum 
+    - unapply: Enums (?)
 
 
 * AxiomatizeDefinitionsTransformer @Xintong
@@ -197,10 +206,14 @@ Some transformers below are for experimentation and thus not used in
     
 * SortInferenceTransformer    @Nancy    
     - theory -> theory
-    - purpose: infer sorts for more symmetry SymmetryBreaking
+    - purpose: 
+        + infer sorts for more symmetry SymmetryBreaking
     - methods: constants, datatype
     - preconditions: typechecked, !defns
-    - modifies: add sorts to signature, changes types of constants/functions in signature; modifies axioms with new sorts
+    - modifies: 
+        + add newly found sorts to signature 
+        + changes types of constants/functions in signature 
+        + modifies axioms with new sorts
     - postconditions: no change
     - unapply: ??
 
@@ -239,24 +252,26 @@ Some transformers below are for experimentation and thus not used in
 * StandardQuantifierExpansionTransformer @Nancy
     - purpose:
         + remove all universal quantifiers
-        + replace with the conjunction of the substitution all DE values for 
+        + replace with the conjunction of the substitution all domain element values
         + all bound scopes become unchangeable
     - methods: constants
-    - preconditions: onlyForall, !defns, typechecked
-    - methods: modifies axioms
+    - preconditions: onlyForall, !defn, typechecked
+    - modifies: axioms
     - postcondition: !quantifiers
+    - unapply: none
 
 * RangeFormulas @Nancy
     - RangeFormulaStandardTransformer 
         + purpose: 
-            * introduce range formulas using domain elements 
+            * introduce range formulas using domain elements to axioms
             * if not already limited by symmetry breaking
             * all bound scopes become unchangeable
             * range formulas are quantifier-free
         + methods: constants
         + preconditions:
-        + modifies: adds axioms, all scopes become unchangeable
+        + modifies: axioms, scopes
         + postconditions: de
+        + unapply: ?
     - RangeFormulaUseConstantsTransformer 
         + purpose
             * introduce range formulas using constants 
