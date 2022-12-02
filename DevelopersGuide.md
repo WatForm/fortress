@@ -10,13 +10,13 @@ This document contains information on how the Fortress library is structured and
 * A `ProblemState` contains a theory, scopes for the sorts, and additional information that is used throughout the fortress process.
 * Elements of a bounded sort are called `domain elements`.
 * A sort scope can be 
-    - `unbound` or `bound` (with a scope size)
+    - `unbound` or `bound` (with a scope size)=
     - `exact` or `inexact`
     - `changeable` or `unchangeable` (once)
 * An `operation` takes a term and applies a transformation to it.
 Examples of operations are converting to negation normal form, performing sort inference, simplification, and skolemization.
-* A `TheoryTransformer` or `ProblemStateTransformer` takes a `Theory` or `ProblemState` respectively and converts them into a new `Theory` or `ProblemState`by applying a transformation to all terms of the theory (using an operation usually).  Examples of transformers are converting to negation normal form, performing sort inference, simplification, and skolemization.
-* Transformations often need to be undone once a solution is found, and so the transformer writes instructions (called unapply) on how to undo its operation on the `ProblemState`.
+* A `TheoryTransformer` or `ProblemStateTransformer` takes a `Theory` or `ProblemState` respectively and converts them into a new `Theory` or `ProblemState`by applying a transformation to all terms of the theory (using an operation usually).  Examples of transformers are converting to negation normal form, performing sort inference, symmetry breaking, adding range formulas.
+* Transformations often need to be undone once a solution is found, and so the transformer writes instructions (called unapply) on how to undo its operation on an interpretation of the ProblemState.
 * A sequence of transformers is combined to create a `Compiler`.  Thus, a compiler takes as input a problem state and produces as output the problem state resulting from the sequence of transformations.
 * The compiler also outputs instructions on how to undo all of its transformations to an interpretation.
 * A `SolverSession` is an interface to an SMT solver.
@@ -24,36 +24,23 @@ Examples of operations are converting to negation normal form, performing sort i
 
 ## Basic Algorithms of Fortress
 
-Fortress applies a ModelFinder to an problem state.  The steps of a model finder are: 1) apply a compiler (a sequence of transformers) and 2) convert the problem to SMT-LIB and pass the problem to a solver.
+Fortress applies a ModelFinder to an problem state.  The steps of a model finder are: 1) apply a compiler (a sequence of transformers) and 2) convert the problem to SMT-LIB and pass the problem to a solver.  Alternatively, it can use the API of an SMT solver directly.
 
-There are three standard model finders available in Fortress, which differ in 
-the compiler used.  In all existing model finders, the non-incremental Z
-3 solver is used.
+There are three standard model finders available in Fortress, which differ in the compiler used.  In all existing model finders, the non-incremental Z3 solver is used.
 
 1. Constants Method
 
-This is the method described in the original paper on Fortress 
-where a finite set of distinct 
-constants (called domain elements) are created to represent the 
-values of elements in the sort, quantifier expansion is done over these 
-domain elements and every function application/constant in the theory is 
-constrained to return a value of the sort (these constraints are 
-called range axioms).  Symmetry reduction axioms are added.
-This method results in a theory in EUF - a decidable subset of FOL.
+This is the method described in the original paper on Fortress where a finite set of distinct constants (called domain elements) are created to represent the values of elements in the sort, quantifier expansion is done over these domain elements and every function application/constant in the theory is constrained to return a value of the sort (these constraints are called range formulas).  To optimize the resulting problem for solving, simplication and symmetry reduction axioms are included as transformers.  This method results in a theory in EUF - a decidable subset of FOL, which is passed to the solver.
 
 2. Datatype Method
 
-SMT solvers provide datatypes declarations where the values of a 
-sort can be enumerated.  In this method, datatype values are created 
-for domain values.  Range axioms are not needed.  Symmetry reduction axioms 
-are added.
+SMT solvers provide datatypes declarations where the values of a sort can be enumerated.  In this method, datatype values are created for domain values.  Range axioms are not needed.  Symmetry reduction axioms are added.
 * __is quantifier expansion needed__?
 * __is it decidable__
 
 3. Minimal Method
 
-In this method, only typechecking is done so that the SMT solver can work with 
-the problem directly. The problem may not be decidable.
+In this method, only typechecking is done so that the SMT solver can work with the problem directly. The problem may not be decidable.
 
 Please see the code for the sequence of transformers used for each method 
 above.
@@ -70,16 +57,35 @@ There are also a number of experimental model finders present in the code that i
 
 ## Attributes of problemState
 
-* typechecked - boolean within problemState
-* defn - can check in theory; possible to have in input theory
-* nnf - boolean within problemState
-* onlyForall (boolean within problemState)
-* noQuant (boolean within problemState)
-* decidable (boolean within problemState)
-* unbounded (can check in sorts of problemState)
-* ints (boolean within problemState)
-* tc (boolean within problemState)
-* exactScopes (boolean within problemState)
+* typechecked 
+    - boolean within problemState
+* defn 
+    - there are definitions in the theory
+    - can check in theory
+    - it's possible to have in input theory
+* nnf 
+    - boolean within problemState
+* onlyForall 
+    - the axioms of the theory contain only universal quantifiers
+    - boolean within problemState
+* noQuant
+    - the axioms of the theory contain no quantifiers 
+    - boolean within problemState
+* decidable 
+    - the axioms of the theory are within a decidable subset of predicate logic
+    - boolean within problemState
+* unbounded 
+    - there are unbounded sorts in the problemSate
+    - can check in sorts of problemState
+* ints
+    - the built-in IntSort is used in the theory 
+    - boolean within problemState
+* tc 
+    - transitive closure is used in the axioms of the theory
+    - boolean within problemState)
+* exactScopes 
+    - all scopes are finite and exact
+    - boolean within problemState
 * Enums (boolean within problemState)
 * DEs (can check within theory??)
 * datatype - possible to have in input theory
