@@ -18,6 +18,7 @@ abstract class ClosureEliminator(topLevelTerm: Term, signature: Signature, scope
     // All closure functions we have generated (helps to avoid duplicates)
     val closureFunctions = scala.collection.mutable.Set[FuncDecl]()
     // Generated axioms
+    val auxilaryFunctions = scala.collection.mutable.Set[FuncDecl]()
     val closureAxioms = scala.collection.mutable.Set[Term]()
 
     val visitor: ClosureVisitor
@@ -25,7 +26,9 @@ abstract class ClosureEliminator(topLevelTerm: Term, signature: Signature, scope
     /** Returns the set of generated closure functions. Must be called after convert. */
     def getClosureFunctions: Set[FuncDecl] = closureFunctions.toSet
     
-    /** Returns the set of generated skolem functions. Must be called after convert. */
+    def getAuxilaryFunctions: Set[FuncDecl] = auxilaryFunctions.toSet
+
+    /** Returns the set of generated closure axioms. Must be called after convert. */
     def getClosureAxioms: Set[Term] =  closureAxioms.toSet
 
     /**
@@ -38,11 +41,13 @@ abstract class ClosureEliminator(topLevelTerm: Term, signature: Signature, scope
         visitor.visit(topLevelTerm)
     }
 
+    // All visit (reflexive)Closure functions should return an app with (reflexive)ClosureName
+    def getReflexiveClosureName(name: String, idx: String = ""): String = "*" + idx + name
+    def getClosureName(name: String, idx: String = ""): String = "^" + idx + name
+
     abstract class ClosureVisitor extends TermVisitorWithTypeContext[Term](signature) {
 
-        def queryFunction(name: String): Boolean = signature.hasFuncDeclWithName(name) || closureFunctions.exists(f => f.name == name)
-        def getReflexiveClosureName(name: String, idx: String = ""): String = "*" + idx + name
-        def getClosureName(name: String, idx: String = ""): String = "^" + idx + name
+        def queryFunction(name: String): Boolean = signature.hasFuncDeclWithName(name) || closureFunctions.exists(f => f.name == name) || auxilaryFunctions.exists(_.name == name)
 
         def getFixedVars(numArgs: Int): Seq[Var] = for (n: Int <- 0 to numArgs - 1) yield Var("fa"+ n.toString())
 

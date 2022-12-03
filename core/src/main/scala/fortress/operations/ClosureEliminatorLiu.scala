@@ -24,7 +24,7 @@ class ClosureEliminatorLiu(topLevelTerm: Term, signature: Signature, scopes: Map
             val fixedVars = getFixedVars(fixedSorts.length)
             val fixedArgVars = fixedVars.zip(fixedSorts) map (pair => (pair._1.of(pair._2)))
 
-            closureFunctions += FuncDecl(p, Seq(sort, sort) ++ fixedSorts, Sort.Int)
+            auxilaryFunctions += FuncDecl(p, Seq(sort, sort) ++ fixedSorts, Sort.Int)
 
             val x = Var(nameGen.freshName("x"))
             val y = Var(nameGen.freshName("y"))

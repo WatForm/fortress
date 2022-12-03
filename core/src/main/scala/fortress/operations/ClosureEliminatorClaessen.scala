@@ -26,8 +26,8 @@ class ClosureEliminatorClaessen(topLevelTerm: Term, signature: Signature, scopes
 
             val fixedSorts: Seq[Sort] = getFixedSorts(functionName)
 
-            closureFunctions += FuncDecl(s, Seq(sort, sort) ++ fixedSorts, sort)
-            closureFunctions += FuncDecl(C, Seq(sort, sort, sort) ++ fixedSorts, Sort.Bool)
+            auxilaryFunctions += FuncDecl(s, Seq(sort, sort) ++ fixedSorts, sort)
+            auxilaryFunctions += FuncDecl(C, Seq(sort, sort, sort) ++ fixedSorts, Sort.Bool)
             closureFunctions += FuncDecl(reflexiveClosureName, Seq(sort, sort) ++ fixedSorts, Sort.Bool)
 
             val x = Var("x")
