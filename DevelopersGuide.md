@@ -153,14 +153,14 @@ Some transformers below are for experimentation and thus not used in
 
 
 * AxiomatizeDefinitionsTransformer @Xintong
-    - theory -> theory
+    - problemState -> problemState
     - purpose:
         + turn the defns into axioms and defn names become uninterpreted functions
     - methods: constants, datatype
     - preconditions: typechecked
     - modifies: theory, adds axioms and function declarations
     - postcondition: !defns
-    - unapply: remove the introduced function declarations
+    - unapply: remove the introduced functions
 
 * Handling Integers (use one of these) @Owen
     - IntegerToBitVectors
