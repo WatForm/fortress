@@ -6,7 +6,7 @@ import fortress.operations._
 import fortress.operations.TheoryOps._
 import fortress.problemstate.ProblemState
 
-object ScopeNonExactPredicatesTransformer extends ProblemStateTransformer {
+object  ScopeNonExactPredicatesTransformer extends ProblemStateTransformer {
 
     override def apply(problemState: ProblemState): ProblemState = problemState match {
         case ProblemState(theory, scopes, skc, skf, rangeRestricts, unapplyInterp, distinctConstants) => {

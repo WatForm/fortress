@@ -114,7 +114,7 @@ Some transformers below are for experimentation and thus not used in
     - purpose: set up predicates for non-exact scopes
     - methods: constants, datatype
     - preconditions: typechecked
-    - modifies: scopes
+    - modifies: theory, add predicate function declarations and modify the axioms
     - postconditions: exactScopes
     - unapply: 
       - remove predicate functions, like  `__@Pred_A`
@@ -138,7 +138,7 @@ Some transformers below are for experimentation and thus not used in
     - preconditions: typechecked
     - modifies: theory, adds axioms and function declarations
     - postcondition: !defns
-    - unapply: none
+    - unapply: remove the introduced function declarations
 
 * Handling Integers (use one of these) @Owen
     - IntegerToBitVectors
