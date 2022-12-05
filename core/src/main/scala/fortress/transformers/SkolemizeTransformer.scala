@@ -54,9 +54,6 @@ object SkolemizeTransformer extends ProblemStateTransformer {
                 interp => interp.withoutConstants(newSkolemConstants.toSet).withoutFunctions(newSkolemFunctions.toSet)
             }
 
-//            println("Theory after skolemization:\n")
-//            println(resultTheory + "\n------------------------\n")
-
             ProblemState(
                 resultTheory,
                 scopes, skc ++ newSkolemConstants.toSet,

@@ -47,17 +47,17 @@ SMT solvers provide datatypes declarations where the values of a sort can be enu
 
 In this method, only typechecking is done so that the SMT solver can work with the problem directly. The problem may not be decidable.
 
-Please see the code for the sequence of transformers used for each method 
+Please see the code for the sequence of transformers used for each method
 above.
 
 There are also a number of experimental model finders present in the code that implement various forms of symmetry breaking in the constants method:
-    + FortressZERO - no symmetry breaking
-    + FortressONE - Claessen and Sorensson symmetry breaking only
-    + FortressTWO - functions first for symmetry breaking
-    + FortressTWO_SI - sort inference then functions first for symmetry breaking
-    + FortressTHREE - Claessen and Sorensson, RDI, RDD, ladder
-    + FortressTHREE_SI - sort inference then Claessen and Sorensson, RDI, RDD, ladder
-    + FortressFOUR_SI - trial of adding heuristics to fortress three si
++ FortressZERO - no symmetry breaking
++ FortressONE - Claessen and Sorensson symmetry breaking only
++ FortressTWO - functions first for symmetry breaking
++ FortressTWO_SI - sort inference then functions first for symmetry breaking
++ FortressTHREE - Claessen and Sorensson, RDI, RDD, ladder
++ FortressTHREE_SI - sort inference then Claessen and Sorensson, RDI, RDD, ladder
++ FortressFOUR_SI - trial of adding heuristics to fortress three si
 
 
 ## Attributes of problemState
@@ -112,13 +112,13 @@ Modifies can contain: theory (signature, axioms), problemState (scopes, rangeRes
 
 ## Transformers
 
-Below is a brief description of the transformers implemented in Fortress. 
-Some transformers below are for experimentation and thus not used in 
+Below is a brief description of the transformers implemented in Fortress.
+Some transformers below are for experimentation and thus not used in
 
 * TypecheckSanitizeTransformer @Nancy
     - theory -> theory
     - no change in theory
-    - purpose: 
+    - purpose:
         + performs typechecking (no type inference) on theory
         + can handle defns
         + what does it return if it fails?
@@ -129,16 +129,18 @@ Some transformers below are for experimentation and thus not used in
     - modifies: axioms
     - postconditions: typechecked
     - unapply: none
-    
+
 * ScopesNonExactPredicatesTransformer @Xintong
     - problemState -> problemState
     - purpose: set up predicates for non-exact scopes
     - methods: constants, datatype
     - preconditions: typechecked
-    - modifies: scopes
+    - modifies: theory, add predicate function declarations and modify the axioms
     - postconditions: exactScopes
-    - unapply: ???
-
+    - unapply: 
+      - remove predicate functions, like  `__@Pred_A`
+      - for each sort, remove domain elements whose predicate value is `false`
+    
 * EnumEliminationTransformer @Nancy
     - problemState -> problemState
     - purpose: 
@@ -151,41 +153,41 @@ Some transformers below are for experimentation and thus not used in
 
 
 * AxiomatizeDefinitionsTransformer @Xintong
-    - theory -> theory
-    - purpose: 
+    - problemState -> problemState
+    - purpose:
         + turn the defns into axioms and defn names become uninterpreted functions
     - methods: constants, datatype
     - preconditions: typechecked
-    - modifies: signature? adds axioms
+    - modifies: theory, adds axioms and function declarations
     - postcondition: !defns
-    - unapply: none
-    
+    - unapply: remove the introduced functions
+
 * Handling Integers (use one of these) @Owen
-    - IntegerToBitVectors 
+    - IntegerToBitVectors
         + problemState -> problemState
-        + purpose: 
+        + purpose:
             * Turn integer sorts into twos complement BVs based on bitwidth ??
             * no change to formulas
             * removes IntSort from sorts
         + preconditions: typechecked
         + postconditions: !ints
         + unapply: ??
-    - NoOverflow 
+    - NoOverflow
         + problemState -> problemState
-        + purpose: 
+        + purpose:
             * Turn integer sorts into twos complement BVs based on bitwidth ??
-            * converts formulas for Alloy no overflow semantics 
+            * converts formulas for Alloy no overflow semantics
             * removes IntSort from sorts
         + methods: constants, datatype
         + preconditions: typechecked
         + postconditions: !ints
         + unapply: ??
-        
+
 
 * Transitive Closure (use one of these) @Owen
-    - ClosureNegativeTransformer 
+    - ClosureNegativeTransformer
         + problemState -> problemState
-        + purpose: 
+        + purpose:
             * if the tc of an expr is only uses positively
             * replaces the tc with a new, uninterpreted, axiomatixed function
             * may still be negative uses of tc remaining
@@ -198,7 +200,7 @@ Some transformers below are for experimentation and thus not used in
     - ClosureEliminationLiuTransformer
     - ClosureEliminationClaessenTransformer
         + problemState -> problemState
-        + purpose: 
+        + purpose:
             * remove all uses of transitive closure
             * replaces the tc with a new, uninterpreted, axiomatized function
         + methods: constants, datatype, minimal
@@ -206,7 +208,7 @@ Some transformers below are for experimentation and thus not used in
         + postconditions: !tc, !nnf, !skolemized, !noQuant, !onlyForall
         + unapply: removes all functions it created from the interpretation
     
-* SortInferenceTransformer    @Nancy    
+* SortInferenceTransformer    @Nancy
     - theory -> theory
     - purpose: 
         + infer sorts for more symmetry SymmetryBreaking
@@ -225,23 +227,20 @@ Some transformers below are for experimentation and thus not used in
     - purpose: put all axioms in nnf
     - methods: constants, datatype
     - preconditions: nodefs, typechecked
-    - modifies:
+    - modifies: axioms
     - postconditions: nnf
-    - unapply: ??
-
+    - unapply: none
 * PnfTransformer (not yet written)
     - not yet implemented
-
 * SkolemizeTransformer @Xintong
     - theory -> theory
-    - purpose: 
+    - purpose:
         + skolemize all axioms
         + skolem constants/functions are added to the signature
     - methods: constants, datatype
     - preconditions: nodefs, typechecked, nnf
-    - postconditions: onlyForall
     - postconditions: nodefs, typechecked, nnf, onlyForall
-    - unapply: nodefs, typechecked, nnf, onlyForall
+    - unapply: remove constants and functions introduced by skolemization.
 
 
 * Symmetry @Nancy
@@ -249,7 +248,7 @@ Some transformers below are for experimentation and thus not used in
     - SymmetryBreakingFunctionsFirstAnyOrder
     - SymmetryBreakingMonoFirstThenFunctionsFirstAnyOrder
     - SymmetryBreakingLowArityFirstMostUsedFunctionFirstOrderFactory
-            * symmetry axioms are quantifier-free
+      * symmetry axioms are quantifier-free
 
 * StandardQuantifierExpansionTransformer @Nancy
     - purpose:
@@ -274,10 +273,10 @@ Some transformers below are for experimentation and thus not used in
         + modifies: axioms, scopes
         + postconditions: de
         + unapply: ?
-    - RangeFormulaUseConstantsTransformer 
+    - RangeFormulaUseConstantsTransformer
         + purpose
-            * introduce range formulas using constants 
-            * if not already limited by symmetry breaking)  
+            * introduce range formulas using constants
+            * if not already limited by symmetry breaking)
             * all bound scopes become unchangeable      |
 
 
@@ -285,7 +284,7 @@ Some transformers below are for experimentation and thus not used in
     - Note: most of these likely can be combined. Simplifiers for specific methods just won't simplify for others.
     - Note: None of these unapply
     - Note: It is probably best to use these after adding range restrictions and quantifier expansion (second to last transformer).
-    - SimplifyTransformer 
+    - SimplifyTransformer
         + Purpose
             * Reduces double negations and negation of Boolean constants
             * Simplify `AndList` and `OrList` containing Boolean constants
@@ -297,7 +296,7 @@ Some transformers below are for experimentation and thus not used in
             * Simplifies `ITE` with known condition
         + methods: any
         + preconditions: none
-        + postconditions: none 
+        + postconditions: none
     - SplitConjunctionTransformer
         + Purpose
             * Splits all top-level conjunct formulas into separate formulas
@@ -326,10 +325,10 @@ Some transformers below are for experimentation and thus not used in
         + preconditions: none
         + postconditions: none
 
-    
+
 * DomainElimination @Owen
-    - DomainEliminationTransformer 
-        + purpose: 
+    - DomainEliminationTransformer
+        + purpose:
             * add constant to theory for each domain element
             * add axiom that these constants are mutually distinct
             * replace DEs with constants
@@ -339,8 +338,8 @@ Some transformers below are for experimentation and thus not used in
         + postconditions: !de, euf
     - DomainEliminationTransformer2
         + non-exact scopes by non-distinct constants - to remove       |
-    - DatatypeTransformer 
-        + purpose: 
+    - DatatypeTransformer
+        + purpose:
             * replace DEs with datatypes
             * adds datatype definition to theory
         + methods: datatypes
@@ -357,7 +356,7 @@ Some transformers below are for experimentation and thus not used in
 The following refer to the packages that are part of Fortress.
 
 ### msfol
-* Methods to create sorts, constants, functions (including built-ins), terms, and theories.  
+* Methods to create sorts, constants, functions (including built-ins), terms, and theories.
 * a signature is created using 'with' methods in Signature.scala
 * Names.scala checks for illegal names
 * In MSFOL, there is a difference between *constants*, which like functions are declared parts of the theory and accessible in all of the terms, and *variables* which are used for quantification within terms. Fortress retains this distinction, but to simplify term construction, both are created using `Var` objects.
@@ -368,9 +367,9 @@ The following refer to the packages that are part of Fortress.
     + Otherwise, it is a constant.
 * Enums are constants in MSFOL that are distinct and cover all possible elements of the sort. They are distinct from domain elements (also a kind of term), which are the values of the sorts used internally in fortress.  Not all sorts have enums, but all sorts have domain elements for FMF.  Domain elements are used to create range formulas.  Enums are converted to domain elements by a transformer (below).  The DomainEliminationTransformer (below) is the last step in fortress to convert all domain elements to mutually distinct constants so that the problem can be solved by an MSFOL solver.
 * terms are created using the methods in Term.scala:
-    - EnumValue is a kind of term. DomainElement is also a kind of term.   
+    - EnumValue is a kind of term. DomainElement is also a kind of term.
     - To create a quantified variable use mkVar(x).of(Sort); this is not a term, it is an AnnotatedVar(Declaration), which can be passed as an argument to create a quantified term.
-    - All have toString methods defined.  
+    - All have toString methods defined.
     - Sorts are not stored in terms except for sorts of quantified variables.
 * DSL.scala is a small DSL for MSFOL to help write terms rather than going through Term interface always.  @TBA: where are some examples of the use of this DSL.
 * @TBA: something about explicit/implicit caching
@@ -379,11 +378,11 @@ The following refer to the packages that are part of Fortress.
 * Theories are immutable and persistent.
     - Methods like `withAxiom` and `withFunctionDeclarations` don't mutate `Theory` objects - they instead create new `Theory` objects.
     - If there is a reference to it, the original theory object is still usable.
-    Consider the following code:
+      Consider the following code:
 ```java
 Var p = mkVar("p");
-Theory theory1 = Theory.empty().withConstants(p.of(Sort.Bool())).withAxiom(p);
-Theory theory2 = theory1.withAxiom(mkNot(p));
+        Theory theory1 = Theory.empty().withConstants(p.of(Sort.Bool())).withAxiom(p);
+        Theory theory2 = theory1.withAxiom(mkNot(p));
 ```
 The `theory2` object contains both the axioms `p` and `mkNot(p)`.
 The `theory1` object still exists and contains just the axiom `p`.
@@ -393,28 +392,28 @@ The `theory1` object still exists and contains just the axiom `p`.
 Consider the following code:
 ```java
 Var p = mkVar("p");
-Var p_ = mkVar("p");
-Theory theory1 = Theory.empty().withConstants(p.of(Sort.Bool())).withAxiom(p_);
-Theory theory2 = Theory.empty().withConstants(mkVar("p").of(Sort.Bool())).withAxiom(p);
+        Var p_ = mkVar("p");
+        Theory theory1 = Theory.empty().withConstants(p.of(Sort.Bool())).withAxiom(p_);
+        Theory theory2 = Theory.empty().withConstants(mkVar("p").of(Sort.Bool())).withAxiom(p);
 ```
 While `p`, `p_` and `mkVar("p")` might be different Java objects in memory, they can all be used interchangeably and mean the same thing when used to construct terms.
 
 ### inputs
 * This is the code that maps TPTP or SMT-LIB files into a theory.  This code is in java (rather than scala).
 * TheoryParser: the general class for parsing a file into a theory.
-    - TptpFofParser 
+    - TptpFofParser
         + an instance of a TheoryParser for TPTP
         + relies on TptpToFortress (visitors over the antlr grammar for TPTP to produce a theory; formulas, fcn declarations, and prime propositions are collected separately and then added to the theory after visiting the file.
-        + TPTP files are unsorted so only the universeSort is used. The universeSort is not built-in.  It is declared as a sort constant. 
-        + Not yet supported: infix <~> for non-equivalence(XOR),  infix ~| for negated disjunction (NOR), infix ~& for negated conjunction (NAND) 
+        + TPTP files are unsorted so only the universeSort is used. The universeSort is not built-in.  It is declared as a sort constant.
+        + Not yet supported: infix <~> for non-equivalence(XOR),  infix ~| for negated disjunction (NOR), infix ~& for negated conjunction (NAND)
     - SmtLibParser
         + an instances of a TheoryParser for SMT-LIB
-        + relies on SmtLibVisitor to convert the parsed data into a theory using visitors over the antlr grammar for SMT-LIB. 
-        + info and logic from the SMT-LIB parser are not used further in Fortress. 
-        + Bool and Int sorts are mapped to Fortress' built-in Bool and Int sorts. 
-        + Let statements (parallel substitution) are substituted to create terms. 
-        + Ignores check-sat commands.  
-        + Not yet supported: Right/Left bitshift, unsigned div/rem, and, or, not, concat bit operations; abs val for ints.  
+        + relies on SmtLibVisitor to convert the parsed data into a theory using visitors over the antlr grammar for SMT-LIB.
+        + info and logic from the SMT-LIB parser are not used further in Fortress.
+        + Bool and Int sorts are mapped to Fortress' built-in Bool and Int sorts.
+        + Let statements (parallel substitution) are substituted to create terms.
+        + Ignores check-sat commands.
+        + Not yet supported: Right/Left bitshift, unsigned div/rem, and, or, not, concat bit operations; abs val for ints.
 
 ### antlr
 * FOFTPTP.g4 - parses TPTP
@@ -424,14 +423,14 @@ While `p`, `p_` and `mkVar("p")` might be different Java objects in memory, they
 * Functions for performing sort inference
 
 ### operations
-* Operations apply to terms. To apply an operation to a term/theory using "wrap" as in 
+* Operations apply to terms. To apply an operation to a term/theory using "wrap" as in
 ```
 operation.wrapTerm(t:term)
 operation.wrapTheory(t:theory)
 ```
 * Examples of operations
     - ClosureEliminator: under development for transitive closure
-    - DeBruijnConverter: converts a term to a term with DeBruijn var # (rather than names) 
+    - DeBruijnConverter: converts a term to a term with DeBruijn var # (rather than names)
     - InterpretationVerifier: verifies that an interpretation satisfies a theory.
     - NormalForms: converts a theory/term to nnf; conversion to prenex normal form is not yet implemented.
     - QuantifierExpander/QuantifierExpanderSimplifier
@@ -440,36 +439,36 @@ operation.wrapTheory(t:theory)
     - RecursiveEliminators
         + replaces enumvalues/domain elements in terms with constants.
     - Simplification/Simplification2/SimplificationWithLearnedLiterals
-        + some simple simplifications (not true == false, two domain elements are not equal) 
+        + some simple simplifications (not true == false, two domain elements are not equal)
         + Without the simplification step, Z3 takes a significantly longer time to run.
     - SimplificationWithRange
-        + like the previous operation, but range restrictions are passed as an argument and used to simplify formulas. 
+        + like the previous operation, but range restrictions are passed as an argument and used to simplify formulas.
     - Skolemizer
         + skolemizes a term, which produces a new term, skolem constants and functions.
-     - SmtlibConversion
-        +  converts a term to the strings needed for SMT-LIB. 
+    - SmtlibConversion
+        +  converts a term to the strings needed for SMT-LIB.
         +  We add suffixes "aa" to all variable and function names when converting to SMT-LIB to avoid having reserved keywords as identifiers. And when reading the results, we remove all the suffixes added.
     - Substitution
-        + substitutes a term for a variable in a term.  Performs needed alpha-renaming to avoid variable capture. 
+        + substitutes a term for a variable in a term.  Performs needed alpha-renaming to avoid variable capture.
         + FastSubstitutor does a bunch of substitutions in parallel.
     - TermConvertor
-        + Converts Ints to Signed Bit Vector operations. 
-    - TermMetrics: 
+        + Converts Ints to Signed Bit Vector operations.
+    - TermMetrics:
         + various metrics on terms (depth of quantification, depth of nested functions, number of nodes in a term)
     - TermVisitorWithTypeContext/TypeChecker
-        + typechecks a term.  
-        + Builds the context of quantified variables and their types.  
+        + typechecks a term.
+        + Builds the context of quantified variables and their types.
         + All primitive term parts (constants, variables, function declarations are explicitly typed) sorted so there is no type inference here.
 * Some helper code:
     - RecursiveAccumulator
         + functions that collect things like free variables, domain elements, constants, functions in a term.
     - RecursivePatterns:
-        + apply a function recursively over terms.     
+        + apply a function recursively over terms.
 
 ### transformers
-* All the operations that transform a theory or a problem state. 
-* contains ProblemStateTransformers and TheoryTransformers 
-* `apply` method 
+* All the operations that transform a theory or a problem state.
+* contains ProblemStateTransformers and TheoryTransformers
+* `apply` method
     - takes a theory and creates a problem state
     - takes a theory and scopes and creates a problem state
     - takes a problem state and produces a problem state
@@ -483,17 +482,17 @@ operation.wrapTheory(t:theory)
 
 ### compiler
 A packaging mechanism for a sequence of transformations.
-* LogicCompiler 
+* LogicCompiler
     - The "compile" method takes a theory and scopes, and returns either CompilerError of CompilerResult (theory,decompileInterpretation,skipForNextInterpretation )
-* TransformationCompiler 
+* TransformationCompiler
     - The "compile" method builds a problem state and applies transformers.
-* BaseFortressCompiler 
+* BaseFortressCompiler
     - Defines the transformer sequence usually applied, parameterized by symmetry breaking transformers.
 * FortressCompilers: Define the fortress compilers (Zero, ONE, etc) as the BaseFortressCompilers plus certain symmetry breaking.
     - Defines the SimpleModelFinder which exposes the compiler and interface to direct control from the user
 
 ### solverinterface
-* These are ways of connecting to external solvers.  
+* These are ways of connecting to external solvers.
 * Main methods are:
 1) setTheory - takes a theory (returns Unit)
 2) addAxiom - takes an axiom and adds it to the theory (returns Unit)
@@ -501,18 +500,18 @@ A packaging mechanism for a sequence of transformations.
 4) solution - returns the interpretation from the solver
 * Fortress has a general SolverSession interface
 * We found that using the term building (API) interfaces of SMT solvers was very slow.  Our best guess is that this is because the Z3 API performs some kind of typechecking when expressions are constructed, so recursively building terms bottom-up repeatedly invokes the typechecker at each expression construction, greatly slowing the process.
-* So now fortress converts a theory to a string in SMT-LIB and this can be passed to any SMT-LIB solver.  
-* We use Java'a ProcessBuilder class to manage an interactive session with the solver.  
-* Currently we support Z3 and CVC4 and we map the returned instance back to fortress interpretations (ProcessSmtlibEvaluation).  
-* Interaction with the incremental solver via the process builder has not been well tested. 
+* So now fortress converts a theory to a string in SMT-LIB and this can be passed to any SMT-LIB solver.
+* We use Java'a ProcessBuilder class to manage an interactive session with the solver.
+* Currently we support Z3 and CVC4 and we map the returned instance back to fortress interpretations (ProcessSmtlibEvaluation).
+* Interaction with the incremental solver via the process builder has not been well tested.
 * SolverInterface: The main interface to the solvers implemented - creates sessions with particular solvers.
 * Code could probably be simplified
 * Seemingly innocuous name changes can have unexpected performance consequences.
-For example, changing the prefix used for domain constants from `@` to `%` (in order to be more compliant with the standards used by SMT solvers) caused performance in some tests to slow down, at least when using the Z3 Java API.
-Changing it to `_@` (also standards-compliant) improved performance again.
+  For example, changing the prefix used for domain constants from `@` to `%` (in order to be more compliant with the standards used by SMT solvers) caused performance in some tests to slow down, at least when using the Z3 Java API.
+  Changing it to `_@` (also standards-compliant) improved performance again.
 
 ### modelfind
-* ModelFinder is the main fortress interface.  
+* ModelFinder is the main fortress interface.
 * A model finder takes a solver and a theory as arguments and performs solving on the theory returning a result (and an interpretation when appropriate).
 * important methods:
 1) setTheory(theory: Theory): Unit
@@ -528,7 +527,7 @@ Changing it to `_@` (also standards-compliant) improved performance again.
 ### interpretation
 * data structures for representing the interpretation returned by a solver.
 * Interpretation
-    - includes maps for sorts, constants, and functions.  
+    - includes maps for sorts, constants, and functions.
     - can be turned into a String or turned into constraints
 
 ### data
@@ -540,7 +539,6 @@ Changing it to `_@` (also standards-compliant) improved performance again.
 
 ### logging
 * EventLogging is the main trait with different classes for recording timing for various processes.
-
 
 
 
