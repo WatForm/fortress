@@ -141,7 +141,7 @@ with ModelFinderSettings {
 
             space ++= getValidChildren(curNode)
 
-            //            println("current space: " + space)
+            println("current space: " + space)
 
             println("current result: " + result + "\n\n---------------------------------------------------------------------------------------------------")
 

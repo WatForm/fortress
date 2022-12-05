@@ -31,16 +31,8 @@ object AddScopeConstraintsTransformer extends ProblemStateTransformer {
             }
 
             var newAxioms: Set[Term] = for( axiom <- problemState.theory.axioms )
-                yield AddScopeConstraints.addScopeConstraints(axiom, clauses, theory.functionDeclarations)
+                yield AddScopeConstraints.addScopeConstraints(axiom, clauses, theory)
 
-//            for( sort <- problemState.theory.sorts ) {
-//                val t1: Term = Not(clauses(sort).head)
-//                t1.label = clauses(sort).head.name
-//                val t2: Term = Not(clauses(sort).last)
-//                t2.label = clauses(sort).last.name
-////                println("labels: " + t1.label + " , " + t2.label + "\n")
-//                newAxioms = newAxioms + t1 + t2
-//            }
 
             val resultTheory = theory
                     .withConstants(constants) // add scope constants, two new constants for each sort
