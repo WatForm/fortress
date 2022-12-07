@@ -7,7 +7,7 @@ import fortress.modelfind._
 import fortress.symmetry._
 import scala.collection.mutable.ListBuffer
 
-/* constants method */
+
 abstract class ConstantsMethodCompiler() extends LogicCompiler {
     override def transformerSequence: Seq[ProblemStateTransformer] = {
         val transformerSequence = new scala.collection.mutable.ListBuffer[ProblemStateTransformer]
@@ -17,7 +17,7 @@ abstract class ConstantsMethodCompiler() extends LogicCompiler {
         transformerSequence += ClosureEliminationEijckTransformer
         transformerSequence += NnfTransformer
         transformerSequence += SkolemizeTransformer
-        transformerSequence ++= symmetryBreakingTransformers
+        transformerSequence += new SymmetryBreakingTransformer(MonoFirstThenFunctionsFirstAnyOrder, DefaultSymmetryBreaker)
         transformerSequence += StandardQuantifierExpansionTransformer
         transformerSequence += RangeFormulaStandardTransformer
         transformerSequence += new SimplifyTransformer
@@ -25,7 +25,6 @@ abstract class ConstantsMethodCompiler() extends LogicCompiler {
         transformerSequence.toList
     }
 
-    def symmetryBreakingTransformers: Seq[ProblemStateTransformer]
 }
 
 
