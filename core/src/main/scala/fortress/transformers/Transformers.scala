@@ -18,7 +18,14 @@ object Transformers {
             transformerName = transformerName.substring(transformerName.length() - 11)
         }
         transformerName match {
-            case "closureeliminationiterative" => ClosureEliminationIterativeTransformer
+            case "closureeliminationiterative" | "ceiterative" | "iterative" => ClosureEliminationIterativeTransformer
+            case "closureeliminationeijck" | "ceeijck" | "eijck" => ClosureEliminationEijckTransformer
+            case "closureeliminationliu" | "celiu" | "liu" => ClosureEliminationLiuTransformer
+            case "closureeliminationsquare" | "cesquare" | "square" => ClosureEliminationSquareTransformer
+            case "closureeliminationclaessen" | "ceclaessen" | "claessen" => ClosureEliminationClaessenTransformer
+            case "closureeliminationvakili" | "cevakili" | "vakili"
+                | "closureeliminationnegative" | "cenegative" | "negativece" | "negative" 
+                => ClosureEliminationVakiliTransformer
             case "datatype" => DatatypeTransformer
             case "domainelimination" => DomainEliminationTransformer
             case "domainelimination2" | "domaineliminationtransformer2" => new DomainEliminationTransformer2()
