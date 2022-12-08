@@ -108,6 +108,7 @@ class ClosureEliminatorVakili(topLevelTerm: Term, signature: Signature, scopes: 
 
                 Not(App(reflexiveClosureName, start +: end +: fixedArgs))
             }
+            case Not(t) => Not(visit(t))
         }
     }
   
