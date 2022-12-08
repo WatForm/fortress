@@ -13,8 +13,8 @@ abstract class ConstantsMethodCompiler() extends LogicCompiler {
         val transformerSequence = new scala.collection.mutable.ListBuffer[ProblemStateTransformer]
         transformerSequence += TypecheckSanitizeTransformer
         transformerSequence += EnumEliminationTransformer
-        transformerSequence += IntegerToBitVectorTransformer
         transformerSequence += ClosureEliminationEijckTransformer
+        transformerSequence += IntegerToBitVectorTransformer      
         transformerSequence += NnfTransformer
         transformerSequence += SkolemizeTransformer
         transformerSequence += new SymmetryBreakingTransformer(MonoFirstThenFunctionsFirstAnyOrder, DefaultSymmetryBreaker)
