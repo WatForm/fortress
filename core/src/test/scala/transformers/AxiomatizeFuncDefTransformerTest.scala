@@ -3,7 +3,7 @@ import fortress.transformers._
 
 class AxiomatizeFuncDefTransformerTest extends UnitSuite with CommonSymbols {
 
-    val axiomatize = AxiomatizeFuncDefTransformer
+    val axiomatize = new TheoryApplication(AxiomatizeFuncDefTransformer)
 
     val baseTheory = Theory.empty
             .withSort(IntSort)

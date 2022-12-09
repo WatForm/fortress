@@ -385,4 +385,21 @@ class SkolemizeTransformerTest extends UnitSuite with CommonSymbols {
         
         skolemizer(theory) should be (expected)
     }
+
+    test("Inside a ITE conditional"){
+        val theory = Theory.empty
+            .withSorts(A)
+            .withConstants(y of A, z of A)
+            .withFunctionDeclaration(P from (A,A) to BoolSort)
+            .withAxiom(IfThenElse(Forall(x1.of(A), Exists(x2 of A, P(x1, x2))), Eq(y,z), Not(Eq(y,z))))
+
+        val expected = Theory.empty
+            .withSorts(A)
+            .withConstants(y of A, z of A)
+            .withFunctionDeclaration(P from (A, A) to BoolSort)
+            .withFunctionDeclaration(sk_0 from A to A)
+            .withAxiom(IfThenElse(Forall(x1.of(A), P(x1, sk_0(x1))), Eq(y,z), Not(Eq(y,z))))
+
+            skolemizer(theory) should be (expected)
+    }
 }

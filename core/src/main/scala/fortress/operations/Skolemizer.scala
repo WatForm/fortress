@@ -29,7 +29,7 @@ object Skolemization {
             case Eq(l, r) => Eq(recur(l), recur(r))
             case App(fn, args) => App(fn, args map recur)
             case BuiltinApp(fn, args) => BuiltinApp(fn, args map recur)
-            case IfThenElse(c, t, f) => IfThenElse(c, recur(t), recur(f)) // Note that we assume ite conditions do not contain quantifiers
+            case IfThenElse(c, t, f) => IfThenElse(recur(c), recur(t), recur(f))
             case Forall(avars, body) => {
                 context = context.stackPush(avars)
                 val r = Forall(avars, recur(body))

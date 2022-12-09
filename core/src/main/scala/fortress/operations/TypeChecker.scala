@@ -157,10 +157,6 @@ class TypeChecker(signature: Signature) extends TermVisitorWithTypeContext[TypeC
                 + fResult.sort.toString + " in " + ite.toString)
         }
         
-        if(condResult.containsQuantifiers) {
-            throw new TypeCheckException.BadStructure("Condition of ite contains quantifier in " + ite.toString)
-        }
-        
         // Replace if p then (Bool q) else (Bool r)
         // with (p and q) or ( (not p) and r) which is equivalent
         val sanTerm =

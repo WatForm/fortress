@@ -34,7 +34,7 @@ object Transformers {
             case "nnf" => NnfTransformer
             case "quantifierexpansion" => mkQuantifierExpansionTransformer()
             case "rangeformula" | "rangeformulastandard" => RangeFormulaStandardTransformer
-            case "scopenonexactpredicatestype" => new ScopeNonExactPredicatesTransformer()
+            case "scopenonexactpredicatestype" => ScopeNonExactPredicatesTransformer
             case "simplifylearnedliterals" => new SimplifyLearnedLiteralsTransformer()
             case "simplify" => new SimplifyTransformer()
             case "simplify2" | "simplifytransformer2" => new SimplifyTransformer2()
@@ -59,7 +59,7 @@ object Transformers {
     def mkNnfTransformer() = NnfTransformer
     def mkQuantifierExpansionTransformer(useConstForDomElim: Boolean = false, useSimplification: Boolean = false) = new QuantifierExpansionTransformer(useConstForDomElim, useSimplification)
     // def mkRangeFormulaTransformer(useConstForDomElim: Boolean = false) = new RangeFormulaStandardTransformer
-    def mkScopeNonExactPredicatesTransformer() = new ScopeNonExactPredicatesTransformer()
+    def mkScopeNonExactPredicatesTransformer() = ScopeNonExactPredicatesTransformer
     def mkSimplifyLearnedLiteralsTransformer() = new SimplifyLearnedLiteralsTransformer()
     def mkSimplifyTransformer() = new SimplifyTransformer()
     def mkSimplifyTransformer2() = new SimplifyTransformer2()

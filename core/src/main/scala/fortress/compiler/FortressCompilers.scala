@@ -7,17 +7,17 @@ import fortress.modelfind._
 import fortress.symmetry._
 import scala.collection.mutable.ListBuffer
 
-/* constants method */
+
 abstract class ConstantsMethodCompiler() extends LogicCompiler {
     override def transformerSequence: Seq[ProblemStateTransformer] = {
         val transformerSequence = new scala.collection.mutable.ListBuffer[ProblemStateTransformer]
         transformerSequence += TypecheckSanitizeTransformer
         transformerSequence += EnumEliminationTransformer
-        transformerSequence += IntegerToBitVectorTransformer
         transformerSequence += ClosureEliminationEijckTransformer
+        transformerSequence += IntegerToBitVectorTransformer      
         transformerSequence += NnfTransformer
         transformerSequence += SkolemizeTransformer
-        transformerSequence ++= symmetryBreakingTransformers
+        transformerSequence += new SymmetryBreakingTransformer(MonoFirstThenFunctionsFirstAnyOrder, DefaultSymmetryBreaker)
         transformerSequence += StandardQuantifierExpansionTransformer
         transformerSequence += RangeFormulaStandardTransformer
         transformerSequence += new SimplifyTransformer
@@ -25,7 +25,6 @@ abstract class ConstantsMethodCompiler() extends LogicCompiler {
         transformerSequence.toList
     }
 
-    def symmetryBreakingTransformers: Seq[ProblemStateTransformer]
 }
 
 
@@ -227,7 +226,7 @@ class PredUpperBoundCompiler extends LogicCompiler {
     override def transformerSequence: Seq[ProblemStateTransformer] = {
         val transformerSequence = new scala.collection.mutable.ListBuffer[ProblemStateTransformer]
         transformerSequence += TypecheckSanitizeTransformer
-        transformerSequence += new ScopeNonExactPredicatesTransformer // Must be before skolemization
+        transformerSequence += ScopeNonExactPredicatesTransformer // Must be before skolemization
         transformerSequence += EnumEliminationTransformer
         transformerSequence += SortInferenceTransformer
         transformerSequence += NnfTransformer

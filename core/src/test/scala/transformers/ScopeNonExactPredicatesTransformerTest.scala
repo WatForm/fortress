@@ -6,7 +6,7 @@ import fortress.transformers._
 
 class ScopeNonExactPredicatesTransformerTest extends UnitSuite with CommonSymbols {
 
-    val transformer = new TheoryApplication(new ScopeNonExactPredicatesTransformer)
+    val transformer = new TheoryApplication(ScopeNonExactPredicatesTransformer)
 
     val baseTheory = Theory.empty
             .withSort(A)
@@ -78,6 +78,27 @@ class ScopeNonExactPredicatesTransformerTest extends UnitSuite with CommonSymbol
                 println("result: " + transformer(theory, scopes).toString)
 
         transformer(theory, scopes) should be (expected)
+
+    }
+
+    test("test mixed scope") {
+        val theory = baseTheory
+                .withAxiom(Forall(x.of(A), Forall(y.of(B), Or(App("P", x), App("Q", y)))))
+                .withAxiom(Forall(x.of(A), Exists(y.of(B), And(App("P", x), App("Q", y)))))
+
+        val __Pred_A = FunctionSymbol("__@Pred_A")
+
+        val expected = baseTheory
+                .withFunctionDeclaration(__Pred_A from A to BoolSort)
+                .withAxiom(Exists(x.of(A), App("__@Pred_A", x)))
+                .withAxiom(Forall(x.of(A), Implication(App("__@Pred_A", x), Forall(y.of(B), Or(App("P", x), App("Q", y))))))
+                .withAxiom(Forall(x.of(A), Implication(App("__@Pred_A", x),Exists(y.of(B), And(App("P", x), App("Q", y))))))
+
+        scopes = scopes + (A -> NonExactScope(3))
+        scopes = scopes + (B -> ExactScope(3))
+
+        transformer(theory, scopes) should be (expected)
+
 
     }
 

@@ -6,7 +6,8 @@ import fortress.msfol._
 import fortress.operations._
 import fortress.sortinference._
 import fortress.msfol.DSL._
-import fortress.util.ArgumentListGenerator
+import fortress.solverinterface.Z3IncSolver
+import fortress.util.{ArgumentListGenerator, Errors, Milliseconds}
 
 /** An interpretation of a first-order logic signature. */
 trait Interpretation {
@@ -23,6 +24,93 @@ trait Interpretation {
     def functionInterpretations: Map[FuncDecl, Map[Seq[Value], Value]] = Map.empty
 
     def functionDefinitions: Set[FunctionDefinition]
+
+
+
+    def forceValueToBool(term: Value): Boolean = term match{
+        case Top => true
+        case Bottom => false
+        case _ => Errors.Internal.impossibleState("Tried to cast non-Top/Bottom Term to Boolean")
+    }
+
+    def boolToValue(b: Boolean): Value = if(b) Top else Bottom
+
+
+    def getFunctionValue(fnName: String, evaluatedArgs: Seq[Value]): Value = {
+        val funcDef = functionDefinitions.filter(fd => fd.name == fnName).head
+        val formalArgs: Seq[Term] = for( item <- funcDef.argSortedVar ) yield item.variable
+        // transfer constants to domain elements, ex: p1 -> _@1P
+        val realArgs: Seq[Value] = for( item <- evaluatedArgs ) yield {
+            var temp: Value = item
+            // TODO: look here! @zxt
+            //                for( a <- instance.constantInterpretations ) {
+            //                    if(a._1.variable.name == temp.toString ) temp = a._2
+            //                }
+            temp
+        }
+        val body = funcDef.body
+        Errors.Internal.precondition(evaluatedArgs.size == formalArgs.size, "Invalid input params.")
+        val argMap: Map[Term, Value] = formalArgs.zip(realArgs).toMap
+        val ret: Value = visitFunctionBody( body, argMap )
+        ret
+    }
+
+    def visitFunctionBody(term: Term, argMap: Map[Term, Value]): Value = term match {
+        case Top | Bottom | EnumValue(_) | DomainElement(_, _) |
+             IntegerLiteral(_) | BitVectorLiteral(_, _) => term.asInstanceOf[Value]
+        case v @ Var(_) => argMap(v)
+        case Not(p) => boolToValue(!forceValueToBool(visitFunctionBody(p, argMap)))
+        case AndList(args) => boolToValue(args.forall(a => forceValueToBool(visitFunctionBody(a, argMap))))
+        case OrList(args) => boolToValue(args.exists(a => forceValueToBool(visitFunctionBody(a, argMap))))
+        case Distinct(args) => boolToValue(
+            args.size == args.map(a => visitFunctionBody(a, argMap)).distinct.size
+        )
+        case Implication(p, q) => boolToValue(
+            !forceValueToBool(visitFunctionBody(p, argMap)) || forceValueToBool(visitFunctionBody(q, argMap))
+        )
+        case Iff(p, q) => boolToValue(
+            forceValueToBool(visitFunctionBody(p, argMap)) == forceValueToBool(visitFunctionBody(q, argMap))
+        )
+        case Eq(l, r) => boolToValue(visitFunctionBody(l, argMap) == visitFunctionBody(r, argMap))
+        case IfThenElse(condition, ifTrue, ifFalse) => {
+            if(forceValueToBool(visitFunctionBody(condition, argMap))) {
+                visitFunctionBody(ifTrue, argMap)
+            }
+            else {
+                visitFunctionBody(ifFalse, argMap)
+            }
+        }
+        case App(fname, args) => getFunctionValue(fname, args.map(arg => visitFunctionBody(arg, argMap)))
+        case BuiltinApp(fn, args) => evaluateBuiltIn(fn, args.map(arg => visitFunctionBody(arg, argMap)))
+        case _ => {
+            println("Error: get function value failed.")
+            null
+        }
+    }
+
+    // Given a builtin function and its arguments, run it through a throwaway Z3 solver for the result
+    // (to avoid having to implement every function manually on our end)
+    def evaluateBuiltIn(fn: BuiltinFunction, evalArgs: Seq[Value]): Value = {
+        val evalResult: Var = Var("!VERIFY_INTERPRETATION_RES")
+        val evalResultAnnotated: AnnotatedVar = fn match {
+            case IntPlus | IntNeg | IntSub | IntMult | IntDiv | IntMod => evalResult of Sort.Int
+            case BvPlus | BvNeg | BvSub | BvMult | BvSignedDiv | BvSignedRem | BvSignedMod =>
+                evalResult of Sort.BitVector(evalArgs.head.asInstanceOf[BitVectorLiteral].bitwidth);
+            case IntLE | IntLT | IntGE | IntGT |
+                 BvSignedLE | BvSignedLT | BvSignedGE | BvSignedGT => evalResult of Sort.Bool
+            case _ => throw new scala.NotImplementedError("Builtin function not accounted for")
+        }
+        val theory: Theory = Theory.empty
+                .withConstant(evalResultAnnotated)
+                .withAxiom(evalResult === BuiltinApp(fn, evalArgs))
+
+        val solver = new Z3IncSolver
+        solver.setTheory(theory)
+        solver.solve(Milliseconds(1000))
+        val solvedInstance = solver.solution
+        solver.close()
+        solvedInstance.constantInterpretations(evalResultAnnotated)
+    }
 
 
     /** Replaces the Values of an interpretation EnumValues, according to the given substitution map.
