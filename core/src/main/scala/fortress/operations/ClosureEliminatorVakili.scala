@@ -9,8 +9,7 @@ import java.lang.IllegalArgumentException
 import java.util.ArrayList
 import scala.jdk.CollectionConverters._
 
-class ClosureEliminatorVakili(topLevelTerm: Term, signature: Signature, scopes: Map[Sort, Scope], nameGen: NameGenerator) extends ClosureEliminator(topLevelTerm, signature, scopes, nameGen) {
-
+class ClosureEliminatorVakili(topLevelTerm: Term, allowedRelations: Set[String], signature: Signature, scopes: Map[Sort, Scope], nameGen: NameGenerator) extends ClosureEliminator(topLevelTerm, signature, scopes, nameGen) {
     override val visitor = new ClosureVisitorVakili
 
     class ClosureVisitorVakili extends ClosureVisitor {
@@ -91,7 +90,7 @@ class ClosureEliminatorVakili(topLevelTerm: Term, signature: Signature, scopes: 
         }
 
         override def visitNot(n: Not): Term = n match {
-            case Not(Closure(fname, start, end, fixedArgs)) => {
+            case Not(Closure(fname, start, end, fixedArgs)) if allowedRelations.contains(fname) => {
                 // create transitive closure if it does not exist
                 val closureName = getClosureName(fname)
                 if(!queryFunction(closureName)){
@@ -99,7 +98,7 @@ class ClosureEliminatorVakili(topLevelTerm: Term, signature: Signature, scopes: 
                 }
                 Not(App(closureName, start +: end +: fixedArgs))
             }
-            case Not(ReflexiveClosure(fname, start, end, fixedArgs)) => {
+            case Not(ReflexiveClosure(fname, start, end, fixedArgs)) if allowedRelations.contains(fname) => {
                 // create reflexive closure if it does not exist
                 val reflexiveClosureName = getReflexiveClosureName(fname)
                 if (!queryFunction(reflexiveClosureName)){
@@ -108,7 +107,7 @@ class ClosureEliminatorVakili(topLevelTerm: Term, signature: Signature, scopes: 
 
                 Not(App(reflexiveClosureName, start +: end +: fixedArgs))
             }
-            case Not(t) => Not(visit(t))
+            case Not(t) => Not(t)
         }
     }
   
