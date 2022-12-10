@@ -10,6 +10,7 @@ import fortress.interpretation.Interpretation
 import fortress.transformers._
 import fortress.data.IntSuffixNameGenerator
 import fortress.operations.RecursiveAccumulator
+import fortress.operations.NormalForms
 
 // This does not function like a full Closure Elimination Transformer
 object ClosureEliminationVakiliTransformer extends ProblemStateTransformer {
@@ -47,10 +48,12 @@ object ClosureEliminationVakiliTransformer extends ProblemStateTransformer {
 
             for (axiom <- theory.axioms){
                 val eliminator = new ClosureEliminatorVakili(axiom, allowedRelations.toSet, resultTheory.signature, scopes, nameGenerator)
-                val newAxiom = eliminator.convert()
+                // Ensure NNF
+                val newAxiom = NormalForms.nnf(eliminator.convert())
                 resultTheory = resultTheory.withFunctionDeclarations(eliminator.getClosureFunctions)
                 closureFunctions ++= eliminator.getClosureFunctions
-                resultTheory = resultTheory.withAxioms(eliminator.getClosureAxioms)
+                // Axioms in NNF
+                resultTheory = resultTheory.withAxioms(eliminator.getClosureAxioms.map(NormalForms.nnf))
                 resultTheory = resultTheory.withAxiom(newAxiom)
             }
 
