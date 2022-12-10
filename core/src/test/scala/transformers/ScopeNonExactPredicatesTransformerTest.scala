@@ -74,8 +74,8 @@ class ScopeNonExactPredicatesTransformerTest extends UnitSuite with CommonSymbol
         scopes = scopes + (A -> NonExactScope(3))
         scopes = scopes + (B -> NonExactScope(3))
 
-                println("theory: " + theory.toString)
-                println("result: " + transformer(theory, scopes).toString)
+                //println("theory: " + theory.toString)
+                //println("result: " + transformer(theory, scopes).toString)
 
         transformer(theory, scopes) should be (expected)
 
