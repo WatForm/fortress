@@ -9,7 +9,7 @@ This document contains information on how the Fortress library is structured and
 * A signature and a list of terms together create a `Theory`. 
 * A `ProblemState` contains
     - a theory 
-    - scopes for the sorts
+    - scopes for the sorts 
     - unapply (see below)
     - rangeRestricts (where added? symmetry and range formulas - duplicate info?)
     - anything else?
@@ -18,6 +18,15 @@ This document contains information on how the Fortress library is structured and
     - `unbound` or `bound` (with a scope size)=
     - `exact` or `inexact`
     - `changeable` or `unchangeable` (once)
+* Built-in sorts:
+    - Integers are separated into:
+        + IntSort - an integer - it may or may not have a bound
+        + UnboundedIntSort - no bound
+        + BoundedIntSort - an integer of a bounded size
+        + These three sorts are needed to indicate if the user is requiring the integer to be of a certain bound/unbounded (BoundedIntSort/UnboundedIntSort) or if fortress is allowed to determine whether an int can be left unbounded or not. 
+        + The MSFMF problem can include a mixture of the above; each dealt with appropriately.
+        + The numeric operations are of different sorts for the argument types above.
+    - BV(x) - a bit vector of width x; its scope is always 2^x
 * An `operation` takes a term and applies a transformation to it.
 Examples of operations are converting to negation normal form, performing sort inference, simplification, and skolemization.
 * A `TheoryTransformer` or `ProblemStateTransformer` takes a `Theory` or `ProblemState` respectively and converts them into a new `Theory` or `ProblemState`by applying a transformation to all terms of the theory (using an operation usually).  Examples of transformers are converting to negation normal form, performing sort inference, symmetry breaking, adding range formulas.
@@ -162,39 +171,53 @@ Some transformers below are for experimentation and thus not used in
     - postcondition: !defns
     - unapply: remove the introduced functions
 
-* Handling Integers (use one of these) @Owen
-    - IntegerToBitVectors
+* Handling Integers (use one of these) 
+    - IntegerToBitVectors @Xintong
         + problemState -> problemState
         + purpose:
-            * Turn integer sorts into twos complement BVs based on bitwidth ??
-            * no change to formulas
+            * IntSort replaced with BV(x) when bound on IntSort is 2^x otherwise exception
+            * changes axioms to replace IntSort with BV(x) everywhere
             * removes IntSort from sorts
         + preconditions: typechecked
         + postconditions: !ints
         + unapply: ??
-    - NoOverflow
+    - NoOverflow @Owen
         + problemState -> problemState
         + purpose:
-            * Turn integer sorts into twos complement BVs based on bitwidth ??
+            * ????
             * converts formulas for Alloy no overflow semantics
             * removes IntSort from sorts
         + methods: constants, datatype
         + preconditions: typechecked
         + postconditions: !ints
         + unapply: ??
+    - LIATransformer @Xintong
+        + problemState -> problemState
+        + purpose:
+            - determines whether each axiom is within linear arithmetic (LIA); if the axiom includes function calls over numeric values???
+            - determines if a constant or variable is only used only within axioms that are within (LIA), it changes the sorts and operations on these values to be UnboundedInts
+            - removes IntSort and BoundedInts from scope table if they are no longer present in the problem??
+        + methods: any
+        + preconditions: typechecked
+        + postconditions: no change
+        + unapply: none ?
+     
 
 
 * Transitive Closure (use one of these) @Owen
     - ClosureNegativeTransformer
         + problemState -> problemState
         + purpose:
-            * if the tc of an expr is only uses positively
-            * replaces the tc with a new, uninterpreted, axiomatixed function
+            * if the tc of an expr with regular (RT) if TC is used only negativesly
+            * replaces the tc with a new, uninterpreted, axiomatixed function (RT)
+            * adds axioms (in nnf) for the behavior of RT
             * may still be negative uses of tc remaining
+            * raises exception if no bound on sort of TC relation ????
         + methods: constants, datatype, minimal
         + preconditions: nnf, typechecked
-        + postconditions: !nnf, !skolemized, !noQuant, !onlyForall
-        + unapply: removes all functions it created from the interpretation
+        + modifies: existings axioms and adds axioms
+        + postconditions: nnf, !skolemized, !noQuant, !onlyForall
+        + unapply: removes all functions it created from the interpretation; no need to replace RT with TC because TC is an operation
 
     - ClosureEliminationEijckTransformer
     - ClosureEliminationLiuTransformer
@@ -203,10 +226,13 @@ Some transformers below are for experimentation and thus not used in
         + purpose:
             * remove all uses of transitive closure
             * replaces the tc with a new, uninterpreted, axiomatized function
+            * adds axioms (in nnf) for the behavior of RT
+            * may still be negative uses of tc remaining
+            * raises exception if no bound on sort of TC relation ????
         + methods: constants, datatype, minimal
         + preconditions: typechecked
-        + postconditions: !tc, !nnf, !skolemized, !noQuant, !onlyForall
-        + unapply: removes all functions it created from the interpretation
+        + postconditions: !tc, nnf, !skolemized, !noQuant, !onlyForall
+        + unapply: removes all functions it created from the interpretation; no need to replace RT with TC because TC is an operation
     
 * SortInferenceTransformer    @Nancy
     - theory -> theory
@@ -224,10 +250,11 @@ Some transformers below are for experimentation and thus not used in
 
 * NnfTransformer @Xintong
     - theory -> theory
-    - purpose: put all axioms in nnf
+    - purpose: 
+        + put all axioms in nnf (removes =>, <=>, pushes negations in)
     - methods: constants, datatype
     - preconditions: nodefs, typechecked
-    - modifies: axioms
+    - modifies: axioms 
     - postconditions: nnf
     - unapply: none
 * PnfTransformer (not yet written)
