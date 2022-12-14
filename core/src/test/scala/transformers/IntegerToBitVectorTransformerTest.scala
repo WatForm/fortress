@@ -137,4 +137,21 @@ class IntegerToBitVectorTransformerTest extends UnitSuite {
         val transformer = IntegerToBitVectorTransformer
         transformer(problemState) should be (expected)
     }
+
+    test("BoundedIntSort"){
+        val theory = Theory.empty
+            .withAxiom(Not(IntegerLiteral(1) === IntegerLiteral(2)))
+
+        val problemState = ProblemState(theory,Map(BoundedIntSort -> ExactScope(16)))
+
+        val expected = ProblemState(
+            Theory.empty
+            .withAxiom(Not(
+                BitVectorLiteral(value = 1, bitwidth = 4) === BitVectorLiteral(value = 2, bitwidth = 4))),
+            Map.empty + (BitVectorSort(4) -> ExactScope(16))
+        )
+
+        val transformer = IntegerToBitVectorTransformer
+        transformer(problemState) should be (expected)
+    }
 }
