@@ -63,7 +63,7 @@ object Sort {
     val Bool: Sort = BoolSort
     val Int: Sort = IntSort
     val BoundedInt: Sort = BoundedIntSort
-    val unBoundedInt: Sort = UnBoundedIntSort
+    val UnBoundedInt: Sort = UnBoundedIntSort
 
     def BitVector(bitwidth: Int): Sort = BitVectorSort(bitwidth)
     
