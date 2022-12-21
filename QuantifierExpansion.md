@@ -12,6 +12,7 @@ If all sorts are limited in their set of values then the problem is decidable, b
 
 (2A) assume the use of datatypes makes the solver think the problem is finite and exists/forall quantifiers are okay
 
+'''
 abstract class DatatypeMethodNoRangeCompiler() extends LogicCompiler {
     override def transformerSequence: Seq[ProblemStateTransformer] = {
         val transformerSequence = new scala.collection.mutable.ListBuffer[ProblemStateTransformer]
@@ -26,7 +27,7 @@ abstract class DatatypeMethodNoRangeCompiler() extends LogicCompiler {
         transformerSequence.toList
     }
 }
-
+'''
 
 
 (2B) datatypes plus range formulas
