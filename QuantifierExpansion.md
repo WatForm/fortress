@@ -12,29 +12,40 @@ If all sorts are limited in their set of values then the problem is decidable, b
 
 (2A) assume the use of datatypes makes the solver think the problem is finite and exists/forall quantifiers are okay
 
+abstract class DatatypeMethodNoRangeCompiler() extends LogicCompiler {
     override def transformerSequence: Seq[ProblemStateTransformer] = {
         val transformerSequence = new scala.collection.mutable.ListBuffer[ProblemStateTransformer]
         transformerSequence += TypecheckSanitizeTransformer
         transformerSequence += EnumEliminationTransformer
+        transformerSequence += NnfTransformer
+        transformerSequence += ClosureEliminationEijckTransformer
+        transformerSequence += IntegerToBitVectorTransformer      
         transformerSequence += new SymmetryBreakingTransformer(MonoFirstThenFunctionsFirstAnyOrder, DefaultSymmetryBreaker)
         transformerSequence += new SimplifyTransformer
-        transformerSequence += DataTypeTransformer
+        transformerSequence += DatatypeTransformer
         transformerSequence.toList
     }
+}
+
 
 
 (2B) datatypes plus range formulas
 
+abstract class DatatypeMethodWithRangeCompiler() extends LogicCompiler {
     override def transformerSequence: Seq[ProblemStateTransformer] = {
         val transformerSequence = new scala.collection.mutable.ListBuffer[ProblemStateTransformer]
         transformerSequence += TypecheckSanitizeTransformer
         transformerSequence += EnumEliminationTransformer
+        transformerSequence += NnfTransformer
+        transformerSequence += ClosureEliminationEijckTransformer
+        transformerSequence += IntegerToBitVectorTransformer      
         transformerSequence += new SymmetryBreakingTransformer(MonoFirstThenFunctionsFirstAnyOrder, DefaultSymmetryBreaker)
         transformerSequence += RangeFormulaStandardTransformer
         transformerSequence += new SimplifyTransformer
-        transformerSequence += DomainEliminationTransformer
+        transformerSequence += DatatypeTransformer
         transformerSequence.toList
     }
+}
     
 (2C) not much point in trying datatypes plus quantifier expansion because that makes the terms just as big
 
