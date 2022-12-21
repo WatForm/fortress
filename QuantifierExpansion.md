@@ -4,13 +4,13 @@ Quantifier expansion is a bottleneck for Fortress - it creates large terms that 
 
 We don't know if the SMT solver can handle large terms better than Fortress can.  Below are some possible solutions for QUF problems:
 
-1. Is the memory overflow occurring internally within the creation of terms in Fortress (i.e., in the quantifier expansion step) or in the process of creating the SMT term to send to the solver) ?  If it is in the process of creating the SMT term then using the Z3 API might help.
+The memory overflow is occurring internally within the creation of terms in Fortress in the quantifier expansion step.
 
-2. Use Datatypes in the SMT solver
+1. Use Datatypes in the SMT solver
 
 If all sorts are limited in their set of values then the problem is decidable, but we don't know if the solver's algorithms recognize this as a decidable problem.
 
-(2A) assume the use of datatypes makes the solver think the problem is finite and exists/forall quantifiers are okay (already added to FortressCompilers.scala) ClosureElimination requires nnf so we can't get rid of that step. For testing with QUF we might want to simplify this further.
+(1A) assume the use of datatypes makes the solver think the problem is finite and exists/forall quantifiers are okay (already added to FortressCompilers.scala) ClosureElimination requires nnf so we can't get rid of that step. For testing with QUF we might want to simplify this further.
 
 ```
 abstract class DatatypeMethodNoRangeCompiler() extends LogicCompiler {
@@ -30,7 +30,7 @@ abstract class DatatypeMethodNoRangeCompiler() extends LogicCompiler {
 ```
 
 
-(2B) datatypes plus range formulas (already added to FortressCompilers.scala)
+(1B) datatypes plus range formulas (already added to FortressCompilers.scala)
 
 ```
 abstract class DatatypeMethodWithRangeCompiler() extends LogicCompiler {
@@ -49,11 +49,11 @@ abstract class DatatypeMethodWithRangeCompiler() extends LogicCompiler {
     }
 }
 ```    
-(2C) not much point in trying datatypes plus quantifier expansion because that makes the terms just as big
+(1C) not much point in trying datatypes plus quantifier expansion because that makes the terms just as big
 
-3. Use Definitions to avoid some of the expansion
+2. Use Definitions to avoid some of the expansion
 
-(3A) Use Definitions with constants method
+(2A) Use Definitions with constants method
 
 * requires creation of StandardQuantifierExpansionWithDefintionsTransformer that creates a defn for every quantifier expansion; have to watch that bound variables become arguments to nested quantifier expansions
 ``` 
@@ -72,7 +72,7 @@ abstract class DatatypeMethodWithRangeCompiler() extends LogicCompiler {
     }
 ```
 
-(3B) Use Definitions with datatypes method (2B but with quantifier expansion)
+(2B) Use Definitions with datatypes method (1B but with quantifier expansion)
 
 ```
     override def transformerSequence: Seq[ProblemStateTransformer] = {
@@ -88,8 +88,8 @@ abstract class DatatypeMethodWithRangeCompiler() extends LogicCompiler {
     }
 ```
 
-4. Use definitions for quantifier expansion but axiomatize the definitions, which would bring more quantifier expansion so doesn't seem like a good idea.  There does not seem to be a method that let's quantifier expansion be "abstracted" into a package that the solver can take advantage of.
+3. Use definitions for quantifier expansion but axiomatize the definitions, which would bring more quantifier expansion so doesn't seem like a good idea.  There does not seem to be a method that let's quantifier expansion be "abstracted" into a package that the solver can take advantage of.
 
-5. If the problem is only within Fortress, i.e., the SMT solver can handle the large terms b/c it does some kind of term sharing underneath then we could try for a more optimized method of representing the terms within Fortress (i.e., term sharing). Perhaps we can integrate the quantifier expansion with the use of the Z3 API for term creation?
+4. If the problem is only within Fortress, i.e., the SMT solver can handle the large terms b/c it does some kind of term sharing underneath then we could try for a more optimized method of representing the terms within Fortress (i.e., term sharing). Perhaps we can integrate the quantifier expansion with the use of the Z3 API for term creation?
 
-6. Integration the quantifier expansion with simplification? 
+5. Integration the quantifier expansion with simplification? 
