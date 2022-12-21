@@ -10,7 +10,7 @@ We don't know if the SMT solver can handle large terms better than Fortress can.
 
 If all sorts are limited in their set of values then the problem is decidable, but we don't know if the solver's algorithms recognize this as a decidable problem.
 
-(2A) assume the use of datatypes makes the solver think the problem is finite and exists/forall quantifiers are okay (already added to FortressCompilers.scala)
+(2A) assume the use of datatypes makes the solver think the problem is finite and exists/forall quantifiers are okay (already added to FortressCompilers.scala) ClosureElimination requires nnf so we can't get rid of that step. For testing with QUF we might want to simplify this further.
 
 ```
 abstract class DatatypeMethodNoRangeCompiler() extends LogicCompiler {
