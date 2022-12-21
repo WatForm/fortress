@@ -27,6 +27,39 @@ abstract class ConstantsMethodCompiler() extends LogicCompiler {
 
 }
 
+abstract class DataTypeMethodNoRangeCompiler() extends LogicCompiler {
+    override def transformerSequence: Seq[ProblemStateTransformer] = {
+        val transformerSequence = new scala.collection.mutable.ListBuffer[ProblemStateTransformer]
+        transformerSequence += TypecheckSanitizeTransformer
+        transformerSequence += EnumEliminationTransformer
+        transformerSequence += NnfTransformer
+        transformerSequence += ClosureEliminationEijckTransformer
+        transformerSequence += IntegerToBitVectorTransformer      
+        transformerSequence += new SymmetryBreakingTransformer(MonoFirstThenFunctionsFirstAnyOrder, DefaultSymmetryBreaker)
+        transformerSequence += new SimplifyTransformer
+        transformerSequence += DataTypeTransformer
+        transformerSequence.toList
+    }
+
+}
+
+abstract class DataTypeMethodWithRangeCompiler() extends LogicCompiler {
+    override def transformerSequence: Seq[ProblemStateTransformer] = {
+        val transformerSequence = new scala.collection.mutable.ListBuffer[ProblemStateTransformer]
+        transformerSequence += TypecheckSanitizeTransformer
+        transformerSequence += EnumEliminationTransformer
+        transformerSequence += NnfTransformer
+        transformerSequence += ClosureEliminationEijckTransformer
+        transformerSequence += IntegerToBitVectorTransformer      
+        transformerSequence += new SymmetryBreakingTransformer(MonoFirstThenFunctionsFirstAnyOrder, DefaultSymmetryBreaker)
+        transformerSequence += RangeFormulaStandardTransformer
+        transformerSequence += new SimplifyTransformer
+        transformerSequence += DataTypeTransformer
+        transformerSequence.toList
+    }
+
+}
+
 
 
 /**
