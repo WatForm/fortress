@@ -92,4 +92,11 @@ abstract class DatatypeMethodWithRangeCompiler() extends LogicCompiler {
 
 4. If the problem is only within Fortress, i.e., the SMT solver can handle the large terms b/c it does some kind of term sharing underneath then we could try for a more optimized method of representing the terms within Fortress (i.e., term sharing). Perhaps we can integrate the quantifier expansion with the use of the Z3 API for term creation?
 
-5. Integration the quantifier expansion with simplification? 
+5. Integration the quantifier expansion with simplification?
+
+---
+
+Ideas for reducing quantifier cost from the Portus end:
+
+1. Implement the idea to put sigs in separate sorts when possible to avoid making the univ scope so large, so quantifying over it isn't so expensive.
+2. Implement (some) scope restrictions with cardinality (like `#A <= 10`) rather than nested quantifiers (like `exists x1,x2,...,x10: univ . forall y: univ . x1 in A && ... && x10 in A && (disj x1,...,xn) && y in A => y = x1 || ... || y = x10`). This seems to be a major cause of OOMs when doing quantifier expansion: growing scopes too large even in simple models seems to result in OOMs. The implementation of cardinality uses a single (expanded) quantifier so this could be more optimal.
