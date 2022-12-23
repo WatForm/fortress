@@ -51,7 +51,7 @@ abstract class DatatypeMethodWithRangeCompiler() extends LogicCompiler {
 ```    
 (1C) not much point in trying datatypes plus quantifier expansion because that makes the terms just as big
 
-2. Use Definitions to avoid some of the expansion
+2. Use Definitions to avoid some of the expansion - this avoids expansion within Fortress.  The SMT solver might expand right away (with better term sharing) or it might expand lazily (which would be great)
 
 (2A) Use Definitions with constants method
 
@@ -64,7 +64,7 @@ abstract class DatatypeMethodWithRangeCompiler() extends LogicCompiler {
         transformerSequence += NnfTransformer  
         transformerSequence += SkolemizeTransformer
         transformerSequence += new SymmetryBreakingTransformer(MonoFirstThenFunctionsFirstAnyOrder, DefaultSymmetryBreaker)
-        transformerSequence += StandardQuantifierExpansionWithDefinitionsTransformer // new 
+        transformerSequence += QuantifiersExpansionAsDefinitions // new 
         transformerSequence += RangeFormulaStandardTransformer
         transformerSequence += new SimplifyTransformer
         transformerSequence += DomainEliminationTransformer
@@ -80,7 +80,7 @@ abstract class DatatypeMethodWithRangeCompiler() extends LogicCompiler {
         transformerSequence += TypecheckSanitizeTransformer
         transformerSequence += EnumEliminationTransformer
         transformerSequence += new SymmetryBreakingTransformer(MonoFirstThenFunctionsFirstAnyOrder, DefaultSymmetryBreaker)
-        transformerSequence += StandardQuantifierExpansionWithDefintionsTransformer
+        transformerSequence += QuantifiersAsDefinitions // new as above
         transformerSequence += RangeFormulaStandardTransformer
         transformerSequence += new SimplifyTransformer
         transformerSequence += DatatypesTransformer
@@ -88,11 +88,28 @@ abstract class DatatypeMethodWithRangeCompiler() extends LogicCompiler {
     }
 ```
 
-3. Use definitions for quantifier expansion but axiomatize the definitions, which would bring more quantifier expansion so doesn't seem like a good idea.  There does not seem to be a method that let's quantifier expansion be "abstracted" into a package that the solver can take advantage of.
+3. Use definitions for quantifier expansion but axiomatize the definitions and use datatypes.  With the constants method, axiomatizing the defitions would bring more quantifier expansion so doesn't seem like a good idea (more decomposed but as much as original).  With datatypes, it might help if the quantifiers are left in.
+
+```
+    override def transformerSequence: Seq[ProblemStateTransformer] = {
+        val transformerSequence = new scala.collection.mutable.ListBuffer[ProblemStateTransformer]
+        transformerSequence += TypecheckSanitizeTransformer
+        transformerSequence += EnumEliminationTransformer
+        transformerSequence += new SymmetryBreakingTransformer(MonoFirstThenFunctionsFirstAnyOrder, DefaultSymmetryBreaker)
+        transformerSequence += QuantifiersAsDefinitions // new as above
+        transformerSequence += AxiomatizeDefinitions
+        transformerSequence += RangeFormulaStandardTransformer
+        transformerSequence += new SimplifyTransformer
+        transformerSequence += DatatypesTransformer
+        transformerSequence.toList
+    }
+```
 
 4. If the problem is only within Fortress, i.e., the SMT solver can handle the large terms b/c it does some kind of term sharing underneath then we could try for a more optimized method of representing the terms within Fortress (i.e., term sharing). Perhaps we can integrate the quantifier expansion with the use of the Z3 API for term creation?
 
-5. Integration the quantifier expansion with simplification?
+5. Integration the quantifier expansion with simplification? This will only help within Fortress because the SMT size will remain the same.
+
+6. Push the quantifiers in as far as possible (opposite of prenex normal form) to get slightly smaller term size before quantifier expansion.
 
 ---
 
