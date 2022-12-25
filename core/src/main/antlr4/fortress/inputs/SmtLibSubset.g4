@@ -26,7 +26,7 @@ sort : ID                                             # sort_name
      ;
 
 attribute : ':' ID ID                                 # attribute_id
-          | ':' ID QUOTE                              # attribute_quote
+       // | ':' ID QUOTE                              # attribute_quote
           | ':' ID STRING                             # attribute_string
           | ':' ID DEC_DIGIT						  # attribute_dec_digit
           ;
@@ -91,8 +91,10 @@ term_attribute: ':named' ID                           # namedAttribute
 
 // Lexer rules
 
-// IDs must contain at least one letter, to distinguish from numerals
-ID: (LETTER | SPECIAL) (LETTER | DIGIT | SPECIAL)* ;
+// abc == |abc| as an identifier!! Treat it as such.
+ID: SIMPLE | QUOTE;
+// Simple Symbols must contain at least one letter, to distinguish from numerals
+SIMPLE: (LETTER | SPECIAL) (LETTER | DIGIT | SPECIAL)* ;
 QUOTE: '|' (PRINTABLE_NOT_PIPE_BS | WS)* '|' ;
 STRING: '"' (PRINTABLE_NOT_QUOTE | WS)* '"' ;
 NUMBER: POS_NUMBER | '-' POS_NUMBER ;

@@ -1,6 +1,7 @@
 package fortress.msfol
 
 import fortress.util.Errors
+import fortress.util.NameConverter
 
 /** Represents a sort. */
 sealed abstract class Sort {
@@ -13,9 +14,10 @@ sealed abstract class Sort {
 case class SortConst private (name: String) extends Sort {
     Errors.Internal.precondition(name.length > 0, "Cannot create sort with empty name");
     Errors.Internal.precondition(! Names.isIllegal(name), "Illegal sort name " + name);
-    Errors.Internal.precondition(! name.contains(" "), "Cannot make sort constant with space " + name)
+    //Errors.Internal.precondition(! name.contains(" "), "Cannot make sort constant with space " + name)
     Errors.Internal.precondition(! Sort.nameMimicsBuiltin(name), "Cannot make sort constant with name " + name)
-    
+    Errors.Internal.precondition(! name.contains("|"), "Cannot create const with '|' in name: " + name);
+
     override def isBuiltin: Boolean = false
 }
 
@@ -56,7 +58,8 @@ object BitVectorSort {
 }
 
 object Sort {
-    def mkSortConst(name: String): Sort = SortConst(name)
+    def mkSortConst(name: String): Sort = 
+        SortConst(NameConverter.nameWithoutQuote(name))
 
     def mkIntSort(): Sort = IntSort
     

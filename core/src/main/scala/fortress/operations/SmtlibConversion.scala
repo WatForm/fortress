@@ -13,10 +13,10 @@ class SmtlibConverter(writer: java.io.Writer) {
             case DomainElement(_, _) =>
                 Errors.Internal.preconditionFailed("Domain elements cannot be converted to SMTLIB2")
             // case d @ DomainElement(index, sort) => writer.write(d.asSmtConstant.name)
-            case EnumValue(name) => writer.write(nameWithAffix(name))
+            case EnumValue(name) => writer.write(nameWithQuote(name))
             case Top => writer.write("true")
             case Bottom => writer.write("false")
-            case Var(name) => writer.write(nameWithAffix(name))
+            case Var(name) => writer.write(nameWithQuote(name))
             case Not(p) => writeGeneralApp("not", Seq(p))
             case AndList(args) => writeGeneralApp("and", args)
             case OrList(args) => writeGeneralApp("or", args)
@@ -24,7 +24,7 @@ class SmtlibConverter(writer: java.io.Writer) {
             case Implication(left, right) => writeGeneralApp("=>", Seq(left, right))
             case Iff(left, right) => writeGeneralApp("=", Seq(left, right))
             case Eq(left, right) => writeGeneralApp("=", Seq(left, right))
-            case App(fname, args) => writeGeneralApp(nameWithAffix(fname), args)
+            case App(fname, args) => writeGeneralApp(nameWithQuote(fname), args)
             case IfThenElse(condition, ifTrue, ifFalse) => writeGeneralApp("ite", Seq(condition, ifTrue, ifFalse))
             case Exists(vars, body) => {
                 writer.write("(exists (")
@@ -34,7 +34,7 @@ class SmtlibConverter(writer: java.io.Writer) {
                         writer.write(' ')
                     }
                     writer.write('(')
-                    writer.write(nameWithAffix(av.name))
+                    writer.write(nameWithQuote(av.name))
                     writer.write(' ')
                     writeSort(av.sort)
                     writer.write(')')
@@ -52,7 +52,7 @@ class SmtlibConverter(writer: java.io.Writer) {
                         writer.write(' ')
                     }
                     writer.write('(')
-                    writer.write(nameWithAffix(av.name))
+                    writer.write(nameWithQuote(av.name))
                     writer.write(' ')
                     writeSort(av.sort)
                     writer.write(')')
@@ -109,6 +109,7 @@ class SmtlibConverter(writer: java.io.Writer) {
             case ReflexiveClosure(_, _, _, _) =>  Errors.Internal.impossibleState("Cannot convert Reflexive Closure to smtlib")
         }
         
+        // Does NOT do quoting on its own
         def writeGeneralApp(functionName: String, args: Seq[Term]): Unit = {
             writer.write('(')
             writer.write(functionName)
@@ -123,7 +124,7 @@ class SmtlibConverter(writer: java.io.Writer) {
     }
     
     def writeSort(sort: Sort): Unit = sort match {
-        case SortConst(name) => writer.write(name)
+        case SortConst(name) => writer.write(nameWithQuote(name))
         case BoolSort => writer.write("Bool")
         case IntSort => writer.write("Int")
         case UnBoundedIntSort => writer.write("Int")
@@ -149,7 +150,7 @@ class SmtlibConverter(writer: java.io.Writer) {
         sort match {
             case SortConst(name) => {
                 writer.write("(declare-sort ")
-                writer.write(sort.name)
+                writer.write(nameWithQuote(sort.name))
                 writer.write(" 0)")
             }
             case _ =>
@@ -158,7 +159,7 @@ class SmtlibConverter(writer: java.io.Writer) {
     
     def writeFuncDecl(funcDecl: FuncDecl): Unit = {
         writer.write("(declare-fun ")
-        writer.write(nameWithAffix(funcDecl.name))
+        writer.write(nameWithQuote(funcDecl.name))
         writer.write(" (")
         writeSorts(funcDecl.argSorts)
         writer.write(") ")
@@ -172,7 +173,7 @@ class SmtlibConverter(writer: java.io.Writer) {
      */
     def writeFunctionDefinition(funcDef: FunctionDefinition): Unit = {
         writer.write("(define-fun ")
-        writer.write(nameWithAffix(funcDef.name))
+        writer.write(nameWithQuote(funcDef.name))
         writer.write(" (")
 //        writeArgSortedVars(funcDef.argSortedVar)
         funcDef.argSortedVar.foreach(writeArgSortedVar)
@@ -185,7 +186,7 @@ class SmtlibConverter(writer: java.io.Writer) {
 
     def writeArgSortedVar(arg: AnnotatedVar): Unit = {
         writer.write("(")
-        writer.write(nameWithAffix(arg.variable.name))
+        writer.write(nameWithQuote(arg.variable.name))
         writer.write(" ")
         writeSort(arg.sort)
         writer.write(") ")
@@ -197,7 +198,7 @@ class SmtlibConverter(writer: java.io.Writer) {
     
     def writeConst(constant: AnnotatedVar): Unit = {
         writer.write("(declare-const ")
-        writer.write(nameWithAffix(constant.name))
+        writer.write(nameWithQuote(constant.name))
         writer.write(' ')
         writeSort(constant.sort)
         writer.write(')')
@@ -205,8 +206,8 @@ class SmtlibConverter(writer: java.io.Writer) {
 
     def writeEnumConst(sort: Sort, enums: Seq[EnumValue]): Unit = {
         writer.write("(declare-datatypes () ((")
-        writer.write(sort.name)
-        enums.foreach(enum => writer.write(' ' + nameWithAffix(enum.name)))
+        writeSort(sort)
+        enums.foreach(enumEntry => writer.write(' ' + nameWithQuote(enumEntry.name)))
         writer.write(")))")
     }
 

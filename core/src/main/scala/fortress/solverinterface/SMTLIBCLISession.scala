@@ -217,7 +217,7 @@ trait SMTLIBCLISession extends solver {
                 if (smtValueToDomainElement.keySet.contains(value))
                     smtValueToDomainElement(value)
                 else
-                    DomainElement.interpretName(NameConverter.nameWithoutAffix(value)).get
+                    DomainElement.interpretName(NameConverter.nameWithoutQuote(value)).get
             }
             case BoolSort => value match {
                 case "true" => Top

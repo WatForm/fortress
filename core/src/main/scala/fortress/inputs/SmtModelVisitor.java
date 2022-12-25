@@ -70,7 +70,7 @@ public class SmtModelVisitor extends SmtLibVisitor{
         // '(' 'declare-fun' ID '(' sort* ')' sort ')'    # declare_fun
         assert ctx.sort().size()==1 : "There shouldn't be more than one sort in the declare-fun of return smt model.";
         Sort sort = (Sort)visit(ctx.sort(0));
-        String name = ctx.ID().getText();   //     H!val!0
+        String name = NameConverter.nameWithoutQuote(ctx.ID().getText());   //     H!val!0 (If function is quoted, the entire val thing is too)
         assert name.matches(pattern): "Parse error, exit code: 1";
         String[] temp = name.split("!val!");   // "H!val!0" => "H" "0"
         assert temp.length == 2: "Parse error, exit code: 2";
@@ -85,6 +85,7 @@ public class SmtModelVisitor extends SmtLibVisitor{
     @Override
     public Term visitVar(SmtLibSubsetParser.VarContext ctx) {
         String varName = ctx.getText();
+        varName = NameConverter.nameWithoutQuote(varName);
 //        if(smtValue2DomainElement.containsKey(varName)) {
 //            varName = this.smtValue2DomainElement.get(varName).toString();
 //            return DomainElement.interpretName(varName).get();
@@ -94,7 +95,7 @@ public class SmtModelVisitor extends SmtLibVisitor{
 
     @Override
     public AnnotatedVar visitSorted_var(SmtLibSubsetParser.Sorted_varContext ctx) {
-        String name = ctx.ID().getText();
+        String name = NameConverter.nameWithoutQuote(ctx.ID().getText());
         Var var = Term.mkVar(name);
         Sort sort = (Sort)visit(ctx.sort());
         return new AnnotatedVar(var, sort);
@@ -105,7 +106,7 @@ public class SmtModelVisitor extends SmtLibVisitor{
         //'(' 'define-fun' ID '(' sorted_var* ')' sort term ')'
         String name = ctx.ID().getText();
         // faa -> f
-        name = NameConverter.nameWithoutAffix(name);
+        name = NameConverter.nameWithoutQuote(name);
         int argNum = ctx.sorted_var().size();
 //        Set<AnnotatedVar> args = new HashSet<>();
         List<AnnotatedVar> args = new ArrayList<>();
