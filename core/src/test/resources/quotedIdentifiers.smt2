@@ -1,0 +1,7 @@
+(declare-sort |A| 0)
+(declare-const |x| |A|)
+(declare-const |!@##| |A|)
+(declare-fun |f| (|A|) |A|)
+(assert (not (= (|f| |x|) |!@##|)))
+(check-sat)
+(exit)

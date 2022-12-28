@@ -3,6 +3,7 @@ package fortress.msfol
 import fortress.util.Errors
 import scala.jdk.CollectionConverters._
 import scala.annotation.varargs // So we can call Scala varargs methods from Java
+import fortress.util.NameConverter
 
 /** A constant or function declaration, with sorts */
 sealed trait Declaration
@@ -34,10 +35,15 @@ case class FuncDecl private (name: String, argSorts: Seq[Sort], resultSort: Sort
 
 /** Factory for [[fortress.msfol.FuncDecl]] instances. */
 object FuncDecl {
-    def apply(name: String, sorts: Sort*): FuncDecl = FuncDecl(name, sorts.take(sorts.size - 1).toList, sorts.last)
-    
-    def mkFuncDecl(name: String, argSorts: java.util.List[Sort], resultSort: Sort): FuncDecl =
-        FuncDecl(name, argSorts.asScala.toList, resultSort)
+    def apply(name: String, sorts: Sort*): FuncDecl = {
+        val unquotedName = NameConverter.nameWithoutQuote(name)
+        FuncDecl(unquotedName, sorts.take(sorts.size - 1).toList, sorts.last)
+    }
+    def mkFuncDecl(name: String, argSorts: java.util.List[Sort], resultSort: Sort): FuncDecl = {
+        val unquotedName = NameConverter.nameWithoutQuote(name)
+        FuncDecl(unquotedName, argSorts.asScala.toList, resultSort)
+    }
+        
     
     @varargs
     def mkFuncDecl(name: String, sorts: Sort*): FuncDecl = {
@@ -46,7 +52,8 @@ object FuncDecl {
         for(i <- 0 to (sorts.size - 2)) {
             argSorts += sorts(i)
         }
-        FuncDecl(name, argSorts.toList, resultSort);
+        val unquotedName = NameConverter.nameWithoutQuote(name)
+        FuncDecl(unquotedName, argSorts.toList, resultSort);
     }
 }
 

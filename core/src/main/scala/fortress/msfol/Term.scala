@@ -8,6 +8,7 @@ import scala.annotation.varargs // So we can call Scala varargs methods from Jav
 
 import fortress.operations.TermOps._
 import scala.collection.convert.AsJavaConverters
+import fortress.util.NameConverter
 
 /** A syntactic Term in the logic. */
 sealed trait Term {
@@ -44,6 +45,7 @@ case object Bottom extends Term with LeafTerm with Value {
   */
 case class Var private(name: String) extends Term with LeafTerm {
     Errors.Internal.precondition(name.length > 0, "Cannot create variable with empty name")
+    Errors.Internal.precondition(! name.contains('|'), "Illegal character '|' in var name " + name + ".")
     
     override def toString: String = name
     def getName: String = name
@@ -59,13 +61,14 @@ extends ConcreteFactory[Var, String]((name: String) => new Var(name))
 with Caching[Var, String] {
 
     def apply(name: String): Var = {
+        // Remove bounding |...| from SMTLib... should this go here?
+        val unwrappedName = NameConverter.nameWithoutQuote(name)
         Errors.Internal.precondition(! Names.isIllegal(name), "Illegal variable name " + name)
         create(name)
     }
     
     private [msfol] def mkWithoutNameRestriction(name: String): Var = new Var(name)
 }
-
 case class EnumValue private (name: String) extends Term with LeafTerm with Value {
     Errors.Internal.precondition(name.length > 0)
     

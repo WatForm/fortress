@@ -427,4 +427,26 @@ class SmtLibParserTest extends UnitSuite {
         resultTheory.functionDefinitions should contain (fd_power2)
 
     }
+
+    test("quoted-values") {
+        val classLoader = getClass.getClassLoader
+        val file = new File(classLoader.getResource("quotedIdentifiers.smt2").getFile)
+        val fileStream = new FileInputStream(file)
+
+        val parser = new SmtLibParser
+        val resultTheory = parser.parse(fileStream).getOrElse(null)
+
+        val A = SortConst("A")
+        val x = Var("x")
+        val mess = Var("!@##")
+
+         val expected: Theory = Theory.empty
+            .withSorts(A)
+            .withConstants(x.of(A), mess.of(A))
+            .withFunctionDeclaration(FuncDecl("f", A, A))
+            .withAxiom(Not(Eq(App("f", x), mess)))
+        
+        resultTheory should be (expected)
+
+    }
 }

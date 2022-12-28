@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.ArrayList;
 import java.util.stream.Collectors;
 // import fortress.util.Errors;
+import fortress.util.NameConverter;
 
 import org.antlr.v4.runtime.misc.Interval;
 
@@ -208,13 +209,17 @@ public class SmtLibVisitor extends SmtLibSubsetBaseVisitor {
         return null;
     }
 
+    
     @Override
     public AttributePair visitAttribute_id(SmtLibSubsetParser.Attribute_idContext ctx) {
-        String attributeName = ctx.ID(0).getText();
-        String attributeValue = ctx.ID(1).getText();
+        String attributeName = NameConverter.nameWithoutQuote(ctx.ID(0).getText());
+        String attributeValue = NameConverter.nameWithoutQuote(ctx.ID(1).getText());
+        System.out.println("--- '" + attributeValue+"'");
+        System.out.println("+++ '"+ ctx.ID(1).getText()+"'");
         return new AttributePair(attributeName, attributeValue);
     }
 
+    /*
     @Override
     public AttributePair visitAttribute_quote(SmtLibSubsetParser.Attribute_quoteContext ctx) {
         String attributeName = ctx.ID().getText();
@@ -223,10 +228,11 @@ public class SmtLibVisitor extends SmtLibSubsetBaseVisitor {
         String attributeValue = wholeQuote.substring(1, wholeQuote.length() - 1);
         return new AttributePair(attributeName, attributeValue);
     }
+    */
 
     @Override
     public AttributePair visitAttribute_string(SmtLibSubsetParser.Attribute_stringContext ctx) {
-        String attributeName = ctx.ID().getText();
+        String attributeName = NameConverter.nameWithoutQuote(ctx.ID().getText());
         // Chop off the quotes
         String wholeString = ctx.STRING().getText();
         String attributeValue = wholeString.substring(1, wholeString.length() - 1);
@@ -235,7 +241,7 @@ public class SmtLibVisitor extends SmtLibSubsetBaseVisitor {
 
     @Override
     public AttributePair visitAttribute_dec_digit(SmtLibSubsetParser.Attribute_dec_digitContext ctx) {
-        String attributeName = ctx.ID().getText();
+        String attributeName = NameConverter.nameWithoutQuote(ctx.ID().getText());
         // treat number as a string
         String attributeValue = ctx.DEC_DIGIT().getText();
         return new AttributePair(attributeName, attributeValue);
@@ -373,26 +379,29 @@ public class SmtLibVisitor extends SmtLibSubsetBaseVisitor {
 
     @Override
     public Term visitVar(SmtLibSubsetParser.VarContext ctx) {
-        return Term.mkVar(ctx.ID().getText());
+        String varName = NameConverter.nameWithoutQuote(ctx.ID().getText());
+        return Term.mkVar(varName);
     }
 
     @Override
     public VarTermPair visitLetbinding(SmtLibSubsetParser.LetbindingContext ctx) {
-        Var x = Term.mkVar(ctx.ID().getText());
+        String xName = NameConverter.nameWithoutQuote(ctx.ID().getText());
+        Var x = Term.mkVar(xName);
         Term t = (Term) visit(ctx.term()) ;
         return new VarTermPair(x, t) ;
     }
 
     @Override
     public AnnotatedVar visitBinding(SmtLibSubsetParser.BindingContext ctx) {
-        Var x = Term.mkVar(ctx.ID().getText());
+        String xName = NameConverter.nameWithoutQuote(ctx.ID().getText());
+        Var x = Term.mkVar(xName);
         Sort t = (Sort) visit(ctx.sort());
         return x.of(t);
     }
 
     @Override
     public Term visitApplication(SmtLibSubsetParser.ApplicationContext ctx) {
-        String function = ctx.ID().getText();
+        String function = NameConverter.nameWithoutQuote(ctx.ID().getText());
         List<Term> arguments = ctx.term().stream().map(
                 t -> (Term) visit(t)
         ).collect(Collectors.toList());
@@ -401,7 +410,7 @@ public class SmtLibVisitor extends SmtLibSubsetBaseVisitor {
 
     @Override
     public Term visitClosure(SmtLibSubsetParser.ClosureContext ctx) {
-        String function = ctx.ID().getText();
+        String function = NameConverter.nameWithoutQuote(ctx.ID().getText());
         List<Term> arguments = ctx.term().stream().map(
             t -> (Term) visit(t)
         ).collect(Collectors.toList());
@@ -410,7 +419,7 @@ public class SmtLibVisitor extends SmtLibSubsetBaseVisitor {
 
     @Override
     public Term visitReflexive_closure(SmtLibSubsetParser.Reflexive_closureContext ctx) {
-        String function = ctx.ID().getText();
+        String function = NameConverter.nameWithoutQuote(ctx.ID().getText());
         List<Term> arguments = ctx.term().stream().map(
             t -> (Term) visit(t)
         ).collect(Collectors.toList());
