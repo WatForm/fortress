@@ -58,13 +58,13 @@ class  SmtlibConversionTests extends UnitSuite {
                     .withEnumSort(A, _1A, _2A)
                     .withAxiom(App("P", Seq(x,y)))
 
-        theory.smtlib should be ("(declare-sort |B| 0)" +
-                                "(declare-datatypes () ((|A| |_@1A| |_@2A|)))" +
-                                "(declare-fun |f| (|A|) |B|)" +
-                                "(declare-fun |P| (|A| |B|) Bool)" +
-                                "(declare-const |x| |A|)" +
-                                "(declare-const |y| |B|)" +
-                                "(assert (|P| |x| |y|))")
+        theory.smtlib should be ("(declare-sort |B| 0)" + "\n" +
+                                "(declare-datatypes () ((|A| |_@1A| |_@2A|)))" + "\n" +
+                                "(declare-fun |f| (|A|) |B|)" + "\n" +
+                                "(declare-fun |P| (|A| |B|) Bool)" + "\n" +
+                                "(declare-const |x| |A|)" + "\n" +
+                                "(declare-const |y| |B|)" + "\n" +
+                                "(assert (|P| |x| |y|))" + "\n")
     }
     
     test("basic sorts") {
