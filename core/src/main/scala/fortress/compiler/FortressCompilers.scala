@@ -7,6 +7,61 @@ import fortress.modelfind._
 import fortress.symmetry._
 import scala.collection.mutable.ListBuffer
 
+
+abstract class ConstantsMethodCompiler() extends LogicCompiler {
+    override def transformerSequence: Seq[ProblemStateTransformer] = {
+        val transformerSequence = new scala.collection.mutable.ListBuffer[ProblemStateTransformer]
+        transformerSequence += TypecheckSanitizeTransformer
+        transformerSequence += EnumEliminationTransformer
+        transformerSequence += NnfTransformer
+        transformerSequence += ClosureEliminationEijckTransformer
+        transformerSequence += IntegerToBitVectorTransformer      
+        transformerSequence += SkolemizeTransformer
+        transformerSequence += new SymmetryBreakingTransformer(MonoFirstThenFunctionsFirstAnyOrder, DefaultSymmetryBreaker)
+        transformerSequence += StandardQuantifierExpansionTransformer
+        transformerSequence += RangeFormulaStandardTransformer
+        transformerSequence += new SimplifyTransformer
+        transformerSequence += DomainEliminationTransformer
+        transformerSequence.toList
+    }
+
+}
+
+abstract class DatatypeMethodNoRangeCompiler() extends LogicCompiler {
+    override def transformerSequence: Seq[ProblemStateTransformer] = {
+        val transformerSequence = new scala.collection.mutable.ListBuffer[ProblemStateTransformer]
+        transformerSequence += TypecheckSanitizeTransformer
+        transformerSequence += EnumEliminationTransformer
+        transformerSequence += NnfTransformer
+        transformerSequence += ClosureEliminationEijckTransformer
+        transformerSequence += IntegerToBitVectorTransformer      
+        transformerSequence += new SymmetryBreakingTransformer(MonoFirstThenFunctionsFirstAnyOrder, DefaultSymmetryBreaker)
+        transformerSequence += new SimplifyTransformer
+        transformerSequence += DatatypeTransformer
+        transformerSequence.toList
+    }
+
+}
+
+abstract class DatatypeMethodWithRangeCompiler() extends LogicCompiler {
+    override def transformerSequence: Seq[ProblemStateTransformer] = {
+        val transformerSequence = new scala.collection.mutable.ListBuffer[ProblemStateTransformer]
+        transformerSequence += TypecheckSanitizeTransformer
+        transformerSequence += EnumEliminationTransformer
+        transformerSequence += NnfTransformer
+        transformerSequence += ClosureEliminationEijckTransformer
+        transformerSequence += IntegerToBitVectorTransformer      
+        transformerSequence += new SymmetryBreakingTransformer(MonoFirstThenFunctionsFirstAnyOrder, DefaultSymmetryBreaker)
+        transformerSequence += RangeFormulaStandardTransformer
+        transformerSequence += new SimplifyTransformer
+        transformerSequence += DatatypeTransformer
+        transformerSequence.toList
+    }
+
+}
+
+
+
 /**
   * The standard Fortress compiler steps.
   */
@@ -204,7 +259,7 @@ class PredUpperBoundCompiler extends LogicCompiler {
     override def transformerSequence: Seq[ProblemStateTransformer] = {
         val transformerSequence = new scala.collection.mutable.ListBuffer[ProblemStateTransformer]
         transformerSequence += TypecheckSanitizeTransformer
-        transformerSequence += new ScopeNonExactPredicatesTransformer // Must be before skolemization
+        transformerSequence += ScopeNonExactPredicatesTransformer // Must be before skolemization
         transformerSequence += EnumEliminationTransformer
         transformerSequence += SortInferenceTransformer
         transformerSequence += NnfTransformer
@@ -219,7 +274,7 @@ class PredUpperBoundCompiler extends LogicCompiler {
 }
 
 /**
-  * A compiler designed to allow manual addition of transformers to thr transformer sequence
+  * A compiler designed to allow manual addition of transformers to the transformer sequence
   *
   */
 class ConfigurableCompiler(transformers: ListBuffer[ProblemStateTransformer]) extends LogicCompiler {

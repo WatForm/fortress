@@ -46,6 +46,8 @@ class TermStructureTypeCheckTest extends UnitSuite {
         }
     }
     
+    // We now allow this
+    /*
     test("quantifier inside ite condition") {
         val sig = Signature.empty
             .withSort(A)
@@ -55,4 +57,5 @@ class TermStructureTypeCheckTest extends UnitSuite {
             t.typeCheck(sig)
         }
     }
+    */
 }

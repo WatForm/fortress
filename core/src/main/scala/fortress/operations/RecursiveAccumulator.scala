@@ -130,4 +130,20 @@ object RecursiveAccumulator {
         case Forall(vars, body) => freeVariablesIn(body) diff (vars map (_.variable)).toSet
         case IfThenElse(condition, ifTrue, ifFalse) => freeVariablesIn(condition) union freeVariablesIn(ifTrue) union freeVariablesIn(ifFalse)
     }
+
+    /** Accumulates the names of relations that appear in [Reflexive]Closure(...), ignoring those inside a Not
+     */
+    object NonNegativeClosureAccumulator extends NaturalSetAccumulation[String] {
+            
+            override val exceptionalMappings: PartialFunction[Term, Set[String]] = {
+                case Not(_) => Set.empty[String]
+                case Closure(fname, _, _, _) => Set(fname)
+                case ReflexiveClosure(fname, _, _, _) => Set(fname)
+            }
+            
+            def apply(term: Term): Set[String] = naturalRecur(term)
+    }
+    def nonNegativeClosures(term: Term): Set[String] = {
+        NonNegativeClosureAccumulator(term)
+    }
 }

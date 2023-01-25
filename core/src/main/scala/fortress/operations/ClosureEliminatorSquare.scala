@@ -56,7 +56,7 @@ class ClosureEliminatorSquare(topLevelTerm: Term, signature: Signature, scopes: 
                 // Make the next squared level
                 val iterationName = functionName + "^" + iter.toString()
                 val iterationDecl = FuncDecl(iterationName, Seq(sort, sort) ++ fixedSorts, Sort.Bool)
-                closureFunctions += iterationDecl
+                auxilaryFunctions += iterationDecl
                 // Define it
                 closureAxioms += Forall(axy ++ fixedArgVars,
                     Iff(App(iterationName, Seq(x, y) ++ fixedVars),

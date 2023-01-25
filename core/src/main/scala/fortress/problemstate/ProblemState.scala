@@ -26,9 +26,16 @@ case class ProblemState private(
 ) {
 //    Errors.Internal.precondition(scopes.values.forall(_. > 0), "Scopes must be positive")
     // allow setting scope for IntSort but not other builtins
-    Errors.Internal.precondition(scopes.keySet.forall( (x:Sort) => !x.isBuiltin || x == IntSort))
+    // Errors.Internal.precondition(scopes.keySet.forall( (x:Sort) => !x.isBuiltin || x == IntSort))
     // All scoped sorts are within the theory or IntSort
-    Errors.Internal.precondition(scopes.keySet subsetOf theory.sorts + IntSort)
+    // Errors.Internal.precondition(scopes.keySet subsetOf theory.sorts + IntSort)
+
+    // All bitvectors are properly sized
+    Errors.Internal.precondition(scopes.keySet.forall( (x:Sort) => x match {
+        case BitVectorSort(bitwidth) => scopes(x).size == math.pow(2, bitwidth).toInt
+        case _ => true
+    }),
+    "Bitvector has incorrect size")
     
     // TODO add precondition that theory domain elements respect the scopes
 
@@ -43,6 +50,9 @@ case class ProblemState private(
             distinctConstants)
     }
     def withScopes(newscopes: Map[Sort, Scope]): ProblemState = {
+        val unchangingScopeSorts = scopes.filter((scopeInfo: (Sort, Scope)) => scopeInfo._2.isUnchanging)
+        // Check that every unchanging scope is unchanged
+        Errors.Internal.precondition(unchangingScopeSorts.forall((scopeInfo: (Sort, Scope)) => newscopes.get(scopeInfo._1) == Some(scopeInfo._2)), "Attempted to change an unchanging scope!")
         new ProblemState(            
             theory,    
             newscopes, // replaces just the scopes
@@ -65,7 +75,7 @@ object ProblemState {
         }.toMap
 
         // Check there is no conflict between the enum scopes and the provided scopes
-        Errors.Internal.precondition(fortress.util.Maps.noConflict(enumScopes, scopes))
+        Errors.Internal.precondition(fortress.util.Maps.noConflict(enumScopes, scopes), "Conflict between enums and provide scopes")
 
         new ProblemState(
             theory,

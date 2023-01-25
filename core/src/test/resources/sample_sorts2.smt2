@@ -6,6 +6,7 @@ This is just a test really.
 |)
 
 (set-info :nonexact-scope "(A 1)(B 2)")
+(set-info :unchanging-scope "(B)")
 
 (set-logic UF)
 (declare-sort A 0) (declare-sort B 0)

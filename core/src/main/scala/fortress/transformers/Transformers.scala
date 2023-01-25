@@ -18,7 +18,14 @@ object Transformers {
             transformerName = transformerName.substring(transformerName.length() - 11)
         }
         transformerName match {
-            case "closureeliminationiterative" => ClosureEliminationIterativeTransformer
+            case "closureeliminationiterative" | "ceiterative" | "iterative" => ClosureEliminationIterativeTransformer
+            case "closureeliminationeijck" | "ceeijck" | "eijck" => ClosureEliminationEijckTransformer
+            case "closureeliminationliu" | "celiu" | "liu" => ClosureEliminationLiuTransformer
+            case "closureeliminationsquare" | "cesquare" | "square" => ClosureEliminationSquareTransformer
+            case "closureeliminationclaessen" | "ceclaessen" | "claessen" => ClosureEliminationClaessenTransformer
+            case "closureeliminationvakili" | "cevakili" | "vakili"
+                | "closureeliminationnegative" | "cenegative" | "negativece" | "negative" 
+                => ClosureEliminationVakiliTransformer
             case "datatype" => DatatypeTransformer
             case "domainelimination" => DomainEliminationTransformer
             case "domainelimination2" | "domaineliminationtransformer2" => new DomainEliminationTransformer2()
@@ -27,7 +34,7 @@ object Transformers {
             case "nnf" => NnfTransformer
             case "quantifierexpansion" => mkQuantifierExpansionTransformer()
             case "rangeformula" | "rangeformulastandard" => RangeFormulaStandardTransformer
-            case "scopenonexactpredicatestype" => new ScopeNonExactPredicatesTransformer()
+            case "scopenonexactpredicatestype" => ScopeNonExactPredicatesTransformer
             case "simplifylearnedliterals" => new SimplifyLearnedLiteralsTransformer()
             case "simplify" => new SimplifyTransformer()
             case "simplify2" | "simplifytransformer2" => new SimplifyTransformer2()
@@ -52,7 +59,7 @@ object Transformers {
     def mkNnfTransformer() = NnfTransformer
     def mkQuantifierExpansionTransformer(useConstForDomElim: Boolean = false, useSimplification: Boolean = false) = new QuantifierExpansionTransformer(useConstForDomElim, useSimplification)
     // def mkRangeFormulaTransformer(useConstForDomElim: Boolean = false) = new RangeFormulaStandardTransformer
-    def mkScopeNonExactPredicatesTransformer() = new ScopeNonExactPredicatesTransformer()
+    def mkScopeNonExactPredicatesTransformer() = ScopeNonExactPredicatesTransformer
     def mkSimplifyLearnedLiteralsTransformer() = new SimplifyLearnedLiteralsTransformer()
     def mkSimplifyTransformer() = new SimplifyTransformer()
     def mkSimplifyTransformer2() = new SimplifyTransformer2()

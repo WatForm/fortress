@@ -57,7 +57,7 @@ class ClosureEliminatorEijck(topLevelTerm: Term, signature: Signature, scopes: M
 
             val closenessArgs: List[Sort] = List(sort, sort, sort)
 
-            closureFunctions += FuncDecl.mkFuncDecl(closenessName, (Seq(sort, sort, sort) ++ fixedSorts).asJava, Sort.Bool)
+            auxilaryFunctions += FuncDecl.mkFuncDecl(closenessName, (Seq(sort, sort, sort) ++ fixedSorts).asJava, Sort.Bool)
             
             val x = Var(nameGen.freshName("x"))
             val y = Var(nameGen.freshName("y"))

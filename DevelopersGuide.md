@@ -1,90 +1,389 @@
-
 # Fortress Developer's Guide
 
-This document contains information on how the fortress library is structured and design decisions on its implementation
+This document contains information on how the Fortress library is structured and design decisions in its implementation.
 
 ## Fortress Terminology
 
 * Sorts and constants/functions declared create a `Signature`.  
 * `Terms`/formulas are built using the msfol package.  
 * A signature and a list of terms together create a `Theory`. 
-* A `ProblemState` contains a theory, scopes for the sorts, and additional information that is used throughout the fortress process.
+* A `ProblemState` contains
+    - a theory 
+    - scopes for the sorts 
+    - unapply (see below)
+    - rangeRestricts (where added? symmetry and range formulas - duplicate info?)
+    - anything else?
+* Elements of a bounded sort are called `domain elements`.
+* A sort scope can be 
+    - `unbound` or `bound` (with a scope size)=
+    - `exact` or `inexact`
+    - `changeable` or `unchangeable` (once)
+* Built-in sorts:
+    - Integers are separated into:
+        + IntSort - an integer - it may or may not have a bound
+        + UnboundedIntSort - no bound
+        + BoundedIntSort - an integer of a bounded size
+        + These three sorts are needed to indicate if the user is requiring the integer to be of a certain bound/unbounded (BoundedIntSort/UnboundedIntSort) or if fortress is allowed to determine whether an int can be left unbounded or not. 
+        + The MSFMF problem can include a mixture of the above; each dealt with appropriately.
+        + The numeric operations are of different sorts for the argument types above.
+    - BV(x) - a bit vector of width x; its scope is always 2^x
 * An `operation` takes a term and applies a transformation to it.
 Examples of operations are converting to negation normal form, performing sort inference, simplification, and skolemization.
-* A `TheoryTransformer` or `ProblemStateTransformer` takes a `Theory` or `ProblemState` respectively and converts them into a new `Theory` or `ProblemState`by applying a transformation to all terms of the theory (using an operation usually).  Examples of transformers are converting to negation normal form, performing sort inference, simplification, and skolemization.
-* Transformations often need to be undone once a solution is found, and so the transformer writes instructions on how to undo its operation on the `ProblemState`.
+* A `TheoryTransformer` or `ProblemStateTransformer` takes a `Theory` or `ProblemState` respectively and converts them into a new `Theory` or `ProblemState`by applying a transformation to all terms of the theory (using an operation usually).  Examples of transformers are converting to negation normal form, performing sort inference, symmetry breaking, adding range formulas.
+* Transformations often need to be undone once a solution is found, and so the transformer writes instructions (called `unapply`) in the problem state on how to undo its operation on an interpretation of the ProblemState to make it understandable to the user in terms of the original theory.
 * A sequence of transformers is combined to create a `Compiler`.  Thus, a compiler takes as input a problem state and produces as output the problem state resulting from the sequence of transformations.
 * The compiler also outputs instructions on how to undo all of its transformations to an interpretation.
 * A `SolverSession` is an interface to an SMT solver.
-* A `ModelFinder` is the top-level interface for fortress used to search for satisfying interpretations to a `Theory` under the given scopes.  Within the model finder, we set the theory, scopes, and other options, and we can invoke its solving methods.
+* A `ModelFinder` is the top-level interface for fortress used to search for satisfying interpretations to a `ProblemState`.  Within the model finder, we set the theory, scopes, and other options, and we can invoke its solving methods.
 
-## Basic Algorithm of Fortress
+## Basic Algorithms of Fortress
 
-Two problems are "equivalent" when every interpretation satisfies one if and only if it satisfies the other.
-In order for two problems to be equivalent, they must have the same signature (otherwise it doesn't make sense to evaluate them using the same interpretation).
+Fortress applies a ModelFinder to an problem state.  The steps of a model finder are: 1) apply a compiler (a sequence of transformers) and 2) convert the problem to SMT-LIB and pass the problem to a solver.  Alternatively, it can use the API of an SMT solver directly.
 
-Two problems are "equisatisfiable" when the answer to the question of their satisfiability is the same: that is, either both are SAT or both are UNSAT.
-Equivalent problems are always equisatisfiable, but equisatisfiable problems need not be equivalent.
-Equisatisfiable problems do not need to have the same signature; the only thing that matters is the answer to their satisfiability questions is the same.
+There are three standard model finders available in Fortress, which differ in the compiler used.  In all existing model finders, the non-incremental Z3 solver is used.
 
-Elements of a bounded sort are called domain elements.
-The "unbounded" version of problem is the problem obtained by removing the scopes on any bound sorts.
+1. Constants Method
 
-A problem is "formulaically bound" if the following condition holds: the only interpretations that satisfy the unbounded version of the problem are those that satisfy the original (bounded) version.
-If a problem is formulaically bound, it is equisatisfiable with its unbounded version.
+This is the method described in the original paper on Fortress where a finite set of distinct constants (called domain elements) are created to represent the values of elements in the sort, quantifier expansion is done over these domain elements and every function application/constant in the theory is constrained to return a value of the sort (these constraints are called range formulas).  To optimize the resulting problem for solving, simplication and symmetry reduction axioms are included as transformers.  This method results in a theory in EUF - a decidable subset of FOL, which is passed to the solver.
 
-The basic algorithm that Fortress implements consists of the following steps.
+2. Datatype Method
+
+SMT solvers provide datatypes declarations where the values of a sort can be enumerated.  In this method, datatype values are created for domain values.  Range axioms are not needed.  Symmetry reduction axioms are added.
+* __is quantifier expansion needed__?
+* __is it decidable__
+
+3. Minimal Method
+
+In this method, only typechecking is done so that the SMT solver can work with the problem directly. The problem may not be decidable.
+
+Please see the code for the sequence of transformers used for each method
+above.
+
+There are also a number of experimental model finders present in the code that implement various forms of symmetry breaking in the constants method:
++ FortressZERO - no symmetry breaking
++ FortressONE - Claessen and Sorensson symmetry breaking only
++ FortressTWO - functions first for symmetry breaking
++ FortressTWO_SI - sort inference then functions first for symmetry breaking
++ FortressTHREE - Claessen and Sorensson, RDI, RDD, ladder
++ FortressTHREE_SI - sort inference then Claessen and Sorensson, RDI, RDD, ladder
++ FortressFOUR_SI - trial of adding heuristics to fortress three si
 
 
-1. Negation Normal Form (NNF): The formulas of the problem are transformed into negation normal form, where negations are pushed down as far as possible into the formulas. The resulting problem is equivalent to the original problem.
+## Attributes of problemState
 
-2. Skolemization: Existential quantifiers are eliminated by replacing them with functions and constants that act as witnesses for the existential quantifiers.
-The signature is changed by the introduction of new functions and constants.
-This operation must be performed after putting formulas into negation normal form, as otherwise it is impossible to tell which quantifiers are truly existential (since negations change quantifiers).
-Given this condition however, the resulting problem is equisatisfiable to the input problem.
+* typechecked 
+    - boolean within problemState
+* defn 
+    - there are definitions in the theory
+    - can check in theory
+    - it's possible to have in input theory
+* nnf 
+    - boolean within problemState
+* onlyForall 
+    - the axioms of the theory contain only universal quantifiers
+    - boolean within problemState
+* noQuant
+    - the axioms of the theory contain no quantifiers 
+    - boolean within problemState
+* decidable 
+    - the axioms of the theory are within a decidable subset of predicate logic
+    - boolean within problemState
+* unbounded 
+    - there are unbounded sorts in the problemSate
+    - can check in sorts of problemState
+* int
+    - the built-in IntSort is used in the theory 
+    - boolean within problemState
+* tc 
+    - transitive closure is used in the axioms of the theory
+    - boolean within problemState)
+* exactScope 
+    - all scopes are finite and exact
+    - boolean within problemState
+* enum
+    - contains enums 
+    - can we check this in the theory? 
+* de 
+    - where are these stores?
+    - can we check this within the theory?
+* datatype 
+    - possible to have in input theory
+    - can we check this in the theory?
 
-3. Symmetry Breaking: Additional constraints are added to reduce the number of interpretations that need to be checked by the solver.
-The resulting problem is equisatisfiable to the input to this step.
+Anything that changes the scopes needs to be noted.
 
-4. Universal Quantifier Expansion: Universal quantifiers of bounded sorts are expanded by taking each possible instantiation of the domain elements and then taking their conjunction.
-The resulting problem is equivalent to the input to this step.
+We use !attribute to mean not having the attribute as in !nnf.
 
-5. Simplification: The formulas are simplified as much as possible.
-The resulting problem is equivalent to the input of this step.
+If an attribute of the problemState is not mentioned below when describing
+the transformers, then its value does not change
 
-6. Range Formulas: Range formulas are introduced, which use the domain elements of the bounded scopes to explicitly list the possible output values of each function and constant.
-These range formulas are quantifier-free, and do not introduce any more quantifiers after universal expansion.
-The resulting problem is both equisatisfiable to the input to this step and *formulaically bound*.
+Modifies can contain: theory (signature, axioms), problemState (scopes, rangeRestricts, unapply)
 
-7. Domain Elimination: Constants are introduced to "simulate" the domain elements.
-Specifically, for each domain element in the problem, a unique constant is generated.
-It is asserted that these constants are mutually distinct from each other.
-The domain elements are then replaced with their respective constants.
-The resulting problem is equisatisfiable to the input to this step, and contains no domain elements.
-This operation also maintains the property of being formulaically bound. 
+## Transformers
 
-8. SMT solving: The problem is converted into a format that is accepted by an SMT solver (the problem contains no domain elements, so this can be done).
-The SMT solver is then invoked.
-Whatever result the solver returns is returned to the user.
+Below is a brief description of the transformers implemented in Fortress.
+Some transformers below are for experimentation and thus not used in
 
-After applying the above transformations to a problem with bounds for every sort, the final problem is:
-* equisatisfiable to the original problem, and
-* formulaically bound (so its scopes can be removed).
-All that Fortress needs to guarantee is that after its transformations, the final problem is equisatisfiable to the first input problem.
+* TypecheckSanitizeTransformer @Nancy
+    - theory -> theory
+    - no change in theory
+    - purpose:
+        + performs typechecking (no type inference) on theory
+        + can handle defns
+        + what does it return if it fails?
+        + replace instances of Eq with Iff
+ * when comparing Bool sort
+    - methods: all
+    - preconditions: none
+    - modifies: axioms
+    - postconditions: typechecked
+    - unapply: none
 
-If the original problem gives a scope for every sort, then because of the universal expansion step, there are no quantifiers in the final unbounded problem sent to the SMT solver.
-Such problems fall under the fragment of first-order logic called the logic of equality with uninterpreted functions (EUF), which is decidable.
-In SMT literature, this logic is called the logic of quantifier-free uninterpreted functions (QF_UF).
-SMT solvers are decision procedures for such problems, and therefore so too is Fortress.
+* ScopesNonExactPredicatesTransformer @Xintong
+    - problemState -> problemState
+    - purpose: set up predicates for non-exact scopes
+    - methods: constants, datatype
+    - preconditions: typechecked
+    - modifies: theory, add predicate function declarations and modify the axioms
+    - postconditions: exactScopes
+    - unapply: 
+      - remove predicate functions, like  `__@Pred_A`
+      - for each sort, remove domain elements whose predicate value is `false`
+    
+* EnumEliminationTransformer @Nancy
+    - problemState -> problemState
+    - purpose: 
+        - enums become domain elements (?)
+    - methods: all
+    - preconditions: typechecked
+    - modifies: signature
+    - postconditions: !enum 
+    - unapply: Enums (?)
 
-The fortress library includes a number of options for the above steps.
+
+* AxiomatizeDefinitionsTransformer @Xintong
+    - problemState -> problemState
+    - purpose:
+        + turn the defns into axioms and defn names become uninterpreted functions
+    - methods: constants, datatype
+    - preconditions: typechecked
+    - modifies: theory, adds axioms and function declarations
+    - postcondition: !defns
+    - unapply: remove the introduced functions
+
+* Handling Integers (use one of these) 
+    - IntegerToBitVectors @Xintong
+        + problemState -> problemState
+        + purpose:
+            * IntSort replaced with BV(x) when bound on IntSort is 2^x otherwise exception
+            * changes axioms to replace IntSort with BV(x) everywhere
+            * removes IntSort from sorts
+        + preconditions: typechecked
+        + postconditions: !ints
+        + unapply: ??
+    - NoOverflow @Owen
+        + problemState -> problemState
+        + purpose:
+            * ????
+            * converts formulas for Alloy no overflow semantics
+            * removes IntSort from sorts
+        + methods: constants, datatype
+        + preconditions: typechecked
+        + postconditions: !ints
+        + unapply: ??
+    - LIATransformer @Xintong
+        + problemState -> problemState
+        + purpose:
+            - determines whether each axiom is within linear arithmetic (LIA); if the axiom includes function calls over numeric values???
+            - determines if a constant or variable is only used only within axioms that are within (LIA), it changes the sorts and operations on these values to be UnboundedInts
+            - removes IntSort and BoundedInts from scope table if they are no longer present in the problem??
+        + methods: any
+        + preconditions: typechecked
+        + postconditions: no change
+        + unapply: none ?
+     
+
+
+* Transitive Closure (use one of these) @Owen
+    - ClosureNegativeTransformer
+        + problemState -> problemState
+        + purpose:
+            * if the tc of an expr with regular (RT) if TC is used only negativesly
+            * replaces the tc with a new, uninterpreted, axiomatixed function (RT)
+            * adds axioms (in nnf) for the behavior of RT
+            * may still be negative uses of tc remaining
+            * raises exception if no bound on sort of TC relation ????
+        + methods: constants, datatype, minimal
+        + preconditions: nnf, typechecked
+        + modifies: existings axioms and adds axioms
+        + postconditions: nnf, !skolemized, !noQuant, !onlyForall
+        + unapply: removes all functions it created from the interpretation; no need to replace RT with TC because TC is an operation
+
+    - ClosureEliminationEijckTransformer
+    - ClosureEliminationLiuTransformer
+    - ClosureEliminationClaessenTransformer
+        + problemState -> problemState
+        + purpose:
+            * remove all uses of transitive closure
+            * replaces the tc with a new, uninterpreted, axiomatized function
+            * adds axioms (in nnf) for the behavior of RT
+            * may still be negative uses of tc remaining
+            * raises exception if no bound on sort of TC relation ????
+        + methods: constants, datatype, minimal
+        + preconditions: typechecked
+        + postconditions: !tc, nnf, !skolemized, !noQuant, !onlyForall
+        + unapply: removes all functions it created from the interpretation; no need to replace RT with TC because TC is an operation
+    
+* SortInferenceTransformer    @Nancy
+    - theory -> theory
+    - purpose: 
+        + infer sorts for more symmetry SymmetryBreaking
+    - methods: constants, datatype
+    - preconditions: typechecked, !defns
+    - modifies: 
+        + add newly found sorts to signature 
+        + changes types of constants/functions in signature 
+        + modifies axioms with new sorts
+    - postconditions: no change
+    - unapply: ??
+
+
+* NnfTransformer @Xintong
+    - theory -> theory
+    - purpose: 
+        + put all axioms in nnf (removes =>, <=>, pushes negations in)
+    - methods: constants, datatype
+    - preconditions: nodefs, typechecked
+    - modifies: axioms 
+    - postconditions: nnf
+    - unapply: none
+* PnfTransformer (not yet written)
+    - not yet implemented
+* SkolemizeTransformer @Xintong
+    - theory -> theory
+    - purpose:
+        + skolemize all axioms
+        + skolem constants/functions are added to the signature
+    - methods: constants, datatype
+    - preconditions: nodefs, typechecked, nnf
+    - postconditions: nodefs, typechecked, nnf, onlyForall
+    - unapply: remove constants and functions introduced by skolemization.
+
+
+* Symmetry @Nancy
+    - SymmetryBreakingMonoOnlyAnyOrder
+    - SymmetryBreakingFunctionsFirstAnyOrder
+    - SymmetryBreakingMonoFirstThenFunctionsFirstAnyOrder
+    - SymmetryBreakingLowArityFirstMostUsedFunctionFirstOrderFactory
+      * symmetry axioms are quantifier-free
+
+* StandardQuantifierExpansionTransformer @Nancy
+    - purpose:
+        + remove all universal quantifiers
+        + replace with the conjunction of the substitution all domain element values
+        + all bound scopes become unchangeable
+    - methods: constants
+    - preconditions: onlyForall, !defn, typechecked
+    - modifies: axioms
+    - postcondition: !quantifiers
+    - unapply: none
+
+* RangeFormulas @Nancy
+    - RangeFormulaStandardTransformer 
+        + purpose: 
+            * introduce range formulas using domain elements to axioms
+            * if not already limited by symmetry breaking
+            * all bound scopes become unchangeable
+            * range formulas are quantifier-free
+        + methods: constants
+        + preconditions:
+        + modifies: axioms, scopes
+        + postconditions: de
+        + unapply: ?
+    - RangeFormulaUseConstantsTransformer
+        + purpose
+            * introduce range formulas using constants
+            * if not already limited by symmetry breaking)
+            * all bound scopes become unchangeable      |
+
+
+* Simplify @Owen
+    - Note: most of these likely can be combined. Simplifiers for specific methods just won't simplify for others.
+    - Note: None of these unapply
+    - Note: It is probably best to use these after adding range restrictions and quantifier expansion (second to last transformer).
+    - SimplifyTransformer
+        + Purpose
+            * Reduces double negations and negation of Boolean constants
+            * Simplify `AndList` and `OrList` containing Boolean constants
+            * Simplify `Implication` and `Iff` s containing Boolean constants
+            * Simplify `Eq` of domain elements
+            * Simplify `Eq` of the same variable (`Eq(Var('x'), Var('x'))`) or where they have different interpretations
+            * Simplify `Eq` with identical content
+            * Simplifies `Exists` and `Forall` to remove unused variables
+            * Simplifies `ITE` with known condition
+        + methods: any
+        + preconditions: none
+        + postconditions: none
+    - SplitConjunctionTransformer
+        + Purpose
+            * Splits all top-level conjunct formulas into separate formulas
+        + methods: any
+        + preconditions: none
+        + postconditions: none
+    - SimplifyLearnedLiteralsTransformer
+        + Purpose
+            * Same as `SimplifyTransformer` unless otherwise stated
+            * Replaces subterms with any learned literal during the simplification process
+        + methods: any
+        + preconditions: none
+        + postconditions: none
+    - SimplifyTransfomer2
+        + Purpose
+            * Same as `SimplifyTransformer` unless otherwise stated
+            * Only checks `Eq` for left and right being equal
+        + methods: any
+        + preconditions: none
+        + postconditions: none
+    - SimplifyWithRangeTransformer
+        + Purpose
+            * Same as `SimplifyTransformer` unless otherwise stated
+            * Uses range restrictions to check if equality between a term and a domain element is impossible
+        + methods: any
+        + preconditions: none
+        + postconditions: none
+
+
+* DomainElimination @Owen
+    - DomainEliminationTransformer
+        + purpose:
+            * add constant to theory for each domain element
+            * add axiom that these constants are mutually distinct
+            * replace DEs with constants
+            * remove DEs from theory (?)
+        + methods: constants
+        + preconditions: !tc, !ints ...
+        + postconditions: !de, euf
+    - DomainEliminationTransformer2
+        + non-exact scopes by non-distinct constants - to remove       |
+    - DatatypeTransformer
+        + purpose:
+            * replace DEs with datatypes
+            * adds datatype definition to theory
+        + methods: datatypes
+
+## Solvers
+
+* non-incremental Z3 session
+* CVC5 session
+* Z3 API
+
 
 ## Fortress Architecture and Design Decisions
 
 The following refer to the packages that are part of Fortress.
 
 ### msfol
-* Methods to create sorts, constants, functions (including built-ins), terms, and theories.  
+* Methods to create sorts, constants, functions (including built-ins), terms, and theories.
 * a signature is created using 'with' methods in Signature.scala
 * Names.scala checks for illegal names
 * In MSFOL, there is a difference between *constants*, which like functions are declared parts of the theory and accessible in all of the terms, and *variables* which are used for quantification within terms. Fortress retains this distinction, but to simplify term construction, both are created using `Var` objects.
@@ -95,9 +394,9 @@ The following refer to the packages that are part of Fortress.
     + Otherwise, it is a constant.
 * Enums are constants in MSFOL that are distinct and cover all possible elements of the sort. They are distinct from domain elements (also a kind of term), which are the values of the sorts used internally in fortress.  Not all sorts have enums, but all sorts have domain elements for FMF.  Domain elements are used to create range formulas.  Enums are converted to domain elements by a transformer (below).  The DomainEliminationTransformer (below) is the last step in fortress to convert all domain elements to mutually distinct constants so that the problem can be solved by an MSFOL solver.
 * terms are created using the methods in Term.scala:
-    - EnumValue is a kind of term. DomainElement is also a kind of term.   
+    - EnumValue is a kind of term. DomainElement is also a kind of term.
     - To create a quantified variable use mkVar(x).of(Sort); this is not a term, it is an AnnotatedVar(Declaration), which can be passed as an argument to create a quantified term.
-    - All have toString methods defined.  
+    - All have toString methods defined.
     - Sorts are not stored in terms except for sorts of quantified variables.
 * DSL.scala is a small DSL for MSFOL to help write terms rather than going through Term interface always.  @TBA: where are some examples of the use of this DSL.
 * @TBA: something about explicit/implicit caching
@@ -106,11 +405,11 @@ The following refer to the packages that are part of Fortress.
 * Theories are immutable and persistent.
     - Methods like `withAxiom` and `withFunctionDeclarations` don't mutate `Theory` objects - they instead create new `Theory` objects.
     - If there is a reference to it, the original theory object is still usable.
-    Consider the following code:
+      Consider the following code:
 ```java
 Var p = mkVar("p");
-Theory theory1 = Theory.empty().withConstants(p.of(Sort.Bool())).withAxiom(p);
-Theory theory2 = theory1.withAxiom(mkNot(p));
+        Theory theory1 = Theory.empty().withConstants(p.of(Sort.Bool())).withAxiom(p);
+        Theory theory2 = theory1.withAxiom(mkNot(p));
 ```
 The `theory2` object contains both the axioms `p` and `mkNot(p)`.
 The `theory1` object still exists and contains just the axiom `p`.
@@ -120,28 +419,28 @@ The `theory1` object still exists and contains just the axiom `p`.
 Consider the following code:
 ```java
 Var p = mkVar("p");
-Var p_ = mkVar("p");
-Theory theory1 = Theory.empty().withConstants(p.of(Sort.Bool())).withAxiom(p_);
-Theory theory2 = Theory.empty().withConstants(mkVar("p").of(Sort.Bool())).withAxiom(p);
+        Var p_ = mkVar("p");
+        Theory theory1 = Theory.empty().withConstants(p.of(Sort.Bool())).withAxiom(p_);
+        Theory theory2 = Theory.empty().withConstants(mkVar("p").of(Sort.Bool())).withAxiom(p);
 ```
 While `p`, `p_` and `mkVar("p")` might be different Java objects in memory, they can all be used interchangeably and mean the same thing when used to construct terms.
 
 ### inputs
 * This is the code that maps TPTP or SMT-LIB files into a theory.  This code is in java (rather than scala).
 * TheoryParser: the general class for parsing a file into a theory.
-    - TptpFofParser 
+    - TptpFofParser
         + an instance of a TheoryParser for TPTP
         + relies on TptpToFortress (visitors over the antlr grammar for TPTP to produce a theory; formulas, fcn declarations, and prime propositions are collected separately and then added to the theory after visiting the file.
-        + TPTP files are unsorted so only the universeSort is used. The universeSort is not built-in.  It is declared as a sort constant. 
-        + Not yet supported: infix <~> for non-equivalence(XOR),  infix ~| for negated disjunction (NOR), infix ~& for negated conjunction (NAND) 
+        + TPTP files are unsorted so only the universeSort is used. The universeSort is not built-in.  It is declared as a sort constant.
+        + Not yet supported: infix <~> for non-equivalence(XOR),  infix ~| for negated disjunction (NOR), infix ~& for negated conjunction (NAND)
     - SmtLibParser
         + an instances of a TheoryParser for SMT-LIB
-        + relies on SmtLibVisitor to convert the parsed data into a theory using visitors over the antlr grammar for SMT-LIB. 
-        + info and logic from the SMT-LIB parser are not used further in Fortress. 
-        + Bool and Int sorts are mapped to Fortress' built-in Bool and Int sorts. 
-        + Let statements (parallel substitution) are substituted to create terms. 
-        + Ignores check-sat commands.  
-        + Not yet supported: Right/Left bitshift, unsigned div/rem, and, or, not, concat bit operations; abs val for ints.  
+        + relies on SmtLibVisitor to convert the parsed data into a theory using visitors over the antlr grammar for SMT-LIB.
+        + info and logic from the SMT-LIB parser are not used further in Fortress.
+        + Bool and Int sorts are mapped to Fortress' built-in Bool and Int sorts.
+        + Let statements (parallel substitution) are substituted to create terms.
+        + Ignores check-sat commands.
+        + Not yet supported: Right/Left bitshift, unsigned div/rem, and, or, not, concat bit operations; abs val for ints.
 
 ### antlr
 * FOFTPTP.g4 - parses TPTP
@@ -151,14 +450,14 @@ While `p`, `p_` and `mkVar("p")` might be different Java objects in memory, they
 * Functions for performing sort inference
 
 ### operations
-* Operations apply to terms. To apply an operation to a term/theory using "wrap" as in 
+* Operations apply to terms. To apply an operation to a term/theory using "wrap" as in
 ```
 operation.wrapTerm(t:term)
 operation.wrapTheory(t:theory)
 ```
 * Examples of operations
     - ClosureEliminator: under development for transitive closure
-    - DeBruijnConverter: converts a term to a term with DeBruijn var # (rather than names) 
+    - DeBruijnConverter: converts a term to a term with DeBruijn var # (rather than names)
     - InterpretationVerifier: verifies that an interpretation satisfies a theory.
     - NormalForms: converts a theory/term to nnf; conversion to prenex normal form is not yet implemented.
     - QuantifierExpander/QuantifierExpanderSimplifier
@@ -167,48 +466,41 @@ operation.wrapTheory(t:theory)
     - RecursiveEliminators
         + replaces enumvalues/domain elements in terms with constants.
     - Simplification/Simplification2/SimplificationWithLearnedLiterals
-        + some simple simplifications (not true == false, two domain elements are not equal) 
+        + some simple simplifications (not true == false, two domain elements are not equal)
         + Without the simplification step, Z3 takes a significantly longer time to run.
     - SimplificationWithRange
-        + like the previous operation, but range restrictions are passed as an argument and used to simplify formulas. 
+        + like the previous operation, but range restrictions are passed as an argument and used to simplify formulas.
     - Skolemizer
         + skolemizes a term, which produces a new term, skolem constants and functions.
-     - SmtlibConversion
-        +  converts a term to the strings needed for SMT-LIB. 
+    - SmtlibConversion
+        +  converts a term to the strings needed for SMT-LIB.
         +  We add suffixes "aa" to all variable and function names when converting to SMT-LIB to avoid having reserved keywords as identifiers. And when reading the results, we remove all the suffixes added.
     - Substitution
-        + substitutes a term for a variable in a term.  Performs needed alpha-renaming to avoid variable capture. 
+        + substitutes a term for a variable in a term.  Performs needed alpha-renaming to avoid variable capture.
         + FastSubstitutor does a bunch of substitutions in parallel.
     - TermConvertor
-        + Converts Ints to Signed Bit Vector operations. 
-    - TermMetrics: 
+        + Converts Ints to Signed Bit Vector operations.
+    - TermMetrics:
         + various metrics on terms (depth of quantification, depth of nested functions, number of nodes in a term)
     - TermVisitorWithTypeContext/TypeChecker
-        + typechecks a term.  
-        + Builds the context of quantified variables and their types.  
+        + typechecks a term.
+        + Builds the context of quantified variables and their types.
         + All primitive term parts (constants, variables, function declarations are explicitly typed) sorted so there is no type inference here.
 * Some helper code:
     - RecursiveAccumulator
         + functions that collect things like free variables, domain elements, constants, functions in a term.
     - RecursivePatterns:
-        + apply a function recursively over terms.     
+        + apply a function recursively over terms.
 
 ### transformers
-* All the operations that transform a theory or a problem state. 
-* contains ProblemStateTransformers and TheoryTransformers 
-* `apply` method 
+* All the operations that transform a theory or a problem state.
+* contains ProblemStateTransformers and TheoryTransformers
+* `apply` method
     - takes a theory and creates a problem state
     - takes a theory and scopes and creates a problem state
     - takes a problem state and produces a problem state
 - `asProblemStateTransformer` for a theoryTransformer it into a problem state transformer
 * With respect to efficiency, each transformer may walk over the entire theory.  After quantifier expansion, theories can be quite large and in the future, we may wish to integrate some transformers for efficiency.
-* mostly the list of transformers matches the list of operations with the following additions:
-    - DomainEliminationTransformer:
-    - EnumEliminationTransformer: replace enum elements with constants; assert these constants are distinct
-    - IntegerFinitization: under development
-    - RangeFormulaTransformer/RangeFormulaTransformer_NoElision: adds range formulas
-    - SortInferenceTransformer: infers new sort; adds these sorts; unapply reverses the sort substitution
-    - SymmetryBreaking: adds symmetry breaking constraints to the theory
 
 ### symmetry
 * code for adding symmetry breaking
@@ -217,17 +509,17 @@ operation.wrapTheory(t:theory)
 
 ### compiler
 A packaging mechanism for a sequence of transformations.
-* LogicCompiler 
+* LogicCompiler
     - The "compile" method takes a theory and scopes, and returns either CompilerError of CompilerResult (theory,decompileInterpretation,skipForNextInterpretation )
-* TransformationCompiler 
+* TransformationCompiler
     - The "compile" method builds a problem state and applies transformers.
-* BaseFortressCompiler 
+* BaseFortressCompiler
     - Defines the transformer sequence usually applied, parameterized by symmetry breaking transformers.
 * FortressCompilers: Define the fortress compilers (Zero, ONE, etc) as the BaseFortressCompilers plus certain symmetry breaking.
     - Defines the SimpleModelFinder which exposes the compiler and interface to direct control from the user
 
 ### solverinterface
-* These are ways of connecting to external solvers.  
+* These are ways of connecting to external solvers.
 * Main methods are:
 1) setTheory - takes a theory (returns Unit)
 2) addAxiom - takes an axiom and adds it to the theory (returns Unit)
@@ -235,18 +527,18 @@ A packaging mechanism for a sequence of transformations.
 4) solution - returns the interpretation from the solver
 * Fortress has a general SolverSession interface
 * We found that using the term building (API) interfaces of SMT solvers was very slow.  Our best guess is that this is because the Z3 API performs some kind of typechecking when expressions are constructed, so recursively building terms bottom-up repeatedly invokes the typechecker at each expression construction, greatly slowing the process.
-* So now fortress converts a theory to a string in SMT-LIB and this can be passed to any SMT-LIB solver.  
-* We use Java'a ProcessBuilder class to manage an interactive session with the solver.  
-* Currently we support Z3 and CVC4 and we map the returned instance back to fortress interpretations (ProcessSmtlibEvaluation).  
-* Interaction with the incremental solver via the process builder has not been well tested. 
+* So now fortress converts a theory to a string in SMT-LIB and this can be passed to any SMT-LIB solver.
+* We use Java'a ProcessBuilder class to manage an interactive session with the solver.
+* Currently we support Z3 and CVC4 and we map the returned instance back to fortress interpretations (ProcessSmtlibEvaluation).
+* Interaction with the incremental solver via the process builder has not been well tested.
 * SolverInterface: The main interface to the solvers implemented - creates sessions with particular solvers.
 * Code could probably be simplified
 * Seemingly innocuous name changes can have unexpected performance consequences.
-For example, changing the prefix used for domain constants from `@` to `%` (in order to be more compliant with the standards used by SMT solvers) caused performance in some tests to slow down, at least when using the Z3 Java API.
-Changing it to `_@` (also standards-compliant) improved performance again.
+  For example, changing the prefix used for domain constants from `@` to `%` (in order to be more compliant with the standards used by SMT solvers) caused performance in some tests to slow down, at least when using the Z3 Java API.
+  Changing it to `_@` (also standards-compliant) improved performance again.
 
 ### modelfind
-* ModelFinder is the main fortress interface.  
+* ModelFinder is the main fortress interface.
 * A model finder takes a solver and a theory as arguments and performs solving on the theory returning a result (and an interpretation when appropriate).
 * important methods:
 1) setTheory(theory: Theory): Unit
@@ -258,20 +550,11 @@ Changing it to `_@` (also standards-compliant) improved performance again.
 7) nextInterpretation(): ModelFinderResult
 8) countValidModels(newTheory: Theory): Int
 * Integer semantics can be: UnboundedSemantics, ModularSignedSemantics(bitwidth: Int)
-* The default ModelFinder is FortressZero.
-* The main ModelFinders defined (which depend on certain Compilers chosen):
-- FortressZERO - no symmetry breaking
-- FortressONE - Claessen and Sorensson symmetry breaking only
-- FortressTWO - functions first for symmetry breaking
-- FortressTWO_SI - sort inference then functions first for symmetry breaking
-- FortressTHREE - Claessen and Sorensson, RDI, RDD, ladder
-- FortressTHREE_SI - sort inference then Claessen and Sorensson, RDI, RDD, ladder
-- FortressFOUR_SI - trial of adding heuristics to fortress three si
 
 ### interpretation
 * data structures for representing the interpretation returned by a solver.
 * Interpretation
-    - includes maps for sorts, constants, and functions.  
+    - includes maps for sorts, constants, and functions.
     - can be turned into a String or turned into constraints
 
 ### data
@@ -283,7 +566,6 @@ Changing it to `_@` (also standards-compliant) improved performance again.
 
 ### logging
 * EventLogging is the main trait with different classes for recording timing for various processes.
-
 
 
 

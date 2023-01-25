@@ -55,6 +55,11 @@ case object ClosureEliminationOption extends ToggleOption(
     _.addTransformer(ClosureEliminationIterativeTransformer)
 )
 
+case class SimpleOption(optName: String, transformer: ProblemStateTransformer) extends ToggleOption(
+    optName,
+    _.addTransformer(transformer)
+)
+
 /*
  * Symmetry Breaking
  */

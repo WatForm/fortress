@@ -7,6 +7,7 @@ import fortress.operations.ClosureEliminator
 import fortress.operations.TheoryOps._
 import fortress.interpretation.Interpretation
 import fortress.problemstate._
+import fortress.operations.NormalForms
 
 /** Replaces transitive closure terms with a term representing the application of a new relation
  but with same arguments. **/
@@ -34,15 +35,28 @@ trait ClosureEliminationTransformer extends ProblemStateTransformer {
             val nameGenerator = new IntSuffixNameGenerator(forbiddenNames.toSet, 0)
             
             var resultTheory = theory.withoutAxioms
+            // TODO can we make the elimiator only once?
+            val closureFunctions = scala.collection.mutable.Set[FuncDecl]()
+            val auxilaryFunctions = scala.collection.mutable.Set[FuncDecl]()
             for(axiom <- theory.axioms) {
                 val closureEliminator = buildEliminator(axiom, resultTheory.signature, scopes, nameGenerator)
-                val newAxiom = closureEliminator.convert()
-                resultTheory = resultTheory.withFunctionDeclarations(closureEliminator.getClosureFunctions.toList)
-                resultTheory = resultTheory.withAxioms(closureEliminator.getClosureAxioms.toList)
+                // ensure nnf
+                val newAxiom = NormalForms.nnf(closureEliminator.convert())
+                resultTheory = resultTheory.withFunctionDeclarations(closureEliminator.getClosureFunctions)
+                closureFunctions ++= closureEliminator.getClosureFunctions
+                resultTheory = resultTheory.withFunctionDeclarations(closureEliminator.getAuxilaryFunctions)
+                auxilaryFunctions ++= closureEliminator.getAuxilaryFunctions
+                // New axioms must be in negation normal form
+                resultTheory = resultTheory.withAxioms(closureEliminator.getClosureAxioms.map(NormalForms.nnf))
                 resultTheory = resultTheory.withAxiom(newAxiom)
             }
+
+            // Remove the added functions
+            def unapply(interp: Interpretation) = {
+                interp.withoutFunctions(closureFunctions.toSet).withoutFunctions(auxilaryFunctions.toSet)
+            }
             
-            ProblemState(resultTheory, scopes, skc, skf, rangeRestricts, unapplyInterp, distinctConstants)
+            ProblemState(resultTheory, scopes, skc, skf, rangeRestricts, unapplyInterp :+ unapply, distinctConstants)
         }
     }
     

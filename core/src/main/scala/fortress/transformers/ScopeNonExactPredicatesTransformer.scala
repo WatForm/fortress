@@ -6,7 +6,7 @@ import fortress.operations._
 import fortress.operations.TheoryOps._
 import fortress.problemstate.ProblemState
 
-class ScopeNonExactPredicatesTransformer extends ProblemStateTransformer {
+object  ScopeNonExactPredicatesTransformer extends ProblemStateTransformer {
 
     override def apply(problemState: ProblemState): ProblemState = problemState match {
         case ProblemState(theory, scopes, skc, skf, rangeRestricts, unapplyInterp, distinctConstants) => {
@@ -51,13 +51,15 @@ class ScopeNonExactPredicatesTransformer extends ProblemStateTransformer {
             val unapply: Interpretation => Interpretation = {
                 interp => {
                     var resultInterp = interp
-                    for (pred <- scopeNonExactPreds) {  // for each subtype predicate funcDecl
-                        val sort: Sort = pred.argSorts.head // get argument sort
-                        // filter: get preds whose result sort is Top(True)
-                        val domainElements: Seq[Value] = interp.functionInterpretations(pred).toSeq.filter(pred => pred._2 == Top).map(_._1.head)
-                        resultInterp = resultInterp.updateSortInterpretations(sort, domainElements)
+                    val sortInterp: Map[Sort, Seq[Value]] = interp.sortInterpretations
+                    for(pred <- scopeNonExactPreds) {
+                        val sort: Sort = pred.argSorts.head
+                        val Interp: Seq[Value] = sortInterp(sort).filter(value => {
+                            interp.getFunctionValue(pred.name, Seq(value)) == Top
+                        })
+                        resultInterp = resultInterp.updateSortInterpretations(sort, Interp)
                     }
-                    resultInterp
+                    resultInterp.withoutFunctions(scopeNonExactPreds)
                 }
             }
 
