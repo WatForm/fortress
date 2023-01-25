@@ -31,6 +31,7 @@ object Transformers {
             case "domainelimination2" | "domaineliminationtransformer2" => new DomainEliminationTransformer2()
             case "enumelimination" => EnumEliminationTransformer
             case "integertobitvectors" | "integertobitvector" | "inttobv" | "int2bv" | "integer2bitvector" => IntegerToBitVectorTransformer
+            case "nooverflowbv" => NoOverflowBVTransformer
             case "nnf" => NnfTransformer
             case "quantifierexpansion" => mkQuantifierExpansionTransformer()
             case "rangeformula" | "rangeformulastandard" => RangeFormulaStandardTransformer
