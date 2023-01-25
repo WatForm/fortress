@@ -46,7 +46,7 @@ object Transformers {
             case "symmetrybreaking_noskolem" | "symmetrybreakingtransformer_noskolem" => Errors.API.doesNotExist("Use mkSymmetryBreakingTransformer_NoSkolem")
             case "symmetrybreaking" => Errors.API.doesNotExist("Use mkSymmetryBreakingTransformer")
             case "symmetrybreakingsi" | "symmetrybreakingtransformersi" => Errors.API.doesNotExist("Use mkSymmetryBreakingTransformerSI")
-            case "typechecksanitizer" => TypecheckSanitizeTransformer
+            case "typechecksanitizer" | "typecheck" | "typechecksanitize" => TypecheckSanitizeTransformer
             case _ => Errors.API.doesNotExist(name + " is not a recognized Transformer.")
         }
     }
