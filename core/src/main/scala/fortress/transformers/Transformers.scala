@@ -30,7 +30,7 @@ object Transformers {
             case "domainelimination" => DomainEliminationTransformer
             case "domainelimination2" | "domaineliminationtransformer2" => new DomainEliminationTransformer2()
             case "enumelimination" => EnumEliminationTransformer
-            case "integertobitvectors" => IntegerToBitVectorTransformer
+            case "integertobitvectors" | "integertobitvector" | "inttobv" | "int2bv" | "integer2bitvector" => IntegerToBitVectorTransformer
             case "nnf" => NnfTransformer
             case "quantifierexpansion" => mkQuantifierExpansionTransformer()
             case "rangeformula" | "rangeformulastandard" => RangeFormulaStandardTransformer
@@ -46,7 +46,7 @@ object Transformers {
             case "symmetrybreaking_noskolem" | "symmetrybreakingtransformer_noskolem" => Errors.API.doesNotExist("Use mkSymmetryBreakingTransformer_NoSkolem")
             case "symmetrybreaking" => Errors.API.doesNotExist("Use mkSymmetryBreakingTransformer")
             case "symmetrybreakingsi" | "symmetrybreakingtransformersi" => Errors.API.doesNotExist("Use mkSymmetryBreakingTransformerSI")
-            case "typechecksanitizer" => TypecheckSanitizeTransformer
+            case "typechecksanitizer" | "typecheck" | "typechecksanitize" => TypecheckSanitizeTransformer
             case _ => Errors.API.doesNotExist(name + " is not a recognized Transformer.")
         }
     }

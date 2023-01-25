@@ -16,6 +16,7 @@ import fortress.problemstate._
 
 import java.io.StringWriter
 import fortress.util.Dump
+import fortress.util.Milliseconds
 
 // This should eventually be more of an integration test
 // See https://www.scalatest.org/user_guide/sharing_tests
