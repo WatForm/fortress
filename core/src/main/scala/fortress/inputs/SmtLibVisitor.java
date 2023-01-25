@@ -79,7 +79,7 @@ public class SmtLibVisitor extends SmtLibSubsetBaseVisitor {
 
     @Override
     public Sort visitSort_name(SmtLibSubsetParser.Sort_nameContext ctx) {
-        Sort s = parseSort(ctx.ID().getText());
+        Sort s = parseSort(NameConverter.nameWithoutQuote(ctx.ID().getText()));
 
         if (!theory.signature().hasSort(s)) {
             theory = theory.withSort(s);
@@ -104,7 +104,8 @@ public class SmtLibVisitor extends SmtLibSubsetBaseVisitor {
 
     @Override
     public Void visitDeclare_const(SmtLibSubsetParser.Declare_constContext ctx) {
-        Var x = Term.mkVar(ctx.ID().getText());
+        //Var x = Term.mkVar(ctx.ID().getText());
+        Var x = Term.mkVar(NameConverter.nameWithoutQuote(ctx.ID().getText()));
         Sort sort = (Sort) visit(ctx.sort());
         theory = theory.withConstant(x.of(sort));
         return null;
@@ -115,11 +116,11 @@ public class SmtLibVisitor extends SmtLibSubsetBaseVisitor {
         int lastIndex = ctx.sort().size() - 1;
         if (lastIndex == 0) {
             // declare-fun used to declare-const
-            Var x = Term.mkVar(ctx.ID().getText());
+            Var x = Term.mkVar(NameConverter.nameWithoutQuote(ctx.ID().getText()));
             Sort sort = (Sort) visit(ctx.sort(lastIndex));
             theory = theory.withConstant(x.of(sort));
         } else {
-            String function = ctx.ID().getText();
+            String function = NameConverter.nameWithoutQuote(ctx.ID().getText());
             Sort returnSort = (Sort) visit(ctx.sort(lastIndex));
             List<Sort> argSorts = new ArrayList<>();
             for (int i = 0; i < lastIndex; i++) {
@@ -133,7 +134,7 @@ public class SmtLibVisitor extends SmtLibSubsetBaseVisitor {
 
     @Override
     public Void visitDefine_fun(SmtLibSubsetParser.Define_funContext ctx) { // '(' 'define-fun' ID '(' sorted_var* ')' sort term ')'
-        String funcName = ctx.ID().getText();
+        String funcName = NameConverter.nameWithoutQuote(ctx.ID().getText());
         int argNum = ctx.sorted_var().size();
         List<AnnotatedVar> argList = new ArrayList<>();
         for(int i=0; i<argNum; i++) {
@@ -148,7 +149,7 @@ public class SmtLibVisitor extends SmtLibSubsetBaseVisitor {
 
     @Override
     public AnnotatedVar visitSorted_var(SmtLibSubsetParser.Sorted_varContext ctx) {
-        String name = ctx.ID().getText();
+        String name = NameConverter.nameWithoutQuote(ctx.ID().getText());
         Var var = Term.mkVar(name);
         Sort sort = (Sort)visit(ctx.sort());
         return new AnnotatedVar(var, sort);
@@ -156,7 +157,7 @@ public class SmtLibVisitor extends SmtLibSubsetBaseVisitor {
 
     @Override
     public Void visitDeclare_sort(SmtLibSubsetParser.Declare_sortContext ctx) {
-        Sort t = Sort.mkSortConst(ctx.ID().getText());
+        Sort t = Sort.mkSortConst(NameConverter.nameWithoutQuote(ctx.ID().getText()));
         // Parser requires this number to be 0 now (no more NAT_NUMBER)
         // int n = Integer.parseInt(ctx.NAT_NUMBER().getText());
         // if (n != 0) throw new ParserException("Sort declared with non-zero parameters");
@@ -193,7 +194,7 @@ public class SmtLibVisitor extends SmtLibSubsetBaseVisitor {
 
     @Override
     public Void visitSet_logic(SmtLibSubsetParser.Set_logicContext ctx) {
-        logic = Optional.of(ctx.ID().getText());
+        logic = Optional.of(NameConverter.nameWithoutQuote(ctx.ID().getText()));
         return null;
     }
 
