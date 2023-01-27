@@ -26,14 +26,22 @@ public class SmtLibVisitor extends SmtLibSubsetBaseVisitor {
     private Map<String, String> info;
     private Optional<String> logic;
 
+    // Used to determine if we treat functions named `closure` as transitive closure or not
+    private boolean usingSmtPlus = false;
+
     protected int numAxioms;
 
-    public SmtLibVisitor() {
+    public SmtLibVisitor(boolean usingSmtPlus) {
         this.theory = Theory.empty();
         this.info = new HashMap<>();
         this.logic = Optional.empty();
         this.numAxioms = 0;
+        this.usingSmtPlus = usingSmtPlus;
     }
+    public SmtLibVisitor(){
+        this(false);
+    }
+
 
     public Theory getTheory() {
         return theory;
@@ -45,6 +53,14 @@ public class SmtLibVisitor extends SmtLibSubsetBaseVisitor {
 
     public Optional<String> getLogic() {
         return logic;
+    }
+
+    public boolean usingSmtPlus(){
+        return this.usingSmtPlus;
+    }
+
+    public void setUsingSmtPlus(boolean value){
+        this.usingSmtPlus = value;
     }
 
     private static class AttributePair {
@@ -215,8 +231,8 @@ public class SmtLibVisitor extends SmtLibSubsetBaseVisitor {
     public AttributePair visitAttribute_id(SmtLibSubsetParser.Attribute_idContext ctx) {
         String attributeName = NameConverter.nameWithoutQuote(ctx.ID(0).getText());
         String attributeValue = NameConverter.nameWithoutQuote(ctx.ID(1).getText());
-        System.out.println("--- '" + attributeValue+"'");
-        System.out.println("+++ '"+ ctx.ID(1).getText()+"'");
+        //System.out.println("--- '" + attributeValue+"'");
+        //System.out.println("+++ '"+ ctx.ID(1).getText()+"'");
         return new AttributePair(attributeName, attributeValue);
     }
 
@@ -403,12 +419,41 @@ public class SmtLibVisitor extends SmtLibSubsetBaseVisitor {
     @Override
     public Term visitApplication(SmtLibSubsetParser.ApplicationContext ctx) {
         String function = NameConverter.nameWithoutQuote(ctx.ID().getText());
+
         List<Term> arguments = ctx.term().stream().map(
                 t -> (Term) visit(t)
         ).collect(Collectors.toList());
+
+        // We treat "closure as a transitive closure if using smt+"
+        if (usingSmtPlus && (function.equals("closure") || function.equals("reflexive-closure")) ){
+            // Check that we have at least 2 args and the function name
+            if (arguments.size() < 3){
+                throw new ParserException("Error at " + ctx.start.toString() + " closure must have at least 3 arguments. Got " + arguments.size()+".");
+            }
+            String functionName;
+            try{
+                functionName = ((Var)arguments.get(0)).getName();
+            } catch (ClassCastException e){
+                throw new ParserException("Trying to make closure, but function name could not be found.");
+            }
+            // Don't include the name
+            // the first two arguments are the start and end of the closure
+            Term start = arguments.get(1);
+            Term end = arguments.get(2);
+            List<Term> fixedArguments = arguments.subList(3, arguments.size());
+
+            if(function.equals("closure")){
+                return Term.mkClosure(functionName, start, end, fixedArguments);
+            } else{
+                return Term.mkReflexiveClosure(functionName, start, end, fixedArguments);
+            }
+        } 
+
+        // Otherwise just treat as a function application
         return Term.mkApp(function, arguments);
     }
 
+    /*
     @Override
     public Term visitClosure(SmtLibSubsetParser.ClosureContext ctx) {
         String function = NameConverter.nameWithoutQuote(ctx.ID().getText());
@@ -417,6 +462,7 @@ public class SmtLibVisitor extends SmtLibSubsetBaseVisitor {
         ).collect(Collectors.toList());
         return Term.mkClosure(function, arguments.get(0), arguments.get(1), arguments.subList(2, arguments.size()));
     }
+    
 
     @Override
     public Term visitReflexive_closure(SmtLibSubsetParser.Reflexive_closureContext ctx) {
@@ -426,6 +472,7 @@ public class SmtLibVisitor extends SmtLibSubsetBaseVisitor {
         ).collect(Collectors.toList());
         return Term.mkReflexiveClosure(function, arguments.get(0), arguments.get(1), arguments.subList(2, arguments.size()));
     }
+    */
 
     @Override
     public Term visitTerm_with_attributes(SmtLibSubsetParser.Term_with_attributesContext ctx) {

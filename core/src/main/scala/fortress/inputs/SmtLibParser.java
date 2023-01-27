@@ -18,10 +18,17 @@ public class SmtLibParser implements TheoryParser {
     
     private Map<String, String> info;
     private Optional<String> logic;
+
+    private boolean usingSmtPlus;
     
-    public SmtLibParser() {
+    public SmtLibParser(boolean usingSmtPlus) {
         this.info = new HashMap<>();
         this.logic = Optional.empty();
+        this.usingSmtPlus = usingSmtPlus;
+    }
+
+    public SmtLibParser(){
+        this(false);
     }
     
     @Override
@@ -37,7 +44,7 @@ public class SmtLibParser implements TheoryParser {
         ParseTree tree = parser.commands();
         if (parser.getNumberOfSyntaxErrors() >= 1)
             return null;
-        SmtLibVisitor visitor = new SmtLibVisitor();
+        SmtLibVisitor visitor = new SmtLibVisitor(usingSmtPlus);
         visitor.visit(tree);
         Theory resultTheory = visitor.getTheory();
         this.info = visitor.getInfo();
@@ -48,6 +55,13 @@ public class SmtLibParser implements TheoryParser {
     @Override
     public Either<Errors.ParserError, Theory> parse(String filePath) throws IOException {
         InputStream inputStream = new FileInputStream(filePath);
+
+        if (filePath.endsWith(".smt+")){
+            usingSmtPlus = true;
+        } else {
+            usingSmtPlus = false;
+        }
+
         return parse(inputStream);
     }
     

@@ -47,8 +47,8 @@ term : 'true'                                         # true
      | '(' '!' term term_attribute+ ')'               # term_with_attributes
      | ID                                             # var
      // Expanded to support closures
-     | '(' 'closure' ID term term term* ')'           # closure
-     | '(' 'reflexive-closure' ID term term term* ')' # reflexive_closure   
+     //| '(' 'closure' ID term term term* ')'           # closure
+     //| '(' 'reflexive-closure' ID term term term* ')' # reflexive_closure   
 
 // Integers
      | NUMBER                                         # int_literal
