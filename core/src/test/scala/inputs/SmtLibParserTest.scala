@@ -330,7 +330,7 @@ class SmtLibParserTest extends UnitSuite {
         val file = new File(classLoader.getResource("closure1.smt2").getFile)
         val fileStream = new FileInputStream(file)
 
-        val parser = new SmtLibParser
+        val parser = new SmtLibParser(true)
         val resultTheory = parser.parse(fileStream).getOrElse(null)
         
         val A = SortConst("A")
@@ -351,7 +351,7 @@ class SmtLibParserTest extends UnitSuite {
         val file = new File(classLoader.getResource("reflexive_closure1.smt2").getFile)
         val fileStream = new FileInputStream(file)
 
-        val parser = new SmtLibParser
+        val parser = new SmtLibParser(true)
         val resultTheory = parser.parse(fileStream).getOrElse(null)
         
         val A = SortConst("A")
