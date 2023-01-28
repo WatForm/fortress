@@ -164,6 +164,9 @@ case class Signature private (
     
     def queryFunction(name: String, argSorts: Seq[Sort], resultSort: Sort): Option[FuncDecl] =
         functionDeclarations.find(_ == FuncDecl(name, argSorts, resultSort))
+
+    def queryFuncDef(name: String, argSorts: Seq[Sort]): Option[FunctionDefinition] =
+        functionDefinitions.find(fdef => fdef.name == name && fdef.argSorts == argSorts)
     
     def queryUninterpretedFunction(name: String): Option[FuncDecl] =
         functionDeclarations.find(fdecl => fdecl.name == name)
@@ -177,6 +180,8 @@ case class Signature private (
     def hasFuncDefWithName(name: String): Boolean = functionDefinitions.exists(_.name == name)
     
     def functionWithName(name: String): Option[FuncDecl] = functionDeclarations.find(_.name == name)
+
+    def funcDefWithName(name: String): Option[FunctionDefinition] = functionDefinitions.find(_.name == name)
     
     def replaceIntegersWithBitVectors(bitwidth: Int): Signature = {
         def replaceSort(s: Sort): Sort = s match {

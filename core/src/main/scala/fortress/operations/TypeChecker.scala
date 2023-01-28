@@ -177,18 +177,32 @@ class TypeChecker(signature: Signature) extends TermVisitorWithTypeContext[TypeC
         // 1. types match function declaration
         // 2. arguments contain no connectives or quantifiers
         val funcName = app.functionName
-        
+
         if(! ( (signature hasFuncDeclWithName funcName) || (signature hasFuncDefWithName funcName) ) ) {
             throw new TypeCheckException.UnknownFunction("Could not find function: " + funcName)
         }
-        
+
+        // true: an application of a function *declaration*
+        // false: an application of a function *definition*
+        val flag: Boolean = signature hasFuncDeclWithName funcName
         val results = app.arguments.map(visit)
         val argSorts = results.map(_.sort)
-        
-        val fdecl = signature.queryFunction(funcName, argSorts) match {
-            case None => throw new TypeCheckException.WrongSort(signature.functionWithName(funcName).get.toString + " cannot accept argument sorts " + argSorts.toString + " in " + app.toString)
-            case Some(fdecl) => fdecl
+        val resultSort: Sort = if (flag) {
+            signature.queryFunction(funcName, argSorts) match {
+                case None => throw new TypeCheckException.WrongSort(signature.functionWithName(funcName).get.toString + " cannot accept argument sorts " + argSorts.toString + " in " + app.toString)
+                case Some(fdecl) => fdecl.resultSort
+            }
+        } else {
+            signature.queryFuncDef(funcName, argSorts) match {
+                case None => throw new TypeCheckException.WrongSort(signature.funcDefWithName(funcName).get.toString + " cannot accept argument sorts " + argSorts.toString + " in " + app.toString)
+                case Some(fdef) => fdef.resultSort
+            }
         }
+        
+//        val fdecl = signature.queryFunction(funcName, argSorts) match {
+//            case None => throw new TypeCheckException.WrongSort(signature.functionWithName(funcName).get.toString + " cannot accept argument sorts " + argSorts.toString + " in " + app.toString)
+//            case Some(fdecl) => fdecl
+//        }
         
         if(results exists (_.containsQuantifiers)) {
             throw new TypeCheckException.BadStructure("Argument of " + funcName + " contains quantifier")
@@ -196,7 +210,7 @@ class TypeChecker(signature: Signature) extends TermVisitorWithTypeContext[TypeC
         
         TypeCheckResult(
             sanitizedTerm = App(funcName, results map (_.sanitizedTerm)),
-            sort = fdecl.resultSort,
+            sort = resultSort,
             containsConnectives = results exists (_.containsConnectives),
             containsQuantifiers = false
         )

@@ -24,6 +24,8 @@ case class FunctionDefinition(name: String, argSortedVar: Seq[AnnotatedVar], res
         str = str + "): " + resultSort.toString + " = { " + body.toString + "}\n"
         str
     }
+
+    def argSorts: Seq[Sort] = for(av <- argSortedVar) yield av.sort
 }
 
 object FunctionDefinition {
