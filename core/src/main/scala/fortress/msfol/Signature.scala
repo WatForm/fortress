@@ -178,9 +178,11 @@ case class Signature private (
     def hasFuncDeclWithName(name: String): Boolean = functionDeclarations.exists(_.name == name)
 
     def hasFuncDefWithName(name: String): Boolean = functionDefinitions.exists(_.name == name)
-    
+
+    // get a function declaration by name
     def functionWithName(name: String): Option[FuncDecl] = functionDeclarations.find(_.name == name)
 
+    // get a function definition by name
     def funcDefWithName(name: String): Option[FunctionDefinition] = functionDefinitions.find(_.name == name)
     
     def replaceIntegersWithBitVectors(bitwidth: Int): Signature = {
