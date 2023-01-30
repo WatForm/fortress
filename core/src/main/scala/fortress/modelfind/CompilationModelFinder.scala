@@ -17,10 +17,10 @@ extends ModelFinder
 with ModelFinderSettings {
 
     // Counts the total time elapsed
-    private val totalTimer: StopWatch = new StopWatch()
-    private var compiler: Option[LogicCompiler] = None
-    private var solverSession: Option[solver] = None
-    private var compilerResult: Option[CompilerResult] = None
+    protected val totalTimer: StopWatch = new StopWatch()
+    protected var compiler: Option[LogicCompiler] = None
+    protected var solverSession: Option[solver] = None
+    protected var compilerResult: Option[CompilerResult] = None
 
     /** Create a compiler using the given integer semantics. */
     protected def createCompiler(): LogicCompiler
@@ -51,7 +51,7 @@ with ModelFinderSettings {
     }
     
     // Returns the final ModelFinderResult
-    private def solverPhase(finalTheory: Theory): ModelFinderResult = {
+    protected def solverPhase(finalTheory: Theory): ModelFinderResult = {
         notifyLoggers(_.invokingSolverStrategy())
         
         // Close solver session, if one exists
