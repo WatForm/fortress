@@ -16,11 +16,9 @@ import fortress.problemstate._
 abstract class SimpleIncrementalModelFinder(solverInterface: SolverInterface)
 extends CompilationModelFinder(solverInterface) {
 
-    protected def createCompiler(): LogicCompiler
-
     override def checkSat(): ModelFinderResult = {
         /*
-            Cannot use incremental soling, since al the sorts are assigned with scopes.
+            Cannot use incremental soling if all the sorts are assigned with scopes.
             Just throw out an error.
          */
         Errors.Internal.precondition(

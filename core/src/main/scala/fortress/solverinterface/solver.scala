@@ -11,6 +11,8 @@ trait solver extends AutoCloseable {
     def solve(timeoutMillis: Milliseconds): ModelFinderResult
     def solution: Interpretation
 
+    def unsatCore: String
+
     @throws(classOf[java.io.IOException])
     override def close(): Unit
 }

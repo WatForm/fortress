@@ -79,6 +79,12 @@ class PredUpperBoundModelFinder(solverInterface: SolverInterface) extends Compil
     override def createCompiler(): LogicCompiler = new PredUpperBoundCompiler
 }
 
+class NativeIncrementalModelFinder(solverInterface: SolverInterface) extends SimpleIncrementalModelFinder(solverInterface) {
+    def this() = this(Z3IncCliInterface)
+
+    override def createCompiler(): LogicCompiler = new FortressTHREECompiler
+}
+
 class ConfigurableModelFinder(solverInterface: SolverInterface, configManager: Manager) extends CompilationModelFinder(solverInterface) {
     def this(configManager: Manager) = this(Z3IncCliInterface, configManager)
 
@@ -98,6 +104,7 @@ object FortressModelFinders {
             case "four" | "fortressfour" => Some(new FortressFOUR(solverInterface))
             case "four_si" | "fortressfour_si" => Some(new FortressFOUR_SI(solverInterface))
             case "mixed_scope" =>Some( new PredUpperBoundModelFinder(solverInterface))
+            case "native_incremental" => Some(new NativeIncrementalModelFinder(solverInterface))
             case _ => None
         }
     }

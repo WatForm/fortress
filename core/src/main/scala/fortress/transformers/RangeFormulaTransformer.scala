@@ -6,6 +6,7 @@ import fortress.operations.TermOps._
 import fortress.util.Errors
 import fortress.data.CartesianSeqProduct
 import fortress.problemstate.ProblemState
+import fortress.msfol.DSL._
 
 import scala.math.min
 
@@ -18,7 +19,7 @@ import scala.math.min
   *
   * @param useConstForDomElem if true, inserts domain elements as constants; if false, inserts domain elements directly (should be defaulted to false)
   */
-private[transformers] class RangeFormulaTransformer (useConstForDomElem: Boolean) extends ProblemStateTransformer {
+private[transformers] class RangeFormulaTransformer (useConstForDomElem: Boolean, isIncremental: Boolean) extends ProblemStateTransformer {
     
     private def DE(index: Integer, sort: Sort): Term =
         if (useConstForDomElem) DomainElement(index, sort).asSmtConstant
@@ -34,7 +35,11 @@ private[transformers] class RangeFormulaTransformer (useConstForDomElem: Boolean
                 if ! (rangeRestricts exists (_.term == c.variable))
             } yield {
                 val possibleValues = for(i <- 1 to scopes(c.sort).size) yield DE(i, c.sort)
-                val rangeFormula = c.variable equalsOneOf possibleValues
+                val rangeFormula = if(isIncremental) {
+                    Or.smart( (possibleValues map (_ === c.variable)) :+ Var(c.sort.name + "_GT"))
+                } else {
+                    c.variable equalsOneOf possibleValues
+                }
                 rangeFormula
             }
 
@@ -74,7 +79,11 @@ private[transformers] class RangeFormulaTransformer (useConstForDomElem: Boolean
                     if(quantifiedVarsBuffer.nonEmpty) {
                         functionRangeConstraints += Forall(quantifiedVars, app equalsOneOf possibleRangeValues)
                     } else if (! (rangeRestricts exists (_.term == app))) { // Don't generate constraints for terms that are already restricted
-                        functionRangeConstraints += app equalsOneOf possibleRangeValues
+                        if(isIncremental) {
+                            Or.smart( (possibleRangeValues map (_ === app)) :+ Var(f.resultSort.name + "_GT"))
+                        } else {
+                            functionRangeConstraints += app equalsOneOf possibleRangeValues
+                        }
                     }
                 }
             }
@@ -93,12 +102,16 @@ private[transformers] class RangeFormulaTransformer (useConstForDomElem: Boolean
     override def name: String = "Range Formula Transformer"
 }
 
-object RangeFormulaStandardTransformer extends RangeFormulaTransformer(false) {
+object RangeFormulaStandardTransformer extends RangeFormulaTransformer(false, false) {
     override def name: String = "Range Formula Standard Transformer"
 }
 
-object RangeFormulaUseConstantsTransformer extends RangeFormulaTransformer(true) {
+object RangeFormulaUseConstantsTransformer extends RangeFormulaTransformer(true, false) {
     override def name: String = "Range Formula Use ConstantsTransformer"
+}
+
+object IncrementalRangeFormulaTransformer extends RangeFormulaTransformer(false, true) {
+    override def name: String = "Incremental Range Formula Standard Transformer"
 }
 
 // 2022-07-15 NAD: not sure why this is here

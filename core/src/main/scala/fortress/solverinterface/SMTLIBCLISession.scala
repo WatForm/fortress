@@ -70,7 +70,14 @@ trait SMTLIBCLISession extends solver {
         }
     }
 
-    // return a model if the theory is satisfiable, used by func viewModel
+    override def unsatCore: String = {
+        processSession.get.write("(get-unsat-core)\n")
+        processSession.get.flush()
+        val line: String = processSession.get.readLine()
+        line
+    }
+
+    // return a model if the theory is satisfiable, used by function viewModel
     override def solution: Interpretation = {
         Errors.Internal.assertion(processSession.nonEmpty, "Cannot get instance without a live process")
 
