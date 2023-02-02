@@ -63,9 +63,9 @@ extends CompilationModelFinder(solverInterface) {
 //        }
 
         var scopeMap: Map[Sort, Scope] = {
-            var map = Map.empty
+            var map: Map[Sort, Scope] = Map.empty
             for(sort <- unboundedSorts) map = map + (sort -> ExactScope(1))
-            map + analysisScopes
+            map ++ analysisScopes
         }
 
         do {

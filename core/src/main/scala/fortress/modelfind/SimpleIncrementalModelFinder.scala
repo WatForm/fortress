@@ -50,7 +50,7 @@ extends CompilationModelFinder(solverInterface) {
                 if(!space.contains(tmp)) space.enqueue(tmp)
             }
             for(i <- 0 until unboundedSortNum) map = map + (unboundedSorts(i) -> ExactScope(scope(i)))
-            map + analysisScopes
+            map ++ analysisScopes
         }
 
         do {
