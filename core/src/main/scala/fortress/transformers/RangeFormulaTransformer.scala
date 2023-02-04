@@ -80,7 +80,7 @@ private[transformers] class RangeFormulaTransformer (useConstForDomElem: Boolean
                         functionRangeConstraints += Forall(quantifiedVars, app equalsOneOf possibleRangeValues)
                     } else if (! (rangeRestricts exists (_.term == app))) { // Don't generate constraints for terms that are already restricted
                         if(isIncremental) {
-                            Or.smart( (possibleRangeValues map (_ === app)) :+ Var(f.resultSort.name + "_GT"))
+                            functionRangeConstraints += Or.smart( (possibleRangeValues map (_ === app)) :+ Var(f.resultSort.name + "_GT"))
                         } else {
                             functionRangeConstraints += app equalsOneOf possibleRangeValues
                         }

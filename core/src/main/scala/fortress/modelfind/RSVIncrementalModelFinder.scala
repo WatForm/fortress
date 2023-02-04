@@ -38,8 +38,6 @@ extends CompilationModelFinder(solverInterface) {
         val unboundedSorts: IndexedSeq[Sort] = theory.sorts.filterNot(s => {
             analysisScopes.contains(s)
         }).toIndexedSeq
-        val unboundedSortNum = unboundedSorts.size
-//
 //        val minScope: IndexedSeq[Int] = for (i <- 1 to unboundedSortNum) yield 1
 //        val space = new mutable.Queue[IndexedSeq[Int]]
 //        space += minScope
@@ -98,6 +96,10 @@ extends CompilationModelFinder(solverInterface) {
         } while (result == UnsatResult)
 
         println("Got result in " + times + " times checking.")
+
+        if(result == SatResult) {
+            println("Scope: \n" + scopeMap.mkString("\n"))
+        }
         result
     }
 

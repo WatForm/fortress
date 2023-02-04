@@ -97,7 +97,8 @@ trait ModelFinder extends AutoCloseable {
 
 object ModelFinder {
     def createDefault(): ModelFinder = new FortressTHREE
-
     def NonExactScopeModelFinder(): ModelFinder = new PredUpperBoundModelFinder
+
+    def IncrementalModelFinder(): ModelFinder = new SmartIncrementalModelFinder
 }
 
