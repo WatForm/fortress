@@ -72,8 +72,8 @@ object ProblemState {
         // Compute the scopes for enum sorts
         // Copy whether the scope is fixed from the regular scope if applicable for compatibility
         def isFixed(sort: Sort) =
-            if (scopes contains sort) scopes(sort).isExact
-            else false
+            if (scopes contains sort) scopes(sort).isUnchanging
+            else true
         val enumScopes = theory.signature.enumConstants.map {
             case (sort, enumValues) => sort -> ExactScope(enumValues.size, isFixed(sort))
         }.toMap
