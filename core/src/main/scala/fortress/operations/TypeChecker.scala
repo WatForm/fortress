@@ -206,13 +206,14 @@ class TypeChecker(signature: Signature) extends TermVisitorWithTypeContext[TypeC
         val results = bapp.arguments.map(visit)
         val argSorts = results.map(_.sort)
         
+        /* This seems to be unnessecary and was restricting what we can support. Leaving it in comments just in case.
         if(results.exists(_.containsConnectives)) {
             throw new TypeCheckException.BadStructure("Argument of " + bapp.function.toString + " contains connective")
         }
         if(results.exists(_.containsQuantifiers)) {
             throw new TypeCheckException.BadStructure("Argument of " + bapp.function.toString + " contains quantifier")
         }
-        
+        */
         bapp.function.resultSortFromArgSorts(argSorts) match {
             case Some(resultSort) => TypeCheckResult(
                 sanitizedTerm = BuiltinApp(bapp.function, results.map(_.sanitizedTerm)), sort = resultSort,
