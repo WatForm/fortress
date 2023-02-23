@@ -63,18 +63,30 @@ class IntegerToSortConverter(min: Int, max: Int, newSort: Sort, nameGenerator: N
             }
             body
         }
-        def generateComparisonBody(op: (Int,Int) => Int): Term = {
-
+        // TODO clean this up somehow? Make the interpreted function cleaner?
+        // Could we just use the cast to int for comparisons?
+        // x is left value, y is right value
+        def generateComparisonBody(op: (Int,Int) => Boolean): Term = {
+            var body: Term = Bottom // default to false?
+            for (left <- Range(min, max+1)){
+                for (right <- Range(min, max+1)){
+                    val result =  if (op(left, right)) {Top} else {Bottom}
+                    // if x and y are what we checked, then it's the proper result.
+                    body = IfThenElse(And(Eq(x, intToConstants(left)), Eq(y, intToConstants(right))), result, body)
+                }
+            }
+            body
         }
+
         def generateFunctionDefinition2(nameBase: String, op: (Int, Int) => Int, checkDivZero: Boolean = false): FunctionDefinition = {
-            FunctionDefinition(nameGenerator.freshName(nameBase), axy, newSort, generateBody2(op, checkDivZero))
+            FunctionDefinition(nameGenerator.freshName(nameBase), axy, newSort, generateFunctionBody2(op, checkDivZero))
         }
         Map[BuiltinFunction, FunctionDefinition](
-            IntPlus -> generateDefinition2("+", _+_),
-            IntSub -> generateDefinition2("-", _-_),
-            IntMult -> generateDefinition2("*", _*_),
-            IntDiv -> generateDefinition2("/", _/_, true),
-            // TODO MOTE
+            IntPlus -> generateFunctionDefinition2("+", _+_),
+            IntSub -> generateFunctionDefinition2("-", _-_),
+            IntMult -> generateFunctionDefinition2("*", _*_),
+            IntDiv -> generateFunctionDefinition2("/", _/_, true),
+            // TODO MORE
         )
     }
     // A function to create a function declaration for a version of the builtin function using the new sort
@@ -156,15 +168,13 @@ class IntegerToSortConverter(min: Int, max: Int, newSort: Sort, nameGenerator: N
 
             // If already defined, just do that
             convertedFunctions.get(term.function) match {
-                case Some(newFunctionName) => return (App(newFunctionName, newArgs), true)
+                case Some(newFunctionDef) => return (App(newFunctionDef.name, newArgs), true)
                 case None => None
             }
 
             // Check if we redefine the function
             if (convertableFunctions isDefinedAt term.function) {
                 var newDecl = createFuncDecl(term.function)
-                // add axioms to conversion
-                convertedFunctionAxioms ++ convertableFunctions(term.function)(newDecl)
                 (App(newDecl.name, newArgs), true)
             } else {
                 // Do not convert
@@ -179,7 +189,7 @@ class IntegerToSortConverter(min: Int, max: Int, newSort: Sort, nameGenerator: N
             val newVars = term.vars.map(_ match {
                 case AnnotatedVar(v, IntSort) => {
                     changedTypes = true
-                    AnnotatedVar(v, newIntSort)
+                    AnnotatedVar(v, newSort)
                 }
                 case avar => avar
             })
@@ -192,7 +202,7 @@ class IntegerToSortConverter(min: Int, max: Int, newSort: Sort, nameGenerator: N
             val newVars = term.vars.map(_ match {
                 case AnnotatedVar(v, IntSort) => {
                     changedTypes = true
-                    AnnotatedVar(v, newIntSort)
+                    AnnotatedVar(v, newSort)
                 }
                 case avar => avar
             })
@@ -200,7 +210,7 @@ class IntegerToSortConverter(min: Int, max: Int, newSort: Sort, nameGenerator: N
             (Forall(newVars, newBody), changedTypes || substitutedBody)
         }
 
-        override def visitIntegerLiteral(term: IntegerLiteral): (Term, Boolean) = (intToConst(term.value), true)
+        override def visitIntegerLiteral(term: IntegerLiteral): (Term, Boolean) = (intToConstants(term.value), true)
 
         override def visitBitVectorLiteral(term: BitVectorLiteral): (Term, Boolean) = (term, false)
 
