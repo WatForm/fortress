@@ -523,6 +523,11 @@ object Term {
         Closure(app.functionName, arg1, arg2, fixedArgs)
     def mkClosure(app: App, arg1: Term, arg2: Term, fixedArgs: java.util.List[Term]): Term =
         Closure(app.functionName, arg1, arg2, Seq.from(fixedArgs.asScala))
+    def mkClosure(functionName: String, args: Seq[Term]): Term = {
+        Errors.Internal.precondition(args.length >= 2, f"Attempting to make closure on ${functionName} with only ${args.length} args!")
+
+        Closure(functionName, args(0), args(1), args.slice(2, args.length))
+    }
 
     
     def mkReflexiveClosure(functionName: String, arg1: Term, arg2: Term): Term =
