@@ -10,11 +10,12 @@ import fortress.problemstate.ExactScope
 import fortress.util.Errors
 
 object OAFIntsTransformer extends ProblemStateTransformer {
+    // TODO remove distinct domain elements!
     val name: String = "OAFIntsTransformer"
 
     // Generate mapping using min, max inclusive
-    def generateConstantMapping(min: Int, max: Int, varNameGenerator: NameGenerator): Map[Int, Var] = {
-        Range(min, max+1).map(intValue => intValue -> Var(varNameGenerator.freshName(f"OAF${intValue}"))).toMap
+    def generateConstantMapping(min: Int, max: Int, sort: Sort): Map[Int, DomainElement] = {
+        Range(min, max+1).map(intValue => intValue -> DomainElement(intValue - min + 1, sort)).toMap
     }
 
     def apply(problemState: ProblemState): ProblemState = {
@@ -47,8 +48,8 @@ object OAFIntsTransformer extends ProblemStateTransformer {
 
         val newScopes = problemState.scopes + (newSort -> ExactScope(numValues, true))
 
-        val intToConstants: Map[Int, Var] = generateConstantMapping(min, max, varNameGenerator)
-        val constantsToInts: Map[Var, Int] = intToConstants.map({ case (ival, varVal) => varVal -> ival})
+        val intToConstants: Map[Int, DomainElement] = generateConstantMapping(min, max, newSort)
+        val constantsToInts: Map[DomainElement, Int] = intToConstants.map({ case (ival, varVal) => varVal -> ival})
         // generate interpreted functions to do casting
         val castToIntDefn: FunctionDefinition = FunctionDefinition(varNameGenerator.freshName(f"toInt"), Seq(ax), IntSort,
             // Generate the body by folding to make If(x == v1) then {1} else {If (x == v2) then {2} else {...  else {<any dummy value>}}}
