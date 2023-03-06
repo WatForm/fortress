@@ -7,6 +7,7 @@ import fortress.data.IntSuffixNameGenerator
 import fortress.operations.TermOps._
 import fortress.operations.RecursiveAccumulator
 import fortress.problemstate.ExactScope
+import fortress.util.Errors
 
 object OAFIntsTransformer extends ProblemStateTransformer {
     val name: String = "OAFIntsTransformer"
@@ -44,20 +45,20 @@ object OAFIntsTransformer extends ProblemStateTransformer {
         val min = (numValues.toFloat / 2.0).ceil.toInt * -1
         val max = (numValues.toFloat / 2.0).floor.toInt - 1
 
-        val newScopes = problemState.scopes + (newSort -> ExactScope(max - min, true))
+        val newScopes = problemState.scopes + (newSort -> ExactScope(numValues, true))
 
         val intToConstants: Map[Int, Var] = generateConstantMapping(min, max, varNameGenerator)
         val constantsToInts: Map[Var, Int] = intToConstants.map({ case (ival, varVal) => varVal -> ival})
         // generate interpreted functions to do casting
-        val castToIntDefn: FunctionDefinition = FunctionDefinition(varNameGenerator.freshName(f"cast${newSort.name}ToInt"), Seq(ax), IntSort,
+        val castToIntDefn: FunctionDefinition = FunctionDefinition(varNameGenerator.freshName(f"toInt"), Seq(ax), IntSort,
             // Generate the body by folding to make If(x == v1) then {1} else {If (x == v2) then {2} else {...  else {<any dummy value>}}}
             constantsToInts.foldLeft(IntegerLiteral(min): Term)({case (prev, (constValue, intValue)) => IfThenElse(Eq(x, constValue), IntegerLiteral(intValue), prev)})
         )
-        val castFromIntDefn: FunctionDefinition = FunctionDefinition(varNameGenerator.freshName(f"castIntTo${newSort.name}"), Seq(ax), newSort,
+        val castFromIntDefn: FunctionDefinition = FunctionDefinition(varNameGenerator.freshName(f"fromInt"), Seq(ax), newSort,
             intToConstants.foldLeft(intToConstants(min): Term)({ case (prev, (intValue, constValue)) => IfThenElse(Eq(x, IntegerLiteral(intValue)), constValue, prev)})
         )
 
-        val isInBounds: FunctionDefinition = FunctionDefinition(varNameGenerator.freshName(f"isInBounds${newSort.name}"), Seq(ax), BoolSort,
+        val isInBounds: FunctionDefinition = FunctionDefinition(varNameGenerator.freshName(f"isInBoundsOAF"), Seq(ax), BoolSort,
             AndList(
                 Term.mkGE(IntegerLiteral(min), x),
                 Term.mkLE(IntegerLiteral(max), x)
@@ -81,7 +82,7 @@ object OAFIntsTransformer extends ProblemStateTransformer {
         }
 
         // find function declarations that contain ints and therefore need to be changed
-        val (intFunctions, otherFunctions) = problemState.theory.functionDeclarations.partition(decl => decl.argSorts.contains(newSort) || decl.resultSort == newSort)
+        val (intFunctions, otherFunctions) = problemState.theory.functionDeclarations.partition(decl => decl.argSorts.contains(IntSort) || decl.resultSort == IntSort)
         val oafIntFunctions = intFunctions.map({case FuncDecl(name, argSorts, resultSort) => {
             val newArgSorts = argSorts.map(replaceIntSort)
             val newResultSort = replaceIntSort(resultSort)
@@ -97,6 +98,7 @@ object OAFIntsTransformer extends ProblemStateTransformer {
          * The second value is a sequence of (unwrapped) arguments that were changed, and thus need to be checked for overflows.
          */
         def castFunctionArgs(functionName: String, args: Seq[Term]): (Seq[Term], Seq[Term]) = {
+            
             // find the declaration
             oafIntFunctions.find(_.name == functionName) match {
                 case Some(decl) => {
@@ -104,14 +106,22 @@ object OAFIntsTransformer extends ProblemStateTransformer {
                     var newArgs = scala.collection.mutable.Seq.from(args)
                     var currentIndex = decl.argSorts.indexOf(newSort)
                     // the terms which might overflow
-                    var castTerms: Seq[Term] = Seq.empty
+                    var overflowableTerms:  Seq[Term] = Seq.empty
                     while (currentIndex != -1){
-                        castTerms = castTerms :+ newArgs(currentIndex)
-                        newArgs.update(currentIndex, castFromInt(newArgs(currentIndex)))
-                        
-                        currentIndex = decl.argSorts.indexOf(newSort, currentIndex)
+                        val termToCast = newArgs(currentIndex)
+                        // the term when we cast it to the newSort 
+                        val castTerm = castFromInt(termToCast)
+                        newArgs.update(currentIndex, castTerm)
+                        // add to overflowable terms only if we had to cast it 
+                        castTerm match {
+                            // We add before we cast because isInBounds takes an integer, not an OAF Int
+                            case App(castFromIntDefn.name, _) => {overflowableTerms = overflowableTerms :+ termToCast}
+                            case _ => {}
+                        }
+                        // find the next argument with an int (must be from a GREATER index)
+                        currentIndex = decl.argSorts.indexOf(newSort, currentIndex+1)
                     }
-                    (newArgs.toSeq, castTerms)
+                    (newArgs.toSeq, overflowableTerms)
                 }
                 // If we don't have a declaration, just apply without casting
                 case None => (args, Seq.empty)
@@ -130,7 +140,7 @@ object OAFIntsTransformer extends ProblemStateTransformer {
         val oldSig = problemState.theory.signature
         val newSignature = Signature(oldSig.sorts + newSort,
          otherFunctions ++ oafIntFunctions,
-         oldSig.functionDefinitions + castToIntDefn + castFromIntDefn,
+         oldSig.functionDefinitions + castToIntDefn + castFromIntDefn + isInBounds,
          newConstants,
          oldSig.enumConstants
         )
@@ -163,7 +173,8 @@ object OAFIntsTransformer extends ProblemStateTransformer {
                 (Forall(newVars ++ otherVars, newBody), upInfo.excludingVars(newVars.map(_.variable)))
             }
 
-            case variable: Var => {
+            case Var(varName) => {
+                val variable = Var(varName)
                 if (down.oafVars.contains(variable)){
                     (castToInt(variable), blankUp)
                 } else {
@@ -172,14 +183,29 @@ object OAFIntsTransformer extends ProblemStateTransformer {
             }
 
             case App(functionName, arguments) => {
+                // we only translate like this for uninterpreted functions
+                // As we generated a new sort, we only need to look at where that sort exists
+                // We handled this earlier so we can ignore it here
                 // TODO overflow checks if predicate
                 val (changedArgs, upInfos) = arguments.map(transform(_, down)).unzip
                 val upInfoFromBottom = combine(upInfos)
                 // every arg we cast is a potential overflow
                 val (castArgs, overflowTerms) = castFunctionArgs(functionName, changedArgs)
-
+                // include the overflow terms in the upInfo
                 val newUpInfo = upInfoFromBottom.withOverflows(overflowTerms, down.universalVars)
-                (App(functionName, castArgs), newUpInfo)
+                
+                val resultSort = newSignature.queryFunction(functionName) match {
+                    case None => Errors.Internal.preconditionFailed(f"signature does not contain function |${functionName}|")
+                    case Some(Left(fdecl)) => fdecl.resultSort
+                    case Some(Right(fdefn)) => fdefn.resultSort
+                }
+                val castApp = App(functionName, castArgs)
+                if (resultSort == BoolSort){
+                    val overflowProtectedApp = newUpInfo.overflowPredicate(castApp, down.polarity, isInBounds.name)
+                    (overflowProtectedApp, newUpInfo)
+                } else {
+                    (castApp, newUpInfo)
+                }
             }
 
 
@@ -202,22 +228,30 @@ object OAFIntsTransformer extends ProblemStateTransformer {
             }
 
             case Eq(left, right) => {
-                // We need to know the type here
-                val sort = left.typeCheck(newSignature).sort
+                // TODO only check for overflow if needed
                 val (transformedLeft, upLeft) = transform(left, down)
                 val (transformedRight, upRight) = transform(right, down)
+                // We need to know the type here because ints need to be overflow checked
+                val sort = transformedLeft.typeCheck(newSignature).sort
                 var upInfo = (upLeft combine upRight)
+
                 // if it is an int, we must check for overflows
-                if (sort == newSort){
+                val newEq = Eq(transformedLeft, transformedRight)
+                if (sort == IntSort){
                     // Add the overflow checks to the upInfo
                     // They should be before the guards are added, but we don't add guards for EQ
-                    upInfo = upInfo.withOverflows(Seq(transformedLeft, transformedRight), down.universalVars)
-                    // TODO overflow checks
-                    val newEq = Eq(transformedLeft, transformedRight)
+                    // We don't need to add anything casting ToInts
+                    val overflowableTerms = Seq(transformedLeft, transformedRight).filter({
+                        case App(castToIntDefn.name, _) => false 
+                        case _ => true
+                    })
+                    upInfo = upInfo.withOverflows(overflowableTerms, down.universalVars)
+                    // apply overflow checks
                     val guardedEq = upInfo.overflowPredicate(newEq, down.polarity, isInBounds.name)
+                    (guardedEq, upInfo) 
+                } else {
                     (newEq, upInfo)
                 }
-                (Eq(transformedLeft, transformedRight), upInfo)
             }
 
 
@@ -287,9 +321,16 @@ object OAFIntsTransformer extends ProblemStateTransformer {
             case Top => (Top, blankUp)
             case Bottom => (Bottom, blankUp)
         }
-        
-        val (newAxioms, upInfos) = problemState.theory.axioms.map(transform(_)).unzip
-        val newTheory = Theory(newSignature, newAxioms)
+        // Integer constants are existentially quantified
+        val intConstants: Set[Var] = newSignature.constants.filter(_.sort == newSort).map(_.variable)
+        val startingDown = DownInfo(intConstants, Set.empty, true)
+        // transform the axioms
+        val (newAxioms, upInfos) = problemState.theory.axioms.map(transform(_, startingDown)).unzip
+        // This is specifically not transformed
+        val constantsAreDistinct = Distinct(intToConstants.values.toSeq)
+        val allNewAxioms = newAxioms + constantsAreDistinct
+        // could this be done with domain elements? Yes. Should it... probably? TODO
+        val newTheory = Theory(newSignature, allNewAxioms)
         problemState.withScopes(newScopes).withTheory(newTheory)
     }
 
@@ -319,7 +360,7 @@ object OAFIntsTransformer extends ProblemStateTransformer {
         val oafVars: Set[Var] = {
             existentialVars union universalVars
         }
-        val flipPolarity: DownInfo = DownInfo(existentialVars, universalVars, !polarity)
+        def flipPolarity(): DownInfo = DownInfo(existentialVars, universalVars, !polarity)
     }
     val blankDown = DownInfo(Set.empty, Set.empty, true)
     // Info passed back up through transform
@@ -360,16 +401,42 @@ object OAFIntsTransformer extends ProblemStateTransformer {
           * @param term the predicate term that may contain an overflow value
           */
         def overflowPredicate(term: Term, polarity: Boolean, isInBoundsName: String): Term = {
+            // Note we check is in bounds, while ensureDfn uses == unknown, so our negations are backwards 
             val bDef = if (extQuantOverflows.isEmpty) {Top} else {
-                AndList(extQuantOverflows.toSeq.map( term => Not(App(isInBoundsName, term))))
+                val negatedChecks = extQuantOverflows.toSeq.map( term => App(isInBoundsName, term))
+                // And/Or list must have more than 1 argument, so if only one just give back the original value
+                if (negatedChecks.length == 1) {
+                    negatedChecks(0)
+                } else {
+                    AndList(negatedChecks)
+                }
             }
             val bUndef = if (univQuantOverflows.isEmpty) {Bottom} else {
-                OrList(extQuantOverflows.toSeq.map(App(isInBoundsName, _)))
+                val checks = extQuantOverflows.toSeq.map(term => Not(App(isInBoundsName, term)))
+                // And/Or list must have more than 1 argument, so if only one just give back the original value
+                if (checks.length == 1) {
+                    checks(0)
+                } else {
+                    OrList(checks)
+                }
             }
+            // different value based on polarity. cases used to simplify quickly
             if (polarity) {
-                And(Or(term, bUndef), bDef)
+                // And(Or(term, bUndef), bDef)
+                (bUndef, bDef) match {
+                    case (Bottom, Top) => term
+                    case (Bottom, _) => And(term, bDef)
+                    case (_, Top) => Or(term, bUndef)
+                    case _ => And(Or(term, bUndef), bDef)
+                }
             } else {
-                And(Or(term, Not(bDef), Not(bUndef)))
+                // And(Or(term, Not(bDef)), Not(bUndef))
+                (bDef, bUndef) match {
+                    case (Top, Bottom) => term
+                    case (Top, _) => And(term, Not(bUndef))
+                    case (_, Bottom) => Or(term, Not(bDef))
+                    case _ => And(Or(term, Not(bDef)), Not(bUndef))
+                }
             }
         }
     }

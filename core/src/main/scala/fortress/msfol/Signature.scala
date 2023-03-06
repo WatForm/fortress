@@ -159,14 +159,42 @@ case class Signature private (
         case (sort, enumConstants) => enumConstants contains e
     }.map { case (sort, _) => sort }
     
-    def queryFunction(name: String, argSorts: Seq[Sort]): Option[FuncDecl] =
+    def queryFunctionDeclaration(name: String, argSorts: Seq[Sort]): Option[FuncDecl] =
         functionDeclarations.find(fdecl => fdecl.name == name && fdecl.argSorts == argSorts)
     
-    def queryFunction(name: String, argSorts: Seq[Sort], resultSort: Sort): Option[FuncDecl] =
+    def queryFunctionDeclaration(name: String, argSorts: Seq[Sort], resultSort: Sort): Option[FuncDecl] =
         functionDeclarations.find(_ == FuncDecl(name, argSorts, resultSort))
     
-    def queryUninterpretedFunction(name: String): Option[FuncDecl] =
+    def queryFunctionDeclaration(name: String): Option[FuncDecl] =
         functionDeclarations.find(fdecl => fdecl.name == name)
+    
+    def queryFunctionDefinition(name: String, argSorts: Seq[Sort]): Option[FunctionDefinition] = {
+        functionDefinitions.find(fdefn => fdefn.name == name && fdefn.argSorts == argSorts)
+    }
+
+    def queryFunctionDefinition(name: String): Option[FunctionDefinition] = {
+        functionDefinitions.find(_.name == name)
+    }
+    
+    def queryFunction(name: String): Option[Either[FuncDecl, FunctionDefinition]] = {
+        queryFunctionDeclaration(name) match {
+            case Some(decl) => Some(Left(decl))
+            case None => functionDefinitions.find(_.name == name) match {
+                case Some(defn) => Some(Right(defn))
+                case None => None
+            }
+        }
+    }
+
+    def queryFunction(name: String, argSorts: Seq[Sort]): Option[Either[FuncDecl, FunctionDefinition]] = {
+        queryFunctionDeclaration(name, argSorts) match {
+            case Some(decl) => Some(Left(decl))
+            case None => queryFunctionDefinition(name, argSorts) match {
+                case Some(defn) => Some(Right(defn))
+                case None => None
+            }
+        }
+    }
     
     def hasSort(sort: Sort): Boolean = sorts contains sort
     
@@ -304,7 +332,7 @@ case class Signature private (
         // Function must not share name with another function, unless it is the same function
         Errors.Internal.precondition(
             ! hasFuncDeclWithName(fdecl.name) || // No function has same name
-            queryFunction(fdecl.name, fdecl.argSorts).filter(_ == fdecl).nonEmpty, // Same function exists
+            queryFunctionDeclaration(fdecl.name, fdecl.argSorts).filter(_ == fdecl).nonEmpty, // Same function exists
             "Function " + fdecl.name + " declared with two different function declarations")
     }
 

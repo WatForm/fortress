@@ -8,6 +8,7 @@ class TypeCheckerTest extends UnitSuite {
 
     val A = Sort.mkSortConst("A");
     val B = Sort.mkSortConst("B");
+    val C = Sort.mkSortConst("C");
 
     val x = Var("x")
     val y = Var("y")
@@ -16,6 +17,42 @@ class TypeCheckerTest extends UnitSuite {
     val h = Var("h");
     val j = Var("j");
     val k = Var("k");
+
+    test("Function definition"){
+        val fdef = FunctionDefinition("f", Seq(x.of(A), y.of(B)), C, 
+            z // the body just returns some constant z
+        )
+        val sig = Signature.empty
+            .withSorts(A,B,C)
+            .withFunctionDefinition(fdef)
+            .withConstants(h.of(A), j.of(B), z.of(C))
+        
+        val checker = new TypeChecker(sig)
+        val application = App("f", Seq(h, j))
+        val result = checker.visit(application)
+
+        result.sanitizedTerm should be (application)
+        result.sort should be (C)
+        result.containsConnectives should be (false)
+        result.containsQuantifiers should be (false)
+    }
+
+    test("Function declaration") {
+        val fdec = FuncDecl("f", Seq(A, B), C)
+        val sig = Signature.empty
+            .withSorts(A, B, C)
+            .withFunctionDeclaration(fdec)
+            .withConstants(h.of(A), j.of(B), z.of(C))
+
+        val checker = new TypeChecker(sig)
+        val application = App("f", Seq(h, j))
+        val result = checker.visit(application)
+
+        result.sanitizedTerm should be (application)
+        result.sort should be (C)
+        result.containsConnectives should be (false)
+        result.containsQuantifiers should be (false)
+    }
 
 
 

@@ -162,7 +162,7 @@ object SortSubstitution {
         val functionsMapping = {
             for {
                 inputDecl <- input.functionDeclarations
-                outputDecl <- output.queryUninterpretedFunction(inputDecl.name)
+                outputDecl <- output.queryFunctionDeclaration(inputDecl.name)
             } yield {
                 val inputSorts = inputDecl.argSorts :+ inputDecl.resultSort
                 val outputSorts = outputDecl.argSorts :+ outputDecl.resultSort

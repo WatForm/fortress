@@ -177,26 +177,32 @@ class TypeChecker(signature: Signature) extends TermVisitorWithTypeContext[TypeC
         // 1. types match function declaration
         // 2. arguments contain no connectives or quantifiers
         val funcName = app.functionName
-        
+
         if(! ( (signature hasFuncDeclWithName funcName) || (signature hasFuncDefWithName funcName) ) ) {
             throw new TypeCheckException.UnknownFunction("Could not find function: " + funcName)
         }
         
+        // The typecheck results for each of the arguments
         val results = app.arguments.map(visit)
-        val argSorts = results.map(_.sort)
-        
-        val fdecl = signature.queryFunction(funcName, argSorts) match {
-            case None => throw new TypeCheckException.WrongSort(signature.functionWithName(funcName).get.toString + " cannot accept argument sorts " + argSorts.toString + " in " + app.toString)
-            case Some(fdecl) => fdecl
-        }
-        
+
+        // Note this is not strictly unacceptable, and we might actually fully support this outside of throwing this error
         if(results exists (_.containsQuantifiers)) {
             throw new TypeCheckException.BadStructure("Argument of " + funcName + " contains quantifier")
+        }
+
+        // Sorts of the arguments
+        val argSorts = results.map(_.sort)
+        
+
+        val resultSort: Sort = signature.queryFunction(funcName, argSorts) match {
+            case None => throw new TypeCheckException.WrongSort(signature.functionWithName(funcName).get.toString + " cannot accept argument sorts " + argSorts.toString + " in " + app.toString)
+            case Some(Left(fdecl)) => fdecl.resultSort
+            case Some(Right(fdefn)) => fdefn.resultSort
         }
         
         TypeCheckResult(
             sanitizedTerm = App(funcName, results map (_.sanitizedTerm)),
-            sort = fdecl.resultSort,
+            sort = resultSort,
             containsConnectives = results exists (_.containsConnectives),
             containsQuantifiers = false
         )
@@ -252,12 +258,12 @@ class TypeChecker(signature: Signature) extends TermVisitorWithTypeContext[TypeC
 
         if (argSorts.length == 2) {
             // relation must be A->A or AxA-> Bool
-            if (signature.queryFunction(funcName, Seq(closingSort), closingSort).isEmpty && signature.queryFunction(funcName, Seq(closingSort, closingSort), Sort.Bool).isEmpty) {
+            if (signature.queryFunctionDeclaration(funcName, Seq(closingSort), closingSort).isEmpty && signature.queryFunctionDeclaration(funcName, Seq(closingSort, closingSort), Sort.Bool).isEmpty) {
                 throw new TypeCheckException.WrongSort("Trying to close over " + funcName +" as unary function or binary relation in " + c.toString())
             }
         } else {
             // Check that arguments match the function declaration
-            if (signature.queryFunction(funcName, argSorts, Sort.Bool).isEmpty) {
+            if (signature.queryFunctionDeclaration(funcName, argSorts, Sort.Bool).isEmpty) {
                 throw new TypeCheckException.WrongSort("Attempting to close over a relation that does not end in a BoolSort or with the wrong argument sorts in " + c.toString())
             }
         }
@@ -299,12 +305,12 @@ class TypeChecker(signature: Signature) extends TermVisitorWithTypeContext[TypeC
 
         if (argSorts.length == 2) {
             // relation must be A->A or AxA-> Bool
-            if (signature.queryFunction(funcName, Seq(closingSort), closingSort).isEmpty && signature.queryFunction(funcName, Seq(closingSort, closingSort), Sort.Bool).isEmpty) {
+            if (signature.queryFunctionDeclaration(funcName, Seq(closingSort), closingSort).isEmpty && signature.queryFunctionDeclaration(funcName, Seq(closingSort, closingSort), Sort.Bool).isEmpty) {
                 throw new TypeCheckException.WrongSort("Trying to close over " + funcName +" as unary function or binary relation in " + rc.toString())
             }
         } else {
             // Check that arguments match the function declaration
-            if (signature.queryFunction(funcName, argSorts, Sort.Bool).isEmpty) {
+            if (signature.queryFunctionDeclaration(funcName, argSorts, Sort.Bool).isEmpty) {
                 throw new TypeCheckException.WrongSort("Attempting to close over a relation that does not end in a BoolSort in " + rc.toString())
             }
         }

@@ -166,7 +166,7 @@ class MicrostructureComplement(theory: Theory, scopes: Map[Sort, Int]) extends H
             }
             val funcSymbolsOfAxiom: Set[FuncDecl] = {
                 val functionsIn = fortress.operations.RecursiveAccumulator.functionsIn(axiom)
-                functionsIn.map(theory.signature.queryUninterpretedFunction(_).get)
+                functionsIn.map(theory.signature.queryFunctionDeclaration(_).get)
             }
             
             // Make a new theory containing only this one axiom to see if this axiom is broken

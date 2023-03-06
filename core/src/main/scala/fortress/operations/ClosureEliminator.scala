@@ -73,7 +73,7 @@ abstract class ClosureEliminator(topLevelTerm: Term, signature: Signature, scope
         }
 
         // Gets the sorts for fixed arguments (everything after the first 2 args)
-        def getFixedSorts(fname: String): Seq[Sort] = signature.queryUninterpretedFunction(fname) match {
+        def getFixedSorts(fname: String): Seq[Sort] = signature.queryFunctionDeclaration(fname) match {
             case None => Errors.Internal.impossibleState("Function " + fname + " does not exist when closing over it!")
             case Some(FuncDecl(_, sorts, _)) => sorts.drop(2).toList
         }
