@@ -16,6 +16,8 @@ class SmtModelParserTest extends UnitSuite {
         val sig = Signature.empty
             .withSort(univ)
         val visit = SmtModelParser.parse(testString, sig)
-        println(visit.getTheory())
+        val theory = visit.getTheory()
+        theory.axioms should contain (Distinct(DomainElement(1, univ), DomainElement(2, univ), DomainElement(3, univ)))
+        theory.axioms should contain (BuiltinApp(IntLT, Seq(BuiltinApp(IntNeg, Seq(IntegerLiteral(1))), IntegerLiteral(0))))
     }
 }
