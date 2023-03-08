@@ -24,7 +24,7 @@ class OAFIntsTransformerTest extends UnitSuite {
 
 
     // Add in this closure eliminator
-    manager.addOption(new ToggleOption("ClosureElim", _.addTransformer(transformer)), 102)
+    manager.addOption(new ToggleOption("OAFInts", _.addTransformer(transformer)), 102)
 
     //manager.addOption(QuantifierExpansionOption, 5001)
     manager.addOption(RangeFormulaOption, 5002)
