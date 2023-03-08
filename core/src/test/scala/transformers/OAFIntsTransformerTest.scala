@@ -2,16 +2,35 @@ import org.scalatest._
 import fortress.msfol._
 import fortress.problemstate._
 import fortress.transformers._
+import fortress.config._
+import scala.util.Using
+import fortress.util.Seconds
+import fortress.modelfind.ModelFinderResult
+import fortress.operations.TermOps._
+import fortress.operations.TheoryOps._
 
 
 class OAFIntsTransformerTest extends UnitSuite {
     val transformer = OAFIntsTransformer
-    val intSize = 16
-    val min = -8
-    val max = 7
+    val intSize = 8
+    val min = -4
+    val max = 3
     val intScope = ExactScope(intSize, true)
     val simpleIntScopes = Map[Sort, Scope](IntSort -> intScope)
 
+    val manager = Manager.makeEmpty()
+    manager.addOption(TypecheckSanitizeOption, 1)
+    manager.addOption(EnumEliminationOption, 2)
+
+
+    // Add in this closure eliminator
+    manager.addOption(new ToggleOption("ClosureElim", _.addTransformer(transformer)), 102)
+
+    //manager.addOption(QuantifierExpansionOption, 5001)
+    manager.addOption(RangeFormulaOption, 5002)
+    manager.addOption(SimplifyOption, 5003)
+    //manager.addOption(DatatypeOption, 5004)
+    manager.addOption(new ToggleOption("DomainElimination", _.addTransformer(DomainEliminationTransformer)), 5005)
 
     val aSort = SortConst("A")
     val x = Var("x")
@@ -33,9 +52,9 @@ class OAFIntsTransformerTest extends UnitSuite {
         result.scopes.values.toSeq shouldBe Seq(intScope, intScope)
         // Overflow is applied to equality
         val resultAxioms = result.theory.axioms.toSeq
-        resultAxioms should have length (2)
+        resultAxioms should have length (1)
         // fiter out distinct
-        val transformedEq = axiomWithoutDistinct(resultAxioms)
+        val transformedEq = resultAxioms(0)
         transformedEq should matchPattern {
             case AndList(Seq(
                 Eq(IntegerLiteral(1), IntegerLiteral(2)),
@@ -45,6 +64,8 @@ class OAFIntsTransformerTest extends UnitSuite {
                 ))
             )) if check1 == check2 =>
         }
+        val resultSig = result.theory.signature
+        resultSig.functionDefinitions should have size (3)
         //transformedEq should matchPattern {case Not(_) => }
     }
 
@@ -61,9 +82,9 @@ class OAFIntsTransformerTest extends UnitSuite {
         result.scopes.values.toSeq shouldBe Seq(intScope, intScope)
         // Overflow is applied to equality
         val resultAxioms = result.theory.axioms.toSeq
-        resultAxioms should have length (2)
+        resultAxioms should have length (1)
         // fiter out distinct
-        val transformedGE = axiomWithoutDistinct(resultAxioms)
+        val transformedGE = resultAxioms(0)
         transformedGE should matchPattern {
             case Not(OrList(Seq(
                 BuiltinApp(IntGE, Seq(IntegerLiteral(1000), IntegerLiteral(2))),
@@ -91,8 +112,8 @@ class OAFIntsTransformerTest extends UnitSuite {
         constantSorts(0) should be (constantSorts(1))
 
         // check the remaining axiom
-        result.theory.axioms should have size (2)
-        val resultAxiom = axiomWithoutDistinct(result.theory.axioms.toSeq)
+        result.theory.axioms should have size (1)
+        val resultAxiom = result.theory.axioms.toSeq(0)
         // x+x needs a check, y should not need a check
         resultAxiom should matchPattern {
             case AndList(Seq(
@@ -129,8 +150,8 @@ class OAFIntsTransformerTest extends UnitSuite {
         }
 
         // original axiom and the Distinct axiom
-        resultTheory.axioms should have size (2)
-        val transformedApp = axiomWithoutDistinct(resultTheory.axioms.toSeq)
+        resultTheory.axioms should have size (1)
+        val transformedApp = (resultTheory.axioms.toSeq)(0)
 
         // We don't expect x to overflow, so no overflow is applied here
         transformedApp shouldBe axiomSimple
@@ -139,7 +160,7 @@ class OAFIntsTransformerTest extends UnitSuite {
         val ps2 = ProblemState(theory2, simpleIntScopes)
         val result2 = transformer(ps2)
 
-        val resultAxiom2 = axiomWithoutDistinct(result2.theory.axioms.toSeq)
+        val resultAxiom2 = (result2.theory.axioms.toSeq)(0)
         resultAxiom2 should matchPattern {
             case AndList(Seq( // f(fromInt(toInt([x])+1)) && Inbounds(toInt(x)+1)
                 App("f", Seq( // f(...
@@ -159,7 +180,56 @@ class OAFIntsTransformerTest extends UnitSuite {
                 ))
             )) =>
         }
+    }
 
+    test("integration works") {
+        val negatedTautology = Not(
+            Forall(Seq(x.of(IntSort), y.of(IntSort)),
+                Implication(
+                    And(
+                        Term.mkGT(x, IntegerLiteral(0)),
+                        Term.mkGT(y, IntegerLiteral(0))
+                    ),
+                    And(
+                        Term.mkGT(Term.mkPlus(x, y), IntegerLiteral(0)),
+                        Term.mkGT(Term.mkPlus(x, y), x),
+                        Term.mkGT(Term.mkPlus(x, y), y)
+                    )
+                )
+            )
+        )
+
+        val theory = Theory.empty
+            .withAxiom(negatedTautology)
+        //val problemState = ProblemState(theory, simpleIntScopes)
+
+        /*  DEBUG
+        val compiler = manager.setupCompiler()
+        val result = compiler.compile(theory, simpleIntScopes, Seconds(10).toMilli, Seq.empty)
+        result match {
+            case Right(res) => {
+                println("---Theory---")
+                println(res.theory.smtlib)
+                //println("--defns--")
+                //println(res.theory.signature.functionDefinitions)
+            }
+            case _ => () 
+        }
+        */
+
+        Using.resource(manager.setupModelFinder()){finder =>{
+            finder.setTheory(theory)
+            finder.setExactScope(IntSort, intSize)
+            finder.setTimeout(Seconds(10))
+            
+            val result = finder.checkSat()
+            if (result == ModelFinderResult.Sat){
+                val modelstring = finder.viewModel().toString()
+                println(modelstring)
+                fail("Should be UNSAT")
+            }
+            assert(result == ModelFinderResult.Unsat)
+        }}
 
 
 

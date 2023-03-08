@@ -151,6 +151,7 @@ case class Signature private (
 
     def withoutFunctionDefinitions(funcDefs: FunctionDefinition*): Signature = withoutFunctionDefinitions(funcDefs.asJava)
 
+    def withoutFunctionDefinitions(): Signature = Signature(sorts, functionDeclarations, Set.empty, constants, enumConstants)
     // TypeChecking
     
     def queryConstant(v: Var): Option[AnnotatedVar] = constants.find(_.variable == v)

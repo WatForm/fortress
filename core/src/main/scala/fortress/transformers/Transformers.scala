@@ -32,6 +32,7 @@ object Transformers {
             case "enumelimination" => EnumEliminationTransformer
             case "integertobitvectors" | "integertobitvector" | "inttobv" | "int2bv" | "integer2bitvector" => IntegerToBitVectorTransformer
             case "nnf" => NnfTransformer
+            case "oafints" | "oaf" => OAFIntsTransformer
             case "quantifierexpansion" => mkQuantifierExpansionTransformer()
             case "rangeformula" | "rangeformulastandard" => RangeFormulaStandardTransformer
             case "scopenonexactpredicatestype" => ScopeNonExactPredicatesTransformer
@@ -57,6 +58,7 @@ object Transformers {
     def mkDomainEliminationTransformer2() = new DomainEliminationTransformer2()
     def mkEnumEliminationTransformer() = EnumEliminationTransformer
     def mkNnfTransformer() = NnfTransformer
+    def mkOAFIntsTransformer() = OAFIntsTransformer
     def mkQuantifierExpansionTransformer(useConstForDomElim: Boolean = false, useSimplification: Boolean = false) = new QuantifierExpansionTransformer(useConstForDomElim, useSimplification)
     // def mkRangeFormulaTransformer(useConstForDomElim: Boolean = false) = new RangeFormulaStandardTransformer
     def mkScopeNonExactPredicatesTransformer() = ScopeNonExactPredicatesTransformer

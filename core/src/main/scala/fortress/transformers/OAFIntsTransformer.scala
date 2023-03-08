@@ -55,11 +55,11 @@ object OAFIntsTransformer extends ProblemStateTransformer {
             // Generate the body by folding to make If(x == v1) then {1} else {If (x == v2) then {2} else {...  else {<any dummy value>}}}
             constantsToInts.foldLeft(IntegerLiteral(min): Term)({case (prev, (constValue, intValue)) => IfThenElse(Eq(x, constValue), IntegerLiteral(intValue), prev)})
         )
-        val castFromIntDefn: FunctionDefinition = FunctionDefinition(varNameGenerator.freshName(f"fromInt"), Seq(ax), newSort,
+        val castFromIntDefn: FunctionDefinition = FunctionDefinition(varNameGenerator.freshName(f"fromInt"), Seq(x.of(IntSort)), newSort,
             intToConstants.foldLeft(intToConstants(min): Term)({ case (prev, (intValue, constValue)) => IfThenElse(Eq(x, IntegerLiteral(intValue)), constValue, prev)})
         )
 
-        val isInBounds: FunctionDefinition = FunctionDefinition(varNameGenerator.freshName(f"isInBoundsOAF"), Seq(ax), BoolSort,
+        val isInBounds: FunctionDefinition = FunctionDefinition(varNameGenerator.freshName(f"isInBoundsOAF"), Seq(x.of(IntSort)), BoolSort,
             AndList(
                 Term.mkGE(IntegerLiteral(min), x),
                 Term.mkLE(IntegerLiteral(max), x)
@@ -80,6 +80,14 @@ object OAFIntsTransformer extends ProblemStateTransformer {
         def replaceIntSort(sort: Sort): Sort = sort match {
             case IntSort => newSort
             case x => x
+        }
+
+        // This is used to filter out terms that won't overflow (since we are currently casting them TO ints from an in bound constant)
+        def withoutCastsToInt(terms: Seq[Term]): Seq[Term] = {
+            terms.filter({
+                case App(castToIntDefn.name, _) => false
+                case _ => true
+            })
         }
 
         // find function declarations that contain ints and therefore need to be changed
@@ -290,7 +298,8 @@ object OAFIntsTransformer extends ProblemStateTransformer {
                 var upInfo = combine(upInfos)
                 if (isIntPredicate){
                     // Add overflow checks
-                    upInfo = upInfo.withOverflows(arguments, down.universalVars)
+                    val overflowableArgs = withoutCastsToInt(transformedArgs)
+                    upInfo = upInfo.withOverflows(overflowableArgs, down.universalVars)
                     val guardedBuiltinApp = upInfo.overflowPredicate(newBuiltinApp, down.polarity, isInBounds.name)
                     (guardedBuiltinApp, upInfo)
                 } else {
@@ -328,8 +337,9 @@ object OAFIntsTransformer extends ProblemStateTransformer {
         // transform the axioms
         val (newAxioms, upInfos) = problemState.theory.axioms.map(transform(_, startingDown)).unzip
         // This is specifically not transformed
-        val constantsAreDistinct = Distinct(intToConstants.values.toSeq)
-        val allNewAxioms = newAxioms + constantsAreDistinct
+        //val constantsAreDistinct = Distinct(intToConstants.values.toSeq)
+        //val allNewAxioms = newAxioms + constantsAreDistinct
+        val allNewAxioms = newAxioms
         // could this be done with domain elements? Yes. Should it... probably? TODO
         val newTheory = Theory(newSignature, allNewAxioms)
         problemState.withScopes(newScopes).withTheory(newTheory)

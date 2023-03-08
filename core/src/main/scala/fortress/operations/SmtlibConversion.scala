@@ -151,7 +151,7 @@ class SmtlibConverter(writer: java.io.Writer) {
             case SortConst(name) => {
                 writer.write("(declare-sort ")
                 writer.write(nameWithQuote(sort.name))
-                writer.write(" 0)")
+                writer.write(" 0)\n")
             }
             case _ =>
         }
@@ -164,7 +164,7 @@ class SmtlibConverter(writer: java.io.Writer) {
         writeSorts(funcDecl.argSorts)
         writer.write(") ")
         writeSort(funcDecl.resultSort)
-        writer.write(')')
+        writer.write(")\n")
     }
 
     /*
@@ -181,7 +181,7 @@ class SmtlibConverter(writer: java.io.Writer) {
         writeSort(funcDef.resultSort)
         writer.write(" ")
         write(funcDef.body)
-        writer.write(')')
+        writer.write(")\n")
     }
 
     def writeArgSortedVar(arg: AnnotatedVar): Unit = {
@@ -201,14 +201,14 @@ class SmtlibConverter(writer: java.io.Writer) {
         writer.write(nameWithQuote(constant.name))
         writer.write(' ')
         writeSort(constant.sort)
-        writer.write(')')
+        writer.write(")\n")
     }
 
     def writeEnumConst(sort: Sort, enums: Seq[EnumValue]): Unit = {
         writer.write("(declare-datatypes () ((")
         writeSort(sort)
         enums.foreach(enumEntry => writer.write(' ' + nameWithQuote(enumEntry.name)))
-        writer.write(")))")
+        writer.write(")))\n")
     }
 
     def writeSignature(sig: Signature): Unit = {
@@ -216,12 +216,14 @@ class SmtlibConverter(writer: java.io.Writer) {
         sig.enumConstants.foreach(x => writeEnumConst(x._1, x._2))
         sig.functionDeclarations.foreach(writeFuncDecl)
         sig.constants.foreach(writeConst)
+        // We can use constants in function definitions so they must be later
+        sig.functionDefinitions.foreach(writeFunctionDefinition)
     }
     
     def writeAssertion(term: Term): Unit = {
         writer.write("(assert ")
         write(term)
-        writer.write(')')
+        writer.write(")\n")
     }
     
     def writeTheory(theory: Theory): Unit = {

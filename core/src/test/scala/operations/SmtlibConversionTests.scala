@@ -33,7 +33,7 @@ class  SmtlibConversionTests extends UnitSuite {
     
     test("basic assertion") {
          val formula1 = Forall(Seq(x of A, y of B), App("f", x) === y)
-         formula1.smtlibAssertion should be ("(assert (forall ((|x| |A|) (|y| |B|)) (= (|f| |x|) |y|)))")
+         formula1.smtlibAssertion should be ("(assert (forall ((|x| |A|) (|y| |B|)) (= (|f| |x|) |y|)))\n")
     }
     
     test("integer conversion") {
@@ -47,7 +47,7 @@ class  SmtlibConversionTests extends UnitSuite {
             BuiltinApp(IntMult, x, y) === prime
         )))
         
-        formula.smtlibAssertion should be ("(assert (not (exists ((|x| Int) (|y| Int)) (and (> |x| 1) (> |y| 1) (= (* |x| |y|) |prime|)))))")
+        formula.smtlibAssertion should be ("(assert (not (exists ((|x| Int) (|y| Int)) (and (> |x| 1) (> |y| 1) (= (* |x| |y|) |prime|)))))\n")
     }
 
     test("basic theory") {
@@ -58,13 +58,13 @@ class  SmtlibConversionTests extends UnitSuite {
                     .withEnumSort(A, _1A, _2A)
                     .withAxiom(App("P", Seq(x,y)))
 
-        theory.smtlib should be ("(declare-sort |B| 0)" +
-                                "(declare-datatypes () ((|A| |_@1A| |_@2A|)))" +
-                                "(declare-fun |f| (|A|) |B|)" +
-                                "(declare-fun |P| (|A| |B|) Bool)" +
-                                "(declare-const |x| |A|)" +
-                                "(declare-const |y| |B|)" +
-                                "(assert (|P| |x| |y|))")
+        theory.smtlib should be ("(declare-sort |B| 0)" + '\n' +
+                                "(declare-datatypes () ((|A| |_@1A| |_@2A|)))" + '\n' +
+                                "(declare-fun |f| (|A|) |B|)" + '\n' +
+                                "(declare-fun |P| (|A| |B|) Bool)" + '\n' +
+                                "(declare-const |x| |A|)" + '\n' +
+                                "(declare-const |y| |B|)" + '\n' +
+                                "(assert (|P| |x| |y|))" + '\n')
     }
     
     test("basic sorts") {
@@ -105,7 +105,7 @@ class  SmtlibConversionTests extends UnitSuite {
         writer.toString should be ("")
         
         converter.writeSortDecl(A)
-        writer.toString should be ("(declare-sort |A| 0)")
+        writer.toString should be ("(declare-sort |A| 0)\n")
     }
 
     test("enum constants declarations") {
@@ -113,7 +113,7 @@ class  SmtlibConversionTests extends UnitSuite {
         val converter = new SmtlibConverter(writer)
 
         converter.writeEnumConst(A, Seq(_1A, _2A))
-        writer.toString should be ("(declare-datatypes () ((|A| |_@1A| |_@2A|)))")
+        writer.toString should be ("(declare-datatypes () ((|A| |_@1A| |_@2A|)))\n")
     }
 
     test("function definition1") {
@@ -131,7 +131,7 @@ class  SmtlibConversionTests extends UnitSuite {
 
         println(writer.toString)
 
-        writer.toString should be ("(define-fun |max| ((|x| Int) (|y| Int) ) Int (ite (< |x| |y|) |y| |x|))")
+        writer.toString should be ("(define-fun |max| ((|x| Int) (|y| Int) ) Int (ite (< |x| |y|) |y| |x|))\n")
     }
 
     test("function definition2") {
@@ -147,7 +147,7 @@ class  SmtlibConversionTests extends UnitSuite {
             )
         )
 
-        writer.toString should be("(define-fun |power2| ((|x| Int) ) Bool (or (= |x| 8) (= |x| 4) (= |x| 2) (= |x| 1)))")
+        writer.toString should be("(define-fun |power2| ((|x| Int) ) Bool (or (= |x| 8) (= |x| 4) (= |x| 2) (= |x| 1)))\n")
     }
 
     test ("bitvector concat") {
