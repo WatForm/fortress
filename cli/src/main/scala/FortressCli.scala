@@ -76,7 +76,7 @@ object FortressCli {
         for ( (sort, scope) <- conf.scopeMap ) {
             var scopeValue: Int = 0
             var isUnchanging = false
-            if (scope.charAt(sort.length-1) == 'u'){
+            if (scope.charAt(scope.length-1) == 'u'){
                 scopeValue = scope.substring(0, scope.length - 1).toInt
                 isUnchanging = true
             } else {
