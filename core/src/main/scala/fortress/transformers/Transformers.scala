@@ -32,7 +32,7 @@ object Transformers {
             case "enumelimination" => EnumEliminationTransformer
             case "integertobitvectors" | "integertobitvector" | "inttobv" | "int2bv" | "integer2bitvector" => IntegerToBitVectorTransformer
             case "nnf" => NnfTransformer
-            case "oafints" | "oaf" => OAFIntsTransformer
+            case "oafints" | "oaf" | "oafint" => OAFIntsTransformer
             case "quantifierexpansion" => mkQuantifierExpansionTransformer()
             case "rangeformula" | "rangeformulastandard" => RangeFormulaStandardTransformer
             case "scopenonexactpredicatestype" => ScopeNonExactPredicatesTransformer
