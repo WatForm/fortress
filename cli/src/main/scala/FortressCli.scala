@@ -84,14 +84,23 @@ object FortressCli {
                 isUnchanging = false
             }
             Errors.API.checkCliInput(scopeValue > 0, "Scope must be > 0. Got " + scopeValue.toString()+".")
-
-            if( sort.charAt(sort.length-1) == '?' ) { // "P?=2"
-                val sortName =  sort.substring(0, sort.length-1)
-                scopes += (Sort.mkSortConst(sortName) -> NonExactScope(scopeValue, isUnchanging))
+            
+            var sortName = sort
+            val scopeVal = if( sort.charAt(sort.length-1) == '?' ) { // "P?=2"
+                // NonExact Scope
+                sortName =  sort.substring(0, sort.length-1)
+                NonExactScope(scopeValue, isUnchanging)
             }
             else {  // "P=2"
-                scopes += (Sort.mkSortConst(sort) -> ExactScope(scopeValue, isUnchanging))
+                // Exact Scope
+                ExactScope(scopeValue, isUnchanging)
             }
+
+            val sortConst = sortName.toLowerCase match {
+                case "int" | "intsort" => IntSort
+                case _ => SortConst(sortName)
+            }
+            scopes += (sortConst -> scopeVal)
         }
 
 
