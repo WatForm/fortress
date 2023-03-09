@@ -10,7 +10,6 @@ import fortress.problemstate.ExactScope
 import fortress.util.Errors
 
 object OAFIntsTransformer extends ProblemStateTransformer {
-    // TODO remove distinct domain elements!
     val name: String = "OAFIntsTransformer"
 
     // Generate mapping using min, max inclusive
@@ -19,6 +18,11 @@ object OAFIntsTransformer extends ProblemStateTransformer {
     }
 
     def apply(problemState: ProblemState): ProblemState = {
+        // early leave if we don't have a scope for the intsort
+        if (!problemState.isDefinedAt(IntSort)){
+            return problemState
+        }
+
         // We don't want to replicate existing functions or variables or constants
         val forbiddenNames: Set[String] = (
             problemState.theory.constants.map(_.name) union problemState.theory.functionDeclarations.map(_.name) union
@@ -41,6 +45,8 @@ object OAFIntsTransformer extends ProblemStateTransformer {
         val az = z.of(newSort)
         val axy = Seq(ax, ay)
         val axyz = Seq(ax, ay, az)
+
+        
 
         val numValues = problemState.scopes(IntSort).size
         val min = (numValues.toFloat / 2.0).ceil.toInt * -1
@@ -237,10 +243,11 @@ object OAFIntsTransformer extends ProblemStateTransformer {
             }
 
             case Eq(left, right) => {
-                // TODO only check for overflow if needed
                 val (transformedLeft, upLeft) = transform(left, down)
                 val (transformedRight, upRight) = transform(right, down)
                 // We need to know the type here because ints need to be overflow checked
+                // TODO quantified variables are in here. Probably works to just say with constants, but then we need to take more info down with us
+                //    ... specifically the sorts of every variable
                 val sort = transformedLeft.typeCheck(newSignature).sort
                 var upInfo = (upLeft combine upRight)
 
