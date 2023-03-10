@@ -72,7 +72,14 @@ trait ModelFinder extends AutoCloseable {
     // Parentheses are used rather than zero parameters to indicate that state may change.
 
     /** Check for a satisfying interpretation to the theory with the given scopes. */
-    def checkSat(): ModelFinderResult 
+    def checkSat(): ModelFinderResult
+
+    def checkSat(method: Int): ModelFinderResult = null
+
+    def multiThreadCheckSat(): ModelFinderResult = null
+
+    def checkMono(): java.util.Map[Sort, Boolean] = null
+
 
     /** View the satisfying interpretation, if one exists.
       * Otherwise, throws an error.
@@ -98,7 +105,8 @@ trait ModelFinder extends AutoCloseable {
 object ModelFinder {
     def createDefault(): ModelFinder = new FortressTHREE
     def NonExactScopeModelFinder(): ModelFinder = new PredUpperBoundModelFinder
-
     def IncrementalModelFinder(): ModelFinder = new SmartIncrementalModelFinder
+
+    def createMonotonicityModelFinder(): ModelFinder = new MonotonicityModelFinder
 }
 

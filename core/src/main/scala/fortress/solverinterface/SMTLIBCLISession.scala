@@ -33,9 +33,12 @@ trait SMTLIBCLISession extends solver {
         // Convert & write theory
         val writer = processSession.get.inputWriter
         writer.write("(set-option :produce-models true)\n")
+        writer.write("(set-option :produce-unsat-cores true)\n")
+        writer.write("(set-option :smt.core.minimize true)\n")
         writer.write("(set-logic ALL)\n")
         val converter = new SmtlibConverter(writer)
         converter.writeTheory(theory)
+//        println("SMT-LIB:\n" + Dump.theoryToSmtlib(theory))
     }
 
 
@@ -66,7 +69,7 @@ trait SMTLIBCLISession extends solver {
                 else
                     ModelFinderResult.Unknown
             }
-            case _ => ErrorResult(s"Unrecognized result '${result}'" )
+            case _ => ErrorResult(s"Unrecognized result '${result}'")
         }
     }
 

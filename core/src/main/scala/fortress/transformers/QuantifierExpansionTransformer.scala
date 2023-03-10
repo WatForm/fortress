@@ -38,8 +38,16 @@ private[transformers] class QuantifierExpansionTransformer (useConstForDomElem: 
             }
         
             val newAxioms = {
-                if(useSimplification) theory.axioms.map(axiom => axiom.expandQuantifiersAndSimplify(domainElemsMap))
-                else theory.axioms.map(axiom => axiom.expandQuantifiers(domainElemsMap))
+                if(useSimplification) theory.axioms.map(axiom => {
+                    val newAxiom = axiom.expandQuantifiersAndSimplify(domainElemsMap)
+                    newAxiom.named = axiom.named
+                    newAxiom
+                })
+                else theory.axioms.map(axiom => {
+                    val newAxiom = axiom.expandQuantifiers(domainElemsMap)
+                    newAxiom.named = axiom.named
+                    newAxiom
+                })
             }
         
             val newTheory = Theory.mkTheoryWithSignature(theory.signature).withAxioms(newAxioms)

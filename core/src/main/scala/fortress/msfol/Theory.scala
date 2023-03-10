@@ -26,6 +26,10 @@ case class Theory private (signature: Signature, axioms: Set[Term]) {
     def withAxiom(axiom: Term): Theory = {
         Theory(signature, axioms + axiom)
     }
+
+    def withoutAxiom(axiom: Term): Theory = {
+        Theory(signature, axioms - axiom)
+    }
     
     /** Returns a theory consisting of the current theory but with the given
       * axioms added. Note that this does not modify the current Theory object,
@@ -38,9 +42,21 @@ case class Theory private (signature: Signature, axioms: Set[Term]) {
         }
         theory
     }
+
+    def withoutSomeAxioms(oldAxioms: java.lang.Iterable[Term]): Theory = {
+        var theory: Theory = this
+        oldAxioms.forEach { axiom =>
+            theory = theory.withoutAxiom(axiom)
+        }
+        theory
+    }
     
     def withAxioms(newAxioms: Iterable[Term]): Theory = {
         Theory(signature, axioms ++ newAxioms)
+    }
+
+    def withoutSomeAxioms(oldAxioms: Iterable[Term]): Theory = {
+        Theory(signature, axioms -- oldAxioms)
     }
     
     /** Returns a theory consisting of the current theory but with the given

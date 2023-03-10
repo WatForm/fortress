@@ -36,11 +36,8 @@ with ModelFinderSettings {
             case Left(CompilerError.Other(errMsg)) => ErrorResult(errMsg)
             case Right(compilerRes) => {
                 compilerResult = Some(compilerRes)
-
                 val finalTheory = compilerResult.get.theory
-
-//                println("final theory: \n" + finalTheory + "\n\n")
-
+                println("final theory: \n" + finalTheory)
                 notifyLoggers(_.allTransformersFinished(finalTheory, totalTimer.elapsedNano))
 
                 val finalResult: ModelFinderResult = solverPhase(finalTheory)
@@ -55,7 +52,7 @@ with ModelFinderSettings {
         notifyLoggers(_.invokingSolverStrategy())
         
         // Close solver session, if one exists
-        solverSession.foreach(_.close())
+//        solverSession.foreach(_.close())
         
         // Open new solver session
         val session = solverInterface.openSession()
@@ -71,11 +68,13 @@ with ModelFinderSettings {
         // Solve
         val (finalResult, elapsedSolverNano) = measureTime {
             val remainingMillis = timeoutMilliseconds - totalTimer.elapsedNano().toMilli
-            session.solve(remainingMillis)
+            if(remainingMillis.value > 0) session.solve(remainingMillis)
+            else TimeoutResult
         }
         notifyLoggers(_.solverFinished(elapsedSolverNano))
 
         notifyLoggers(_.finished(finalResult, totalTimer.elapsedNano()))
+
 
         finalResult
     }

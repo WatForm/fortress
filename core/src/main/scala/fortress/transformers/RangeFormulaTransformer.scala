@@ -8,7 +8,7 @@ import fortress.data.CartesianSeqProduct
 import fortress.problemstate.ProblemState
 import fortress.msfol.DSL._
 
-import scala.math.min
+import scala.math.{min, rint}
 
 
 
@@ -24,6 +24,19 @@ private[transformers] class RangeFormulaTransformer (useConstForDomElem: Boolean
     private def DE(index: Integer, sort: Sort): Term =
         if (useConstForDomElem) DomainElement(index, sort).asSmtConstant
         else DomainElement(index, sort)
+
+    def getSort(term: Term): Sort = term match {
+        case OrList(arguments) => getSort(arguments.head)
+        case Implication(left, right) => getSort(left)
+        case Eq(left, right) => {
+            left match {
+                case DomainElement(index, sort) => sort
+                case _ => getSort(right)
+            }
+        }
+        case DomainElement(index, sort) => sort
+        case _ => Errors.Internal.impossibleState("Cannot get sort for term: " + term)
+    }
     
     override def apply(problemState: ProblemState): ProblemState = problemState match {
         case ProblemState(theory, scopes, skc, skf, rangeRestricts, unapplyInterp, distinctConstants) => {
@@ -87,13 +100,43 @@ private[transformers] class RangeFormulaTransformer (useConstForDomElem: Boolean
                     }
                 }
             }
+
             
-            val newTheory = theory
+            var newTheory = theory
                 .withAxioms(constantRangeConstraints)
                 .withAxioms(functionRangeConstraints.toList)
 
-//            println("Theory after range formula generation:")
-//            println(newTheory + "\n-----------------------------\n")
+//            if(isIncremental) {
+//                val oldRangeRestrictions: Set[Term] = theory.axioms.filter(_.named == "rangeRestriction")
+//                val newRangeRestrictions: Set[Term] = rangeRestricts.map(item => {
+//                    item.term match {
+//                        case Var(name) => {
+//                            val sort: Sort = theory.constants.find(_.variable.name == name).get.sort
+//                            Or.smart(
+//                                (item.values map (_ === item.term)) :+ Var(sort.name + "_GT")
+//                            )
+//                        }
+//                        case App(functionName, arguments) => {
+//                            val sort: Sort = theory.functionDeclarations.find(_.name == functionName).get.resultSort
+//                            Or.smart(
+//                                (item.values map (_ === item.term)) :+ Var(sort.name + "_GT")
+//                            )
+//                        }
+//                    }
+//                })
+
+//                val newRangeRestrictions: Set[Term] = oldRangeRestrictions.map(term => {
+//                    val sort: Sort = getSort(term)
+//                    OrList(term, Var(sort.name + "_GT"))
+//                })
+//
+////                println("old: ")
+////                oldRangeRestrictions.foreach(println)
+////                println("new: ")
+////                newRangeRestrictions.foreach(println)
+//
+//                newTheory = newTheory.withoutSomeAxioms(oldRangeRestrictions).withAxioms(newRangeRestrictions)
+//            }
 
             ProblemState(newTheory, scopes, skc, skf, rangeRestricts, unapplyInterp, distinctConstants)
         }

@@ -17,29 +17,23 @@ object AddScopeConstraintsTransformer extends ProblemStateTransformer {
         case ProblemState(theory, scopes, skc, skf, rangeRestricts, unapplyInterp, distinctConstants) => {
 
             val constants: Set[AnnotatedVar] =
-                for(sort <- theory.sorts if !scopes.contains(sort)) yield AnnotatedVar(Var(sort.name + "_GT"), BoolSort)
+                for(sort <- theory.sorts) yield AnnotatedVar(Var(sort.name + "_GT"), BoolSort)
 
 
-            // for each unbounded sort S, yield constraint ~(S_GT)
+            // for each sort S, yield constraint ~(S_GT)
             val newAxioms: Set[Term] = {
                 var tmp: Set[Term] = Set.empty
-                for (sort <- theory.sorts if !scopes.contains(sort)) {
+                for (sort <- theory.sorts) {
                     val term: Term = Not(Var(sort.name + "_GT"))
-                    term.named = sort.name + "_GT"
+                    term.named = sort.name + "_G"
                     tmp = tmp + term
                 }
                 tmp
             }
 
-//            val newAxioms: Set[Term] = for( axiom <- problemState.theory.axioms if axiom.label != "rf")
-//                yield AddScopeConstraints.addScopeConstraints(axiom, clauses, theory)
-
-
             val resultTheory = theory
                 .withConstants(constants)
                 .withAxioms(newAxioms)
-            //                    .withoutAxiomList(theory.axioms.filter(ax => ax.label != "rf")) // remove old axioms
-            //                    .withAxioms(newAxioms) // add new axioms with scope constraints
 
             val unapply: Interpretation => Interpretation = {
                 interp => {

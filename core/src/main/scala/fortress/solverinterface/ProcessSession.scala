@@ -13,13 +13,16 @@ class ProcessSession(processArgs: java.util.List[String]) extends AutoCloseable 
     def write(str: String): Unit = in.write(str)
     def readLine(): String = out.readLine()
     def inputWriter: Writer = in
-    
+
+    def isAlive: Boolean = process.isAlive
+
     override protected def finalize(): Unit = close()
     
     @throws(classOf[java.io.IOException])
     override def close(): Unit = {
         in.close()
         out.close()
+        process.waitFor()
         process.destroy()
     }
     

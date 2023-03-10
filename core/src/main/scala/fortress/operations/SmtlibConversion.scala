@@ -42,7 +42,7 @@ class SmtlibConverter(writer: java.io.Writer) {
                 }
                 writer.write(") ")
                 recur(body)
-                writer.write(')')
+                writer.write(")")
             }
             case Forall(vars, body) => {
                 writer.write("(forall (")
@@ -60,7 +60,7 @@ class SmtlibConverter(writer: java.io.Writer) {
                 }
                 writer.write(") ")
                 recur(body)
-                writer.write(')')
+                writer.write(")")
             }
             
             // Integers
@@ -117,7 +117,7 @@ class SmtlibConverter(writer: java.io.Writer) {
                 writer.write(' ')
                 recur(arg)
             }
-            writer.write(')')
+            writer.write(")")
         }
         
         recur(t)
@@ -131,7 +131,7 @@ class SmtlibConverter(writer: java.io.Writer) {
         case BitVectorSort(bitwidth) => {
             writer.write("(_ BitVec ")
             writer.write(bitwidth.toString)
-            writer.write(')')
+            writer.write(")\n")
         }
     }
     
@@ -151,7 +151,7 @@ class SmtlibConverter(writer: java.io.Writer) {
             case SortConst(name) => {
                 writer.write("(declare-sort ")
                 writer.write(nameWithQuote(sort.name))
-                writer.write(" 0)")
+                writer.write(" 0)\n")
             }
             case _ =>
         }
@@ -164,7 +164,7 @@ class SmtlibConverter(writer: java.io.Writer) {
         writeSorts(funcDecl.argSorts)
         writer.write(") ")
         writeSort(funcDecl.resultSort)
-        writer.write(')')
+        writer.write(")\n")
     }
 
     /*
@@ -181,7 +181,7 @@ class SmtlibConverter(writer: java.io.Writer) {
         writeSort(funcDef.resultSort)
         writer.write(" ")
         write(funcDef.body)
-        writer.write(')')
+        writer.write(")\n")
     }
 
     def writeArgSortedVar(arg: AnnotatedVar): Unit = {
@@ -189,7 +189,7 @@ class SmtlibConverter(writer: java.io.Writer) {
         writer.write(nameWithQuote(arg.variable.name))
         writer.write(" ")
         writeSort(arg.sort)
-        writer.write(") ")
+        writer.write(")\n")
     }
 
     def writeArgSortedVars(args: Seq[AnnotatedVar]): Unit = {
@@ -201,14 +201,14 @@ class SmtlibConverter(writer: java.io.Writer) {
         writer.write(nameWithQuote(constant.name))
         writer.write(' ')
         writeSort(constant.sort)
-        writer.write(')')
+        writer.write(")\n")
     }
 
     def writeEnumConst(sort: Sort, enums: Seq[EnumValue]): Unit = {
         writer.write("(declare-datatypes () ((")
         writeSort(sort)
         enums.foreach(enumEntry => writer.write(' ' + nameWithQuote(enumEntry.name)))
-        writer.write(")))")
+        writer.write(")))\n")
     }
 
     def writeSignature(sig: Signature): Unit = {
@@ -219,10 +219,10 @@ class SmtlibConverter(writer: java.io.Writer) {
     }
     
     def writeAssertion(term: Term): Unit = {
-        if(term.named == "") {
+        if(term.named == "" || term.named == "rangeRestriction") {
             writer.write("(assert ")
             write(term)
-            writer.write(')')
+            writer.write(")\n")
         }
         else {
             writer.write("(assert (! ")

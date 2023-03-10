@@ -20,7 +20,6 @@ class StopWatch {
         val now: Nanoseconds = Nanoseconds(System.nanoTime())
         now - start
     }
-    
 }
 
 // Automatically starts

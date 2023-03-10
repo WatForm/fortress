@@ -299,15 +299,19 @@ class ConfigurableCompiler(transformers: ListBuffer[ProblemStateTransformer]) ex
 }
 
 class IncrementalCompiler extends LogicCompiler {
+//    def symmetryBreakingTransformers: Seq[ProblemStateTransformer] = Seq(
+//        new SymmetryBreakingTransformer(MonoFirstThenFunctionsFirstAnyOrder, DefaultSymmetryBreaker)
+//    )
     def symmetryBreakingTransformers: Seq[ProblemStateTransformer] = Seq(
-        new SymmetryBreakingTransformer(MonoFirstThenFunctionsFirstAnyOrder, DefaultSymmetryBreaker)
+        new SymmetryBreakingTransformer_MostUsed(LowArityFirstMostUsedFunctionFirstOrderFactory, DefaultSymmetryBreakerFactoryDL(None))
     )
-
     override def transformerSequence: Seq[ProblemStateTransformer] = {
         val transformerSequence = new scala.collection.mutable.ListBuffer[ProblemStateTransformer]
         transformerSequence += TypecheckSanitizeTransformer
+//        transformerSequence += ScopeNonExactPredicatesTransformer // Must be before skolemization
         transformerSequence += EnumEliminationTransformer
         transformerSequence += ClosureEliminationEijckTransformer
+//        transformerSequence += SortInferenceTransformer
         transformerSequence += NnfTransformer
         transformerSequence += SkolemizeTransformer
         transformerSequence ++= symmetryBreakingTransformers
@@ -315,7 +319,29 @@ class IncrementalCompiler extends LogicCompiler {
         transformerSequence += IncrementalRangeFormulaTransformer
         transformerSequence += new SimplifyTransformer
         transformerSequence += DomainEliminationTransformer
+        transformerSequence += AddScopeConstraintsTransformer //***//
         transformerSequence.toList
     }
 }
 
+class MonotonicityCompiler extends LogicCompiler {
+    def symmetryBreakingTransformers: Seq[ProblemStateTransformer] = Seq(
+        new SymmetryBreakingTransformer_MostUsed(LowArityFirstMostUsedFunctionFirstOrderFactory, DefaultSymmetryBreakerFactoryDL(None))
+    )
+    override def transformerSequence: Seq[ProblemStateTransformer] = {
+        val transformerSequence = new scala.collection.mutable.ListBuffer[ProblemStateTransformer]
+        transformerSequence += TypecheckSanitizeTransformer
+        transformerSequence += EnumEliminationTransformer
+        transformerSequence += ClosureEliminationEijckTransformer
+        transformerSequence += NnfTransformer
+        transformerSequence += SkolemizeTransformer
+        transformerSequence += MergeMonotonicSortsTransformer // *** //
+        transformerSequence ++= symmetryBreakingTransformers
+        transformerSequence += StandardQuantifierExpansionTransformer
+        transformerSequence += IncrementalRangeFormulaTransformer
+        transformerSequence += new SimplifyTransformer
+        transformerSequence += DomainEliminationTransformer
+        transformerSequence += AddScopeConstraintsTransformer
+        transformerSequence.toList
+    }
+}
