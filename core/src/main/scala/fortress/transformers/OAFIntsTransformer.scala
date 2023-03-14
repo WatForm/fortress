@@ -19,7 +19,7 @@ object OAFIntsTransformer extends ProblemStateTransformer {
 
     def apply(problemState: ProblemState): ProblemState = {
         // early leave if we don't have a scope for the intsort
-        if (!problemState.isDefinedAt(IntSort)){
+        if (!problemState.scopes.isDefinedAt(IntSort)){
             return problemState
         }
 
@@ -170,7 +170,10 @@ object OAFIntsTransformer extends ProblemStateTransformer {
                 // remove overwritten vars from those we will transform
                 val overwrittenVars = otherVars.filter(ov => down.oafVars.contains(ov.variable))
                 // remove quantified vars from raised checks
-                val newDown = down.withExtVars(newVars.map(_.variable)).withoutVars(overwrittenVars.map(_.variable))
+                val newDown = down
+                    .withExtVars(newVars.map(_.variable))
+                    .withoutVars(overwrittenVars.map(_.variable))
+                    .withOtherVars(otherVars)
 
                 val (newBody, upInfo) = transform(body, newDown)
                 (Exists(newVars ++ otherVars, newBody), upInfo.excludingVars(newVars.map(_.variable)))
@@ -182,7 +185,10 @@ object OAFIntsTransformer extends ProblemStateTransformer {
                 // remove overwritten vars from those we will transform
                 val overwrittenVars = otherVars.filter(ov => down.oafVars.contains(ov.variable))
                 // remove quantified vars from raised checks
-                val newDown = down.withExtVars(newVars.map(_.variable)).withoutVars(overwrittenVars.map(_.variable))
+                val newDown = down
+                    .withExtVars(newVars.map(_.variable))
+                    .withoutVars(overwrittenVars.map(_.variable))
+                    .withOtherVars(otherVars)
 
                 val (newBody, upInfo) = transform(body, newDown)
                 (Forall(newVars ++ otherVars, newBody), upInfo.excludingVars(newVars.map(_.variable)))
@@ -248,7 +254,12 @@ object OAFIntsTransformer extends ProblemStateTransformer {
                 // We need to know the type here because ints need to be overflow checked
                 // TODO quantified variables are in here. Probably works to just say with constants, but then we need to take more info down with us
                 //    ... specifically the sorts of every variable
-                val sort = transformedLeft.typeCheck(newSignature).sort
+                val typecheckSig = newSignature
+                    .withConstants(down.existentialVars.toSeq.map(_ of newSort))
+                    .withConstants(down.universalVars.toSeq.map(_  of newSort))
+                    .withConstants(down.otherVars.map({case (v -> s ) => v of s})) // other vars 
+
+                val sort = transformedLeft.typeCheck(typecheckSig).sort
                 var upInfo = (upLeft combine upRight)
 
                 // if it is an int, we must check for overflows
@@ -340,7 +351,7 @@ object OAFIntsTransformer extends ProblemStateTransformer {
         }
         // Integer constants are existentially quantified
         val intConstants: Set[Var] = newSignature.constants.filter(_.sort == newSort).map(_.variable)
-        val startingDown = DownInfo(intConstants, Set.empty, true)
+        val startingDown = DownInfo(intConstants, Set.empty, true, Map.empty)
         // transform the axioms
         val (newAxioms, upInfos) = problemState.theory.axioms.map(transform(_, startingDown)).unzip
         // This is specifically not transformed
@@ -354,33 +365,37 @@ object OAFIntsTransformer extends ProblemStateTransformer {
 
     // Info passed down through transform
     // These are oaf vars which must be cast now
-    case class DownInfo(existentialVars: Set[Var], universalVars: Set[Var], polarity: Boolean){
+    case class DownInfo(existentialVars: Set[Var], universalVars: Set[Var], polarity: Boolean, otherVars: Map[Var, Sort]){
         // oafVars are variables that are being cast to oaf vars
         def withExtVar(v: Var): DownInfo = {
-            DownInfo(existentialVars + v, universalVars, polarity)
+            DownInfo(existentialVars + v, universalVars, polarity, otherVars)
         }
         def withExtVars(vs: Seq[Var]): DownInfo = {
-            DownInfo(existentialVars union vs.toSet, universalVars, polarity)
+            DownInfo(existentialVars union vs.toSet, universalVars, polarity, otherVars)
         }
         def withUnivVar(v: Var): DownInfo = {
-            DownInfo(existentialVars, universalVars + v, polarity)
+            DownInfo(existentialVars, universalVars + v, polarity, otherVars)
         }
         def withUnivVars(vs: Seq[Var]): DownInfo = {
-            DownInfo(existentialVars, universalVars union vs.toSet, polarity)
+            DownInfo(existentialVars, universalVars union vs.toSet, polarity, otherVars)
         }
         def withoutVar(v: Var): DownInfo = {
-            DownInfo(existentialVars - v, universalVars - v, polarity)
+            DownInfo(existentialVars - v, universalVars - v, polarity, otherVars)
         }
         def withoutVars(vs: Seq[Var]): DownInfo = {
-            DownInfo(existentialVars diff vs.toSet, universalVars diff vs.toSet, polarity)
+            DownInfo(existentialVars diff vs.toSet, universalVars diff vs.toSet, polarity, otherVars)
+        }
+
+        def withOtherVars(aVars: Seq[AnnotatedVar]): DownInfo = {
+            DownInfo(existentialVars, universalVars, polarity, otherVars ++ (aVars.map(av => av.variable -> av.sort)))
         }
         // Both existential and universal Vars
         val oafVars: Set[Var] = {
             existentialVars union universalVars
         }
-        def flipPolarity(): DownInfo = DownInfo(existentialVars, universalVars, !polarity)
+        def flipPolarity(): DownInfo = DownInfo(existentialVars, universalVars, !polarity, otherVars)
     }
-    val blankDown = DownInfo(Set.empty, Set.empty, true)
+    val blankDown = DownInfo(Set.empty, Set.empty, true, Map.empty)
     // Info passed back up through transform
     case class UpInfo(extQuantOverflows: Set[Term], univQuantOverflows: Set[Term]){
         def combine(other: UpInfo): UpInfo = {
