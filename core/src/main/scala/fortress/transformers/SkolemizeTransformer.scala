@@ -8,6 +8,7 @@ import fortress.operations.TermOps._
 import fortress.operations.TheoryOps._
 import fortress.interpretation.Interpretation
 import fortress.problemstate.ProblemState
+import fortress.util.Errors
 
 /** Skolemizes existential quantifiers in the theory.
   * Requires that the theory be in negation normal form.
@@ -49,6 +50,27 @@ object SkolemizeTransformer extends ProblemStateTransformer {
                 resultTheory = resultTheory.withConstants(skolemResult.skolemConstants.toList)
                 resultTheory = resultTheory.withAxiom(newAxiom)
             }
+            // Function definitions can be skolemized as if each argument was universally quantified
+            val functionDefinitions = resultTheory.functionDefinitions
+            resultTheory = resultTheory.withoutFunctionDefinitions
+            for (fDef <- functionDefinitions) {
+                val wrappedTerm = Forall(fDef.argSortedVar, fDef.body)
+                val skolemResult = Skolemization.skolemize(wrappedTerm, resultTheory.signature, nameGenerator)
+                newSkolemConstants ++= skolemResult.skolemConstants
+                newSkolemFunctions ++= skolemResult.skolemFunctions
+                resultTheory = resultTheory.withFunctionDeclarations(skolemResult.skolemFunctions.toList)
+                resultTheory = resultTheory.withConstants(skolemResult.skolemConstants.toList)
+                
+                // unfold the result term to make the new axiom
+                skolemResult.skolemizedTerm match {
+                    case Forall(_, newBody) => {
+                        val newDef = FunctionDefinition(fDef.name, fDef.argSortedVar, fDef.resultSort, newBody)
+                        resultTheory = resultTheory.withFunctionDefinition(newDef) 
+                    }
+                    case _ => Errors.Internal.impossibleState("Skolemization of Forall did not return Forall.")
+                }
+            }
+
             
             val unapply: Interpretation => Interpretation = {
                 interp => interp.withoutConstants(newSkolemConstants.toSet).withoutFunctions(newSkolemFunctions.toSet)

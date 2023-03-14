@@ -402,4 +402,38 @@ class SkolemizeTransformerTest extends UnitSuite with CommonSymbols {
 
             skolemizer(theory) should be (expected)
     }
+
+    test("Function Definition"){
+        val fDef = FunctionDefinition(
+            "Q",
+            Seq(x of A),
+            BoolSort,
+            Exists(z of A, App(P.name, x, z))
+        )
+
+        val theory = Theory.empty
+            .withSorts(A)
+            .withFunctionDeclaration(P from (A, A) to BoolSort)
+            .withFunctionDefinition(fDef)
+            .withConstant(y of A)
+            .withAxiom(App("Q", y))
+
+        val expectedFDef = FunctionDefinition(
+            "Q",
+            Seq(x of A),
+            BoolSort,
+            App(P.name, x, sk_0(x))
+        )
+
+        val expected = Theory.empty
+            .withSorts(A)
+            .withFunctionDeclaration(P from (A, A) to BoolSort)
+            .withFunctionDeclaration(sk_0 from (A) to A)
+            .withConstant(y of A)
+            .withAxiom(App("Q", y))
+            .withFunctionDefinition(expectedFDef)
+        
+        skolemizer(theory) should be (expected)
+
+    }
 }
