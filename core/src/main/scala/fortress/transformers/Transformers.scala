@@ -25,6 +25,7 @@ object Transformers {
             case "closureeliminationclaessen" | "ceclaessen" | "claessen" => ClosureEliminationClaessenTransformer
             case "closureeliminationvakili" | "cevakili" | "vakili"
                 | "closureeliminationnegative" | "cenegative" | "negativece" | "negative" 
+                | "negativeclosureelimination"
                 => ClosureEliminationVakiliTransformer
             case "datatype" => DatatypeTransformer
             case "domainelimination" => DomainEliminationTransformer
@@ -48,6 +49,7 @@ object Transformers {
             case "symmetrybreaking" => Errors.API.doesNotExist("Use mkSymmetryBreakingTransformer")
             case "symmetrybreakingsi" | "symmetrybreakingtransformersi" => Errors.API.doesNotExist("Use mkSymmetryBreakingTransformerSI")
             case "typechecksanitizer" | "typecheck" | "typechecksanitize" => TypecheckSanitizeTransformer
+            case "zeroarityapplication" | "zeroarityapp" | "zeroarity" | "zeroarityvar" | "zeroarityapps" | "zeroarityvars" => ZeroArityApplicationTransformer
             case _ => Errors.API.doesNotExist(name + " is not a recognized Transformer.")
         }
     }
