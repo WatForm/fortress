@@ -23,7 +23,8 @@ case class Signature private (
     sorts: Set[Sort],
     functionDeclarations: Set[FuncDecl],
     functionDefinitions: Set[FunctionDefinition],
-    constants: Set[AnnotatedVar],
+    constantDeclarations: Set[AnnotatedVar],
+    constantDefinitions: Set[ConstantDefinition],
     enumConstants: Map[Sort, Seq[EnumValue]]
 ) {
     
@@ -32,7 +33,7 @@ case class Signature private (
         if(t.isBuiltin) this
         else {
             assertSortConsistent(t)
-            Signature(sorts + t, functionDeclarations, functionDefinitions, constants, enumConstants)
+            this.copy(sorts=sorts+t)
         }
     }
     
@@ -49,7 +50,7 @@ case class Signature private (
     
     def withFunctionDeclaration(fdecl: FuncDecl): Signature = {
         assertFuncDeclConsistent(fdecl)
-        Signature(sorts, functionDeclarations + fdecl, functionDefinitions, constants, enumConstants)
+        this.copy(functionDeclarations= functionDeclarations + fdecl)
     }
     
     def withFunctionDeclarations(fdecls: java.lang.Iterable[FuncDecl]): Signature = {
@@ -71,43 +72,60 @@ case class Signature private (
     @varargs
     def withFunctionDeclarations(fdecls: FuncDecl*): Signature = withFunctionDeclarations(fdecls.asJava)
     
-    def withConstant(c: AnnotatedVar): Signature = {
-        assertConstConsistent(c);
-        Signature(sorts, functionDeclarations, functionDefinitions, constants + c, enumConstants)
+    def withConstantDeclaration(c: AnnotatedVar): Signature = {
+        assertConstDeclConsistent(c);
+        this.copy(constantDeclarations = constantDeclarations + c)
     }
     
-    def withConstants(constants: java.lang.Iterable[AnnotatedVar]): Signature = {
+    def withConstantDeclarations(constants: java.lang.Iterable[AnnotatedVar]): Signature = {
         var sig = this
         constants.forEach { c =>
-            sig = sig.withConstant(c)
+            sig = sig.withConstantDeclaration(c)
         }
         sig
     }
     
-    def withConstants(constants: Iterable[AnnotatedVar]): Signature = {
+    def withConstantDeclarations(constants: Iterable[AnnotatedVar]): Signature = {
         var sig = this
         constants.foreach { c =>
-            sig = sig.withConstant(c)
+            sig = sig.withConstantDeclaration(c)
         }
         sig;
     }
     
     @varargs
-    def withConstants(constants: AnnotatedVar*): Signature = withConstants(constants.asJava)
+    def withConstantDeclarations(constants: AnnotatedVar*): Signature = withConstantDeclarations(constants.asJava)
     
+    def withConstantDefinition(cDef: ConstantDefinition): Signature = {
+        assertConstantDefnConsistent(cDef)
+        this.copy(constantDefinitions = constantDefinitions + cDef)
+    }
+
+    def withConstantDefinitions(constants: Iterable[ConstantDefinition]): Signature = {
+        var sig = this
+        constants.foreach { c =>
+            sig = sig.withConstantDefinition(c)
+        }
+        sig;
+    }
+
+    def withConstantDefinitions(constants: java.lang.Iterable[ConstantDefinition]): Signature = {
+        withConstantDefinitions(constants.asScala)
+    }
+
     def withEnumSort(t: Sort, values: Seq[EnumValue]) = {
         // TODO more consistency checking
-        Signature(sorts + t, functionDeclarations, functionDefinitions, constants, enumConstants + (t -> values))
+        this.copy(sorts = sorts+t, enumConstants = enumConstants + (t -> values))    
     }
     
     def withEnumSort(t: Sort, values: java.util.List[EnumValue]) = {
         // TODO more consistency checking
-        Signature(sorts + t, functionDeclarations, functionDefinitions, constants, enumConstants + (t -> values.asScala.toList))
+        this.copy(sorts = sorts+t, enumConstants = enumConstants + (t -> values.asScala.toList))
     }
 
     def withFunctionDefinition(funcDef: FunctionDefinition): Signature = {
         assertFuncDefConsistent(funcDef)
-        Signature(sorts, functionDeclarations, functionDefinitions + funcDef, constants, enumConstants)
+        copy(functionDefinitions = functionDefinitions + funcDef)
     }
 
     def withFunctionDefinitions(funcdefs: java.lang.Iterable[FunctionDefinition]): Signature = {
@@ -130,7 +148,7 @@ case class Signature private (
     def withFunctionDefinitions(funcDefs: FunctionDefinition*): Signature = withFunctionDefinitions(funcDefs.asJava)
 
     def withoutFunctionDefinition(funcDef: FunctionDefinition): Signature = {
-        Signature(sorts, functionDeclarations, functionDefinitions - funcDef, constants, enumConstants)
+        copy(functionDefinitions = functionDefinitions - funcDef)
     }
 
     def withoutFunctionDefinitions(funcDefs: java.lang.Iterable[FunctionDefinition]): Signature = {
@@ -151,10 +169,26 @@ case class Signature private (
 
     def withoutFunctionDefinitions(funcDefs: FunctionDefinition*): Signature = withoutFunctionDefinitions(funcDefs.asJava)
 
-    def withoutFunctionDefinitions(): Signature = Signature(sorts, functionDeclarations, Set.empty, constants, enumConstants)
+    def withoutFunctionDefinitions(): Signature = copy(functionDefinitions = Set.empty)
     // TypeChecking
     
-    def queryConstant(v: Var): Option[AnnotatedVar] = constants.find(_.variable == v)
+    def queryConstantDeclaration(v: Var): Option[AnnotatedVar] = constantDeclarations.find(_.variable == v)
+
+    def queryConstantDefinition(v: Var): Option[ConstantDefinition] = constantDefinitions.find(_.variable == v)
+
+    def queryConstant(v: Var): Option[Either[AnnotatedVar, ConstantDefinition]] = queryConstantDeclaration(v) match {
+        case Some(avar) => Some(Left(avar))
+        case None => queryConstantDefinition(v) match {
+            case Some(cDef) => Some(Right(cDef))
+            case None => None
+        }
+    }
+
+    def getAnnotatedVarOfConstant(v: Var): Option[AnnotatedVar] = queryConstant(v) match {
+        case Some(Left(cDecl)) => Some(cDecl)
+        case Some(Right(cDefn)) => Some(cDefn.avar)
+        case None => None
+    }
     
     def queryEnum(e: EnumValue): Option[Sort] = enumConstants.find {
         case (sort, enumConstants) => enumConstants contains e
@@ -236,9 +270,14 @@ case class Signature private (
             }
         )
 
-        val newConstants = constants.map(c => c.variable of replaceSort(c.sort))
+        val newConstantDefinitions = constantDefinitions.map(cDef => {
+            ConstantDefinition(replaceSortInAnnVar(cDef.avar), TermConverter.intToSignedBitVector(cDef.body, bitwidth))
+        })
+
+
+        val newConstantDeclarations = constantDeclarations.map(c => c.variable of replaceSort(c.sort))
         val newEnums = enumConstants
-        Signature(newSorts, newFunctionDeclarations, newFunctionDefinitions, newConstants, newEnums)
+        Signature(newSorts, newFunctionDeclarations, newFunctionDefinitions, newConstantDeclarations, newConstantDefinitions, newEnums)
     }
 
     def replaceIntSorts(boundedSet: Set[String]): Signature = {
@@ -268,17 +307,23 @@ case class Signature private (
             }
             else funcDef
         })
-        val newConstants = constants.map(const => {
+        val newConstantDeclarations = constantDeclarations.map(const => {
             if(!boundedSet.contains(const.name)) {
                 const.variable of replace(const.sort)
             }
             else const
         })
+        val newConstantDefinitions = constantDefinitions.map(cDef => {
+            if(!boundedSet.contains(cDef.name)){
+                cDef.copy(avar = replaceAnnVar(cDef.avar)) // Copying from fdef but I feel like the body might need transforming?
+            }
+            else cDef
+        })
         val newEnums = enumConstants
-        Signature(newSorts, newFunctionDeclarations, newFunctionDefinitions, newConstants, newEnums)
+        Signature(newSorts, newFunctionDeclarations, newFunctionDefinitions, newConstantDeclarations, newConstantDefinitions, newEnums)
     }
     
-    def withoutEnums = Signature(sorts, functionDeclarations, functionDefinitions, constants, Map.empty)
+    def withoutEnums = copy(enumConstants = Map.empty)
     
     private
     def assertSortConsistent(t: Sort): Unit = {
@@ -293,12 +338,15 @@ case class Signature private (
     }
     
     private 
-    def assertConstConsistent(c: AnnotatedVar): Unit = {
+    def assertConstDeclConsistent(c: AnnotatedVar): Unit = {
         // Constant's sort must be within the set of sorts
         Errors.Internal.precondition(c.sort.isBuiltin || hasSort(c.sort), "Constant " + c.toString + " of undeclared sort ")
         
-        // Constant cannot share a name with a constant of a different sort
-        Errors.Internal.precondition(queryConstant(c.variable).filter(_.sort != c.sort).isEmpty, "Constant " + c.name + " declared with two different sorts")
+        // Constant cannot share a name with a constant definition
+        Errors.Internal.precondition(queryConstantDefinition(c.variable).isEmpty, f"Constant ${c.name} declared when it is already defined")
+
+        // Constant cannot share a name with a constant declaration of a different sort
+        Errors.Internal.precondition(queryConstantDeclaration(c.variable).filter(_.sort != c.sort).isEmpty, "Constant " + c.name + " declared with two different sorts")
         
         // Constant cannot share a name with any function declaration
         Errors.Internal.precondition(! hasFuncDeclWithName(c.name), "Name " + c.name + " shared by constant and function declaration")
@@ -306,6 +354,20 @@ case class Signature private (
         // Constant cannot share a name with any function definition
         Errors.Internal.precondition(! hasFuncDefWithName(c.name), "Name " + c.name + " shared by constant and function definition")
 
+    }
+
+    private def assertConstantDefnConsistent(cDef: ConstantDefinition): Unit = {
+        // Constant Definition's sort must be within the set of sorts
+        Errors.Internal.precondition(cDef.sort.isBuiltin || hasSort(cDef.sort), f"Constant definition ${cDef} of undeclared sort ${cDef.sort}.")
+
+        // Constant cannot share a name with a constant declaration
+        Errors.Internal.precondition(queryConstantDeclaration(cDef.variable).isEmpty, f"Constant ${cDef.name} defined when it is already declared.")
+
+        // Constant cannot share a name with a different constant definition
+        Errors.Internal.precondition(queryConstantDefinition(cDef.variable).filter(_ != cDef).isEmpty, f"Constant ${cDef.name} is defined twice.")
+
+        // Constant cannot share a name with any function
+        Errors.Internal.precondition(queryFunction(cDef.name).isEmpty, f"Name ${cDef.name} shared by constant definition and function.")
     }
     
     private
@@ -376,7 +438,7 @@ case class Signature private (
 
         val funcDefString = "Function Definitions:\n" + functionDefinitions.mkString("\n")
 
-        val constString = "Constants:\n" + constants.mkString("\n")
+        val constString = "Constants:\n" + constantDeclarations.mkString("\n")
         
         // Slow but doesn't matter
         var result = "Signature"
@@ -384,7 +446,7 @@ case class Signature private (
         if(enumConstants.nonEmpty) { result += "\n" + enumString }
         if(functionDeclarations.nonEmpty) { result += "\n" + funcDeclString }
         if(functionDefinitions.nonEmpty) { result += "\n" + funcDefString }
-        if(constants.nonEmpty) { result += "\n" + constString }
+        if(constantDeclarations.nonEmpty) { result += "\n" + constString }
         result
     }
 }
@@ -392,5 +454,5 @@ case class Signature private (
 object Signature {
     def empty: Signature = 
         // For testing consistency for symmetry breaking, use an insertion ordered set
-        Signature(InsertionOrderedSet.empty[Sort], InsertionOrderedSet.empty, InsertionOrderedSet.empty, InsertionOrderedSet.empty, Map.empty)
+        Signature(InsertionOrderedSet.empty[Sort], InsertionOrderedSet.empty, InsertionOrderedSet.empty, InsertionOrderedSet.empty, InsertionOrderedSet.empty, Map.empty)
 }

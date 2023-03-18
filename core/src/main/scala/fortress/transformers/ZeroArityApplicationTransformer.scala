@@ -6,12 +6,6 @@ import fortress.problemstate._
 object ZeroArityApplicationTransformer extends ProblemStateTransformer {
     val name = "ZeroArityApplicationTransformer"
 
-    def getZeroArityDecls(problemState: ProblemState): Set[String] = {
-        val decls = problemState.theory.signature.functionDeclarations
-
-        decls.collect({case FuncDecl(name, args, _) if args.isEmpty => name})
-    }
-
     def getZeroArityDefns(problemState: ProblemState): Set[String] = {
         val defns = problemState.theory.signature.functionDefinitions
         
@@ -53,7 +47,7 @@ object ZeroArityApplicationTransformer extends ProblemStateTransformer {
 
     def apply(problemState: ProblemState): ProblemState = {
         // get the names of all the zero-arity functions
-        val zeroArityFunctions = getZeroArityDecls(problemState) union getZeroArityDefns(problemState)
+        val zeroArityFunctions = getZeroArityDefns(problemState)
 
         val newAxioms = problemState.theory.axioms.map(recur(_, zeroArityFunctions))
         val newTheory = Theory(problemState.theory.signature, newAxioms)

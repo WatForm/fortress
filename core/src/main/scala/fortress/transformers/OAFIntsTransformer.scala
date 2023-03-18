@@ -144,7 +144,7 @@ object OAFIntsTransformer extends ProblemStateTransformer {
         }
 
         var changedConstants: Seq[Var] = Seq.empty
-        var newConstants = problemState.theory.signature.constants.map(_ match {
+        var newConstants = problemState.theory.signature.constantDeclarations.map(_ match {
             case AnnotatedVar(variable, IntSort) => {
                 changedConstants = changedConstants :+ variable   
                 AnnotatedVar(variable, newSort)
@@ -157,6 +157,7 @@ object OAFIntsTransformer extends ProblemStateTransformer {
          otherFunctions ++ oafIntFunctions,
          oldSig.functionDefinitions + castToIntDefn + castFromIntDefn + isInBounds,
          newConstants,
+         oldSig.constantDefinitions, // TODO absolutely wrong
          oldSig.enumConstants
         )
 
@@ -255,9 +256,9 @@ object OAFIntsTransformer extends ProblemStateTransformer {
                 // TODO quantified variables are in here. Probably works to just say with constants, but then we need to take more info down with us
                 //    ... specifically the sorts of every variable
                 val typecheckSig = newSignature
-                    .withConstants(down.existentialVars.toSeq.map(_ of newSort))
-                    .withConstants(down.universalVars.toSeq.map(_  of newSort))
-                    .withConstants(down.otherVars.map({case (v -> s ) => v of s})) // other vars 
+                    .withConstantDeclarations(down.existentialVars.toSeq.map(_ of newSort))
+                    .withConstantDeclarations(down.universalVars.toSeq.map(_  of newSort))
+                    .withConstantDeclarations(down.otherVars.map({case (v -> s ) => v of s})) // other vars 
 
                 val sort = transformedLeft.typeCheck(typecheckSig).sort
                 var upInfo = (upLeft combine upRight)
@@ -350,7 +351,7 @@ object OAFIntsTransformer extends ProblemStateTransformer {
             case Bottom => (Bottom, blankUp)
         }
         // Integer constants are existentially quantified
-        val intConstants: Set[Var] = newSignature.constants.filter(_.sort == newSort).map(_.variable)
+        val intConstants: Set[Var] = newSignature.constantDeclarations.filter(_.sort == newSort).map(_.variable)
         val startingDown = DownInfo(intConstants, Set.empty, true, Map.empty)
         // transform the axioms
         val (newAxioms, upInfos) = problemState.theory.axioms.map(transform(_, startingDown)).unzip

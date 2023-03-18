@@ -99,13 +99,13 @@ class OAFIntsTransformerTest extends UnitSuite {
     test("variables") {
         val axiom = Eq(Term.mkPlus(x, x), y)
         val sig = Signature.empty
-            .withConstants(x.of(IntSort), y.of(IntSort))
+            .withConstantDeclarations(x.of(IntSort), y.of(IntSort))
         val theory = Theory(sig, Set(axiom))
         val problemState = ProblemState(theory, simpleIntScopes)
         val result = transformer(problemState)
         
         //constants should be x, y of the same Sort
-        val resultConstants = result.theory.signature.constants
+        val resultConstants = result.theory.signature.constantDeclarations
         resultConstants.map(_.variable) should be (Set(x,y))
         // seq first so set doesn't combine the identical sorts
         val constantSorts = resultConstants.toSeq.map(_.sort)
@@ -134,7 +134,7 @@ class OAFIntsTransformerTest extends UnitSuite {
 
         val sig = Signature.empty
             .withSort(aSort)
-            .withConstants(x.of(IntSort), y.of(aSort))
+            .withConstantDeclarations(x.of(IntSort), y.of(aSort))
             .withFunctionDeclaration(fDec)
         val theory1 = Theory(sig, Set(axiomSimple))
         val problemState1 = ProblemState(theory1, simpleIntScopes)

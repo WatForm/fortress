@@ -23,7 +23,7 @@ case class TermOps private (term: Term) {
       * to the given signature. Constants of the signature are not included.
       */
     def freeVars(signature: Signature): Set[Var] = {
-        val constants = signature.constants.map(_.variable)
+        val constants = signature.constantDeclarations.map(_.variable)
         RecursiveAccumulator.freeVariablesIn(term) diff constants
     }
     

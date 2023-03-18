@@ -62,7 +62,7 @@ object Skolemization {
                         
                         // We also have to update the signature with the new skolem constant
                         // since it might now appear deeper in the new term
-                        context = context.updateSignature(context.signature.withConstant(skolemConstant))
+                        context = context.updateSignature(context.signature.withConstantDeclaration(skolemConstant))
                     } else {
                         // Skolem function
                         val skolemFunctionName = nameGen.freshName("sk")

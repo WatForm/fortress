@@ -25,7 +25,7 @@ class TypeCheckerTest extends UnitSuite {
         val sig = Signature.empty
             .withSorts(A,B,C)
             .withFunctionDefinition(fdef)
-            .withConstants(h.of(A), j.of(B), z.of(C))
+            .withConstantDeclarations(h.of(A), j.of(B), z.of(C))
         
         val checker = new TypeChecker(sig)
         val application = App("f", Seq(h, j))
@@ -42,7 +42,7 @@ class TypeCheckerTest extends UnitSuite {
         val sig = Signature.empty
             .withSorts(A, B, C)
             .withFunctionDeclaration(fdec)
-            .withConstants(h.of(A), j.of(B), z.of(C))
+            .withConstantDeclarations(h.of(A), j.of(B), z.of(C))
 
         val checker = new TypeChecker(sig)
         val application = App("f", Seq(h, j))
@@ -59,8 +59,8 @@ class TypeCheckerTest extends UnitSuite {
     test("Closure relation correct"){
         val f = FuncDecl("f", List(A,A), Sort.Bool);
         val sig = Signature.empty.withSort(A).withFunctionDeclaration(f)
-            .withConstant(x.of(A))
-            .withConstant(y.of(A))
+            .withConstantDeclaration(x.of(A))
+            .withConstantDeclaration(y.of(A))
 
         val closure = Closure("f", x, y);
 
@@ -76,8 +76,8 @@ class TypeCheckerTest extends UnitSuite {
     test("Closure function correct"){
         val f = FuncDecl("f", List(A), A);
         val sig = Signature.empty.withSort(A).withFunctionDeclaration(f)
-            .withConstant(x.of(A))
-            .withConstant(y.of(A))
+            .withConstantDeclaration(x.of(A))
+            .withConstantDeclaration(y.of(A))
 
         val closure = Closure("f", x, y);
 
@@ -95,8 +95,8 @@ class TypeCheckerTest extends UnitSuite {
         val sig = Signature.empty.withSort(A)
             .withSort(B)
             .withFunctionDeclaration(f)
-            .withConstant(x.of(A))
-            .withConstant(y.of(B))
+            .withConstantDeclaration(x.of(A))
+            .withConstantDeclaration(y.of(B))
 
         val closure = Closure("f", x, y);
 
@@ -110,8 +110,8 @@ class TypeCheckerTest extends UnitSuite {
         val sig = Signature.empty.withSort(A)
             .withSort(B)
             .withFunctionDeclaration(f)
-            .withConstant(x.of(A))
-            .withConstant(y.of(B))
+            .withConstantDeclaration(x.of(A))
+            .withConstantDeclaration(y.of(B))
 
         val closure = Closure("f", x, y);
 
@@ -125,7 +125,7 @@ class TypeCheckerTest extends UnitSuite {
         val sig = Signature.empty
             .withSorts(A, B)
             .withFunctionDeclaration(f)
-            .withConstants(x.of(A), y.of(A), z.of(B))
+            .withConstantDeclarations(x.of(A), y.of(A), z.of(B))
 
         val closure = Closure("f", x, y, Seq(z))
 
@@ -145,7 +145,7 @@ class TypeCheckerTest extends UnitSuite {
             .withSorts(A, B)
             .withFunctionDeclaration(f)
             // note z is the wrong sort here
-            .withConstants(x.of(A), y.of(A), z.of(A))
+            .withConstantDeclarations(x.of(A), y.of(A), z.of(A))
 
         val closure = Closure("f", x, y, Seq(z));
 

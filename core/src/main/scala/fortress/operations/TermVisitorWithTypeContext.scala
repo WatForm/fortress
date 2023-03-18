@@ -1,6 +1,7 @@
 package fortress.operations
 
 import fortress.msfol._
+import fortress.util.Errors
 
 abstract class TermVisitorWithTypeContext[T](protected var signature: Signature) extends TermVisitor[T] {
     private var typeContextStack: List[AnnotatedVar] = List.empty
@@ -21,7 +22,7 @@ abstract class TermVisitorWithTypeContext[T](protected var signature: Signature)
         // since the use of v will have type B
         typeContextStack.find(_.name == variable.name)
         // If it is not in the stack, check if is in the declared constants
-            .orElse(signature.queryConstant(variable))
+            .orElse(signature.getAnnotatedVarOfConstant(variable))
             // Gives Option[AnnotatedVar] so far. Take .sort
             .map(_.sort)
     }

@@ -33,6 +33,9 @@ class TypeChecker(signature: Signature) extends TermVisitorWithTypeContext[TypeC
         }
 
         if(signature hasFuncDefWithName variable.name) {
+            // zero-arity defined functions are allowed in smtlib
+            val fDef = signature.queryFunctionDefinition(variable.name)
+            // TODO vars/constants etc
             throw new TypeCheckException.NameConflict("Variable or constant name " + variable.name + " conflicts with existing function symbol")
         }
         

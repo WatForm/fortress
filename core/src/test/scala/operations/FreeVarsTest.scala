@@ -38,8 +38,8 @@ class FreeVarsTest extends UnitSuite {
     test("constants not free") {
         val sig = Signature.empty
             .withSort(A)
-            .withConstant(c of A)
-            .withConstant(p of (Sort.Bool))
+            .withConstantDeclaration(c of A)
+            .withConstantDeclaration(p of (Sort.Bool))
             
         val t = And(
             Eq(c, x),

@@ -178,7 +178,7 @@ trait SMTLIBCLISession extends solver {
             /** Maps a constant symbol to a value. */
             override def constantInterpretations: Map[AnnotatedVar, Value] = {
                 for{
-                    c <- theory.get.signature.constants
+                    c <- theory.get.signature.constantDeclarations
                     if DomainElement.interpretName(c.name).isEmpty
                 } yield (c -> getConstant(c))
             }.toMap

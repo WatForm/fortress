@@ -66,13 +66,13 @@ case class Theory private (signature: Signature, axioms: Set[Term]) {
       * constant declaration added. Note that this does not modify the current Theory object,
       * but rather just returns a new Theory object.
       */
-    def withConstant(constant: AnnotatedVar): Theory = Theory(signature.withConstant(constant), axioms)
+    def withConstant(constant: AnnotatedVar): Theory = Theory(signature.withConstantDeclaration(constant), axioms)
     
     /** Returns a theory consisting of the current theory but with the given
       * constant declarations added. Note that this does not modify the current Theory object,
       * but rather just returns a new Theory object.
       */
-    def withConstants(constants: java.lang.Iterable[AnnotatedVar]): Theory = Theory(signature.withConstants(constants), axioms)
+    def withConstants(constants: java.lang.Iterable[AnnotatedVar]): Theory = Theory(signature.withConstantDeclarations(constants), axioms)
     
     /** Returns a theory consisting of the current theory but with the given
       * constant declarations added. Note that this does not modify the current Theory object,
@@ -81,7 +81,7 @@ case class Theory private (signature: Signature, axioms: Set[Term]) {
     @varargs
     def withConstants(constants: AnnotatedVar*): Theory = withConstants(constants.asJava)
     
-    def withConstants(constants: Iterable[AnnotatedVar]): Theory = Theory(signature.withConstants(constants), axioms)
+    def withConstants(constants: Iterable[AnnotatedVar]): Theory = Theory(signature.withConstantDeclarations(constants), axioms)
     
     /** Returns a theory consisting of the current theory but with the given
       * function declaration added. Note that this does not modify the current Theory object,
@@ -140,7 +140,7 @@ case class Theory private (signature: Signature, axioms: Set[Term]) {
 
     def functionDefinitions: Set[FunctionDefinition] = signature.functionDefinitions
 
-    def constants: Set[AnnotatedVar] = signature.constants
+    def constants: Set[AnnotatedVar] = signature.constantDeclarations
     def enumConstants: Map[Sort, Seq[EnumValue]] = signature.enumConstants
 
     override def toString: String = "\n" + signature.toString + "\nAxioms\n" + axioms.mkString("\n") + "\n"

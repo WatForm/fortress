@@ -21,7 +21,7 @@ abstract class EvaluationBasedInterpretation(sig: Signature) extends Interpretat
 
     override val constantInterpretations: Map[AnnotatedVar, Value] = {
         for {
-            c <- sig.constants
+            c <- sig.constantDeclarations
             if DomainElement.interpretName(c.name).isEmpty // Exclude domain constants
 		} yield (c -> evaluateConstant(c))
     }.toMap

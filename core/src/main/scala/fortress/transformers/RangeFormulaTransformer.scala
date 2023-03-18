@@ -38,7 +38,7 @@ private[transformers] class RangeFormulaTransformer (useConstForDomElem: Boolean
                 rangeFormula
             }
 
-            // Generate range constraints for functions
+            // Generate range constraints for function *declarations*
             val functionRangeConstraints = new scala.collection.mutable.ListBuffer[Term]()
             for {
                 f <- theory.functionDeclarations

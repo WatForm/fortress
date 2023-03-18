@@ -204,6 +204,16 @@ class SmtlibConverter(writer: java.io.Writer) {
         writer.write(")\n")
     }
 
+    def writeConstDefn(cDef: ConstantDefinition): Unit = {
+        writer.write("(define-fun ")
+        writer.write(nameWithQuote(cDef.name))
+        writer.write(" () ")
+        writeSort(cDef.sort)
+        writer.write(' ')
+        write(cDef.body)
+        writer.write(")\n")
+    }
+
     def writeEnumConst(sort: Sort, enums: Seq[EnumValue]): Unit = {
         writer.write("(declare-datatypes () ((")
         writeSort(sort)
@@ -215,7 +225,8 @@ class SmtlibConverter(writer: java.io.Writer) {
         sig.sorts.removedAll(sig.enumConstants.keys).foreach(writeSortDecl)
         sig.enumConstants.foreach(x => writeEnumConst(x._1, x._2))
         sig.functionDeclarations.foreach(writeFuncDecl)
-        sig.constants.foreach(writeConst)
+        sig.constantDeclarations.foreach(writeConst)
+        sig.constantDefinitions.foreach(writeConstDefn)
         // We can use constants in function definitions so they must be later
         sig.functionDefinitions.foreach(writeFunctionDefinition)
     }

@@ -162,7 +162,7 @@ class MicrostructureComplement(theory: Theory, scopes: Map[Sort, Int]) extends H
             
             val constSymbolsOfAxiom: Set[AnnotatedVar] =  {
                 val constantsIn = fortress.operations.RecursiveAccumulator.constantsIn(axiom)
-                constantsIn.map(x => theory.signature.queryConstant(Var(x)).get)
+                constantsIn.map(x => theory.signature.getAnnotatedVarOfConstant(Var(x)).get)
             }
             val funcSymbolsOfAxiom: Set[FuncDecl] = {
                 val functionsIn = fortress.operations.RecursiveAccumulator.functionsIn(axiom)
