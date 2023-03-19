@@ -2,6 +2,7 @@ package fortress.solverinterface
 
 import java.io._
 import java.lang.AutoCloseable
+import java.lang.reflect.Field
 
 // Cannot be cleared -- make a new session
 class ProcessSession(processArgs: java.util.List[String]) extends AutoCloseable {

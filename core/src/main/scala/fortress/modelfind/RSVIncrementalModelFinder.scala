@@ -16,8 +16,7 @@ import java.util
 import java.io._
 import scala.jdk.CollectionConverters._
 import java.util.concurrent.{Callable, ExecutorService, Executors}
-import scala.collection.immutable.Seq
-import scala.collection.mutable
+import java.util.concurrent.TimeUnit
 
 
 
@@ -27,10 +26,11 @@ case class multiThreadFinderResult(modelFinderResult: ModelFinderResult, scope: 
 }
 
 abstract class RSVIncrementalModelFinder(solverInterface: SolverInterface) extends CompilationModelFinder(solverInterface) {
-    var processes: Array[ProcessSession] = new Array[ProcessSession](3)
+
     var monotonicityResult: Map[Sort, Boolean] = Map.empty
+    var processes: Array[ProcessSession] = new Array[ProcessSession](3)
     var liveProcess: Option[ProcessSession] = None
-    var result: multiThreadFinderResult = null
+    var finderResult: Option[multiThreadFinderResult] = None
     var successPid: Int = -1
     override def checkMono(): java.util.Map[Sort, Boolean] = checkMonotonicity().asJava
 
@@ -45,12 +45,18 @@ abstract class RSVIncrementalModelFinder(solverInterface: SolverInterface) exten
     case class task(pid: Int) extends Callable[multiThreadFinderResult] {
         override def call(): multiThreadFinderResult = checkSatByPid(pid)
 
+        /*
+            method = 0/1/2/3
+            method = 0:  Monotonicity checking + RSVIncrementalSolving
+            method = 1: RSVIncrementalSolving
+            method = 2: Non-exact Scope solving (size = 5, 6, 7...)
+            method = 3: Monotonicity checking + Non-exact Scope Solving
+         */
         def checkSatByPid(pid: Int): multiThreadFinderResult = {
             var newTheory: Theory = theory
             var scopeMap: Map[Sort, Scope] = theory.sorts.map(s => s -> ExactScope(1)).toMap
-
+//                    if(finderResult.nonEmpty) return null
             if (pid == 0) {
-                monotonicityResult = checkMonotonicity()
                 val MMS: MergeMonotonicSorts = new MergeMonotonicSorts(theory.sorts.filter(monotonicityResult(_)))
                 newTheory = MMS.updateTheory(theory)
                 scopeMap = newTheory.sorts.map(s => s -> ExactScope(1)).toMap
@@ -59,7 +65,6 @@ abstract class RSVIncrementalModelFinder(solverInterface: SolverInterface) exten
                 scopeMap = theory.sorts.map(s => s -> NonExactScope(4)).toMap
             }
             if (pid == 3) {
-                monotonicityResult = checkMonotonicity()
                 val MMS: MergeMonotonicSorts = new MergeMonotonicSorts(theory.sorts.filter(monotonicityResult(_)))
                 newTheory = MMS.updateTheory(theory)
                 scopeMap = newTheory.sorts.map(s => s -> NonExactScope(4)).toMap
@@ -124,16 +129,14 @@ abstract class RSVIncrementalModelFinder(solverInterface: SolverInterface) exten
                     }
                 } while (result == UnsatResult)
             }
-
             multiThreadFinderResult(result, scopeMap, pid)
         }
 
         def solveByZ3(theory: Theory, pid: Int): (ModelFinderResult, String) = {
-            println("solveByZ3: " + pid)
             if (processes(pid) != null) processes(pid).close()
+            if(finderResult.nonEmpty) return null
             processes(pid) = new ProcessSession(Seq("z3", "-smt2", "-in").asJava)
             processes(pid).write("(set-option :produce-models true)\n")
-            //        processes(pid).write("(set-option :parallel.enable true)\n") // parallel
             processes(pid).write("(set-option :produce-unsat-cores true)\n")
             processes(pid).write("(set-option :smt.core.minimize true)\n")
             processes(pid).write("(set-logic ALL)\n")
@@ -174,19 +177,25 @@ abstract class RSVIncrementalModelFinder(solverInterface: SolverInterface) exten
     }
 
     override def multiThreadCheckSat(): ModelFinderResult = {
-        val executorService = Executors.newFixedThreadPool(3)
+        monotonicityResult = checkMonotonicity()
+        val executorService = Executors.newFixedThreadPool(4)
         val tasks: java.util.ArrayList[Callable[multiThreadFinderResult]] = new util.ArrayList[Callable[multiThreadFinderResult]]()
         for(i <- 0 to 2) tasks.add(task(i))
-        result = executorService.invokeAny(tasks)
+        finderResult = Some(executorService.invokeAny(tasks))
         executorService.shutdownNow()
-        successPid = result.pid // get process id real solve the problem
+        successPid = finderResult.get.pid // get process id real solve the problem
         liveProcess = Some(processes(successPid)) // get the process
-        Thread.sleep(1000)
         for(i <- 0 to 2 if processes(i)!= null) processes(i).close() // close other processes
         println("successPid: " + successPid)
-        for(i <- 0 to 2 if processes(i)!= null) println("process " + i + ": " + processes(i).isAlive)
-        result.modelFinderResult
+        for(i <- 0 to 2) {
+            if (processes(i)!= null)
+                println("process " + i + ": " + processes(i).isAlive)
+            else println("process " + i + " is null")
+        }
+        finderResult.get.modelFinderResult
     }
+
+
 
     def getScope(rawScope: Map[Sort, Scope]): Map[Sort, Scope] = successPid match {
         case 0 => {
@@ -222,18 +231,6 @@ abstract class RSVIncrementalModelFinder(solverInterface: SolverInterface) exten
     }
 
     override def viewModel: Interpretation = ???
-
-    /*
-        method = 0/1/2/3
-        method = 0:  Monotonicity checking + RSVIncrementalSolving
-        method = 1: RSVIncrementalSolving
-        method = 2: Non-exact Scope solving (size = 5, 6, 7...)
-        method = 3: Monotonicity checking + Non-exact Scope Solving
-     */
-
-
-
-
 
     override def checkSat(): ModelFinderResult = this.multiThreadCheckSat()
 
