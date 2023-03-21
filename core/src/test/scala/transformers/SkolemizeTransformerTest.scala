@@ -30,7 +30,7 @@ class SkolemizeTransformerTest extends UnitSuite with CommonSymbols {
         val expected = Theory.empty
             .withSort(A)
             .withFunctionDeclaration(P from A to BoolSort)
-            .withConstant(sk_0 of A)
+            .withConstantDeclaration(sk_0 of A)
             .withAxiom(P(sk_0))
         
         skolemizer(theory) should be (expected)
@@ -84,7 +84,7 @@ class SkolemizeTransformerTest extends UnitSuite with CommonSymbols {
             .withFunctionDeclaration(Q from (A, A) to BoolSort)
             .withFunctionDeclaration(sk_0 from A to A)
             .withFunctionDeclaration(sk_1 from A to A)
-            .withConstant(Var("sk_2") of A)
+            .withConstantDeclaration(Var("sk_2") of A)
             .withAxiom(And(
                 Forall(x of A, Q(x, sk_0(x))),
                 Forall(z of A, Q(sk_1(z), z)),
@@ -108,7 +108,7 @@ class SkolemizeTransformerTest extends UnitSuite with CommonSymbols {
             .withSort(A)
             .withSort(B)
             .withFunctionDeclaration(S from B to BoolSort)
-            .withConstant(Var("sk_0").of(B))
+            .withConstantDeclaration(Var("sk_0").of(B))
             .withAxiom(Forall(x of A, S(Var("sk_0"))))
         
         skolemizer(theory) should be (expected)
@@ -171,14 +171,14 @@ class SkolemizeTransformerTest extends UnitSuite with CommonSymbols {
             .withSort(A)
             .withSort(B)
             .withFunctionDeclaration(R from (A, A, B) to BoolSort)
-            .withConstant(z of B)
+            .withConstantDeclaration(z of B)
             .withAxiom(Forall(x of A, Exists(y of A, R(x, y, z))))
         
         val expected = Theory.empty
             .withSort(A)
             .withSort(B)
             .withFunctionDeclaration(R from (A, A, B) to BoolSort)
-            .withConstant(z of B)
+            .withConstantDeclaration(z of B)
             .withFunctionDeclaration(sk_0 from A to A)
             .withAxiom(Forall(x of A, R(x, sk_0(x), z)))
         
@@ -200,7 +200,7 @@ class SkolemizeTransformerTest extends UnitSuite with CommonSymbols {
             .withSort(A)
             .withSort(B)
             .withFunctionDeclaration(R from (A, A, A) to BoolSort)
-            .withConstant(Var("sk_0") of A)
+            .withConstantDeclaration(Var("sk_0") of A)
             .withFunctionDeclaration(sk_1 from A to A)
             .withAxiom(Forall(x of A, R(x, Var("sk_0"), sk_1(x))))
         
@@ -220,7 +220,7 @@ class SkolemizeTransformerTest extends UnitSuite with CommonSymbols {
             .withSort(A)
             .withFunctionDeclaration(P from A to BoolSort)
             .withSort(Sort.mkSortConst("sk_0"))
-            .withConstant(Var("sk_1") of A)
+            .withConstantDeclaration(Var("sk_1") of A)
             .withAxiom(P(Var("sk_1")))
         
         skolemizer(theory) should be (expected)
@@ -236,7 +236,7 @@ class SkolemizeTransformerTest extends UnitSuite with CommonSymbols {
             .withFunctionDeclaration(Q from (A, A) to BoolSort)
             .withSort(Sort.mkSortConst("sk_0"))
             .withFunctionDeclaration(sk_1 from A to BoolSort)
-            .withConstant(Var("sk_2") of A)
+            .withConstantDeclaration(Var("sk_2") of A)
             .withAxiom(Forall(Var("sk_4") of A, Top))
             .withAxiom(Forall(Var("sk_5") of A, Top))
             .withAxiom(And(
@@ -250,10 +250,10 @@ class SkolemizeTransformerTest extends UnitSuite with CommonSymbols {
             .withFunctionDeclaration(Q from (A, A) to BoolSort)
             .withSort(Sort.mkSortConst("sk_0"))
             .withFunctionDeclaration(sk_1 from A to BoolSort)
-            .withConstant(Var("sk_2") of A)
+            .withConstantDeclaration(Var("sk_2") of A)
             .withAxiom(Forall(Var("sk_4") of A, Top))
             .withAxiom(Forall(Var("sk_5") of A, Top))
-            .withConstant(Var("sk_3") of A)
+            .withConstantDeclaration(Var("sk_3") of A)
             .withFunctionDeclaration(sk_6 from A to A)
             .withAxiom(And(
                 P(Var("sk_3")),
@@ -275,7 +275,7 @@ class SkolemizeTransformerTest extends UnitSuite with CommonSymbols {
             .withSort(A)
             .withFunctionDeclaration(P from A to BoolSort)
             .withFunctionDeclaration(Q from (A, A) to BoolSort)
-            .withConstant(Var("sk_0") of A)
+            .withConstantDeclaration(Var("sk_0") of A)
             .withFunctionDeclaration(sk_1 from A to A)
             .withAxiom(P(Var("sk_0")))
             .withAxiom(Forall(x of A, Q(x, sk_1(x))))
@@ -284,7 +284,7 @@ class SkolemizeTransformerTest extends UnitSuite with CommonSymbols {
             .withSort(A)
             .withFunctionDeclaration(P from A to BoolSort)
             .withFunctionDeclaration(Q from (A, A) to BoolSort)
-            .withConstant(Var("sk_1") of A)
+            .withConstantDeclaration(Var("sk_1") of A)
             .withFunctionDeclaration(sk_0 from A to A)
             .withAxiom(P(Var("sk_1")))
             .withAxiom(Forall(x of A, Q(x, sk_0(x))))
@@ -334,7 +334,7 @@ class SkolemizeTransformerTest extends UnitSuite with CommonSymbols {
             .withFunctionDeclaration(Q from (A, A) to BoolSort)
             .withFunctionDeclaration(sk_0 from A to A)
             .withFunctionDeclaration(sk_1 from A to A)
-            .withConstant(Var("sk_2") of A)
+            .withConstantDeclaration(Var("sk_2") of A)
             .withAxiom(And(
                 Forall(x of A, Q(x, sk_0(x))),
                 Forall(z of A, Q(sk_1(z), z)),
@@ -350,7 +350,7 @@ class SkolemizeTransformerTest extends UnitSuite with CommonSymbols {
         val theory = Theory.empty
             .withSort(A)
             .withFunctionDeclaration(Q from (A, A) to BoolSort)
-            .withConstant(x of A)
+            .withConstantDeclaration(x of A)
             .withAxiom(Forall(x of A, Exists(y of A, Q(x, y))))
 
         /* This used to be a bug - when deciding if the ocurrence of x in Q(x, y) is a free variable
@@ -362,7 +362,7 @@ class SkolemizeTransformerTest extends UnitSuite with CommonSymbols {
         val expected = Theory.empty
             .withSort(A)
             .withFunctionDeclaration(Q from (A, A) to BoolSort)
-            .withConstant(x of A)
+            .withConstantDeclaration(x of A)
             .withFunctionDeclaration(sk_0 from A to A)
             .withAxiom(Forall(x of A, Q(x, sk_0(x))))
         
@@ -389,13 +389,13 @@ class SkolemizeTransformerTest extends UnitSuite with CommonSymbols {
     test("Inside a ITE conditional"){
         val theory = Theory.empty
             .withSorts(A)
-            .withConstants(y of A, z of A)
+            .withConstantDeclarations(y of A, z of A)
             .withFunctionDeclaration(P from (A,A) to BoolSort)
             .withAxiom(IfThenElse(Forall(x1.of(A), Exists(x2 of A, P(x1, x2))), Eq(y,z), Not(Eq(y,z))))
 
         val expected = Theory.empty
             .withSorts(A)
-            .withConstants(y of A, z of A)
+            .withConstantDeclarations(y of A, z of A)
             .withFunctionDeclaration(P from (A, A) to BoolSort)
             .withFunctionDeclaration(sk_0 from A to A)
             .withAxiom(IfThenElse(Forall(x1.of(A), P(x1, sk_0(x1))), Eq(y,z), Not(Eq(y,z))))
@@ -415,7 +415,7 @@ class SkolemizeTransformerTest extends UnitSuite with CommonSymbols {
             .withSorts(A)
             .withFunctionDeclaration(P from (A, A) to BoolSort)
             .withFunctionDefinition(fDef)
-            .withConstant(y of A)
+            .withConstantDeclaration(y of A)
             .withAxiom(App("Q", y))
 
         val expectedFDef = FunctionDefinition(
@@ -429,7 +429,7 @@ class SkolemizeTransformerTest extends UnitSuite with CommonSymbols {
             .withSorts(A)
             .withFunctionDeclaration(P from (A, A) to BoolSort)
             .withFunctionDeclaration(sk_0 from (A) to A)
-            .withConstant(y of A)
+            .withConstantDeclaration(y of A)
             .withAxiom(App("Q", y))
             .withFunctionDefinition(expectedFDef)
         

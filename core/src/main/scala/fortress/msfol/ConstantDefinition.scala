@@ -9,3 +9,9 @@ case class ConstantDefinition(avar: AnnotatedVar, body: Term) {
 
     override def toString: String = {f"ConstantDefinition(${avar}, ${body})"}
 }
+
+object ConstantDefinition{
+    def mkConstantDefinition(avar: AnnotatedVar, body: Term): ConstantDefinition =  {
+        ConstantDefinition(avar, body)
+    }
+}

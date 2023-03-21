@@ -22,7 +22,7 @@ class SelectionHeuristicWithConstantsTests extends UnitSuite with CommonSymbols 
 
         val theory = Theory.empty
           .withSorts(A, B, C)
-          .withConstants(x1_const, x2_const, x3_const, x4_const)
+          .withConstantDeclarations(x1_const, x2_const, x3_const, x4_const)
           .withFunctionDeclarations(f_func, P_func, Q_func, R_pred, S_pred, T_pred)
 
         val stalnessTracker = StalenessTracker.create(theory, Map(A -> ExactScope(2), B -> ExactScope(3), C -> ExactScope(3)))

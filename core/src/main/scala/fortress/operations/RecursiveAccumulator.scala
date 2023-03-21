@@ -139,11 +139,25 @@ object RecursiveAccumulator {
                 case Not(_) => Set.empty[String]
                 case Closure(fname, _, _, _) => Set(fname)
                 case ReflexiveClosure(fname, _, _, _) => Set(fname)
+                // equality should deny anything below as eq is A and B or not A and not B
+                case Eq(left, right) => allClosures(left) union allClosures(right)
             }
             
             def apply(term: Term): Set[String] = naturalRecur(term)
     }
     def nonNegativeClosures(term: Term): Set[String] = {
         NonNegativeClosureAccumulator(term)
+    }
+
+    object ClosureAccumulator extends NaturalSetAccumulation[String] {
+        override val exceptionalMappings: PartialFunction[Term,Set[String]] = {
+            case Closure(fname, _, _, _) => Set(fname)
+            case ReflexiveClosure(fname, _, _, _) => Set(fname)
+        }
+
+        def apply(term: Term): Set[String] = naturalRecur(term)
+    }
+    def allClosures(term: Term): Set[String] = {
+        ClosureAccumulator(term)
     }
 }

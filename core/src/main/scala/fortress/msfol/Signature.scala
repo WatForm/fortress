@@ -113,6 +113,14 @@ case class Signature private (
         withConstantDefinitions(constants.asScala)
     }
 
+    def withoutConstantDefinitions(): Signature = copy(constantDefinitions = Set.empty)
+
+    def withoutConstantDefinition(cDef: ConstantDefinition): Signature = {
+        copy(constantDefinitions = constantDefinitions - cDef)
+    }
+
+    def withoutFunctionDefinitions(): Signature = copy(functionDefinitions = Set.empty)
+
     def withEnumSort(t: Sort, values: Seq[EnumValue]) = {
         // TODO more consistency checking
         this.copy(sorts = sorts+t, enumConstants = enumConstants + (t -> values))    
@@ -151,6 +159,10 @@ case class Signature private (
         copy(functionDefinitions = functionDefinitions - funcDef)
     }
 
+    def withoutFunctionDefinition(name: String): Signature = {
+        copy(functionDefinitions = functionDefinitions.filterNot(_.name == name))
+    }
+
     def withoutFunctionDefinitions(funcDefs: java.lang.Iterable[FunctionDefinition]): Signature = {
         var sig: Signature = this
         funcDefs.forEach( f => {
@@ -169,7 +181,6 @@ case class Signature private (
 
     def withoutFunctionDefinitions(funcDefs: FunctionDefinition*): Signature = withoutFunctionDefinitions(funcDefs.asJava)
 
-    def withoutFunctionDefinitions(): Signature = copy(functionDefinitions = Set.empty)
     // TypeChecking
     
     def queryConstantDeclaration(v: Var): Option[AnnotatedVar] = constantDeclarations.find(_.variable == v)

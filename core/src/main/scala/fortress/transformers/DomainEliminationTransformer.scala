@@ -35,7 +35,7 @@ object DomainEliminationTransformer extends ProblemStateTransformer {
             val convertedFunctionDefinitions = theory.signature.functionDefinitions.map (_.mapBody(_.eliminateDomainElementsConstants))
             
             val newTheory = theory.withoutAxioms
-                .withConstants(domainConstants)
+                .withConstantDeclarations(domainConstants)
                 .withAxioms(distinctConstraints)
                 .withoutFunctionDefinitions
                 .withFunctionDefinitions(convertedFunctionDefinitions)

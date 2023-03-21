@@ -12,8 +12,8 @@ class NnfTransformerTest extends UnitSuite with CommonSymbols {
     val baseTheory = Theory.empty
         .withSort(A)
         .withSort(B)
-        .withConstant(p of BoolSort)
-        .withConstant(q of BoolSort)
+        .withConstantDeclaration(p of BoolSort)
+        .withConstantDeclaration(q of BoolSort)
         .withFunctionDeclaration(P from A to BoolSort)
     
     test("and") {

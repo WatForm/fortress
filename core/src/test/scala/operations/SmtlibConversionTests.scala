@@ -54,7 +54,7 @@ class  SmtlibConversionTests extends UnitSuite {
         val theory = Theory.empty
                     .withSorts(A, B)
                     .withFunctionDeclarations(f, P)
-                    .withConstants(x of A, y of B)
+                    .withConstantDeclarations(x of A, y of B)
                     .withEnumSort(A, _1A, _2A)
                     .withAxiom(App("P", Seq(x,y)))
 

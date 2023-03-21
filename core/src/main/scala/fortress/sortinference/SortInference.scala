@@ -69,7 +69,7 @@ object SortInference {
         
         val generalTheory = Theory.empty
             .withSorts(usedSorts.toSeq : _*)
-            .withConstants(newConstants)
+            .withConstantDeclarations(newConstants)
             .withFunctionDeclarations(newFunctions)
             .withAxioms(generalAxioms.values)
         

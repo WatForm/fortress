@@ -35,21 +35,53 @@ trait ClosureEliminationTransformer extends ProblemStateTransformer {
             val nameGenerator = new IntSuffixNameGenerator(forbiddenNames.toSet, 0)
             
             var resultTheory = theory.withoutAxioms
+
             // TODO can we make the elimiator only once?
             val closureFunctions = scala.collection.mutable.Set[FuncDecl]()
             val auxilaryFunctions = scala.collection.mutable.Set[FuncDecl]()
-            for(axiom <- theory.axioms) {
-                val closureEliminator = buildEliminator(axiom, resultTheory.signature, scopes, nameGenerator)
-                // ensure nnf
-                val newAxiom = NormalForms.nnf(closureEliminator.convert())
+
+            /** Updates the resultTheory with values from the closureEliminator after it runs its conversion
+            */
+            def updateResult(closureEliminator: ClosureEliminator): Unit = {
                 resultTheory = resultTheory.withFunctionDeclarations(closureEliminator.getClosureFunctions)
                 closureFunctions ++= closureEliminator.getClosureFunctions
                 resultTheory = resultTheory.withFunctionDeclarations(closureEliminator.getAuxilaryFunctions)
                 auxilaryFunctions ++= closureEliminator.getAuxilaryFunctions
                 // New axioms must be in negation normal form
                 resultTheory = resultTheory.withAxioms(closureEliminator.getClosureAxioms.map(NormalForms.nnf))
+            }
+            for(axiom <- theory.axioms) {
+                val closureEliminator = buildEliminator(axiom, resultTheory.signature, scopes, nameGenerator)
+                // ensure nnf
+                val newAxiom = NormalForms.nnf(closureEliminator.convert())
+                updateResult(closureEliminator)
                 resultTheory = resultTheory.withAxiom(newAxiom)
             }
+
+            for (cDef <- theory.signature.constantDefinitions) {
+                val body = cDef.body
+                // we do not support recursive definitions yet
+                resultTheory = resultTheory withoutConstantDefinition cDef
+                val closureEliminator = buildEliminator(body, resultTheory.signature, scopes, nameGenerator)
+                // ensure nnf 
+                val newBody = NormalForms.nnf(closureEliminator.convert())
+                updateResult(closureEliminator)
+                resultTheory = resultTheory.withConstantDefinition(ConstantDefinition(cDef.avar, newBody))
+            }
+
+            for (fDef <- theory.signature.functionDefinitions) {
+                val body = fDef.body
+                // we do not support recursive definitions yet
+                resultTheory = resultTheory withoutFunctionDefinition fDef
+                val closureEliminator = buildEliminator(body, resultTheory.signature, scopes, nameGenerator)
+                // ensure nnf 
+                val newBody = NormalForms.nnf(closureEliminator.convert())
+                updateResult(closureEliminator)
+                val newFDef = fDef.copy(body = newBody)
+                resultTheory = resultTheory.withFunctionDefinition(newFDef)
+            }
+
+
 
             // Remove the added functions
             def unapply(interp: Interpretation) = {

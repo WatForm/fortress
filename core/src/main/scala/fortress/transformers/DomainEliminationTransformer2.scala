@@ -35,7 +35,7 @@ class DomainEliminationTransformer2 extends ProblemStateTransformer {
             val convertedAxioms = theory.axioms map (_.eliminateDomainElementsConstants)
             
             val newTheory = theory.withoutAxioms
-                .withConstants(domainConstants)
+                .withConstantDeclarations(domainConstants)
                 // .withAxioms(distinctConstraints)
                 .withAxioms(convertedAxioms)
             

@@ -47,7 +47,7 @@ object SkolemizeTransformer extends ProblemStateTransformer {
                 newSkolemConstants ++= skolemResult.skolemConstants
                 newSkolemFunctions ++= skolemResult.skolemFunctions
                 resultTheory = resultTheory.withFunctionDeclarations(skolemResult.skolemFunctions.toList)
-                resultTheory = resultTheory.withConstants(skolemResult.skolemConstants.toList)
+                resultTheory = resultTheory.withConstantDeclarations(skolemResult.skolemConstants.toList)
                 resultTheory = resultTheory.withAxiom(newAxiom)
             }
             // Function definitions can be skolemized as if each argument was universally quantified
@@ -59,7 +59,7 @@ object SkolemizeTransformer extends ProblemStateTransformer {
                 newSkolemConstants ++= skolemResult.skolemConstants
                 newSkolemFunctions ++= skolemResult.skolemFunctions
                 resultTheory = resultTheory.withFunctionDeclarations(skolemResult.skolemFunctions.toList)
-                resultTheory = resultTheory.withConstants(skolemResult.skolemConstants.toList)
+                resultTheory = resultTheory.withConstantDeclarations(skolemResult.skolemConstants.toList)
                 
                 // unfold the result term to make the new axiom
                 skolemResult.skolemizedTerm match {

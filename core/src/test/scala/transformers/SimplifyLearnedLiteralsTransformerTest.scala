@@ -15,8 +15,8 @@ class SimplifyLearnedLiteralTransformerTest extends UnitSuite {
 
     val baseTheory = Theory.empty
       .withSort(A)
-      .withConstant(x.of(A))
-      .withConstant(y.of(A))
+      .withConstantDeclaration(x.of(A))
+      .withConstantDeclaration(y.of(A))
       .withFunctionDeclaration(f)
       .withFunctionDeclaration(P)
 

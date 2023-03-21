@@ -43,7 +43,7 @@ class VerifyInterpretationTests extends UnitSuite {
             val doubleIdentity = FuncDecl("doubleIdentity", bool, bool, bool)
 
             val rawTheory : Theory = Theory.empty
-                .withConstants(true1 of bool, true2 of bool, false1 of bool,
+                .withConstantDeclarations(true1 of bool, true2 of bool, false1 of bool,
                         false2 of bool, true3 of bool, false3 of bool)
                 .withFunctionDeclarations(identity, doubleIdentity)
 
@@ -143,7 +143,7 @@ class VerifyInterpretationTests extends UnitSuite {
             val temp: Var = Var("temp")
             val rawTheory: Theory = Theory.empty
                 .withSort(fruit)
-                .withConstants(apple of fruit, orange of fruit,
+                .withConstantDeclarations(apple of fruit, orange of fruit,
                         banana of fruit, plum of fruit, peach of fruit)
                 .withFunctionDeclarations(identity, doubleIdentity, tripleIdentity)
 
@@ -256,7 +256,7 @@ class VerifyInterpretationTests extends UnitSuite {
             val temp: Var = Var("temp")
             val rawTheory: Theory = Theory.empty
                 .withEnumSort(fruit, fruitVals : _*)
-                .withConstants(apple of fruit, orange of fruit,
+                .withConstantDeclarations(apple of fruit, orange of fruit,
                         banana of fruit, plum of fruit, peach of fruit)
                 .withFunctionDeclarations(identity, doubleIdentity, tripleIdentity)
 
@@ -353,7 +353,7 @@ class VerifyInterpretationTests extends UnitSuite {
             val seven: Var = Var("seven")
 
             val rawTheory: Theory = Theory.empty
-                .withConstants(zero of int, one of int, three of int, seven of int)
+                .withConstantDeclarations(zero of int, one of int, three of int, seven of int)
 
             val theory: Theory = rawTheory
                 .withAxiom(IntegerLiteral(0) === zero)

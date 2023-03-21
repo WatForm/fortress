@@ -101,7 +101,7 @@ trait Interpretation {
             case _ => throw new scala.NotImplementedError("Builtin function not accounted for")
         }
         val theory: Theory = Theory.empty
-                .withConstant(evalResultAnnotated)
+                .withConstantDeclaration(evalResultAnnotated)
                 .withAxiom(evalResult === BuiltinApp(fn, evalArgs))
 
         val solver = new Z3IncSolver
