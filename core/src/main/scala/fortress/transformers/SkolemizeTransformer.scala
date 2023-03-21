@@ -41,25 +41,28 @@ object SkolemizeTransformer extends ProblemStateTransformer {
             var resultTheory = theory.withoutAxioms
             val newSkolemConstants = scala.collection.mutable.Set.empty[AnnotatedVar]
             val newSkolemFunctions = scala.collection.mutable.Set.empty[FuncDecl]
-            for(axiom <- theory.axioms) {
-                val skolemResult = Skolemization.skolemize(axiom, resultTheory.signature, nameGenerator)
-                val newAxiom = skolemResult.skolemizedTerm
+            def updateWithResult(skolemResult: Skolemization.SkolemResult): Unit = {
                 newSkolemConstants ++= skolemResult.skolemConstants
                 newSkolemFunctions ++= skolemResult.skolemFunctions
                 resultTheory = resultTheory.withFunctionDeclarations(skolemResult.skolemFunctions.toList)
                 resultTheory = resultTheory.withConstantDeclarations(skolemResult.skolemConstants.toList)
+            }
+
+            for(axiom <- theory.axioms) {
+                val skolemResult = Skolemization.skolemize(axiom, resultTheory.signature, nameGenerator)
+                val newAxiom = skolemResult.skolemizedTerm
+                updateWithResult(skolemResult)
                 resultTheory = resultTheory.withAxiom(newAxiom)
             }
+            // We can do this in definitions because skolemization only cares about the free variables IN THE TERM
+            // First-Order Logic and Automated Theorem Proving 2nd ed., Melvin Fitting p. 206
             // Function definitions can be skolemized as if each argument was universally quantified
             val functionDefinitions = resultTheory.functionDefinitions
             resultTheory = resultTheory.withoutFunctionDefinitions
             for (fDef <- functionDefinitions) {
                 val wrappedTerm = Forall(fDef.argSortedVar, fDef.body)
                 val skolemResult = Skolemization.skolemize(wrappedTerm, resultTheory.signature, nameGenerator)
-                newSkolemConstants ++= skolemResult.skolemConstants
-                newSkolemFunctions ++= skolemResult.skolemFunctions
-                resultTheory = resultTheory.withFunctionDeclarations(skolemResult.skolemFunctions.toList)
-                resultTheory = resultTheory.withConstantDeclarations(skolemResult.skolemConstants.toList)
+                updateWithResult(skolemResult)
                 
                 // unfold the result term to make the new axiom
                 skolemResult.skolemizedTerm match {
@@ -69,6 +72,17 @@ object SkolemizeTransformer extends ProblemStateTransformer {
                     }
                     case _ => Errors.Internal.impossibleState("Skolemization of Forall did not return Forall.")
                 }
+            }
+            resultTheory = resultTheory.withoutConstantDefinitions
+            for (cDef <- theory.constantDefinitions){
+                val skolemResult = Skolemization.skolemize(cDef.body, resultTheory.signature, nameGenerator)
+                updateWithResult(skolemResult)
+                resultTheory.withConstantDefinition(
+                    ConstantDefinition(
+                        cDef.avar,
+                        skolemResult.skolemizedTerm
+                    )
+                )
             }
 
             

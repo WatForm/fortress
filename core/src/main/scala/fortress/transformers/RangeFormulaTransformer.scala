@@ -28,7 +28,7 @@ private[transformers] class RangeFormulaTransformer (useConstForDomElem: Boolean
         case ProblemState(theory, scopes, skc, skf, rangeRestricts, unapplyInterp, distinctConstants) => {
             // Generate range constraints for constants
             val constantRangeConstraints = for {
-                c <- theory.constants
+                c <- theory.constantDeclarations
                 if !c.sort.isBuiltin && scopes.contains(c.sort) // make sure the sort is bounded.
                 // Don't generate constraints for terms that are already restricted
                 if ! (rangeRestricts exists (_.term == c.variable))

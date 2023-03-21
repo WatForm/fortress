@@ -37,7 +37,7 @@ class MicrostructureComplement(theory: Theory, scopes: Map[Sort, Int]) extends H
         for(i <- 1 to scopes(c.sort)) yield ConstBinding(c, DomainElement(i, c.sort))
     
     val possibleConstBindingsMap: Map[AnnotatedVar, Seq[ConstBinding]] = (
-        for (c <- theory.constants) yield (c, possibleConstBindings(c))
+        for (c <- theory.constantDeclarations) yield (c, possibleConstBindings(c))
     ).toMap
         
     def possibleFunctionBindings(f: FuncDecl): Seq[FunctionBinding] = {
@@ -73,7 +73,7 @@ class MicrostructureComplement(theory: Theory, scopes: Map[Sort, Int]) extends H
     
     override val vertices: Seq[Binding] = {
         val _vertices = new scala.collection.mutable.ListBuffer[Binding]
-        for(c <- theory.constants; binding <- possibleConstBindings(c)) {
+        for(c <- theory.constantDeclarations; binding <- possibleConstBindings(c)) {
             _vertices += binding
         }
         for(f <- theory.functionDeclarations; binding <- possibleFunctionBindings(f)){
@@ -85,7 +85,7 @@ class MicrostructureComplement(theory: Theory, scopes: Map[Sort, Int]) extends H
     val consistencyEdges: Seq[HyperEdge] = {
         val _consistencyEdges = new scala.collection.mutable.ListBuffer[Set[Binding]]
         
-        for(c <- theory.constants) {
+        for(c <- theory.constantDeclarations) {
             val _possibleBindings = possibleConstBindings(c)
             for(x <- _possibleBindings; y <- _possibleBindings if x != y) {
                 _consistencyEdges += Set(x, y)
@@ -120,7 +120,7 @@ class MicrostructureComplement(theory: Theory, scopes: Map[Sort, Int]) extends H
             // Constants c1, ..., ck
             // Each has a sequence of possible bindings Ai
             // Take the cartesian product of the lists A1 x ... Ak
-            val Ais: IndexedSeq[IndexedSeq[ConstBinding]] = theory.constants.map(possibleConstBindingsMap(_).toIndexedSeq).toIndexedSeq
+            val Ais: IndexedSeq[IndexedSeq[ConstBinding]] = theory.constantDeclarations.map(possibleConstBindingsMap(_).toIndexedSeq).toIndexedSeq
             val product = new CartesianSeqProduct[ConstBinding](Ais)
             // Each element of this product gives an interpretation
             for(bindingSeq <- product.toList) yield {

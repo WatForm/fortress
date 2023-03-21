@@ -28,7 +28,7 @@ trait ClosureEliminationTransformer extends ProblemStateTransformer {
                 forbiddenNames += fdecl.name
             }
             
-            for(constant <- theory.constants) {
+            for(constant <- theory.constantDeclarations) {
                 forbiddenNames += constant.name
             }
             

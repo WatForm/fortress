@@ -25,7 +25,7 @@ object OAFIntsTransformer extends ProblemStateTransformer {
 
         // We don't want to replicate existing functions or variables or constants
         val forbiddenNames: Set[String] = (
-            problemState.theory.constants.map(_.name) union problemState.theory.functionDeclarations.map(_.name) union
+            problemState.theory.constantDeclarations.map(_.name) union problemState.theory.functionDeclarations.map(_.name) union
             problemState.theory.functionDefinitions.map(_.name)
         ).toSet
         val varNameGenerator: NameGenerator = new IntSuffixNameGenerator(forbiddenNames, 0)

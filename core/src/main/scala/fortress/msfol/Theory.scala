@@ -151,8 +151,8 @@ case class Theory private (signature: Signature, axioms: Set[Term]) {
     def functionDeclarations: Set[FuncDecl] = signature.functionDeclarations
 
     def functionDefinitions: Set[FunctionDefinition] = signature.functionDefinitions
-
-    def constants: Set[AnnotatedVar] = signature.constantDeclarations
+    def constantDefinitions: Set[ConstantDefinition] = signature.constantDefinitions
+    def constantDeclarations: Set[AnnotatedVar] = signature.constantDeclarations
     def enumConstants: Map[Sort, Seq[EnumValue]] = signature.enumConstants
 
     override def toString: String = "\n" + signature.toString + "\nAxioms\n" + axioms.mkString("\n") + "\n"

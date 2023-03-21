@@ -25,7 +25,7 @@ class SymmetryBreakingTransformer(
             val breaker = symmetryBreakerFactory.create(theory, scopes)
 
             // First, perform symmetry breaking on constants
-            breaker.breakConstants(theory.constants)
+            breaker.breakConstants(theory.constantDeclarations)
             
             // This weirdness exists to make sure that this version performs symmetry breaking
             // on functions in the same order as the previous version

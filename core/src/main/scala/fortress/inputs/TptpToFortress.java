@@ -122,7 +122,7 @@ public class TptpToFortress extends FOFTPTPBaseVisitor {
         theory = theory.withFunctionDeclarations(thy2.functionDeclarations());
 
         // Add constants
-        theory = theory.withConstantDeclarations(thy2.constants());
+        theory = theory.withConstantDeclarations(thy2.constantDeclarations());
 
         // Add axioms
         theory = theory.withAxioms(thy2.axioms());
