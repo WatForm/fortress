@@ -27,8 +27,16 @@ object SkolemizeTransformer extends ProblemStateTransformer {
                 forbiddenNames += fdecl.name
             }
             
-            for(constant <- theory.constants) {
+            for(constant <- theory.constantDeclarations) {
                 forbiddenNames += constant.name
+            }
+
+            for(cDef <- theory.constantDefinitions){
+                forbiddenNames += cDef.name
+            }
+
+            for(fDef <- theory.functionDefinitions){
+                forbiddenNames += fDef.name
             }
             
             // TODO: do we need this restriction if Substituter already restricts these inside one term?
