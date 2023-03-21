@@ -44,6 +44,8 @@ object Transformers {
             case "skolemize" => SkolemizeTransformer
             case "sortinference" => SortInferenceTransformer
             case "splitconjunction" => SplitConjunctionTransformer
+            // The default symmetry breaking
+            case "symmetry" | "symmetrybreaker" | "symmetrybreaking" | "symmetrybreak" => new SymmetryBreakingTransformer(MonoOnlyAnyOrder, DefaultSymmetryBreaker)
             case "symmetrybreaking_mostused" | "symmetrybreakingtransformer_mostused" => Errors.API.doesNotExist("Use mkSymmetryBreakingTransformer_MostUsed")
             case "symmetrybreaking_noskolem" | "symmetrybreakingtransformer_noskolem" => Errors.API.doesNotExist("Use mkSymmetryBreakingTransformer_NoSkolem")
             case "symmetrybreaking" => Errors.API.doesNotExist("Use mkSymmetryBreakingTransformer")
