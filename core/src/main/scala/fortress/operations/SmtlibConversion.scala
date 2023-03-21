@@ -226,6 +226,7 @@ class SmtlibConverter(writer: java.io.Writer) {
         sig.enumConstants.foreach(x => writeEnumConst(x._1, x._2))
         sig.functionDeclarations.foreach(writeFuncDecl)
         sig.constantDeclarations.foreach(writeConst)
+        // TODO definitions of all kinds can be dependant on other definitions, we need to properly sort these somehow
         sig.constantDefinitions.foreach(writeConstDefn)
         // We can use constants in function definitions so they must be later
         sig.functionDefinitions.foreach(writeFunctionDefinition)

@@ -150,6 +150,20 @@ class  SmtlibConversionTests extends UnitSuite {
         writer.toString should be("(define-fun |power2| ((|x| Int) ) Bool (or (= |x| 8) (= |x| 4) (= |x| 2) (= |x| 1)))\n")
     }
 
+    test("constant definition"){
+        val writer = new java.io.StringWriter
+        val converter = new SmtlibConverter(writer)
+
+        converter.writeConstDefn(
+            ConstantDefinition(
+                x of IntSort,
+                IntegerLiteral(5)
+            )
+        )
+
+        writer.toString should be ("(define-fun |x| () Int 5)\n")
+    }
+
     test ("bitvector concat") {
         val formula = BuiltinApp(BvConcat, BitVectorLiteral(0, 4), x)
         formula.smtlib should be ("(concat (_ bv0 4) |x|)")
