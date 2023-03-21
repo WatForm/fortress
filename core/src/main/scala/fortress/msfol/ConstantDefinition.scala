@@ -8,6 +8,8 @@ case class ConstantDefinition(avar: AnnotatedVar, body: Term) {
     val sort = avar.sort
 
     override def toString: String = {f"ConstantDefinition(${avar}, ${body})"}
+
+    def mapBody(f: Term => Term): ConstantDefinition = copy(body = f(body))
 }
 
 object ConstantDefinition{
