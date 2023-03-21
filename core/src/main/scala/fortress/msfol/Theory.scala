@@ -87,6 +87,8 @@ case class Theory private (signature: Signature, axioms: Set[Term]) {
 
     def withConstantDefinitions(constants: java.lang.Iterable[ConstantDefinition]): Theory = copy(signature = signature withConstantDefinitions constants)
 
+    def withConstantDefinitions(constants: Iterable[ConstantDefinition]): Theory = 
+      copy(signature = signature withConstantDefinitions constants)
     @varargs
     def withConstantDefinitions(constants: ConstantDefinition*): Theory = copy(signature = signature withConstantDefinitions constants)
 
