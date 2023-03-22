@@ -58,6 +58,7 @@ trait ClosureEliminationTransformer extends ProblemStateTransformer {
                 resultTheory = resultTheory.withAxiom(newAxiom)
             }
 
+            // We keep everything in the theory until we replace it so any dependencies are still there
             for (cDef <- theory.signature.constantDefinitions) {
                 val body = cDef.body
                 // we do not support recursive definitions yet
