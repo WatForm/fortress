@@ -21,17 +21,20 @@ object DatatypeTransformer extends ProblemStateTransformer {
 
             // Convert domain elements in existing axioms to enum values
             val convertedAxioms = theory.axioms map (_.eliminateDomainElementsEnums)
-            // definitions are basically untested
-            val convertedConstantDefinitions = theory.signature.constantDefinitions.map(_.mapBody(_.eliminateDomainElementsEnums))
-            val convertedFunctionDefinitions = theory.signature.functionDefinitions map (_.mapBody(_.eliminateDomainElementsEnums))
             
-            val newSig = theory.signature.withoutConstantDefinitions.withoutFunctionDefinitions
-                .withConstantDefinitions(convertedConstantDefinitions)
-                .withFunctionDefinitions(convertedFunctionDefinitions)
-
-            var newTheory = theory.withoutAxioms
-              .withAxioms(convertedAxioms)
-              .copy(signature = newSig) // just change the signature
+            var newSig = theory.signature
+            // We only remove a definition before readding it so all its dependencies are in the sig
+            // definitions are basically untested
+            for(cDef <- theory.signature.constantDefinitions){
+                newSig = newSig.withoutConstantDefinition(cDef)
+                newSig = newSig.withConstantDefinition(cDef.mapBody(_.eliminateDomainElementsEnums))
+            }
+            for(fDef <- theory.signature.functionDefinitions){
+                newSig = newSig.withoutFunctionDefinition(fDef)
+                newSig = newSig.withFunctionDefinition(fDef.mapBody(_.eliminateDomainElementsEnums))
+            }
+    
+            var newTheory = Theory(newSig, convertedAxioms)
 
             newTheory = enumValuesMap.foldLeft(newTheory) {
                 case (t, (s, enumValueSeq)) => t.withEnumSort(s, enumValueSeq: _*)
