@@ -43,6 +43,39 @@ class QuantifierExpansionTests extends UnitSuite {
         val transformer = StandardQuantifierExpansionTransformer
         transformer(ProblemState(theory, scopes)) should be (ProblemState(expectedTheory, expectedScopes))
     }
+
+    test("in definitions") {
+        val theory = Theory.empty
+            .withSorts(A, B)
+            .withFunctionDeclarations(P, Q)
+            .withConstantDefinition(ConstantDefinition(
+                Var("x") of BoolSort, Forall(x of A, App("P", x))
+            ))
+            .withFunctionDefinition(FunctionDefinition(
+                "f", Seq(x of A), BoolSort,
+                Or(App("P", x), Forall(y of B, App("Q", y)))
+            ))
+
+        val expectedTheory = theory.withoutConstantDefinitions.withoutFunctionDefinitions
+            .withConstantDefinition(ConstantDefinition(
+                Var("x") of BoolSort, And(
+                    App("P", DomainElement(1, A)),
+                    App("P", DomainElement(2, A))
+                )
+            ))
+            .withFunctionDefinition(FunctionDefinition(
+                "f", Seq(x of A), BoolSort,
+                Or(App("P", x), And(
+                    App("Q", DomainElement(1, B)),
+                    App("Q", DomainElement(2, B)),
+                    App("Q", DomainElement(3, B))
+                ))
+                ))
+        
+        val scopes = Map(A -> ExactScope(2), B -> ExactScope(3))
+        val result = StandardQuantifierExpansionTransformer(ProblemState(theory, scopes))
+        result.theory should be (expectedTheory)
+    }
     
     test("multivariable forall") {
         val theory = Theory.empty
