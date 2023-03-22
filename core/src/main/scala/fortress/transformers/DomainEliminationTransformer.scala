@@ -40,11 +40,11 @@ object DomainEliminationTransformer extends ProblemStateTransformer {
             // definitions are basically untested
             for(cDef <- theory.signature.constantDefinitions){
                 newSig = newSig.withoutConstantDefinition(cDef)
-                newSig = newSig.withConstantDefinition(cDef.mapBody(_.eliminateDomainElementsEnums))
+                newSig = newSig.withConstantDefinition(cDef.mapBody(_.eliminateDomainElementsConstants))
             }
             for(fDef <- theory.signature.functionDefinitions){
                 newSig = newSig.withoutFunctionDefinition(fDef)
-                newSig = newSig.withFunctionDefinition(fDef.mapBody(_.eliminateDomainElementsEnums))
+                newSig = newSig.withFunctionDefinition(fDef.mapBody(_.eliminateDomainElementsConstants))
             }
 
             val newTheory = Theory(newSig, convertedAxioms ++ distinctConstraints)
