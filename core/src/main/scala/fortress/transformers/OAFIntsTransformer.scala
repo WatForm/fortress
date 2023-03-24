@@ -151,13 +151,19 @@ object OAFIntsTransformer extends ProblemStateTransformer {
             }
             case x => x
         })
+        
+        /* We want definitions to still return/take in ints
+         * BUT their internals can't quantify integers, etc.
+         * So we must translate them, but not cast their args/output
+         * We make the signature now, and do the replacement later, as transform must be defined
+         */
 
         val oldSig = problemState.theory.signature
-        val newSignature = Signature(oldSig.sorts + newSort,
+        var newSignature = Signature(oldSig.sorts + newSort,
          otherFunctions ++ oafIntFunctions,
-         oldSig.functionDefinitions + castToIntDefn + castFromIntDefn + isInBounds,
+         oldSig.functionDefinitions + castToIntDefn + castFromIntDefn + isInBounds, // we need to translate the old sig later
          newConstants,
-         oldSig.constantDefinitions, // TODO absolutely wrong
+         oldSig.constantDefinitions, // We need to translate this later
          oldSig.enumConstants
         )
 
@@ -280,12 +286,8 @@ object OAFIntsTransformer extends ProblemStateTransformer {
                 } else {
                     (newEq, upInfo)
                 }
-            }
-
-
+            }            
             
-            
-
             case Not(body) => {
                 val (transfomedBody, up) = transform(body, down.flipPolarity)
                 (Not(transfomedBody), up)
@@ -300,6 +302,7 @@ object OAFIntsTransformer extends ProblemStateTransformer {
             }
             // NOTE does ITE need to be broken up with a new value to hold it's result?
             // Specifically if there is an overflow in the condition how does this work out?
+            // Shift until it is a ITE with the terms being predicates then C & T || !C & F?
             case IfThenElse(condition, ifTrue, ifFalse) => {
                 val (transformedCondition, upCondition) = transform(condition, down)
                 val (transformedIfTrue, upTrue) = transform(ifTrue, down)
@@ -350,15 +353,37 @@ object OAFIntsTransformer extends ProblemStateTransformer {
             case Top => (Top, blankUp)
             case Bottom => (Bottom, blankUp)
         }
+        
+
         // Integer constants are existentially quantified
         val intConstants: Set[Var] = newSignature.constantDeclarations.filter(_.sort == newSort).map(_.variable)
         val startingDown = DownInfo(intConstants, Set.empty, true, Map.empty)
         // transform the axioms
         val (newAxioms, upInfos) = problemState.theory.axioms.map(transform(_, startingDown)).unzip
+        
         // This is specifically not transformed
         //val constantsAreDistinct = Distinct(intToConstants.values.toSeq)
         //val allNewAxioms = newAxioms + constantsAreDistinct
         val allNewAxioms = newAxioms
+
+        // now we change newSignature's definitions
+        for(cDef <- oldSig.constantDefinitions){
+            newSignature = newSignature.withoutConstantDefinition(cDef)
+            val (newBody, upInfo) = transform(cDef.body, startingDown)
+            newSignature = newSignature.withConstantDefinition(cDef.copy(body = newBody))
+        }
+
+        for(fDef <- oldSig.functionDefinitions){
+            val name = fDef.name
+            if (name == castToIntDefn.name || name == castFromIntDefn.name || name == isInBounds.name){
+                // Do nothing
+            } else {
+                newSignature = newSignature.withoutFunctionDefinition(fDef)
+                val (newBody, upInfo) = transform(fDef.body, startingDown)
+                newSignature = newSignature.withFunctionDefinition(fDef.copy(body = newBody))
+            } 
+        }
+
         // could this be done with domain elements? Yes. Should it... probably? TODO
         val newTheory = Theory(newSignature, allNewAxioms)
         problemState.withScopes(newScopes).withTheory(newTheory)
