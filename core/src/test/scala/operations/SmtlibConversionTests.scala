@@ -4,6 +4,7 @@ import fortress.msfol._
 import fortress.operations.TermOps._
 import fortress.operations.TheoryOps._
 import fortress.operations.SmtlibConverter
+import fortress.interpretation.EvaluationBasedInterpretation
 
 class  SmtlibConversionTests extends UnitSuite {
     
@@ -167,5 +168,34 @@ class  SmtlibConversionTests extends UnitSuite {
     test ("bitvector concat") {
         val formula = BuiltinApp(BvConcat, BitVectorLiteral(0, 4), x)
         formula.smtlib should be ("(concat (_ bv0 4) |x|)")
+    }
+
+    test ("Ordered Definitions") {
+        // expected print order
+        val cx = ConstantDefinition(x of BoolSort, Top)
+        val fA = FunctionDefinition("fA", Seq(y of BoolSort), BoolSort, Or(x, y))
+        val fB = FunctionDefinition("fB", Seq(z of BoolSort), BoolSort, App("fA", z))
+        val cz = ConstantDefinition(z of BoolSort, App("fB", Seq(x)))
+
+        // We do this to skip validity checks
+        val sig = Signature.empty.copy(constantDefinitions = Set(cz, cx), functionDefinitions = Set(fB, fA))
+
+        val writer = new java.io.StringWriter()
+        val converter = new SmtlibConverter(writer)
+
+        converter.writeConstDefn(cx)
+        converter.writeFunctionDefinition(fA)
+        converter.writeFunctionDefinition(fB)
+        converter.writeConstDefn(cz)
+
+
+        val expected: String = writer.toString()
+
+        val writer2 = new java.io.StringWriter()
+        val converter2 = new SmtlibConverter(writer2)
+        converter2.writeSignature(sig)
+        val result = writer2.toString()
+        result should be (expected)
+
     }
 }
