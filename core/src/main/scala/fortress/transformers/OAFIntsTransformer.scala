@@ -139,6 +139,7 @@ object OAFIntsTransformer extends ProblemStateTransformer {
                     (newArgs.toSeq, overflowableTerms)
                 }
                 // If we don't have a declaration, just apply without casting
+                // TODO in the case of func
                 case None => (args, Seq.empty)
             }
         }
@@ -236,7 +237,7 @@ object OAFIntsTransformer extends ProblemStateTransformer {
                 }
             }
 
-
+            // TODO does closure need to cast based on if the function has its types changed or not?
             case Closure(functionName, arg1, arg2, fixedArgs) => {
                 val (transformedArgs, upInfos) = (Seq(arg1, arg2) ++ fixedArgs).map(transform(_, down)).unzip
                 val upInfoFromBottom = combine(upInfos)
@@ -379,7 +380,11 @@ object OAFIntsTransformer extends ProblemStateTransformer {
                 // Do nothing
             } else {
                 newSignature = newSignature.withoutFunctionDefinition(fDef)
-                val (newBody, upInfo) = transform(fDef.body, startingDown)
+
+                // Our downinfo must contain the information for the arguments for typechecking
+                val down = startingDown withOtherVars fDef.argSortedVar
+
+                val (newBody, upInfo) = transform(fDef.body, down)
                 newSignature = newSignature.withFunctionDefinition(fDef.copy(body = newBody))
             } 
         }
