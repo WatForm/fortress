@@ -12,6 +12,7 @@ import fortress.transformers._
 
 import java.io._
 import java.{util => ju}
+import fortress.operations.TheoryOps
 
 class Conf(arguments: Seq[String]) extends ScallopConf(arguments) {
     val scope = opt[Int](required = false, descr="default scope for all sorts")
@@ -131,6 +132,23 @@ object FortressCli {
         }
         modelFinder.setTimeout(Seconds(conf.timeout()))
         //modelFinder.setBoundedIntegers(integerSemantics)
+
+        if(conf.debug.getOrElse(false) && conf.transformers.isSupplied){
+            val compiler = new ConfigurableCompiler(conf.transformers.apply())
+            val result = compiler.compile(theory, scopes, Seconds(conf.timeout()).toMilli, Seq.empty).fold(
+                ce => println("Error compiling", ce),
+                cr => {
+                    val result = cr.theory
+                    println("=====original=====")
+                    println(TheoryOps.wrapTheory(cr.theory).smtlib)
+                    println("========new=======")
+                    //println(cr.theory)
+                    //println("------------------")
+                    println(TheoryOps.wrapTheory(cr.theory).smtlib)
+                    println("==================")
+                }
+            )
+        }
 
         val result = modelFinder.checkSat()
         println(result)
