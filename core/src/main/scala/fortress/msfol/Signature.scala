@@ -449,7 +449,9 @@ case class Signature private (
 
         val funcDefString = "Function Definitions:\n" + functionDefinitions.mkString("\n")
 
-        val constString = "Constants:\n" + constantDeclarations.mkString("\n")
+        val constDeclString = "Constant Declarations:\n" + constantDeclarations.mkString("\n")
+
+        val constDefnString = "Constant Definitions:\n" + constantDefinitions.mkString("\n")
         
         // Slow but doesn't matter
         var result = "Signature"
@@ -457,7 +459,8 @@ case class Signature private (
         if(enumConstants.nonEmpty) { result += "\n" + enumString }
         if(functionDeclarations.nonEmpty) { result += "\n" + funcDeclString }
         if(functionDefinitions.nonEmpty) { result += "\n" + funcDefString }
-        if(constantDeclarations.nonEmpty) { result += "\n" + constString }
+        if(constantDeclarations.nonEmpty) { result += "\n" + constDeclString }
+        if(constantDefinitions.nonEmpty) {result += "\n" + constDefnString}
         result
     }
 }
