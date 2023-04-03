@@ -436,4 +436,21 @@ class SkolemizeTransformerTest extends UnitSuite with CommonSymbols {
         skolemizer(theory) should be (expected)
 
     }
+
+    test("Constant Definition"){
+        val xDef = ConstantDefinition(x of BoolSort,
+            Exists(Seq(y of A), Eq(y, z))
+        )
+
+        val theory = Theory.empty
+            .withSort(A)
+            .withConstantDeclaration(z of A)
+            .withConstantDefinition(xDef)
+
+        val result = skolemizer(theory)
+
+        result.constantDefinitions.toSeq(0) should be (ConstantDefinition(AnnotatedVar(x, BoolSort), Eq(Var("sk_0"), z)))
+        // We can and probably should do more complicated tests
+
+    }
 }

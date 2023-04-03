@@ -66,8 +66,9 @@ object SkolemizeTransformer extends ProblemStateTransformer {
             // First-Order Logic and Automated Theorem Proving 2nd ed., Melvin Fitting p. 206
             // Function definitions can be skolemized as if each argument was universally quantified
             val functionDefinitions = resultTheory.functionDefinitions
-            resultTheory = resultTheory.withoutFunctionDefinitions
-            for (fDef <- functionDefinitions) {
+            //resultTheory = resultTheory.withoutFunctionDefinitions
+            for (fDef <- theory.functionDefinitions) {
+                resultTheory = resultTheory.withoutFunctionDefinition(fDef)
                 val wrappedTerm = Forall(fDef.argSortedVar, fDef.body)
                 val skolemResult = Skolemization.skolemize(wrappedTerm, resultTheory.signature, nameGenerator)
                 updateWithResult(skolemResult)
@@ -81,11 +82,12 @@ object SkolemizeTransformer extends ProblemStateTransformer {
                     case _ => Errors.Internal.impossibleState("Skolemization of Forall did not return Forall.")
                 }
             }
-            resultTheory = resultTheory.withoutConstantDefinitions
+            //resultTheory = resultTheory.withoutConstantDefinitions
             for (cDef <- theory.constantDefinitions){
+                resultTheory = resultTheory.withoutConstantDefinition(cDef)
                 val skolemResult = Skolemization.skolemize(cDef.body, resultTheory.signature, nameGenerator)
                 updateWithResult(skolemResult)
-                resultTheory.withConstantDefinition(
+                resultTheory = resultTheory.withConstantDefinition(
                     ConstantDefinition(
                         cDef.avar,
                         skolemResult.skolemizedTerm
