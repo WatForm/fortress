@@ -407,7 +407,7 @@ public class SmtLibVisitor extends SmtLibSubsetBaseVisitor {
     @Override
     public Term visitVar(SmtLibSubsetParser.VarContext ctx) {
         String varName = NameConverter.nameWithoutQuote(ctx.ID().getText());
-        return Term.mkVar(varName);
+        return Term.mkDomainElementOrVar(varName);
     }
 
     @Override
