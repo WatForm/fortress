@@ -241,6 +241,41 @@ case class Signature private (
             }
         }
     }
+
+    def definitionsInDependencyOrder(): Seq[Either[ConstantDefinition, FunctionDefinition]] = {
+        var sorted: Seq[Either[ConstantDefinition, FunctionDefinition]] = Seq.empty
+        // We only care about dependencies to other definitions
+        val possibleDependences = constantDefinitions.map(_.name) union functionDefinitions.map(_.name)
+        // Get the dependencies
+        val constDependencies = constantDefinitions.map(cDef =>{
+            val dependencies = possibleDependences intersect RecursiveAccumulator.constantsAndFunctionsIn(cDef.body)
+            (Left(cDef), dependencies)
+        })
+        val funcDependencies = functionDefinitions.map(fDef => {
+            val argNames = fDef.argSortedVar.map(_.name)
+            val dependencies = (possibleDependences -- argNames) intersect RecursiveAccumulator.constantsAndFunctionsIn(fDef.body)
+            (Right(fDef), dependencies)
+        })
+        var remaining = constDependencies ++ funcDependencies
+
+        while(!remaining.isEmpty){
+            // Check which no longer have dependencies
+            val (readyEntries, dependentEntries) = remaining.partition(_._2.isEmpty)
+
+            val readyDefinitions = readyEntries.map(_._1) // Get just the definition
+            sorted = sorted ++ readyDefinitions.toSeq
+
+            val readyNames = readyDefinitions.map(_.fold(_.name, _.name))
+
+            // The remaining is the dependent entries without the printed dependencies
+            remaining = dependentEntries.map({
+                case (defn, deps) => (defn, deps diff readyNames)
+            })
+
+        }
+
+        sorted
+    }
     
     def hasSort(sort: Sort): Boolean = sorts contains sort
     

@@ -227,41 +227,11 @@ class SmtlibConverter(writer: java.io.Writer) {
       * @param constantDefinitions
       * @param functionDefinitions
       */
-    def writeDefinitions(constantDefinitions: Set[ConstantDefinition], functionDefinitions: Set[FunctionDefinition]): Unit = {
-        // We only care about dependencies to other constants
-        val possibleDependences = constantDefinitions.map(_.name) union functionDefinitions.map(_.name)
-        // Get the dependencies
-        val constDependencies = constantDefinitions.map(cDef =>{
-            val dependencies = possibleDependences intersect RecursiveAccumulator.constantsAndFunctionsIn(cDef.body)
-            (Left(cDef), dependencies)
-        })
-        val funcDependencies = functionDefinitions.map(fDef => {
-            val argNames = fDef.argSortedVar.map(_.name)
-            val dependencies = (possibleDependences -- argNames) intersect RecursiveAccumulator.constantsAndFunctionsIn(fDef.body)
-            (Right(fDef), dependencies)
-        })
-        var remaining = constDependencies ++ funcDependencies
-        
-        while(!remaining.isEmpty){
-            // Check which no longer have dependencies
-            val (printableEntries, dependentEntries) = remaining.partition(_._2.isEmpty)
-            val printables = printableEntries.map(_._1) // Get just the definition
-            // print everything we can
-            for (printable <- printables){
-                printable match{
-                    case Left(cDef) => writeConstDefn(cDef)
-                    case Right(fDef) => writeFunctionDefinition(fDef)
-                }
-            }
-            val printedNames = printables.map(_.fold(_.name, _.name))
-
-            // The remaining is the dependent entries without the printed dependencies
-            remaining = dependentEntries.map({
-                case (defn, deps) => (defn, deps diff printedNames)
-            })
-            
+    def writeDefinitions(definitions: Seq[Either[ConstantDefinition, FunctionDefinition]]): Unit = {
+        definitions.foreach{
+            case Left(cDef) => writeConstDefn(cDef)
+            case Right(fDef) => writeFunctionDefinition(fDef)
         }
-
     }
 
     def writeSignature(sig: Signature): Unit = {
@@ -273,7 +243,7 @@ class SmtlibConverter(writer: java.io.Writer) {
         //sig.constantDefinitions.foreach(writeConstDefn)
         // We can use constants in function definitions so they must be later
         //sig.functionDefinitions.foreach(writeFunctionDefinition)
-        writeDefinitions(sig.constantDefinitions, sig.functionDefinitions)
+        writeDefinitions(sig.definitionsInDependencyOrder)
     }
     
     def writeAssertion(term: Term): Unit = {
