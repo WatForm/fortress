@@ -299,9 +299,6 @@ class ConfigurableCompiler(transformers: ListBuffer[ProblemStateTransformer]) ex
 }
 
 class IncrementalCompiler extends LogicCompiler {
-//    def symmetryBreakingTransformers: Seq[ProblemStateTransformer] = Seq(
-//        new SymmetryBreakingTransformer(MonoFirstThenFunctionsFirstAnyOrder, DefaultSymmetryBreaker)
-//    )
     def symmetryBreakingTransformers: Seq[ProblemStateTransformer] = Seq(
         new SymmetryBreakingTransformer_MostUsed(LowArityFirstMostUsedFunctionFirstOrderFactory, DefaultSymmetryBreakerFactoryDL(None))
     )

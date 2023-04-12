@@ -24,7 +24,7 @@ class ProcessSession(processArgs: java.util.List[String]) extends AutoCloseable 
         in.close()
         out.close()
         process.waitFor()
-        process.destroy()
+        process.destroyForcibly()
     }
     
 }

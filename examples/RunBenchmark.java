@@ -24,10 +24,27 @@ public class RunBenchmark {
         long totalTime = 0;
         int cnt = 0;
 
-//        int method =  Integer.parseInt(args[1]);
+    /*
+        method = 0/1/2/3
+        method = 0:  Monotonicity checking + RSVIncrementalSolving
+        method = 1: RSVIncrementalSolving
+        method = 2: Non-exact Scope solving (size = 5, 6, 7...)
+        method = 3: Monotonicity checking + Non-exact Scope Solving
+        method = 4: 4-threads
+     */
+        int id = Integer.parseInt(args[1]);
         String[] strs = args[0].split("/");
 
-        FileWriter writer = new FileWriter(new File("/home/zxt/Desktop/project/fortress/test-results/" + strs[strs.length -1] +"-3Threads.txt" ));
+        String[] methods = new String[] {
+                "Mono-RSV",
+                "RSV",
+                "NonExactScope",
+                "Mono-NonExactScope",
+                "4threads"
+        };
+
+
+        FileWriter writer = new FileWriter(new File("/home/zxt/Desktop/毕设/test-results/Fortress/" + strs[strs.length -1] + "-" + methods[id] + ".txt" ));
 
         for (int i = 0; i < tempList.length; i++) {
             if (tempList[i].isFile()) {
@@ -47,51 +64,17 @@ public class RunBenchmark {
 
                 try(ModelFinder finder = ModelFinder.IncrementalModelFinder()) {
                     finder.setTheory(theory);
-//                    long t0 = System.currentTimeMillis();
-//                    ModelFinderResult result1 = finder.checkSat(1);
-//                    long t1 = System.currentTimeMillis();
-//                    System.out.println("Satisiable?: " + result1.toString());
-//                    System.out.println("Time: " + (t1-t0) + " ms");
-//                    writer.write("Result: " + result1.toString() + "\n");
-//                    writer.write("Time: " + (t1-t0) + " ms\n");
-//
-//                    if(result1.toString().equals("Sat")) {
-//                        cnt++;
-//                        totalTime += (t1 - t0);
-//                    }
-//                    System.out.println("--------------------------------------------------------------");
-//                    long t2 = System.currentTimeMillis();
-//                    ModelFinderResult result2 = finder.checkSat(false);
-//                    long t3 = System.currentTimeMillis();
-//                    System.out.println("Satisiable?: " + result2.toString());
-//                    System.out.println("Time: " + (t3-t2) + " ms");
-//
-//                    if(result2.toString().equals("Sat")) {
-//                        cnt++;
-//                        totalTime += (t3 - t2);
-//                    }
-
-                    long t4 = System.currentTimeMillis();
-                    ModelFinderResult result3 = finder.multiThreadCheckSat();
-                    long t5 = System.currentTimeMillis();
-                    writer.write("Result: " + result3.toString() + "\n");
-                    writer.write("Time: " + (t5-t4) + " ms\n");
+                    long t1 = System.currentTimeMillis();
+                    ModelFinderResult result = id==4 ? finder.multiThreadCheckSat() : finder.checkSat(id);
+                    long t2 = System.currentTimeMillis();
+                    writer.write("Result: " + result.toString() + "\n");
+                    writer.write("Time: " + (t2-t1) + " ms\n");
                     writer.flush();
 
-                    if(result3.toString().equals("Sat")) {
+                    if(result.toString().equals("Sat")) {
                         cnt++;
-                        totalTime += (t5 - t4);
+                        totalTime += (t2 - t1);
                     }
-
-//                    writer.write("Use monotonicity: " + result1.toString() + "   Time: " + (t1-t0) + " ms\n");
-//                    writer.write("Not Use monotonicity: " + result2.toString() + "   Time: " + (t3-t2) + " ms\n");
-//                    if(result1.toString().equals("Sat") && result2.toString().equals("Sat")) {
-//                        if((t1-t0) < (t3-t2)) writer.write("Using Mono is better.\n");
-//                        else writer.write("Not using Mono is better.\n");
-//                    }
-//                    else if(result1.toString().equals("Sat")) writer.write("Using Mono is better.\n");
-//                    else if(result2.toString().equals("Sat")) writer.write("Not using Mono is better.\n");
-//                    else writer.write("Bad result. :(\n");
                     writer.write("\n=====================================================================================\n");
                 }
             }
