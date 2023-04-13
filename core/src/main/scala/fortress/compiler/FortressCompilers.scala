@@ -261,7 +261,7 @@ class PredUpperBoundCompiler extends LogicCompiler {
         transformerSequence += TypecheckSanitizeTransformer
         transformerSequence += ScopeNonExactPredicatesTransformer // Must be before skolemization
         transformerSequence += EnumEliminationTransformer
-        transformerSequence += SortInferenceTransformer
+//        transformerSequence += SortInferenceTransformer
         transformerSequence += NnfTransformer
         transformerSequence += SkolemizeTransformer
         transformerSequence ++= symmetryBreakingTransformers

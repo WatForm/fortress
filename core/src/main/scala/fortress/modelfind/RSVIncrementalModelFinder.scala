@@ -6,7 +6,7 @@ import fortress.util._
 import fortress.interpretation._
 import fortress.solverinterface._
 import fortress.operations.TermOps._
-import fortress.compiler._
+import fortress.compiler.{FortressTHREECompiler, _}
 import fortress.msfol.DSL.DSLTerm
 import fortress.operations._
 import fortress.problemstate._
@@ -94,7 +94,10 @@ abstract class RSVIncrementalModelFinder(solverInterface: SolverInterface) exten
         var remainingMillis = timeoutMilliseconds
 
         if (pid == 2 || pid == 3) { // non-exact scope
-            val compiler1 = new PredUpperBoundCompiler
+            val compiler1 = {
+                if(!scopeMap.values.forall(s => s.isExact)) new PredUpperBoundCompiler
+                else new FortressTHREECompiler
+            }
             do {
                 remainingMillis = timeoutMilliseconds - totalTimer.elapsedNano().toMilli
                 scopeMap = scopeMap.map(scope => {

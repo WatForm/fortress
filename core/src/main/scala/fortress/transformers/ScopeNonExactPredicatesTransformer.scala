@@ -20,6 +20,8 @@ object  ScopeNonExactPredicatesTransformer extends ProblemStateTransformer {
                 predDecl
             }
 
+//            println("scopeNonExactPreds: " + scopeNonExactPreds)
+
             // Have to say the subtypes are nonempty
             val antiVacuityAxioms = for {
                 sort <- theory.sorts
@@ -29,7 +31,7 @@ object  ScopeNonExactPredicatesTransformer extends ProblemStateTransformer {
             }
 
             // Constants and functions must have ranges in the subtypes
-            val constantAxioms = for (av <- theory.constants) yield App(ScopeNonExactPredicates.nonExactScopePred(av.sort), av.variable)
+            val constantAxioms = for (av <- theory.constants if scopes.contains(av.sort) && !scopes(av.sort).isExact) yield App(ScopeNonExactPredicates.nonExactScopePred(av.sort), av.variable)
 
             val functionAxioms = for {
                 fdecl <- theory.functionDeclarations
@@ -40,6 +42,9 @@ object  ScopeNonExactPredicatesTransformer extends ProblemStateTransformer {
                 // We don't need to check that the inputs are in the subtypes, such inputs don't have any affect on the formulas
                 Forall(argsAnnotated, App(outputPred, App(fdecl.name, argsAnnotated.map(_.variable))))
             }
+//
+//            println("constantAxioms: " + constantAxioms.mkString("\n"))
+//            println("functionAxioms: " + functionAxioms.mkString("\n"))
 
             val resultTheory = theory
               .withFunctionDeclarations(scopeNonExactPreds)
