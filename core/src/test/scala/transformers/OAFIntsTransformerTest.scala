@@ -8,6 +8,7 @@ import fortress.util.Seconds
 import fortress.modelfind.ModelFinderResult
 import fortress.operations.TermOps._
 import fortress.operations.TheoryOps._
+import fortress.util.Milliseconds
 
 
 class OAFIntsTransformerTest extends UnitSuite {
@@ -26,6 +27,10 @@ class OAFIntsTransformerTest extends UnitSuite {
     // Add in this closure eliminator
     manager.addOption(new ToggleOption("OAFInts", _.addTransformer(transformer)), 102)
 
+    val isInBoundsName = "isInBoundsOAF_0"
+    val toInt = "toInt_0"
+    val fromInt = "fromInt_0"
+
     //manager.addOption(QuantifierExpansionOption, 5001)
     manager.addOption(RangeFormulaOption, 5002)
     manager.addOption(SimplifyOption, 5003)
@@ -41,7 +46,7 @@ class OAFIntsTransformerTest extends UnitSuite {
     }
 
     test("basic literals") {
-        val axiom = Eq(IntegerLiteral(1), IntegerLiteral(2))
+        val axiom = Term.mkGT(IntegerLiteral(1), IntegerLiteral(2))
         val theory = Theory.empty
         .withAxiom(axiom)
 
@@ -55,15 +60,15 @@ class OAFIntsTransformerTest extends UnitSuite {
         resultAxioms should have length (1)
         // fiter out distinct
         val transformedEq = resultAxioms(0)
-        transformedEq should matchPattern {
-            case AndList(Seq(
-                Eq(IntegerLiteral(1), IntegerLiteral(2)),
-                AndList(Seq(
-                    App(check1, Seq(IntegerLiteral(1))),
-                    App(check2, Seq(IntegerLiteral(2)))
-                ))
-            )) if check1 == check2 =>
-        }
+        transformedEq should be ( // 1 < 2 & !(1 overflows || 2 does overflows)
+            AndList(Seq(
+                Term.mkGT(IntegerLiteral(1), IntegerLiteral(2)),
+                Not(OrList(Seq( 
+                    Not(App(isInBoundsName, Seq(IntegerLiteral(1)))),
+                    Not(App(isInBoundsName, Seq(IntegerLiteral(2))))
+                )))
+            ))
+        )
         val resultSig = result.theory.signature
         resultSig.functionDefinitions should have size (3)
         //transformedEq should matchPattern {case Not(_) => }
@@ -85,19 +90,19 @@ class OAFIntsTransformerTest extends UnitSuite {
         resultAxioms should have length (1)
         // fiter out distinct
         val transformedGE = resultAxioms(0)
-        transformedGE should matchPattern {
-            case Not(OrList(Seq(
+        transformedGE should be (
+            Not(OrList(Seq(
                 BuiltinApp(IntGE, Seq(IntegerLiteral(1000), IntegerLiteral(2))),
-                Not(AndList(Seq(
-                    App(check1, Seq(IntegerLiteral(1000))),
-                    App(check2, Seq(IntegerLiteral(2)))
+                (OrList(Seq(
+                    Not(App(isInBoundsName, Seq(IntegerLiteral(1000)))),
+                    Not(App(isInBoundsName, Seq(IntegerLiteral(2))))
                 )))
-            ))) if check1 == check2 =>
-        }
+            )))
+        )
     }
 
     test("variables") {
-        val axiom = Eq(Term.mkPlus(x, x), y)
+        val axiom = Term.mkLT(Term.mkPlus(x, x), y)
         val sig = Signature.empty
             .withConstantDeclarations(x.of(IntSort), y.of(IntSort))
         val theory = Theory(sig, Set(axiom))
@@ -115,15 +120,15 @@ class OAFIntsTransformerTest extends UnitSuite {
         result.theory.axioms should have size (1)
         val resultAxiom = result.theory.axioms.toSeq(0)
         // x+x needs a check, y should not need a check
-        resultAxiom should matchPattern {
-            case AndList(Seq(
-                Eq(
-                    BuiltinApp(IntPlus, Seq(App(_, Seq(Var("x"))), App(_, Seq(Var("x"))))),
-                    App(_, Seq(Var("y")))
+        resultAxiom should be (
+            AndList(Seq(
+                Term.mkLT(
+                    BuiltinApp(IntPlus, Seq(App(toInt, Seq(Var("x"))), App(toInt, Seq(Var("x"))))),
+                    App(toInt, Seq(Var("y")))
                 ),
-                App(_, Seq(BuiltinApp(IntPlus, Seq(App(_, Seq(Var("x"))), App(_, Seq(Var("x")))))))
-            )) =>
-        }
+                Not(Not(App(isInBoundsName, Seq(BuiltinApp(IntPlus, Seq(App(toInt, Seq(Var("x"))), App(toInt, Seq(Var("x")))))))))
+            ))
+        )
     }
 
 
@@ -161,25 +166,25 @@ class OAFIntsTransformerTest extends UnitSuite {
         val result2 = transformer(ps2)
 
         val resultAxiom2 = (result2.theory.axioms.toSeq)(0)
-        resultAxiom2 should matchPattern {
-            case AndList(Seq( // f(fromInt(toInt([x])+1)) && Inbounds(toInt(x)+1)
+        resultAxiom2 should be (
+            AndList(Seq( // f(fromInt(toInt([x])+1)) && Inbounds(toInt(x)+1)
                 App("f", Seq( // f(...
-                    App(_, Seq( // fromInt
+                    App(fromInt, Seq( // fromInt
                         BuiltinApp(IntPlus, Seq(// toInt(x) + 1
-                            App(_, Seq(x1)), // toInt(x)
+                            App(toInt, Seq(x)), // toInt(x)
                             IntegerLiteral(1)
                         )) 
                     )),
                     y
                 )),
                 // In range
-                App(_, Seq( // TODO arg to isInBound is being wrapped in fromInt, which is wrong!!!
+                Not(Not(App(isInBoundsName, Seq( // TODO arg to isInBound is being wrapped in fromInt, which is wrong!!!
                     BuiltinApp(IntPlus, Seq( // toInt(x) + 1
-                        App(_, Seq(x2)), IntegerLiteral(1)
+                        App(toInt, Seq(x)), IntegerLiteral(1)
                     ))
-                ))
-            )) =>
-        }
+                ))))
+            ))
+        )
     }
 
     test("integration works") {
@@ -230,8 +235,33 @@ class OAFIntsTransformerTest extends UnitSuite {
             }
             assert(result == ModelFinderResult.Unsat)
         }}
+    }
+
+    test("multiply in range"){
+        // exists x: 2x < 0 | !(2x < 0)
+        // Should only give values that when doubled are still in range
+        val axiom = Or(
+                Term.mkLT(Term.mkMult(IntegerLiteral(2), x), IntegerLiteral(0)), // 2x < 0
+                Not(Term.mkLT(Term.mkMult(IntegerLiteral(2), x), IntegerLiteral(0)))
+            )
 
 
+        val scopes: Map[Sort, Scope] = Map(IntSort -> ExactScope(4, true))
 
+        val theory = Theory.empty
+            .withConstantDeclaration(x of IntSort)
+            .withAxiom(axiom)
+
+        Using.resource(manager.setupModelFinder()){finder =>{
+            finder.setTheory(theory)
+            finder.setExactScope(IntSort, 4) // This ensures the only possible answer should be -1
+            finder.setTimeout(Seconds(20))
+
+            val result = finder.checkSat()
+            result should be (ModelFinderResult.Sat)
+
+            val model = finder.viewModel()
+            model.constantInterpretations(x of IntSort) should be (IntegerLiteral(-1))
+        }}
     }
 }
