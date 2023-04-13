@@ -62,6 +62,10 @@ case class ProblemState private(
             unapplyInterp,
             distinctConstants)
     }
+
+    def withUnapplyInterp(unapp: Interpretation => Interpretation): ProblemState = {
+        copy(unapplyInterp = unapplyInterp :+ unapp)
+    }
 }
 
 object ProblemState {
