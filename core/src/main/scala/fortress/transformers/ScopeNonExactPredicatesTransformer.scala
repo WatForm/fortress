@@ -29,7 +29,7 @@ object  ScopeNonExactPredicatesTransformer extends ProblemStateTransformer {
             }
 
             // Constants and functions must have ranges in the subtypes
-            val constantAxioms = for (av <- theory.constants) yield App(ScopeNonExactPredicates.nonExactScopePred(av.sort), av.variable)
+            val constantAxioms = for (av <- theory.constants if scopes.contains(av.sort) && !scopes(av.sort).isExact ) yield App(ScopeNonExactPredicates.nonExactScopePred(av.sort), av.variable)
 
             val functionAxioms = for {
                 fdecl <- theory.functionDeclarations
