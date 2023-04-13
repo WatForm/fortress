@@ -229,3 +229,20 @@ object SortSubstitution {
 
     def singleton(substitution: (Sort, Sort)): SortSubstitution = new SortSubstitution(Map(substitution))
 }
+
+/**
+  * A Sort Substitution where values can be specified to be substituted as well
+  *
+  * @param sortMapping
+  * @param valueMapping
+  */
+class ValuedSortSubstitution(sortMapping: Map[Sort,Sort], valueMapping: Map[Value,Value]) extends SortSubstitution(sortMapping){
+    override def applyValue(value: Value): Value = {
+        if (valueMapping isDefinedAt value)
+        {
+            valueMapping(value)
+        } else {
+            super.applyValue(value)
+        }
+    }
+}
