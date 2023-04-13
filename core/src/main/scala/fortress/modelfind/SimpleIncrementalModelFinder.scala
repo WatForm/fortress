@@ -71,7 +71,6 @@ extends CompilationModelFinder(solverInterface) {
             }
         } while (result ==  UnsatResult)
 
-        println("Got result in " + times + " times checking.")
         result
     }
 

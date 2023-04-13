@@ -52,8 +52,6 @@ private[transformers] class QuantifierExpansionTransformer (useConstForDomElem: 
         
             val newTheory = Theory.mkTheoryWithSignature(theory.signature).withAxioms(newAxioms)
 
-//            println("Theory after quantifier expansion:")
-//            println(newTheory + "\n-----------------------------\n")
 
             ProblemState(newTheory, scopes, skc, skf, rangeRestricts, unapplyInterp, distinctConstants)
         }

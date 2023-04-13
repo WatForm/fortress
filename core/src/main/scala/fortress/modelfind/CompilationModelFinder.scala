@@ -50,9 +50,7 @@ with ModelFinderSettings {
     // Returns the final ModelFinderResult
     protected def solverPhase(finalTheory: Theory): ModelFinderResult = {
         notifyLoggers(_.invokingSolverStrategy())
-        
-        // Close solver session, if one exists
-//        solverSession.foreach(_.close())
+
         
         // Open new solver session
         val session = solverInterface.openSession()

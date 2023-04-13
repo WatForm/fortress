@@ -81,8 +81,6 @@ object TermMetrics {
             declarationCountMap(p, profilingInfo)
             declarationCountMap(q, profilingInfo)
         case App(funcName, args) =>
-            if(profilingInfo.keySet.filter(pred => pred.isInstanceOf[FuncDecl] && pred.asInstanceOf[FuncDecl].name.equals(funcName)).isEmpty)
-                println("funcName: " + funcName)
             val funcDecl = profilingInfo.keySet.filter(pred => pred.isInstanceOf[FuncDecl] && pred.asInstanceOf[FuncDecl].name.equals(funcName)).head
             profilingInfo(funcDecl) = profilingInfo(funcDecl) + 1
             args.foreach(arg => declarationCountMap(arg, profilingInfo))

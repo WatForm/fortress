@@ -38,8 +38,6 @@ object DomainEliminationTransformer extends ProblemStateTransformer {
                 .withAxioms(distinctConstraints)
                 .withAxioms(convertedAxioms)
 
-//            println("Theory after domain elimination:")
-//            println(newTheory + "\n------------------------\n")
             
             ProblemState(newTheory, scopes, skc, skf, rangeRestricts, unapplyInterp, distinctConstants = true)
         }
