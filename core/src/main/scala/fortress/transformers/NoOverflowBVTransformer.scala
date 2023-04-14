@@ -8,6 +8,7 @@ import fortress.util.Extensions.IntExtension
 import java.lang.IllegalArgumentException
 import java.util.ArrayList
 import fortress.operations.TheoryOps._
+import fortress.operations.TermOps._
 
 import scala.jdk.CollectionConverters._
 import scala.util.Using
@@ -57,6 +58,19 @@ class NoOverflowBVTransformer extends ProblemStateTransformer (){
         def replaceTerm(newTerm: Term): ResultInfo = {
           ResultInfo(newTerm, univChecks, extChecks, containsUnivVar)
         }
+
+        def withoutVars(vars: Set[Var]): ResultInfo = {
+          // Remove all checks that contain the given variables
+          val newUnivChecks = univChecks.filter(check => (check.freeVarConstSymbols intersect vars).isEmpty)
+          val newExtChecks = extChecks.filter(check => (check.freeVarConstSymbols intersect vars).isEmpty)
+
+          copy(univChecks = newUnivChecks, extChecks = newExtChecks)
+        }
+
+        // helper for quantifiers
+        def withoutVars(vars: Seq[AnnotatedVar]): ResultInfo = {
+          withoutVars(vars.map(_.variable).toSet)
+        }
     }
 
     def combineResults(infos: Seq[ResultInfo]): (Seq[Term], Set[Term], Set[Term], Boolean) = {
@@ -90,7 +104,7 @@ class NoOverflowBVTransformer extends ProblemStateTransformer (){
       case Var(x) => ResultInfo(Var(x), Set.empty, Set.empty, univVars.contains(Var(x)))
       case _: LeafTerm => ResultInfo(term, Set.empty, Set.empty, false)
 
-      // Integer predicates
+      // Integer predicates (The +,-,etc are BitVectorFunctions)
       case BuiltinApp(function : BinaryBitVectorRelation, arguments) => {
         val left = arguments(0)
         val right = arguments(1)
@@ -126,7 +140,8 @@ class NoOverflowBVTransformer extends ProblemStateTransformer (){
         val newSig = sig.withConstantDeclarations(vars)
         val newUnivVars = univVars.++(vars.map(_.variable))
         val bodyInfo = fixOverflow(body, newSig, polarity, newUnivVars, extVars)
-        return bodyInfo.mapTerm(Forall(vars, _))
+        
+        return bodyInfo.mapTerm(Forall(vars, _)).withoutVars(vars)
       }
 
       case Exists(vars, body) => {
@@ -134,7 +149,7 @@ class NoOverflowBVTransformer extends ProblemStateTransformer (){
         val newSig = sig.withConstantDeclarations(vars)
         val newUnivVars = univVars.++(vars.map(_.variable))
         val bodyInfo = fixOverflow(body, newSig, polarity, newUnivVars, extVars)
-        return bodyInfo.mapTerm(Exists(vars, _))
+        return bodyInfo.mapTerm(Exists(vars, _)).withoutVars(vars)
       }
 
       // todo closure and no overflow semantics? Closure not allowed quantifiers, but it could have operators...
