@@ -41,13 +41,13 @@ class NoOverflowBVHoistTransformer(topLevelTerm: Term, signature: Signature, sco
 
       case Forall(vars, body) => {
         // put vars into new sig
-        val newSig = sig.withConstants(vars)
+        val newSig = sig.withConstantDeclarations(vars)
         val (cleanBody, overflowableTerms) = fixOverflow(body, newSig)
         (replaceForallBody(cleanBody, overflowableTerms), Set.empty)
       }
 
       case Exists(vars, body) => {
-        val newSig = sig.withConstants(vars)
+        val newSig = sig.withConstantDeclarations(vars)
         val (cleanBody, overflowableTerms) = fixOverflow(body, newSig)
         (replaceExistsBody(cleanBody, overflowableTerms), Set.empty)
       }

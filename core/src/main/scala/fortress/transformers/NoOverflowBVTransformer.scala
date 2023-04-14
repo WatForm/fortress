@@ -123,16 +123,16 @@ class NoOverflowBVTransformer extends ProblemStateTransformer (){
 
       case Forall(vars, body) => {
         // put vars into new sig
-        val newSig = sig.withConstants(vars)
-        val newUnivVars = univVars.++(vars.map(_ match {case AnnotatedVar(v, _) => v}))
+        val newSig = sig.withConstantDeclarations(vars)
+        val newUnivVars = univVars.++(vars.map(_.variable))
         val bodyInfo = fixOverflow(body, newSig, polarity, newUnivVars, extVars)
         return bodyInfo.mapTerm(Forall(vars, _))
       }
 
       case Exists(vars, body) => {
         // put vars into new sig
-        val newSig = sig.withConstants(vars)
-        val newUnivVars = univVars.++(vars.map(_ match {case AnnotatedVar(v, _) => v}))
+        val newSig = sig.withConstantDeclarations(vars)
+        val newUnivVars = univVars.++(vars.map(_.variable))
         val bodyInfo = fixOverflow(body, newSig, polarity, newUnivVars, extVars)
         return bodyInfo.mapTerm(Exists(vars, _))
       }
