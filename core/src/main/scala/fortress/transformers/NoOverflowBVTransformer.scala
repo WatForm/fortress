@@ -17,12 +17,35 @@ import fortress.problemstate.ProblemState
 class NoOverflowBVTransformer extends ProblemStateTransformer (){
 
   def name = "NoOverflowBVTransformer"
-
+// TODO check going up from univ  should not default to counting as univ anymore?
   def apply(problemState: ProblemState): ProblemState = {
     val oldTheory = problemState.theory
+
+    // Run through definitions to get their overflows
+    val defOverflows: scala.collection.mutable.Map[String, ResultInfo] = scala.collection.mutable.Map.empty
+
+
+    var newSig = oldTheory.signature
+    for (defn <- newSig.definitionsInDependencyOrder){
+      defn match {
+        case Left(cdef) => {
+          newSig = newSig.withoutConstantDefinition(cdef)
+          val result = fixOverflow(cdef.body, newSig, defOverflows = defOverflows.toMap)
+          // the new definition uses the results cleaned term
+          newSig = newSig.withConstantDefinition(cdef.copy(body=result.cleanTerm))
+          defOverflows.addOne(cdef.name -> result)
+        }
+        case Right(fDef) => {
+          newSig = newSig.withoutFunctionDefinition(fDef)
+          
+          val sigWithArgs = newSig.withConstantDeclarations(fDef.argSortedVar)
+          val result = fixOverflow(fDef.body, sigWithArgs, defOverflows = defOverflows.toMap)
+        }
+      }
+    }
     
     
-    val newAxioms = oldTheory.axioms.map(fixOverflow(_, oldTheory.signature).cleanTerm)
+    val newAxioms = oldTheory.axioms.map(fixOverflow(_, newSig, defOverflows = defOverflows.toMap).cleanTerm)
     val newTheory = oldTheory.withoutAxioms.withAxioms(newAxioms)
 
     problemState.withTheory(newTheory)
@@ -71,6 +94,13 @@ class NoOverflowBVTransformer extends ProblemStateTransformer (){
         def withoutVars(vars: Seq[AnnotatedVar]): ResultInfo = {
           withoutVars(vars.map(_.variable).toSet)
         }
+
+        def substituteChecks(subs: Map[Var, Term]): ResultInfo = {
+          copy(
+            extChecks = extChecks.map(_.fastSubstitute(subs)),
+            univChecks = univChecks.map(_.fastSubstitute(subs))  
+          )
+        }
     }
 
     def combineResults(infos: Seq[ResultInfo]): (Seq[Term], Set[Term], Set[Term], Boolean) = {
@@ -98,18 +128,27 @@ class NoOverflowBVTransformer extends ProblemStateTransformer (){
       * @param polarity The current polarity (Should be initially true, negations will flip it)
       * @param univVars Set of universally quantified vars
       * @param extVars Set of existentially quantified vars
+      * @param defOverflows (clean term is meaningless) overflow information for constant and function definitions
       * @return (cleanTerm, Overflow checks for subexpressions with a universally quantified var, Overflow checks for other subexpressions )
       */
-    def fixOverflow(term: Term, sig: Signature, polarity: Boolean = true, univVars: Set[Var] = Set.empty, extVars: Set[Var] = Set.empty): ResultInfo = term match {
-      case Var(x) => ResultInfo(Var(x), Set.empty, Set.empty, univVars.contains(Var(x)))
+    def fixOverflow(term: Term, sig: Signature, polarity: Boolean = true, univVars: Set[Var] = Set.empty, extVars: Set[Var] = Set.empty, defOverflows: Map[String, ResultInfo]): ResultInfo = term match {
+      case Var(x) => {
+        if (defOverflows isDefinedAt x){
+          // We use the overflows from the constant Definition
+          // Everything in the def is either Ext. Quantified or the quantifier is already in the body
+          defOverflows(x).copy(cleanTerm = Var(x), containsUnivVar = false)
+        } else {
+          ResultInfo(Var(x), Set.empty, Set.empty, univVars.contains(Var(x)))
+        }
+      }
       case _: LeafTerm => ResultInfo(term, Set.empty, Set.empty, false)
 
       // Integer predicates (The +,-,etc are BitVectorFunctions)
       case BuiltinApp(function : BinaryBitVectorRelation, arguments) => {
         val left = arguments(0)
         val right = arguments(1)
-        val resLeft = fixOverflow(left, sig, polarity, univVars, extVars)
-        val resRight = fixOverflow(right, sig, polarity, univVars, extVars)
+        val resLeft = fixOverflow(left, sig, polarity, univVars, extVars, defOverflows)
+        val resRight = fixOverflow(right, sig, polarity, univVars, extVars, defOverflows)
         val op: (Term, Term) => Term = (a: Term, b: Term) => BuiltinApp(function, Seq(a, b))
         val resCombined = resLeft.combine(op)(resRight)
         
@@ -119,7 +158,7 @@ class NoOverflowBVTransformer extends ProblemStateTransformer (){
       // TODO change to have predicates 
       case BuiltinApp(function, arguments) => {
           // clean up arguments and get their checks
-          val (cleanArgs, univChecks, extChecks, containsUnivVar) = combineResults(arguments.map(fixOverflow(_, sig, polarity, univVars, extVars)))
+          val (cleanArgs, univChecks, extChecks, containsUnivVar) = combineResults(arguments.map(fixOverflow(_, sig, polarity, univVars, extVars, defOverflows)))
           val newTerm = BuiltinApp(function, cleanArgs)
           // include this term if it can overflow
           val allOverflowTerms = if (canOverflow(term)) {
@@ -139,7 +178,7 @@ class NoOverflowBVTransformer extends ProblemStateTransformer (){
         // put vars into new sig
         val newSig = sig.withConstantDeclarations(vars)
         val newUnivVars = univVars.++(vars.map(_.variable))
-        val bodyInfo = fixOverflow(body, newSig, polarity, newUnivVars, extVars)
+        val bodyInfo = fixOverflow(body, newSig, polarity, newUnivVars, extVars, defOverflows)
         
         return bodyInfo.mapTerm(Forall(vars, _)).withoutVars(vars)
       }
@@ -148,35 +187,35 @@ class NoOverflowBVTransformer extends ProblemStateTransformer (){
         // put vars into new sig
         val newSig = sig.withConstantDeclarations(vars)
         val newUnivVars = univVars.++(vars.map(_.variable))
-        val bodyInfo = fixOverflow(body, newSig, polarity, newUnivVars, extVars)
+        val bodyInfo = fixOverflow(body, newSig, polarity, newUnivVars, extVars, defOverflows)
         return bodyInfo.mapTerm(Exists(vars, _)).withoutVars(vars)
       }
 
       // todo closure and no overflow semantics? Closure not allowed quantifiers, but it could have operators...
       // just check if overflow in arguments?
       case Closure(functionName, arg1, arg2, fixedArgs) => {
-        val res1 = fixOverflow(arg1, sig, polarity, univVars, extVars)
-        val res2 = fixOverflow(arg2, sig, polarity, univVars, extVars)
-        val (cleanFixed, fixedUnivChecks, fixedExtChecks, fixedUnivVar) = combineResults(fixedArgs.map(fixOverflow(_, sig, polarity, univVars, extVars)))
+        val res1 = fixOverflow(arg1, sig, polarity, univVars, extVars, defOverflows)
+        val res2 = fixOverflow(arg2, sig, polarity, univVars, extVars, defOverflows)
+        val (cleanFixed, fixedUnivChecks, fixedExtChecks, fixedUnivVar) = combineResults(fixedArgs.map(fixOverflow(_, sig, polarity, univVars, extVars, defOverflows)))
         val univChecks = res1.univChecks | res2.univChecks | fixedUnivChecks
         val extChecks = res1.extChecks | res2.extChecks | fixedExtChecks
         val containsUnivVar = res1.containsUnivVar || res2.containsUnivVar || fixedUnivVar
         ResultInfo(Closure(functionName, res1.cleanTerm, res2.cleanTerm, cleanFixed), univChecks, extChecks, containsUnivVar)
       }
       case ReflexiveClosure(functionName, arg1, arg2, fixedArgs) => {
-        val res1 = fixOverflow(arg1, sig, polarity, univVars, extVars)
-        val res2 = fixOverflow(arg2, sig, polarity, univVars, extVars)
-        val (cleanFixed, fixedUnivChecks, fixedExtChecks, fixedUnivVar) = combineResults(fixedArgs.map(fixOverflow(_, sig, polarity, univVars, extVars)))
+        val res1 = fixOverflow(arg1, sig, polarity, univVars, extVars, defOverflows)
+        val res2 = fixOverflow(arg2, sig, polarity, univVars, extVars, defOverflows)
+        val (cleanFixed, fixedUnivChecks, fixedExtChecks, fixedUnivVar) = combineResults(fixedArgs.map(fixOverflow(_, sig, polarity, univVars, extVars, defOverflows)))
         val univChecks = res1.univChecks | res2.univChecks | fixedUnivChecks
         val extChecks = res1.extChecks | res2.extChecks | fixedExtChecks
         val containsUnivVar = res1.containsUnivVar || res2.containsUnivVar || fixedUnivVar
         ResultInfo(ReflexiveClosure(functionName, res1.cleanTerm, res2.cleanTerm, cleanFixed), univChecks, extChecks, containsUnivVar)
       }
 
-      
+      // TODO EQ
       case Eq(left, right) => {
-        val resLeft = fixOverflow(left, sig, polarity, univVars, extVars)
-        val resRight = fixOverflow(right, sig, polarity, univVars, extVars)
+        val resLeft = fixOverflow(left, sig, polarity, univVars, extVars, defOverflows)
+        val resRight = fixOverflow(right, sig, polarity, univVars, extVars, defOverflows)
         val resCombined = resLeft.combine((a,b) => Eq(a, b))(resRight)
 
         // If uncaught overflows, check
@@ -192,8 +231,8 @@ class NoOverflowBVTransformer extends ProblemStateTransformer (){
       case Iff(left, right) => {
         // NOTE unsure about polarity here? They have to match...
         // It might need to be two implications?
-        val resLeft = fixOverflow(left, sig, polarity, univVars, extVars)
-        val resRight = fixOverflow(right, sig, polarity, univVars, extVars)
+        val resLeft = fixOverflow(left, sig, polarity, univVars, extVars, defOverflows)
+        val resRight = fixOverflow(right, sig, polarity, univVars, extVars, defOverflows)
         val resCombined =  resLeft.combine(Iff(_, _))(resRight)
       
         // If uncaught overflows, check
@@ -205,44 +244,61 @@ class NoOverflowBVTransformer extends ProblemStateTransformer (){
       }
 
       case Implication(left, right) => {
-        val resLeft = fixOverflow(left, sig, !polarity, univVars, extVars)
-        val resRight = fixOverflow(right, sig, polarity, univVars, extVars)
+        val resLeft = fixOverflow(left, sig, !polarity, univVars, extVars, defOverflows)
+        val resRight = fixOverflow(right, sig, polarity, univVars, extVars, defOverflows)
         return resLeft.combine(Implication(_, _))(resRight)
       }
 
       case Not(body) => {
-        val result = fixOverflow(body, sig, !polarity, univVars, extVars)
+        val result = fixOverflow(body, sig, !polarity, univVars, extVars, defOverflows)
         result.mapTerm(Not(_))
       }
 
       case AndList(arguments) => {
-        val (cleanArgs, univChecks, extChecks, containsUnivVar) = combineResults(arguments.map(fixOverflow(_, sig, polarity, univVars, extVars)))
+        val (cleanArgs, univChecks, extChecks, containsUnivVar) = combineResults(arguments.map(fixOverflow(_, sig, polarity, univVars, extVars, defOverflows)))
         ResultInfo(AndList(cleanArgs), univChecks, extChecks, containsUnivVar)
       }
       case OrList(arguments) => {
-        val (cleanArgs, univChecks, extChecks, containsUnivVar) = combineResults(arguments.map(fixOverflow(_, sig, polarity, univVars, extVars)))
+        val (cleanArgs, univChecks, extChecks, containsUnivVar) = combineResults(arguments.map(fixOverflow(_, sig, polarity, univVars, extVars, defOverflows)))
         ResultInfo(OrList(cleanArgs), univChecks, extChecks, containsUnivVar)
       }
 
       
       case App(functionName, arguments) => {
-        val (cleanArgs, univChecks, extChecks, containsUnivVar) = combineResults(arguments.map(fixOverflow(_, sig, polarity, univVars, extVars)))
-        val combined = ResultInfo(App(functionName, cleanArgs), univChecks, extChecks, containsUnivVar)
+        // Clean up all the arguments
+        val (cleanArgs, univChecks, extChecks, containsUnivVar) = combineResults(arguments.map(fixOverflow(_, sig, polarity, univVars, extVars, defOverflows)))
+        val combinedArgInfo = ResultInfo(App(functionName, cleanArgs), univChecks, extChecks, containsUnivVar)
+
+        var allInfo = combinedArgInfo
+        if (defOverflows isDefinedAt functionName){
+          // Include checks from the body
+          val argNames = sig.queryFunctionDefinition(functionName).get.argSortedVar.map(_.variable)
+          val substitutions = argNames.zip(arguments).toMap
+          val bodyInfo = defOverflows(functionName).substituteChecks(substitutions)
+
+          allInfo = ResultInfo(
+            combinedArgInfo.cleanTerm,
+            combinedArgInfo.univChecks | bodyInfo.univChecks,
+            combinedArgInfo.extChecks | bodyInfo.extChecks,
+            combinedArgInfo.containsUnivVar
+            )
+        }
         // Non-predicate, no check needed. Predicate, add checks
         if (isPredicate(functionName, sig)){
-          applyChecks(combined, polarity)
+          applyChecks(allInfo, polarity)
         } else {
-          combined
+          allInfo
         }
       }
 
       // Distinct is a predicate, so we need checks!
       case Distinct(arguments) => {
-        val (cleanArgs, univChecks, extChecks, containsUnivVar) = combineResults(arguments.map(fixOverflow(_, sig, polarity, univVars, extVars)))
+        val (cleanArgs, univChecks, extChecks, containsUnivVar) = combineResults(arguments.map(fixOverflow(_, sig, polarity, univVars, extVars, defOverflows)))
         val combined = ResultInfo(Distinct(cleanArgs), univChecks, extChecks, containsUnivVar)
         applyChecks(combined, polarity)
       }
 
+      // TODO check ITE conditioning?
       /*
       // ITE will just give itself as something that can overflow?
       // For now we just say any overflow is an overflow
@@ -262,9 +318,9 @@ class NoOverflowBVTransformer extends ProblemStateTransformer (){
        * condition's Issues should be applied to ITE if it can overflow?
        */
       case IfThenElse(condition, ifTrue, ifFalse) => {
-        val conditionResult = fixOverflow(condition, sig)
-        val ifTrueResult = fixOverflow(ifTrue, sig)
-        val ifFalseResult = fixOverflow(ifFalse, sig)
+        val conditionResult = fixOverflow(condition, sig, defOverflows = defOverflows)
+        val ifTrueResult = fixOverflow(ifTrue, sig, defOverflows = defOverflows)
+        val ifFalseResult = fixOverflow(ifFalse, sig, defOverflows = defOverflows)
 
         val cleanedInside = IfThenElse(conditionResult.cleanTerm, ifTrueResult.cleanTerm, ifFalseResult.cleanTerm)
 
