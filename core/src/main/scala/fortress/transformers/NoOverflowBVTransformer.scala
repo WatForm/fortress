@@ -290,7 +290,7 @@ class NoOverflowBVTransformer extends ProblemStateTransformer (){
       * @param polarity
       * @return
       */
-    def applyChecks(currentInfo: ResultInfo, polarity: Boolean): ResultInfo = {
+    def applyChecksOld(currentInfo: ResultInfo, polarity: Boolean): ResultInfo = {
       // bdef = no existentials or all existentials are defined
       // so bdef = all existential checks are false (so no existentials overflow)
         val bDef: Term = if (currentInfo.extChecks.isEmpty) {
@@ -336,6 +336,49 @@ class NoOverflowBVTransformer extends ProblemStateTransformer (){
         // Not sure if containsUnivVar should be reset here.
         // Pretty sure no
         currentInfo.replaceTerm(cleanTerm)
+    }
+
+    /**
+      * Applies the checks in `currentInfo` to "hide" overflows. 
+      * Keeps checks so they can be applied again if another comparison is used
+      * @param currentInfo
+      * @param polarity
+      * @return
+      */
+    def applyChecks(currentInfo: ResultInfo, polarity: Boolean): ResultInfo = {
+      // Positive: (Term or Univ overflows) and Ext does not overflow
+      // Negative (Term or Ext overflows) and Univ does not overflow
+
+      // Simplify checks to a disjunction of all of them. We default to no overflow occuring
+      val univOverflows: Term = currentInfo.univChecks.size match {
+        case 0 => Bottom
+        case 1 => currentInfo.univChecks.head
+        case _ => OrList(currentInfo.univChecks.toSeq)
+      }
+      val extOverflows = currentInfo.extChecks.size match {
+        case 0 => Bottom
+        case 1 => currentInfo.extChecks.head
+        case _ => OrList(currentInfo.extChecks.toSeq)
+      }
+
+      val unguardedTerm = currentInfo.cleanTerm
+      val cleanTerm = if (polarity){
+        (univOverflows, extOverflows) match {
+          case (Bottom, Bottom) => unguardedTerm
+          case (Bottom, _) => And(unguardedTerm, Not(extOverflows))
+          case (_, Bottom) => Or(unguardedTerm, univOverflows)
+          case _ => And(Or(unguardedTerm, univOverflows), Not(extOverflows))
+        }
+      } else {
+        (univOverflows, extOverflows) match {
+          case (Bottom, Bottom) => unguardedTerm
+          case (Bottom, _) => Or(unguardedTerm, extOverflows)
+          case (_, Bottom) => And(unguardedTerm, Not(univOverflows))
+          case _ => And(Or(unguardedTerm, extOverflows), Not(univOverflows))
+        }
+      }
+
+      currentInfo.replaceTerm(cleanTerm)
     }
 
     def canOverflow(term: Term): Boolean = term match {
