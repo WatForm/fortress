@@ -18,6 +18,9 @@ import java.util.Map;
 import java.util.HashMap;
 import java.lang.Void;
 
+import static scala.jdk.javaapi.OptionConverters.toJava;
+
+
 
 
 public class SmtLibVisitor extends SmtLibSubsetBaseVisitor {
@@ -121,7 +124,14 @@ public class SmtLibVisitor extends SmtLibSubsetBaseVisitor {
     @Override
     public Void visitDeclare_const(SmtLibSubsetParser.Declare_constContext ctx) {
         //Var x = Term.mkVar(ctx.ID().getText());
-        Var x = Term.mkVar(NameConverter.nameWithoutQuote(ctx.ID().getText()));
+        // Term could be a domain element
+        String varName = NameConverter.nameWithoutQuote(ctx.ID().getText());
+        Optional<DomainElement> oDomainValue = toJava(DomainElement.interpretName(varName));
+        if (oDomainValue.isPresent()){
+            // no constant needs defining
+            return null;
+        }
+        Var x = Term.mkVar(varName);
         Sort sort = (Sort) visit(ctx.sort());
         theory = theory.withConstantDeclaration(x.of(sort));
         return null;
@@ -405,7 +415,7 @@ public class SmtLibVisitor extends SmtLibSubsetBaseVisitor {
     @Override
     public Term visitVar(SmtLibSubsetParser.VarContext ctx) {
         String varName = NameConverter.nameWithoutQuote(ctx.ID().getText());
-        return Term.mkVar(varName);
+        return Term.mkDomainElementOrVar(varName);
     }
 
     @Override

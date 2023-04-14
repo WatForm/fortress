@@ -449,10 +449,10 @@ class SmtLibParserTest extends UnitSuite {
         resultTheory should be (expected)
 
     }
-
     test("Simple Definitions"){
         val classLoader = getClass.getClassLoader
         val file = new File(classLoader.getResource("simpleDefns.smt2").getFile)
+
         val fileStream = new FileInputStream(file)
 
         val parser = new SmtLibParser
@@ -466,7 +466,21 @@ class SmtLibParserTest extends UnitSuite {
                 "y", Seq(x of IntSort), IntSort, x 
             ))
             .withConstantDefinition(ConstantDefinition(Var("z") of IntSort, Var("x")))
+        resultTheory should be (expected)
+    }
 
+    test("domain elements"){
+        val classLoader = getClass.getClassLoader
+        val file = new File(classLoader.getResource("parseDomainElements.smt2").getFile)
+        val fileStream = new FileInputStream(file)
+
+        val parser = new SmtLibParser
+        val resultTheory = parser.parse(fileStream).getOrElse(null)
+
+        val A = SortConst("A")
+        val expected = Theory.empty
+            .withSorts(A)
+            .withAxiom(Not(Eq(DomainElement(1, A), DomainElement(2, A))))
         resultTheory should be (expected)
     }
 }

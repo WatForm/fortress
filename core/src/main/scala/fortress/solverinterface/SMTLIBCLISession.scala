@@ -127,7 +127,7 @@ trait SMTLIBCLISession extends solver {
             def updateFunc(func: Term): Term = func match {
                 case IfThenElse(a, b, c) => IfThenElse(updateFunc(a), updateFunc(b), updateFunc(c))
                 case AndList(args) => AndList(args.map(updateFunc))
-                case OrList(args) => AndList(args.map(updateFunc))
+                case OrList(args) => OrList(args.map(updateFunc))
                 case (distinct: Distinct) => updateFunc(distinct.asPairwiseNotEquals)
                 case Implication(left, right) => Implication(updateFunc(left), updateFunc(right))
                 case Iff(p, q) => Iff(updateFunc(p), updateFunc(q))
