@@ -239,7 +239,7 @@ class SmtlibConverter(writer: java.io.Writer) {
     }
 
     def writeSignature(sig: Signature): Unit = {
-        sig.sorts.removedAll(sig.enumConstants.keys).foreach(sort => {writeSortDecl(sort); writer.write('\n')})
+        sig.sorts.removedAll(sig.enumConstants.keys).foreach(writeSortDecl)
         sig.enumConstants.foreach(x => writeEnumConst(x._1, x._2))
         sig.functionDeclarations.foreach(writeFuncDecl)
         sig.constantDeclarations.foreach(writeConst)
@@ -258,6 +258,6 @@ class SmtlibConverter(writer: java.io.Writer) {
     
     def writeTheory(theory: Theory): Unit = {
         writeSignature(theory.signature)
-        theory.axioms.foreach(axiom => {writeAssertion(axiom); writer.write('\n')})
+        theory.axioms.foreach(writeAssertion)
     }
 }
