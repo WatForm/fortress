@@ -18,7 +18,7 @@ class ProcessBuilderSolverTest extends UnitSuite {
     val axiom2 = mkImp(y,mkNot(x))
 
     val theory = Theory.empty
-        .withConstants(x of Bool, y of Bool)
+        .withConstantDeclarations(x of Bool, y of Bool)
         .withAxiom(axiom1)
         .withAxiom(axiom2)
         
@@ -44,7 +44,7 @@ class ProcessBuilderSolverTest extends UnitSuite {
     
     val predicate = mkFuncDecl("p", IntSort, Bool)
     val theory2 = Theory.empty
-        .withConstants(x of IntSort, y of IntSort)
+        .withConstantDeclarations(x of IntSort, y of IntSort)
         .withFunctionDeclaration(predicate)
         .withAxiom(
             mkApp("p", x)
@@ -77,7 +77,7 @@ class Z3ProcessBuilderTest2 extends UnitSuite {
     val q = mkVar("q")
 
     val theory = Theory.empty
-        .withConstants(p of Bool, q of Bool)
+        .withConstantDeclarations(p of Bool, q of Bool)
         .withAxiom(p and q)
         
     val timeout = new Milliseconds(10000)

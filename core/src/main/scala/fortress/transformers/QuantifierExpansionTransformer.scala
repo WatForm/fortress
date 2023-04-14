@@ -41,8 +41,20 @@ private[transformers] class QuantifierExpansionTransformer (useConstForDomElem: 
                 if(useSimplification) theory.axioms.map(axiom => axiom.expandQuantifiersAndSimplify(domainElemsMap))
                 else theory.axioms.map(axiom => axiom.expandQuantifiers(domainElemsMap))
             }
+
+            var newSig = theory.signature
+            // these must be done one at a time to avoid our aggressive checking for dependence
+            for(cDef <- newSig.constantDefinitions){
+                newSig = newSig withoutConstantDefinition cDef
+                newSig = newSig withConstantDefinition (cDef.mapBody(_.expandQuantifiers(domainElemsMap)))
+            }
+            for(fDef <- newSig.functionDefinitions){
+                newSig = newSig withoutFunctionDefinition fDef
+                newSig = newSig withFunctionDefinition (fDef.mapBody(_.expandQuantifiers(domainElemsMap)))
+            }
+
         
-            val newTheory = Theory.mkTheoryWithSignature(theory.signature).withAxioms(newAxioms)
+            val newTheory = Theory(newSig, newAxioms)
 
 //            println("Theory after quantifier expansion:")
 //            println(newTheory + "\n-----------------------------\n")

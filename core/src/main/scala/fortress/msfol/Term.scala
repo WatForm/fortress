@@ -380,6 +380,19 @@ object Term {
       * context in which it is used) with the given name.
       */
     def mkVar(name: String): Var = Var(name)
+
+    /**
+      * Attempts to treat name as a domain element. If it is not one, it is treated as a var
+      *
+      * @param name The variable or domain element name ex: `_@1A` or `x`
+      * @return A Term; either a domain element or a Var.
+      */
+    def mkDomainElementOrVar(name: String): Term = {
+        DomainElement.interpretName(name) match {
+            case Some(de) => de
+            case None => Var(name)
+        }
+    }
     
     def mkEnumValue(name: String): EnumValue = EnumValue(name)
     
@@ -523,6 +536,11 @@ object Term {
         Closure(app.functionName, arg1, arg2, fixedArgs)
     def mkClosure(app: App, arg1: Term, arg2: Term, fixedArgs: java.util.List[Term]): Term =
         Closure(app.functionName, arg1, arg2, Seq.from(fixedArgs.asScala))
+    def mkClosure(functionName: String, args: Seq[Term]): Term = {
+        Errors.Internal.precondition(args.length >= 2, f"Attempting to make closure on ${functionName} with only ${args.length} args!")
+
+        Closure(functionName, args(0), args(1), args.slice(2, args.length))
+    }
 
     
     def mkReflexiveClosure(functionName: String, arg1: Term, arg2: Term): Term =

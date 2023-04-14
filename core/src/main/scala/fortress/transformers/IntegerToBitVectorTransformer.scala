@@ -22,6 +22,9 @@ object IntegerToBitVectorTransformer extends ProblemStateTransformer {
             val totalValues = math.pow(2, bitwidth).toInt
 
             val newAxioms = problemState.theory.axioms.map( axiom => {
+                // isLia is a variable that is SET by a different transformer if we should skip.
+                // TODO this is just a really bad way to do this in general, and we should change how LIA is handled
+                // ESPECIALLY since we aren't really using it
                 if( !axiom.isLia ) axiom.intToBitVector(bitwidth)
                 else axiom
             })

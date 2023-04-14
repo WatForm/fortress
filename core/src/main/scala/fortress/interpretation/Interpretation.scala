@@ -101,7 +101,7 @@ trait Interpretation {
             case _ => throw new scala.NotImplementedError("Builtin function not accounted for")
         }
         val theory: Theory = Theory.empty
-                .withConstant(evalResultAnnotated)
+                .withConstantDeclaration(evalResultAnnotated)
                 .withAxiom(evalResult === BuiltinApp(fn, evalArgs))
 
         val solver = new Z3IncSolver
@@ -183,7 +183,7 @@ trait Interpretation {
     /** Shows only the parts of the interpretation which are in the given signature. */
     def filterBySignature(signature: Signature): Interpretation = {
         val newSortInterps = sortInterpretations filter { case(sort, values) => signature hasSort sort }
-        val newConstInterps = constantInterpretations filter { case(const, value) => signature.constants contains const }
+        val newConstInterps = constantInterpretations filter { case(const, value) => signature.constantDeclarations contains const }
         val newFunctionInterps = functionInterpretations filter {case(fdecl, mapping) => signature.functionDeclarations contains fdecl }
         val newFunctionDefinitions = functionDefinitions filter { fd => {
             for( item <- signature.functionDeclarations ) {

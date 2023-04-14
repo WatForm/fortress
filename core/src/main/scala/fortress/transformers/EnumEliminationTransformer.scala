@@ -20,10 +20,21 @@ object EnumEliminationTransformer extends ProblemStateTransformer {
             // substitution and can use the faster substituter.
             val newAxioms = theory.axioms.map(_.eliminateEnumValues(mapping))
             
-            val newSignature = theory.signature.withoutEnums
+            var newSig = theory.signature
+                            .withoutEnums
+
+            // We only remove a definition before readding it so all its dependencies are in the sig
+            // definitions are basically untested
+            for(cDef <- theory.signature.constantDefinitions){
+                newSig = newSig.withoutConstantDefinition(cDef)
+                newSig = newSig.withConstantDefinition(cDef.mapBody(_.eliminateDomainElementsEnums))
+            }
+            for(fDef <- theory.signature.functionDefinitions){
+                newSig = newSig.withoutFunctionDefinition(fDef)
+                newSig = newSig.withFunctionDefinition(fDef.mapBody(_.eliminateDomainElementsEnums))
+            }
             
-            val newTheory = Theory.mkTheoryWithSignature(newSignature)
-                .withAxioms(newAxioms)
+            val newTheory = Theory(newSig, newAxioms)
             
             val unapply: Interpretation => Interpretation = _.replaceValuesWithEnums(mapping.map(_.swap))
 

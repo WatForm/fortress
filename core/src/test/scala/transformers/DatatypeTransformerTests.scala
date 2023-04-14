@@ -14,7 +14,7 @@ class DatatypeTransformerTests extends UnitSuite {
     test("standard domain elimination") {
         val theory = Theory.empty
             .withSorts(A, B)
-            .withConstants(c of A, d of B)
+            .withConstantDeclarations(c of A, d of B)
             .withFunctionDeclaration(FuncDecl("f", A, A, B))
             .withAxiom(App("f", c, DomainElement(1, A)) === DomainElement(3, B))
             .withAxiom(Not(d === DomainElement(4, B)) ==> Exists(x of A, x === DomainElement(2, A)))
@@ -30,7 +30,7 @@ class DatatypeTransformerTests extends UnitSuite {
         
         val expectedTheory = Theory.empty
             .withSorts(A, B)
-            .withConstants(c of A, d of B)
+            .withConstantDeclarations(c of A, d of B)
             .withFunctionDeclaration(FuncDecl("f", A, A, B))
             .withEnumSort(A, _1A, _2A)
             .withEnumSort(B, _1B, _2B, _3B, _4B)
@@ -51,7 +51,7 @@ class DatatypeTransformerTests extends UnitSuite {
     test("scope of one") {
         val theory = Theory.empty
             .withSorts(A, B)
-            .withConstants(c of A, d of B)
+            .withConstantDeclarations(c of A, d of B)
             .withAxiom(c === DomainElement(1, A))
             .withAxiom(d === DomainElement(1, B))
         
@@ -62,7 +62,7 @@ class DatatypeTransformerTests extends UnitSuite {
         
         val expectedTheory = Theory.empty
             .withSorts(A, B)
-            .withConstants(c of A, d of B)
+            .withConstantDeclarations(c of A, d of B)
             .withEnumSort(A, _1A)
             .withEnumSort(B, _1B)
             .withAxiom(c === _1A)

@@ -19,7 +19,7 @@ Details on the internal code organization and design decisions in Fortress can b
 ## Building Fortress
 The following are necessary to build Fortress:
 * Java 10 or higher
-* A command line installation of the `Z3` SMT solver, version 4.8.4 or higher.
+* A command line installation of the `Z3` SMT solver, version 4.8.15 or higher.
     * Binaries are [available here](https://github.com/Z3Prover/z3/releases).
     * If using MacOS, we recommend using Homebrew: `brew install z3`.
     * If on `Ubuntu`, do not use `apt-get`, since its version of Z3 is out of date.
@@ -85,6 +85,7 @@ Options:
 * `--timeout {SECONDS}`- Sets the timeout in seconds.
 * `-S {SORT}={SCOPE}` - Sets the scope of a sort. This option can be used multiple times (the `-S` can be omitted after the first use).
 * `--scope {SCOPE}` - Sets the default scope to use when a sort has no specified scope. This is overriden by `-S` for a specific sort.
+* `-T {transformer1} {transformer2} ...` - Specify exactly which transformers will be used, in order. 
 * `--mode {MODE}` - Sets the mode. The options are `decision` (sat/unsat), `count` (count sat instances), `compile` (convert to smt2), `checkfornewsorts` (determines if any new sorts appear in type inference).
 * `--version {VERSION}`- Sets the model finder and compiler version. The options are `v0`, `v1`, `v2`, `v2si`, `v3`, and `v3si` (more are being added).
 * `--debug`- Sets this flag to get more information about execution time.

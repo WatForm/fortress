@@ -39,7 +39,7 @@ class SymmetryBreakingTransformerSI(
             val breaker = symmetryBreakerFactory.create(infTheory, infScopes)
             val selector = new SelectAfterSubstitution(selectionHeuristic, substitution)
 
-            breaker.breakConstants(infTheory.constants)
+            breaker.breakConstants(infTheory.constantDeclarations)
             
             // This weirdness exists to make sure that this version performs symmetry breaking
             // on functions in the same order as the previous version

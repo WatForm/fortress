@@ -24,7 +24,7 @@ object LiaCheckTransformer extends ProblemStateTransformer {
                     // only want IntSort
                     varSet.filter( v => {
                         var flag: Boolean = false
-                        for( item <- problemState.theory.signature.constants ) {
+                        for( item <- problemState.theory.signature.constantDeclarations ) {
                             if( item.variable.name == v && item.sort == IntSort) flag = true
                         }
                         flag

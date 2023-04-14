@@ -26,7 +26,7 @@ class SymmetryBreakingTransformer_MostUsedTest extends UnitSuite {
     test("constants") {
         val theory = Theory.empty
           .withSorts(A, B)
-          .withConstants(c1 of A, c2 of A, d1 of B)
+          .withConstantDeclarations(c1 of A, c2 of A, d1 of B)
           .withAxiom(Forall(x of A, x === c2))
 
         val expected = theory
@@ -44,7 +44,7 @@ class SymmetryBreakingTransformer_MostUsedTest extends UnitSuite {
     test("constants_with_unbounded") {
         val theory = Theory.empty
                 .withSorts(A, B)
-                .withConstants(c1 of A, c2 of A, d1 of B)
+                .withConstantDeclarations(c1 of A, c2 of A, d1 of B)
                 .withAxiom(Forall(x of A, x === c2))
 
         val expected = theory
@@ -63,7 +63,7 @@ class SymmetryBreakingTransformer_MostUsedTest extends UnitSuite {
     test("function arity 1") {
         val theory = Theory.empty
           .withSorts(A, B)
-          .withConstants(c1 of A, d1 of B)
+          .withConstantDeclarations(c1 of A, d1 of B)
           .withFunctionDeclaration(FuncDecl("f", A, B))
           .withFunctionDeclaration(FuncDecl("g", B, A))
 
@@ -92,7 +92,7 @@ class SymmetryBreakingTransformer_MostUsedTest extends UnitSuite {
     test("function arity 1 - with_unbounded") {
         val theory = Theory.empty
                 .withSorts(A, B)
-                .withConstants(c1 of A, d1 of B)
+                .withConstantDeclarations(c1 of A, d1 of B)
                 .withFunctionDeclaration(FuncDecl("f", A, B))
                 .withFunctionDeclaration(FuncDecl("g", B, A))
 
@@ -109,7 +109,7 @@ class SymmetryBreakingTransformer_MostUsedTest extends UnitSuite {
     test("function arity 2") {
         val theory = Theory.empty
           .withSorts(A, B, C)
-          .withConstant(c1 of B)
+          .withConstantDeclaration(c1 of B)
           .withFunctionDeclaration(FuncDecl("f", A, B, C))
           .withFunctionDeclaration(FuncDecl("g", A, B, A, C))
           .withAxiom(Forall(x of A, App("f", x, c1) === App("g", x, c1, x)))
@@ -133,9 +133,9 @@ class SymmetryBreakingTransformer_MostUsedTest extends UnitSuite {
     test("Multiple sorts with constants, functions and predicates") {
         val theory = Theory.empty
           .withSorts(A, B, C)
-          .withConstant(c1 of A)
-          .withConstant(c2 of B)
-          .withConstant(c3 of C)
+          .withConstantDeclaration(c1 of A)
+          .withConstantDeclaration(c2 of B)
+          .withConstantDeclaration(c3 of C)
           .withFunctionDeclaration(FuncDecl("f", A, B, C))
           .withFunctionDeclaration(FuncDecl("g", C, A))
           .withFunctionDeclaration(FuncDecl("h", B, B, BoolSort))
@@ -191,9 +191,9 @@ class SymmetryBreakingTransformer_MostUsedTest extends UnitSuite {
         // leave sort C unbounded
         val theory = Theory.empty
                 .withSorts(A, B, C)
-                .withConstant(c1 of A)
-                .withConstant(c2 of B)
-                .withConstant(c3 of C)
+                .withConstantDeclaration(c1 of A)
+                .withConstantDeclaration(c2 of B)
+                .withConstantDeclaration(c3 of C)
                 .withFunctionDeclaration(FuncDecl("f", A, B, C))
                 .withFunctionDeclaration(FuncDecl("g", C, A))
                 .withFunctionDeclaration(FuncDecl("h", B, B, BoolSort))

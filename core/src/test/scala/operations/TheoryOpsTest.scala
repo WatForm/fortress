@@ -20,8 +20,8 @@ class TheoryOpsTest extends UnitSuite {
     val baseTheory = Theory.empty
       .withSort(A)
       .withSort(B)
-      .withConstant(p.of(Sort.Bool))
-      .withConstant(c.of(A))
+      .withConstantDeclaration(p.of(Sort.Bool))
+      .withConstantDeclaration(c.of(A))
       .withFunctionDeclaration(f)
       .withFunctionDeclaration(P)
 

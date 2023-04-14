@@ -22,7 +22,7 @@ class ModelFinderZ3ApiTest extends UnitSuite {
     
     test("prop sat 1") {
         val theory = Theory.empty
-            .withConstant(p.of(Sort.Bool))
+            .withConstantDeclaration(p.of(Sort.Bool))
             .withAxiom(And(p, p))
         
         Using.resource(ModelFinder.createDefault) { finder => {
@@ -34,7 +34,7 @@ class ModelFinderZ3ApiTest extends UnitSuite {
     
     test("prop unsat 1") {
         val theory = Theory.empty
-            .withConstant(p.of(Sort.Bool))
+            .withConstantDeclaration(p.of(Sort.Bool))
             .withAxiom(And(p, Not(p)))
         
         Using.resource(ModelFinder.createDefault) { finder => {
@@ -46,7 +46,7 @@ class ModelFinderZ3ApiTest extends UnitSuite {
     
     test("prop unsat 2") {
         val theory = Theory.empty
-            .withConstants(p.of(Sort.Bool), q.of(Sort.Bool))
+            .withConstantDeclarations(p.of(Sort.Bool), q.of(Sort.Bool))
             .withAxiom(Not(Implication(And(p, q), q)))
         
         Using.resource(ModelFinder.createDefault) { finder => {
@@ -58,7 +58,7 @@ class ModelFinderZ3ApiTest extends UnitSuite {
     
     test("prop sat 2") {
         val theory = Theory.empty
-            .withConstants(p.of(Sort.Bool), q.of(Sort.Bool))
+            .withConstantDeclarations(p.of(Sort.Bool), q.of(Sort.Bool))
             .withAxiom(Not(Implication(Or(p, q), q)))
         
         Using.resource(ModelFinder.createDefault) { finder => {
@@ -79,7 +79,7 @@ class ModelFinderZ3ApiTest extends UnitSuite {
         
         val theory = Theory.empty
             .withSort(U)
-            .withConstant(socrates.of(U))
+            .withConstantDeclaration(socrates.of(U))
             .withFunctionDeclarations(Human, Mortal)
             .withAxiom(premise1)
             .withAxiom(premise2)

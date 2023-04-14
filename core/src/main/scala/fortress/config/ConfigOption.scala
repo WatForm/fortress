@@ -3,6 +3,7 @@ package fortress.config
 import fortress.compiler.ConfigurableCompiler
 import fortress.util.Errors
 import java.io.ObjectInputFilter.Config
+import fortress.transformers.Transformers
 
 /**
   * An option for a compiler.

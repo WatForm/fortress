@@ -18,6 +18,9 @@ import java.util.Map;
 import java.util.HashMap;
 import java.lang.Void;
 
+import static scala.jdk.javaapi.OptionConverters.toJava;
+
+
 
 
 public class SmtLibVisitor extends SmtLibSubsetBaseVisitor {
@@ -121,9 +124,16 @@ public class SmtLibVisitor extends SmtLibSubsetBaseVisitor {
     @Override
     public Void visitDeclare_const(SmtLibSubsetParser.Declare_constContext ctx) {
         //Var x = Term.mkVar(ctx.ID().getText());
-        Var x = Term.mkVar(NameConverter.nameWithoutQuote(ctx.ID().getText()));
+        // Term could be a domain element
+        String varName = NameConverter.nameWithoutQuote(ctx.ID().getText());
+        Optional<DomainElement> oDomainValue = toJava(DomainElement.interpretName(varName));
+        if (oDomainValue.isPresent()){
+            // no constant needs defining
+            return null;
+        }
+        Var x = Term.mkVar(varName);
         Sort sort = (Sort) visit(ctx.sort());
-        theory = theory.withConstant(x.of(sort));
+        theory = theory.withConstantDeclaration(x.of(sort));
         return null;
     }
 
@@ -134,7 +144,7 @@ public class SmtLibVisitor extends SmtLibSubsetBaseVisitor {
             // declare-fun used to declare-const
             Var x = Term.mkVar(NameConverter.nameWithoutQuote(ctx.ID().getText()));
             Sort sort = (Sort) visit(ctx.sort(lastIndex));
-            theory = theory.withConstant(x.of(sort));
+            theory = theory.withConstantDeclaration(x.of(sort));
         } else {
             String function = NameConverter.nameWithoutQuote(ctx.ID().getText());
             Sort returnSort = (Sort) visit(ctx.sort(lastIndex));
@@ -150,6 +160,7 @@ public class SmtLibVisitor extends SmtLibSubsetBaseVisitor {
 
     @Override
     public Void visitDefine_fun(SmtLibSubsetParser.Define_funContext ctx) { // '(' 'define-fun' ID '(' sorted_var* ')' sort term ')'
+        // If functions are defined with 0 arguments, we treat them as a constant definition rather than a function
         String funcName = NameConverter.nameWithoutQuote(ctx.ID().getText());
         int argNum = ctx.sorted_var().size();
         List<AnnotatedVar> argList = new ArrayList<>();
@@ -158,8 +169,15 @@ public class SmtLibVisitor extends SmtLibSubsetBaseVisitor {
         }
         Sort resultSort = (Sort)visit(ctx.sort());
         Term funcBody = (Term)visit(ctx.term());
-        FunctionDefinition funcDef = FunctionDefinition.mkFunctionDefinition(funcName, argList, resultSort, funcBody);
-        theory = this.theory.withFunctionDefinition(funcDef);
+
+        // Definition or constant
+        if (argNum == 0){
+            ConstantDefinition cDef = ConstantDefinition.mkConstantDefinition(Term.mkVar(funcName).of(resultSort), funcBody);
+            theory = this.theory.withConstantDefinition(cDef);
+        } else {
+            FunctionDefinition funcDef = FunctionDefinition.mkFunctionDefinition(funcName, argList, resultSort, funcBody);
+            theory = this.theory.withFunctionDefinition(funcDef);
+        }
         return null;
     }
 
@@ -397,7 +415,7 @@ public class SmtLibVisitor extends SmtLibSubsetBaseVisitor {
     @Override
     public Term visitVar(SmtLibSubsetParser.VarContext ctx) {
         String varName = NameConverter.nameWithoutQuote(ctx.ID().getText());
-        return Term.mkVar(varName);
+        return Term.mkDomainElementOrVar(varName);
     }
 
     @Override

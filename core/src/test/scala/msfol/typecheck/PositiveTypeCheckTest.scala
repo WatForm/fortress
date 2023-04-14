@@ -26,7 +26,7 @@ class PositiveTypeCheckTest extends UnitSuite {
     test("constant") {
         val sig = Signature.empty
             .withSorts(A)
-            .withConstants(x.of(A))
+            .withConstantDeclarations(x.of(A))
         
         x.typeCheck(sig).sort should be (A)
     }
@@ -34,7 +34,7 @@ class PositiveTypeCheckTest extends UnitSuite {
     test("function app const") {
         val sig = Signature.empty
             .withSorts(A, B)
-            .withConstants(x.of(A))
+            .withConstantDeclarations(x.of(A))
             .withFunctionDeclarations(f)
         val app = App("f", x)
         
@@ -66,7 +66,7 @@ class PositiveTypeCheckTest extends UnitSuite {
     test("nested app") {
         val sig = Signature.empty
             .withSorts(A, B)
-            .withConstants(x.of(A))
+            .withConstantDeclarations(x.of(A))
             .withFunctionDeclarations(g, f, P)
         val fx = App("f", x)
         val gfx = App("g", fx)
@@ -80,7 +80,7 @@ class PositiveTypeCheckTest extends UnitSuite {
     test("and, or, imp") {
         val sig = Signature.empty
             .withSorts(A)
-            .withConstants(y.of(Sort.Bool))
+            .withConstantDeclarations(y.of(Sort.Bool))
             .withFunctionDeclarations(P)
         val arg1 = Forall(x.of(A), App("P", x))
         val arg2 = y
@@ -96,7 +96,7 @@ class PositiveTypeCheckTest extends UnitSuite {
     test("eq, distinct") {
         val sig = Signature.empty
             .withSorts(A, B)
-            .withConstants(x.of(A), y.of(B))
+            .withConstantDeclarations(x.of(A), y.of(B))
             .withFunctionDeclarations(f, g)
         val arg1 = App("f", x)
         val arg2 = y
@@ -120,7 +120,7 @@ class PositiveTypeCheckTest extends UnitSuite {
     test("not") {
         val sig = Signature.empty
             .withSorts(A)
-            .withConstants(x.of(A))
+            .withConstantDeclarations(x.of(A))
             .withFunctionDeclarations(P)
         val not = Not(App("P", x))
         not.typeCheck(sig).sort should be (Sort.Bool)
@@ -139,7 +139,7 @@ class PositiveTypeCheckTest extends UnitSuite {
     test("quantifier shadow") {
         val sig = Signature.empty
             .withSorts(A, B)
-            .withConstants(x.of(B), y.of(A))
+            .withConstantDeclarations(x.of(B), y.of(A))
             .withFunctionDeclarations(P, Q)
         val forall = Forall(x.of(A), App("P", x))
         val exists = Exists(y.of(B), App("Q", y))
@@ -150,7 +150,7 @@ class PositiveTypeCheckTest extends UnitSuite {
     test("half quantified but constant") {
         val sig = Signature.empty
             .withSorts(A)
-            .withConstants(x.of(A))
+            .withConstantDeclarations(x.of(A))
             .withFunctionDeclarations(P)
         
         // x is free in the second and argument -- but it is a constant so this is fine
@@ -174,7 +174,7 @@ class PositiveTypeCheckTest extends UnitSuite {
     test("ite") {
         val sig = Signature.empty
             .withSort(A)
-            .withConstants(x of A, y of A)
+            .withConstantDeclarations(x of A, y of A)
         
         val t = IfThenElse(x === y, x, y)
         t.typeCheck(sig).sort should be (A)
@@ -185,7 +185,7 @@ class PositiveTypeCheckTest extends UnitSuite {
         val sig = Signature.empty
             .withSort(A)
             .withFunctionDeclarations(R)
-            .withConstants(x of A, y of A)
+            .withConstantDeclarations(x of A, y of A)
 
         val t = Term.mkClosure("R", x, y)
         t.typeCheck(sig).sort should be (Sort.Bool)
@@ -195,7 +195,7 @@ class PositiveTypeCheckTest extends UnitSuite {
         val sig = Signature.empty
             .withSort(A)
             .withFunctionDeclarations(R)
-            .withConstants(x of A, y of A)
+            .withConstantDeclarations(x of A, y of A)
 
         val t = Term.mkReflexiveClosure("R", x, y)
         t.typeCheck(sig).sort should be (Sort.Bool)

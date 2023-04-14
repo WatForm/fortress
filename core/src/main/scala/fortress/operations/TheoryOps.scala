@@ -88,7 +88,7 @@ case class TheoryOps private(theory: Theory) {
     // Returns whether sort inference found any new sorts
     def mostUsedDeclarations: Map[Declaration, Int] = {
         val helper = (r: mutable.Map[Declaration, Int], i: Declaration) => r + (i -> 0)
-        val profilingInfo = (theory.constants ++ theory.functionDeclarations).foldLeft(mutable.Map.empty[Declaration, Int])(helper)
+        val profilingInfo = (theory.constantDeclarations ++ theory.functionDeclarations).foldLeft(mutable.Map.empty[Declaration, Int])(helper)
         theory.axioms.foreach(axiom => TermMetrics.declarationCountMap(axiom, profilingInfo))
         profilingInfo.toMap
     }

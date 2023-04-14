@@ -13,8 +13,8 @@ class CountModelTest extends UnitSuite {
         // p = true, q = false
         // p = false, q = true
         val theory = Theory.empty
-            .withConstant(p of BoolSort)
-            .withConstant(q of BoolSort)
+            .withConstantDeclaration(p of BoolSort)
+            .withConstantDeclaration(q of BoolSort)
             .withAxiom(Or(p, q))
             .withAxiom(Not(And(p, q)))
 
@@ -50,9 +50,9 @@ class CountModelTest extends UnitSuite {
 
         // Simple theory, valid interpretations are:
         val theory = Theory.empty
-          .withConstant(p of BoolSort)
-          .withConstant(q of BoolSort)
-          .withConstant(r of BoolSort)
+          .withConstantDeclaration(p of BoolSort)
+          .withConstantDeclaration(q of BoolSort)
+          .withConstantDeclaration(r of BoolSort)
           .withAxiom(Or(p, q, r))
           .withAxiom(Not(And(p, q, r)))
 
@@ -75,7 +75,7 @@ class CountModelTest extends UnitSuite {
         val theory = Theory.empty
           .withEnumSort(Colour, red, yellow, green)
           .withFunctionDeclaration(next)
-          .withConstant(c of Colour)
+          .withConstantDeclaration(c of Colour)
           .withAxiom(Not(App("next", green) === green))
           .withAxiom(Not(App("next", yellow) === yellow))
           .withAxiom(Not(App("next", red) === red))

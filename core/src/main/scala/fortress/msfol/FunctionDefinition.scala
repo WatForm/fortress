@@ -1,6 +1,7 @@
 package fortress.msfol
 import scala.jdk.CollectionConverters._
 import scala.annotation.varargs
+import fortress.symmetry.Func
 /*
   (define-fun faa ((x!0 P)) H
     (ite (= x!0 P!val!0) H!val!1
@@ -23,6 +24,12 @@ case class FunctionDefinition(name: String, argSortedVar: Seq[AnnotatedVar], res
         }
         str = str + "): " + resultSort.toString + " = { " + body.toString + "}\n"
         str
+    }
+
+    val argSorts: Seq[Sort] = argSortedVar.map(_.sort)
+
+    def mapBody(f: Term => Term): FunctionDefinition = {
+        FunctionDefinition(name, argSortedVar, resultSort, f(body))
     }
 }
 

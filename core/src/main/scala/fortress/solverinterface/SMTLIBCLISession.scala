@@ -127,7 +127,7 @@ trait SMTLIBCLISession extends solver {
             def updateFunc(func: Term): Term = func match {
                 case IfThenElse(a, b, c) => IfThenElse(updateFunc(a), updateFunc(b), updateFunc(c))
                 case AndList(args) => AndList(args.map(updateFunc))
-                case OrList(args) => AndList(args.map(updateFunc))
+                case OrList(args) => OrList(args.map(updateFunc))
                 case (distinct: Distinct) => updateFunc(distinct.asPairwiseNotEquals)
                 case Implication(left, right) => Implication(updateFunc(left), updateFunc(right))
                 case Iff(p, q) => Iff(updateFunc(p), updateFunc(q))
@@ -178,7 +178,7 @@ trait SMTLIBCLISession extends solver {
             /** Maps a constant symbol to a value. */
             override def constantInterpretations: Map[AnnotatedVar, Value] = {
                 for{
-                    c <- theory.get.signature.constants
+                    c <- theory.get.signature.constantDeclarations
                     if DomainElement.interpretName(c.name).isEmpty
                 } yield (c -> getConstant(c))
             }.toMap

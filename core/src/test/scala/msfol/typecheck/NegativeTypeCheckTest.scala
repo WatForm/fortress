@@ -40,7 +40,7 @@ class NegativeTypeCheckTest extends UnitSuite {
         // Application of a function to a constant of the wrong argument type
         val sig = Signature.empty
             .withSorts(A, B)
-            .withConstants(x.of(A))
+            .withConstantDeclarations(x.of(A))
             .withFunctionDeclarations(g)
         val app = App("g", x)
         an [fortress.data.TypeCheckException.WrongSort] should be thrownBy {
@@ -52,7 +52,7 @@ class NegativeTypeCheckTest extends UnitSuite {
         // Use of a function that is missing a declaration
         val sig = Signature.empty
             .withSorts(A)
-            .withConstants(x.of(A))
+            .withConstantDeclarations(x.of(A))
         val app = App("f", x)
         an [fortress.data.TypeCheckException.UnknownFunction] should be thrownBy {
             app.typeCheck(sig)
@@ -82,7 +82,7 @@ class NegativeTypeCheckTest extends UnitSuite {
     test("nested app wrong arg 1") {
         val sig = Signature.empty
             .withSorts(A, B)
-            .withConstants(x.of(A))
+            .withConstantDeclarations(x.of(A))
             .withFunctionDeclarations(g, f, P)
         val fx = App("f", x)
         val ffx = App("f", fx)
@@ -95,7 +95,7 @@ class NegativeTypeCheckTest extends UnitSuite {
     test("nested app wrong arg 2") {
         val sig = Signature.empty
             .withSorts(A, B)
-            .withConstants(x.of(A))
+            .withConstantDeclarations(x.of(A))
             .withFunctionDeclarations(g, f, P)
         val fx = App("f", x)
         val ffx = App("f", fx)
@@ -109,7 +109,7 @@ class NegativeTypeCheckTest extends UnitSuite {
     test("and wrong arg") {
         val sig = Signature.empty
             .withSorts(A, B)
-            .withConstants(x.of(A), y.of(Sort.Bool))
+            .withConstantDeclarations(x.of(A), y.of(Sort.Bool))
             .withFunctionDeclarations(f)
         val arg1 = App("f", x)
         val arg2 = y
@@ -122,7 +122,7 @@ class NegativeTypeCheckTest extends UnitSuite {
     test("or wrong arg") {
         val sig = Signature.empty
             .withSorts(A, B)
-            .withConstants(x.of(A), y.of(Sort.Bool))
+            .withConstantDeclarations(x.of(A), y.of(Sort.Bool))
             .withFunctionDeclarations(f)
         val arg1 = App("f", x)
         val arg2 = y
@@ -135,7 +135,7 @@ class NegativeTypeCheckTest extends UnitSuite {
     test("imp wrong arg") {
         val sig = Signature.empty
             .withSorts(A, B)
-            .withConstants(x.of(A), y.of(Sort.Bool))
+            .withConstantDeclarations(x.of(A), y.of(Sort.Bool))
             .withFunctionDeclarations(f)
         val arg1 = App("f", x)
         val arg2 = y
@@ -148,7 +148,7 @@ class NegativeTypeCheckTest extends UnitSuite {
     test("distinct wrong arg") {
         val sig = Signature.empty
             .withSorts(A, B)
-            .withConstants(x.of(A), y.of(B))
+            .withConstantDeclarations(x.of(A), y.of(B))
             .withFunctionDeclarations(f, g)
         val arg1 = App("f", x)
         val arg2 = y
@@ -162,7 +162,7 @@ class NegativeTypeCheckTest extends UnitSuite {
     test("eq wrong arg 1") {
         val sig = Signature.empty
             .withSorts(A, B)
-            .withConstants(x.of(A), y.of(B))
+            .withConstantDeclarations(x.of(A), y.of(B))
             .withFunctionDeclarations(f, g)
         val arg1 = App("f", x)
         val arg2 = y
@@ -177,7 +177,7 @@ class NegativeTypeCheckTest extends UnitSuite {
     test("eq wrong arg 2") {
         val sig = Signature.empty
             .withSorts(A, B)
-            .withConstants(x.of(A), y.of(B))
+            .withConstantDeclarations(x.of(A), y.of(B))
             .withFunctionDeclarations(f, g)
         val arg1 = App("f", x)
         val arg2 = y
@@ -191,7 +191,7 @@ class NegativeTypeCheckTest extends UnitSuite {
     test("not wrong arg") {
         val sig = Signature.empty
             .withSorts(A, B)
-            .withConstants(x.of(A))
+            .withConstantDeclarations(x.of(A))
             .withFunctionDeclarations(f)
         val not = Not(App("f", x))
         an [fortress.data.TypeCheckException.WrongSort] should be thrownBy {
@@ -223,7 +223,7 @@ class NegativeTypeCheckTest extends UnitSuite {
     test("nested error 1") {
         val sig = Signature.empty
             .withSorts(A, B)
-            .withConstants(x.of(A), y.of(B))
+            .withConstantDeclarations(x.of(A), y.of(B))
             .withFunctionDeclarations(f)
         val bad1 = Or(x, Top)
         val t1 = And(Implication(Not(bad1), Bottom), Top)
@@ -235,7 +235,7 @@ class NegativeTypeCheckTest extends UnitSuite {
     test("nested error 2") {
         val sig = Signature.empty
             .withSorts(A, B)
-            .withConstants(x.of(A), y.of(B))
+            .withConstantDeclarations(x.of(A), y.of(B))
             .withFunctionDeclarations(f)
         val bad2 = App("f", y)
         val t2 = Or(Eq(y, bad2), Top)
@@ -291,7 +291,7 @@ class NegativeTypeCheckTest extends UnitSuite {
         // Application of function to wrong number of arguments
         val sig = Signature.empty
             .withSort(A)
-            .withConstant(x.of(A))
+            .withConstantDeclaration(x.of(A))
         val t = App("f", x, x)
         an [fortress.data.TypeCheckException.UnknownFunction] should be thrownBy {
             t.typeCheck(sig)
@@ -321,7 +321,7 @@ class NegativeTypeCheckTest extends UnitSuite {
     test("ite mismatch arg sorts") {
         val sig = Signature.empty
             .withSorts(A, B)
-            .withConstants(x of A, y of B)
+            .withConstantDeclarations(x of A, y of B)
         
         val t = IfThenElse(Top, x, y)
         an [fortress.data.TypeCheckException.WrongSort] should be thrownBy {
@@ -333,7 +333,7 @@ class NegativeTypeCheckTest extends UnitSuite {
     test("closure mismatch arg sort 1") {
         val sig = Signature.empty
             .withSorts(A, B)
-            .withConstants(x of B, y of A)
+            .withConstantDeclarations(x of B, y of A)
             .withFunctionDeclarations(R)
 
         val t = Term.mkClosure("R", x, y)
@@ -345,7 +345,7 @@ class NegativeTypeCheckTest extends UnitSuite {
     test("closure mismatch arg sort 2") {
         val sig = Signature.empty
             .withSorts(A, B)
-            .withConstants(x of A, y of B)
+            .withConstantDeclarations(x of A, y of B)
             .withFunctionDeclarations(R)
 
         val t = Term.mkClosure("R", x, y)
@@ -357,7 +357,7 @@ class NegativeTypeCheckTest extends UnitSuite {
     test("closure unknown function") {
         val sig = Signature.empty
             .withSorts(A)
-            .withConstants(x of A, y of A)
+            .withConstantDeclarations(x of A, y of A)
 
         val t = Term.mkClosure("R", x, y)
         an [fortress.data.TypeCheckException.UnknownFunction] should be thrownBy {
@@ -368,7 +368,7 @@ class NegativeTypeCheckTest extends UnitSuite {
     test("closure wrong function sort") {
         val sig = Signature.empty
             .withSorts(A, B)
-            .withConstants(x of A, y of A)
+            .withConstantDeclarations(x of A, y of A)
             .withFunctionDeclarations(S)
 
         val t = Term.mkClosure("S", x, y)
@@ -381,7 +381,7 @@ class NegativeTypeCheckTest extends UnitSuite {
         val S = FuncDecl.mkFuncDecl("S", A, A, A, Sort.Bool)
         val sig = Signature.empty
             .withSorts(A, B)
-            .withConstants(x of A, y of A)
+            .withConstantDeclarations(x of A, y of A)
             .withFunctionDeclarations(S)
 
         val t = Term.mkClosure("S", x, y)
@@ -393,7 +393,7 @@ class NegativeTypeCheckTest extends UnitSuite {
     test("closure mismatch function sort 1") {
         val sig = Signature.empty
             .withSorts(A, B)
-            .withConstants(x of A, y of A)
+            .withConstantDeclarations(x of A, y of A)
             .withFunctionDeclarations(S)
 
         val t = Term.mkClosure("S", x, y)
@@ -405,7 +405,7 @@ class NegativeTypeCheckTest extends UnitSuite {
     test("closure mismatch function sort 2") {
         val sig = Signature.empty
             .withSorts(A, B)
-            .withConstants(x of B, y of A)
+            .withConstantDeclarations(x of B, y of A)
             .withFunctionDeclarations(R)
 
         val t = Term.mkClosure("R", x, y)
@@ -417,7 +417,7 @@ class NegativeTypeCheckTest extends UnitSuite {
     test("reflexive closure mismatch arg sort 1") {
         val sig = Signature.empty
             .withSorts(A, B)
-            .withConstants(x of B, y of A)
+            .withConstantDeclarations(x of B, y of A)
             .withFunctionDeclarations(R)
 
         val t = Term.mkReflexiveClosure("R", x, y)
@@ -429,7 +429,7 @@ class NegativeTypeCheckTest extends UnitSuite {
     test("reflexive closure mismatch arg sort 2") {
         val sig = Signature.empty
             .withSorts(A, B)
-            .withConstants(x of A, y of B)
+            .withConstantDeclarations(x of A, y of B)
             .withFunctionDeclarations(R)
 
         val t = Term.mkReflexiveClosure("R", x, y)
@@ -441,7 +441,7 @@ class NegativeTypeCheckTest extends UnitSuite {
     test("reflexive closure unknown function") {
         val sig = Signature.empty
             .withSorts(A)
-            .withConstants(x of A, y of A)
+            .withConstantDeclarations(x of A, y of A)
 
         val t = Term.mkReflexiveClosure("R", x, y)
         an [fortress.data.TypeCheckException.UnknownFunction] should be thrownBy {
@@ -452,7 +452,7 @@ class NegativeTypeCheckTest extends UnitSuite {
     test("reflexive closure wrong function sort") {
         val sig = Signature.empty
             .withSorts(A, B)
-            .withConstants(x of A, y of A)
+            .withConstantDeclarations(x of A, y of A)
             .withFunctionDeclarations(S)
 
         val t = Term.mkReflexiveClosure("S", x, y)
@@ -465,7 +465,7 @@ class NegativeTypeCheckTest extends UnitSuite {
         val S = FuncDecl.mkFuncDecl("S", A, A, A, Sort.Bool)
         val sig = Signature.empty
             .withSorts(A, B)
-            .withConstants(x of A, y of A)
+            .withConstantDeclarations(x of A, y of A)
             .withFunctionDeclarations(S)
 
         val t = Term.mkReflexiveClosure("S", x, y)
@@ -477,7 +477,7 @@ class NegativeTypeCheckTest extends UnitSuite {
     test("reflexive closure mismatch function sort 1") {
         val sig = Signature.empty
             .withSorts(A, B)
-            .withConstants(x of A, y of A)
+            .withConstantDeclarations(x of A, y of A)
             .withFunctionDeclarations(S)
 
         val t = Term.mkReflexiveClosure("S", x, y)
@@ -489,7 +489,7 @@ class NegativeTypeCheckTest extends UnitSuite {
     test("reflexive closure mismatch function sort 2") {
         val sig = Signature.empty
             .withSorts(A, B)
-            .withConstants(x of B, y of A)
+            .withConstantDeclarations(x of B, y of A)
             .withFunctionDeclarations(R)
 
         val t = Term.mkReflexiveClosure("R", x, y)

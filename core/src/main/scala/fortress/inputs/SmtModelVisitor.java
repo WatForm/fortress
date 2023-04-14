@@ -19,6 +19,10 @@ import scala.collection.Seq;
 
 import java.lang.Void;
 
+
+import java.util.Optional;
+import static scala.jdk.javaapi.OptionConverters.toJava;
+
 /*
   (define-fun faa ((x!0 P)) H
     (ite (= x!0 P!val!0) H!val!1
@@ -86,6 +90,11 @@ public class SmtModelVisitor extends SmtLibVisitor{
     public Term visitVar(SmtLibSubsetParser.VarContext ctx) {
         String varName = ctx.getText();
         varName = NameConverter.nameWithoutQuote(varName);
+        
+        Optional<DomainElement> oDomainValue = toJava(DomainElement.interpretName(varName));
+        if (oDomainValue.isPresent()){
+            return oDomainValue.get();
+        }
 //        if(smtValue2DomainElement.containsKey(varName)) {
 //            varName = this.smtValue2DomainElement.get(varName).toString();
 //            return DomainElement.interpretName(varName).get();

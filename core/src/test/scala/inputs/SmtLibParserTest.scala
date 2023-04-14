@@ -61,8 +61,8 @@ class SmtLibParserTest extends UnitSuite {
         
         val x = Var("x")
         val y = Var("y")
-        expectedTheory = expectedTheory.withConstant(x.of(A))
-        expectedTheory = expectedTheory.withConstant(y.of(B))
+        expectedTheory = expectedTheory.withConstantDeclaration(x.of(A))
+        expectedTheory = expectedTheory.withConstantDeclaration(y.of(B))
         
         val p = FuncDecl.mkFuncDecl("p", A, B, Sort.Bool)
         expectedTheory = expectedTheory.withFunctionDeclaration(p)
@@ -74,7 +74,7 @@ class SmtLibParserTest extends UnitSuite {
         expectedTheory = expectedTheory.withAxiom(Exists(x.of(A), Top))
         
         val q = Var("q")
-        expectedTheory = expectedTheory.withConstant(q.of(Sort.Bool))
+        expectedTheory = expectedTheory.withConstantDeclaration(q.of(Sort.Bool))
         
         expectedTheory = expectedTheory.withAxiom(Or(q, Not(q)))
         
@@ -96,9 +96,9 @@ class SmtLibParserTest extends UnitSuite {
         val a = Var("a")
         val b = Var("b")
         val c = Var("c")
-        expectedTheory = expectedTheory.withConstant(a.of(A))
-        expectedTheory = expectedTheory.withConstant(b.of(A))
-        expectedTheory = expectedTheory.withConstant(c.of(A))
+        expectedTheory = expectedTheory.withConstantDeclaration(a.of(A))
+        expectedTheory = expectedTheory.withConstantDeclaration(b.of(A))
+        expectedTheory = expectedTheory.withConstantDeclaration(c.of(A))
         
         expectedTheory = expectedTheory.withAxiom(
             Forall(x.of(A),
@@ -125,7 +125,7 @@ class SmtLibParserTest extends UnitSuite {
         expectedTheory = expectedTheory.withSort(A)
         
         val x = Var("x")
-        expectedTheory = expectedTheory.withConstant(x.of(A))
+        expectedTheory = expectedTheory.withConstantDeclaration(x.of(A))
         val f = FuncDecl.mkFuncDecl("f", A, A, A)
         expectedTheory = expectedTheory.withFunctionDeclaration(f)
         expectedTheory = expectedTheory.withAxiom(Eq(App("f", x, x),App("f",x,x)))
@@ -148,7 +148,7 @@ class SmtLibParserTest extends UnitSuite {
         expectedTheory = expectedTheory.withSort(A)
         
         val x = Var("x")
-        expectedTheory = expectedTheory.withConstant(x.of(A))
+        expectedTheory = expectedTheory.withConstantDeclaration(x.of(A))
         val f = FuncDecl.mkFuncDecl("f", A, A, A)
         expectedTheory = expectedTheory.withFunctionDeclaration(f)
         val sf = App("f", x, x)
@@ -184,7 +184,7 @@ class SmtLibParserTest extends UnitSuite {
         expectedTheory = expectedTheory.withSort(A)
         
         val x = Var("$x")
-        expectedTheory = expectedTheory.withConstant(x.of(A))
+        expectedTheory = expectedTheory.withConstantDeclaration(x.of(A))
         val p = FuncDecl.mkFuncDecl("$p", A, A, Sort.Bool)
         expectedTheory = expectedTheory.withFunctionDeclaration(p)
         
@@ -287,7 +287,7 @@ class SmtLibParserTest extends UnitSuite {
 
         val expected = Theory.empty
             .withSort(bv5)
-            .withConstant((Var("x")).of(bv5))
+            .withConstantDeclaration((Var("x")).of(bv5))
             .withFunctionDeclaration(FuncDecl.mkFuncDecl("f", bv5, bv5, bv5))
             .withFunctionDeclaration(FuncDecl.mkFuncDecl("g", bv5, bv5))
             .withAxiom(
@@ -339,7 +339,7 @@ class SmtLibParserTest extends UnitSuite {
 
         val expected: Theory = Theory.empty
             .withSorts(A)
-            .withConstants(x.of(A), y.of(A))
+            .withConstantDeclarations(x.of(A), y.of(A))
             .withFunctionDeclaration(FuncDecl("f", A, A, BoolSort))
             .withAxiom(Closure("f", x, y))
 
@@ -360,7 +360,7 @@ class SmtLibParserTest extends UnitSuite {
 
         val expected: Theory = Theory.empty
             .withSorts(A)
-            .withConstants(x.of(A), y.of(A))
+            .withConstantDeclarations(x.of(A), y.of(A))
             .withFunctionDeclaration(FuncDecl("f", A, A, BoolSort))
             .withAxiom(ReflexiveClosure("f", x, y))
 
@@ -442,11 +442,45 @@ class SmtLibParserTest extends UnitSuite {
 
          val expected: Theory = Theory.empty
             .withSorts(A)
-            .withConstants(x.of(A), mess.of(A))
+            .withConstantDeclarations(x.of(A), mess.of(A))
             .withFunctionDeclaration(FuncDecl("f", A, A))
             .withAxiom(Not(Eq(App("f", x), mess)))
         
         resultTheory should be (expected)
 
+    }
+    test("Simple Definitions"){
+        val classLoader = getClass.getClassLoader
+        val file = new File(classLoader.getResource("simpleDefns.smt2").getFile)
+
+        val fileStream = new FileInputStream(file)
+
+        val parser = new SmtLibParser
+        val resultTheory = parser.parse(fileStream).getOrElse(null)
+
+        val x = Var("x")
+        
+        val expected = Theory.empty
+            .withConstantDefinition(ConstantDefinition(x of IntSort, IntegerLiteral(5)))
+            .withFunctionDefinition(FunctionDefinition(
+                "y", Seq(x of IntSort), IntSort, x 
+            ))
+            .withConstantDefinition(ConstantDefinition(Var("z") of IntSort, Var("x")))
+        resultTheory should be (expected)
+    }
+
+    test("domain elements"){
+        val classLoader = getClass.getClassLoader
+        val file = new File(classLoader.getResource("parseDomainElements.smt2").getFile)
+        val fileStream = new FileInputStream(file)
+
+        val parser = new SmtLibParser
+        val resultTheory = parser.parse(fileStream).getOrElse(null)
+
+        val A = SortConst("A")
+        val expected = Theory.empty
+            .withSorts(A)
+            .withAxiom(Not(Eq(DomainElement(1, A), DomainElement(2, A))))
+        resultTheory should be (expected)
     }
 }

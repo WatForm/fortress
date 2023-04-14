@@ -17,8 +17,8 @@ class TypeCheckSanitizeTest extends UnitSuite {
         
         val sig = Signature.empty
             .withSort(A)
-            .withConstant(x.of(A))
-            .withConstant(p.of(Sort.Bool))
+            .withConstantDeclaration(x.of(A))
+            .withConstantDeclaration(p.of(Sort.Bool))
             
         val t = And(
             Eq(x, x),
@@ -40,7 +40,7 @@ class TypeCheckSanitizeTest extends UnitSuite {
         val q = Var("q")
         val r = Var("r")
         val sig = Signature.empty
-            .withConstants(p of BoolSort, q of BoolSort, r of BoolSort)
+            .withConstantDeclarations(p of BoolSort, q of BoolSort, r of BoolSort)
         
         val t = IfThenElse(p, q, r)
         
