@@ -93,11 +93,11 @@ class NoOverflowBVTransformerTests extends UnitSuite with CommonSymbols {
           )
         // double negated check due to how the polarity is applied.
         // Could likely be streamlined later
-        val expectedAxiom = Not(Or(core, Not(Not(expectedCheck))))
+        val expectedAxiom = Not(Or(core, expectedCheck))
 
 
         val theory = Theory.empty
-        .withConstants(x1 of BV4, x2 of BV4)
+        .withConstantDeclarations(x1 of BV4, x2 of BV4)
         .withAxiom(axiom)
 
         val initialState = ProblemState(theory)
@@ -105,7 +105,7 @@ class NoOverflowBVTransformerTests extends UnitSuite with CommonSymbols {
 
 
         val expected = Theory.empty
-            .withConstants(x1 of BV4, x2 of BV4)
+            .withConstantDeclarations(x1 of BV4, x2 of BV4)
             .withAxiom(expectedAxiom)
 
         val transformer: NoOverflowBVTransformer = NoOverflowBVTransformer
@@ -122,7 +122,7 @@ class NoOverflowBVTransformerTests extends UnitSuite with CommonSymbols {
     test("addition no overflow") {
 
       val theory = Theory.empty
-      .withConstants(x1 of BV4, x2 of BV4, x3 of BV4)
+      .withConstantDeclarations(x1 of BV4, x2 of BV4, x3 of BV4)
       .withAxioms(Seq(
         BuiltinApp(BvSignedGT, x1, zero4),
         BuiltinApp(BvSignedGT, x2, zero4),
@@ -137,7 +137,7 @@ class NoOverflowBVTransformerTests extends UnitSuite with CommonSymbols {
     test("addition no weirdness"){
 
       val theory = Theory.empty
-      .withConstants(x1 of BV4, x2 of BV4, x3 of BV4)
+      .withConstantDeclarations(x1 of BV4, x2 of BV4, x3 of BV4)
       .withAxioms(Seq(
         BuiltinApp(BvSignedGT, x1, zero4),
         BuiltinApp(BvSignedGT, x2, zero4),
@@ -152,7 +152,7 @@ class NoOverflowBVTransformerTests extends UnitSuite with CommonSymbols {
     test("addition no underflow") {
 
       val theory = Theory.empty
-      .withConstants(x1 of BV4, x2 of BV4, x3 of BV4)
+      .withConstantDeclarations(x1 of BV4, x2 of BV4, x3 of BV4)
       .withAxioms(Seq(
         BuiltinApp(BvSignedLT, x1, zero4),
         BuiltinApp(BvSignedLT, x2, zero4),
@@ -166,7 +166,7 @@ class NoOverflowBVTransformerTests extends UnitSuite with CommonSymbols {
 
     test("subtraction no overflow"){
       val theory = Theory.empty
-      .withConstants(x1 of BV4, x2 of BV4, x3 of BV4)
+      .withConstantDeclarations(x1 of BV4, x2 of BV4, x3 of BV4)
       .withAxioms(Seq(
         BuiltinApp(BvSignedGT, x1, zero4),
         BuiltinApp(BvSignedLT, x2, zero4),
@@ -179,7 +179,7 @@ class NoOverflowBVTransformerTests extends UnitSuite with CommonSymbols {
 
     test("subtraction no underflow") {
       val theory = Theory.empty
-      .withConstants(x1 of BV4, x2 of BV4, x3 of BV4)
+      .withConstantDeclarations(x1 of BV4, x2 of BV4, x3 of BV4)
       .withAxioms(Seq(
         BuiltinApp(BvSignedLT, x1, zero4),
         BuiltinApp(BvSignedGT, x2, zero4),
@@ -192,7 +192,7 @@ class NoOverflowBVTransformerTests extends UnitSuite with CommonSymbols {
 
     test("multiplication no overflow") {
       val theory = Theory.empty
-      .withConstants(x1 of BV4, x2 of BV4, x3 of BV4)
+      .withConstantDeclarations(x1 of BV4, x2 of BV4, x3 of BV4)
       .withAxioms(Seq(
         BuiltinApp(BvSignedGT, x1, zero4),
         BuiltinApp(BvSignedGT, x2, zero4),
@@ -205,7 +205,7 @@ class NoOverflowBVTransformerTests extends UnitSuite with CommonSymbols {
 
     test("multiplication no underflow") {
       val theory = Theory.empty
-      .withConstants(x1 of BV4, x2 of BV4, x3 of BV4)
+      .withConstantDeclarations(x1 of BV4, x2 of BV4, x3 of BV4)
       .withAxioms(Seq(
         BuiltinApp(BvSignedLT, x1, zero4),
         BuiltinApp(BvSignedLT, x2, zero4),
@@ -218,7 +218,7 @@ class NoOverflowBVTransformerTests extends UnitSuite with CommonSymbols {
 
     test("no div 0") {
       val theory = Theory.empty
-      .withConstants(x1 of BV4, x2 of BV4)
+      .withConstantDeclarations(x1 of BV4, x2 of BV4)
       .withAxioms(Seq(
         Eq(BuiltinApp(BvSignedDiv, x1, zero4), x2),
       ))
@@ -232,7 +232,7 @@ class NoOverflowBVTransformerTests extends UnitSuite with CommonSymbols {
       val body = Or(Eq(BuiltinApp(BvSignedDiv, x1, zero4), x1), Bottom)
 
       val theory = Theory.empty
-      .withConstant(x1 of BV4)
+      .withConstantDeclaration(x1 of BV4)
       .withAxiom(body)
 
       ensureUnsat(theory)
@@ -247,7 +247,7 @@ class NoOverflowBVTransformerTests extends UnitSuite with CommonSymbols {
       val body = And(Eq(BuiltinApp(BvSignedDiv, x1, zero4), x1), Top)
 
       val theory = Theory.empty
-      .withConstant(x1 of BV4)
+      .withConstantDeclaration(x1 of BV4)
       .withAxiom(body)
 
       ensureUnsat(theory)
@@ -262,7 +262,7 @@ class NoOverflowBVTransformerTests extends UnitSuite with CommonSymbols {
       val body = Implication(Eq(BuiltinApp(BvSignedDiv, x1, zero4), x1), Bottom)
 
       val theory = Theory.empty
-      .withConstant(x1 of BV4)
+      .withConstantDeclaration(x1 of BV4)
       .withAxiom(body)
 
       ensureUnsat(theory)
@@ -277,7 +277,7 @@ class NoOverflowBVTransformerTests extends UnitSuite with CommonSymbols {
       val body = Implication(Top, Eq(BuiltinApp(BvSignedDiv, x1, zero4), x1))
 
       val theory = Theory.empty
-      .withConstant(x1 of BV4)
+      .withConstantDeclaration(x1 of BV4)
       .withAxiom(body)
 
       ensureUnsat(theory)
@@ -292,7 +292,7 @@ class NoOverflowBVTransformerTests extends UnitSuite with CommonSymbols {
       val bodyTrue = Iff(Eq(BuiltinApp(BvSignedDiv, x1, zero4), x1), Top)
 
       val theoryTrue = Theory.empty
-      .withConstant(x1 of BV4)
+      .withConstantDeclaration(x1 of BV4)
       .withAxiom(bodyTrue)
 
       ensureUnsat(theoryTrue)
@@ -306,7 +306,7 @@ class NoOverflowBVTransformerTests extends UnitSuite with CommonSymbols {
       val bodyFalse = Iff(Eq(BuiltinApp(BvSignedDiv, x1, zero4), x1), Bottom)
 
       val theoryFalse = Theory.empty
-      .withConstant(x1 of BV4)
+      .withConstantDeclaration(x1 of BV4)
       .withAxiom(bodyFalse)
 
       /*
@@ -327,7 +327,7 @@ class NoOverflowBVTransformerTests extends UnitSuite with CommonSymbols {
       val bodyFalse = Eq(Eq(BuiltinApp(BvSignedDiv, x1, zero4), x1), Bottom)
 
       val theoryFalse = Theory.empty
-      .withConstant(x1 of BV4)
+      .withConstantDeclaration(x1 of BV4)
       .withAxiom(bodyFalse)
 
       /*
@@ -348,7 +348,7 @@ class NoOverflowBVTransformerTests extends UnitSuite with CommonSymbols {
       val bodyFalse = Eq(Eq(BuiltinApp(BvSignedDiv, x1, zero4), x1), Top)
 
       val theoryFalse = Theory.empty
-      .withConstant(x1 of BV4)
+      .withConstantDeclaration(x1 of BV4)
       .withAxiom(bodyFalse)
 
       /*
@@ -371,7 +371,7 @@ class NoOverflowBVTransformerTests extends UnitSuite with CommonSymbols {
       val body = Eq(App("f", BuiltinApp(BvSignedDiv, x1, zero4)), x1)
 
       val theory = Theory.empty
-      .withConstant(x1 of BV4)
+      .withConstantDeclaration(x1 of BV4)
       .withFunctionDeclaration(f)
       .withAxiom(body)
 
@@ -390,7 +390,7 @@ class NoOverflowBVTransformerTests extends UnitSuite with CommonSymbols {
       val body = App("f", BuiltinApp(BvSignedDiv, x1, zero4))
 
       val theory = Theory.empty
-      .withConstant(x1 of BV4)
+      .withConstantDeclaration(x1 of BV4)
       .withFunctionDeclaration(f)
       .withAxiom(body)
 
@@ -407,7 +407,7 @@ class NoOverflowBVTransformerTests extends UnitSuite with CommonSymbols {
       val body = Distinct(BuiltinApp(BvSignedDiv, x1, zero4), x2)
 
       val theory = Theory.empty
-      .withConstants(x1 of BV4, x2 of BV4)
+      .withConstantDeclarations(x1 of BV4, x2 of BV4)
       .withAxiom(body)
 
       ensureUnsat(theory)
@@ -424,7 +424,7 @@ class NoOverflowBVTransformerTests extends UnitSuite with CommonSymbols {
     */
     test("In ITE Condition"){
       val theory = Theory.empty
-      .withConstants(x1 of BV4, x2 of BV4, x3 of BV4)
+      .withConstantDeclarations(x1 of BV4, x2 of BV4, x3 of BV4)
       .withAxioms(Seq(
         BuiltinApp(BvSignedGT, x1, zero4),
         BuiltinApp(BvSignedGT, x2, zero4),
@@ -437,7 +437,7 @@ class NoOverflowBVTransformerTests extends UnitSuite with CommonSymbols {
 
     test("In ITE then"){
       val theory = Theory.empty
-      .withConstants(x1 of BV4, x2 of BV4, x3 of BV4)
+      .withConstantDeclarations(x1 of BV4, x2 of BV4, x3 of BV4)
       .withAxioms(Seq(
         BuiltinApp(BvSignedGT, x1, zero4),
         BuiltinApp(BvSignedGT, x2, zero4),
@@ -450,7 +450,7 @@ class NoOverflowBVTransformerTests extends UnitSuite with CommonSymbols {
 
     test("In ITE else"){
       val theory = Theory.empty
-      .withConstants(x1 of BV4, x2 of BV4, x3 of BV4)
+      .withConstantDeclarations(x1 of BV4, x2 of BV4, x3 of BV4)
       .withAxioms(Seq(
         BuiltinApp(BvSignedGT, x1, zero4),
         BuiltinApp(BvSignedGT, x2, zero4),
@@ -466,7 +466,7 @@ class NoOverflowBVTransformerTests extends UnitSuite with CommonSymbols {
       val condition = IfThenElse(BuiltinApp(BvSignedLE, BuiltinApp(BvPlus, x1, x2), zero4), Bottom, Top)
       val big = IfThenElse(condition, Bottom, Top)
       val theory = Theory.empty
-      .withConstants(x1 of BV4, x2 of BV4, x3 of BV4)
+      .withConstantDeclarations(x1 of BV4, x2 of BV4, x3 of BV4)
       .withAxioms(Seq(
         BuiltinApp(BvSignedGT, x1, zero4),
         BuiltinApp(BvSignedGT, x2, zero4),
