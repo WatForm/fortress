@@ -24,18 +24,23 @@ import java.util.concurrent.TimeUnit
 
 class RSVIncrementalModelFinder(solverInterface: SolverInterface, mergeMonotonicSort: Boolean) extends CompilationModelFinder(solverInterface) {
 
-    override def checkMono(): java.util.Map[Sort, Boolean] = checkMonotonicity().asJava
-
     def this() = this(Z3IncCliInterface, true)
 
     override def createCompiler(): LogicCompiler = new IncrementalCompiler
 
-    def checkMonotonicity(): Map[Sort, Boolean] = {
-        val typeCheckedTheory = TypecheckSanitizeTransformer(theory)
-        val nnfTheory = NnfTransformer(typeCheckedTheory)
-        val problemState: ProblemState = ProblemState(nnfTheory, Map.empty)
-        val skolemizedPState: ProblemState = SkolemizeTransformer(problemState)
-        new Monotonicity(skolemizedPState.theory).check()
+    /* the input theory should be pre-compiled */
+    def checkMonotonicity(theory: Theory): Map[Sort, Boolean] = {
+        new Monotonicity(theory).check()
+    }
+
+    def preCompile(theory: Theory): Theory = {
+        val timeout = timeoutMilliseconds - totalTimer.elapsedNano().toMilli
+        val preCompiler: LogicCompiler = new PreCompiler
+        preCompiler.compile(theory, Map.empty, timeout, eventLoggers.toList) match {
+            case Left(CompilerError.Timeout) => Errors.Internal.impossibleState("Timeout in pre-compile.")
+            case Left(CompilerError.Other(errMsg)) => Errors.Internal.impossibleState(errMsg)
+            case Right(compilerRes) => Some(compilerRes).get.theory
+        }
     }
 
     override def checkSat(): ModelFinderResult = {
@@ -45,11 +50,14 @@ class RSVIncrementalModelFinder(solverInterface: SolverInterface, mergeMonotonic
         var remainingMillis = timeoutMilliseconds
         var result: ModelFinderResult = UnsatResult
 
-        var newTheory: Theory = if(mergeMonotonicSort) {
-            val monotonicityResult = checkMonotonicity()
-            val MMS: MergeMonotonicSorts = new MergeMonotonicSorts(theory.sorts.filter(monotonicityResult(_)))
-            MMS.updateTheory(theory)
-        } else theory
+        val newTheory: Theory = {
+            val preCompiledTheory: Theory = preCompile(theory)
+            if (mergeMonotonicSort) {
+                val monotonicityResult = checkMonotonicity(preCompiledTheory)
+                val MMS: MergeMonotonicSorts = new MergeMonotonicSorts(preCompiledTheory.sorts.filter(monotonicityResult(_)))
+                MMS.updateTheory(preCompiledTheory)
+            } else preCompiledTheory
+        }
         var scopeMap: Map[Sort, Scope] = newTheory.sorts.map(s => s -> ExactScope(1)).toMap
 
         do {
@@ -78,6 +86,8 @@ class RSVIncrementalModelFinder(solverInterface: SolverInterface, mergeMonotonic
                 //                    println("trying scope: " + scopeMap)
             }
         } while (result == UnsatResult)
+
+        result
     }
 
 }

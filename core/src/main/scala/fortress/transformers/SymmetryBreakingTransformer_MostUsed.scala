@@ -67,11 +67,8 @@ class SymmetryBreakingTransformer_MostUsed(
             loop()
 
             breaker.constraints.foreach(c => {
-//                println("cons: " + c)
                 c.named = "rangeRestriction"
             })
-
-//            breaker.rangeRestrictions.foreach(println)
 
             val newTheory = theory.withFunctionDeclarations(breaker.declarations).withAxioms(breaker.constraints)
 

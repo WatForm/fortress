@@ -298,19 +298,44 @@ class ConfigurableCompiler(transformers: ListBuffer[ProblemStateTransformer]) ex
     }
 }
 
+
+class PreCompiler extends LogicCompiler {
+    override def transformerSequence: Seq[ProblemStateTransformer] = {
+        val transformerSequence = new scala.collection.mutable.ListBuffer[ProblemStateTransformer]
+        transformerSequence += TypecheckSanitizeTransformer
+        transformerSequence += EnumEliminationTransformer
+        transformerSequence += ClosureEliminationEijckTransformer
+        transformerSequence += NnfTransformer
+        transformerSequence += SkolemizeTransformer
+        transformerSequence.toList
+    }
+}
+
+class NonExactScopePreCompiler extends LogicCompiler {
+    override def transformerSequence: Seq[ProblemStateTransformer] = {
+        val transformerSequence = new scala.collection.mutable.ListBuffer[ProblemStateTransformer]
+        transformerSequence += TypecheckSanitizeTransformer
+        transformerSequence += ScopeNonExactPredicatesTransformer // Must be before skolemization
+        transformerSequence += EnumEliminationTransformer
+        transformerSequence += ClosureEliminationEijckTransformer
+        transformerSequence += NnfTransformer
+        transformerSequence += SkolemizeTransformer
+        transformerSequence.toList
+    }
+}
 class IncrementalCompiler extends LogicCompiler {
     def symmetryBreakingTransformers: Seq[ProblemStateTransformer] = Seq(
         new SymmetryBreakingTransformer_MostUsed(LowArityFirstMostUsedFunctionFirstOrderFactory, DefaultSymmetryBreakerFactoryDL(None))
     )
     override def transformerSequence: Seq[ProblemStateTransformer] = {
         val transformerSequence = new scala.collection.mutable.ListBuffer[ProblemStateTransformer]
-        transformerSequence += TypecheckSanitizeTransformer
-//        transformerSequence += ScopeNonExactPredicatesTransformer // Must be before skolemization
-        transformerSequence += EnumEliminationTransformer
-        transformerSequence += ClosureEliminationEijckTransformer
-//        transformerSequence += SortInferenceTransformer
-        transformerSequence += NnfTransformer
-        transformerSequence += SkolemizeTransformer
+        //        transformerSequence += TypecheckSanitizeTransformer
+        //        transformerSequence += EnumEliminationTransformer
+        //        transformerSequence += ClosureEliminationEijckTransformer
+        //        transformerSequence += SortInferenceTransformer
+        //        transformerSequence += NnfTransformer
+        //        transformerSequence += SkolemizeTransformer
+
         transformerSequence ++= symmetryBreakingTransformers
         transformerSequence += StandardQuantifierExpansionTransformer
         transformerSequence += IncrementalRangeFormulaTransformer
@@ -321,24 +346,19 @@ class IncrementalCompiler extends LogicCompiler {
     }
 }
 
-class MonotonicityCompiler extends LogicCompiler {
+class NonExactScopeIncrementalCompiler extends LogicCompiler {
     def symmetryBreakingTransformers: Seq[ProblemStateTransformer] = Seq(
         new SymmetryBreakingTransformer_MostUsed(LowArityFirstMostUsedFunctionFirstOrderFactory, DefaultSymmetryBreakerFactoryDL(None))
     )
+
     override def transformerSequence: Seq[ProblemStateTransformer] = {
         val transformerSequence = new scala.collection.mutable.ListBuffer[ProblemStateTransformer]
-        transformerSequence += TypecheckSanitizeTransformer
-        transformerSequence += EnumEliminationTransformer
-        transformerSequence += ClosureEliminationEijckTransformer
-        transformerSequence += NnfTransformer
-        transformerSequence += SkolemizeTransformer
-        transformerSequence += MergeMonotonicSortsTransformer // *** //
         transformerSequence ++= symmetryBreakingTransformers
         transformerSequence += StandardQuantifierExpansionTransformer
-        transformerSequence += IncrementalRangeFormulaTransformer
+        transformerSequence += RangeFormulaStandardTransformer
         transformerSequence += new SimplifyTransformer
         transformerSequence += DomainEliminationTransformer
-        transformerSequence += AddScopeConstraintsTransformer
         transformerSequence.toList
     }
 }
+

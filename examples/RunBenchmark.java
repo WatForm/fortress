@@ -24,23 +24,15 @@ public class RunBenchmark {
         long totalTime = 0;
         int cnt = 0;
 
-    /*
-        method = 0/1/2/3
-        method = 0:  Monotonicity checking + RSVIncrementalSolving
-        method = 1: RSVIncrementalSolving
-        method = 2: Non-exact Scope solving (size = 5, 6, 7...)
-        method = 3: Monotonicity checking + Non-exact Scope Solving
-        method = 4: 4-threads
-     */
         int id = Integer.parseInt(args[1]);
         String[] strs = args[0].split("/");
 
         String[] methods = new String[] {
-                "Mono-RSV",
                 "RSV",
+                "Mono-RSV",
                 "NonExactScope",
                 "Mono-NonExactScope",
-                "4threads"
+                "3threads"
         };
 
 
@@ -62,21 +54,29 @@ public class RunBenchmark {
                     System.exit(1);
                 }
 
-                try(ModelFinder finder = ModelFinder.IncrementalModelFinder()) {
-                    finder.setTheory(theory);
-                    long t1 = System.currentTimeMillis();
-                    ModelFinderResult result = id==4 ? finder.multiThreadCheckSat() : finder.checkSat(id);
-                    long t2 = System.currentTimeMillis();
-                    writer.write("Result: " + result.toString() + "\n");
-                    writer.write("Time: " + (t2-t1) + " ms\n");
-                    writer.flush();
+                ModelFinder finder = null;
+                if(id == 0) finder = ModelFinder.RSVModelFinder();
+                if(id == 1) finder = ModelFinder.MonoRSVModelFinder();
+                if(id == 2) finder = ModelFinder.NonExactScopeModelFinder();
+                if(id == 3) finder = ModelFinder.MonoNonExactScopeModelFinder();
+                if(id == 4) finder = ModelFinder.multiThreadsModelFinder();
 
-                    if(result.toString().equals("Sat")) {
-                        cnt++;
-                        totalTime += (t2 - t1);
-                    }
-                    writer.write("\n=====================================================================================\n");
+                finder.setTheory(theory);
+
+                long t1 = System.currentTimeMillis();
+                ModelFinderResult result = finder.checkSat();
+                long t2 = System.currentTimeMillis();
+
+                writer.write("Result: " + result.toString() + "\n");
+                writer.write("Time: " + (t2-t1) + " ms\n");
+                writer.flush();
+
+                if(result.toString().equals("Sat")) {
+                    cnt++;
+                    totalTime += (t2 - t1);
                 }
+                writer.write("\n=====================================================================================\n");
+
             }
         }
         writer.write("\nSolved " + cnt + " problems, used " + totalTime + " ms.\n");

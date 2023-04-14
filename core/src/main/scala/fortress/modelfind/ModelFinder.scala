@@ -74,12 +74,6 @@ trait ModelFinder extends AutoCloseable {
     /** Check for a satisfying interpretation to the theory with the given scopes. */
     def checkSat(): ModelFinderResult
 
-    def checkSat(method: Int): ModelFinderResult = null
-
-    def multiThreadCheckSat(): ModelFinderResult = null
-
-    def checkMono(): java.util.Map[Sort, Boolean] = null
-
 
     /** View the satisfying interpretation, if one exists.
       * Otherwise, throws an error.
@@ -104,9 +98,13 @@ trait ModelFinder extends AutoCloseable {
 
 object ModelFinder {
     def createDefault(): ModelFinder = new FortressTHREE
-    def NonExactScopeModelFinder(): ModelFinder = new PredUpperBoundModelFinder
-    def IncrementalModelFinder(): ModelFinder = new SmartIncrementalModelFinder
 
-    def createMonotonicityModelFinder(): ModelFinder = new MonotonicityModelFinder
+    def RSVModelFinder(): ModelFinder = new RSVIncrementalModelFinder(Z3IncCliInterface, false)
+    def MonoRSVModelFinder(): ModelFinder = new RSVIncrementalModelFinder()
+    def NonExactScopeModelFinder(): ModelFinder = new NonExactScopeIncrementalModelFinder(Z3IncCliInterface, false, 1)
+    def MonoNonExactScopeModelFinder(): ModelFinder = new NonExactScopeIncrementalModelFinder()
+
+    def multiThreadsModelFinder(): ModelFinder = new MultiThreadsModelFinder(Z3IncCliInterface)
+
 }
 

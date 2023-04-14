@@ -51,6 +51,8 @@ with ModelFinderSettings {
     protected def solverPhase(finalTheory: Theory): ModelFinderResult = {
         notifyLoggers(_.invokingSolverStrategy())
 
+        // Close solver session, if one exists
+        solverSession.foreach(_.close())
         
         // Open new solver session
         val session = solverInterface.openSession()
@@ -72,7 +74,6 @@ with ModelFinderSettings {
         notifyLoggers(_.solverFinished(elapsedSolverNano))
 
         notifyLoggers(_.finished(finalResult, totalTimer.elapsedNano()))
-
 
         finalResult
     }
@@ -108,8 +109,6 @@ with ModelFinderSettings {
                 instance.functionDefinitions
             )
         }
-
-//        println("instance:\n " + newInstance)
 
         val newAxiom = Not(And.smart(newInstance.toConstraints.toList map (compilerResult.get.eliminateDomainElements(_))))
 

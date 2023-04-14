@@ -132,15 +132,3 @@ class NativeIncrementalModelFinder(solverInterface: SolverInterface) extends Sim
 
     override def createCompiler(): LogicCompiler = new FortressTHREECompiler
 }
-
-class SmartIncrementalModelFinder(solverInterface: SolverInterface) extends RSVIncrementalModelFinder(solverInterface) {
-    def this() = this(Z3IncCliInterface)
-
-    override def createCompiler(): LogicCompiler = new IncrementalCompiler
-}
-
-class MonotonicityModelFinder(solverInterface: SolverInterface) extends RSVIncrementalModelFinder(solverInterface) {
-    def this() = this(Z3IncCliInterface)
-
-    override def createCompiler(): LogicCompiler = new MonotonicityCompiler
-}
