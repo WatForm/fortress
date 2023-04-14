@@ -10,11 +10,13 @@ object IntegerSize {
     def bitvectorWidth(term: Term, sig: Signature): Option[Int] = term match {
         case BitVectorLiteral(_, bitwidth) => Some(bitwidth)
         case Var(x) => sig.queryConstant(Var(x)) match {
-            case Some(AnnotatedVar(_, sort)) => bitvectorWidthOfSort(sort)
+            case Some(Left(AnnotatedVar(_, sort))) => bitvectorWidthOfSort(sort)
+            case Some(Right(ConstantDefinition(avar, _))) => bitvectorWidthOfSort(avar.sort)
             case None => None
         }
-        case App(functionName, _) => sig.queryUninterpretedFunction(functionName) match {
-            case Some(FuncDecl(_,_, resultSort)) => bitvectorWidthOfSort(resultSort)
+        case App(functionName, _) => sig.queryFunction(functionName) match {
+            case Some(Left(FuncDecl(_,_, resultSort))) => bitvectorWidthOfSort(resultSort)
+            case Some(Right(FunctionDefinition(_,_, resultSort, _))) => bitvectorWidthOfSort(resultSort)
             case _ => None
         }
         case DomainElement(_, sort) => bitvectorWidthOfSort(sort)
