@@ -395,10 +395,10 @@ case class Signature private (
         Errors.Internal.precondition(queryConstantDeclaration(c.variable).filter(_.sort != c.sort).isEmpty, "Constant " + c.name + " declared with two different sorts")
         
         // Constant cannot share a name with any function declaration
-        Errors.Internal.precondition(! hasFuncDeclWithName(c.name), "Name " + c.name + " shared by constant and function declaration")
+        //Errors.Internal.precondition(! hasFuncDeclWithName(c.name), "Name " + c.name + " shared by constant and function declaration")
 
         // Constant cannot share a name with any function definition
-        Errors.Internal.precondition(! hasFuncDefWithName(c.name), "Name " + c.name + " shared by constant and function definition")
+        //Errors.Internal.precondition(! hasFuncDefWithName(c.name), "Name " + c.name + " shared by constant and function definition")
 
     }
 
@@ -413,7 +413,7 @@ case class Signature private (
         Errors.Internal.precondition(queryConstantDefinition(cDef.variable).filter(_ != cDef).isEmpty, f"Constant ${cDef.name} is defined twice.")
 
         // Constant cannot share a name with any function
-        Errors.Internal.precondition(queryFunction(cDef.name).isEmpty, f"Name ${cDef.name} shared by constant definition and function.")
+        //Errors.Internal.precondition(queryFunction(cDef.name).isEmpty, f"Name ${cDef.name} shared by constant definition and function.")
     }
     
     private
@@ -427,13 +427,14 @@ case class Signature private (
             "Function " + fdecl.name + " has result sort that is undeclared")
             
         // Function must not share name with a constant
-        Errors.Internal.precondition(queryConstant(Var(fdecl.name)).isEmpty,
-            "Name " + fdecl.name +  " shared by function and constant")
+        //Errors.Internal.precondition(queryConstant(Var(fdecl.name)).isEmpty,
+        //    "Name " + fdecl.name +  " shared by function and constant")
         
         // Function must not share name with a sort
         Errors.Internal.precondition(! hasSortWithName(fdecl.name), "Name " + fdecl.name +  " shared by function and sort")
 
         // function declaration must not share name with another function definition
+        // TODO should this be of same arity/typesig?
         Errors.Internal.precondition(
             !hasFuncDefWithName(fdecl.name), "Name " + fdecl.name + " shared by function definition and function declaration"
         )
@@ -456,8 +457,8 @@ case class Signature private (
             "Function " + fdef.name + " has result sort that is undeclared")
 
         // Function must not share name with a constant
-        Errors.Internal.precondition(queryConstant(Var(fdef.name)).isEmpty,
-            "Name " + fdef.name +  " shared by function and constant")
+        //Errors.Internal.precondition(queryConstant(Var(fdef.name)).isEmpty,
+        //    "Name " + fdef.name +  " shared by function and constant")
 
         // Function must not share name with a sort
         Errors.Internal.precondition(! hasSortWithName(fdef.name), "Name " + fdef.name +  " shared by function and sort")
