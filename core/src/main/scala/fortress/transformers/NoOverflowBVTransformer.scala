@@ -366,14 +366,14 @@ class NoOverflowBVTransformer extends ProblemStateTransformer (){
         // branches only cause an overflow if we actually use the value
         val overflowUniv = AndList(upDoesNotOverflow,
           IfThenElse(conditionResult.cleanTerm,
-            OrList(ifTrueResult.univChecks.toSeq),
-            OrList(ifFalseResult.univChecks.toSeq),
+            orDefaultFalse(ifTrueResult.univChecks.toSeq),
+            orDefaultFalse(ifFalseResult.univChecks.toSeq),
           )
         )
         val overflowExt = AndList(upDoesNotOverflow,
           IfThenElse(conditionResult.cleanTerm,
-            OrList(ifTrueResult.extChecks.toSeq),
-            OrList(ifFalseResult.extChecks.toSeq),
+            orDefaultFalse(ifTrueResult.extChecks.toSeq),
+            orDefaultFalse(ifFalseResult.extChecks.toSeq),
           )
         )
         
@@ -414,6 +414,16 @@ class NoOverflowBVTransformer extends ProblemStateTransformer (){
       }
     }
     
+
+    def orDefaultFalse(args: Seq[Term]): Term = {
+      if (args.isEmpty){
+        Bottom
+      } else if (args.size == 1){
+        args(0)
+      } else {
+        OrList(args)
+      }
+    }
     def isPredicate(functionName: String, sig: Signature): Boolean = {
       sig.functionWithName(functionName) match {
         case None => Errors.Internal.impossibleState("Trying to check if function '" + functionName + "' is a predicate, but it is not in the signature.")
