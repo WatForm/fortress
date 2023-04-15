@@ -358,6 +358,35 @@ class NoOverflowBVTransformer extends ProblemStateTransformer (){
         val ifTrueResult = fixOverflow(ifTrue, sig, defOverflows = defOverflows)
         val ifFalseResult = fixOverflow(ifFalse, sig, defOverflows = defOverflows)
 
+        // up Does not overflow when all of its overflows are false
+        val upDoesNotOverflow = Not(OrList(conditionResult.extChecks.toSeq ++ conditionResult.univChecks.toSeq))
+
+        // NOTE what if left branch has univ but we take the right branch and that overflows (above the ITE) it should be treated existentially
+        // branches only cause an overflow if we actually use the value
+        val overflowUniv = AndList(upDoesNotOverflow,
+          IfThenElse(conditionResult.cleanTerm,
+            OrList(ifTrueResult.univChecks.toSeq),
+            OrList(ifFalseResult.univChecks.toSeq),
+          )
+        )
+        val overflowExt = AndList(upDoesNotOverflow,
+          IfThenElse(conditionResult.cleanTerm,
+            OrList(ifTrueResult.extChecks.toSeq),
+            OrList(ifFalseResult.extChecks.toSeq),
+          )
+        )
+        
+
+        val univChecks = conditionResult.univChecks + overflowUniv
+        val extChecks = conditionResult.extChecks + overflowExt
+
+        val containsUnivVar = conditionResult.containsUnivVar || ifTrueResult.containsUnivVar || ifFalseResult.containsUnivVar
+
+        val cleanedTerm = IfThenElse(conditionResult.cleanTerm, ifTrueResult.cleanTerm, ifFalseResult.cleanTerm)
+
+        ResultInfo(cleanedTerm, univChecks, extChecks, containsUnivVar)
+        
+        /*
         val cleanedInside = IfThenElse(conditionResult.cleanTerm, ifTrueResult.cleanTerm, ifFalseResult.cleanTerm)
 
         // Make checks just for condition on outside
@@ -380,6 +409,7 @@ class NoOverflowBVTransformer extends ProblemStateTransformer (){
         val containsUnivVar = conditionResult.containsUnivVar || ifTrueResult.containsUnivVar || ifFalseResult.containsUnivVar
 
         ResultInfo(cleanedTerm, univChecks, extChecks, containsUnivVar)
+        */
       }
     }
     
