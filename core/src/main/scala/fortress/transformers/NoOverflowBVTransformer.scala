@@ -40,6 +40,7 @@ class NoOverflowBVTransformer extends ProblemStateTransformer (){
           
           val sigWithArgs = newSig.withConstantDeclarations(fDef.argSortedVar)
           val result = fixOverflow(fDef.body, sigWithArgs, defOverflows = defOverflows.toMap)
+          newSig = newSig.withFunctionDefinition(fDef.copy(body=result.cleanTerm)) 
         }
       }
     }
