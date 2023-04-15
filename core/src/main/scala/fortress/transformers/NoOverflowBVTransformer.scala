@@ -359,7 +359,8 @@ class NoOverflowBVTransformer extends ProblemStateTransformer (){
         val ifFalseResult = fixOverflow(ifFalse, sig, defOverflows = defOverflows)
 
         // up Does not overflow when all of its overflows are false
-        val upDoesNotOverflow = Not(OrList(conditionResult.extChecks.toSeq ++ conditionResult.univChecks.toSeq))
+        val conditionOverflows = conditionResult.extChecks.toSeq ++ conditionResult.univChecks.toSeq
+        val upDoesNotOverflow = if (conditionOverflows.isEmpty) {Top} else {Not(OrList(conditionOverflows))}
 
         // NOTE what if left branch has univ but we take the right branch and that overflows (above the ITE) it should be treated existentially
         // branches only cause an overflow if we actually use the value
