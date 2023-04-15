@@ -214,26 +214,62 @@ class NoOverflowBVTransformer extends ProblemStateTransformer (){
 
       // TODO EQ
       case Eq(left, right) => {
-        val resLeft = fixOverflow(left, sig, polarity, univVars, extVars, defOverflows)
-        val resRight = fixOverflow(right, sig, polarity, univVars, extVars, defOverflows)
-        val resCombined = resLeft.combine((a,b) => Eq(a, b))(resRight)
+        val sort = left.typeCheck(sig).sort
 
-        // If uncaught overflows, check
-        if (!resCombined.univChecks.isEmpty || !resCombined.extChecks.isEmpty){
-          applyChecks(resCombined, polarity)
-        } else {
-          resCombined
+        sort match {
+          case BoolSort => {
+            val resPosLeft = fixOverflow(left, sig, polarity, univVars, extVars, defOverflows)
+            val resPosRight = fixOverflow(right, sig, polarity, univVars, extVars, defOverflows)
+            val resNegLeft = fixOverflow(left, sig, !polarity, univVars, extVars, defOverflows)
+            val resNegRight = fixOverflow(right, sig, !polarity, univVars, extVars, defOverflows)
+            
+            // A == B    is A&B |!A&!B so for proper polarity
+            val resPos = resPosLeft.combine(And(_,_))(resPosRight)
+            val resNeg = resNegLeft.combine((a,b) =>And(Not(a), Not(b)))(resNegRight) // the a and b are for weird scala behavior
+            val resCombined = resPos.combine(Or(_,_))(resNeg)
+
+            //val resCombined =  resLeft.combine(Iff(_, _))(resRight)
+          
+            // If uncaught overflows, check
+            if (!resCombined.univChecks.isEmpty || !resCombined.extChecks.isEmpty){
+              applyChecks(resCombined, polarity)
+            } else {
+              resCombined
+            }
+          }
+
+          case _ => {
+            // This is a predicate, potentially an integer predicate
+            val resLeft = fixOverflow(left, sig, polarity, univVars, extVars, defOverflows)
+            val resRight = fixOverflow(right, sig, polarity, univVars, extVars, defOverflows)
+            val resCombined = resLeft.combine((a,b) => Eq(a, b))(resRight)
+
+            // If uncaught overflows, check
+            if (!resCombined.univChecks.isEmpty || !resCombined.extChecks.isEmpty){
+              applyChecks(resCombined, polarity)
+            } else {
+              resCombined
+            }
+          }
         }
+        
+
+        
       }
 
-      // TODO if then else
 
       case Iff(left, right) => {
-        // NOTE unsure about polarity here? They have to match...
-        // It might need to be two implications?
-        val resLeft = fixOverflow(left, sig, polarity, univVars, extVars, defOverflows)
-        val resRight = fixOverflow(right, sig, polarity, univVars, extVars, defOverflows)
-        val resCombined =  resLeft.combine(Iff(_, _))(resRight)
+        val resPosLeft = fixOverflow(left, sig, polarity, univVars, extVars, defOverflows)
+        val resPosRight = fixOverflow(right, sig, polarity, univVars, extVars, defOverflows)
+        val resNegLeft = fixOverflow(left, sig, !polarity, univVars, extVars, defOverflows)
+        val resNegRight = fixOverflow(right, sig, !polarity, univVars, extVars, defOverflows)
+        
+        // A <==> B    is A&B |!A&!B so for proper polarity
+        val resPos = resPosLeft.combine(And(_,_))(resPosRight)
+        val resNeg = resNegLeft.combine((a,b) =>And(Not(a), Not(b)))(resNegRight) // the a and b are for weird scala behavior
+        val resCombined = resPos.combine(Or(_,_))(resNeg)
+
+        //val resCombined =  resLeft.combine(Iff(_, _))(resRight)
       
         // If uncaught overflows, check
         if (!resCombined.univChecks.isEmpty || !resCombined.extChecks.isEmpty){
