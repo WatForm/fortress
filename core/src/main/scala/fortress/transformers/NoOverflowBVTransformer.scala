@@ -425,9 +425,10 @@ class NoOverflowBVTransformer extends ProblemStateTransformer (){
       }
     }
     def isPredicate(functionName: String, sig: Signature): Boolean = {
-      sig.functionWithName(functionName) match {
+      sig.queryFunction(functionName) match {
         case None => Errors.Internal.impossibleState("Trying to check if function '" + functionName + "' is a predicate, but it is not in the signature.")
-        case Some(fdecl) => fdecl.resultSort == BoolSort
+        case Some(Left(fdecl)) => fdecl.resultSort == BoolSort
+        case Some(Right(fdef)) => fdef.resultSort == BoolSort
       }
     }
 
