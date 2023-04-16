@@ -107,6 +107,31 @@ object RecursiveAccumulator {
         }
         recur(term, Set.empty)
     }
+
+    def constantsAndFunctionsIn(term: Term): Set[String] = {
+        def recur(t: Term, variables: Set[String]): Set[String] = t match {
+            case Top | Bottom | DomainElement(_, _) | EnumValue(_)
+                | IntegerLiteral(_) | BitVectorLiteral(_, _) => Set.empty
+            case Var(x) if (! (variables contains x)) => Set(x)
+            case Var(x) => Set.empty
+            case Not(p) => recur(p, variables)
+            case AndList(args) => args.map(arg => recur(arg, variables)).reduce((a, b) => a union b)
+            case OrList(args) => args.map(arg => recur(arg, variables)).reduce((a, b) => a union b)
+            case Distinct(args) => args.map(arg => recur(arg, variables)).reduce((a, b) => a union b)
+            case Implication(p, q) => recur(p, variables) union recur(q, variables)
+            case Iff(p, q) => recur(p, variables) union recur(q, variables)
+            case Eq(l, r) => recur(l, variables) union recur(r, variables)
+            case App(fname, args) => args.map(arg => recur(arg, variables)).reduce((a, b) => a union b) + fname // Notable change from constants in
+            case BuiltinApp(function, args) => args.map(arg => recur(arg, variables)).reduce((a, b) => a union b)
+            case Closure(fname, arg1, arg2, args) => (args :+ arg1 :+ arg2).map(recur(_, variables)) reduce (_ union _)
+            case ReflexiveClosure(fname, arg1, arg2, args) => (args :+ arg1 :+ arg2).map(recur(_, variables)) reduce (_ union _)
+            case Forall(vars, body) => recur(body, variables ++ vars.map(_.name))
+            case Exists(vars, body) => recur(body, variables ++ vars.map(_.name))
+            case IfThenElse(condition, ifTrue, ifFalse) => recur(condition, variables) union recur(ifTrue, variables) union recur(ifFalse, variables)
+        }
+        recur(term, Set.empty)
+    }
+
     
     /** Accumulates the free variables of a term. Note that this only considers the
       * term as a block of syntax, without respect to a signature, so a free variable
@@ -139,11 +164,25 @@ object RecursiveAccumulator {
                 case Not(_) => Set.empty[String]
                 case Closure(fname, _, _, _) => Set(fname)
                 case ReflexiveClosure(fname, _, _, _) => Set(fname)
+                // equality should deny anything below as eq is A and B or not A and not B
+                case Eq(left, right) => allClosures(left) union allClosures(right)
             }
             
             def apply(term: Term): Set[String] = naturalRecur(term)
     }
     def nonNegativeClosures(term: Term): Set[String] = {
         NonNegativeClosureAccumulator(term)
+    }
+
+    object ClosureAccumulator extends NaturalSetAccumulation[String] {
+        override val exceptionalMappings: PartialFunction[Term,Set[String]] = {
+            case Closure(fname, _, _, _) => Set(fname)
+            case ReflexiveClosure(fname, _, _, _) => Set(fname)
+        }
+
+        def apply(term: Term): Set[String] = naturalRecur(term)
+    }
+    def allClosures(term: Term): Set[String] = {
+        ClosureAccumulator(term)
     }
 }

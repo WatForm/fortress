@@ -14,7 +14,7 @@ class DomainEliminationTests extends UnitSuite {
     test("standard domain elimination") {
         val theory = Theory.empty
             .withSorts(A, B)
-            .withConstants(c of A, d of B)
+            .withConstantDeclarations(c of A, d of B)
             .withFunctionDeclaration(FuncDecl("f", A, A, B))
             .withAxiom(App("f", c, DomainElement(1, A)) === DomainElement(3, B))
             .withAxiom(Not(d === DomainElement(4, B)) ==> Exists(x of A, x === DomainElement(2, A)))
@@ -30,9 +30,9 @@ class DomainEliminationTests extends UnitSuite {
         
         val expectedTheory = Theory.empty
             .withSorts(A, B)
-            .withConstants(c of A, d of B)
+            .withConstantDeclarations(c of A, d of B)
             .withFunctionDeclaration(FuncDecl("f", A, A, B))
-            .withConstants(
+            .withConstantDeclarations(
                 _1A of A,
                 _2A of A,
                 _1B of B,
@@ -55,7 +55,7 @@ class DomainEliminationTests extends UnitSuite {
     test("scope of one") {
         val theory = Theory.empty
             .withSorts(A, B)
-            .withConstants(c of A, d of B)
+            .withConstantDeclarations(c of A, d of B)
             .withAxiom(c === DomainElement(1, A))
             .withAxiom(d === DomainElement(1, B))
         
@@ -66,8 +66,8 @@ class DomainEliminationTests extends UnitSuite {
         
         val expectedTheory = Theory.empty
             .withSorts(A, B)
-            .withConstants(c of A, d of B)
-            .withConstants(_1A of A, _1B of B)
+            .withConstantDeclarations(c of A, d of B)
+            .withConstantDeclarations(_1A of A, _1B of B)
             .withAxiom(c === _1A)
             .withAxiom(d === _1B)
         

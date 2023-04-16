@@ -16,8 +16,8 @@ class LiaCheckTransformerTest extends UnitSuite {
 
     test("simple plus&sub") {
         val theory = Theory.empty
-                .withConstant(i of IntSort)
-                .withConstant(j of IntSort)
+                .withConstantDeclaration(i of IntSort)
+                .withConstantDeclaration(j of IntSort)
                 .withFunctionDeclaration(f)
                 .withFunctionDeclaration(g)
                 .withAxiom(BuiltinApp(IntPlus, App("f", i), IntegerLiteral(1)))
@@ -27,8 +27,8 @@ class LiaCheckTransformerTest extends UnitSuite {
 
         val expect = ProblemState(
             Theory.empty
-                    .withConstant(i of UnBoundedIntSort)
-                    .withConstant(j of UnBoundedIntSort)
+                    .withConstantDeclaration(i of UnBoundedIntSort)
+                    .withConstantDeclaration(j of UnBoundedIntSort)
                     .withFunctionDeclaration(FuncDecl("f", UnBoundedIntSort, UnBoundedIntSort))
                     .withFunctionDeclaration(FuncDecl("g", UnBoundedIntSort, UnBoundedIntSort))
                     .withAxiom(BuiltinApp(IntPlus, App("f", i), IntegerLiteral(1)))
@@ -43,7 +43,7 @@ class LiaCheckTransformerTest extends UnitSuite {
     test("IntDiv is not lia") {
 
         val theory = Theory.empty
-                .withConstant(i of IntSort)
+                .withConstantDeclaration(i of IntSort)
                 .withFunctionDeclaration(f)
                 .withAxiom(BuiltinApp(IntDiv, App("f", i), IntegerLiteral(1)))
 
@@ -56,8 +56,8 @@ class LiaCheckTransformerTest extends UnitSuite {
 
     test("IntMult") {
         val theory = Theory.empty
-                .withConstant(i of IntSort)
-                .withConstant(j of IntSort)
+                .withConstantDeclaration(i of IntSort)
+                .withConstantDeclaration(j of IntSort)
                 .withFunctionDeclaration(f)
                 .withFunctionDeclaration(g)
                 .withAxiom(BuiltinApp(IntMult, App("f", i), IntegerLiteral(1)))
@@ -67,8 +67,8 @@ class LiaCheckTransformerTest extends UnitSuite {
 
         val expect = ProblemState(
             Theory.empty
-                    .withConstant(i of UnBoundedIntSort)
-                    .withConstant(j of IntSort)
+                    .withConstantDeclaration(i of UnBoundedIntSort)
+                    .withConstantDeclaration(j of IntSort)
                     .withFunctionDeclaration(FuncDecl("f", UnBoundedIntSort, UnBoundedIntSort))
                     .withFunctionDeclaration(FuncDecl("g", IntSort, IntSort))
                     .withAxiom(BuiltinApp(IntMult, App("f", i), IntegerLiteral(1)))
@@ -82,8 +82,8 @@ class LiaCheckTransformerTest extends UnitSuite {
 
     test("AndList test") {
         val theory = Theory.empty
-                .withConstant(i of IntSort)
-                .withConstant(j of IntSort)
+                .withConstantDeclaration(i of IntSort)
+                .withConstantDeclaration(j of IntSort)
                 .withFunctionDeclaration(f)
                 .withFunctionDeclaration(g)
                 .withAxiom( And(Eq(App("f", i), IntegerLiteral(1) ) ,Top ) )
@@ -93,8 +93,8 @@ class LiaCheckTransformerTest extends UnitSuite {
 
         val expect = ProblemState(
             Theory.empty
-                    .withConstant(i of UnBoundedIntSort)
-                    .withConstant(j of IntSort)
+                    .withConstantDeclaration(i of UnBoundedIntSort)
+                    .withConstantDeclaration(j of IntSort)
                     .withFunctionDeclaration(FuncDecl("f", UnBoundedIntSort, UnBoundedIntSort))
                     .withFunctionDeclaration(FuncDecl("g", IntSort, IntSort))
                     .withAxiom( And(Eq(App("f", i), IntegerLiteral(1) ) ,Top ) )
@@ -108,8 +108,8 @@ class LiaCheckTransformerTest extends UnitSuite {
 
     test("OrList test") {
         val theory = Theory.empty
-                .withConstant(i of IntSort)
-                .withConstant(j of IntSort)
+                .withConstantDeclaration(i of IntSort)
+                .withConstantDeclaration(j of IntSort)
                 .withFunctionDeclaration(f)
                 .withFunctionDeclaration(g)
                 .withAxiom( Or(Eq(App("f", i), IntegerLiteral(1) ) ,Top ) )
@@ -119,8 +119,8 @@ class LiaCheckTransformerTest extends UnitSuite {
 
         val expect = ProblemState(
             Theory.empty
-                    .withConstant(i of UnBoundedIntSort)
-                    .withConstant(j of IntSort)
+                    .withConstantDeclaration(i of UnBoundedIntSort)
+                    .withConstantDeclaration(j of IntSort)
                     .withFunctionDeclaration(FuncDecl("f", UnBoundedIntSort, UnBoundedIntSort))
                     .withFunctionDeclaration(FuncDecl("g", IntSort, IntSort))
                     .withAxiom( Or(Eq(App("f", i), IntegerLiteral(1) ) ,Top ) )
@@ -134,8 +134,8 @@ class LiaCheckTransformerTest extends UnitSuite {
 
     test("test-0") {
         val theory = Theory.empty
-                .withConstant(i of IntSort)
-                .withConstant(j of IntSort)
+                .withConstantDeclaration(i of IntSort)
+                .withConstantDeclaration(j of IntSort)
                 .withFunctionDeclaration(f)
                 .withFunctionDeclaration(g)
                 .withAxiom( Or(Eq(App("f", i), IntegerLiteral(1) ) ,Top ) )
@@ -149,9 +149,9 @@ class LiaCheckTransformerTest extends UnitSuite {
 
     test("test 1") {
         val theory = Theory.empty
-                .withConstant(i of IntSort)
-                .withConstant(j of IntSort)
-                .withConstant(k of IntSort)
+                .withConstantDeclaration(i of IntSort)
+                .withConstantDeclaration(j of IntSort)
+                .withConstantDeclaration(k of IntSort)
                 .withFunctionDeclaration(f)
                 .withFunctionDeclaration(g)
                 .withFunctionDeclaration(h)
@@ -167,9 +167,9 @@ class LiaCheckTransformerTest extends UnitSuite {
 
     test("test 2") {
         val theory = Theory.empty
-                .withConstant(i of IntSort)
-                .withConstant(j of IntSort)
-                .withConstant(k of IntSort)
+                .withConstantDeclaration(i of IntSort)
+                .withConstantDeclaration(j of IntSort)
+                .withConstantDeclaration(k of IntSort)
                 .withFunctionDeclaration(f)
                 .withFunctionDeclaration(g)
                 .withFunctionDeclaration(h)
@@ -181,9 +181,9 @@ class LiaCheckTransformerTest extends UnitSuite {
 
         val expect = ProblemState(
             Theory.empty
-                    .withConstant(i of UnBoundedIntSort)
-                    .withConstant(j of IntSort)
-                    .withConstant(k of UnBoundedIntSort)
+                    .withConstantDeclaration(i of UnBoundedIntSort)
+                    .withConstantDeclaration(j of IntSort)
+                    .withConstantDeclaration(k of UnBoundedIntSort)
                     .withFunctionDeclaration(FuncDecl("f", UnBoundedIntSort, UnBoundedIntSort))
                     .withFunctionDeclaration(FuncDecl("g", IntSort, IntSort))
                     .withFunctionDeclaration(FuncDecl("h", UnBoundedIntSort, UnBoundedIntSort))
@@ -199,9 +199,9 @@ class LiaCheckTransformerTest extends UnitSuite {
 
     test("test 3") {
         val theory = Theory.empty
-                .withConstant(i of IntSort)
-                .withConstant(j of IntSort)
-                .withConstant(k of IntSort)
+                .withConstantDeclaration(i of IntSort)
+                .withConstantDeclaration(j of IntSort)
+                .withConstantDeclaration(k of IntSort)
                 .withFunctionDeclaration(f)
                 .withFunctionDeclaration(g)
                 .withFunctionDeclaration(FuncDecl("h", IntSort, IntSort, IntSort))

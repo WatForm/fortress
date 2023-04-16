@@ -25,11 +25,11 @@ class RangeFormulaTests extends UnitSuite {
     test("constants") {
         val theory = Theory.empty
             .withSorts(A, B)
-            .withConstants(c1 of A, c2 of A, d1 of B)
+            .withConstantDeclarations(c1 of A, c2 of A, d1 of B)
         
         val expected = Theory.empty
             .withSorts(A, B)
-            .withConstants(c1 of A, c2 of A, d1 of B)
+            .withConstantDeclarations(c1 of A, c2 of A, d1 of B)
             .withAxiom(Or(c1 === DomainElement(1, A), c1 === DomainElement(2, A)))
             .withAxiom(Or(c2 === DomainElement(1, A), c2 === DomainElement(2, A)))
             .withAxiom(Or(d1 === DomainElement(1, B), d1 === DomainElement(2, B)))
@@ -42,13 +42,13 @@ class RangeFormulaTests extends UnitSuite {
     test("function arity 1") {
         val theory = Theory.empty
             .withSorts(A, B)
-            .withConstants(c1 of A, d1 of B)
+            .withConstantDeclarations(c1 of A, d1 of B)
             .withFunctionDeclaration(FuncDecl("f", A, B))
             .withFunctionDeclaration(FuncDecl("g", B, A))
         
         val expected = Theory.empty
             .withSorts(A, B)
-            .withConstants(c1 of A, d1 of B)
+            .withConstantDeclarations(c1 of A, d1 of B)
             .withFunctionDeclaration(FuncDecl("f", A, B))
             .withFunctionDeclaration(FuncDecl("g", B, A))
             .withAxiom(Or(c1 === DomainElement(1, A), c1 === DomainElement(2, A)))
@@ -135,8 +135,8 @@ class RangeFormulaTests extends UnitSuite {
     test("boolean constants/predicates not restricted") {
         val theory = Theory.empty
             .withSort(A)
-            .withConstant(c1 of A)
-            .withConstants(p of Sort.Bool, q of Sort.Bool)
+            .withConstantDeclaration(c1 of A)
+            .withConstantDeclarations(p of Sort.Bool, q of Sort.Bool)
             .withFunctionDeclaration(FuncDecl("P", A, Sort.Bool))
             .withAxiom(p === q)
             .withAxiom(App("P", c1))
@@ -153,7 +153,7 @@ class RangeFormulaTests extends UnitSuite {
     test("scope of one") {
         val theory = Theory.empty
             .withSorts(A, B)
-            .withConstants(c1 of A, c2 of A, c3 of A, d1 of B, d2 of B)
+            .withConstantDeclarations(c1 of A, c2 of A, c3 of A, d1 of B, d2 of B)
             .withFunctionDeclaration(FuncDecl("f", A, B))
             .withFunctionDeclaration(FuncDecl("g", B, A))
         
@@ -174,7 +174,7 @@ class RangeFormulaTests extends UnitSuite {
     test("builtin types universally quantified") {
          val theory = Theory.empty
             .withSort(A)
-            .withConstants(c1 of IntSort, c2 of A, c3 of BoolSort)
+            .withConstantDeclarations(c1 of IntSort, c2 of A, c3 of BoolSort)
             .withFunctionDeclaration(FuncDecl("f", BoolSort, A, IntSort, A))
             .withFunctionDeclaration(FuncDecl("g", IntSort, A, BoolSort, A))
          
@@ -204,7 +204,7 @@ class RangeFormulaTests extends UnitSuite {
     test("existing range restriction: if term already restricted, don't generate range formulas") {
         val theory = Theory.empty
             .withSorts(A, B)
-            .withConstants(c1 of A, d1 of B)
+            .withConstantDeclarations(c1 of A, d1 of B)
             .withFunctionDeclaration(FuncDecl("f", A, B))
             .withFunctionDeclaration(FuncDecl("g", B, A))
         
@@ -217,7 +217,7 @@ class RangeFormulaTests extends UnitSuite {
         
         val expected = Theory.empty
             .withSorts(A, B)
-            .withConstants(c1 of A, d1 of B)
+            .withConstantDeclarations(c1 of A, d1 of B)
             .withFunctionDeclaration(FuncDecl("f", A, B))
             .withFunctionDeclaration(FuncDecl("g", B, A))
             // .withAxiom(Or(c1 === DomainElement(1, A), c1 === DomainElement(2, A)))

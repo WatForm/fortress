@@ -25,6 +25,7 @@ object Transformers {
             case "closureeliminationclaessen" | "ceclaessen" | "claessen" => ClosureEliminationClaessenTransformer
             case "closureeliminationvakili" | "cevakili" | "vakili"
                 | "closureeliminationnegative" | "cenegative" | "negativece" | "negative" 
+                | "negativeclosureelimination"
                 => ClosureEliminationVakiliTransformer
             case "datatype" => DatatypeTransformer
             case "domainelimination" => DomainEliminationTransformer
@@ -32,6 +33,7 @@ object Transformers {
             case "enumelimination" => EnumEliminationTransformer
             case "integertobitvectors" | "integertobitvector" | "inttobv" | "int2bv" | "integer2bitvector" => IntegerToBitVectorTransformer
             case "nnf" => NnfTransformer
+            case "oafints" | "oaf" | "oafint" => OAFIntsTransformer
             case "quantifierexpansion" => mkQuantifierExpansionTransformer()
             case "rangeformula" | "rangeformulastandard" => RangeFormulaStandardTransformer
             case "scopenonexactpredicatestype" => ScopeNonExactPredicatesTransformer
@@ -42,11 +44,14 @@ object Transformers {
             case "skolemize" => SkolemizeTransformer
             case "sortinference" => SortInferenceTransformer
             case "splitconjunction" => SplitConjunctionTransformer
+            // The default symmetry breaking
+            case "symmetry" | "symmetrybreaker" | "symmetrybreaking" | "symmetrybreak" => new SymmetryBreakingTransformer(MonoOnlyAnyOrder, DefaultSymmetryBreaker)
             case "symmetrybreaking_mostused" | "symmetrybreakingtransformer_mostused" => Errors.API.doesNotExist("Use mkSymmetryBreakingTransformer_MostUsed")
             case "symmetrybreaking_noskolem" | "symmetrybreakingtransformer_noskolem" => Errors.API.doesNotExist("Use mkSymmetryBreakingTransformer_NoSkolem")
             case "symmetrybreaking" => Errors.API.doesNotExist("Use mkSymmetryBreakingTransformer")
             case "symmetrybreakingsi" | "symmetrybreakingtransformersi" => Errors.API.doesNotExist("Use mkSymmetryBreakingTransformerSI")
             case "typechecksanitizer" | "typecheck" | "typechecksanitize" => TypecheckSanitizeTransformer
+            case "zeroarityapplication" | "zeroarityapp" | "zeroarity" | "zeroarityvar" | "zeroarityapps" | "zeroarityvars" => ZeroArityApplicationTransformer
             case _ => Errors.API.doesNotExist(name + " is not a recognized Transformer.")
         }
     }
@@ -57,6 +62,7 @@ object Transformers {
     def mkDomainEliminationTransformer2() = new DomainEliminationTransformer2()
     def mkEnumEliminationTransformer() = EnumEliminationTransformer
     def mkNnfTransformer() = NnfTransformer
+    def mkOAFIntsTransformer() = OAFIntsTransformer
     def mkQuantifierExpansionTransformer(useConstForDomElim: Boolean = false, useSimplification: Boolean = false) = new QuantifierExpansionTransformer(useConstForDomElim, useSimplification)
     // def mkRangeFormulaTransformer(useConstForDomElim: Boolean = false) = new RangeFormulaStandardTransformer
     def mkScopeNonExactPredicatesTransformer() = ScopeNonExactPredicatesTransformer

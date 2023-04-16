@@ -15,7 +15,7 @@ class ModelFinderProcessBuilderTest extends UnitSuite {
         val x = mkVar("x")
         val theory: Theory = Theory.empty
             .withSort(IntSort)
-            .withConstant(x of IntSort)
+            .withConstantDeclaration(x of IntSort)
             .withAxiom(mkEq(x, IntegerLiteral(123)))
         
         val sortInterpretations: Map[Sort, Seq[Value]] = Map()
@@ -31,7 +31,7 @@ class ModelFinderProcessBuilderTest extends UnitSuite {
     test("model with bool"){
         val x = mkVar("x")
         val theory: Theory = Theory.empty
-            .withConstant(x of BoolSort)
+            .withConstantDeclaration(x of BoolSort)
             .withAxiom(mkEq(x, mkTop))
             
         val sortInterpretations: Map[Sort, Seq[Value]] = Map()
@@ -47,7 +47,7 @@ class ModelFinderProcessBuilderTest extends UnitSuite {
     test("model with bitvector"){
         val x = mkVar("x")
         val theory: Theory = Theory.empty
-            .withConstant(x of BitVectorSort(32))
+            .withConstantDeclaration(x of BitVectorSort(32))
             .withAxiom(mkEq(x, BitVectorLiteral(0x12345678, 32)))
             
         val sortInterpretations: Map[Sort, Seq[Value]] = Map()
@@ -65,7 +65,7 @@ class ModelFinderProcessBuilderTest extends UnitSuite {
         val x = mkVar("x")
         val theory: Theory = Theory.empty
             .withSort(S)
-            .withConstant(x of S)
+            .withConstantDeclaration(x of S)
             .withAxiom(mkEq(x, mkDomainElement(1, S)))
             
         val sortInterpretations: Map[Sort, Seq[Value]] = Map(
@@ -91,7 +91,7 @@ class ModelFinderProcessBuilderTest extends UnitSuite {
         
         val theory: Theory = Theory.empty
             .withSort(S)
-            .withConstants(x of S, y of S)
+            .withConstantDeclarations(x of S, y of S)
             .withFunctionDeclaration(f)
             .withAxiom(mkEq(x, mkDomainElement(1, S)))
             .withAxiom(mkEq(y, mkDomainElement(2, S)))

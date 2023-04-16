@@ -124,6 +124,14 @@ Modifies can contain: theory (signature, axioms), problemState (scopes, rangeRes
 Below is a brief description of the transformers implemented in Fortress.
 Some transformers below are for experimentation and thus not used in
 
+* ZeroArityApplicationTransformer
+ - theory -> theory
+ - Changes some instances of Var(x) to App(x)
+ - purpose:
+    + smtlib implicitly invokes zero arity functions
+    + out parser does not recognize this and assumes these are variables
+    + corrects this behavior to invoke the zero-arity function instead
+
 * TypecheckSanitizeTransformer @Nancy
     - theory -> theory
     - no change in theory

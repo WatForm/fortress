@@ -23,7 +23,7 @@ class SymmetryBreakingTransformer_NoSkolem(
             val breaker = symmetryBreakerFactory.create(theory, scopes)
 
             // First, perform symmetry breaking on constants that are not skolem constants
-            breaker.breakConstants(theory.constants diff skc)
+            breaker.breakConstants(theory.constantDeclarations diff skc)
             
             // This weirdness exists to make sure that this version performs symmetry breaking
             // on functions in the same order as the previous version

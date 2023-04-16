@@ -62,7 +62,7 @@ public class TptpToFortress extends FOFTPTPBaseVisitor {
         
         // Add prime propositions as Bool constants
         for(Var p : primePropositions) {
-            theory = theory.withConstant(p.of(Sort.Bool()));
+            theory = theory.withConstantDeclaration(p.of(Sort.Bool()));
         }
         
         // Add free variables that are not prime propositions as constants of
@@ -70,7 +70,7 @@ public class TptpToFortress extends FOFTPTPBaseVisitor {
         formulas.stream()
             .flatMap(formula -> formula.freeVarConstSymbolsJava().stream())
             .filter(freeVar -> !primePropositions.contains(freeVar))
-            .forEach(freeVar -> theory = theory.withConstant(freeVar.of(universeSort)));
+            .forEach(freeVar -> theory = theory.withConstantDeclaration(freeVar.of(universeSort)));
 
         // Add axioms
         theory = theory.withAxioms(formulas);
@@ -122,7 +122,7 @@ public class TptpToFortress extends FOFTPTPBaseVisitor {
         theory = theory.withFunctionDeclarations(thy2.functionDeclarations());
 
         // Add constants
-        theory = theory.withConstants(thy2.constants());
+        theory = theory.withConstantDeclarations(thy2.constantDeclarations());
 
         // Add axioms
         theory = theory.withAxioms(thy2.axioms());

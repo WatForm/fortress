@@ -49,7 +49,7 @@ class TptpParserTest extends UnitSuite {
 
         val expectedTheory = Theory.empty
           .withSort(universeSort)
-          .withConstant(e.of(universeSort))
+          .withConstantDeclaration(e.of(universeSort))
           .withFunctionDeclaration(f)
           .withAxiom(associative)
           .withAxiom(identity)
@@ -146,7 +146,7 @@ class TptpParserTest extends UnitSuite {
 
         val expectedTheory = Theory.empty
           .withSort(universeSort)
-          .withConstant(a.of(universeSort))
+          .withConstantDeclaration(a.of(universeSort))
           .withAxiom(axiom1)
 
         resultTheory should be(expectedTheory)

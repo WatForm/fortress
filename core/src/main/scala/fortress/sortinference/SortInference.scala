@@ -33,7 +33,7 @@ object SortInference {
         }
         
         // Associate each constant with a fresh sort variable
-        val constantMap: Map[String, Sort] = theory.constants.map {c => c.name -> freshSubstitution(c).sort}.toMap
+        val constantMap: Map[String, Sort] = theory.constantDeclarations.map {c => c.name -> freshSubstitution(c).sort}.toMap
         
         // Associate each function with a collection of fresh sorts
         val fnMap: Map[String, (Seq[Sort], Sort)] = theory.functionDeclarations.map { f => {
@@ -51,7 +51,7 @@ object SortInference {
         val sortSubstitution = Unification.unify(equations.toList)
         
         // Create new signature and terms using substitution
-        val newConstants: Set[AnnotatedVar] = theory.constants map (av => {
+        val newConstants: Set[AnnotatedVar] = theory.constantDeclarations map (av => {
             Var(av.name) of sortSubstitution(constantMap(av.name))
         })
         
@@ -69,7 +69,7 @@ object SortInference {
         
         val generalTheory = Theory.empty
             .withSorts(usedSorts.toSeq : _*)
-            .withConstants(newConstants)
+            .withConstantDeclarations(newConstants)
             .withFunctionDeclarations(newFunctions)
             .withAxioms(generalAxioms.values)
         

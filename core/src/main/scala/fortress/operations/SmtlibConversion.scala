@@ -151,7 +151,7 @@ class SmtlibConverter(writer: java.io.Writer) {
             case SortConst(name) => {
                 writer.write("(declare-sort ")
                 writer.write(nameWithQuote(sort.name))
-                writer.write(" 0)")
+                writer.write(" 0)\n")
             }
             case _ =>
         }
@@ -164,7 +164,7 @@ class SmtlibConverter(writer: java.io.Writer) {
         writeSorts(funcDecl.argSorts)
         writer.write(") ")
         writeSort(funcDecl.resultSort)
-        writer.write(')')
+        writer.write(")\n")
     }
 
     /*
@@ -181,7 +181,7 @@ class SmtlibConverter(writer: java.io.Writer) {
         writeSort(funcDef.resultSort)
         writer.write(" ")
         write(funcDef.body)
-        writer.write(')')
+        writer.write(")\n")
     }
 
     def writeArgSortedVar(arg: AnnotatedVar): Unit = {
@@ -201,27 +201,55 @@ class SmtlibConverter(writer: java.io.Writer) {
         writer.write(nameWithQuote(constant.name))
         writer.write(' ')
         writeSort(constant.sort)
-        writer.write(')')
+        writer.write(")\n")
+    }
+
+    def writeConstDefn(cDef: ConstantDefinition): Unit = {
+        writer.write("(define-fun ")
+        writer.write(nameWithQuote(cDef.name))
+        writer.write(" () ")
+        writeSort(cDef.sort)
+        writer.write(' ')
+        write(cDef.body)
+        writer.write(")\n")
     }
 
     def writeEnumConst(sort: Sort, enums: Seq[EnumValue]): Unit = {
         writer.write("(declare-datatypes () ((")
         writeSort(sort)
         enums.foreach(enumEntry => writer.write(' ' + nameWithQuote(enumEntry.name)))
-        writer.write(")))")
+        writer.write(")))\n")
+    }
+
+    /**
+      * Definitions can be dependent on other definitions. So long as we don't introduce circular dependencies, we can order them and write them out.
+      *
+      * @param constantDefinitions
+      * @param functionDefinitions
+      */
+    def writeDefinitions(definitions: Seq[Either[ConstantDefinition, FunctionDefinition]]): Unit = {
+        definitions.foreach{
+            case Left(cDef) => writeConstDefn(cDef)
+            case Right(fDef) => writeFunctionDefinition(fDef)
+        }
     }
 
     def writeSignature(sig: Signature): Unit = {
         sig.sorts.removedAll(sig.enumConstants.keys).foreach(writeSortDecl)
         sig.enumConstants.foreach(x => writeEnumConst(x._1, x._2))
         sig.functionDeclarations.foreach(writeFuncDecl)
-        sig.constants.foreach(writeConst)
+        sig.constantDeclarations.foreach(writeConst)
+        // TODO definitions of all kinds can be dependant on other definitions, we need to properly sort these somehow
+        //sig.constantDefinitions.foreach(writeConstDefn)
+        // We can use constants in function definitions so they must be later
+        //sig.functionDefinitions.foreach(writeFunctionDefinition)
+        writeDefinitions(sig.definitionsInDependencyOrder)
     }
     
     def writeAssertion(term: Term): Unit = {
         writer.write("(assert ")
         write(term)
-        writer.write(')')
+        writer.write(")\n")
     }
     
     def writeTheory(theory: Theory): Unit = {

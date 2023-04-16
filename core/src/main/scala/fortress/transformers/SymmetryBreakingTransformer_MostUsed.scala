@@ -34,7 +34,7 @@ class SymmetryBreakingTransformer_MostUsed(
             // END OF WEIRDNESS
 
             val stalnessTracker = StalenessTracker.create(theory, scopes)
-            val remainingTracker = RemainingIdentifiersTracker.create(theory.constants, fp)
+            val remainingTracker = RemainingIdentifiersTracker.create(theory.constantDeclarations, fp)
 
             val breaker = symmetryBreakerFactory.create(theory, scopes, stalnessTracker, remainingTracker)
             val selectionHeuristic = selectionHeuristicFactory.create(stalnessTracker, remainingTracker)

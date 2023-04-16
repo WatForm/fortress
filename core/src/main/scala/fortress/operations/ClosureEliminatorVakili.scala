@@ -21,7 +21,7 @@ class ClosureEliminatorVakili(topLevelTerm: Term, allowedRelations: Set[String],
 
         def createClosure(functionName: String): Unit = {
             // get the sort we close over
-            val rel = signature.queryUninterpretedFunction(functionName).get
+            val rel = signature.queryFunctionDeclaration(functionName).get
             val sort = rel.argSorts(0)
             
             val closureName = getClosureName(functionName)
@@ -59,7 +59,7 @@ class ClosureEliminatorVakili(topLevelTerm: Term, allowedRelations: Set[String],
                 createClosure(functionName)
             }
 
-            val rel = signature.queryUninterpretedFunction(functionName).get
+            val rel = signature.queryFunctionDeclaration(functionName).get
             val sort = rel.argSorts(0)
 
             val reflexiveClosureName = getReflexiveClosureName(functionName)

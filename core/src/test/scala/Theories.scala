@@ -37,7 +37,7 @@ object Theories {
                 
         Theory.empty
             .withSort(G)
-            .withConstant(e.of(G))
+            .withConstantDeclaration(e.of(G))
             .withFunctionDeclaration(f)
             .withAxiom(associativeAxiom)
             .withAxiom(identityAxiom)

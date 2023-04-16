@@ -1,7 +1,7 @@
 package fortress.operations
 
 import fortress.msfol._
-
+import fortress.util.Errors
 // Immutable
 class Context(val signature: Signature, variableStack: List[AnnotatedVar]) {
     def stackPush(avars: Seq[AnnotatedVar]): Context = {
@@ -30,7 +30,7 @@ class Context(val signature: Signature, variableStack: List[AnnotatedVar]) {
         // since the use of v will have type B
         mostRecentStackAppearence(variable)
         // If it is not in the stack, check if is in the declared constants
-            .orElse(signature.queryConstant(variable))
+            .orElse(signature.getAnnotatedVarOfConstant(variable))
             // Gives Option[AnnotatedVar], take sort
             .map(_.sort)
     }

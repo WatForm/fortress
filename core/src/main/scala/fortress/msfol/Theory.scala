@@ -66,23 +66,38 @@ case class Theory private (signature: Signature, axioms: Set[Term]) {
       * constant declaration added. Note that this does not modify the current Theory object,
       * but rather just returns a new Theory object.
       */
-    def withConstant(constant: AnnotatedVar): Theory = Theory(signature.withConstant(constant), axioms)
+    def withConstantDeclaration(constant: AnnotatedVar): Theory = Theory(signature.withConstantDeclaration(constant), axioms)
     
     /** Returns a theory consisting of the current theory but with the given
       * constant declarations added. Note that this does not modify the current Theory object,
       * but rather just returns a new Theory object.
       */
-    def withConstants(constants: java.lang.Iterable[AnnotatedVar]): Theory = Theory(signature.withConstants(constants), axioms)
+    def withConstantDeclarations(constants: java.lang.Iterable[AnnotatedVar]): Theory = Theory(signature.withConstantDeclarations(constants), axioms)
     
     /** Returns a theory consisting of the current theory but with the given
       * constant declarations added. Note that this does not modify the current Theory object,
       * but rather just returns a new Theory object.
       */
     @varargs
-    def withConstants(constants: AnnotatedVar*): Theory = withConstants(constants.asJava)
+    def withConstantDeclarations(constants: AnnotatedVar*): Theory = withConstantDeclarations(constants.asJava)
     
-    def withConstants(constants: Iterable[AnnotatedVar]): Theory = Theory(signature.withConstants(constants), axioms)
+    def withConstantDeclarations(constants: Iterable[AnnotatedVar]): Theory = Theory(signature.withConstantDeclarations(constants), axioms)
     
+    def withConstantDefinition(constant: ConstantDefinition): Theory = copy(signature = signature withConstantDefinition constant)
+
+    def withConstantDefinitions(constants: java.lang.Iterable[ConstantDefinition]): Theory = copy(signature = signature withConstantDefinitions constants)
+
+    def withConstantDefinitions(constants: Iterable[ConstantDefinition]): Theory = 
+      copy(signature = signature withConstantDefinitions constants)
+    @varargs
+    def withConstantDefinitions(constants: ConstantDefinition*): Theory = copy(signature = signature withConstantDefinitions constants)
+
+
+    def withoutConstantDefinitions(): Theory = copy(signature = signature.withoutConstantDefinitions())
+    
+    def withoutConstantDefinition(cDef: ConstantDefinition): Theory = copy(signature = signature.withoutConstantDefinition(cDef))
+
+    def withoutFunctionDefinitions(): Theory = copy(signature = signature.withoutFunctionDefinitions())
     /** Returns a theory consisting of the current theory but with the given
       * function declaration added. Note that this does not modify the current Theory object,
       * but rather just returns a new Theory object.
@@ -138,8 +153,8 @@ case class Theory private (signature: Signature, axioms: Set[Term]) {
     def functionDeclarations: Set[FuncDecl] = signature.functionDeclarations
 
     def functionDefinitions: Set[FunctionDefinition] = signature.functionDefinitions
-
-    def constants: Set[AnnotatedVar] = signature.constants
+    def constantDefinitions: Set[ConstantDefinition] = signature.constantDefinitions
+    def constantDeclarations: Set[AnnotatedVar] = signature.constantDeclarations
     def enumConstants: Map[Sort, Seq[EnumValue]] = signature.enumConstants
 
     override def toString: String = "\n" + signature.toString + "\nAxioms\n" + axioms.mkString("\n") + "\n"

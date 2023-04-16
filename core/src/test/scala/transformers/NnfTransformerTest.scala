@@ -12,8 +12,8 @@ class NnfTransformerTest extends UnitSuite with CommonSymbols {
     val baseTheory = Theory.empty
         .withSort(A)
         .withSort(B)
-        .withConstant(p of BoolSort)
-        .withConstant(q of BoolSort)
+        .withConstantDeclaration(p of BoolSort)
+        .withConstantDeclaration(q of BoolSort)
         .withFunctionDeclaration(P from A to BoolSort)
     
     test("and") {
@@ -23,6 +23,34 @@ class NnfTransformerTest extends UnitSuite with CommonSymbols {
         val expected = baseTheory
             .withAxiom(Or(Not(p), p))
         
+        nnf(theory) should be (expected)
+    }
+
+    test("and in constant defs") {
+        val theory = baseTheory
+            .withConstantDefinition(ConstantDefinition(
+                _a of BoolSort,
+                Not(And(p, Not(p)))
+            ))
+        val expected = baseTheory
+            .withConstantDefinition(ConstantDefinition(
+                _a of BoolSort,
+                Or(Not(p), p)
+            ))
+        nnf(theory) should be (expected)
+    }
+
+    test("and in function defs"){
+        val theory = baseTheory
+            .withFunctionDefinition(FunctionDefinition(
+                "a", Seq(p of BoolSort), BoolSort,
+                Not(And(p, Not(q)))
+            ))
+        val expected = baseTheory
+            .withFunctionDefinition(FunctionDefinition(
+                "a", Seq(p of BoolSort), BoolSort,
+                Or(Not(p), q)
+            ))
         nnf(theory) should be (expected)
     }
     

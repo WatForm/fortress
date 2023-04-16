@@ -12,6 +12,7 @@ import fortress.transformers._
 
 import java.io._
 import java.{util => ju}
+import fortress.operations.TheoryOps
 
 class Conf(arguments: Seq[String]) extends ScallopConf(arguments) {
     val scope = opt[Int](required = false, descr="default scope for all sorts")
@@ -76,7 +77,7 @@ object FortressCli {
         for ( (sort, scope) <- conf.scopeMap ) {
             var scopeValue: Int = 0
             var isUnchanging = false
-            if (scope.charAt(sort.length-1) == 'u'){
+            if (scope.charAt(scope.length-1) == 'u'){
                 scopeValue = scope.substring(0, scope.length - 1).toInt
                 isUnchanging = true
             } else {
@@ -84,14 +85,23 @@ object FortressCli {
                 isUnchanging = false
             }
             Errors.API.checkCliInput(scopeValue > 0, "Scope must be > 0. Got " + scopeValue.toString()+".")
-
-            if( sort.charAt(sort.length-1) == '?' ) { // "P?=2"
-                val sortName =  sort.substring(0, sort.length-1)
-                scopes += (Sort.mkSortConst(sortName) -> NonExactScope(scopeValue, isUnchanging))
+            
+            var sortName = sort
+            val scopeVal = if( sort.charAt(sort.length-1) == '?' ) { // "P?=2"
+                // NonExact Scope
+                sortName =  sort.substring(0, sort.length-1)
+                NonExactScope(scopeValue, isUnchanging)
             }
             else {  // "P=2"
-                scopes += (Sort.mkSortConst(sort) -> ExactScope(scopeValue, isUnchanging))
+                // Exact Scope
+                ExactScope(scopeValue, isUnchanging)
             }
+
+            val sortConst = sortName.toLowerCase match {
+                case "int" | "intsort" => IntSort
+                case _ => SortConst(sortName)
+            }
+            scopes += (sortConst -> scopeVal)
         }
 
 
@@ -122,6 +132,23 @@ object FortressCli {
         }
         modelFinder.setTimeout(Seconds(conf.timeout()))
         //modelFinder.setBoundedIntegers(integerSemantics)
+
+        if(conf.debug.getOrElse(false) && conf.transformers.isSupplied){
+            val compiler = new ConfigurableCompiler(conf.transformers.apply())
+            val result = compiler.compile(theory, scopes, Seconds(conf.timeout()).toMilli, Seq.empty).fold(
+                ce => println("Error compiling", ce),
+                cr => {
+                    val result = cr.theory
+                    println("=====original=====")
+                    println(TheoryOps.wrapTheory(cr.theory).smtlib)
+                    println("========new=======")
+                    //println(cr.theory)
+                    //println("------------------")
+                    println(TheoryOps.wrapTheory(cr.theory).smtlib)
+                    println("==================")
+                }
+            )
+        }
 
         val result = modelFinder.checkSat()
         println(result)

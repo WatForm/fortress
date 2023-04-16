@@ -32,11 +32,22 @@ object DomainEliminationTransformer extends ProblemStateTransformer {
             
             // Eliminate domain elements in existing axioms
             val convertedAxioms = theory.axioms map (_.eliminateDomainElementsConstants)
-            
-            val newTheory = theory.withoutAxioms
-                .withConstants(domainConstants)
-                .withAxioms(distinctConstraints)
-                .withAxioms(convertedAxioms)
+
+            var newSig = theory.signature
+                .withConstantDeclarations(domainConstants)
+
+            // We only remove a definition before readding it so all its dependencies are in the sig
+            // definitions are basically untested
+            for(cDef <- theory.signature.constantDefinitions){
+                newSig = newSig.withoutConstantDefinition(cDef)
+                newSig = newSig.withConstantDefinition(cDef.mapBody(_.eliminateDomainElementsConstants))
+            }
+            for(fDef <- theory.signature.functionDefinitions){
+                newSig = newSig.withoutFunctionDefinition(fDef)
+                newSig = newSig.withFunctionDefinition(fDef.mapBody(_.eliminateDomainElementsConstants))
+            }
+
+            val newTheory = Theory(newSig, convertedAxioms ++ distinctConstraints)
 
 //            println("Theory after domain elimination:")
 //            println(newTheory + "\n------------------------\n")

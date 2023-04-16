@@ -21,7 +21,7 @@ class EnumModelFindTest extends UnitSuite {
         val theory = Theory.empty
             .withEnumSort(Colour, red, yellow, green)
             .withFunctionDeclaration(next)
-            .withConstant(c of Colour)
+            .withConstantDeclaration(c of Colour)
             .withAxiom(App("next", green) === yellow)
             .withAxiom(App("next", yellow) === red)
             .withAxiom(App("next", red) === green)

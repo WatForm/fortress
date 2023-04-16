@@ -79,6 +79,44 @@ trait CETransfomerBehaviors{ this: AnyFlatSpec =>
             }}
         }
 
+        it should "transformProperly" in {
+            val everything= Forall(Seq(x of A, y of A),
+                Term.mkClosure("relation", x, y)
+            )
+            val theory = baseTheory
+                .withAxiom(everything)
+            val ps = ProblemState(theory, Map(A -> ExactScope(4)))
+            val result = newCE(ps)
+
+            assert(result.theory.axioms  contains  (Forall(Seq(x of A, y of A), App("^relation", x, y))),
+                f"Resulting axioms ${result.theory.axioms} does not contain the correct replacement for the app")
+        }
+
+        it should "eliminate in definitions" in {
+            val theory = baseTheory
+                .withConstantDefinition(
+                    ConstantDefinition(Var("cDef") of BoolSort, Term.mkClosure("relation", x, y))
+                )
+                .withFunctionDefinition(FunctionDefinition(
+                    "fDef", Seq(x of A), BoolSort,
+                    Term.mkClosure("relation", x, y)
+                ))
+                .withConstantDeclaration(y of A)
+            val ps = ProblemState(theory, Map(A -> ExactScope(4)))
+            val result = newCE(ps)
+
+            val cDefsWithClosures = result.theory.constantDefinitions.filter(_.body match {
+                case Closure(_,_,_,_) => true
+                case _ => false
+            })
+            assert(cDefsWithClosures.isEmpty, f"Constant Definitions should not contain closures but got: ${cDefsWithClosures}")
+            val fDefsWithClosures = result.theory.functionDefinitions.filter(_.body match {
+                case Closure(_,_,_,_) => true
+                case _ => false
+            })
+            assert(fDefsWithClosures.isEmpty, f"Function Definitions should not contain closures but got: ${fDefsWithClosures}")
+        }
+
         it should "treat an empty relation properly" in {
             // No elements in the relation 
             val relIsEmpty = Forall(x.of(A),

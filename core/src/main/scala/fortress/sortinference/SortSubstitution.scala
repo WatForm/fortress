@@ -56,16 +56,22 @@ trait GeneralSortSubstitution {
     def apply(avar: AnnotatedVar): AnnotatedVar = avar match {
         case AnnotatedVar(name, sort) => AnnotatedVar(name, apply(sort))
     }
+
+    def apply(cDef: ConstantDefinition): ConstantDefinition = ConstantDefinition(
+        apply(cDef.avar),
+        apply(cDef.body)
+    )
     
     // Apply the Sort function to every appearence of a Sort in a Signature.
     def apply(signature: Signature): Signature = signature match {
-        case Signature(sorts, functionDeclarations, functionDefinitions, constants, enumConstants) => {
+        case Signature(sorts, functionDeclarations, functionDefinitions, constantDeclarations, constantDefinitions, enumConstants) => {
             Errors.Internal.precondition(enumConstants.isEmpty)
             Signature(
                 sorts map apply,
                 functionDeclarations map apply,
                 functionDefinitions map apply,
-                constants map apply,
+                constantDeclarations map apply,
+                constantDefinitions map apply,
                 Map.empty
             )
         }
@@ -153,16 +159,21 @@ object SortSubstitution {
         val mapping: mutable.Map[Sort, Sort] = mutable.Map.empty
         
         // Constants
-        val constantsMapping = for {
-            inputConst <- input.constants
-            outputConst <- output.queryConstant(inputConst.variable)
+        val constantDeclsMapping = for {
+            inputConst <- input.constantDeclarations
+            outputConst <- output.queryConstantDeclaration(inputConst.variable)
+        } yield (inputConst.sort -> outputConst.sort)
+
+        val constantDefnsMapping = for {
+            inputConst <- input.constantDefinitions
+            outputConst <- output.queryConstantDefinition(inputConst.variable)
         } yield (inputConst.sort -> outputConst.sort)
         
         // Functions
         val functionsMapping = {
             for {
                 inputDecl <- input.functionDeclarations
-                outputDecl <- output.queryUninterpretedFunction(inputDecl.name)
+                outputDecl <- output.queryFunctionDeclaration(inputDecl.name)
             } yield {
                 val inputSorts = inputDecl.argSorts :+ inputDecl.resultSort
                 val outputSorts = outputDecl.argSorts :+ outputDecl.resultSort
@@ -171,7 +182,7 @@ object SortSubstitution {
             }
         }.flatten
         
-        new SortSubstitution((constantsMapping ++ functionsMapping).toMap)
+        new SortSubstitution((constantDeclsMapping ++ constantDefnsMapping ++  functionsMapping).toMap)
     }
 
     // Takes two terms that have the same shape modulo sorts, and produces a substitutuion
@@ -217,4 +228,21 @@ object SortSubstitution {
     def identity: SortSubstitution = new SortSubstitution(Map.empty)
 
     def singleton(substitution: (Sort, Sort)): SortSubstitution = new SortSubstitution(Map(substitution))
+}
+
+/**
+  * A Sort Substitution where values can be specified to be substituted as well
+  *
+  * @param sortMapping
+  * @param valueMapping
+  */
+class ValuedSortSubstitution(sortMapping: Map[Sort,Sort], valueMapping: Map[Value,Value]) extends SortSubstitution(sortMapping){
+    override def applyValue(value: Value): Value = {
+        if (valueMapping isDefinedAt value)
+        {
+            valueMapping(value)
+        } else {
+            super.applyValue(value)
+        }
+    }
 }
