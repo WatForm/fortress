@@ -134,7 +134,7 @@ case class Theory private (signature: Signature, axioms: Set[Term]) {
     def withoutFunctionDefinitions(funcDefs: java.lang.Iterable[FunctionDefinition]): Theory = Theory(signature.withoutFunctionDefinitions(funcDefs), axioms)
 
     def withoutFunctionDefinitions(funcDefs: Iterable[FunctionDefinition]): Theory = Theory(signature.withoutFunctionDefinitions(funcDefs), axioms)
-    
+      
     @varargs
     def withEnumSort(t: Sort, values: EnumValue*): Theory = {
         // TODO consistency checking

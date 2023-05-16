@@ -255,7 +255,7 @@ object OAFIntsTransformer extends ProblemStateTransformer {
                             // make the stubstitution
                             val varNames = fdef.argSortedVar.map(_.variable)
                             val substitutions: Map[Var, Term] = varNames.zip(castArgs).toMap
-                            val substitutedDefinitionUpInfo = unsubstitutedUpInfo.substitute(substitutions)
+                            val substitutedDefinitionUpInfo = unsubstitutedUpInfo.substitute(substitutions, down.universalVars)
 
                             // change newUpInfo to include the values from the definition
                             newUpInfo = newUpInfo combine substitutedDefinitionUpInfo
@@ -694,12 +694,14 @@ object OAFIntsTransformer extends ProblemStateTransformer {
 
         /**
           * Make the given substitutions in each check. Useful for function definitions' upinfo.
-          *
+          * Substitutions can change if something is univ or ext, so we need to repartition them
           * @param substitutions
           * @return
           */
-        def substitute(substitutions: Map[Var, Term]): UpInfo = {
-            UpInfo(extQuantChecks.map(_.fastSubstitute(substitutions)), univQuantChecks.map(_.fastSubstitute(substitutions)))
+        def substitute(substitutions: Map[Var, Term], univVars: Set[Var]): UpInfo = {
+            val allChecks = extQuantChecks.map(_.fastSubstitute(substitutions)) union univQuantChecks.map(_.fastSubstitute(substitutions))
+            val (newExtChecks, newUnivChecks) = allChecks.partition(RecursiveAccumulator.freeVariablesIn(_).intersect(univVars).isEmpty)
+            UpInfo(newExtChecks, newUnivChecks)
         }
     }
     

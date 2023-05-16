@@ -13,6 +13,7 @@ import fortress.operations.TermOps._
 import scala.jdk.CollectionConverters._
 import scala.util.Using
 import fortress.problemstate.ProblemState
+import fortress.operations.RecursiveAccumulator
 
 class NoOverflowBVTransformer extends ProblemStateTransformer (){
 
@@ -26,6 +27,8 @@ class NoOverflowBVTransformer extends ProblemStateTransformer (){
 
 
     var newSig = oldTheory.signature
+    // We eliminate definitions with predicates in them, so we can determine which are univ/ext later
+    // We just keep them in the upinfo for ease of use
     for (defn <- newSig.definitionsInDependencyOrder){
       defn match {
         case Left(cdef) => {
@@ -96,10 +99,12 @@ class NoOverflowBVTransformer extends ProblemStateTransformer (){
           withoutVars(vars.map(_.variable).toSet)
         }
 
-        def substituteChecks(subs: Map[Var, Term]): ResultInfo = {
+        def substituteChecks(subs: Map[Var, Term], univVars: Set[Var]): ResultInfo = {
+          val allChecks = (extChecks.map(_.fastSubstitute(subs)) union univChecks.map(_.fastSubstitute(subs)))
+          val (newExt, newUniv) = allChecks.partition(RecursiveAccumulator.freeVariablesIn(_).intersect(univVars).isEmpty)
           copy(
-            extChecks = extChecks.map(_.fastSubstitute(subs)),
-            univChecks = univChecks.map(_.fastSubstitute(subs))  
+            extChecks = newExt,
+            univChecks = newUniv  
           )
         }
     }
@@ -311,7 +316,7 @@ class NoOverflowBVTransformer extends ProblemStateTransformer (){
           // Include checks from the body
           val argNames = sig.queryFunctionDefinition(functionName).get.argSortedVar.map(_.variable)
           val substitutions = argNames.zip(arguments).toMap
-          val bodyInfo = defOverflows(functionName).substituteChecks(substitutions)
+          val bodyInfo = defOverflows(functionName).substituteChecks(substitutions, univVars)
 
           allInfo = ResultInfo(
             combinedArgInfo.cleanTerm,

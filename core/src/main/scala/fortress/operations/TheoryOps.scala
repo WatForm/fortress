@@ -92,6 +92,26 @@ case class TheoryOps private(theory: Theory) {
         theory.axioms.foreach(axiom => TermMetrics.declarationCountMap(axiom, profilingInfo))
         profilingInfo.toMap
     }
+
+    // Returns a set of functions which take an integer or bitvector argument and return a boolean
+    def intAndBitvectorPredicates: Set[String] = {
+        val funcDeclNames = theory.functionDeclarations
+            .withFilter({case FuncDecl(_, argSorts, resultSort) =>
+                resultSort == BoolSort &&
+                // contains an int arg
+                (argSorts.contains(IntSort) || argSorts.exists({case BitVectorSort(_) => true case _ => false}))
+            })
+            .map(_.name)
+        val funcDefnNames = theory.functionDefinitions.withFilter({case FunctionDefinition(_, argSortedVar, resultSort, _) =>
+            val argSorts = argSortedVar.map(_.sort)
+            
+            resultSort == BoolSort &&
+            // contains an int arg
+            (argSorts.contains(IntSort) || argSorts.exists({case BitVectorSort(_) => true case _ => false}))
+        }).map(_.name)
+
+        funcDeclNames union funcDefnNames
+    }
 }
 
 object TheoryOps {
