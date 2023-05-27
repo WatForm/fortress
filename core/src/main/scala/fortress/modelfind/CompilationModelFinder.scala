@@ -111,9 +111,7 @@ with ModelFinderSettings {
         }
 
         val newAxiom = Not(And.smart(newInstance.toConstraints.toList map (compilerResult.get.eliminateDomainElements(_))))
-
-//        println("newAxiom: " + newAxiom)
-
+        
         solverSession.get.addAxiom(newAxiom)
         solverSession.get.solve(timeoutMilliseconds)
     }

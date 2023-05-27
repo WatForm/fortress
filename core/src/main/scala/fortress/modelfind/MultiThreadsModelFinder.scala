@@ -63,16 +63,21 @@ class MultiThreadsModelFinder(solverInterface: SolverInterface) extends Compilat
         val tasks: java.util.ArrayList[Callable[MultiThreadFinderResult]] = new util.ArrayList[Callable[MultiThreadFinderResult]]()
         val task0 = task(new RSVIncrementalModelFinder(Z3IncCliInterface, false))
         val task1 = task(new RSVIncrementalModelFinder(Z3IncCliInterface, true))
-        val task3 = task(new NonExactScopeIncrementalModelFinder(Z3IncCliInterface, true, 1))
+        val task2 = task(new NonExactScopeIncrementalModelFinder(Z3IncCliInterface, true, 1))
+        //        val task3 = task(new NonExactScopeIncrementalModelFinder(Z3IncCliInterface, true, 1))
+//        tasks.add(task0)
         tasks.add(task0)
         tasks.add(task1)
-        tasks.add(task3)
+        tasks.add(task2)
         finderResult = Some(executorService.invokeAny(tasks))
         executorService.shutdownNow()
 
-        if(task0.modelFinder != finderResult.get.modelFinder) task0.modelFinder.close()
-        if(task1.modelFinder != finderResult.get.modelFinder) task1.modelFinder.close()
-        if(task3.modelFinder != finderResult.get.modelFinder) task3.modelFinder.close()
+//        if(task0.modelFinder != finderResult.get.modelFinder) task0.modelFinder.close()
+//        if(task2.modelFinder != finderResult.get.modelFinder) task2.modelFinder.close()
+
+        task0.modelFinder.close()
+        task1.modelFinder.close()
+        task2.modelFinder.close()
 
         successModelFinder = Some(finderResult.get.modelFinder)
         finderResult.get.modelFinderResult

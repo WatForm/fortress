@@ -52,7 +52,9 @@ class Monotonicity(theory: Theory) {
                     variables = varMap(axiom)
                     monotone(axiom)
                 }
-                solve()
+                if(assertions.isEmpty) true
+                else if(assertions.contains(Bottom)) false
+                else solve()
             }
             result = result + (s -> isMonotonic)
         }
@@ -116,18 +118,6 @@ class Monotonicity(theory: Theory) {
                 assertions = assertions + (if (list.size > 1) OrList(list) else list.head)
             }
         }
-//        case App(functionName, arguments) => {
-//            if( functions.exists(_.name == functionName) ) {
-//                val func = functions.filter(_.name == functionName).head
-//                if(func.resultSort == sort) {
-//                    var list: Seq[Term] = slits
-//                    for(l <- literals) list = guards(l, t) match {
-//                        case Some(term) => list :+ term
-//                        case None => list
-//                    }
-//                }
-//            }
-//        }
         case _ => ()
     }
 

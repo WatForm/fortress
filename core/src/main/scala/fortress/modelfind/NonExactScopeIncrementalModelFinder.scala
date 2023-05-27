@@ -81,6 +81,9 @@ class NonExactScopeIncrementalModelFinder(solverInterface: SolverInterface, useM
                         NonExactScope(scope._2.size + 1)
                     ))
             }) // increase the size of each sort by 1
+
+            println("trying scope: " + scopeMap)
+
             result = compiler.get.compile(preCompiledTheory, scopeMap, remainingMillis, eventLoggers.toList) match {
                 case Left(CompilerError.Timeout) => TimeoutResult
                 case Left(CompilerError.Other(errMsg)) => ErrorResult(errMsg)

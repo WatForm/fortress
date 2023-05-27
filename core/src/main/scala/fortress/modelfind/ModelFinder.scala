@@ -99,6 +99,9 @@ trait ModelFinder extends AutoCloseable {
 object ModelFinder {
     def createDefault(): ModelFinder = new FortressTHREE
 
+    def simpleModelFinder(): ModelFinder = new SimpleIncrementalModelFinder(Z3IncCliInterface, false)
+    def MonoSimpleModelFinder(): ModelFinder = new SimpleIncrementalModelFinder(Z3IncCliInterface, true)
+
     def RSVModelFinder(): ModelFinder = new RSVIncrementalModelFinder(Z3IncCliInterface, false)
     def MonoRSVModelFinder(): ModelFinder = new RSVIncrementalModelFinder()
     def NonExactScopeModelFinder(): ModelFinder = new NonExactScopeIncrementalModelFinder(Z3IncCliInterface, false, 1)

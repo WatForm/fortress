@@ -83,7 +83,9 @@ class RSVIncrementalModelFinder(solverInterface: SolverInterface, mergeMonotonic
                         scopeMap += (sort -> ExactScope(scopeMap(sort).size + 1))
                     }
                 }
-                //                    println("trying scope: " + scopeMap)
+                println("trying scope: " + scopeMap)
+//                scopeMap.foreach(item => print(item._2.size + ", " ))
+//                print("\n")
             }
         } while (result == UnsatResult)
 
