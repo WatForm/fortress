@@ -107,7 +107,7 @@ class SmtlibConverter(writer: java.io.Writer) {
 
             case Closure(fname, arg1, arg2, fixedArgs) => {
                 writer.write("(closure ")
-                writer.write(fname)
+                writer.write(nameWithQuote(fname))
                 for(arg <- arg1 +: arg2 +: fixedArgs) {
                     writer.write(' ')
                     recur(arg)
@@ -116,7 +116,7 @@ class SmtlibConverter(writer: java.io.Writer) {
             }
             case ReflexiveClosure(fname, arg1, arg2, fixedArgs) => {
                 writer.write("(reflexive-closure ")
-                writer.write(fname)
+                writer.write(nameWithQuote(fname))
                 for(arg <- arg1 +: arg2 +: fixedArgs) {
                     writer.write(' ')
                     recur(arg)
