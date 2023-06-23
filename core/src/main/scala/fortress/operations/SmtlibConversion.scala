@@ -5,7 +5,7 @@ import fortress.util.Errors
 import fortress.util.NameConverter._
 import java.sql.Ref
 
-class SmtlibConverter(writer: java.io.Writer) {
+class SmtlibConverter(writer: java.io.Writer, allowClosures: Boolean = true) {
 
     // Use a writer for efficiency
     def write(t: Term): Unit = {
@@ -105,8 +105,20 @@ class SmtlibConverter(writer: java.io.Writer) {
             case BuiltinApp(BvSignedGT, args) => writeGeneralApp("bvsgt", args)
             case BuiltinApp(BvConcat, args) => writeGeneralApp("concat", args)
 
-            case Closure(_, _, _, _) => Errors.Internal.impossibleState("Cannot convert Closure to smtlib")
-            case ReflexiveClosure(_, _, _, _) =>  Errors.Internal.impossibleState("Cannot convert Reflexive Closure to smtlib")
+            case Closure(fname, arg1, arg2, fixedArgs) => {
+                if (allowClosures){
+                    writeGeneralApp("closure", arg1 +: arg2 +: fixedArgs)
+                } else {
+                    Errors.Internal.impossibleState("Cannot convert Closure to smtlib")
+                }
+            }
+            case ReflexiveClosure(fname, arg1, arg2, fixedArgs) => {
+                if (allowClosures){
+                    writeGeneralApp("reflexive-closure", arg1 +: arg2 +: fixedArgs)
+                } else {
+                    Errors.Internal.impossibleState("Cannot convert Reflexive Closure to smtlib")
+                }
+            }
         }
         
         // Does NOT do quoting on its own
