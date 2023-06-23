@@ -56,7 +56,7 @@ public class SmtLibParser implements TheoryParser {
     public Either<Errors.ParserError, Theory> parse(String filePath) throws IOException {
         InputStream inputStream = new FileInputStream(filePath);
 
-        if (filePath.endsWith(".smt+")){
+        if (filePath.endsWith(".smt+") || filePath.endsWith(".smttc")){
             usingSmtPlus = true;
         } else {
             usingSmtPlus = false;

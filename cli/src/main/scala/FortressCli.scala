@@ -56,7 +56,7 @@ object FortressCli {
         val conf = new Conf(args)
         
         val parser : TheoryParser = new SmtLibParser
-        val parseResult = parser.parse(new FileInputStream(conf.file()))
+        val parseResult = parser.parse(conf.file())
         val theory : Theory = parseResult match {
             case Left(x) =>
                 System.err.println("Parse error: " + x.getMessage);
