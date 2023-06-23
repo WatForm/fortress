@@ -105,9 +105,24 @@ class SmtlibConverter(writer: java.io.Writer) {
             case BuiltinApp(BvSignedGT, args) => writeGeneralApp("bvsgt", args)
             case BuiltinApp(BvConcat, args) => writeGeneralApp("concat", args)
 
-            case Closure(fname, arg1, arg2, fixedArgs) => writeGeneralApp("closure", arg1 +: arg2 +: fixedArgs)
-            case ReflexiveClosure(fname, arg1, arg2, fixedArgs) => writeGeneralApp("reflexive-closure", arg1 +: arg2 +: fixedArgs)
-
+            case Closure(fname, arg1, arg2, fixedArgs) => {
+                writer.write("(closure ")
+                writer.write(fname)
+                for(arg <- arg1 +: arg2 +: fixedArgs) {
+                    writer.write(' ')
+                    recur(arg)
+                }
+                writer.write(')')
+            }
+            case ReflexiveClosure(fname, arg1, arg2, fixedArgs) => {
+                writer.write("(reflexive-closure ")
+                writer.write(fname)
+                for(arg <- arg1 +: arg2 +: fixedArgs) {
+                    writer.write(' ')
+                    recur(arg)
+                }
+                writer.write(')')
+            }
         }
         
         // Does NOT do quoting on its own
