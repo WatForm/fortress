@@ -25,6 +25,8 @@ object  ScopeNonExactPredicatesTransformer extends ProblemStateTransformer {
             NAD: removed these axioms to allow the predicate to not be satisfied by
                  any elements and therefore allow the sort to be empty for a non-exact scope
                  2023-06-26
+                 These were added likely for comparison with nondistinct constants method,
+                 which requires there to be at least one value.
                  
             val antiVacuityAxioms = for {
                 sort <- theory.sorts
