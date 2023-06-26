@@ -21,13 +21,18 @@ object  ScopeNonExactPredicatesTransformer extends ProblemStateTransformer {
             }
 
             // Have to say the subtypes are nonempty
+            /*
+            NAD: removed these axioms to allow the predicate to not be satisfied by
+                 any elements and therefore allow the sort to be empty for a non-exact scope
+                 2023-06-26
+                 
             val antiVacuityAxioms = for {
                 sort <- theory.sorts
                 if scopes.contains(sort) && !scopes(sort).isExact
             } yield {
                 Exists(Var("x") of sort, App(ScopeNonExactPredicates.nonExactScopePred(sort), Var("x")))
             }
-
+            */
             // Constants and functions must have ranges in the subtypes
             val constantAxioms = for (av <- theory.constantDeclarations if scopes.contains(av.sort) && !scopes(av.sort).isExact ) yield App(ScopeNonExactPredicates.nonExactScopePred(av.sort), av.variable)
 
@@ -44,7 +49,8 @@ object  ScopeNonExactPredicatesTransformer extends ProblemStateTransformer {
             val resultTheory = theory
               .withFunctionDeclarations(scopeNonExactPreds)
               .someAxioms(ScopeNonExactPredicates.addBoundsPredicates, scopes)
-              .withAxioms(antiVacuityAxioms)
+              // NAD see note above
+              //.withAxioms(antiVacuityAxioms)
               .withAxioms(constantAxioms)
               .withAxioms(functionAxioms)
 
