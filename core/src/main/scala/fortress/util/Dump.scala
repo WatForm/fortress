@@ -33,7 +33,7 @@ object Dump {
 
         converter.writeTheory(problemState.theory)
         writer.write('\n')
-        writer.write(";")
+        writer.write("; Scopes\n")
         writer.write(smtlibScopeInfo(problemState.scopes))
         
         return writer.toString()
