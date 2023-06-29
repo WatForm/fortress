@@ -54,6 +54,12 @@ class Conf(arguments: Seq[String]) extends ScallopConf(arguments) {
 object FortressCli {
     def main(args: Array[String]): Unit = {
         val conf = new Conf(args)
+
+        if (conf.debug.getOrElse(false)){
+            println("======conf======")
+            println(conf.summary)
+            println("----------------")
+        }
         
         val parser : TheoryParser = new SmtLibParser
         val parseResult = parser.parse(conf.file())
