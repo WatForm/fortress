@@ -107,7 +107,12 @@ public class SmtLibParser implements TheoryParser {
             String sortName = info.substring(1, spaceIndex);
             String scopeSizeString = info.substring(spaceIndex + 1);
             int scopeSize = Integer.parseInt(scopeSizeString);
-            Sort sort = new SortConst(sortName);
+            Sort sort = null;
+            if (sortName.equals("Int") || sortName.equals("IntSort")){
+                sort = IntSort$.MODULE$;
+            } else {
+                sort = new SortConst(sortName);
+            }
             ExactScope scope = new ExactScope(scopeSize, unchangingSorts.contains(sortName));
             scopes.put(sort, scope);
         }

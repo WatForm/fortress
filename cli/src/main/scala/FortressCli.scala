@@ -10,6 +10,7 @@ import fortress.logging._
 import fortress.problemstate._
 import fortress.transformers._
 
+import scala.collection.JavaConverters._
 import java.io._
 import java.{util => ju}
 import fortress.operations.TheoryOps
@@ -20,7 +21,10 @@ class Conf(arguments: Seq[String]) extends ScallopConf(arguments) {
     val scopeMap = props[String]('S', descr="scope sizes for individual sorts in the form <sort>[?]=<scope>[u] ex: A=2 B?=3 C=4u ... where ? = non-exact and u = unchanging.")
     val file = trailArg[String](required = true, descr="file(s) to run on")
 
-    val debug = opt[Boolean](required= false, descr="Writes debug output to console")
+    val importScope = opt[Boolean](descr="Import scope from smttc file if present.")
+
+    val debug = opt[Boolean](descr="Writes debug output to console", noshort=true)
+    val verbose = opt[Boolean](descr="Writes even more output to console", noshort=true)
     
     val timeout = opt[Int](required = true, descr="timeout in seconds") // Timeout in seconds
 
@@ -55,13 +59,13 @@ object FortressCli {
     def main(args: Array[String]): Unit = {
         val conf = new Conf(args)
 
-        if (conf.debug.getOrElse(false)){
+        if (conf.debug()){
             println("======conf======")
             println(conf.summary)
             println("----------------")
         }
         
-        val parser : TheoryParser = new SmtLibParser
+        val parser : SmtLibParser = new SmtLibParser
         val parseResult = parser.parse(conf.file())
         val theory : Theory = parseResult match {
             case Left(x) =>
@@ -78,6 +82,13 @@ object FortressCli {
             }.toMap
             case None => Map()
         }
+
+        // Load scope from file
+        if (conf.importScope()){
+            val parsedScopes = parser.getScopes().asScala
+            scopes = scopes ++ parsedScopes
+        }
+
 
         // Override with specific scopes
         for ( (sort, scope) <- conf.scopeMap ) {
@@ -110,6 +121,11 @@ object FortressCli {
             scopes += (sortConst -> scopeVal)
         }
 
+        if(conf.debug()){
+            println("Scopes:")
+            println(scopes)
+        }
+
 
         val integerSemantics = Unbounded
 
@@ -139,7 +155,7 @@ object FortressCli {
         modelFinder.setTimeout(Seconds(conf.timeout()))
         //modelFinder.setBoundedIntegers(integerSemantics)
 
-        if(conf.debug.getOrElse(false) && conf.transformers.isSupplied){
+        if(conf.debug() && conf.verbose() && conf.transformers.isSupplied){
             val compiler = new ConfigurableCompiler(conf.transformers.apply())
             val result = compiler.compile(theory, scopes, Seconds(conf.timeout()).toMilli, Seq.empty).fold(
                 ce => println("Error compiling", ce),
