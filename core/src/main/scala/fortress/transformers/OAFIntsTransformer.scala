@@ -275,7 +275,9 @@ object OAFIntsTransformer extends ProblemStateTransformer {
                 if (resultSort == BoolSort){
                     val overflowProtectedApp = newUpInfo.overflowPredicate(transformedApp, down.polarity, isInBounds.name)
                     (overflowProtectedApp, newUpInfo)
-                } else {
+                } else if (resultSort == newSort){
+                    (castToInt(transformedApp), newUpInfo)
+                }else {
                     (transformedApp, newUpInfo)
                 }
             }
