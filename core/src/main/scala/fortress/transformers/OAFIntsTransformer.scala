@@ -378,13 +378,14 @@ object OAFIntsTransformer extends ProblemStateTransformer {
                 val (transformedIfFalse, upFalse) = transform(ifFalse, down)
 
                 // up Does not overflow when all of its overflows are false
-                val upDoesNotOverflow = Not(OrList(upCondition.univQuantChecks.toSeq ++ upCondition.extQuantChecks.toSeq))
+                // Or.smart will default to false if no values included
+                val upDoesNotOverflow = Not(Or.smart(upCondition.univQuantChecks.toSeq ++ upCondition.extQuantChecks.toSeq))
                 // branches only cause an overflow if we actually use the value there
                 val overflowUniv = AndList(upDoesNotOverflow, 
-                    IfThenElse(transformedCondition, OrList(upTrue.univQuantChecks.toSeq), OrList(upFalse.univQuantChecks.toSeq))
+                    IfThenElse(transformedCondition, Or.smart(upTrue.univQuantChecks.toSeq), Or.smart(upFalse.univQuantChecks.toSeq))
                     )
                 val overflowExt = AndList(upDoesNotOverflow, 
-                    IfThenElse(transformedCondition, OrList(upTrue.extQuantChecks.toSeq), OrList(upFalse.extQuantChecks.toSeq))
+                    IfThenElse(transformedCondition, Or.smart(upTrue.extQuantChecks.toSeq), Or.smart(upFalse.extQuantChecks.toSeq))
                     )
                 // We only use the condensed overflows
                 val newUp = UpInfo(upCondition.extQuantChecks + overflowExt, upCondition.univQuantChecks + overflowUniv)
