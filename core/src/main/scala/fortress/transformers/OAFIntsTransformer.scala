@@ -310,7 +310,11 @@ object OAFIntsTransformer extends ProblemStateTransformer {
                     .withConstantDeclarations(down.universalVars.toSeq.map(_  of newSort))
                     .withConstantDeclarations(down.otherVars.map({case (v -> s ) => v of s})) // other vars 
 
-                var sort = left.typeCheck(typecheckSig).sort
+
+                // We have to transform first
+                val (transformedLeft, upLeft) = transform(left, down)
+
+                var sort = transformedLeft.typeCheck(typecheckSig).sort
                 if (sort == newSort) {
                     // If it hasn't been cast yet, it will be once we transform it
                     sort = IntSort
@@ -318,7 +322,7 @@ object OAFIntsTransformer extends ProblemStateTransformer {
 
                 if (sort == IntSort){
                     // Transform the left and right
-                    val (transformedLeft, upLeft) = transform(left, down)
+                    // val (transformedLeft, upLeft) = transform(left, down) // from above
                     val (transformedRight, upRight) = transform(right, down)
 
                     // We can ignore casting to int because we know it is in range
@@ -335,7 +339,8 @@ object OAFIntsTransformer extends ProblemStateTransformer {
                     (guardedEq, upInfo)
                 } else if (sort == BoolSort) {
                     // A & B | !A & !B
-                    val (posLeft, upPosLeft) = transform(left, down)
+                    //val (posLeft, upPosLeft) = transform(left, down) // from above
+                    val (posLeft, upPosLeft) = (transformedLeft, upLeft) // from above
                     val (posRight, upPosRight) = transform(right, down)
                     val negatedDown = down.flipPolarity()
                     val (negLeft, upNegLeft) = transform(left, negatedDown)
@@ -349,7 +354,7 @@ object OAFIntsTransformer extends ProblemStateTransformer {
                     (unfoldedEq, upInfo)
                 } else {
                     // This is a predicate of other sorts, just flow up and guard (there could be int->A somewhere)
-                    val (transformedLeft, upLeft) = transform(left, down)
+                    //val (transformedLeft, upLeft) = transform(left, down) // from above
                     val (transformedRight, upRight) = transform(right, down)
 
                     val newEq = Eq(transformedLeft, transformedRight)
