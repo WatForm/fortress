@@ -212,7 +212,7 @@ object OAFIntsTransformer extends ProblemStateTransformer {
                 val overwrittenVars = otherVars.filter(ov => down.oafVars.contains(ov.variable))
                 // remove quantified vars from raised checks
                 val newDown = down
-                    .withExtVars(newVars.map(_.variable))
+                    .withUnivVars(newVars.map(_.variable))
                     .withoutVars(overwrittenVars.map(_.variable))
                     .withOtherVars(otherVars)
 
@@ -594,7 +594,8 @@ object OAFIntsTransformer extends ProblemStateTransformer {
           */
         def withOverflowableTerms(overflowTerms: Seq[Term], universalVars: Set[Var], isInBoundsName: String): UpInfo = {
             val (extTerms, univTerms) = overflowTerms.partition( term => {
-                (RecursiveAccumulator.freeVariablesIn(term) & universalVars).isEmpty
+                val varsin = RecursiveAccumulator.freeVariablesIn(term)
+                (varsin intersect universalVars).isEmpty
             })
             // wrap the checks
             val extChecks = extTerms.map(term => Not(App(isInBoundsName, Seq(term))))
