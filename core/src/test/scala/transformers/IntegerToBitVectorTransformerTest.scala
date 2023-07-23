@@ -18,7 +18,8 @@ class IntegerToBitVectorTransformerTest extends UnitSuite {
         )
 
         val transformer = IntegerToBitVectorTransformer
-        transformer(problemState) should be (expected)
+        val result = transformer(problemState).withoutUnapplyInterps()
+        result should be (expected)
     }
     
     test("constants") {
@@ -38,7 +39,7 @@ class IntegerToBitVectorTransformerTest extends UnitSuite {
         )
         
         val transformer = IntegerToBitVectorTransformer
-        transformer(problemState) should be (expected)
+        transformer(problemState).withoutUnapplyInterps() should be (expected)
     }
     
     test("arithmetic operators") {
@@ -59,7 +60,7 @@ class IntegerToBitVectorTransformerTest extends UnitSuite {
         )
 
         val transformer = IntegerToBitVectorTransformer
-        transformer(problemState) should be (expected)
+        transformer(problemState).withoutUnapplyInterps() should be (expected)
     }
     
     test("functions") {
@@ -84,7 +85,7 @@ class IntegerToBitVectorTransformerTest extends UnitSuite {
         )
 
         val transformer = IntegerToBitVectorTransformer
-        transformer(problemState) should be (expected)
+        transformer(problemState).withoutUnapplyInterps() should be (expected)
     }
     
     test("quantifiers") {
@@ -105,7 +106,7 @@ class IntegerToBitVectorTransformerTest extends UnitSuite {
         )
 
         val transformer = IntegerToBitVectorTransformer
-        transformer(problemState) should be (expected)
+        transformer(problemState).withoutUnapplyInterps() should be (expected)
     }
 
     test("IntSort & UnboundedIntSort") {
@@ -135,7 +136,7 @@ class IntegerToBitVectorTransformerTest extends UnitSuite {
         )
 
         val transformer = IntegerToBitVectorTransformer
-        transformer(problemState) should be (expected)
+        transformer(problemState).withoutUnapplyInterps() should be (expected)
     }
 
     test("BoundedIntSort"){
@@ -152,6 +153,6 @@ class IntegerToBitVectorTransformerTest extends UnitSuite {
         )
 
         val transformer = IntegerToBitVectorTransformer
-        transformer(problemState) should be (expected)
+        transformer(problemState).withoutUnapplyInterps() should be (expected)
     }
 }

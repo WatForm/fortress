@@ -6,6 +6,8 @@ import fortress.operations.TypeCheckResult
 import scala.jdk.CollectionConverters._
 import scala.annotation.varargs // So we can call Scala varargs methods from Java
 import fortress.operations._
+import fortress.interpretation.Interpretation
+import fortress.interpretation.BasicInterpretation
 
 // Persistent and Immutable
 // Internally consistent
@@ -287,43 +289,139 @@ case class Signature private (
     
     def functionWithName(name: String): Option[FuncDecl] = functionDeclarations.find(_.name == name)
     
-    def replaceIntegersWithBitVectors(bitwidth: Int): Signature = {
+    // Includes an unapply function
+    def replaceIntegersWithBitVectors(bitwidth: Int): (Signature, Interpretation => Interpretation) = {
         def replaceSort(s: Sort): Sort = s match {
             case IntSort => BitVectorSort(bitwidth)
             case _ => s
         }
 
         def replaceSortInAnnVar(v: AnnotatedVar): AnnotatedVar = {
-            if(v.sort == IntSort) AnnotatedVar(v.variable, BitVectorSort(bitwidth))
+            if(v.sort == IntSort){
+                AnnotatedVar(v.variable, BitVectorSort(bitwidth))
+            }
             else v
         }
         
         val newSorts = sorts
-        val newFunctionDeclarations = functionDeclarations.map(
-            fdecl => FuncDecl(fdecl.name, fdecl.argSorts map replaceSort, replaceSort(fdecl.resultSort))
-        )
 
+        var replacedFunctionDeclarations: Map[FuncDecl, FuncDecl] = Map.empty
+        val newFunctionDeclarations = functionDeclarations.map(
+            fdecl => {
+                val newFdecl = FuncDecl(fdecl.name, fdecl.argSorts map replaceSort, replaceSort(fdecl.resultSort))
+                if (fdecl != newFdecl){
+                    replacedFunctionDeclarations = replacedFunctionDeclarations + (newFdecl -> fdecl)
+                }
+                newFdecl
+            }
+        )
+        
+        var replacedFunctionDefinitions: Map[FunctionDefinition, FunctionDefinition] = Map.empty
         val newFunctionDefinitions = functionDefinitions.map(
+            //Something in this seems wrong. What about integer args?
             funcDef => {
                 if( funcDef.resultSort == UnBoundedIntSort ) funcDef
-                else
-                FunctionDefinition(
-                    funcDef.name,
-                    funcDef.argSortedVar.map(replaceSortInAnnVar),
-                    replaceSort(funcDef.resultSort),
-                    TermConverter.intToSignedBitVector(funcDef.body, bitwidth)
-                )
+                else {
+                    val newDef = FunctionDefinition(
+                        funcDef.name,
+                        funcDef.argSortedVar.map(replaceSortInAnnVar),
+                        replaceSort(funcDef.resultSort),
+                        TermConverter.intToSignedBitVector(funcDef.body, bitwidth)
+                    )
+                    replacedFunctionDefinitions = replacedFunctionDefinitions + (newDef -> funcDef)
+                    newDef
+                }
+                
             }
         )
 
-        val newConstantDefinitions = constantDefinitions.map(cDef => {
-            ConstantDefinition(replaceSortInAnnVar(cDef.avar), TermConverter.intToSignedBitVector(cDef.body, bitwidth))
+        var replacedConstantDefinitions: Map[AnnotatedVar, ConstantDefinition] = Map.empty 
+        val newConstantDefinitions: Set[ConstantDefinition] = constantDefinitions.map(cDef => {
+            val newDef = ConstantDefinition(replaceSortInAnnVar(cDef.avar), TermConverter.intToSignedBitVector(cDef.body, bitwidth))
+            if (cDef != newDef) {
+                replacedConstantDefinitions = replacedConstantDefinitions + (newDef.avar -> cDef)
+            }
+            newDef
         })
 
 
-        val newConstantDeclarations = constantDeclarations.map(c => c.variable of replaceSort(c.sort))
+        var replacedConstantDeclarations: Map[AnnotatedVar, AnnotatedVar] = Map.empty
+
+        val newConstantDeclarations = constantDeclarations.map(c => {
+            val newDecl = c.variable of replaceSort(c.sort)
+            if (c != newDecl){
+                replacedConstantDeclarations = replacedConstantDeclarations + (newDecl -> c)
+            }
+            newDecl
+        })
         val newEnums = enumConstants
-        Signature(newSorts, newFunctionDeclarations, newFunctionDefinitions, newConstantDeclarations, newConstantDefinitions, newEnums)
+
+        def bvToInt(value: Value): IntegerLiteral = value match {
+            case BitVectorLiteral(value, _) => IntegerLiteral(value)
+            case _ => Errors.Internal.impossibleState("Trying to cast nonbitvector value '"+ value.toString()+"' to an integer.")
+        }
+        def unapply(interp: Interpretation): Interpretation = {
+            // There's only one kind of interpretation
+            // This is an ugly workaround
+            var newInterp = interp match {
+                case x: BasicInterpretation => x
+            }
+            // constants we translated get converted to integers
+            val newConsts = interp.constantInterpretations
+                .map({case (avar, value) =>
+                    if (replacedConstantDefinitions.isDefinedAt(avar)){
+                        (replacedConstantDefinitions(avar).avar, bvToInt(value))
+                    } else if (replacedConstantDeclarations.isDefinedAt(avar)){
+                        (replacedConstantDeclarations(avar), bvToInt(value))
+                    } else {
+                        (avar, value)
+                    }
+            })
+
+            val newFunctionDefinitions = interp.functionDefinitions
+                .map(fDef =>
+                    if (replacedFunctionDefinitions.isDefinedAt(fDef))
+                        replacedFunctionDefinitions(fDef)
+                    else fDef    
+                )
+            
+            val newFunctionInterps: Map[FuncDecl, Map[Seq[Value], Value]] = interp.functionInterpretations
+                .map({
+                    case (fDec, valueMap) if replacedFunctionDeclarations.isDefinedAt(fDec) => {
+                        val newDec = replacedFunctionDeclarations(fDec)
+
+                        // find indices of args that were cast
+                        val differentIndices: Seq[Int] = for {
+                            i <- 1 to newDec.argSorts.length
+                            if newDec.argSorts(i) != fDec.argSorts(i)
+                        } yield i
+                        // replace args that got cast
+                        def uncastArgs(args: Seq[Value]): Seq[Value] = {
+                            var newArgs = args
+                            for (i <- differentIndices){
+                                newArgs = newArgs.updated(i, bvToInt(newArgs(i)))
+                            }
+                            newArgs
+                        }
+                        val newValueMap = valueMap.map({
+                            case (args, result) => (uncastArgs(args), bvToInt(result))
+                        })
+                        (newDec, newValueMap)
+                    }
+                    case x => x
+                })
+
+
+            BasicInterpretation(
+                interp.sortInterpretations,
+                newConsts,
+                newFunctionInterps,
+                newFunctionDefinitions)
+        }
+
+
+        val newSig = Signature(newSorts, newFunctionDeclarations, newFunctionDefinitions, newConstantDeclarations, newConstantDefinitions, newEnums)
+        (newSig, unapply)
     }
 
     def replaceIntSorts(boundedSet: Set[String]): Signature = {

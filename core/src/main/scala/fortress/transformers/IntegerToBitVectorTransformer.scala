@@ -8,12 +8,14 @@ import fortress.operations.TermOps._
 import fortress.problemstate.ProblemState
 import fortress.problemstate.ExactScope
 import fortress.problemstate.Scope
+import fortress.interpretation.Interpretation
 
 /** Replaces integers with bitvectors of the given bitwidth. */
 object IntegerToBitVectorTransformer extends ProblemStateTransformer {
     
     override def apply(problemState: ProblemState): ProblemState = {
         var newProblemState = problemState
+
         if (problemState.scopes.contains(IntSort)) {
             val numValues = problemState.scopes(IntSort).size
             // Do log_2 of numValues to find bitwidth
@@ -28,11 +30,12 @@ object IntegerToBitVectorTransformer extends ProblemStateTransformer {
                 if( !axiom.isLia ) axiom.intToBitVector(bitwidth)
                 else axiom
             })
-            val newSig = problemState.theory.signature.replaceIntegersWithBitVectors(bitwidth)
+            val (newSig, unapply) = problemState.theory.signature.replaceIntegersWithBitVectors(bitwidth)
             // remove IntSort from the scopes map
             val newScopes: Map[Sort, Scope] = problemState.scopes.filter(x => !(x._1 == IntSort)) + (BitVectorSort(bitwidth) -> ExactScope(totalValues))
-            // this is the return value
+            // change the theory
             newProblemState = problemState.withTheory(Theory.mkTheoryWithSignature(newSig).withAxioms(newAxioms)).withScopes(newScopes)
+                .withUnapplyInterp(unapply)
         }
 
         if (problemState.scopes.contains(BoundedIntSort)) {
@@ -46,11 +49,12 @@ object IntegerToBitVectorTransformer extends ProblemStateTransformer {
                 if( !axiom.isLia ) axiom.intToBitVector(bitwidth)
                 else axiom
             })
-            val newSig = problemState.theory.signature.replaceIntegersWithBitVectors(bitwidth)
+            val (newSig, unapply) = problemState.theory.signature.replaceIntegersWithBitVectors(bitwidth)
             // remove IntSort from the scopes map
             val newScopes: Map[Sort, Scope] = problemState.scopes.filter(x => !(x._1 == BoundedIntSort)) + (BitVectorSort(bitwidth) -> ExactScope(totalValues))
             // this is the return value
             newProblemState = problemState.withTheory(Theory.mkTheoryWithSignature(newSig).withAxioms(newAxioms)).withScopes(newScopes)
+                .withUnapplyInterp(unapply)
 
         }
 
