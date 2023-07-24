@@ -25,7 +25,7 @@ object ScopeNonExactPredicates {
                 if !av.sort.isBuiltin && helpMap.contains(av.sort) && !helpMap(av.sort).isExact
             } yield App(nonExactScopePred(av.sort), av.variable)
             if(predApps.isEmpty)
-                term
+                Exists(vars, addBoundsPredicates(body, helpMap))
             else
                 Exists(vars, And.smart(predApps :+ addBoundsPredicates(body, helpMap)))
         }
@@ -37,7 +37,7 @@ object ScopeNonExactPredicates {
                 App(nonExactScopePred(av.sort), av.variable)
             }
             if(predApps.isEmpty)
-                term
+                Forall(vars, addBoundsPredicates(body, helpMap))
             else
                 Forall(vars, Implication(And.smart(predApps), addBoundsPredicates(body, helpMap)))
         }
