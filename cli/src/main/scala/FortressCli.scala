@@ -40,7 +40,12 @@ class Conf(arguments: Seq[String]) extends ScallopConf(arguments) {
             // Don't really care if someone makes separate lists of transformers, so we fold them together
             val transformerNames = s.map(_._2).flatten 
             try {
-                Right(Some(transformerNames.map(Transformers.fromString(_))))
+                // Handle the empty list properly
+                if (transformerNames.isEmpty){
+                    Right(None)
+                } else {
+                    Right(Some(transformerNames.map(Transformers.fromString(_))))
+                }
             } catch {
                 case e: Errors.API.DoesNotExistError => Left(e.getMessage())
             }
