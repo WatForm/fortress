@@ -49,8 +49,8 @@ abstract class DatatypeMethodWithRangeCompiler() extends LogicCompiler {
         transformerSequence += TypecheckSanitizeTransformer
         transformerSequence += EnumEliminationTransformer
         transformerSequence += NnfTransformer
-        transformerSequence += ScopeNonExactPredicatesTransformer
         transformerSequence += ClosureEliminationEijckTransformer
+        transformerSequence += ScopeNonExactPredicatesTransformer
         transformerSequence += IntegerToBitVectorTransformer      
         transformerSequence += new SymmetryBreakingTransformer(MonoFirstThenFunctionsFirstAnyOrder, DefaultSymmetryBreaker)
         transformerSequence += RangeFormulaStandardTransformer
