@@ -37,7 +37,7 @@ object Transformers {
             case "oafints" | "oaf" | "oafint" => OAFIntsTransformer
             case "quantifierexpansion" => mkQuantifierExpansionTransformer()
             case "rangeformula" | "rangeformulastandard" => RangeFormulaStandardTransformer
-            case "scopenonexactpredicatestype" => ScopeNonExactPredicatesTransformer
+            case "scopenonexactpredicatestype" | "scopenonexactpredicates" | "nonexactpredicates" | "nonexactscopes" | "nonexactscope" => ScopeNonExactPredicatesTransformer
             case "simplifylearnedliterals" => new SimplifyLearnedLiteralsTransformer()
             case "simplify" => new SimplifyTransformer()
             case "simplify2" | "simplifytransformer2" => new SimplifyTransformer2()
