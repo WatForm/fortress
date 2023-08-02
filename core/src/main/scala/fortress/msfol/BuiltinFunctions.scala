@@ -23,6 +23,7 @@ sealed trait UnaryIntegerFunction extends BuiltinFunction {
     }
 }
 
+
 /** A function Int x Int -> Int. */
 sealed trait BinaryIntegerFunction extends BuiltinFunction {
     override def resultSortFromArgSorts(sorts: Seq[Sort]): Option[Sort] = sorts match {
@@ -106,3 +107,22 @@ case object BvSignedGT extends BinaryBitVectorRelation
 
 
 case object BvConcat extends BitVectorConcatFunction
+
+
+/*
+ * Casting between Int and Bitvector
+ */
+
+case class CastIntToBV(bitwidth: Int) extends BuiltinFunction {
+    override def resultSortFromArgSorts(sorts: Seq[Sort]): Option[Sort] = sorts match {
+        case Seq(IntSort) => Some(BitVectorSort(bitwidth))
+        case _ => None
+    }
+}
+
+case object CastBVToInt extends BuiltinFunction {
+    override def resultSortFromArgSorts(sorts: Seq[Sort]): Option[Sort] = sorts match {
+        case Seq(BitVectorSort(_)) => Some(IntSort)
+        case _ => None
+    }
+}
