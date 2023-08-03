@@ -85,15 +85,19 @@ class SmtlibConverter(writer: java.io.Writer) {
             // BitVectors
             case BitVectorLiteral(value, bitwidth) => {
                 // (_ bv10 32) is a bitvector of size 32 that representes the numeral 10
-                if (value >= 0 ) {
-                    writer.write("(_ bv")
-                    writer.write(value.toString)
-                    writer.write(' ')
-                    writer.write(bitwidth.toString)
+                // We use signed bitvectors, so we can just use bvneg and the absolute value 
+                val isNegative = value < 0
+                val absValue = value.abs.toInt
+                if (isNegative) {
+                    writer.write("(bvneg")
+                }
+                writer.write("(_ bv")
+                writer.write(absValue.toString())
+                writer.write(' ')
+                writer.write(bitwidth.toString)
+                writer.write(')')
+                if (isNegative){
                     writer.write(')')
-                } else {
-                    // handle negatives
-                    recur(BuiltinApp(BvNeg, BitVectorLiteral(-value, bitwidth)))
                 }
             }
             case BuiltinApp(BvPlus, args) => writeGeneralApp("bvadd", args)
