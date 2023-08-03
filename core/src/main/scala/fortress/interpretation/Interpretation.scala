@@ -88,6 +88,12 @@ trait Interpretation {
         }
     }
 
+    // Given a term and a set of free variables, find the set of assignments of values to the free variables
+    // in this interpretation that make the term equal to outputValue.
+    // See PreimageFinding for more information.
+    def findPreimage(vars: Seq[AnnotatedVar], term: Term, outputValue: Value): Set[Seq[Value]] =
+        PreimageFinding.findPreimage(this, vars, term, outputValue)
+
     // Given a builtin function and its arguments, run it through a throwaway Z3 solver for the result
     // (to avoid having to implement every function manually on our end)
     def evaluateBuiltIn(fn: BuiltinFunction, evalArgs: Seq[Value]): Value = {

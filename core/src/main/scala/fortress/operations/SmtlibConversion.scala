@@ -116,8 +116,24 @@ class SmtlibConverter(writer: java.io.Writer) {
             case BuiltinApp(CastIntToBV(bitwidth), args) => writeGeneralApp(s"(_ int2bv $bitwidth)", args)
 
 
-            case Closure(_, _, _, _) => Errors.Internal.impossibleState("Cannot convert Closure to smtlib")
-            case ReflexiveClosure(_, _, _, _) =>  Errors.Internal.impossibleState("Cannot convert Reflexive Closure to smtlib")
+            case Closure(fname, arg1, arg2, fixedArgs) => {
+                writer.write("(closure ")
+                writer.write(nameWithQuote(fname))
+                for(arg <- arg1 +: arg2 +: fixedArgs) {
+                    writer.write(' ')
+                    recur(arg)
+                }
+                writer.write(')')
+            }
+            case ReflexiveClosure(fname, arg1, arg2, fixedArgs) => {
+                writer.write("(reflexive-closure ")
+                writer.write(nameWithQuote(fname))
+                for(arg <- arg1 +: arg2 +: fixedArgs) {
+                    writer.write(' ')
+                    recur(arg)
+                }
+                writer.write(')')
+            }
         }
         
         // Does NOT do quoting on its own
