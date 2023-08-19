@@ -183,7 +183,7 @@ class ClosureEliminatorEijck(topLevelTerm: Term, signature: Signature, scopes: M
                 )
 
             }
-            println(closureFunctions)
+            // println(closureFunctions)
             App(closureName, Seq(c.arg1, c.arg2) ++ c.fixedArgs).mapArguments(visit)
         }
         // TODO support more arguments
