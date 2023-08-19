@@ -21,6 +21,10 @@ class ArgumentListGenerator(scopes: PartialFunction[Sort, Int], sortInterpretati
                 }
             }
             case BoolSort => Vector(Top, Bottom)
+            case BitVectorSort(bitwidth) => {
+                // [0, 2**bitwidth) == [0, 2**bitwidth - 1]
+                Vector.range(0, (Math.pow(2, bitwidth)).toInt).map(x => BitVectorLiteral(x, bitwidth))
+            }
             case _ => ???
         })
         

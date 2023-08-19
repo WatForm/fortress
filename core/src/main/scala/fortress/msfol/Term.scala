@@ -98,7 +98,7 @@ case class Not private (body: Term) extends Term {
 
 /** Represents a conjunction. */
 case class AndList private (arguments: Seq[Term]) extends Term {
-    Errors.Internal.precondition(arguments.size >= 2)
+    Errors.Internal.precondition(arguments.size >= 2, "AndList must contain at least 2 values.")
     
     override def accept[T](visitor: TermVisitor[T]): T = visitor.visitAndList(this)
     def mapArguments(mapping: Term => Term): Term =
@@ -123,7 +123,7 @@ object And {
 
 /** Represents a disjunction. */
 case class OrList private (arguments: Seq[Term]) extends Term {
-    Errors.Internal.precondition(arguments.size >= 2)
+    Errors.Internal.precondition(arguments.size >= 2, "OrList must contain at least 2 values")
     
     override def accept[T](visitor: TermVisitor[T]): T = visitor.visitOrList(this)
     def mapArguments(mapping: Term => Term): Term =

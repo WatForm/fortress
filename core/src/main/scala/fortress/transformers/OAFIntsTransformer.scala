@@ -212,7 +212,7 @@ object OAFIntsTransformer extends ProblemStateTransformer {
                 val overwrittenVars = otherVars.filter(ov => down.oafVars.contains(ov.variable))
                 // remove quantified vars from raised checks
                 val newDown = down
-                    .withExtVars(newVars.map(_.variable))
+                    .withUnivVars(newVars.map(_.variable))
                     .withoutVars(overwrittenVars.map(_.variable))
                     .withOtherVars(otherVars)
 
@@ -255,7 +255,7 @@ object OAFIntsTransformer extends ProblemStateTransformer {
                             // make the stubstitution
                             val varNames = fdef.argSortedVar.map(_.variable)
                             val substitutions: Map[Var, Term] = varNames.zip(castArgs).toMap
-                            val substitutedDefinitionUpInfo = unsubstitutedUpInfo.substitute(substitutions)
+                            val substitutedDefinitionUpInfo = unsubstitutedUpInfo.substitute(substitutions, down.universalVars)
 
                             // change newUpInfo to include the values from the definition
                             newUpInfo = newUpInfo combine substitutedDefinitionUpInfo
@@ -275,7 +275,9 @@ object OAFIntsTransformer extends ProblemStateTransformer {
                 if (resultSort == BoolSort){
                     val overflowProtectedApp = newUpInfo.overflowPredicate(transformedApp, down.polarity, isInBounds.name)
                     (overflowProtectedApp, newUpInfo)
-                } else {
+                } else if (resultSort == newSort){
+                    (castToInt(transformedApp), newUpInfo)
+                }else {
                     (transformedApp, newUpInfo)
                 }
             }
@@ -308,7 +310,11 @@ object OAFIntsTransformer extends ProblemStateTransformer {
                     .withConstantDeclarations(down.universalVars.toSeq.map(_  of newSort))
                     .withConstantDeclarations(down.otherVars.map({case (v -> s ) => v of s})) // other vars 
 
-                var sort = left.typeCheck(typecheckSig).sort
+
+                // We have to transform first
+                val (transformedLeft, upLeft) = transform(left, down)
+
+                var sort = transformedLeft.typeCheck(typecheckSig).sort
                 if (sort == newSort) {
                     // If it hasn't been cast yet, it will be once we transform it
                     sort = IntSort
@@ -316,7 +322,7 @@ object OAFIntsTransformer extends ProblemStateTransformer {
 
                 if (sort == IntSort){
                     // Transform the left and right
-                    val (transformedLeft, upLeft) = transform(left, down)
+                    // val (transformedLeft, upLeft) = transform(left, down) // from above
                     val (transformedRight, upRight) = transform(right, down)
 
                     // We can ignore casting to int because we know it is in range
@@ -333,7 +339,8 @@ object OAFIntsTransformer extends ProblemStateTransformer {
                     (guardedEq, upInfo)
                 } else if (sort == BoolSort) {
                     // A & B | !A & !B
-                    val (posLeft, upPosLeft) = transform(left, down)
+                    //val (posLeft, upPosLeft) = transform(left, down) // from above
+                    val (posLeft, upPosLeft) = (transformedLeft, upLeft) // from above
                     val (posRight, upPosRight) = transform(right, down)
                     val negatedDown = down.flipPolarity()
                     val (negLeft, upNegLeft) = transform(left, negatedDown)
@@ -347,7 +354,7 @@ object OAFIntsTransformer extends ProblemStateTransformer {
                     (unfoldedEq, upInfo)
                 } else {
                     // This is a predicate of other sorts, just flow up and guard (there could be int->A somewhere)
-                    val (transformedLeft, upLeft) = transform(left, down)
+                    //val (transformedLeft, upLeft) = transform(left, down) // from above
                     val (transformedRight, upRight) = transform(right, down)
 
                     val newEq = Eq(transformedLeft, transformedRight)
@@ -378,13 +385,14 @@ object OAFIntsTransformer extends ProblemStateTransformer {
                 val (transformedIfFalse, upFalse) = transform(ifFalse, down)
 
                 // up Does not overflow when all of its overflows are false
-                val upDoesNotOverflow = Not(OrList(upCondition.univQuantChecks.toSeq ++ upCondition.extQuantChecks.toSeq))
+                // Or.smart will default to false if no values included
+                val upDoesNotOverflow = Not(Or.smart(upCondition.univQuantChecks.toSeq ++ upCondition.extQuantChecks.toSeq))
                 // branches only cause an overflow if we actually use the value there
                 val overflowUniv = AndList(upDoesNotOverflow, 
-                    IfThenElse(transformedCondition, OrList(upTrue.univQuantChecks.toSeq), OrList(upFalse.univQuantChecks.toSeq))
+                    IfThenElse(transformedCondition, Or.smart(upTrue.univQuantChecks.toSeq), Or.smart(upFalse.univQuantChecks.toSeq))
                     )
                 val overflowExt = AndList(upDoesNotOverflow, 
-                    IfThenElse(transformedCondition, OrList(upTrue.extQuantChecks.toSeq), OrList(upFalse.extQuantChecks.toSeq))
+                    IfThenElse(transformedCondition, Or.smart(upTrue.extQuantChecks.toSeq), Or.smart(upFalse.extQuantChecks.toSeq))
                     )
                 // We only use the condensed overflows
                 val newUp = UpInfo(upCondition.extQuantChecks + overflowExt, upCondition.univQuantChecks + overflowUniv)
@@ -586,7 +594,8 @@ object OAFIntsTransformer extends ProblemStateTransformer {
           */
         def withOverflowableTerms(overflowTerms: Seq[Term], universalVars: Set[Var], isInBoundsName: String): UpInfo = {
             val (extTerms, univTerms) = overflowTerms.partition( term => {
-                (RecursiveAccumulator.freeVariablesIn(term) & universalVars).isEmpty
+                val varsin = RecursiveAccumulator.freeVariablesIn(term)
+                (varsin intersect universalVars).isEmpty
             })
             // wrap the checks
             val extChecks = extTerms.map(term => Not(App(isInBoundsName, Seq(term))))
@@ -694,12 +703,14 @@ object OAFIntsTransformer extends ProblemStateTransformer {
 
         /**
           * Make the given substitutions in each check. Useful for function definitions' upinfo.
-          *
+          * Substitutions can change if something is univ or ext, so we need to repartition them
           * @param substitutions
           * @return
           */
-        def substitute(substitutions: Map[Var, Term]): UpInfo = {
-            UpInfo(extQuantChecks.map(_.fastSubstitute(substitutions)), univQuantChecks.map(_.fastSubstitute(substitutions)))
+        def substitute(substitutions: Map[Var, Term], univVars: Set[Var]): UpInfo = {
+            val allChecks = extQuantChecks.map(_.fastSubstitute(substitutions)) union univQuantChecks.map(_.fastSubstitute(substitutions))
+            val (newExtChecks, newUnivChecks) = allChecks.partition(RecursiveAccumulator.freeVariablesIn(_).intersect(univVars).isEmpty)
+            UpInfo(newExtChecks, newUnivChecks)
         }
     }
     
