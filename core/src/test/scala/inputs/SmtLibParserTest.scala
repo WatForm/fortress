@@ -325,6 +325,27 @@ class SmtLibParserTest extends UnitSuite {
         }}
     }
 
+    test("bitvector parse 2"){
+        val classLoader = getClass.getClassLoader
+        val file = new File(classLoader.getResource("bv2.smt2").getFile)
+        val fileStream = new FileInputStream(file)
+
+        val parser = new SmtLibParser
+        val resultTheory = parser.parse(fileStream).getOrElse(null)
+
+        val bv4 = BitVectorSort(4)
+        val bv3 = BitVectorSort(3)
+
+        val expected = Theory.empty
+            .withConstantDefinition(ConstantDefinition(Var("a") of bv3, BitVectorLiteral(-1, 3)))
+            .withConstantDefinition(ConstantDefinition(Var("b") of bv3, BitVectorLiteral(-4, 3)))
+            .withConstantDefinition(ConstantDefinition(Var("x") of bv4, BitVectorLiteral(-1, 4)))
+            // 9 not 8 for -7 not -8
+            .withConstantDefinition(ConstantDefinition(Var("y") of bv4, BitVectorLiteral(-7, 4)))
+
+        resultTheory should be (expected)
+    }
+
     test("closure") {
         val classLoader = getClass.getClassLoader
         val file = new File(classLoader.getResource("closure1.smt2").getFile)
