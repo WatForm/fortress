@@ -354,7 +354,14 @@ case class Signature private (
         val newEnums = enumConstants
 
         def bvToInt(value: Value): IntegerLiteral = value match {
-            case BitVectorLiteral(value, _) => IntegerLiteral(value)
+            case BitVectorLiteral(value, bitwidth) => {
+                // If the value here is incorrect we will change it
+                val maxPlusOne = Math.pow(2, bitwidth-1);
+                if (value >= maxPlusOne){
+                    Errors.Internal.impossibleState(f"Bitvectror ${value} is unsigned in BVUNAPPLY.")
+                }
+                IntegerLiteral(value)
+            }
             case _ => Errors.Internal.impossibleState("Trying to cast nonbitvector value '"+ value.toString()+"' to an integer.")
         }
         def unapply(interp: Interpretation): Interpretation = {

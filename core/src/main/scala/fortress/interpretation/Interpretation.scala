@@ -111,7 +111,7 @@ trait Interpretation {
         val theory: Theory = Theory.empty
                 .withConstantDeclaration(evalResultAnnotated)
                 .withAxiom(evalResult === BuiltinApp(fn, evalArgs))
-
+        
         val solver = new Z3IncSolver
         solver.setTheory(theory)
         solver.solve(Milliseconds(1000))
