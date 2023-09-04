@@ -236,9 +236,9 @@ trait SMTLIBCLISession extends solver {
             }
             case BitVectorSort(bitwidth) => value match {
                 case ProcessBuilderSolver.bitVecLiteral(radix, digits) => radix match {
-                    case "x" => BitVectorLiteral(Integer.parseInt(digits, 16), bitwidth)
+                    case "x" => BitVectorLiteral.ensureSignedValue(Integer.parseInt(digits, 16), bitwidth)
                     case "b" => {
-                        BitVectorLiteral(Integer.parseInt(digits, 2),  bitwidth)
+                        BitVectorLiteral.ensureSignedValue(Integer.parseInt(digits, 2),  bitwidth)
                     }
                     case _ => Errors.Internal.impossibleState
                 }

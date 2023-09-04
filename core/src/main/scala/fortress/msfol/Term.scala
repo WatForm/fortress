@@ -333,6 +333,22 @@ case class BitVectorLiteral private (value: Int, bitwidth: Int) extends Term wit
     override def accept[T](visitor: TermVisitor[T]): T = visitor.visitBitVectorLiteral(this)
 }
 
+object BitVectorLiteral {
+    /**
+      * Returns a BitVectorLiteral with a signed value.
+      * Given value=9, bitwidth=4 returns BitVectorLiteral(-7, 4)
+      *
+      * @param value the unsigned value of the bitvector
+      * @param bitwidth the number of bits in the bitvector
+      * @return
+      */
+    def ensureSignedValue(value: Int, bitwidth: Int): BitVectorLiteral = {
+        val maxPlusOne: Int = 1 << (bitwidth - 1)
+        val signedValue = (value^maxPlusOne)-maxPlusOne
+        BitVectorLiteral(signedValue, bitwidth)
+    }
+}
+
 case class IfThenElse private (condition: Term, ifTrue: Term, ifFalse: Term) extends Term {
     override def accept[T](visitor: TermVisitor[T]): T = visitor.visitIfThenElse(this)
 
