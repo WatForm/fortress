@@ -331,6 +331,9 @@ case class IntegerLiteral private (value: Int) extends Term with LeafTerm with V
 case class BitVectorLiteral private (value: Int, bitwidth: Int) extends Term with LeafTerm with Value {
     Errors.Internal.precondition(bitwidth > 0)
     override def accept[T](visitor: TermVisitor[T]): T = visitor.visitBitVectorLiteral(this)
+
+    // Return a BVLiteral with a signed value
+    def signed: BitVectorLiteral = BitVectorLiteral.ensureSignedValue(value, bitwidth)
 }
 
 object BitVectorLiteral {
@@ -343,6 +346,10 @@ object BitVectorLiteral {
       * @return
       */
     def ensureSignedValue(value: Int, bitwidth: Int): BitVectorLiteral = {
+        if (value <= 0){
+            // No need to change
+            return BitVectorLiteral(value, bitwidth)
+        }
         val maxPlusOne: Int = 1 << (bitwidth - 1)
         val signedValue = (value^maxPlusOne)-maxPlusOne
         BitVectorLiteral(signedValue, bitwidth)
