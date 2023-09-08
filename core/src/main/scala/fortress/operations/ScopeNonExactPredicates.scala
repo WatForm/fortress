@@ -2,12 +2,13 @@ package fortress.operations
 
 import fortress.msfol._
 import fortress.problemstate._
+import fortress.operations.TermOps._
 
 object ScopeNonExactPredicates {
 
     def nonExactScopePred(sort: Sort): String = s"__@Pred_${sort}"
 
-    def addBoundsPredicates(term: Term, helpMap: Map[Sort, Scope]): Term = term match {
+    def addBoundsPredicates(term: Term, helpMap: Map[Sort, Scope]): Term = (term match {
         case Top | Bottom | Var(_) | EnumValue(_) | DomainElement(_, _) | IntegerLiteral(_) | BitVectorLiteral(_, _) => term
         case Not(p) => Not(addBoundsPredicates(p, helpMap))
         case AndList(args) => AndList(args.map(addBoundsPredicates(_, helpMap)))
@@ -25,7 +26,7 @@ object ScopeNonExactPredicates {
                 if !av.sort.isBuiltin && helpMap.contains(av.sort) && !helpMap(av.sort).isExact
             } yield App(nonExactScopePred(av.sort), av.variable)
             if(predApps.isEmpty)
-                term
+                Exists(vars, addBoundsPredicates(body, helpMap))
             else
                 Exists(vars, And.smart(predApps :+ addBoundsPredicates(body, helpMap)))
         }
@@ -37,9 +38,9 @@ object ScopeNonExactPredicates {
                 App(nonExactScopePred(av.sort), av.variable)
             }
             if(predApps.isEmpty)
-                term
+                Forall(vars, addBoundsPredicates(body, helpMap))
             else
                 Forall(vars, Implication(And.smart(predApps), addBoundsPredicates(body, helpMap)))
         }
-    }
+    }).nnf  // We convert to nnf so we can put this after the nnf transformer
 }

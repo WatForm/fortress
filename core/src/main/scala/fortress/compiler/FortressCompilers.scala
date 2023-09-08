@@ -49,8 +49,8 @@ abstract class DatatypeMethodWithRangeCompiler() extends LogicCompiler {
         transformerSequence += TypecheckSanitizeTransformer
         transformerSequence += EnumEliminationTransformer
         transformerSequence += NnfTransformer
-        transformerSequence += ScopeNonExactPredicatesTransformer
         transformerSequence += ClosureEliminationEijckTransformer
+        transformerSequence += ScopeNonExactPredicatesTransformer
         transformerSequence += IntegerToBitVectorTransformer      
         transformerSequence += new SymmetryBreakingTransformer(MonoFirstThenFunctionsFirstAnyOrder, DefaultSymmetryBreaker)
         transformerSequence += RangeFormulaStandardTransformer
@@ -260,10 +260,10 @@ class PredUpperBoundCompiler extends LogicCompiler {
     override def transformerSequence: Seq[ProblemStateTransformer] = {
         val transformerSequence = new scala.collection.mutable.ListBuffer[ProblemStateTransformer]
         transformerSequence += TypecheckSanitizeTransformer
-        transformerSequence += ScopeNonExactPredicatesTransformer // Must be before skolemization
         transformerSequence += EnumEliminationTransformer
         transformerSequence += SortInferenceTransformer
         transformerSequence += NnfTransformer
+        transformerSequence += ScopeNonExactPredicatesTransformer // Must be before skolemization
         transformerSequence += SkolemizeTransformer
         transformerSequence ++= symmetryBreakingTransformers
         transformerSequence += StandardQuantifierExpansionTransformer
