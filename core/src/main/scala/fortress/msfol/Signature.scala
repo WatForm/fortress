@@ -8,6 +8,7 @@ import scala.annotation.varargs // So we can call Scala varargs methods from Jav
 import fortress.operations._
 import fortress.interpretation.Interpretation
 import fortress.interpretation.BasicInterpretation
+import fortress.operations.TermOps._
 
 // Persistent and Immutable
 // Internally consistent
@@ -316,7 +317,8 @@ case class Signature private (
             }
         )
         
-        var replacedFunctionDefinitions: Map[FunctionDefinition, FunctionDefinition] = Map.empty
+        // Function definitions will not reappear. No need to save
+        //var replacedFunctionDefinitions: Map[FunctionDefinition, FunctionDefinition] = Map.empty
         val newFunctionDefinitions = functionDefinitions.map(
             //Something in this seems wrong. What about integer args?
             funcDef => {
@@ -328,19 +330,14 @@ case class Signature private (
                         replaceSort(funcDef.resultSort),
                         TermConverter.intToSignedBitVector(funcDef.body, bitwidth)
                     )
-                    replacedFunctionDefinitions = replacedFunctionDefinitions + (newDef -> funcDef)
                     newDef
                 }
                 
             }
         )
 
-        var replacedConstantDefinitions: Map[AnnotatedVar, ConstantDefinition] = Map.empty 
         val newConstantDefinitions: Set[ConstantDefinition] = constantDefinitions.map(cDef => {
             val newDef = ConstantDefinition(replaceSortInAnnVar(cDef.avar), TermConverter.intToSignedBitVector(cDef.body, bitwidth))
-            if (cDef != newDef) {
-                replacedConstantDefinitions = replacedConstantDefinitions + (newDef.avar -> cDef)
-            }
             newDef
         })
 
@@ -376,21 +373,53 @@ case class Signature private (
             // constants we translated get converted to integers
             val newConsts = interp.constantInterpretations
                 .map({case (avar, value) =>
-                    if (replacedConstantDefinitions.isDefinedAt(avar)){
-                        (replacedConstantDefinitions(avar).avar, bvToInt(value))
-                    } else if (replacedConstantDeclarations.isDefinedAt(avar)){
+                    if (replacedConstantDeclarations.isDefinedAt(avar)){
                         (replacedConstantDeclarations(avar), bvToInt(value))
                     } else {
                         (avar, value)
                     }
             })
 
+            // We cast definitions back as needed
+
+
+
             val newFunctionDefinitions = interp.functionDefinitions
-                .map(fDef =>
-                    if (replacedFunctionDefinitions.isDefinedAt(fDef))
-                        replacedFunctionDefinitions(fDef)
-                    else fDef    
-                )
+                .map(fDef => {
+                    
+                    val decOfDef = FuncDecl(fDef.name, fDef.argSorts, fDef.resultSort)
+                    if (replacedFunctionDeclarations.isDefinedAt(decOfDef)){
+                        // cast the args properly
+                        val originalDec: FuncDecl = replacedFunctionDeclarations(decOfDef)
+
+                        // Change the sorts of the arguments back to what they should have been
+                        val newArgSorts = (originalDec.argSorts zip fDef.argSortedVar).map(_ match{
+                            case (origSort, AnnotatedVar(varName, _)) => varName of origSort
+                        })
+
+                        // New definition, we will make casts in the body to allow the casted args and output to still be used
+                        var newDef = FunctionDefinition(fDef.name, newArgSorts, originalDec.resultSort, fDef.body)
+
+                        // Cast each int arg to a bitvector in the body
+                        val substitutionsToMake = (originalDec.argSorts zip fDef.argSortedVar)
+                            .filter(pair => pair._1 != pair._2.sort)
+                            .map(pair => (pair._2.variable, BuiltinApp(CastIntToBV(bitwidth), pair._2.variable)))
+                            .toMap
+                        newDef = newDef.copy(body = newDef.body.fastSubstitute(substitutionsToMake))
+
+                        // If we would have outbut a bitvector, and should output int, cast the body back
+                        (originalDec.resultSort, fDef.resultSort) match {
+                            case (IntSort, BitVectorSort(_)) => {
+                                newDef = newDef.copy(body = BuiltinApp(CastBVToInt, newDef.body))
+                            }
+                            case _ => ()
+                        }
+                        
+                        newDef
+                    } else {
+                        fDef
+                    }
+                })
             
             val newFunctionInterps: Map[FuncDecl, Map[Seq[Value], Value]] = interp.functionInterpretations
                 .map({
@@ -399,7 +428,7 @@ case class Signature private (
 
                         // find indices of args that were cast
                         val differentIndices: Seq[Int] = for {
-                            i <- 1 to newDec.argSorts.length
+                            i <- newDec.argSorts.indices
                             if newDec.argSorts(i) != fDec.argSorts(i)
                         } yield i
                         // replace args that got cast
