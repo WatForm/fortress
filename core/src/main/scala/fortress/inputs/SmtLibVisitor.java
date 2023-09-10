@@ -606,6 +606,16 @@ public class SmtLibVisitor extends SmtLibSubsetBaseVisitor {
         return Term.mkAnd(comps);
     }
 
+    private int valueToBitVector(int val, int bitwidth){
+        val %= (int)Math.pow(2, bitwidth);
+        // Val is now essentially unsigned bv of bitwidth
+        if ((val & (1 << (bitwidth - 1))) != 0){
+            // Sign bit is set make it negative
+            val = val - (1 << bitwidth);
+        }
+        return val;
+    }
+
     @Override
     public Term visitBin_literal(SmtLibSubsetParser.Bin_literalContext ctx) {
         String bin = ctx.BIN_NUMBER().getText();
@@ -613,14 +623,18 @@ public class SmtLibVisitor extends SmtLibSubsetBaseVisitor {
         int width = bin.length() - 2;
         int val = Integer.parseInt(bin.substring(2), 2);
 
+        val = valueToBitVector(val, width);
+
         return new BitVectorLiteral(val, width);
     }
     @Override
     public Term visitHex_literal(SmtLibSubsetParser.Hex_literalContext ctx) {
         String bin = ctx.HEX_NUMBER().getText();
 
-        int width = (bin.length() - 2) * 4;
+        int width = (bin.length() - 2) * 4; // hex has 4 bits per character
         int val = Integer.parseInt(bin.substring(2), 16);
+
+        val = valueToBitVector(val, width);
 
         return new BitVectorLiteral(val, width);
     }
