@@ -98,7 +98,7 @@ case class Not private (body: Term) extends Term {
 
 /** Represents a conjunction. */
 case class AndList private (arguments: Seq[Term]) extends Term {
-    Errors.Internal.precondition(arguments.size >= 2)
+    Errors.Internal.precondition(arguments.size >= 2, "AndList must contain at least 2 values.")
     
     override def accept[T](visitor: TermVisitor[T]): T = visitor.visitAndList(this)
     def mapArguments(mapping: Term => Term): Term =
@@ -123,7 +123,7 @@ object And {
 
 /** Represents a disjunction. */
 case class OrList private (arguments: Seq[Term]) extends Term {
-    Errors.Internal.precondition(arguments.size >= 2)
+    Errors.Internal.precondition(arguments.size >= 2, "OrList must contain at least 2 values")
     
     override def accept[T](visitor: TermVisitor[T]): T = visitor.visitOrList(this)
     def mapArguments(mapping: Term => Term): Term =
@@ -331,6 +331,29 @@ case class IntegerLiteral private (value: Int) extends Term with LeafTerm with V
 case class BitVectorLiteral private (value: Int, bitwidth: Int) extends Term with LeafTerm with Value {
     Errors.Internal.precondition(bitwidth > 0)
     override def accept[T](visitor: TermVisitor[T]): T = visitor.visitBitVectorLiteral(this)
+
+    // Return a BVLiteral with a signed value
+    def signed: BitVectorLiteral = BitVectorLiteral.ensureSignedValue(value, bitwidth)
+}
+
+object BitVectorLiteral {
+    /**
+      * Returns a BitVectorLiteral with a signed value.
+      * Given value=9, bitwidth=4 returns BitVectorLiteral(-7, 4)
+      *
+      * @param value the unsigned value of the bitvector
+      * @param bitwidth the number of bits in the bitvector
+      * @return
+      */
+    def ensureSignedValue(value: Int, bitwidth: Int): BitVectorLiteral = {
+        if (value <= 0){
+            // No need to change
+            return BitVectorLiteral(value, bitwidth)
+        }
+        val maxPlusOne: Int = 1 << (bitwidth - 1)
+        val signedValue = (value^maxPlusOne)-maxPlusOne
+        BitVectorLiteral(signedValue, bitwidth)
+    }
 }
 
 case class IfThenElse private (condition: Term, ifTrue: Term, ifFalse: Term) extends Term {

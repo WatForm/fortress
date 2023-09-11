@@ -112,6 +112,9 @@ class SmtlibConverter(writer: java.io.Writer) {
             case BuiltinApp(BvSignedGE, args) => writeGeneralApp("bvsge", args)
             case BuiltinApp(BvSignedGT, args) => writeGeneralApp("bvsgt", args)
             case BuiltinApp(BvConcat, args) => writeGeneralApp("concat", args)
+            case BuiltinApp(CastBVToInt, args) => writeGeneralApp("bv2int", args)
+            case BuiltinApp(CastIntToBV(bitwidth), args) => writeGeneralApp(s"(_ int2bv $bitwidth)", args)
+
 
             case Closure(fname, arg1, arg2, fixedArgs) => {
                 writer.write("(closure ")

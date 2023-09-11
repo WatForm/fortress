@@ -98,23 +98,38 @@ trait Interpretation {
     // (to avoid having to implement every function manually on our end)
     def evaluateBuiltIn(fn: BuiltinFunction, evalArgs: Seq[Value]): Value = {
         val evalResult: Var = Var("!VERIFY_INTERPRETATION_RES")
+        var isBv2Int = false // Ints are converted SIGNED, we want unsigned
         val evalResultAnnotated: AnnotatedVar = fn match {
             case IntPlus | IntNeg | IntSub | IntMult | IntDiv | IntMod => evalResult of Sort.Int
             case BvPlus | BvNeg | BvSub | BvMult | BvSignedDiv | BvSignedRem | BvSignedMod =>
                 evalResult of Sort.BitVector(evalArgs.head.asInstanceOf[BitVectorLiteral].bitwidth);
             case IntLE | IntLT | IntGE | IntGT |
                  BvSignedLE | BvSignedLT | BvSignedGE | BvSignedGT => evalResult of Sort.Bool
+            case CastBVToInt => {
+                isBv2Int = true
+                evalResult of Sort.Int
+            }
+            case CastIntToBV(bitwidth) => evalResult of BitVectorSort(bitwidth)
             case _ => throw new scala.NotImplementedError("Builtin function not accounted for")
         }
+
+        // Early handling of Bv2Int casting
+        if (isBv2Int){
+            val signedBV = evalArgs.head.asInstanceOf[BitVectorLiteral].signed
+            return IntegerLiteral(signedBV.value)
+            
+        }
+
         val theory: Theory = Theory.empty
                 .withConstantDeclaration(evalResultAnnotated)
                 .withAxiom(evalResult === BuiltinApp(fn, evalArgs))
-
+        
         val solver = new Z3IncSolver
         solver.setTheory(theory)
         solver.solve(Milliseconds(1000))
         val solvedInstance = solver.solution
         solver.close()
+
         solvedInstance.constantInterpretations(evalResultAnnotated)
     }
 

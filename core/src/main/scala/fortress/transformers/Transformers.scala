@@ -32,11 +32,12 @@ object Transformers {
             case "domainelimination2" | "domaineliminationtransformer2" => new DomainEliminationTransformer2()
             case "enumelimination" => EnumEliminationTransformer
             case "integertobitvectors" | "integertobitvector" | "inttobv" | "int2bv" | "integer2bitvector" => IntegerToBitVectorTransformer
+            case "nooverflowbv" => NoOverflowBVTransformer
             case "nnf" => NnfTransformer
             case "oafints" | "oaf" | "oafint" => OAFIntsTransformer
             case "quantifierexpansion" => mkQuantifierExpansionTransformer()
             case "rangeformula" | "rangeformulastandard" => RangeFormulaStandardTransformer
-            case "scopenonexactpredicatestype" => ScopeNonExactPredicatesTransformer
+            case "scopenonexactpredicatestype" | "scopenonexactpredicates" | "nonexactpredicates" | "nonexactscopes" | "nonexactscope" => ScopeNonExactPredicatesTransformer
             case "simplifylearnedliterals" => new SimplifyLearnedLiteralsTransformer()
             case "simplify" => new SimplifyTransformer()
             case "simplify2" | "simplifytransformer2" => new SimplifyTransformer2()
@@ -52,6 +53,9 @@ object Transformers {
             case "symmetrybreakingsi" | "symmetrybreakingtransformersi" => Errors.API.doesNotExist("Use mkSymmetryBreakingTransformerSI")
             case "typechecksanitizer" | "typecheck" | "typechecksanitize" => TypecheckSanitizeTransformer
             case "zeroarityapplication" | "zeroarityapp" | "zeroarity" | "zeroarityvar" | "zeroarityapps" | "zeroarityvars" => ZeroArityApplicationTransformer
+            case "axiomatizeintpreddefinitions" | "axiomatizeintpreds" | "axiomatizeintpreddefs" | "aipd" | "aip" 
+                | "axiomatizeintegerpredicatedefinitions" | "axiomatizeintpredicatedefinitions" | "axiomatizeintegerpredicatedefs"
+                | "axiomatizeintegerpreddefs" | "axiomatizeintpredicatedefs" => AxiomatizeIntPredDefinitionsTransformer
             case _ => Errors.API.doesNotExist(name + " is not a recognized Transformer.")
         }
     }

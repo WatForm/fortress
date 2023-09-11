@@ -1,0 +1,6 @@
+(define-fun a () (_ BitVec 3) #b111)
+(define-fun b () (_ BitVec 3) #b100)
+(define-fun x () (_ BitVec 4) #xf)
+(define-fun y () (_ BitVec 4) #x9)
+(check-sat)
+(exit)
