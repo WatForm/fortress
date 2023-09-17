@@ -188,19 +188,15 @@ class OAFIntsTransformerTest extends UnitSuite {
     }
 
     test("integration works") {
-        val negatedTautology = Not(
-            Forall(Seq(x.of(IntSort), y.of(IntSort)),
-                Implication(
-                    And(
-                        Term.mkGT(x, IntegerLiteral(0)),
-                        Term.mkGT(y, IntegerLiteral(0))
-                    ),
-                    And(
-                        Term.mkGT(Term.mkPlus(x, y), IntegerLiteral(0)),
-                        Term.mkGT(Term.mkPlus(x, y), x),
-                        Term.mkGT(Term.mkPlus(x, y), y)
-                    )
-                )
+        val negatedTautology = Exists(Seq(x.of(IntSort), y.of(IntSort)),
+            And(
+                Term.mkGT(x, IntegerLiteral(0)),
+                Term.mkGT(y, IntegerLiteral(0)),
+                Not(And(
+                    Term.mkGT(Term.mkPlus(x, y), IntegerLiteral(0)),
+                    Term.mkGT(Term.mkPlus(x, y), x),
+                    Term.mkGT(Term.mkPlus(x, y), y)
+                ))
             )
         )
 
@@ -231,6 +227,10 @@ class OAFIntsTransformerTest extends UnitSuite {
             if (result == ModelFinderResult.Sat){
                 val modelstring = finder.viewModel().toString()
                 println(modelstring)
+                println(finder.createCompiler().compile(theory, Map(IntSort->ExactScope(intSize)), Seconds(10).toMilli, Seq.empty) match {
+                    case Right(value) => value.theory.smtlib
+                    case _ => ""
+                })
                 fail("Should be UNSAT")
             }
             assert(result == ModelFinderResult.Unsat)

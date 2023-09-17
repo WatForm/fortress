@@ -212,8 +212,8 @@ object OAFIntsTransformer extends ProblemStateTransformer {
                 val overwrittenVars = otherVars.filter(ov => down.oafVars.contains(ov.variable))
                 // remove quantified vars from raised checks
                 val newDown = down
-                    .withUnivVars(newVars.map(_.variable))
                     .withoutVars(overwrittenVars.map(_.variable))
+                    .withUnivVars(newVars.map(_.variable))
                     .withOtherVars(otherVars)
 
                 val (newBody, upInfo) = transform(body, newDown)
