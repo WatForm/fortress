@@ -8,7 +8,12 @@ class ProcessSession(processArgs: java.util.List[String]) extends AutoCloseable 
     private val process: Process = new ProcessBuilder(processArgs).start()
     private val in: BufferedWriter = new BufferedWriter(new OutputStreamWriter(process.getOutputStream))
     private val out: BufferedReader = new BufferedReader(new InputStreamReader(process.getInputStream))
-    
+
+    private val closeThread: Thread = new Thread(() => {
+        process.destroyForcibly()
+    })
+    Runtime.getRuntime.addShutdownHook(closeThread)
+
     def flush(): Unit = in.flush()
     def write(str: String): Unit = in.write(str)
     def readLine(): String = out.readLine()
@@ -21,6 +26,7 @@ class ProcessSession(processArgs: java.util.List[String]) extends AutoCloseable 
         in.close()
         out.close()
         process.destroy()
+        Runtime.getRuntime.removeShutdownHook(closeThread)
     }
     
 }
