@@ -43,9 +43,18 @@ object  ScopeNonExactPredicatesTransformer extends ProblemStateTransformer {
                 if scopes.contains(fdecl.resultSort) && !scopes(fdecl.resultSort).isExact
             } yield {
                 val argsAnnotated = fdecl.argSorts.zipWithIndex.map { case (sort, index) => Var(s"x_${sort}_${index}") of sort }
+
+                // For each arg with a non-exact scope, add a hypothesis that the arg is in its sort
+                val guards = argsAnnotated
+                    .filter { arg => !scopes(arg.sort).isExact }
+                    .map { arg => App(ScopeNonExactPredicates.nonExactScopePred(arg.sort), arg.variable) }
+
+                // Suppose f: AxB->C and all are non-exact. Generate the following axiom:
+                // forall a: A, b: B . inA(a) && inB(b) => inC(f(a,b))
                 val outputPred = ScopeNonExactPredicates.nonExactScopePred(fdecl.resultSort)
-                // We don't need to check that the inputs are in the subtypes, such inputs don't have any affect on the formulas
-                Forall(argsAnnotated, App(outputPred, App(fdecl.name, argsAnnotated.map(_.variable))))
+                Forall(argsAnnotated,
+                    Implication(And.smart(guards),
+                        App(outputPred, App(fdecl.name, argsAnnotated.map(_.variable)))))
             }
 
             val resultTheory = theory
