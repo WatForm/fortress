@@ -21,7 +21,7 @@ abstract class ConstantsMethodCompiler() extends LogicCompiler {
         transformerSequence += ClosureEliminationEijckTransformer
         transformerSequence += ScopeNonExactPredicatesTransformer
         transformerSequence += IntegerToBitVectorTransformer    
-        //transformerSequence += NoOverflowBVTransformer  
+        transformerSequence += NoOverflowBVTransformer  
         transformerSequence += SkolemizeTransformer
         transformerSequence += new SymmetryBreakingTransformer(MonoFirstThenFunctionsFirstAnyOrder, DefaultSymmetryBreaker)
         transformerSequence += StandardQuantifierExpansionTransformer
@@ -47,7 +47,7 @@ abstract class DatatypeMethodNoRangeCompiler() extends LogicCompiler {
         transformerSequence += ClosureEliminationEijckTransformer
         transformerSequence += ScopeNonExactPredicatesTransformer
         transformerSequence += IntegerToBitVectorTransformer      
-        //transformerSequence += NoOverflowBVTransformer
+        transformerSequence += NoOverflowBVTransformer
         transformerSequence += new SymmetryBreakingTransformer(MonoFirstThenFunctionsFirstAnyOrder, DefaultSymmetryBreaker)
         transformerSequence += new SimplifyTransformer
         transformerSequence += DatatypeTransformer
@@ -70,7 +70,7 @@ abstract class DatatypeMethodWithRangeCompiler() extends LogicCompiler {
         transformerSequence += ClosureEliminationEijckTransformer
         transformerSequence += ScopeNonExactPredicatesTransformer
         transformerSequence += IntegerToBitVectorTransformer      
-        //transformerSequence += NoOverflowBVTransformer
+        transformerSequence += NoOverflowBVTransformer
         transformerSequence += new SymmetryBreakingTransformer(MonoFirstThenFunctionsFirstAnyOrder, DefaultSymmetryBreaker)
         transformerSequence += RangeFormulaStandardTransformer
         transformerSequence += new SimplifyTransformer
@@ -93,7 +93,7 @@ abstract class DatatypeMethodNoRangeEUFCompiler() extends LogicCompiler {
         transformerSequence += ClosureEliminationEijckTransformer
         transformerSequence += ScopeNonExactPredicatesTransformer
         transformerSequence += IntegerToBitVectorTransformer      
-        //transformerSequence += NoOverflowBVTransformer
+        transformerSequence += NoOverflowBVTransformer
         transformerSequence += SkolemizeTransformer
         transformerSequence += new SymmetryBreakingTransformer(MonoFirstThenFunctionsFirstAnyOrder, DefaultSymmetryBreaker)
         transformerSequence += StandardQuantifierExpansionTransformer
@@ -117,7 +117,7 @@ abstract class DatatypeMethodWithRangeEUFCompiler() extends LogicCompiler {
         transformerSequence += ClosureEliminationEijckTransformer
         transformerSequence += ScopeNonExactPredicatesTransformer
         transformerSequence += IntegerToBitVectorTransformer      
-        //transformerSequence += NoOverflowBVTransformer
+        transformerSequence += NoOverflowBVTransformer
         transformerSequence += SkolemizeTransformer
         transformerSequence += new SymmetryBreakingTransformer(MonoFirstThenFunctionsFirstAnyOrder, DefaultSymmetryBreaker)
         transformerSequence += StandardQuantifierExpansionTransformer
