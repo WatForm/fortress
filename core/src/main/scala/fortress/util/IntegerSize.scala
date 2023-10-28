@@ -29,7 +29,18 @@ object IntegerSize {
             case BvSignedMod => bitvectorWidth(arguments(0), sig)
             case BvSignedRem => bitvectorWidth(arguments(0), sig)
             case BvSub => bitvectorWidth(arguments(0), sig)
+            case CastIntToBV(bitwidth) => Some(bitwidth)
             case _ => None
+        }
+        
+        case IfThenElse(_, left, right) => {
+            val leftBitwidth = bitvectorWidth(left, sig)
+            val rightBitwidth = bitvectorWidth(right, sig)
+
+            if (leftBitwidth != rightBitwidth){
+                Errors.Internal.impossibleState(f"Cannot determine bitwidth of '${term.toString()}': branches have different widths!")
+            }
+            leftBitwidth
         }
         case _ => Errors.Internal.impossibleState("Trying to get bitwidth of '" + term.toString() + "'")
     }
