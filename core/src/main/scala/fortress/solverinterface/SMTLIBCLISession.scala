@@ -20,6 +20,7 @@ trait SMTLIBCLISession extends solver {
     protected def processArgs: Seq[String]
     protected def timeoutArg(timeoutMillis: Milliseconds): String
 
+    protected def checkSatCommand: String = "(check-sat-using (then simplify elim-predicates smt))"
 
     @throws(classOf[java.io.IOException])
     override def close(): Unit = {
@@ -48,7 +49,7 @@ trait SMTLIBCLISession extends solver {
 
     override def solve(timeoutMillis: Milliseconds): ModelFinderResult = {
         processSession.get.write(s"(set-option :timeout ${timeoutMillis.value})") // Doesn't work for CVC4
-        processSession.get.write("(check-sat)\n")
+        processSession.get.write(checkSatCommand + "\n")
         processSession.get.flush()
 
         val result = processSession.get.readLine()
