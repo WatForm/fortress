@@ -24,9 +24,10 @@ abstract class ConstantsMethodCompiler() extends LogicCompiler {
         transformerSequence += NnfTransformer
         transformerSequence += SkolemizeTransformer
         transformerSequence += new SymmetryBreakingTransformer(MonoFirstThenFunctionsFirstAnyOrder, DefaultSymmetryBreaker)
+        transformerSequence += SimplifyWithScalarQuantifiersTransformer
         transformerSequence += StandardQuantifierExpansionTransformer
         transformerSequence += RangeFormulaStandardTransformer
-        transformerSequence += SimplifyWithScalarQuantifiersTransformer
+        transformerSequence += new SimplifyTransformer
         transformerSequence += DomainEliminationTransformer
         transformerSequence.toList
     }
@@ -96,8 +97,9 @@ abstract class DatatypeMethodNoRangeEUFCompiler() extends LogicCompiler {
         transformerSequence += NnfTransformer
         transformerSequence += SkolemizeTransformer
         transformerSequence += new SymmetryBreakingTransformer(MonoFirstThenFunctionsFirstAnyOrder, DefaultSymmetryBreaker)
-        transformerSequence += StandardQuantifierExpansionTransformer
         transformerSequence += SimplifyWithScalarQuantifiersTransformer
+        transformerSequence += StandardQuantifierExpansionTransformer
+        transformerSequence += new SimplifyTransformer
         transformerSequence += DatatypeTransformer
         transformerSequence.toList
     }
@@ -120,9 +122,10 @@ abstract class DatatypeMethodWithRangeEUFCompiler() extends LogicCompiler {
         transformerSequence += NnfTransformer
         transformerSequence += SkolemizeTransformer
         transformerSequence += new SymmetryBreakingTransformer(MonoFirstThenFunctionsFirstAnyOrder, DefaultSymmetryBreaker)
+        transformerSequence += SimplifyWithScalarQuantifiersTransformer
         transformerSequence += StandardQuantifierExpansionTransformer
         transformerSequence += RangeFormulaStandardTransformer
-        transformerSequence += SimplifyWithScalarQuantifiersTransformer
+        transformerSequence += new SimplifyTransformer
         transformerSequence += DatatypeTransformer
         transformerSequence.toList
     }
