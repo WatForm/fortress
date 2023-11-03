@@ -42,5 +42,5 @@ object ScopeNonExactPredicates {
             else
                 Forall(vars, Implication(And.smart(predApps), addBoundsPredicates(body, helpMap)))
         }
-    }).nnf  // We convert to nnf so we can put this after the nnf transformer
+    }) // .nnf  // We convert to nnf so we can put this after the nnf transformer
 }
