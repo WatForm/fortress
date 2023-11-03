@@ -49,6 +49,7 @@ trait SMTLIBCLISession extends solver {
 
     override def solve(timeoutMillis: Milliseconds): ModelFinderResult = {
         processSession.get.write(s"(set-option :timeout ${timeoutMillis.value})") // Doesn't work for CVC4
+        processSession.get.write("(set-option :smt.ematching false)")
         processSession.get.write(checkSatCommand + "\n")
         processSession.get.flush()
 
