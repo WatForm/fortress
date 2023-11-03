@@ -17,16 +17,17 @@ abstract class ConstantsMethodCompiler() extends LogicCompiler {
         val transformerSequence = new scala.collection.mutable.ListBuffer[ProblemStateTransformer]
         transformerSequence += TypecheckSanitizeTransformer
         transformerSequence += EnumEliminationTransformer
-        transformerSequence += NnfTransformer
         transformerSequence += ClosureEliminationEijckTransformer
         transformerSequence += ScopeNonExactPredicatesTransformer
         transformerSequence += IntegerToBitVectorTransformer    
         transformerSequence += NoOverflowBVTransformer  
+        transformerSequence += NnfTransformer
         transformerSequence += SkolemizeTransformer
         transformerSequence += new SymmetryBreakingTransformer(MonoFirstThenFunctionsFirstAnyOrder, DefaultSymmetryBreaker)
+        transformerSequence += SimplifyWithScalarQuantifiersTransformer
         transformerSequence += StandardQuantifierExpansionTransformer
         transformerSequence += RangeFormulaStandardTransformer
-        transformerSequence += SimplifyWithScalarQuantifiersTransformer
+        transformerSequence += new SimplifyTransformer
         transformerSequence += DomainEliminationTransformer
         transformerSequence.toList
     }
@@ -35,7 +36,7 @@ abstract class ConstantsMethodCompiler() extends LogicCompiler {
 
 /*
    use datatypes 
-   don't get rid of quantifiers - not EUF
+   don't get rid of quantifiers - not EUF (no nnf, no skolemization and no quantifier expansion)
    no range formulas (b/c datatype limits output to finite)
 */
 abstract class DatatypeMethodNoRangeCompiler() extends LogicCompiler {
@@ -43,7 +44,7 @@ abstract class DatatypeMethodNoRangeCompiler() extends LogicCompiler {
         val transformerSequence = new scala.collection.mutable.ListBuffer[ProblemStateTransformer]
         transformerSequence += TypecheckSanitizeTransformer
         transformerSequence += EnumEliminationTransformer
-        transformerSequence += NnfTransformer
+        // transformerSequence += NnfTransformer
         transformerSequence += ClosureEliminationEijckTransformer
         transformerSequence += ScopeNonExactPredicatesTransformer
         transformerSequence += IntegerToBitVectorTransformer      
@@ -58,7 +59,7 @@ abstract class DatatypeMethodNoRangeCompiler() extends LogicCompiler {
 
 /*
    use datatypes 
-   don't get rid of quantifiers - not EUF
+   don't get rid of quantifiers - not EUF (no nnf, no skolemize/quantifier expansion)
    use range formulas 
 */
 abstract class DatatypeMethodWithRangeCompiler() extends LogicCompiler {
@@ -66,7 +67,7 @@ abstract class DatatypeMethodWithRangeCompiler() extends LogicCompiler {
         val transformerSequence = new scala.collection.mutable.ListBuffer[ProblemStateTransformer]
         transformerSequence += TypecheckSanitizeTransformer
         transformerSequence += EnumEliminationTransformer
-        transformerSequence += NnfTransformer
+        // transformerSequence += NnfTransformer
         transformerSequence += ClosureEliminationEijckTransformer
         transformerSequence += ScopeNonExactPredicatesTransformer
         transformerSequence += IntegerToBitVectorTransformer      
@@ -81,7 +82,7 @@ abstract class DatatypeMethodWithRangeCompiler() extends LogicCompiler {
 }
 
 /*
-   use datatypes but turn it into EUF by getting rid of quantifiers (skolemize, quant exp)
+   use datatypes but turn it into EUF by getting rid of quantifiers (nnf, skolemize, quant exp)
    don't use range formulas (b/c datatype limits output to finite)
 */
 abstract class DatatypeMethodNoRangeEUFCompiler() extends LogicCompiler {
@@ -89,15 +90,16 @@ abstract class DatatypeMethodNoRangeEUFCompiler() extends LogicCompiler {
         val transformerSequence = new scala.collection.mutable.ListBuffer[ProblemStateTransformer]
         transformerSequence += TypecheckSanitizeTransformer
         transformerSequence += EnumEliminationTransformer
-        transformerSequence += NnfTransformer
         transformerSequence += ClosureEliminationEijckTransformer
         transformerSequence += ScopeNonExactPredicatesTransformer
         transformerSequence += IntegerToBitVectorTransformer      
         transformerSequence += NoOverflowBVTransformer
+        transformerSequence += NnfTransformer
         transformerSequence += SkolemizeTransformer
         transformerSequence += new SymmetryBreakingTransformer(MonoFirstThenFunctionsFirstAnyOrder, DefaultSymmetryBreaker)
-        transformerSequence += StandardQuantifierExpansionTransformer
         transformerSequence += SimplifyWithScalarQuantifiersTransformer
+        transformerSequence += StandardQuantifierExpansionTransformer
+        transformerSequence += new SimplifyTransformer
         transformerSequence += DatatypeTransformer
         transformerSequence.toList
     }
@@ -113,16 +115,17 @@ abstract class DatatypeMethodWithRangeEUFCompiler() extends LogicCompiler {
         val transformerSequence = new scala.collection.mutable.ListBuffer[ProblemStateTransformer]
         transformerSequence += TypecheckSanitizeTransformer
         transformerSequence += EnumEliminationTransformer
-        transformerSequence += NnfTransformer
         transformerSequence += ClosureEliminationEijckTransformer
         transformerSequence += ScopeNonExactPredicatesTransformer
         transformerSequence += IntegerToBitVectorTransformer      
         transformerSequence += NoOverflowBVTransformer
+        transformerSequence += NnfTransformer
         transformerSequence += SkolemizeTransformer
         transformerSequence += new SymmetryBreakingTransformer(MonoFirstThenFunctionsFirstAnyOrder, DefaultSymmetryBreaker)
+        transformerSequence += SimplifyWithScalarQuantifiersTransformer
         transformerSequence += StandardQuantifierExpansionTransformer
         transformerSequence += RangeFormulaStandardTransformer
-        transformerSequence += SimplifyWithScalarQuantifiersTransformer
+        transformerSequence += new SimplifyTransformer
         transformerSequence += DatatypeTransformer
         transformerSequence.toList
     }
