@@ -27,9 +27,11 @@ object Skolemization {
             case OrList(args) => OrList(args map recur)
             case Distinct(_) | Iff (_, _) | Implication(_, _) => Errors.Internal.preconditionFailed(s"Term not in negation normal form: ${term}")
             case Eq(l, r) => Eq(recur(l), recur(r))
-            case App(fn, args) => App(fn, args map recur)
+            // Arguments with unknown polarity cannot be skolemized
+            // It is possible that knowledge of fn may help skolemize more often
+            case App(fn, args) => App(fn, args)
             case BuiltinApp(fn, args) => BuiltinApp(fn, args map recur)
-            case IfThenElse(c, t, f) => IfThenElse(recur(c), recur(t), recur(f))
+            case IfThenElse(c, t, f) => IfThenElse(c, recur(t), recur(f))
             case Forall(avars, body) => {
                 context = context.stackPush(avars)
                 val r = Forall(avars, recur(body))
@@ -80,6 +82,9 @@ object Skolemization {
                 }
                 recur(temporaryBody)
             }
+            // Arguments with unknown polarity cannot be skolemized
+            case Closure(functionName, arg1, arg2, fixedArgs) => term
+            case ReflexiveClosure(functionName, arg1, arg2, fixedArgs) => term
         }
 
         val skolemTerm = recur(axiom)
