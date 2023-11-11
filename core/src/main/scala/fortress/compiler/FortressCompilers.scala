@@ -25,6 +25,7 @@ abstract class ConstantsMethodCompiler() extends LogicCompiler {
         transformerSequence += SkolemizeTransformer
         transformerSequence += new SymmetryBreakingTransformer(MonoFirstThenFunctionsFirstAnyOrder, DefaultSymmetryBreaker)
         transformerSequence += SimplifyWithScalarQuantifiersTransformer
+        transformerSequence += QuantifiersToDefinitionsTransformer
         transformerSequence += StandardQuantifierExpansionTransformer
         transformerSequence += RangeFormulaStandardTransformer
         transformerSequence += new SimplifyTransformer
@@ -51,6 +52,8 @@ abstract class DatatypeMethodNoRangeCompiler() extends LogicCompiler {
         transformerSequence += NoOverflowBVTransformer
         transformerSequence += new SymmetryBreakingTransformer(MonoFirstThenFunctionsFirstAnyOrder, DefaultSymmetryBreaker)
         transformerSequence += SimplifyWithScalarQuantifiersTransformer
+        transformerSequence += QuantifiersToDefinitionsTransformer
+        transformerSequence += new SimplifyTransformer
         transformerSequence += DatatypeTransformer
         transformerSequence.toList
     }
@@ -75,6 +78,8 @@ abstract class DatatypeMethodWithRangeCompiler() extends LogicCompiler {
         transformerSequence += new SymmetryBreakingTransformer(MonoFirstThenFunctionsFirstAnyOrder, DefaultSymmetryBreaker)
         transformerSequence += RangeFormulaStandardTransformer
         transformerSequence += SimplifyWithScalarQuantifiersTransformer
+        transformerSequence += QuantifiersToDefinitionsTransformer
+        transformerSequence += new SimplifyTransformer
         transformerSequence += DatatypeTransformer
         transformerSequence.toList
     }
@@ -98,6 +103,7 @@ abstract class DatatypeMethodNoRangeEUFCompiler() extends LogicCompiler {
         transformerSequence += SkolemizeTransformer
         transformerSequence += new SymmetryBreakingTransformer(MonoFirstThenFunctionsFirstAnyOrder, DefaultSymmetryBreaker)
         transformerSequence += SimplifyWithScalarQuantifiersTransformer
+        transformerSequence += QuantifiersToDefinitionsTransformer
         transformerSequence += StandardQuantifierExpansionTransformer
         transformerSequence += new SimplifyTransformer
         transformerSequence += DatatypeTransformer
@@ -123,6 +129,7 @@ abstract class DatatypeMethodWithRangeEUFCompiler() extends LogicCompiler {
         transformerSequence += SkolemizeTransformer
         transformerSequence += new SymmetryBreakingTransformer(MonoFirstThenFunctionsFirstAnyOrder, DefaultSymmetryBreaker)
         transformerSequence += SimplifyWithScalarQuantifiersTransformer
+        transformerSequence += QuantifiersToDefinitionsTransformer
         transformerSequence += StandardQuantifierExpansionTransformer
         transformerSequence += RangeFormulaStandardTransformer
         transformerSequence += new SimplifyTransformer
