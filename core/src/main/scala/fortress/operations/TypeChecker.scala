@@ -242,14 +242,16 @@ class TypeChecker(signature: Signature) extends TermVisitorWithTypeContext[TypeC
         if(! (signature hasFuncDeclWithName  funcName) ) {
             throw new TypeCheckException.UnknownFunction("Could not find function: " + funcName)
         }
-
+        
         val results = c.allArguments.map(visit)
+        /*
         if (results.exists(_.containsConnectives)) {
             throw new TypeCheckException.BadStructure("Argument of ^" + c.functionName + " contains connective")
         }
         if (results.exists(_.containsQuantifiers)) {
             throw new TypeCheckException.BadStructure("Argument of ^" + c.functionName + " contains quantifier")
         }
+        */
         // We assunme closing over first 2 arguments
         if (results(0).sort != results(1).sort) {
             throw new TypeCheckException.WrongSort("Trying to close over arguments of different sorts in " + c.toString())
@@ -288,14 +290,16 @@ class TypeChecker(signature: Signature) extends TermVisitorWithTypeContext[TypeC
         if(! (signature hasFuncDeclWithName  funcName) ) {
             throw new TypeCheckException.UnknownFunction("Could not find function: " + funcName)
         }
-
+        
         val results = rc.allArguments.map(visit)
+        /*
         if (results.exists(_.containsConnectives)) {
             throw new TypeCheckException.BadStructure("Argument of *" + rc.functionName + " contains connective")
         }
         if (results.exists(_.containsQuantifiers)) {
             throw new TypeCheckException.BadStructure("Argument of *" + rc.functionName + " contains quantifier")
         }
+        */
         // We assunme closing over first 2 arguments
         if (results(0).sort != results(1).sort) {
             throw new TypeCheckException.WrongSort("Trying to close over arguments of different sorts in " + rc.toString())

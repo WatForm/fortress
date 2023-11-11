@@ -32,10 +32,10 @@ object NormalForms {
         )
         case Not(Forall(vars, body)) => Exists(vars, nnf(Not(body)))
         case Not(Exists(vars, body)) => Forall(vars, nnf(Not(body)))
-        case App(fname, args) => App(fname, args map nnf)
-        case Not(App(fname, args)) => Not(App(fname, args map nnf)) 
+        case App(fname, args) => App(fname, args map nnf) // the nnf on the args is likely unhelpful
+        case Not(App(fname, args)) => Not(App(fname, args map nnf))
 
-        case Closure(fname, arg1, arg2, args) => Closure(fname, nnf(arg1), nnf(arg2), args.map(nnf))
+        case Closure(fname, arg1, arg2, args) => Closure(fname, nnf(arg1), nnf(arg2), args.map(nnf)) // The NNF on the arguments is likely unhelpful
         case Not(Closure(fname, arg1, arg2, args)) => Not(Closure(fname, nnf(arg1), nnf(arg2), args.map(nnf)))
         case ReflexiveClosure(fname, arg1, arg2, args) => ReflexiveClosure(fname, nnf(arg1), nnf(arg2), args.map(nnf))
         case Not(ReflexiveClosure(fname, arg1, arg2, args)) => Not(ReflexiveClosure(fname, nnf(arg1), nnf(arg2), args.map(nnf)))
@@ -49,7 +49,7 @@ object NormalForms {
             |  Not(BitVectorLiteral(_, _)) | Not(EnumValue(_)) => Errors.Internal.preconditionFailed(s"Term is not well-sorted: ${term}")
         case IfThenElse(condition, ifTrue, ifFalse) => IfThenElse(nnf(condition), nnf(ifTrue), nnf(ifFalse))
         case Not(IfThenElse(condition, ifTrue, ifFalse)) => {
-            IfThenElse(nnf(condition), nnf(Not(ifTrue)), nnf(Not(ifFalse)))
+            IfThenElse(nnf(condition), nnf(Not(ifTrue)), nnf(Not(ifFalse))) // The NNF on the conditional is likely unhelpful
         }
     }
 
