@@ -34,7 +34,7 @@ object Transformers {
             case "integertobitvectors" | "integertobitvector" | "inttobv" | "int2bv" | "integer2bitvector" => IntegerToBitVectorTransformer
             case "nooverflowbv" => NoOverflowBVTransformer
             case "nnf" => NnfTransformer
-            case "oafints" | "oaf" | "oafint" => OAFIntsTransformer
+            case "opfiints" | "opfi" | "opfiint" => OPFIIntsTransformer
             case "quantifierexpansion" => mkQuantifierExpansionTransformer()
             case "rangeformula" | "rangeformulastandard" => RangeFormulaStandardTransformer
             case "scopenonexactpredicatestype" | "scopenonexactpredicates" | "nonexactpredicates" | "nonexactscopes" | "nonexactscope" => ScopeNonExactPredicatesTransformer
@@ -49,7 +49,7 @@ object Transformers {
             case "symmetry" | "symmetrybreaker" | "symmetrybreaking" | "symmetrybreak" => new SymmetryBreakingTransformer(MonoOnlyAnyOrder, DefaultSymmetryBreaker)
             case "symmetrybreaking_mostused" | "symmetrybreakingtransformer_mostused" => Errors.API.doesNotExist("Use mkSymmetryBreakingTransformer_MostUsed")
             case "symmetrybreaking_noskolem" | "symmetrybreakingtransformer_noskolem" => Errors.API.doesNotExist("Use mkSymmetryBreakingTransformer_NoSkolem")
-            case "symmetrybreaking" => Errors.API.doesNotExist("Use mkSymmetryBreakingTransformer")
+            // case "symmetrybreaking" => Errors.API.doesNotExist("Use mkSymmetryBreakingTransformer")
             case "symmetrybreakingsi" | "symmetrybreakingtransformersi" => Errors.API.doesNotExist("Use mkSymmetryBreakingTransformerSI")
             case "typechecksanitizer" | "typecheck" | "typechecksanitize" => TypecheckSanitizeTransformer
             case "zeroarityapplication" | "zeroarityapp" | "zeroarity" | "zeroarityvar" | "zeroarityapps" | "zeroarityvars" => ZeroArityApplicationTransformer
@@ -66,7 +66,7 @@ object Transformers {
     def mkDomainEliminationTransformer2() = new DomainEliminationTransformer2()
     def mkEnumEliminationTransformer() = EnumEliminationTransformer
     def mkNnfTransformer() = NnfTransformer
-    def mkOAFIntsTransformer() = OAFIntsTransformer
+    def mkOPFIIntsTransformer() = OPFIIntsTransformer
     def mkQuantifierExpansionTransformer(useConstForDomElim: Boolean = false, useSimplification: Boolean = false) = new QuantifierExpansionTransformer(useConstForDomElim, useSimplification)
     // def mkRangeFormulaTransformer(useConstForDomElim: Boolean = false) = new RangeFormulaStandardTransformer
     def mkScopeNonExactPredicatesTransformer() = ScopeNonExactPredicatesTransformer
