@@ -20,6 +20,7 @@ trait SMTLIBCLISession extends solver {
     protected def processArgs: Seq[String]
     protected def timeoutArg(timeoutMillis: Milliseconds): String
 
+
     @throws(classOf[java.io.IOException])
     override def close(): Unit = {
         processSession.foreach(_.close())
