@@ -11,8 +11,8 @@ import fortress.operations.TheoryOps._
 import fortress.util.Milliseconds
 
 
-class OAFIntsTransformerTest extends UnitSuite {
-    val transformer = OAFIntsTransformer
+class OPFIntsTransformerTest extends UnitSuite {
+    val transformer = OPFIIntsTransformer
     val intSize = 8
     val min = -4
     val max = 3
