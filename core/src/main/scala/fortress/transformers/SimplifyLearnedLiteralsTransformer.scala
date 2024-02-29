@@ -2,12 +2,14 @@ package fortress.transformers
 
 import fortress.msfol._
 import fortress.operations.TermOps._
+import fortress.problemstate.ProblemState
 
 /** Applies a simplification to the formulas in a theory, replacing them with equivalent formulas.
   * All other aspects of the theory remain unchanged. */
-class SimplifyLearnedLiteralsTransformer extends TheoryTransformer {
+class SimplifyLearnedLiteralsTransformer extends ProblemStateTransformer {
     
-    override def apply(theory: Theory): Theory =  {
+    override def apply(problemState: ProblemState): ProblemState =  {
+        val theory = problemState.theory
         var learnedLiterals : Map[Term,LeafTerm] = Map.empty
         var newAxioms = theory.axioms.map(axiom => {
             val newAxiom = axiom.simplifyWithLearnedLiterals(learnedLiterals)
@@ -38,7 +40,12 @@ class SimplifyLearnedLiteralsTransformer extends TheoryTransformer {
                 }
             }).filter(_ != Top)
         }
-        Theory(theory.signature, newAxioms)
+
+
+        // Theory(theory.signature, newAxioms)
+        problemState.copy(
+            theory = Theory(theory.signature, newAxioms),
+        )
     }
 
     override def name: String = "Simplify Transformer"

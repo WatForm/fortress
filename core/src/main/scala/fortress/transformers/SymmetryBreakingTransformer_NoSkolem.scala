@@ -18,50 +18,57 @@ class SymmetryBreakingTransformer_NoSkolem(
     symmetryBreakerFactory: SymmetryBreakerFactory
 ) extends ProblemStateTransformer {
         
-    def apply(problemState: ProblemState): ProblemState = problemState match {
-        case ProblemState(theory, scopes, skc, skf, rangeRestricts, unapplyInterp, distinctConstants) => {
-            val breaker = symmetryBreakerFactory.create(theory, scopes)
+    def apply(problemState: ProblemState): ProblemState = {
+        val theory = problemState.theory
+        val scopes = problemState.scopes
+        val skc = problemState.skolemConstants
+        val skf = problemState.skolemFunctions
 
-            // First, perform symmetry breaking on constants that are not skolem constants
-            breaker.breakConstants(theory.constantDeclarations diff skc)
-            
-            // This weirdness exists to make sure that this version performs symmetry breaking
-            // on functions in the same order as the previous version
-            // It is only here for the sake of consistency
-            val functions = theory.functionDeclarations filter { fn => {
-                (!fn.resultSort.isBuiltin) && (fn.argSorts forall (!_.isBuiltin))
-            }}
-            val predicates = theory.functionDeclarations.filter { fn => {
-                (fn.resultSort == BoolSort) && (fn.argSorts forall (!_.isBuiltin))
-            }}
-            
-            val fp = scala.collection.immutable.ListSet( (functions.toList ++ predicates.toList) : _* )
-            // END OF WEIRDNESS
-                .diff(skf)
+        val breaker = symmetryBreakerFactory.create(theory, scopes)
 
-            // Then, perform symmetry breaking on functions and predicates that are not skolem functions
-            @scala.annotation.tailrec
-            def loop(usedFunctionsPredicates: Set[FuncDecl]): Unit = {
-                val remaining = fp diff usedFunctionsPredicates
-                selectionHeuristic.nextFunctionPredicate(breaker.stalenessState, remaining) match {
-                    case None => ()
-                    case Some(p @ FuncDecl(_, _, BoolSort)) => {
-                        breaker.breakPredicate(p)
-                        loop(usedFunctionsPredicates + p)
-                    }
-                    case Some(f) => {
-                        breaker.breakFunction(f)
-                        loop(usedFunctionsPredicates + f)
-                    }
+        // First, perform symmetry breaking on constants that are not skolem constants
+        breaker.breakConstants(theory.constantDeclarations diff skc)
+        
+        // This weirdness exists to make sure that this version performs symmetry breaking
+        // on functions in the same order as the previous version
+        // It is only here for the sake of consistency
+        val functions = theory.functionDeclarations filter { fn => {
+            (!fn.resultSort.isBuiltin) && (fn.argSorts forall (!_.isBuiltin))
+        }}
+        val predicates = theory.functionDeclarations.filter { fn => {
+            (fn.resultSort == BoolSort) && (fn.argSorts forall (!_.isBuiltin))
+        }}
+        
+        val fp = scala.collection.immutable.ListSet( (functions.toList ++ predicates.toList) : _* )
+        // END OF WEIRDNESS
+            .diff(skf)
+
+        // Then, perform symmetry breaking on functions and predicates that are not skolem functions
+        @scala.annotation.tailrec
+        def loop(usedFunctionsPredicates: Set[FuncDecl]): Unit = {
+            val remaining = fp diff usedFunctionsPredicates
+            selectionHeuristic.nextFunctionPredicate(breaker.stalenessState, remaining) match {
+                case None => ()
+                case Some(p @ FuncDecl(_, _, BoolSort)) => {
+                    breaker.breakPredicate(p)
+                    loop(usedFunctionsPredicates + p)
+                }
+                case Some(f) => {
+                    breaker.breakFunction(f)
+                    loop(usedFunctionsPredicates + f)
                 }
             }
-            
-            loop(Set.empty)
-
-            // Add symmetry breaking function declarations, constraints, and range restrictions
-            val newTheory = theory.withFunctionDeclarations(breaker.declarations).withAxioms(breaker.constraints)
-            ProblemState(newTheory, scopes, skc, skf, rangeRestricts union breaker.rangeRestrictions.toSet, unapplyInterp, distinctConstants)
         }
+        
+        loop(Set.empty)
+
+        // Add symmetry breaking function declarations, constraints, and range restrictions
+        val newTheory = theory.withFunctionDeclarations(breaker.declarations).withAxioms(breaker.constraints)
+        //ProblemState(newTheory, scopes, skc, skf, rangeRestricts union breaker.rangeRestrictions.toSet, unapplyInterp, distinctConstants)
+        problemState.copy(
+            theory = newTheory,
+            rangeRestrictions = problemState.rangeRestrictions union breaker.rangeRestrictions.toSet,
+        )
     }
     
     val name: String = s"Symmetry Breaking Transformer No Skolem (${selectionHeuristic.name})" 

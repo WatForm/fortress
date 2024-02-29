@@ -14,6 +14,9 @@ import fortress.util.Errors
   * @param rangeRestrictions introduced range restrictions (these also exist as formulas within the theory)
   * @param unapplyInterp a LIFO stack of instructions (given as a LIFO stack of functions) that describe how to undo 
   *                      the transformations thus far when giving an interpretation back to the user 
+  * @param distinctConstants ?
+  * @param isNNF flag set to true to indicate every formula is in negation normal form
+  * @param verbose flag set to indicate output should be verobse
   */
 case class ProblemState private(
     theory: Theory,
@@ -22,7 +25,7 @@ case class ProblemState private(
     skolemFunctions: Set[FuncDecl],
     rangeRestrictions: Set[RangeRestriction],
     unapplyInterp: List[Interpretation => Interpretation],
-    distinctConstants: Boolean
+    flags: Flags
 ) {
 //    Errors.Internal.precondition(scopes.values.forall(_. > 0), "Scopes must be positive")
     // allow setting scope for IntSort but not other builtins
@@ -40,27 +43,14 @@ case class ProblemState private(
     // TODO add precondition that theory domain elements respect the scopes
 
     def withTheory(newtheory: Theory): ProblemState = {
-        new ProblemState(            
-            newtheory,    // replaces just the theory
-            scopes,
-            skolemConstants,
-            skolemFunctions,
-            rangeRestrictions,
-            unapplyInterp,
-            distinctConstants)
+        copy(theory = newtheory)
     }
     def withScopes(newscopes: Map[Sort, Scope]): ProblemState = {
         val unchangingScopeSorts = scopes.filter((scopeInfo: (Sort, Scope)) => scopeInfo._2.isUnchanging)
         // Check that every unchanging scope is unchanged
         Errors.Internal.precondition(unchangingScopeSorts.forall((scopeInfo: (Sort, Scope)) => newscopes.get(scopeInfo._1) == Some(scopeInfo._2)), "Attempted to change an unchanging scope!")
-        new ProblemState(            
-            theory,    
-            newscopes, // replaces just the scopes
-            skolemConstants,
-            skolemFunctions,
-            rangeRestrictions,
-            unapplyInterp,
-            distinctConstants)
+        copy(scopes = newscopes)
+        
     }
 
     def withUnapplyInterp(unapp: Interpretation => Interpretation): ProblemState = {
@@ -76,7 +66,7 @@ object ProblemState {
 
     def apply(theory: Theory): ProblemState = ProblemState(theory, Map.empty)
     
-    def apply(theory: Theory, scopes: Map[Sort, Scope]): ProblemState = {
+    def apply(theory: Theory, scopes: Map[Sort, Scope], verbose: Boolean = false): ProblemState = {
         // Compute the scopes for enum sorts
         // Copy whether the scope is fixed and its exactness from the regular scope if applicable for compatibility
         def isFixed(sort: Sort) =
@@ -99,7 +89,7 @@ object ProblemState {
             Set.empty,
             Set.empty,
             List.empty,
-            distinctConstants = true
+            flags = Flags(verbose=verbose)
         )
     }
 

@@ -21,9 +21,10 @@ trait LogicCompiler {
         theory: Theory,
         scopes: Map[Sort, Scope],
         timeout: Milliseconds,
-        loggers: Seq[EventLogger]
+        loggers: Seq[EventLogger],
+        verbose: Boolean,
     ): Either[CompilerError, CompilerResult] = {
-        val initialProblemState = ProblemState(theory, scopes)
+        val initialProblemState = ProblemState(theory, scopes, verbose)
 
         val finalProblemState = withCountdown(timeout) { countdown => {
             transformerSequence.foldLeft(initialProblemState)((pState, transformer) => {
@@ -55,7 +56,7 @@ trait LogicCompiler {
             }
 
             override def eliminateDomainElements(term: Term): Term = {
-                if (finalProblemState.distinctConstants) {
+                if (finalProblemState.flags.distinctConstants) {
                     term.eliminateDomainElementsConstants
                 } else {
                     term.eliminateDomainElementsEnums

@@ -25,13 +25,13 @@ with ModelFinderSettings {
     /** Create a compiler using the given integer semantics. */
     protected def createCompiler(): LogicCompiler
     
-    override def checkSat(): ModelFinderResult = {
+    override def checkSat(verbose: Boolean = false): ModelFinderResult = {
         // Restart the timer
         totalTimer.startFresh()
 
         compiler = Some(createCompiler())
 
-        compiler.get.compile(theory, analysisScopes, timeoutMilliseconds, eventLoggers.toList) match {
+        compiler.get.compile(theory, analysisScopes, timeoutMilliseconds, eventLoggers.toList, verbose) match {
             case Left(CompilerError.Timeout) => TimeoutResult
             case Left(CompilerError.Other(errMsg)) => ErrorResult(errMsg)
             case Right(compilerRes) => {

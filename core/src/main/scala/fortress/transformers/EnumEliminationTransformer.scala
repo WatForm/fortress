@@ -11,36 +11,41 @@ import fortress.problemstate.ProblemState
   * computeEnumSortMapping method.
   */
 object EnumEliminationTransformer extends ProblemStateTransformer {
-    override def apply(problemState: ProblemState): ProblemState = problemState match {
-        case ProblemState(theory, scopes, skc, skf, rangeRestricts, unapplyInterp, distinctConstants) => {
-            val mapping = computeEnumSortMapping(theory)
-            
-            // Since we are replacing with domain elements, which cannot be in
-            // quantifiers, we do not need to worry about variable capture in
-            // substitution and can use the faster substituter.
-            val newAxioms = theory.axioms.map(_.eliminateEnumValues(mapping))
-            
-            var newSig = theory.signature
-                            .withoutEnums
+    override def apply(problemState: ProblemState): ProblemState = {
+        val theory = problemState.theory
+        val scopes = problemState.scopes
+        
+        val mapping = computeEnumSortMapping(theory)
+        
+        // Since we are replacing with domain elements, which cannot be in
+        // quantifiers, we do not need to worry about variable capture in
+        // substitution and can use the faster substituter.
+        val newAxioms = theory.axioms.map(_.eliminateEnumValues(mapping))
+        
+        var newSig = theory.signature
+                        .withoutEnums
 
-            // We only remove a definition before readding it so all its dependencies are in the sig
-            // definitions are basically untested
-            for(cDef <- theory.signature.constantDefinitions){
-                newSig = newSig.withoutConstantDefinition(cDef)
-                newSig = newSig.withConstantDefinition(cDef.mapBody(_.eliminateDomainElementsEnums))
-            }
-            for(fDef <- theory.signature.functionDefinitions){
-                newSig = newSig.withoutFunctionDefinition(fDef)
-                newSig = newSig.withFunctionDefinition(fDef.mapBody(_.eliminateDomainElementsEnums))
-            }
-            
-            val newTheory = Theory(newSig, newAxioms)
-            
-            val unapply: Interpretation => Interpretation = _.replaceValuesWithEnums(mapping.map(_.swap))
-
-            // The problem contain scopes for the enums, which should remain the same
-            ProblemState(newTheory, scopes, skc, skf, rangeRestricts, unapply :: unapplyInterp, distinctConstants)
+        // We only remove a definition before readding it so all its dependencies are in the sig
+        // definitions are basically untested
+        for(cDef <- theory.signature.constantDefinitions){
+            newSig = newSig.withoutConstantDefinition(cDef)
+            newSig = newSig.withConstantDefinition(cDef.mapBody(_.eliminateDomainElementsEnums))
         }
+        for(fDef <- theory.signature.functionDefinitions){
+            newSig = newSig.withoutFunctionDefinition(fDef)
+            newSig = newSig.withFunctionDefinition(fDef.mapBody(_.eliminateDomainElementsEnums))
+        }
+        
+        val newTheory = Theory(newSig, newAxioms)
+        
+        val unapply: Interpretation => Interpretation = _.replaceValuesWithEnums(mapping.map(_.swap))
+
+        // The problem contain scopes for the enums, which should remain the same
+        //ProblemState(newTheory, scopes, skc, skf, rangeRestricts, unapply :: unapplyInterp, distinctConstants)
+        problemState.copy(
+            theory = newTheory,
+            unapplyInterp = unapply :: problemState.unapplyInterp
+        )
     }
     
     def computeEnumSortMapping(theory: Theory): Map[EnumValue, DomainElement] = {
