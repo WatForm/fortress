@@ -11,8 +11,8 @@ import fortress.operations.TheoryOps._
 import fortress.util.Milliseconds
 
 
-class OAFIntsTransformerTest extends UnitSuite {
-    val transformer = OAFIntsTransformer
+class OPFIIntsTransformerTest extends UnitSuite {
+    val transformer = OPFIIntsTransformer
     val intSize = 8
     val min = -4
     val max = 3
@@ -25,7 +25,7 @@ class OAFIntsTransformerTest extends UnitSuite {
 
 
     // Add in this closure eliminator
-    manager.addOption(new ToggleOption("OAFInts", _.addTransformer(transformer)), 102)
+    manager.addOption(new ToggleOption("OPFIInts", _.addTransformer(transformer)), 102)
 
     val isInBoundsName = "isInBoundsOAF_0"
     val toInt = "toInt_0"
