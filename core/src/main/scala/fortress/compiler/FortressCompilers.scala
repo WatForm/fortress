@@ -231,7 +231,7 @@ class FortressTHREECompiler() extends BaseFortressCompiler() {
 
 class FortressTHREECompiler_SI() extends BaseFortressCompiler() {
     override def symmetryBreakingTransformers: Seq[ProblemStateTransformer] = Seq(
-        new SymmetryBreakingTransformerSI(MonoFirstThenFunctionsFirstAnyOrder, DefaultSymmetryBreaker)
+        new SymmetryBreakingTransformer(SymmetryBreakingOptions(MonoFirstThenFunctionsFirstAnyOrder, DefaultSymmetryBreaker, breakSkolem = true, sortInference = true))
     )
 }
 
@@ -265,7 +265,7 @@ class FortressFOURCompiler_SI() extends LogicCompiler {
 
 class FortressUnboundedCompiler() extends BaseFortressCompiler() {
     override def symmetryBreakingTransformers: Seq[ProblemStateTransformer] = Seq(
-        new SymmetryBreakingTransformerSI(MonoFirstThenFunctionsFirstAnyOrder, DefaultSymmetryBreaker)
+        new SymmetryBreakingTransformer(SymmetryBreakingOptions(MonoFirstThenFunctionsFirstAnyOrder, DefaultSymmetryBreaker, breakSkolem = true, sortInference = true))
     )
 
     override def transformerSequence: Seq[ProblemStateTransformer] = {
@@ -286,7 +286,7 @@ class FortressUnboundedCompiler() extends BaseFortressCompiler() {
 
 class FortressLearnedLiteralsCompiler() extends BaseFortressCompiler() {
     override def symmetryBreakingTransformers: Seq[ProblemStateTransformer] = Seq(
-        new SymmetryBreakingTransformerSI(MonoFirstThenFunctionsFirstAnyOrder, DefaultSymmetryBreaker)
+        new SymmetryBreakingTransformer(SymmetryBreakingOptions(MonoFirstThenFunctionsFirstAnyOrder, DefaultSymmetryBreaker, breakSkolem = true, sortInference = true))
     )
 
     override def transformerSequence: Seq[ProblemStateTransformer] = {

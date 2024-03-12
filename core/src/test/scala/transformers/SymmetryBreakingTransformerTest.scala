@@ -83,7 +83,7 @@ class SymmetryBreakingTransformerTest extends UnitSuite {
           RangeRestriction(App("g", DomainElement(2, A)), Seq(DomainElement(1, A), DomainElement(2, A)))
         )
 
-        val transformer = new SymmetryBreakingTransformerSI(FunctionsFirstAnyOrder, DefaultSymmetryBreaker)
+        val transformer = new SymmetryBreakingTransformer(SymmetryBreakingOptions(FunctionsFirstAnyOrder, DefaultSymmetryBreaker, breakSkolem = true, sortInference = true))
         transformer(ProblemState(theory, scopes)) should be(ProblemState(expected, scopes, Set.empty, Set.empty, expectedRangeFormulas, List.empty, distinctConstants = true))
     }
 }
