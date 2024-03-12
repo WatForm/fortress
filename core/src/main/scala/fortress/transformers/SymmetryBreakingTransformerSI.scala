@@ -37,7 +37,7 @@ class SymmetryBreakingTransformerSI(
 
             // Perform symmetry breaking on inferred theory, but select as if it wasn't there
             val breaker = symmetryBreakerFactory.create(infTheory, infScopes)
-            val selector = new SelectAfterSubstitution(selectionHeuristic, substitution)
+            val selector = new SelectAfterSubstitution(selectionHeuristic, substitution, theory.signature, infTheory.signature)
 
             breaker.breakConstants(infTheory.constantDeclarations)
             
@@ -59,15 +59,11 @@ class SymmetryBreakingTransformerSI(
                 val remaining = fp diff usedFunctionsPredicates
                 selector.nextFunctionPredicate(breaker.stalenessState, remaining) match {
                     case None => ()
-                    case Some(p_sub @ FuncDecl(_, _, BoolSort)) => {
-                        // Have to look up function by name since sorts are substituted
-                        val p = infTheory.signature.functionWithName(p_sub.name).get
+                    case Some(p @ FuncDecl(_, _, BoolSort)) => {
                         breaker.breakPredicate(p)
                         loop(usedFunctionsPredicates + p)
                     }
-                    case Some(f_sub) => {
-                        // Have to look up function by name since sorts are substituted
-                        val f = infTheory.signature.functionWithName(f_sub.name).get
+                    case Some(f) => {
                         breaker.breakFunction(f)
                         loop(usedFunctionsPredicates + f)
                     }

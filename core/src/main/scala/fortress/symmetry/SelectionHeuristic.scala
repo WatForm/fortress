@@ -173,15 +173,19 @@ object NoFunctionsPredicates extends SelectionHeuristic {
 }
 
 // Decorator
-class SelectAfterSubstitution(baseSelection: SelectionHeuristic, sortSubstitution: SortSubstitution) extends SelectionHeuristic {
+class SelectAfterSubstitution(baseSelection: SelectionHeuristic, sortSubstitution: SortSubstitution, originalSig: Signature, infSig: Signature) extends SelectionHeuristic {
     override def nextFunctionPredicate(
         state: StalenessState,
         remaining: Set[FuncDecl]
     ): Option[FuncDecl] = {
-    // Have to change state as well
+        // Have to change state as well
         val stateSub = state.afterSubstitution(sortSubstitution)
         val remainingSub = remaining map sortSubstitution
-        baseSelection.nextFunctionPredicate(stateSub, remainingSub)
+
+        // Have to look up function by name since sorts are substituted
+        val next = baseSelection.nextFunctionPredicate(stateSub, remainingSub)
+        val nextName = next.map(_.name)
+        nextName.flatMap(name => infSig.functionWithName(name))
     }
 
     override def name = "Substitution + " + baseSelection.name
