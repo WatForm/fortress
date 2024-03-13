@@ -12,8 +12,17 @@ import fortress.problemstate.Scope
 case class SymmetryBreakingOptions(
     selectionHeuristic: SelectionHeuristic, // Heuristic for selecting order of functions
     breakSkolem: Boolean, // If true, breaks skolem functions and constants
-    sortInference: Boolean // If true, perform sort inference before symmetry breaking, then casts back to original sorts. Not necessary if symmetry breaking is performed previously
-)
+    sortInference: Boolean, // If true, perform sort inference before symmetry breaking, then casts back to original sorts. Not necessary if symmetry breaking is performed previously
+    patternOptimization: Boolean // If true, look for Portus patterns to optimize symmetry breaking
+) {
+    // def this(selectionHeuristic: SelectionHeuristic, breakSkolem: Boolean, sortInference: Boolean) {
+    //     this(selectionHeuristic, breakSkolem, sortInference, patternOptimization = false)
+    // }
+}
+
+// object SymmetryBreakingOptions{
+//     def apply(selectionHeuristic: SelectionHeuristic, breakSkolem: Boolean, sortInference: Boolean): SymmetryBreakingOptions = SymmetryBreakingOptions(selectionHeuristic, breakSkolem, sortInference, patternOptimization = false)
+// }
 
 /** Applies symmetry breaking to the given Problem. The input Problem is allowed
 * to have domain elements in its formulas. The output formula will have domain
@@ -29,7 +38,8 @@ class SymmetryBreakingTransformer(
        this(SymmetryBreakingOptions(
             selectionHeuristic,
             breakSkolem = true,
-            sortInference = false
+            sortInference = false,
+            patternOptimization = false
         ))
     }
         
@@ -70,7 +80,10 @@ class SymmetryBreakingTransformer(
     
     // Performs symmetry breaking and returns tuple of (new declarations, new constraints, new range restrictions)
     private def symmetryBreak(theory: Theory, scopes: Map[Sort, Scope], selector: SelectionHeuristic, constantsToOmit: Set[AnnotatedVar], functionsToOmit: Set[FuncDecl]): (Seq[FuncDecl], Seq[Term], Set[RangeRestriction]) = {
-        val tracker = StalenessTracker.create(theory, scopes)
+        val tracker = if(options.patternOptimization) {
+            ???
+        } else StalenessTracker.create(theory, scopes)
+        
         val newConstraints = new mutable.ListBuffer[Term]
         val newRangeRestrictions = new mutable.ListBuffer[RangeRestriction]
         val newDeclarations = new mutable.ListBuffer[FuncDecl]

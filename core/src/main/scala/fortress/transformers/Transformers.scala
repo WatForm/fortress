@@ -80,8 +80,8 @@ object Transformers {
     def mkSymmetryBreakingTransformer_MostUsed(selectionHeuristicWithConstantsFactory: SelectionHeuristicWithConstantsFactory, symmetryBreakerFactoryDL: SymmetryBreakerFactoryDL) = {
         new SymmetryBreakingTransformer_MostUsed(selectionHeuristicWithConstantsFactory, symmetryBreakerFactoryDL)
     }
-    def mkSymmetryBreakingTransformer_NoSkolem(selectionHeuristic: SelectionHeuristic) = new SymmetryBreakingTransformer(SymmetryBreakingOptions(selectionHeuristic, breakSkolem = true, sortInference = false))
+    def mkSymmetryBreakingTransformer_NoSkolem(selectionHeuristic: SelectionHeuristic) = new SymmetryBreakingTransformer(SymmetryBreakingOptions(selectionHeuristic, breakSkolem = true, sortInference = false, patternOptimization = false))
     def mkSymmetryBreakingTransformer(selectionHeuristic: SelectionHeuristic) = new SymmetryBreakingTransformer(selectionHeuristic)
-    def mkSymmetryBreakingTransformerSI(selectionHeuristic: SelectionHeuristic) = new SymmetryBreakingTransformer(SymmetryBreakingOptions(selectionHeuristic, breakSkolem = true, sortInference = true))
+    def mkSymmetryBreakingTransformerSI(selectionHeuristic: SelectionHeuristic) = new SymmetryBreakingTransformer(SymmetryBreakingOptions(selectionHeuristic, breakSkolem = true, sortInference = true, patternOptimization = false))
     def mkTypecheckSanitizeTransformer() = TypecheckSanitizeTransformer
 }
