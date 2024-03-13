@@ -23,7 +23,7 @@ abstract class ConstantsMethodCompiler() extends LogicCompiler {
         transformerSequence += OPFIIntsTransformer 
         transformerSequence += NnfTransformer
         transformerSequence += SkolemizeTransformer
-        transformerSequence += new SymmetryBreakingTransformer(MonoFirstThenFunctionsFirstAnyOrder, DefaultSymmetryBreaker)
+        transformerSequence += new SymmetryBreakingTransformer(MonoFirstThenFunctionsFirstAnyOrder)
         transformerSequence += SimplifyWithScalarQuantifiersTransformer
         transformerSequence += QuantifiersToDefinitionsTransformer
         transformerSequence += StandardQuantifierExpansionTransformer
@@ -50,7 +50,7 @@ abstract class DatatypeMethodNoRangeCompiler() extends LogicCompiler {
         transformerSequence += ScopeNonExactPredicatesTransformer
         // transformerSequence += IntegerToBitVectorTransformer      
         transformerSequence += OPFIIntsTransformer
-        transformerSequence += new SymmetryBreakingTransformer(MonoFirstThenFunctionsFirstAnyOrder, DefaultSymmetryBreaker)
+        transformerSequence += new SymmetryBreakingTransformer(MonoFirstThenFunctionsFirstAnyOrder)
         transformerSequence += SimplifyWithScalarQuantifiersTransformer
         transformerSequence += QuantifiersToDefinitionsTransformer
         transformerSequence += new SimplifyTransformer
@@ -75,7 +75,7 @@ abstract class DatatypeMethodWithRangeCompiler() extends LogicCompiler {
         transformerSequence += ScopeNonExactPredicatesTransformer
         // transformerSequence += IntegerToBitVectorTransformer      
         transformerSequence += OPFIIntsTransformer
-        transformerSequence += new SymmetryBreakingTransformer(MonoFirstThenFunctionsFirstAnyOrder, DefaultSymmetryBreaker)
+        transformerSequence += new SymmetryBreakingTransformer(MonoFirstThenFunctionsFirstAnyOrder)
         transformerSequence += RangeFormulaStandardTransformer
         transformerSequence += SimplifyWithScalarQuantifiersTransformer
         transformerSequence += QuantifiersToDefinitionsTransformer
@@ -101,7 +101,7 @@ abstract class DatatypeMethodNoRangeEUFCompiler() extends LogicCompiler {
         transformerSequence += OPFIIntsTransformer
         transformerSequence += NnfTransformer
         transformerSequence += SkolemizeTransformer
-        transformerSequence += new SymmetryBreakingTransformer(MonoFirstThenFunctionsFirstAnyOrder, DefaultSymmetryBreaker)
+        transformerSequence += new SymmetryBreakingTransformer(MonoFirstThenFunctionsFirstAnyOrder)
         transformerSequence += SimplifyWithScalarQuantifiersTransformer
         transformerSequence += QuantifiersToDefinitionsTransformer
         transformerSequence += StandardQuantifierExpansionTransformer
@@ -127,7 +127,7 @@ abstract class DatatypeMethodWithRangeEUFCompiler() extends LogicCompiler {
         transformerSequence += OPFIIntsTransformer
         transformerSequence += NnfTransformer
         transformerSequence += SkolemizeTransformer
-        transformerSequence += new SymmetryBreakingTransformer(MonoFirstThenFunctionsFirstAnyOrder, DefaultSymmetryBreaker)
+        transformerSequence += new SymmetryBreakingTransformer(MonoFirstThenFunctionsFirstAnyOrder)
         transformerSequence += SimplifyWithScalarQuantifiersTransformer
         transformerSequence += QuantifiersToDefinitionsTransformer
         transformerSequence += StandardQuantifierExpansionTransformer
@@ -191,19 +191,19 @@ class FortressZEROCompiler() extends BaseFortressCompiler() {
 
 class FortressONECompiler() extends BaseFortressCompiler() {
     override def symmetryBreakingTransformers: Seq[ProblemStateTransformer] = Seq(
-        new SymmetryBreakingTransformer(MonoOnlyAnyOrder, DefaultSymmetryBreaker)
+        new SymmetryBreakingTransformer(MonoOnlyAnyOrder)
     )
 }
 
 class FortressTWOCompiler() extends BaseFortressCompiler() {
     override def symmetryBreakingTransformers: Seq[ProblemStateTransformer] = Seq(
-        new SymmetryBreakingTransformer(FunctionsFirstAnyOrder, DefaultSymmetryBreaker)
+        new SymmetryBreakingTransformer(FunctionsFirstAnyOrder)
     )
 }
 
 class FortressTWOCompiler_SI() extends LogicCompiler {
     def symmetryBreakingTransformers: Seq[ProblemStateTransformer] = Seq(
-        new SymmetryBreakingTransformer(FunctionsFirstAnyOrder, DefaultSymmetryBreaker)
+        new SymmetryBreakingTransformer(FunctionsFirstAnyOrder)
     )
 
     override def transformerSequence: Seq[ProblemStateTransformer] = {
@@ -225,13 +225,13 @@ class FortressTWOCompiler_SI() extends LogicCompiler {
 
 class FortressTHREECompiler() extends BaseFortressCompiler() {
     override def symmetryBreakingTransformers: Seq[ProblemStateTransformer] = Seq(
-        new SymmetryBreakingTransformer(MonoFirstThenFunctionsFirstAnyOrder, DefaultSymmetryBreaker)
+        new SymmetryBreakingTransformer(MonoFirstThenFunctionsFirstAnyOrder)
     )
 }
 
 class FortressTHREECompiler_SI() extends BaseFortressCompiler() {
     override def symmetryBreakingTransformers: Seq[ProblemStateTransformer] = Seq(
-        new SymmetryBreakingTransformer(SymmetryBreakingOptions(MonoFirstThenFunctionsFirstAnyOrder, DefaultSymmetryBreaker, breakSkolem = true, sortInference = true))
+        new SymmetryBreakingTransformer(SymmetryBreakingOptions(MonoFirstThenFunctionsFirstAnyOrder, breakSkolem = true, sortInference = true))
     )
 }
 
@@ -265,7 +265,7 @@ class FortressFOURCompiler_SI() extends LogicCompiler {
 
 class FortressUnboundedCompiler() extends BaseFortressCompiler() {
     override def symmetryBreakingTransformers: Seq[ProblemStateTransformer] = Seq(
-        new SymmetryBreakingTransformer(SymmetryBreakingOptions(MonoFirstThenFunctionsFirstAnyOrder, DefaultSymmetryBreaker, breakSkolem = true, sortInference = true))
+        new SymmetryBreakingTransformer(SymmetryBreakingOptions(MonoFirstThenFunctionsFirstAnyOrder, breakSkolem = true, sortInference = true))
     )
 
     override def transformerSequence: Seq[ProblemStateTransformer] = {
@@ -286,7 +286,7 @@ class FortressUnboundedCompiler() extends BaseFortressCompiler() {
 
 class FortressLearnedLiteralsCompiler() extends BaseFortressCompiler() {
     override def symmetryBreakingTransformers: Seq[ProblemStateTransformer] = Seq(
-        new SymmetryBreakingTransformer(SymmetryBreakingOptions(MonoFirstThenFunctionsFirstAnyOrder, DefaultSymmetryBreaker, breakSkolem = true, sortInference = true))
+        new SymmetryBreakingTransformer(SymmetryBreakingOptions(MonoFirstThenFunctionsFirstAnyOrder, breakSkolem = true, sortInference = true))
     )
 
     override def transformerSequence: Seq[ProblemStateTransformer] = {

@@ -26,15 +26,17 @@ class SymmetryBreakingTransformerTest extends UnitSuite {
     
     val f = FuncDecl("f", A, B)
     val g = FuncDecl("g", A, A)
+    val P = FuncDecl("P", C, BoolSort)
 
     test("basic test") {
         val theory = Theory.empty
-          .withSorts(A, B)
+          .withSorts(A, B, C)
           .withConstantDeclarations(c1 of A, c2 of A, d1 of B)
           .withFunctionDeclaration(g)
+          .withFunctionDeclaration(P)
           .withAxiom(Forall(x of A, x === c2))
 
-        val scopes = Map(A -> ExactScope(4), B -> ExactScope(3))
+        val scopes = Map(A -> ExactScope(4), B -> ExactScope(3), C -> ExactScope(2))
 
         val expected = theory
           .withAxiom(c1 === DomainElement(1, A))
@@ -43,6 +45,7 @@ class SymmetryBreakingTransformerTest extends UnitSuite {
           .withAxiom(d1 === DomainElement(1, B))
           .withAxiom(OrList(for(i <- 1 to 3) yield {App("g", DomainElement(1, A)) === DomainElement(i, A) }))
           .withAxiom(OrList(for(i <- 1 to 4) yield {App("g", DomainElement(2, A)) === DomainElement(i, A) }))
+          .withAxiom(App("P", DomainElement(2, C)) ==> App("P", DomainElement(1, C)))
 
         val expectedRangeFormulas = Set(
           RangeRestriction(c1, Seq(DomainElement(1, A))),
@@ -52,7 +55,7 @@ class SymmetryBreakingTransformerTest extends UnitSuite {
           RangeRestriction(App("g", DomainElement(2, A)), Seq(DomainElement(1, A), DomainElement(2, A), DomainElement(3, A), DomainElement(4, A)))
         )
 
-        val transformer = new SymmetryBreakingTransformer(FunctionsFirstAnyOrder, DefaultSymmetryBreaker)
+        val transformer = new SymmetryBreakingTransformer(FunctionsFirstAnyOrder)
         transformer(ProblemState(theory, scopes)) should be(ProblemState(expected, scopes, Set.empty, Set.empty, expectedRangeFormulas, List.empty, distinctConstants = true))
     }
 
@@ -83,7 +86,7 @@ class SymmetryBreakingTransformerTest extends UnitSuite {
           RangeRestriction(App("g", DomainElement(2, A)), Seq(DomainElement(1, A), DomainElement(2, A)))
         )
 
-        val transformer = new SymmetryBreakingTransformer(SymmetryBreakingOptions(FunctionsFirstAnyOrder, DefaultSymmetryBreaker, breakSkolem = true, sortInference = true))
+        val transformer = new SymmetryBreakingTransformer(SymmetryBreakingOptions(FunctionsFirstAnyOrder, breakSkolem = true, sortInference = true))
         transformer(ProblemState(theory, scopes)) should be(ProblemState(expected, scopes, Set.empty, Set.empty, expectedRangeFormulas, List.empty, distinctConstants = true))
     }
 }
