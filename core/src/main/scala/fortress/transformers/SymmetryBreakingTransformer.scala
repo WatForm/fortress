@@ -42,7 +42,7 @@ class SymmetryBreakingTransformer(
             patternOptimization = false
         ))
     }
-        
+
     def apply(problemState: ProblemState): ProblemState = problemState match {
         case ProblemState(theory, scopes, skc, skf, rangeRestricts, unapplyInterp, distinctConstants) => {
 
@@ -56,7 +56,7 @@ class SymmetryBreakingTransformer(
                 // If sort substitution is identity, perform symmetry breaking as normal
                 if(substitution.isIdentity) {
                     val constantsToOmit: Set[AnnotatedVar] = if(options.breakSkolem) Set() else skc
-                    val functionsToOmit: Set[FuncDecl] = if(options.breakSkolem) Set() else skf 
+                    val functionsToOmit: Set[FuncDecl] = if(options.breakSkolem) Set() else skf
                     symmetryBreak(theory, scopes, options.selectionHeuristic, constantsToOmit, functionsToOmit)
                 } else {
                     val constantsToOmit: Set[AnnotatedVar] = if(options.breakSkolem) Set() else ???
@@ -68,22 +68,21 @@ class SymmetryBreakingTransformer(
                 }
             } else {
                 val constantsToOmit: Set[AnnotatedVar] = if(options.breakSkolem) Set() else skc
-                val functionsToOmit: Set[FuncDecl] = if(options.breakSkolem) Set() else skf 
+                val functionsToOmit: Set[FuncDecl] = if(options.breakSkolem) Set() else skf
                 symmetryBreak(theory, scopes, options.selectionHeuristic, constantsToOmit, functionsToOmit)
             }
-            
+
             // Add symmetry breaking function declarations, constraints, and range restrictions
             val newTheory = theory.withFunctionDeclarations(newDecls).withAxioms(newConstraints)
             ProblemState(newTheory, scopes, skc, skf, rangeRestricts union newRangeRestrictions, unapplyInterp, distinctConstants)
         }
     }
-    
+
     // Performs symmetry breaking and returns tuple of (new declarations, new constraints, new range restrictions)
     private def symmetryBreak(theory: Theory, scopes: Map[Sort, Scope], selector: SelectionHeuristic, constantsToOmit: Set[AnnotatedVar], functionsToOmit: Set[FuncDecl]): (Seq[FuncDecl], Seq[Term], Set[RangeRestriction]) = {
-        val tracker = if(options.patternOptimization) {
-            ???
-        } else StalenessTracker.create(theory, scopes)
-        
+        val tracker = if (options.patternOptimization) StalenessTracker.createWithPatternOptimization(theory, scopes)
+        else StalenessTracker.create(theory, scopes)
+
         val newConstraints = new mutable.ListBuffer[Term]
         val newRangeRestrictions = new mutable.ListBuffer[RangeRestriction]
         val newDeclarations = new mutable.ListBuffer[FuncDecl]
@@ -96,16 +95,17 @@ class SymmetryBreakingTransformer(
             newConstraints ++= rangeRestrictions map (_.asFormula)
             newRangeRestrictions ++= rangeRestrictions
             // Add to used values
-            tracker.markStale(rangeRestrictions flatMap (_.asFormula.domainElements))
+            for (restriction <- rangeRestrictions)
+                tracker.markDomainElementsStale(restriction.asFormula)
         }
-    
+
         def addGeneralConstraints(fmls: Set[Term]): Unit = {
             // Add to constraints
             newConstraints ++= fmls
             // Add to used values
-            tracker.markStale(fmls flatMap (_.domainElements))
+            for (fml <- fmls) tracker.markDomainElementsStale(fml)
         }
-    
+
         def addDeclaration(f: FuncDecl): Unit = {
             newDeclarations += f
         }
@@ -113,7 +113,7 @@ class SymmetryBreakingTransformer(
         def breakConstantsOfSort(sort: Sort, constants: IndexedSeq[AnnotatedVar]): Unit = {
             val constantRangeRestrictions = Symmetry.csConstantRangeRestrictions(sort, constants, tracker.state)
             val constantImplications = Symmetry.csConstantImplicationsSimplified(sort, constants, tracker.state)
-            
+
             addRangeRestrictions(constantRangeRestrictions)
             addGeneralConstraints(constantImplications)
         }
@@ -157,7 +157,7 @@ class SymmetryBreakingTransformer(
 
         // First, perform symmetry breaking on constants
         breakConstants(theory.constantDeclarations diff constantsToOmit)
-        
+
         // This weirdness exists to make sure that this version performs symmetry breaking
         // on functions in the same order as the previous version
         // It is only here for the sake of consistency
@@ -167,7 +167,7 @@ class SymmetryBreakingTransformer(
         val predicates = theory.functionDeclarations.filter { fn => {
             (fn.resultSort == BoolSort) && (fn.argSorts forall (!_.isBuiltin)) && (fn.argSorts forall scopes.contains)
         }}
-        
+
         val fp = scala.collection.immutable.ListSet( (functions.toList ++ predicates.toList) : _* )
         // END OF WEIRDNESS
             .diff(functionsToOmit)
@@ -190,10 +190,12 @@ class SymmetryBreakingTransformer(
                 }
             }
         }
-        
+
+        println(s"[fortress] stale domain elements: ${tracker.state.allStaleValues}")
+
         loop(Set.empty)
         (newDeclarations.toList, newConstraints.toList, newRangeRestrictions.toSet)
     }
 
-    val name: String = s"Symmetry Breaking Transformer (${options})" 
+    val name: String = s"Symmetry Breaking Transformer (${options})"
 }

@@ -460,7 +460,7 @@ object Symmetry {
                 }
                 val implications = predicateImplicationChain(P, argLists)
                 constraints ++= implications
-                tracker.markStale(implications flatMap (_.domainElements))
+                for (implication <- implications) tracker.markDomainElementsStale(implication)
             }
             
             constraints.toSet

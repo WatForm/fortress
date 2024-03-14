@@ -18,6 +18,9 @@ class StalenessState private (
     def scope(sort: Sort): Scope = scopeMap(sort)
     
     def staleValues(sort: Sort): IndexedSeq[DomainElement] = staleMap(sort)
+
+    // testing only
+    def allStaleValues: Map[Sort, IndexedSeq[DomainElement]] = staleMap
     
     def freshValues(sort: Sort): IndexedSeq[DomainElement] = {
         val stale = staleValues(sort)

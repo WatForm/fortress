@@ -23,7 +23,12 @@ abstract class ConstantsMethodCompiler() extends LogicCompiler {
         transformerSequence += OPFIIntsTransformer 
         transformerSequence += NnfTransformer
         transformerSequence += SkolemizeTransformer
-        transformerSequence += new SymmetryBreakingTransformer(MonoFirstThenFunctionsFirstAnyOrder)
+        transformerSequence += new SymmetryBreakingTransformer(SymmetryBreakingOptions(
+            selectionHeuristic = MonoFirstThenFunctionsFirstAnyOrder,
+            breakSkolem = true,
+            sortInference = false,
+            patternOptimization = true,
+        ))
         transformerSequence += SimplifyWithScalarQuantifiersTransformer
         transformerSequence += QuantifiersToDefinitionsTransformer
         transformerSequence += StandardQuantifierExpansionTransformer
@@ -50,7 +55,12 @@ abstract class DatatypeMethodNoRangeCompiler() extends LogicCompiler {
         transformerSequence += ScopeNonExactPredicatesTransformer
         // transformerSequence += IntegerToBitVectorTransformer      
         transformerSequence += OPFIIntsTransformer
-        transformerSequence += new SymmetryBreakingTransformer(MonoFirstThenFunctionsFirstAnyOrder)
+        transformerSequence += new SymmetryBreakingTransformer(SymmetryBreakingOptions(
+            selectionHeuristic = MonoFirstThenFunctionsFirstAnyOrder,
+            breakSkolem = true,
+            sortInference = false,
+            patternOptimization = true,
+        ))
         transformerSequence += SimplifyWithScalarQuantifiersTransformer
         transformerSequence += QuantifiersToDefinitionsTransformer
         transformerSequence += new SimplifyTransformer
@@ -75,7 +85,12 @@ abstract class DatatypeMethodWithRangeCompiler() extends LogicCompiler {
         transformerSequence += ScopeNonExactPredicatesTransformer
         // transformerSequence += IntegerToBitVectorTransformer      
         transformerSequence += OPFIIntsTransformer
-        transformerSequence += new SymmetryBreakingTransformer(MonoFirstThenFunctionsFirstAnyOrder)
+        transformerSequence += new SymmetryBreakingTransformer(SymmetryBreakingOptions(
+            selectionHeuristic = MonoFirstThenFunctionsFirstAnyOrder,
+            breakSkolem = true,
+            sortInference = false,
+            patternOptimization = true,
+        ))
         transformerSequence += RangeFormulaStandardTransformer
         transformerSequence += SimplifyWithScalarQuantifiersTransformer
         transformerSequence += QuantifiersToDefinitionsTransformer
@@ -101,7 +116,12 @@ abstract class DatatypeMethodNoRangeEUFCompiler() extends LogicCompiler {
         transformerSequence += OPFIIntsTransformer
         transformerSequence += NnfTransformer
         transformerSequence += SkolemizeTransformer
-        transformerSequence += new SymmetryBreakingTransformer(MonoFirstThenFunctionsFirstAnyOrder)
+        transformerSequence += new SymmetryBreakingTransformer(SymmetryBreakingOptions(
+            selectionHeuristic = MonoFirstThenFunctionsFirstAnyOrder,
+            breakSkolem = true,
+            sortInference = false,
+            patternOptimization = true,
+        ))
         transformerSequence += SimplifyWithScalarQuantifiersTransformer
         transformerSequence += QuantifiersToDefinitionsTransformer
         transformerSequence += StandardQuantifierExpansionTransformer
@@ -127,7 +147,12 @@ abstract class DatatypeMethodWithRangeEUFCompiler() extends LogicCompiler {
         transformerSequence += OPFIIntsTransformer
         transformerSequence += NnfTransformer
         transformerSequence += SkolemizeTransformer
-        transformerSequence += new SymmetryBreakingTransformer(MonoFirstThenFunctionsFirstAnyOrder)
+        transformerSequence += new SymmetryBreakingTransformer(SymmetryBreakingOptions(
+            selectionHeuristic = MonoFirstThenFunctionsFirstAnyOrder,
+            breakSkolem = true,
+            sortInference = false,
+            patternOptimization = true,
+        ))
         transformerSequence += SimplifyWithScalarQuantifiersTransformer
         transformerSequence += QuantifiersToDefinitionsTransformer
         transformerSequence += StandardQuantifierExpansionTransformer
