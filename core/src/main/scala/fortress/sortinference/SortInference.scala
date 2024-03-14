@@ -9,6 +9,7 @@ import scala.language.implicitConversions
 // Only allows for Bool and SortConst
 object SortInference {
     
+    // Computes a substitution that maps a more generally-sorted theory to the original theory
     def inferSorts(theory: Theory): (Theory, SortSubstitution) = {
         /** 
             Booleans don't need to be factored into equation solving.

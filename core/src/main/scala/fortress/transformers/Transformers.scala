@@ -46,7 +46,7 @@ object Transformers {
             case "sortinference" => SortInferenceTransformer
             case "splitconjunction" => SplitConjunctionTransformer
             // The default symmetry breaking
-            case "symmetry" | "symmetrybreaker" | "symmetrybreaking" | "symmetrybreak" => new SymmetryBreakingTransformer(MonoOnlyAnyOrder, DefaultSymmetryBreaker)
+            case "symmetry" | "symmetrybreaker" | "symmetrybreaking" | "symmetrybreak" => new SymmetryBreakingTransformer(MonoOnlyAnyOrder)
             case "symmetrybreaking_mostused" | "symmetrybreakingtransformer_mostused" => Errors.API.doesNotExist("Use mkSymmetryBreakingTransformer_MostUsed")
             case "symmetrybreaking_noskolem" | "symmetrybreakingtransformer_noskolem" => Errors.API.doesNotExist("Use mkSymmetryBreakingTransformer_NoSkolem")
             // case "symmetrybreaking" => Errors.API.doesNotExist("Use mkSymmetryBreakingTransformer")
@@ -80,8 +80,8 @@ object Transformers {
     def mkSymmetryBreakingTransformer_MostUsed(selectionHeuristicWithConstantsFactory: SelectionHeuristicWithConstantsFactory, symmetryBreakerFactoryDL: SymmetryBreakerFactoryDL) = {
         new SymmetryBreakingTransformer_MostUsed(selectionHeuristicWithConstantsFactory, symmetryBreakerFactoryDL)
     }
-    def mkSymmetryBreakingTransformer_NoSkolem(selectionHeuristic: SelectionHeuristic, symmetryBreakerFactory: SymmetryBreakerFactory) = new SymmetryBreakingTransformer_NoSkolem(selectionHeuristic, symmetryBreakerFactory)
-    def mkSymmetryBreakingTransformer(selectionHeuristic: SelectionHeuristic, symmetryBreakerFactory: SymmetryBreakerFactory) = new SymmetryBreakingTransformer(selectionHeuristic, symmetryBreakerFactory)
-    def mkSymmetryBreakingTransformerSI(selectionHeuristic: SelectionHeuristic, symmetryBreakerFactory: SymmetryBreakerFactory) = new SymmetryBreakingTransformerSI(selectionHeuristic, symmetryBreakerFactory)
+    def mkSymmetryBreakingTransformer_NoSkolem(selectionHeuristic: SelectionHeuristic) = new SymmetryBreakingTransformer(SymmetryBreakingOptions(selectionHeuristic, breakSkolem = true, sortInference = false, patternOptimization = false))
+    def mkSymmetryBreakingTransformer(selectionHeuristic: SelectionHeuristic) = new SymmetryBreakingTransformer(selectionHeuristic)
+    def mkSymmetryBreakingTransformerSI(selectionHeuristic: SelectionHeuristic) = new SymmetryBreakingTransformer(SymmetryBreakingOptions(selectionHeuristic, breakSkolem = true, sortInference = true, patternOptimization = false))
     def mkTypecheckSanitizeTransformer() = TypecheckSanitizeTransformer
 }
