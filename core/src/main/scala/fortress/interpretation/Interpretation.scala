@@ -242,6 +242,16 @@ trait Interpretation {
             functionDefinitions
         )
     }
+
+    /** Removes the given definitions from the interpretation */
+    def withoutFunctionDefinitions(definitions: Set[FunctionDefinition]): Interpretation = {
+        new BasicInterpretation(
+            sortInterpretations,
+            constantInterpretations,
+            functionInterpretations,
+            functionDefinitions -- definitions
+        )
+    }
     
     /** Removes the given functions from the interpretation. */
     def withoutFunctions(funcDecls: Set[FuncDecl]): Interpretation = {
