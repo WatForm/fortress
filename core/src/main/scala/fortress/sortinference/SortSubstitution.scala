@@ -246,6 +246,31 @@ class ValuedSortSubstitution(sortMapping: Map[Sort,Sort], valueMapping: Map[Valu
         }
     }
 
+    override def apply(term: Term): Term = term match {
+        case Var(_)  => term
+        case Not(p) => Not(apply(p))
+        case AndList(args) => AndList(args map apply)
+        case OrList(args) => OrList(args map apply)
+        case Distinct(args) => Distinct(args map apply)
+        case Implication(p, q) => Implication(apply(p), apply(q))
+        case Iff(p, q) => Iff(apply(p), apply(q))
+        case Eq(l, r) => Eq(apply(l), apply(r))
+        case App(name, args) => App(name, args map apply)
+        case Closure(name, arg1, arg2, args) => Closure(name, apply(arg1), apply(arg2), args map apply)
+        case ReflexiveClosure(name, arg1, arg2, args) => ReflexiveClosure(name, apply(arg1), apply(arg2), args map apply)
+        case Exists(avars, body) => {
+            val newVars = avars map {avar => Var(avar.name) of apply(avar.sort)}
+            Exists(newVars, apply(body))
+        }
+        case Forall(avars, body) => {
+            val newVars = avars map {avar => Var(avar.name) of apply(avar.sort)}
+            Forall(newVars, apply(body))
+        }
+        case BuiltinApp(_, _) => ???
+        case v: Value => applyValue(v)
+        case IfThenElse(condition, ifTrue, ifFalse) => IfThenElse(apply(condition), apply(ifTrue), apply(ifFalse))
+    }
+
     override def apply(fd: FunctionDefinition): FunctionDefinition = fd match {case FunctionDefinition(name, argSortedVars, resultSort, body) => {
         // Just apply to everything here
         val newArgSorts = argSortedVars map apply

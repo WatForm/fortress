@@ -272,6 +272,16 @@ trait Interpretation {
         )
     }
 
+    /** Updates the Interpretation to drop the specified sort */
+    def withoutSorts(sorts:Set[Sort]): Interpretation = {
+        new BasicInterpretation(
+            sortInterpretations -- sorts,
+            constantInterpretations,
+            functionInterpretations,
+            functionDefinitions
+        )
+    }
+
     /** Updates thr domain elements associated with specified sort. */
     def updateSortInterpretations(sort: Sort, values: Seq[Value]): Interpretation = {
         new BasicInterpretation(

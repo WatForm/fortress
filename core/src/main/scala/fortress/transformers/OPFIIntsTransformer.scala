@@ -526,7 +526,9 @@ object OPFIIntsTransformer extends ProblemStateTransformer {
         def unapplyInterp(interp: Interpretation): Interpretation = {
             val substitute = new ValuedSortSubstitution(Map(newSort -> IntSort), constantsToIntLits)
             // Cast the sorts, we have to handle function definitions directly.
-            interp.applySortSubstitution(substitute).withoutFunctionDefinitions(Set(castToIntDefn, castFromIntDefn, isInBounds))
+            //interp.applySortSubstitution(substitute).withoutFunctionDefinitions(Set(castToIntDefn, castFromIntDefn, isInBounds))
+            interp.withoutFunctionDefinitions(Set(castToIntDefn, castFromIntDefn, isInBounds)).applySortSubstitution(substitute)
+            .withoutSorts(Set(IntSort))
         }
 
         // could this be done with domain elements? Yes. Should it... probably? TODO

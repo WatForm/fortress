@@ -36,12 +36,14 @@ object Transformers {
             case "nnf" => NnfTransformer
             case "opfiints" | "opfi" | "opfiint" => OPFIIntsTransformer
             case "quantifierexpansion" => mkQuantifierExpansionTransformer()
+            case "standardquantifierexpansion" => StandardQuantifierExpansionTransformer
             case "rangeformula" | "rangeformulastandard" => RangeFormulaStandardTransformer
             case "scopenonexactpredicatestype" | "scopenonexactpredicates" | "nonexactpredicates" | "nonexactscopes" | "nonexactscope" => ScopeNonExactPredicatesTransformer
             case "simplifylearnedliterals" => new SimplifyLearnedLiteralsTransformer()
             case "simplify" => new SimplifyTransformer()
             case "simplify2" | "simplifytransformer2" => new SimplifyTransformer2()
             case "simplifywithrange" => new SimplifyWithRangeTransformer()
+            case "simplifywithscalarquantifiers" => SimplifyWithScalarQuantifiersTransformer
             case "skolemize" => SkolemizeTransformer
             case "sortinference" => SortInferenceTransformer
             case "splitconjunction" => SplitConjunctionTransformer
@@ -56,6 +58,7 @@ object Transformers {
             case "axiomatizeintpreddefinitions" | "axiomatizeintpreds" | "axiomatizeintpreddefs" | "aipd" | "aip" 
                 | "axiomatizeintegerpredicatedefinitions" | "axiomatizeintpredicatedefinitions" | "axiomatizeintegerpredicatedefs"
                 | "axiomatizeintegerpreddefs" | "axiomatizeintpredicatedefs" => AxiomatizeIntPredDefinitionsTransformer
+            case "quantifierstodefinitions" | "quantifierstodefs" | "quantifierstodefns" => QuantifiersToDefinitionsTransformer
             case _ => Errors.API.doesNotExist(name + " is not a recognized Transformer.")
         }
     }
