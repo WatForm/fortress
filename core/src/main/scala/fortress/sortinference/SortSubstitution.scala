@@ -245,4 +245,13 @@ class ValuedSortSubstitution(sortMapping: Map[Sort,Sort], valueMapping: Map[Valu
             super.applyValue(value)
         }
     }
+
+    override def apply(fd: FunctionDefinition): FunctionDefinition = fd match {case FunctionDefinition(name, argSortedVars, resultSort, body) => {
+        // Just apply to everything here
+        val newArgSorts = argSortedVars map apply
+        val newResultSort = apply(resultSort)
+        val newBody = apply(body)
+
+        FunctionDefinition(name, newArgSorts, newResultSort, newBody)
+    }}
 }

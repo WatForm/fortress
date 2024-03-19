@@ -197,8 +197,9 @@ trait Interpretation {
                 }
             }
         }
+        val newFunctionDefinitions = functionDefinitions map sub.apply
         // TODO: what to do on functionDefinitions
-        new BasicInterpretation(newSortInterps, newConstInterps, newFunctionInterps, functionDefinitions)
+        new BasicInterpretation(newSortInterps, newConstInterps, newFunctionInterps, newFunctionDefinitions)
     }
     
     /** Shows only the parts of the interpretation which are in the given signature. */
