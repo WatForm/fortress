@@ -28,7 +28,7 @@ class ModelFinderZ3ApiTest extends UnitSuite {
         Using.resource(ModelFinder.createDefault) { finder => {
             finder.setTheory(theory)
             
-            finder.checkSat should be (ModelFinderResult.Sat)
+            finder.checkSat(false) should be (ModelFinderResult.Sat)
         }}
     }
     
@@ -40,7 +40,7 @@ class ModelFinderZ3ApiTest extends UnitSuite {
         Using.resource(ModelFinder.createDefault) { finder => {
             finder.setTheory(theory)
             
-            finder.checkSat should be (ModelFinderResult.Unsat)
+            finder.checkSat(false) should be (ModelFinderResult.Unsat)
         }}
     }
     
@@ -52,7 +52,7 @@ class ModelFinderZ3ApiTest extends UnitSuite {
         Using.resource(ModelFinder.createDefault) { finder => {
             finder.setTheory(theory)
             
-            finder.checkSat should be (ModelFinderResult.Unsat)
+            finder.checkSat(false) should be (ModelFinderResult.Unsat)
         }}
     }
     
@@ -64,7 +64,7 @@ class ModelFinderZ3ApiTest extends UnitSuite {
         Using.resource(ModelFinder.createDefault) { finder => {
             finder.setTheory(theory)
             
-            finder.checkSat should be (ModelFinderResult.Sat)
+            finder.checkSat(false) should be (ModelFinderResult.Sat)
         }}
     }
     
@@ -88,7 +88,7 @@ class ModelFinderZ3ApiTest extends UnitSuite {
         Using.resource(ModelFinder.createDefault) { finder => {
             finder.setTheory(theory)
             finder.setExactScope(U, 3)
-            finder.checkSat should be (ModelFinderResult.Unsat)
+            finder.checkSat(false) should be (ModelFinderResult.Unsat)
         }}
     }
 }

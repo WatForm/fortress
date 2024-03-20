@@ -2,6 +2,7 @@ import org.scalatest._
 
 import fortress.msfol._
 import fortress.transformers._
+import fortress.problemstate.ProblemState
 
 class SimplifyTransformerTest extends UnitSuite {
 
@@ -31,6 +32,6 @@ class SimplifyTransformerTest extends UnitSuite {
           .withAxiom(Eq(x, App("f", y)))
           .withAxiom(Top)
 
-        st(theory) should be(expected)
+        st(ProblemState(theory)).theory should be(expected)
     }
 }

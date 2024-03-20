@@ -72,7 +72,7 @@ trait ModelFinder extends AutoCloseable {
     // Parentheses are used rather than zero parameters to indicate that state may change.
 
     /** Check for a satisfying interpretation to the theory with the given scopes. */
-    def checkSat(): ModelFinderResult 
+    def checkSat(verbose: Boolean = false): ModelFinderResult 
 
     /** View the satisfying interpretation, if one exists.
       * Otherwise, throws an error.

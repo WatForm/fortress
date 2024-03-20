@@ -249,7 +249,11 @@ class RangeFormulaTests extends UnitSuite {
             Set.empty,
             rangeRestrictions,
             List.empty,
-            distinctConstants = true
+            Flags(
+                distinctConstants = true,
+                isNNF = false,
+                verbose = false,
+            ),
         )
         val expectedProblemState = ProblemState(
             expected,
@@ -258,7 +262,11 @@ class RangeFormulaTests extends UnitSuite {
             Set.empty,
             rangeRestrictions,
             List.empty,
-            distinctConstants = true
+            Flags(
+                distinctConstants = true,
+                isNNF = false,
+                verbose = false,
+            ),
         )
         transformer(problemState) should be (expectedProblemState)
     }

@@ -1,9 +1,15 @@
 import fortress.msfol._
 import fortress.transformers._
+import fortress.problemstate.ProblemState
 
 class SimplifyLearnedLiteralTransformerTest extends UnitSuite {
 
     val st = new SimplifyLearnedLiteralsTransformer
+
+    def checkTransform(input: Theory, expected: Theory) = {
+        val ps = ProblemState(input)
+        st(ps).theory should equal (expected)
+    }
 
     val A = Sort.mkSortConst("A")
 
@@ -28,7 +34,7 @@ class SimplifyLearnedLiteralTransformerTest extends UnitSuite {
         val expected = baseTheory
           .withAxiom(Eq(x, App("f", y)))
 
-        st(theory) should be(expected)
+        checkTransform(theory, expected)
     }
 
     test("negative literal equals") {
@@ -40,7 +46,7 @@ class SimplifyLearnedLiteralTransformerTest extends UnitSuite {
           .withAxiom(Not(Eq(x, App("f", y))))
           .withAxiom(Bottom)
 
-        st(theory) should be(expected)
+        checkTransform(theory, expected)
     }
 
     test("positive literal app") {
@@ -52,7 +58,7 @@ class SimplifyLearnedLiteralTransformerTest extends UnitSuite {
           .withAxiom(App("P", y))
           .withAxiom(Eq(x, App("f", y)))
 
-        st(theory) should be(expected)
+        checkTransform(theory, expected)
     }
 
     test("negative literal app") {
@@ -64,6 +70,6 @@ class SimplifyLearnedLiteralTransformerTest extends UnitSuite {
           .withAxiom(Not(App("P", y)))
           .withAxiom(Eq(x, App("f", y)))
 
-        st(theory) should be(expected)
+        checkTransform(theory, expected)
     }
 }

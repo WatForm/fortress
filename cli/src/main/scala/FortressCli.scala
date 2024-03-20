@@ -162,7 +162,11 @@ object FortressCli {
 
         if(conf.debug() && conf.verbose() && conf.transformers.isSupplied){
             val compiler = new ConfigurableCompiler(conf.transformers.apply())
-            val result = compiler.compile(theory, scopes, Seconds(conf.timeout()).toMilli, Seq.empty).fold(
+            val result = compiler.compile(
+                theory, scopes,
+                Seconds(conf.timeout()).toMilli, Seq.empty,
+                verbose = conf.verbose()
+            ).fold(
                 ce => println("Error compiling", ce),
                 cr => {
                     val result = cr.theory

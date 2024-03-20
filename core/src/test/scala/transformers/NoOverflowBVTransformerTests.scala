@@ -67,7 +67,7 @@ class NoOverflowBVTransformerTests extends UnitSuite with CommonSymbols {
 
     def printConverted(theory: Theory, scopes: Map[Sort, Scope] = Map.empty){
       val compiler = managerWithOverflow.setupCompiler()
-      compiler.compile(theory, scopes, Seconds(10).toMilli, Seq.empty) match {
+      compiler.compile(theory, scopes, Seconds(10).toMilli, Seq.empty, false) match {
         case Left(_) => ()
         case Right(result) => println(result.theory)
       }

@@ -9,7 +9,7 @@ import fortress.problemstate.ProblemState
 object  ScopeNonExactPredicatesTransformer extends ProblemStateTransformer {
 
     override def apply(problemState: ProblemState): ProblemState = problemState match {
-        case ProblemState(theory, scopes, skc, skf, rangeRestricts, unapplyInterp, distinctConstants) => {
+        case ProblemState(theory, scopes, skc, skf, rangeRestricts, unapplyInterp, flags) => {
 
             val scopeNonExactPreds = for {
                 sort <- theory.sorts
@@ -86,7 +86,7 @@ object  ScopeNonExactPredicatesTransformer extends ProblemStateTransformer {
                 skf,
                 rangeRestricts,
                 unapply :: unapplyInterp,
-                distinctConstants
+                flags
             )
         }
     }

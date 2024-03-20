@@ -269,7 +269,7 @@ class SmtLibParserTest extends UnitSuite {
 
         Using.resource(ModelFinder.createDefault) { mf => {
             mf.setTheory(resultTheory)
-            val res = mf.checkSat
+            val res = mf.checkSat(false)
 
             res should be (ModelFinderResult.Sat)
         }}
@@ -319,7 +319,7 @@ class SmtLibParserTest extends UnitSuite {
 
         Using.resource(ModelFinder.createDefault) { mf => {
             mf.setTheory(resultTheory)
-            val res = mf.checkSat
+            val res = mf.checkSat(false)
 
             res should be (ModelFinderResult.Sat)
         }}

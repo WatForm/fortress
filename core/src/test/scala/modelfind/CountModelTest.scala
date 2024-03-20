@@ -21,7 +21,7 @@ class CountModelTest extends UnitSuite {
         Using.resource(new FortressZERO) { finder => {
             finder.setTheory(theory)
 
-            finder.checkSat should be (ModelFinderResult.Sat)
+            finder.checkSat(false) should be (ModelFinderResult.Sat)
 
             var model = finder.viewModel()
             val pVal1 = model.constantInterpretations(p of BoolSort)

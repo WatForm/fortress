@@ -45,7 +45,12 @@ class DatatypeTransformerTests extends UnitSuite {
             Set.empty,
             Set.empty,
             List.empty,
-            distinctConstants = false))
+            Flags(
+                distinctConstants = false,
+                verbose = false,
+                isNNF = false
+            ),
+        ))
     }
     
     test("scope of one") {
@@ -76,6 +81,11 @@ class DatatypeTransformerTests extends UnitSuite {
             Set.empty,
             Set.empty,
             List.empty,
-            distinctConstants = false))
+            Flags(
+            distinctConstants = false,
+            verbose = false,
+            isNNF = false,
+            ),
+        ))
     }
 }

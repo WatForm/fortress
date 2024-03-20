@@ -14,43 +14,48 @@ import fortress.problemstate.ProblemState
   */
 class DomainEliminationTransformer2 extends ProblemStateTransformer {
     
-    override def apply(problemState: ProblemState): ProblemState = problemState match {
-        case ProblemState(theory, scopes, skc, skf, rangeRestricts, unapplyInterp, distinctConstants) => {
-            val domainElemsMap: Map[Sort, Seq[DomainElement]] =
-                (for(sort <- theory.sorts if !sort.isBuiltin) yield {
-                    val domElems = DomainElement.range(1 to scopes(sort).size, sort)
-                    (sort, domElems)
-                }).toMap
-            
-            val domainConstants: Iterable[AnnotatedVar] = domainElemsMap.values.flatten.map {
-                de => de.asSmtConstant of de.sort
-            }
-            
-            // Assert the constants are distinct
-            // val distinctConstraints = for(
-            //     (sort, domainElems) <- domainElemsMap if (domainElems.size > 1)
-            // ) yield Distinct(domainElems map (_.asSmtConstant))
-            
-            // Eliminate domain elements in existing axioms
-            val convertedAxioms = theory.axioms map (_.eliminateDomainElementsConstants)
-            var newSig = theory.signature
-                .withConstantDeclarations(domainConstants)
-
-            // We only remove a definition before readding it so all its dependencies are in the sig
-            // definitions are basically untested
-            for(cDef <- theory.signature.constantDefinitions){
-                newSig = newSig.withoutConstantDefinition(cDef)
-                newSig = newSig.withConstantDefinition(cDef.mapBody(_.eliminateDomainElementsEnums))
-            }
-            for(fDef <- theory.signature.functionDefinitions){
-                newSig = newSig.withoutFunctionDefinition(fDef)
-                newSig = newSig.withFunctionDefinition(fDef.mapBody(_.eliminateDomainElementsEnums))
-            }
-
-            val newTheory = Theory(newSig, convertedAxioms)
-            
-            ProblemState(newTheory, scopes, skc, skf, rangeRestricts, unapplyInterp, distinctConstants = true)
+    override def apply(problemState: ProblemState): ProblemState = {
+        val theory = problemState.theory
+        val scopes = problemState.scopes
+        
+        val domainElemsMap: Map[Sort, Seq[DomainElement]] =
+            (for(sort <- theory.sorts if !sort.isBuiltin) yield {
+                val domElems = DomainElement.range(1 to scopes(sort).size, sort)
+                (sort, domElems)
+            }).toMap
+        
+        val domainConstants: Iterable[AnnotatedVar] = domainElemsMap.values.flatten.map {
+            de => de.asSmtConstant of de.sort
         }
+        
+        // Assert the constants are distinct
+        // val distinctConstraints = for(
+        //     (sort, domainElems) <- domainElemsMap if (domainElems.size > 1)
+        // ) yield Distinct(domainElems map (_.asSmtConstant))
+        
+        // Eliminate domain elements in existing axioms
+        val convertedAxioms = theory.axioms map (_.eliminateDomainElementsConstants)
+        var newSig = theory.signature
+            .withConstantDeclarations(domainConstants)
+
+        // We only remove a definition before readding it so all its dependencies are in the sig
+        // definitions are basically untested
+        for(cDef <- theory.signature.constantDefinitions){
+            newSig = newSig.withoutConstantDefinition(cDef)
+            newSig = newSig.withConstantDefinition(cDef.mapBody(_.eliminateDomainElementsEnums))
+        }
+        for(fDef <- theory.signature.functionDefinitions){
+            newSig = newSig.withoutFunctionDefinition(fDef)
+            newSig = newSig.withFunctionDefinition(fDef.mapBody(_.eliminateDomainElementsEnums))
+        }
+
+        val newTheory = Theory(newSig, convertedAxioms)
+        
+        //ProblemState(newTheory, scopes, skc, skf, rangeRestricts, unapplyInterp, distinctConstants = true)
+        problemState.copy(
+            theory = newTheory,
+            flags = problemState.flags.copy(distinctConstants = true)
+        )
     }
     
     override def name: String = "Domain Elimination To Constants Transformer 2"

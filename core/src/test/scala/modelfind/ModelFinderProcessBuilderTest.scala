@@ -153,7 +153,7 @@ class ModelFinderProcessBuilderTest extends UnitSuite {
             for ((sort, size) <- scopes) {
                 finder.setExactScope(sort, size)
             }
-            finder.checkSat should be (ModelFinderResult.Sat)
+            finder.checkSat(false) should be (ModelFinderResult.Sat)
             assertModel(finder.viewModel(), sortInterpretations, constantInterpretations, functionInterpretations)
         }}
     }

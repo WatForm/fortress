@@ -8,27 +8,31 @@ import fortress.problemstate.ProblemState
 
 
 class SimpleUnboundedCheckTransformer extends ProblemStateTransformer {
-    override def apply(problemState: ProblemState): ProblemState = problemState match {
-        case ProblemState(theory, scopes, skc, skf, rangeRestricts, unapplyInterp, distinctConstants) => {
-            //save all sorts that are quantified or have transitive closure applied to them
-            var sortSet: Set[Sort] = Set.empty
+    override def apply(problemState: ProblemState): ProblemState = {
+        val theory = problemState.theory
+        val scopes = problemState.scopes
+        
+        //save all sorts that are quantified or have transitive closure applied to them
+        var sortSet: Set[Sort] = Set.empty
 
-            for( axiom <- theory.axioms ) {
-                sortSet = sortSet ++ SimpleUnboundedChecker.getBoundedSort(axiom)
-            }
-
-            val new_scopes = scopes.filter( scope => { sortSet.contains(scope._1) } )
-            ProblemState(
-                theory,
-                new_scopes,
-                skc,
-                skf,
-                rangeRestricts,
-                unapplyInterp,
-                distinctConstants
-            )
-
+        for( axiom <- theory.axioms ) {
+            sortSet = sortSet ++ SimpleUnboundedChecker.getBoundedSort(axiom)
         }
+
+        val new_scopes = scopes.filter( scope => { sortSet.contains(scope._1) } )
+        /*
+        ProblemState(
+            theory,
+            new_scopes,
+            skc,
+            skf,
+            rangeRestricts,
+            unapplyInterp,
+            distinctConstants
+        )
+        */
+        problemState.copy(scopes = new_scopes)
+
     }
 
     override def name: String = "Simple Unbounded Check Transformer"

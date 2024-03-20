@@ -38,7 +38,10 @@ class PortusPatternStalenessTracker(
 object StalenessTracker {
     def create(theory: Theory, scopes: Map[Sort, Scope]): StalenessTracker = {
         // Determine which domain elements have been used in the original theory
-        val allStaleDomainElements: Set[DomainElement] = theory.axioms flatMap (_.domainElements)
+        val axiomStaleElements: Set[DomainElement] = theory.axioms flatMap (_.domainElements)
+        val constDefnStaleElements: Set[DomainElement] = theory.constantDefinitions.flatMap(defn => defn.body.domainElements)
+        val fnDefnStaleElements: Set[DomainElement] = theory.constantDefinitions.flatMap(defn => defn.body.domainElements)
+        val allStaleDomainElements: Set[DomainElement] = axiomStaleElements union constDefnStaleElements union fnDefnStaleElements
         val staleMap: Map[Sort, Set[DomainElement]] = {
             for (sort <- theory.sorts if !sort.isBuiltin) yield {
                 val set = allStaleDomainElements filter (_.sort == sort)
