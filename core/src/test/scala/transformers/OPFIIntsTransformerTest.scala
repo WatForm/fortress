@@ -227,7 +227,7 @@ class OPFIIntsTransformerTest extends UnitSuite {
             if (result == ModelFinderResult.Sat){
                 val modelstring = finder.viewModel().toString()
                 println(modelstring)
-                println(finder.createCompiler().compile(theory, Map(IntSort->ExactScope(intSize)), Seconds(10).toMilli, Seq.empty) match {
+                println(finder.createCompiler().compile(theory, Map(IntSort->ExactScope(intSize)), Seconds(10).toMilli, Seq.empty, false) match {
                     case Right(value) => value.theory.smtlib
                     case _ => ""
                 })

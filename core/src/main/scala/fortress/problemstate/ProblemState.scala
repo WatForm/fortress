@@ -18,7 +18,7 @@ import fortress.util.Errors
   * @param isNNF flag set to true to indicate every formula is in negation normal form
   * @param verbose flag set to indicate output should be verobse
   */
-case class ProblemState private(
+case class ProblemState private (
     theory: Theory,
     scopes: Map[Sort, Scope],
     skolemConstants: Set[AnnotatedVar],
