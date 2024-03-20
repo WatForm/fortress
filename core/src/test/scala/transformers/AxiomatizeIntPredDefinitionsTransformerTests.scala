@@ -23,6 +23,12 @@ class AxiomatizeIntPredDefinitionsTransformerTests extends UnitSuite {
     val bvSort = BitVectorSort(bitwidth)
     val baseTheoryBv = Theory.empty
         .withConstantDeclarations(i of bvSort, j of bvSort, k of bvSort)
+    
+
+    def checkTransform(input: Theory, expected: Theory) = {
+        val ps = ProblemState(input)
+        transformer(ps).theory should equal (expected)
+    }
 
     test("does not change simple function"){
         val theory = baseTheory
@@ -32,7 +38,7 @@ class AxiomatizeIntPredDefinitionsTransformerTests extends UnitSuite {
                     IntSort,
                     BuiltinApp(IntPlus, x, i)
                 ))
-        transformer(theory) should equal (theory)
+        checkTransform(theory, theory)
     }
 
     test("does not change simple function bv"){
@@ -43,7 +49,7 @@ class AxiomatizeIntPredDefinitionsTransformerTests extends UnitSuite {
                     bvSort,
                     BuiltinApp(BvPlus, x, i)
                 ))
-        transformer(theory) should equal (theory)
+        checkTransform(theory, theory)
     }
 
     test("changes simple pred"){
@@ -57,10 +63,10 @@ class AxiomatizeIntPredDefinitionsTransformerTests extends UnitSuite {
                     body
                 ))
         
-        val expectedThory = baseTheory
+        val expectedTheory = baseTheory
             .withFunctionDeclaration(FuncDecl("f", IntSort, BoolSort))
             .withAxiom(Forall(x of IntSort, Eq(App("f", x), body)))
-        transformer(theory) should equal (expectedThory)
+        checkTransform(theory, expectedTheory)
     }
 
     test("changes simple pred bv"){
@@ -74,10 +80,10 @@ class AxiomatizeIntPredDefinitionsTransformerTests extends UnitSuite {
                     body
                 ))
         
-        val expectedThory = baseTheory
+        val expectedTheory = baseTheory
             .withFunctionDeclaration(FuncDecl("f", bvSort, BoolSort))
             .withAxiom(Forall(x of bvSort, Eq(App("f", x), body)))
-        transformer(theory) should equal (expectedThory)
+        checkTransform(theory, expectedTheory)
     }
 
     test("does not change ite func"){
@@ -90,7 +96,7 @@ class AxiomatizeIntPredDefinitionsTransformerTests extends UnitSuite {
                     IntSort,
                     IfThenElse(Eq(y, z), BuiltinApp(IntPlus, x, i), x)
                 ))
-        transformer(theory) should equal (theory)
+        checkTransform(theory, theory)
     }
 
     test("does not change ite func bv"){
@@ -103,7 +109,7 @@ class AxiomatizeIntPredDefinitionsTransformerTests extends UnitSuite {
                     bvSort,
                     IfThenElse(Eq(y, z), BuiltinApp(BvPlus, x, i), x)
                 ))
-        transformer(theory) should equal (theory)
+        checkTransform(theory, theory)
     }
 
 

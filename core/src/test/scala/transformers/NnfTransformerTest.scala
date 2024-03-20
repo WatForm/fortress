@@ -2,12 +2,20 @@ import org.scalatest._
 
 import fortress.msfol._
 import fortress.transformers._
+import fortress.problemstate.ProblemState
 
 class NnfTransformerTest extends UnitSuite with CommonSymbols {
+
+    
     
     val nnf = NnfTransformer
     val _a = Var("a")
     val _b = Var("b")
+
+    def checkTransform(input: Theory, expected: Theory) = {
+        val ps = ProblemState(input)
+        nnf(ps).theory should equal (expected)
+    }
     
     val baseTheory = Theory.empty
         .withSort(A)
@@ -23,7 +31,7 @@ class NnfTransformerTest extends UnitSuite with CommonSymbols {
         val expected = baseTheory
             .withAxiom(Or(Not(p), p))
         
-        nnf(theory) should be (expected)
+        checkTransform(theory, expected)
     }
 
     test("and in constant defs") {
@@ -37,7 +45,7 @@ class NnfTransformerTest extends UnitSuite with CommonSymbols {
                 _a of BoolSort,
                 Or(Not(p), p)
             ))
-        nnf(theory) should be (expected)
+        checkTransform(theory, expected)
     }
 
     test("and in function defs"){
@@ -51,7 +59,7 @@ class NnfTransformerTest extends UnitSuite with CommonSymbols {
                 "a", Seq(p of BoolSort), BoolSort,
                 Or(Not(p), q)
             ))
-        nnf(theory) should be (expected)
+        checkTransform(theory, expected)
     }
     
     test("imp") {
@@ -61,7 +69,7 @@ class NnfTransformerTest extends UnitSuite with CommonSymbols {
         val expected = baseTheory
             .withAxiom(Or(Not(p), q))
 
-        nnf(theory) should be (expected)
+        checkTransform(theory, expected)
     }
 
     test("iff") {
@@ -71,7 +79,7 @@ class NnfTransformerTest extends UnitSuite with CommonSymbols {
         val expected = baseTheory
             .withAxiom(Or(And(p, q), And(Not(p), Not(q))))
 
-        nnf(theory) should be (expected)
+        checkTransform(theory, expected)
     }
 
     test("not and") {
@@ -81,7 +89,7 @@ class NnfTransformerTest extends UnitSuite with CommonSymbols {
         val expected = baseTheory
             .withAxiom(Or(Not(p), Not(q)))
 
-        nnf(theory) should be (expected)
+        checkTransform(theory, expected)
     }
     
     test("not or") {
@@ -91,7 +99,7 @@ class NnfTransformerTest extends UnitSuite with CommonSymbols {
         val expected = baseTheory
             .withAxiom(And(Not(p), Not(q)))
 
-        nnf(theory) should be (expected)
+        checkTransform(theory, expected)
     }
 
     test("not not") {
@@ -101,7 +109,7 @@ class NnfTransformerTest extends UnitSuite with CommonSymbols {
         val expected = baseTheory
             .withAxiom(p)
 
-        nnf(theory) should be (expected)
+        checkTransform(theory, expected)
     }
 
     test("not exists") {
@@ -111,7 +119,7 @@ class NnfTransformerTest extends UnitSuite with CommonSymbols {
         val expected = baseTheory
             .withAxiom(Forall(x.of(A), Not(App("P", x))))
 
-        nnf(theory) should be (expected)
+        checkTransform(theory, expected)
     }
 
     test("not forall") {
@@ -121,7 +129,7 @@ class NnfTransformerTest extends UnitSuite with CommonSymbols {
         val expected = baseTheory
             .withAxiom(Exists(x.of(A), Not(App("P", x))))
 
-        nnf(theory) should be (expected)
+        checkTransform(theory, expected)
     }
     
     test("not imp") {
@@ -131,7 +139,7 @@ class NnfTransformerTest extends UnitSuite with CommonSymbols {
         val expected = baseTheory
             .withAxiom(And(p, Not(q)))
 
-        nnf(theory) should be (expected)
+        checkTransform(theory, expected)
     }
 
     test("not iff") {
@@ -141,7 +149,7 @@ class NnfTransformerTest extends UnitSuite with CommonSymbols {
         val expected = baseTheory
             .withAxiom(Or(And(p, Not(q)), And(Not(p), q)))
 
-        nnf(theory) should be (expected)
+        checkTransform(theory, expected)
     }
     
     test("complex 1") {
@@ -157,7 +165,7 @@ class NnfTransformerTest extends UnitSuite with CommonSymbols {
                     And(p, And(Not(q), Not(p)))))
         val theory = baseTheory.withAxiom(axiom)
         val expected = baseTheory.withAxiom(expectedAxiom)
-        nnf(theory) should be (expected)
+        checkTransform(theory, expected)
     }
     
     test("complex 2") {
@@ -178,7 +186,7 @@ class NnfTransformerTest extends UnitSuite with CommonSymbols {
         val expected = baseTheory
             .withAxiom(expectedAxiom)
         
-        nnf(theory) should be (expected)
+        checkTransform(theory, expected)
     }
     
     test("distinct (former bug)") {
@@ -194,7 +202,7 @@ class NnfTransformerTest extends UnitSuite with CommonSymbols {
         val theory = base.withAxiom(t)
         val expected = base.withAxiom(e)
         
-        nnf(theory) should be (expected)
+        checkTransform(theory, expected)
     }
     
     test("distinct 2 (former bug)") {
@@ -228,7 +236,8 @@ class NnfTransformerTest extends UnitSuite with CommonSymbols {
         val theory1 = base.withAxiom(t1)
         val theory2 = base.withAxiom(t2)
         
-        nnf(theory1) should be (nnf(theory2))
+        val resultTheory2 = nnf(ProblemState(theory2)).theory
+        checkTransform(theory1, resultTheory2)
     }
     
     test("distinct 3") {
@@ -262,7 +271,8 @@ class NnfTransformerTest extends UnitSuite with CommonSymbols {
         val theory1 = base.withAxiom(t1)
         val theory2 = base.withAxiom(t2)
         
-        nnf(theory1) should be (nnf(theory2))
+        val resultTheory2 = nnf(ProblemState(theory2)).theory
+        checkTransform(theory1, resultTheory2)
     }
 
     test("forall iff") {
@@ -282,6 +292,6 @@ class NnfTransformerTest extends UnitSuite with CommonSymbols {
                 or { !P(_a) and Exists(_b of B, !Q(_a, _b)) } ) )
             // ∀a | (p[a] && (∀b | q[a,b])) || (!p[a] && (∃b | !q[a,b]))
         
-        nnf(theory1) should be (theory2)
+        checkTransform(theory1, theory2)
     }
 }

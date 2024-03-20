@@ -151,7 +151,7 @@ object FortressDebug {
                     case "v3" => new FortressTHREECompiler()
                     case "v3si" => new FortressTHREECompiler_SI()
                 }
-                val output = compiler.compile(theory, scopes, Seconds(conf.timeout()).toMilli, loggers)
+                val output = compiler.compile(theory, scopes, Seconds(conf.timeout()).toMilli, loggers, verbose=conf.debug())
                 output match {
                     case Left(err) => println(err)
                     case Right(result) => println(result.theory)
@@ -171,7 +171,7 @@ object FortressDebug {
 
                 // the following is enough to determine if there are new sorts
                 // TypecheckSanitizeTransformer: Theory -> Theory
-                val theory2 = TypecheckSanitizeTransformer.apply(theory)
+                val theory2 = TypecheckSanitizeTransformer.apply(ProblemState(theory)).theory
                 // wrapTheory is for operations on theories
                 val new_sorts_present = wrapTheory(theory2).newSortsInferred
                 if (new_sorts_present) {

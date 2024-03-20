@@ -3,6 +3,7 @@ package fortress.transformers
 import fortress.msfol._
 import fortress.operations._
 import fortress.operations.TheoryOps._
+import fortress.problemstate.ProblemState
 
 /** Applies a simplification to the formulas in a theory, replacing them with equivalent formulas.
   * All other aspects of the theory remain unchanged.
@@ -13,9 +14,13 @@ import fortress.operations.TheoryOps._
   * */
 
 //Fortress previously was able to use the fact that the domain constants were not equal to immediately simplify equality formulas between two domain constants. Obviously, this simplification needed to be removed.
-class SimplifyTransformer2 extends TheoryTransformer {
+class SimplifyTransformer2 extends ProblemStateTransformer {
     
-    override def apply(theory: Theory): Theory =  theory.mapAxioms(Simplifier2.simplify)
+    override def apply(problemState: ProblemState): ProblemState =  {
+      problemState.copy(
+        theory = problemState.theory.mapAxioms(Simplifier2.simplify)
+      )
+    }
     
     override def name: String = "Simplify Transformer 2"
 }

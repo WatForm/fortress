@@ -31,7 +31,7 @@ class EnumModelFindTest extends UnitSuite {
             finder.setTheory(theory)
             // Do not need to set scope of enum sort
             
-            finder.checkSat should be (ModelFinderResult.Sat)
+            finder.checkSat(false) should be (ModelFinderResult.Sat)
             
             val model = finder.viewModel()
             model.constantInterpretations should be (Map(

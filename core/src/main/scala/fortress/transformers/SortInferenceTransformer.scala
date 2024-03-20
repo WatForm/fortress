@@ -11,20 +11,28 @@ import fortress.sortinference._
   */
 object SortInferenceTransformer extends ProblemStateTransformer {
         
-    def apply(problemState: ProblemState): ProblemState = problemState match {
-        case ProblemState(theory, scopes, skc, skf, rangeRestricts, unapplyInterp, distinctConstants) => {
-            val (generalTheory, sortSubstitution) = theory.inferSorts
-            // Create new scopes
-            val newScopes = for {
-                sort <- generalTheory.sorts
-                if !sort.isBuiltin && scopes.contains(sort)
-            } yield {
-                sort -> scopes(sortSubstitution(sort))
-            }
-            val unapply: Interpretation => Interpretation = _.applySortSubstitution(sortSubstitution)
-
-            ProblemState(generalTheory, newScopes.toMap, skc map (sortSubstitution(_)), skf map (sortSubstitution(_)), rangeRestricts, unapply :: unapplyInterp, distinctConstants)
+    def apply(problemState: ProblemState): ProblemState = {
+        val theory = problemState.theory
+        val scopes = problemState.scopes
+        
+        val (generalTheory, sortSubstitution) = theory.inferSorts
+        // Create new scopes
+        val newScopes = for {
+            sort <- generalTheory.sorts
+            if !sort.isBuiltin && scopes.contains(sort)
+        } yield {
+            sort -> scopes(sortSubstitution(sort))
         }
+        val unapply: Interpretation => Interpretation = _.applySortSubstitution(sortSubstitution)
+
+        // ProblemState(generalTheory, newScopes.toMap, skc map (sortSubstitution(_)), skf map (sortSubstitution(_)), rangeRestricts, unapply :: unapplyInterp, distinctConstants)
+        problemState.copy(
+            theory = generalTheory,
+            scopes = newScopes.toMap,
+            skolemConstants = problemState.skolemConstants map (sortSubstitution(_)),
+            skolemFunctions = problemState.skolemFunctions map (sortSubstitution(_)),
+            unapplyInterp = unapply :: problemState.unapplyInterp,
+        )
     }
     
     val name: String = "Sort Inference Transformer"

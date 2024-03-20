@@ -8,12 +8,14 @@ import fortress.problemstate.ProblemState
 
 class SimplifyWithRangeTransformer extends ProblemStateTransformer {
         
-    def apply(problemState: ProblemState): ProblemState = problemState match {
-        case ProblemState(theory, scopes, skc, skf, rangeRestricts, unapplyInterp, distinctConstants) => {
-            val newTheory = theory.mapAxioms(_.simplifyWithRange(rangeRestricts))
-            // val newTheory = theory.mapAxioms(_.simplify)
-            ProblemState(newTheory, scopes, skc, skf, rangeRestricts, unapplyInterp, distinctConstants)
-        }
+    def apply(problemState: ProblemState): ProblemState = {
+        val theory = problemState.theory
+        val rangeRestricts = problemState.rangeRestrictions
+
+        val newTheory = theory.mapAxioms(_.simplifyWithRange(rangeRestricts))
+        // val newTheory = theory.mapAxioms(_.simplify)
+        // ProblemState(newTheory, scopes, skc, skf, rangeRestricts, unapplyInterp, distinctConstants)
+        problemState.copy(theory=newTheory)
     }
     
     val name: String = "Simplify (with range) Transformer"

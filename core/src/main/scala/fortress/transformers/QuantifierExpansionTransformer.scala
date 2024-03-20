@@ -28,39 +28,41 @@ private[transformers] class QuantifierExpansionTransformer (useConstForDomElem: 
         if (useConstForDomElem) DomainElement(index, sort).asSmtConstant
         else DomainElement(index, sort)
     
-    override def apply(problemState: ProblemState): ProblemState = problemState match {
-        case ProblemState(theory, scopes, skc, skf, rangeRestricts, unapplyInterp, distinctConstants) => {
-//            Errors.Internal.precondition(scopes.keySet == theory.sorts.filter(!_.isBuiltin), scopes.keySet.toString)
-
-            // scopes only contains bounded sorts, so no need to check
-            val domainElemsMap: Map[Sort, Seq[Term]] = scopes.map {
-                case (sort, scope: Scope) => (sort, for(i <- 1 to scope.size) yield DE(i, sort))
-            }
+    override def apply(problemState: ProblemState): ProblemState = {
+        val theory = problemState.theory
+        val scopes = problemState.scopes
         
-            val newAxioms = {
-                if(useSimplification) theory.axioms.map(axiom => axiom.expandQuantifiersAndSimplify(domainElemsMap))
-                else theory.axioms.map(axiom => axiom.expandQuantifiers(domainElemsMap))
-            }
+//    Errors.Internal.precondition(scopes.keySet == theory.sorts.filter(!_.isBuiltin), scopes.keySet.toString)
 
-            var newSig = theory.signature
-            // these must be done one at a time to avoid our aggressive checking for dependence
-            for(cDef <- newSig.constantDefinitions){
-                newSig = newSig withoutConstantDefinition cDef
-                newSig = newSig withConstantDefinition (cDef.mapBody(_.expandQuantifiers(domainElemsMap)))
-            }
-            for(fDef <- newSig.functionDefinitions){
-                newSig = newSig withoutFunctionDefinition fDef
-                newSig = newSig withFunctionDefinition (fDef.mapBody(_.expandQuantifiers(domainElemsMap)))
-            }
+        // scopes only contains bounded sorts, so no need to check
+        val domainElemsMap: Map[Sort, Seq[Term]] = scopes.map {
+            case (sort, scope: Scope) => (sort, for(i <- 1 to scope.size) yield DE(i, sort))
+        }
+    
+        val newAxioms = {
+            if(useSimplification) theory.axioms.map(axiom => axiom.expandQuantifiersAndSimplify(domainElemsMap))
+            else theory.axioms.map(axiom => axiom.expandQuantifiers(domainElemsMap))
+        }
 
-        
-            val newTheory = Theory(newSig, newAxioms)
+        var newSig = theory.signature
+        // these must be done one at a time to avoid our aggressive checking for dependence
+        for(cDef <- newSig.constantDefinitions){
+            newSig = newSig withoutConstantDefinition cDef
+            newSig = newSig withConstantDefinition (cDef.mapBody(_.expandQuantifiers(domainElemsMap)))
+        }
+        for(fDef <- newSig.functionDefinitions){
+            newSig = newSig withoutFunctionDefinition fDef
+            newSig = newSig withFunctionDefinition (fDef.mapBody(_.expandQuantifiers(domainElemsMap)))
+        }
+
+    
+        val newTheory = Theory(newSig, newAxioms)
 
 //            println("Theory after quantifier expansion:")
 //            println(newTheory + "\n-----------------------------\n")
 
-            ProblemState(newTheory, scopes, skc, skf, rangeRestricts, unapplyInterp, distinctConstants)
-        }
+        //ProblemState(newTheory, scopes, skc, skf, rangeRestricts, unapplyInterp, distinctConstants)
+        problemState.copy(theory = newTheory)
     }
 
     private val configStr1 = s"${if(useConstForDomElem) "Constants" else "-"}"
