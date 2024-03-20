@@ -197,8 +197,9 @@ trait Interpretation {
                 }
             }
         }
+        val newFunctionDefinitions = functionDefinitions map sub.apply
         // TODO: what to do on functionDefinitions
-        new BasicInterpretation(newSortInterps, newConstInterps, newFunctionInterps, functionDefinitions)
+        new BasicInterpretation(newSortInterps, newConstInterps, newFunctionInterps, newFunctionDefinitions)
     }
     
     /** Shows only the parts of the interpretation which are in the given signature. */
@@ -242,6 +243,16 @@ trait Interpretation {
             functionDefinitions
         )
     }
+
+    /** Removes the given definitions from the interpretation */
+    def withoutFunctionDefinitions(definitions: Set[FunctionDefinition]): Interpretation = {
+        new BasicInterpretation(
+            sortInterpretations,
+            constantInterpretations,
+            functionInterpretations,
+            functionDefinitions -- definitions
+        )
+    }
     
     /** Removes the given functions from the interpretation. */
     def withoutFunctions(funcDecls: Set[FuncDecl]): Interpretation = {
@@ -258,6 +269,16 @@ trait Interpretation {
             constantInterpretations,
             functionInterpretations -- funcDecls,
             newFunctionDefinitions
+        )
+    }
+
+    /** Updates the Interpretation to drop the specified sort */
+    def withoutSorts(sorts:Set[Sort]): Interpretation = {
+        new BasicInterpretation(
+            sortInterpretations -- sorts,
+            constantInterpretations,
+            functionInterpretations,
+            functionDefinitions
         )
     }
 
