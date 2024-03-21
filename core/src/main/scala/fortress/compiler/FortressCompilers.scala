@@ -20,7 +20,6 @@ abstract class ConstantsMethodCompiler() extends LogicCompiler {
         transformerSequence += ClosureEliminationEijckTransformer
         transformerSequence += ScopeNonExactPredicatesTransformer
         // transformerSequence += IntegerToBitVectorTransformer    
-        transformerSequence += OPFIIntsTransformer 
         transformerSequence += NnfTransformer
         transformerSequence += SkolemizeTransformer
         transformerSequence += new SymmetryBreakingTransformer(SymmetryBreakingOptions(
@@ -29,6 +28,7 @@ abstract class ConstantsMethodCompiler() extends LogicCompiler {
             sortInference = false,
             patternOptimization = true,
         ))
+        transformerSequence += OPFIIntsTransformer
         transformerSequence += SimplifyWithScalarQuantifiersTransformer
         transformerSequence += QuantifiersToDefinitionsTransformer
         transformerSequence += StandardQuantifierExpansionTransformer
@@ -54,13 +54,13 @@ abstract class DatatypeMethodNoRangeCompiler() extends LogicCompiler {
         transformerSequence += ClosureEliminationEijckTransformer
         transformerSequence += ScopeNonExactPredicatesTransformer
         // transformerSequence += IntegerToBitVectorTransformer      
-        transformerSequence += OPFIIntsTransformer
         transformerSequence += new SymmetryBreakingTransformer(SymmetryBreakingOptions(
             selectionHeuristic = MonoFirstThenFunctionsFirstAnyOrder,
             breakSkolem = true,
             sortInference = false,
             patternOptimization = true,
         ))
+        transformerSequence += OPFIIntsTransformer
         transformerSequence += SimplifyWithScalarQuantifiersTransformer
         transformerSequence += QuantifiersToDefinitionsTransformer
         transformerSequence += new SimplifyTransformer
@@ -84,13 +84,13 @@ abstract class DatatypeMethodWithRangeCompiler() extends LogicCompiler {
         transformerSequence += ClosureEliminationEijckTransformer
         transformerSequence += ScopeNonExactPredicatesTransformer
         // transformerSequence += IntegerToBitVectorTransformer      
-        transformerSequence += OPFIIntsTransformer
         transformerSequence += new SymmetryBreakingTransformer(SymmetryBreakingOptions(
             selectionHeuristic = MonoFirstThenFunctionsFirstAnyOrder,
             breakSkolem = true,
             sortInference = false,
             patternOptimization = true,
         ))
+        transformerSequence += OPFIIntsTransformer
         transformerSequence += RangeFormulaStandardTransformer
         transformerSequence += SimplifyWithScalarQuantifiersTransformer
         transformerSequence += QuantifiersToDefinitionsTransformer
@@ -113,7 +113,6 @@ abstract class DatatypeMethodNoRangeEUFCompiler() extends LogicCompiler {
         transformerSequence += ClosureEliminationEijckTransformer
         transformerSequence += ScopeNonExactPredicatesTransformer
         // transformerSequence += IntegerToBitVectorTransformer      
-        transformerSequence += OPFIIntsTransformer
         transformerSequence += NnfTransformer
         transformerSequence += SkolemizeTransformer
         transformerSequence += new SymmetryBreakingTransformer(SymmetryBreakingOptions(
@@ -122,6 +121,7 @@ abstract class DatatypeMethodNoRangeEUFCompiler() extends LogicCompiler {
             sortInference = false,
             patternOptimization = true,
         ))
+        transformerSequence += OPFIIntsTransformer
         transformerSequence += SimplifyWithScalarQuantifiersTransformer
         transformerSequence += QuantifiersToDefinitionsTransformer
         transformerSequence += StandardQuantifierExpansionTransformer
@@ -144,7 +144,6 @@ abstract class DatatypeMethodWithRangeEUFCompiler() extends LogicCompiler {
         transformerSequence += ClosureEliminationEijckTransformer
         transformerSequence += ScopeNonExactPredicatesTransformer
         // transformerSequence += IntegerToBitVectorTransformer      
-        transformerSequence += OPFIIntsTransformer
         transformerSequence += NnfTransformer
         transformerSequence += SkolemizeTransformer
         transformerSequence += new SymmetryBreakingTransformer(SymmetryBreakingOptions(
@@ -153,6 +152,7 @@ abstract class DatatypeMethodWithRangeEUFCompiler() extends LogicCompiler {
             sortInference = false,
             patternOptimization = true,
         ))
+        transformerSequence += OPFIIntsTransformer
         transformerSequence += SimplifyWithScalarQuantifiersTransformer
         transformerSequence += QuantifiersToDefinitionsTransformer
         transformerSequence += StandardQuantifierExpansionTransformer

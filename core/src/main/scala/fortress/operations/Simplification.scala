@@ -84,6 +84,8 @@ object Simplifier {
         }
         case IfThenElse(Top, ifTrue, ifFalse) => ifTrue
         case IfThenElse(Bottom, ifTrue, ifFalse) => ifFalse
+        case IfThenElse(_, Top, Top) => Top
+        case IfThenElse(_, Bottom, Bottom) => Bottom
         case _ => term
     }
 }

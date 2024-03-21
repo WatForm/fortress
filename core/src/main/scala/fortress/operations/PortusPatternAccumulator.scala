@@ -31,10 +31,7 @@ object PortusPatternAccumulator {
             } // ignore those that obey the pattern
         }
 
-        def apply(term: Term): Set[DomainElement] = {
-            println(s"[fortress] accumulating domain elements for ${term}")
-            naturalRecur(term)
-        }
+        def apply(term: Term): Set[DomainElement] = naturalRecur(term)
     }
 
     def domainElementsExceptPatternIn(term: Term): Set[DomainElement] = DomainElementAccumulator(term)
