@@ -29,11 +29,11 @@ object EnumEliminationTransformer extends ProblemStateTransformer {
         // definitions are basically untested
         for(cDef <- theory.signature.constantDefinitions){
             newSig = newSig.withoutConstantDefinition(cDef)
-            newSig = newSig.withConstantDefinition(cDef.mapBody(_.eliminateDomainElementsEnums))
+            newSig = newSig.withConstantDefinition(cDef.mapBody(_.eliminateEnumValues(mapping)))
         }
         for(fDef <- theory.signature.functionDefinitions){
             newSig = newSig.withoutFunctionDefinition(fDef)
-            newSig = newSig.withFunctionDefinition(fDef.mapBody(_.eliminateDomainElementsEnums))
+            newSig = newSig.withFunctionDefinition(fDef.mapBody(_.eliminateEnumValues(mapping)))
         }
         
         val newTheory = Theory(newSig, newAxioms)
