@@ -48,9 +48,7 @@ object NormalForms {
         case Not(DomainElement(_, _)) | Not(IntegerLiteral(_))
             |  Not(BitVectorLiteral(_, _)) | Not(EnumValue(_)) => Errors.Internal.preconditionFailed(s"Term is not well-sorted: ${term}")
         case IfThenElse(condition, ifTrue, ifFalse) => IfThenElse(nnf(condition), nnf(ifTrue), nnf(ifFalse))
-        case Not(IfThenElse(condition, ifTrue, ifFalse)) => {
-            IfThenElse(nnf(condition), nnf(Not(ifTrue)), nnf(Not(ifFalse))) // The NNF on the conditional is likely unhelpful
-        }
+        case Not(IfThenElse(condition, ifTrue, ifFalse)) => Errors.Internal.preconditionFailed(s"Term is not santitized, ite cannot return Boolean: ${term}")
     }
 
     def prenex(term: Term): Term = ???
