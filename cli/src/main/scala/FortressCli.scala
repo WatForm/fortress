@@ -171,7 +171,7 @@ object FortressCli {
                 cr => {
                     val result = cr.theory
                     println("=====original=====")
-                    println(TheoryOps.wrapTheory(cr.theory).smtlib)
+                    println(TheoryOps.wrapTheory(TypecheckSanitizeTransformer(ProblemState(theory, scopes)).theory).smtlib)
                     println("========new=======")
                     //println(cr.theory)
                     //println("------------------")
