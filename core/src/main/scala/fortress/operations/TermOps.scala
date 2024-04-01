@@ -31,7 +31,12 @@ case class TermOps private (term: Term) {
       * The term must be sanitized to call this method.
       */
     def nnf: Term = NormalForms.nnf(term)
-    
+
+    /** Removes all ites from the term by iflifting
+      * The term must be sanitized to call this method.
+      */
+    def iflift: Term = IfLifter.iflift(term)
+
     /** Does not account for variable capture.
       * If in doubt do not use this function.
       */

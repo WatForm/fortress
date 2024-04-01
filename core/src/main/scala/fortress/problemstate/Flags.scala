@@ -15,6 +15,7 @@ case class Flags private(
     distinctConstants: Boolean = true,
     isNNF: Boolean = false,
     verbose: Boolean = false,
+    containsIte: Boolean = false,
 ) {}
 
 case object Flags {
