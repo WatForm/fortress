@@ -12,7 +12,7 @@ object IfLifter {
 
     def iflift(term: Term): Term = term match {
 
-        // App and Eq are the two interesting cases for iflifting
+        // App/BuiltinApp and Eq are the two interesting cases for iflifting
         case App(fname, args) => {
                 var newargs = List[Term]()
                 for(i <- 0 to args.size-1) {
@@ -44,6 +44,38 @@ object IfLifter {
                 App(fname,newargs)
         }
 
+        // this is largely a duplication of the above
+        // but it is not easy to factor it into a helper function
+        case BuiltinApp(fname, args) => {
+                var newargs = List[Term]()
+                for(i <- 0 to args.size-1) {
+                    val a = args.lift(i)
+                    a match {
+                        case Some(IfThenElse(condition, ifTrue, ifFalse)) =>
+                            // could be empty if this is the last arg
+                            val argsafter = args.slice(i+1, args.size -1)
+                            val argsTrue = newargs ++ List(ifTrue) ++ argsafter
+                            val argsFalse = newargs ++ List(ifFalse) ++ argsafter
+                            // returns a value and doesn't loop any more
+                            OrList(
+                                AndList(
+                                    iflift(condition),iflift(BuiltinApp(fname,argsTrue))),
+                                AndList(
+                                    Not(iflift(condition)),iflift(BuiltinApp(fname,argsFalse)))
+                            )
+                        case Some(x) => {
+                            val newa = iflift(x)
+                            newargs = newargs ++ List(newa)
+                        }
+                        case None => 
+                            Errors.Internal.preconditionFailed(s"Should not reach this case in IfLifting: ${term}")
+                    }
+                    
+                }
+                // only reaches here if there was no ite in an argument
+                // all of newargs have been iflifted
+                BuiltinApp(fname,newargs)
+        }
         case Eq(l, r) => {
             l match {
                 case IfThenElse(condition,ifTrue, ifFalse) =>
@@ -63,7 +95,7 @@ object IfLifter {
                     }
             }
         }
-        case BuiltinApp(_, _) => ???
+
 
         // for all the logical operators just push iflifting down
         case AndList(args) => AndList(args.map(iflift))
