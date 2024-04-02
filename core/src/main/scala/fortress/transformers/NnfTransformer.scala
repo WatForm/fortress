@@ -8,6 +8,10 @@ import fortress.problemstate.ProblemState
 /** Changes each axiom of the theory into negation normal form. */
 object NnfTransformer extends ProblemStateTransformer {
     override def apply(problemState: ProblemState): ProblemState = {
+
+        if (problemState.flags.containsIte==false) {
+            Errors.Internal.preconditionFailed(s"NNF cannot transform a problem containing ITEs")
+        }
         val theory = problemState.theory
         var newTheory = theory.mapAxioms(_.nnf)
         // We only remove a definition before readding it so all its dependencies are in the sig

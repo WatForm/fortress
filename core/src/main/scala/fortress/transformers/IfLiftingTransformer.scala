@@ -10,9 +10,7 @@ import fortress.util.Errors
 object IfLiftingTransformer extends ProblemStateTransformer {
     override def apply(problemState: ProblemState): ProblemState = {
 
-        if (problemState.flags.containsIte==false) {
-            Errors.Internal.preconditionFailed(s"NNF cannot transform a problem containing ITEs")
-        }
+
         
         val theory = problemState.theory
         var newTheory = theory.mapAxioms(_.iflift)
