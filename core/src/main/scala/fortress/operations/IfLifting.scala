@@ -119,9 +119,13 @@ object IfLifter {
             | IntegerLiteral(_) | BitVectorLiteral(_, _) | EnumValue(_)
              => term
 
-        // should not reach this point
+        // should only reach this point if ite is the top-level formula
+        // so ifTrue and ifFalse must be of boolean sort
         case IfThenElse(condition, ifTrue, ifFalse) => 
-            Errors.Internal.preconditionFailed(s"Should not reach this case in IfLifting: ${term}")
+            OrList(
+                AndList(iflift(condition),iflift(ifTrue)),
+                AndList(iflift(condition),iflift(ifFalse))
+            )
     }
 
 }

@@ -21,8 +21,11 @@ abstract class ConstantsMethodCompiler() extends LogicCompiler {
         transformerSequence += ScopeNonExactPredicatesTransformer
         // transformerSequence += IntegerToBitVectorTransformer    
         transformerSequence += OPFIIntsTransformer 
+
+        transformerSequence += IfLiftingTransformer
         transformerSequence += NnfTransformer
         transformerSequence += SkolemizeTransformer
+
         transformerSequence += new SymmetryBreakingTransformer(MonoFirstThenFunctionsFirstAnyOrder)
         transformerSequence += SimplifyWithScalarQuantifiersTransformer
         transformerSequence += QuantifiersToDefinitionsTransformer
@@ -45,10 +48,10 @@ abstract class DatatypeMethodNoRangeCompiler() extends LogicCompiler {
         val transformerSequence = new scala.collection.mutable.ListBuffer[ProblemStateTransformer]
         transformerSequence += TypecheckSanitizeTransformer
         transformerSequence += EnumEliminationTransformer
-        // transformerSequence += NnfTransformer
+
         transformerSequence += ClosureEliminationEijckTransformer
         transformerSequence += ScopeNonExactPredicatesTransformer
-        // transformerSequence += IntegerToBitVectorTransformer      
+
         transformerSequence += OPFIIntsTransformer
         transformerSequence += new SymmetryBreakingTransformer(MonoFirstThenFunctionsFirstAnyOrder)
         transformerSequence += SimplifyWithScalarQuantifiersTransformer
@@ -99,8 +102,11 @@ abstract class DatatypeMethodNoRangeEUFCompiler() extends LogicCompiler {
         transformerSequence += ScopeNonExactPredicatesTransformer
         // transformerSequence += IntegerToBitVectorTransformer      
         transformerSequence += OPFIIntsTransformer
+
+        transformerSequence += IfLiftingTransformer
         transformerSequence += NnfTransformer
         transformerSequence += SkolemizeTransformer
+
         transformerSequence += new SymmetryBreakingTransformer(MonoFirstThenFunctionsFirstAnyOrder)
         transformerSequence += SimplifyWithScalarQuantifiersTransformer
         transformerSequence += QuantifiersToDefinitionsTransformer
@@ -123,10 +129,13 @@ abstract class DatatypeMethodWithRangeEUFCompiler() extends LogicCompiler {
         transformerSequence += EnumEliminationTransformer
         transformerSequence += ClosureEliminationEijckTransformer
         transformerSequence += ScopeNonExactPredicatesTransformer
-        // transformerSequence += IntegerToBitVectorTransformer      
+
         transformerSequence += OPFIIntsTransformer
+
+        transformerSequence += IfLiftingTransformer
         transformerSequence += NnfTransformer
         transformerSequence += SkolemizeTransformer
+
         transformerSequence += new SymmetryBreakingTransformer(MonoFirstThenFunctionsFirstAnyOrder)
         transformerSequence += SimplifyWithScalarQuantifiersTransformer
         transformerSequence += QuantifiersToDefinitionsTransformer
@@ -139,6 +148,7 @@ abstract class DatatypeMethodWithRangeEUFCompiler() extends LogicCompiler {
 
 }
 
+// not revised below this line
 
 /**
   * The standard Fortress compiler steps.

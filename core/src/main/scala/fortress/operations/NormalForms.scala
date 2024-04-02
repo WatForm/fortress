@@ -47,8 +47,8 @@ object NormalForms {
             | Not(Var(_)) | Not(BuiltinApp(_, _)) => term
         case Not(DomainElement(_, _)) | Not(IntegerLiteral(_))
             |  Not(BitVectorLiteral(_, _)) | Not(EnumValue(_)) => Errors.Internal.preconditionFailed(s"Term is not well-sorted: ${term}")
-        case IfThenElse(condition, ifTrue, ifFalse) => IfThenElse(nnf(condition), nnf(ifTrue), nnf(ifFalse))
-        case Not(IfThenElse(condition, ifTrue, ifFalse)) => Errors.Internal.preconditionFailed(s"Term is not santitized, ite cannot return Boolean: ${term}")
+        case IfThenElse(condition, ifTrue, ifFalse) => Errors.Internal.preconditionFailed(s"nnf - Term has an ite: ${term}")
+        case Not(IfThenElse(condition, ifTrue, ifFalse)) => Errors.Internal.preconditionFailed(s"nnf - Term has an ite: ${term}")
     }
 
     def prenex(term: Term): Term = ???
