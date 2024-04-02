@@ -9,7 +9,7 @@ import fortress.problemstate.ProblemState
 object NnfTransformer extends ProblemStateTransformer {
     override def apply(problemState: ProblemState): ProblemState = {
 
-        if (problemState.flags.containsIte==false) {
+        if (problemState.flags.containsIte==true) {
             Errors.Internal.preconditionFailed(s"NNF cannot transform a problem containing ITEs")
         }
         val theory = problemState.theory
