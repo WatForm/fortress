@@ -4,7 +4,7 @@ import fortress.msfol._
 import fortress.operations.TermOps._
 import fortress.operations.TheoryOps._
 import fortress.problemstate.ProblemState
-import fortress.util.Errors
+
 
 /** Changes each axiom of the theory into negation normal form. */
 object IfLiftingTransformer extends ProblemStateTransformer {

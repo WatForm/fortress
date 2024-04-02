@@ -4,13 +4,14 @@ import fortress.msfol._
 import fortress.operations.TermOps._
 import fortress.operations.TheoryOps._
 import fortress.problemstate.ProblemState
+import fortress.util.Errors
 
 /** Changes each axiom of the theory into negation normal form. */
 object NnfTransformer extends ProblemStateTransformer {
     override def apply(problemState: ProblemState): ProblemState = {
 
         if (problemState.flags.containsIte==true) {
-            Errors.Internal.preconditionFailed(s"NNF cannot transform a problem containing ITEs")
+            Errors.Internal.preconditionFailed(s"NNF cannot transform a problem containing ite")
         }
         val theory = problemState.theory
         var newTheory = theory.mapAxioms(_.nnf)

@@ -9,7 +9,8 @@ case class TypeCheckResult(
     sanitizedTerm: Term,
     sort: Sort,
     containsConnectives: Boolean,
-    containsQuantifiers: Boolean
+    containsQuantifiers: Boolean,
+    //containsItes: Boolean,
 )
 /** Given a signature and a term, typechecks the term with respect to the signature.
  * Returns a TypeCheckResult containing the sort of the term, AND a new term
