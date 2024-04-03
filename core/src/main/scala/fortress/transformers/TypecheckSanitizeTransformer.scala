@@ -24,8 +24,15 @@ object TypecheckSanitizeTransformer extends ProblemStateTransformer {
         }
 
         val newTheory = theory.mapAxioms(t => sanitizeAxiom(t))
+
+        // somehow we need to get the ite/exists results from all t's aggregrated
+        
         problemState.copy(
-            theory = newTheory
+            theory = newTheory,
+            flags = problemState.flags.copy(
+                containsItes = result.containsItes,
+                containsExists = result.containtsExists
+            )
         )
     }
     
