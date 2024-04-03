@@ -27,11 +27,14 @@ object Skolemization {
             case OrList(args) => OrList(args map recur)
             case Distinct(_) | Iff (_, _) | Implication(_, _) => Errors.Internal.preconditionFailed(s"Term not in negation normal form: ${term}")
             case Eq(l, r) => Eq(recur(l), recur(r))
-            // Arguments with unknown polarity cannot be skolemized
-            // It is possible that knowledge of fn may help skolemize more often
+
+            // Arguments to fcn/builtinapp with unknown polarity cannot be skolemized
             case App(fn, args) => App(fn, args)
-            case BuiltinApp(fn, args) => BuiltinApp(fn, args map recur)
-            case IfThenElse(c, t, f) => IfThenElse(c, recur(t), recur(f))
+            case BuiltinApp(fn, args) => BuiltinApp(fn, args)
+
+            case IfThenElse(c, t, f) => 
+                Errors.Internal.preconditionFailed(s"skolemize - Term has an ite: ${term}")
+
             case Forall(avars, body) => {
                 context = context.stackPush(avars)
                 val r = Forall(avars, recur(body))
