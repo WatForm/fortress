@@ -11,6 +11,7 @@ case class TypeCheckResult(
     containsConnectives: Boolean,
     containsQuantifiers: Boolean,
     containsItes: Boolean,
+    containsExists: Boolean,
 )
 /** Given a signature and a term, typechecks the term with respect to the signature.
  * Returns a TypeCheckResult containing the sort of the term, AND a new term
@@ -24,7 +25,8 @@ class TypeChecker(signature: Signature) extends TermVisitorWithTypeContext[TypeC
             sort = BoolSort, 
             containsConnectives = false, 
             containsQuantifiers = false, 
-            containsItes = false
+            containsItes = false,
+            containsExists = false
         )
         
     override def visitBottom(): TypeCheckResult =
@@ -33,7 +35,8 @@ class TypeChecker(signature: Signature) extends TermVisitorWithTypeContext[TypeC
             sort = BoolSort, 
             containsConnectives = false, 
             containsQuantifiers = false, 
-            containsItes = false
+            containsItes = false,
+            containsExists = false
         )
     
     override def visitVar(variable: Var): TypeCheckResult = {
@@ -67,7 +70,8 @@ class TypeChecker(signature: Signature) extends TermVisitorWithTypeContext[TypeC
             sort = sortMaybe.get,
             containsConnectives = false, 
             containsQuantifiers = false , 
-            containsItes = false
+            containsItes = false,
+            containsExists = false,
         )
     }
     
@@ -81,7 +85,8 @@ class TypeChecker(signature: Signature) extends TermVisitorWithTypeContext[TypeC
             sort = BoolSort,
             containsConnectives = true, 
             containsQuantifiers = bodyResult.containsQuantifiers,
-            containsItes = bodyResult.containsItes
+            containsItes = bodyResult.containsItes,
+            containsExists = bodyResult.containsExists
         )
     }
     
@@ -97,7 +102,8 @@ class TypeChecker(signature: Signature) extends TermVisitorWithTypeContext[TypeC
             sort = BoolSort,
             containsConnectives = true,
             containsQuantifiers = results.exists(_.containsQuantifiers),
-            containsItes = results.exists(_.containsItes)
+            containsItes = results.exists(_.containsItes),
+            containsExists = results.exists(_.containsExists)
         )
     }
     
@@ -113,7 +119,8 @@ class TypeChecker(signature: Signature) extends TermVisitorWithTypeContext[TypeC
             sort = BoolSort,
             containsConnectives = true,
             containsQuantifiers = results.exists(_.containsQuantifiers),
-            containsItes = results.exists(_.containsItes)
+            containsItes = results.exists(_.containsItes),
+            containsExists = results.exists(_.containsExists)
         )
     }
     
@@ -131,7 +138,8 @@ class TypeChecker(signature: Signature) extends TermVisitorWithTypeContext[TypeC
             sort = BoolSort,
             containsConnectives = true,
             containsQuantifiers = results.exists(_.containsQuantifiers),
-            containsItes = results.exists(_.containsItes)
+            containsItes = results.exists(_.containsItes),
+            containsExists = results.exists(_.containsExists)
         )
     }
     
@@ -150,7 +158,8 @@ class TypeChecker(signature: Signature) extends TermVisitorWithTypeContext[TypeC
             sort = BoolSort,
             containsConnectives = true, 
             containsQuantifiers = leftResult.containsQuantifiers || rightResult.containsQuantifiers,
-            containsItes = leftResult.containsItes || rightResult.containsItes
+            containsItes = leftResult.containsItes || rightResult.containsItes,
+            containsExists = leftResult.containsExists || rightResult.containsExists,
         )
     }
     
@@ -169,7 +178,8 @@ class TypeChecker(signature: Signature) extends TermVisitorWithTypeContext[TypeC
             sort = BoolSort,
             containsConnectives = true, 
             containsQuantifiers = leftResult.containsQuantifiers || rightResult.containsQuantifiers,
-            containsItes = leftResult.containsItes || rightResult.containsItes
+            containsItes = leftResult.containsItes || rightResult.containsItes,
+            containsExists = leftResult.containsExists || rightResult.containsExists,
         )
     }
     
@@ -192,7 +202,8 @@ class TypeChecker(signature: Signature) extends TermVisitorWithTypeContext[TypeC
             sort = BoolSort,
             containsConnectives = true, 
             containsQuantifiers = leftResult.containsQuantifiers || rightResult.containsQuantifiers,
-            containsItes = leftResult.containsItes || rightResult.containsItes
+            containsItes = leftResult.containsItes || rightResult.containsItes,
+            containsExists = leftResult.containsExists || rightResult.containsExists,
         )
     }
     
@@ -222,7 +233,8 @@ class TypeChecker(signature: Signature) extends TermVisitorWithTypeContext[TypeC
             sort = tResult.sort,
             containsConnectives = condResult.containsConnectives || tResult.containsConnectives || fResult.containsConnectives,
             containsQuantifiers = condResult.containsQuantifiers || tResult.containsQuantifiers || fResult.containsQuantifiers,
-            containsItes = true
+            containsItes = true,
+            containsExists = condResult.containsExists || tResult.containsExists || fResult.containsExists
         )
     }
     
@@ -259,7 +271,8 @@ class TypeChecker(signature: Signature) extends TermVisitorWithTypeContext[TypeC
             sort = resultSort,
             containsConnectives = results exists (_.containsConnectives),
             containsQuantifiers = false,
-            containsItes = results exists (_.containsItes)
+            containsItes = results exists (_.containsItes),
+            containsExists = results exists (_.containsExists)
         )
     }
     
@@ -280,7 +293,8 @@ class TypeChecker(signature: Signature) extends TermVisitorWithTypeContext[TypeC
                 sanitizedTerm = BuiltinApp(bapp.function, results.map(_.sanitizedTerm)), sort = resultSort,
                 containsConnectives = false, 
                 containsQuantifiers = false,
-                containsItes = results exists (_.containsItes)
+                containsItes = results exists (_.containsItes),
+                containsExists = results exists (_.containsExists)
             )
             case None => throw new TypeCheckException.WrongSort("Builtin function " + bapp.function.toString + " cannot accept arguments of sorts " + argSorts.toString)
         }
@@ -300,6 +314,7 @@ class TypeChecker(signature: Signature) extends TermVisitorWithTypeContext[TypeC
         
         val results = c.allArguments.map(visit)
         /*
+        NAD: should these be errors??
         if (results.exists(_.containsConnectives)) {
             throw new TypeCheckException.BadStructure("Argument of ^" + c.functionName + " contains connective")
         }
@@ -339,6 +354,7 @@ class TypeChecker(signature: Signature) extends TermVisitorWithTypeContext[TypeC
             containsConnectives = false, 
             containsQuantifiers = false,
             containsItes = false,
+            containsExists = false // NAD: can we be sure about this?
         )
     }
 
@@ -392,6 +408,7 @@ class TypeChecker(signature: Signature) extends TermVisitorWithTypeContext[TypeC
             containsConnectives = false, 
             containsQuantifiers = false,
             containsItes = false,
+            containsExists = false // NAD: can we be sure about this?
         )
     }
     
@@ -421,6 +438,7 @@ class TypeChecker(signature: Signature) extends TermVisitorWithTypeContext[TypeC
             containsConnectives = bodyResult.containsConnectives, 
             containsQuantifiers = true,
             containsItes = bodyResult.containsItes,
+            containsExists = true,
         )
     }
     
@@ -450,6 +468,7 @@ class TypeChecker(signature: Signature) extends TermVisitorWithTypeContext[TypeC
             containsConnectives = bodyResult.containsConnectives, 
             containsQuantifiers = true,
             containsItes = bodyResult.containsItes,
+            containsExists = bodyResult.containsExists
         )
     }
     
@@ -466,6 +485,7 @@ class TypeChecker(signature: Signature) extends TermVisitorWithTypeContext[TypeC
             containsConnectives = false, 
             containsQuantifiers = false,
             containsItes = false,
+            containsExists = false,
         )
     }
     
@@ -476,6 +496,7 @@ class TypeChecker(signature: Signature) extends TermVisitorWithTypeContext[TypeC
             containsConnectives = false, 
             containsQuantifiers = false,
             containsItes = false,
+            containsExists = false,
         )
     
     override def visitBitVectorLiteral(literal: BitVectorLiteral): TypeCheckResult =
@@ -485,6 +506,7 @@ class TypeChecker(signature: Signature) extends TermVisitorWithTypeContext[TypeC
             containsConnectives = false, 
             containsQuantifiers = false,
             containsItes = false,
+            containsExists = false,
         )
     
     override def visitEnumValue(e: EnumValue): TypeCheckResult = signature.queryEnum(e) match {
@@ -494,7 +516,8 @@ class TypeChecker(signature: Signature) extends TermVisitorWithTypeContext[TypeC
                 sort = eSort, 
                 containsConnectives = false, 
                 containsQuantifiers = false,
-                containsItes = false 
+                containsItes = false,
+                containsExists = false,
             )
         case None => throw new TypeCheckException.UndeterminedSort("Could not determine sort of enum " + e.name)
     }
