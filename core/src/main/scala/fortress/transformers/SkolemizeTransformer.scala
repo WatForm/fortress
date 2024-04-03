@@ -17,7 +17,7 @@ object SkolemizeTransformer extends ProblemStateTransformer {
     
     override def apply(problemState: ProblemState): ProblemState = {
 
-        if (problemState.flags.containsIte==true) {
+        if (problemState.flags.containsItes==true) {
             Errors.Internal.preconditionFailed(s"Skolemize cannot transform a problem containing ITEs")
         }
         if (problemState.flags.isNNF==false) {

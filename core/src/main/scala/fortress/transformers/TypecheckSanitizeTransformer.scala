@@ -14,10 +14,14 @@ object TypecheckSanitizeTransformer extends ProblemStateTransformer {
     
     override def apply(problemState: ProblemState): ProblemState = {
         val theory = problemState.theory
+        var containsItes = false
+        var containsExists = false
         def sanitizeAxiom(axiom: Term): Term = {
             // Check axiom typechecks as bool
             // Note that a formula cannot typecheck if it has any free variables (that are not constants of the signature)
             val result: TypeCheckResult = axiom.typeCheck(theory.signature)
+            containsItes = containsItes || result.containsItes
+            containsExists = containsExists || result.containsExists
             // System.out.println(axiom.toString + (result.sort).toString) ;
             Errors.Internal.precondition(result.sort == BoolSort)
             result.sanitizedTerm
@@ -26,12 +30,12 @@ object TypecheckSanitizeTransformer extends ProblemStateTransformer {
         val newTheory = theory.mapAxioms(t => sanitizeAxiom(t))
 
         // somehow we need to get the ite/exists results from all t's aggregrated
-        
+
         problemState.copy(
             theory = newTheory,
             flags = problemState.flags.copy(
-                containsItes = result.containsItes,
-                containsExists = result.containtsExists
+                containsItes = containsItes,
+                containsExists = containsExists
             )
         )
     }

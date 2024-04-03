@@ -42,8 +42,6 @@ class TypeChecker(signature: Signature) extends TermVisitorWithTypeContext[TypeC
     override def visitVar(variable: Var): TypeCheckResult = {
         // Check variable is not an already declared function symbol
         // This must be done even with a consistent signature
-        // TODO: this behaviour should be documented
-        // TODO: is this considered poorly typed or a different kind of error?
         if(signature hasFuncDeclWithName variable.name) {
             throw new TypeCheckException.NameConflict("Variable or constant name " + variable.name + " conflicts with existing function symbol")
         }
@@ -51,7 +49,6 @@ class TypeChecker(signature: Signature) extends TermVisitorWithTypeContext[TypeC
         if(signature hasFuncDefWithName variable.name) {
             // zero-arity defined functions are allowed in smtlib
             val fDef = signature.queryFunctionDefinition(variable.name)
-            // TODO vars/constants etc
             throw new TypeCheckException.NameConflict("Variable or constant name " + variable.name + " conflicts with existing function symbol")
         }
         
@@ -252,9 +249,11 @@ class TypeChecker(signature: Signature) extends TermVisitorWithTypeContext[TypeC
         val results = app.arguments.map(visit)
 
         // Note this is not strictly unacceptable, and we might actually fully support this outside of throwing this error
+        /*
         if(results exists (_.containsQuantifiers)) {
             throw new TypeCheckException.BadStructure("Argument of " + funcName + " contains quantifier")
         }
+        */
 
         // Sorts of the arguments
         val argSorts = results.map(_.sort)
@@ -314,18 +313,18 @@ class TypeChecker(signature: Signature) extends TermVisitorWithTypeContext[TypeC
         
         val results = c.allArguments.map(visit)
         /*
-        NAD: should these be errors??
         if (results.exists(_.containsConnectives)) {
             throw new TypeCheckException.BadStructure("Argument of ^" + c.functionName + " contains connective")
         }
         if (results.exists(_.containsQuantifiers)) {
             throw new TypeCheckException.BadStructure("Argument of ^" + c.functionName + " contains quantifier")
         }
-        */
+
         if (results.exists(_.containsItes)) {
             throw new TypeCheckException.BadStructure("Argument of ^" + c.functionName + " contains ites")
-        }        
-        // We assunme closing over first 2 arguments
+        }  
+        */      
+        // We assume closing over first 2 arguments
         if (results(0).sort != results(1).sort) {
             throw new TypeCheckException.WrongSort("Trying to close over arguments of different sorts in " + c.toString())
         }
@@ -351,10 +350,10 @@ class TypeChecker(signature: Signature) extends TermVisitorWithTypeContext[TypeC
             // Which cleaning works here?
             sanitizedTerm = c,
             sort = BoolSort, 
-            containsConnectives = false, 
-            containsQuantifiers = false,
-            containsItes = false,
-            containsExists = false // NAD: can we be sure about this?
+            containsConnectives = results exists (_.containsConnectives), 
+            containsQuantifiers = results exists (_.containsQuantifiers),
+            containsItes = results exists (_.containsItes),
+            containsExists = results exists (_.containsExists) 
         )
     }
 
@@ -376,10 +375,10 @@ class TypeChecker(signature: Signature) extends TermVisitorWithTypeContext[TypeC
         if (results.exists(_.containsQuantifiers)) {
             throw new TypeCheckException.BadStructure("Argument of *" + rc.functionName + " contains quantifier")
         }
-        */
         if (results.exists(_.containsItes)) {
             throw new TypeCheckException.BadStructure("Argument of *" + rc.functionName + " contains ites")
-        } 
+        }
+        */ 
         // We assunme closing over first 2 arguments
         if (results(0).sort != results(1).sort) {
             throw new TypeCheckException.WrongSort("Trying to close over arguments of different sorts in " + rc.toString())
@@ -405,10 +404,10 @@ class TypeChecker(signature: Signature) extends TermVisitorWithTypeContext[TypeC
         TypeCheckResult(
             sanitizedTerm = rc,
             sort = BoolSort, 
-            containsConnectives = false, 
-            containsQuantifiers = false,
-            containsItes = false,
-            containsExists = false // NAD: can we be sure about this?
+            containsConnectives = results exists (_.containsConnectives), 
+            containsQuantifiers = results exists (_.containsQuantifiers),
+            containsItes = results exists (_.containsItes),
+            containsExists = results exists (_.containsExists) 
         )
     }
     

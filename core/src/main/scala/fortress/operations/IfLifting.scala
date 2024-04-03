@@ -24,7 +24,7 @@ object IfLifter {
                             val argsTrue = newargs ++ List(ifTrue) ++ argsafter
                             val argsFalse = newargs ++ List(ifFalse) ++ argsafter
                             // returns a value and doesn't loop any more
-                            OrList(
+                            return OrList(
                                 AndList(
                                     iflift(condition),iflift(App(fname,argsTrue))),
                                 AndList(

@@ -26,7 +26,9 @@ object IfLiftingTransformer extends ProblemStateTransformer {
         
         problemState.copy(
             theory = newTheory,
-            flags = problemState.flags.copy(containsIte = false)
+            flags = problemState.flags.copy(
+                containsItes = false
+            )
         )
     }
     
