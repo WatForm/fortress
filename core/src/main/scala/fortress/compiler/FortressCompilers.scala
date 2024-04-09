@@ -13,6 +13,7 @@ import scala.collection.mutable.ListBuffer
     need range formulas
 */
 abstract class ConstantsMethodCompiler() extends LogicCompiler {
+    override def compilerName: String = "Constants"
     override def transformerSequence: Seq[ProblemStateTransformer] = {
         val transformerSequence = new scala.collection.mutable.ListBuffer[ProblemStateTransformer]
         transformerSequence += TypecheckSanitizeTransformer
@@ -44,6 +45,7 @@ abstract class ConstantsMethodCompiler() extends LogicCompiler {
    no range formulas (b/c datatype limits output to finite)
 */
 abstract class DatatypeMethodNoRangeCompiler() extends LogicCompiler {
+    override def compilerName: String = "DatatypeNoRangeFormulas"
     override def transformerSequence: Seq[ProblemStateTransformer] = {
         val transformerSequence = new scala.collection.mutable.ListBuffer[ProblemStateTransformer]
         transformerSequence += TypecheckSanitizeTransformer
@@ -69,6 +71,7 @@ abstract class DatatypeMethodNoRangeCompiler() extends LogicCompiler {
    use range formulas 
 */
 abstract class DatatypeMethodWithRangeCompiler() extends LogicCompiler {
+    override def compilerName: String = "DatatypeWithRangeFormulas"
     override def transformerSequence: Seq[ProblemStateTransformer] = {
         val transformerSequence = new scala.collection.mutable.ListBuffer[ProblemStateTransformer]
         transformerSequence += TypecheckSanitizeTransformer
@@ -94,6 +97,7 @@ abstract class DatatypeMethodWithRangeCompiler() extends LogicCompiler {
    don't use range formulas (b/c datatype limits output to finite)
 */
 abstract class DatatypeMethodNoRangeEUFCompiler() extends LogicCompiler {
+    override def compilerName: String = "DatatypeNoRangeFormulasEUF"
     override def transformerSequence: Seq[ProblemStateTransformer] = {
         val transformerSequence = new scala.collection.mutable.ListBuffer[ProblemStateTransformer]
         transformerSequence += TypecheckSanitizeTransformer
@@ -123,6 +127,7 @@ abstract class DatatypeMethodNoRangeEUFCompiler() extends LogicCompiler {
    include range formulas
 */
 abstract class DatatypeMethodWithRangeEUFCompiler() extends LogicCompiler {
+    override def compilerName: String = "DatatypeWithRangeFormulasEUF"
     override def transformerSequence: Seq[ProblemStateTransformer] = {
         val transformerSequence = new scala.collection.mutable.ListBuffer[ProblemStateTransformer]
         transformerSequence += TypecheckSanitizeTransformer
