@@ -79,7 +79,7 @@ object ProblemState {
             case (sort, enumValues) => sort -> makeScopeWithExactness(sort, enumValues.size, isFixed(sort))
         }.toMap
 
-        val containsNonExactScopes = scopes.map((_,sc) => sc.isExact).exists
+        val containsNonExactScopes = scopes.values.exists(sc => sc.isExact)
         // Check there is no conflict between the enum scopes and the provided scopes
         Errors.Internal.precondition(fortress.util.Maps.noConflict(enumScopes, scopes), "Conflict between enums and provide scopes")
 
