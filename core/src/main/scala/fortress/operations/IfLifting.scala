@@ -1,6 +1,5 @@
 package fortress.operations
 
-
 import fortress.msfol._
 import fortress.util.Errors
 
@@ -13,7 +12,9 @@ object IfLifter {
       * Side Effect: distinct is also removed
       */
 
-    def iflift(term:Term): Term = removeItes(liftItes(term))
+    def iflift(term:Term, s:Sort): Term = 
+        if (s == BoolSort) removeItesForBoolTerm(liftItes(term))
+        else liftItes(term)
 
     // pull all ites up as much as possible
     // functions have to be relifted through args
@@ -23,21 +24,29 @@ object IfLifter {
         case Top | Bottom | Var(_) |  DomainElement(_, _)
             | IntegerLiteral(_) | BitVectorLiteral(_, _) | EnumValue(_)
              => term
-        // for all the logical operators just push iflifting down
-        case AndList(args) => AndList(args.map(liftItes))
-        case OrList(args) => OrList(args.map(liftItes))
-        // distinct can be over terms so turn them in not equals
-        case (distinct: Distinct) => liftItes(distinct.asPairwiseNotEquals)
-        case Implication(p, q) => Implication(liftItes(p), liftItes(q))
-        case Iff(p, q) => Iff(liftItes(p), liftItes(q))
-        case Forall(vars, body) => Forall(vars, liftItes(body))
-        case Exists(vars, body) => Exists(vars, liftItes(body))
-        case Not(p) => Not(liftItes(p)) 
 
+        // for all the terms we know take Boolean args 
+        // push iflifting down
+        // and immediately removeItes
+        case AndList(args) => AndList(args.map(t => removeItesForBoolTerm(liftItes(t))))
+        case OrList(args) => OrList(args.map(t => removeItesForBoolTerm(liftItes(t)))) 
+        case Implication(p, q) => Implication(removeItesForBoolTerm(liftItes(p)), removeItesForBoolTerm(liftItes(q)))
+        case Iff(p, q) => Iff(removeItesForBoolTerm(liftItes(p)), removeItesForBoolTerm(liftItes(q)))
+        case Forall(vars, body) => Forall(vars, removeItesForBoolTerm(liftItes(body)))
+        case Exists(vars, body) => Exists(vars, removeItesForBoolTerm(liftItes(body)))
+        case Not(p) => Not(removeItesForBoolTerm(liftItes(p))) 
+        case Eq(a,b) => removeItesForBoolTerm(reLiftItes(Eq(liftItes(a),liftItes(b))))
+
+        // distinct can be over terms so turns them in not equals
+        // has to return a Boolean
+        case (distinct: Distinct) => removeItesForBoolTerm(liftItes(distinct.asPairwiseNotEquals))
+
+        // if there is an ite in these args
+        // these might return an ite (possibly with a stack of ites)
+        // they might not be of Boolean value
         case IfThenElse(condition, ifTrue, ifFalse) => 
-            IfThenElse(liftItes(condition),liftItes(ifTrue),liftItes(ifFalse))
+            IfThenElse(removeItesForBoolTerm(liftItes(condition)),liftItes(ifTrue),liftItes(ifFalse))
 
-        case Eq(a,b) => reLiftItes(Eq(liftItes(a),liftItes(b)))
         case App(fname, args) => reLiftItes(App(fname,args.map(liftItes)))
         case BuiltinApp(fname,args) => reLiftItes(BuiltinApp(fname,args.map(liftItes)))
         case Closure(fname, arg1, arg2, args) => 
@@ -120,35 +129,22 @@ object IfLifter {
     }
 
     // all ites are lifted to the top (although may be nested)
-    // but we can't assume they are always Boolean
+    // this should only be called if certain term is Boolean
     // but if they aren't Boolean they should be at the top
 
-    def removeItes(term:Term): Term =
+    def removeItesForBoolTerm(term:Term): Term =
         term match {
-        case Top | Bottom | Var(_) |  DomainElement(_, _)
-            | IntegerLiteral(_) | BitVectorLiteral(_, _) | EnumValue(_)
-             => term
-        // for all the logical operators just push iflifting down
-        case AndList(args) => AndList(args.map(removeItes))
-        case OrList(args) => OrList(args.map(removeItes))
-        case (distinct: Distinct) => Errors.Internal.preconditionFailed(s"Should not reach this 'distinct' case in removeItes: ${term}")
-        case Implication(p, q) => Implication(removeItes(p), removeItes(q))
-        case Iff(p, q) => Iff(removeItes(p), removeItes(q))
-        case Forall(vars, body) => Forall(vars, removeItes(body))
-        case Exists(vars, body) => Exists(vars, removeItes(body))
-        case Not(p) => Not(removeItes(p)) 
+
         // only interesting case
         case IfThenElse(condition, ifTrue, ifFalse) => 
             OrList(
-                AndList(removeItes(condition), removeItes(ifTrue)),
-                AndList(Not(removeItes(condition)),removeItes(ifFalse))
+                AndList(removeItesForBoolTerm(condition), removeItesForBoolTerm(ifTrue)),
+                AndList(Not(removeItesForBoolTerm(condition)),removeItesForBoolTerm(ifFalse))
             )
-        case Eq(a,b) => Eq(removeItes(a),removeItes(b))
-        case App(fname, args) => App(fname,args.map(removeItes))
-        case BuiltinApp(fname,args) => BuiltinApp(fname,args.map(removeItes))
-        case Closure(fname, arg1, arg2, args) => 
-            Closure(fname, removeItes(arg1), removeItes(arg2),args.map(removeItes))
-        case ReflexiveClosure(fname, arg1, arg2, args) => 
-            ReflexiveClosure(fname, removeItes(arg1), removeItes(arg2),args.map(removeItes))
+
+        // ites have already been lifted out of function applications
+        // Boolean/Eq operator have already had ites removed
+        case _ => term
+
         }
 }
