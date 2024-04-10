@@ -14,7 +14,7 @@ object IfLiftingTransformer extends ProblemStateTransformer {
             
             val theory = problemState.theory
             var newTheory = theory.mapAxioms(_.iflift)
-            // We only remove a definition before readding it so all its dependencies are in the sig
+            /* temp removal
             for(cDef <- theory.signature.constantDefinitions){
                 newTheory = newTheory.withoutConstantDefinition(cDef)
                 newTheory = newTheory.withConstantDefinition(cDef.mapBody(_.iflift))
@@ -23,6 +23,7 @@ object IfLiftingTransformer extends ProblemStateTransformer {
                 newTheory = newTheory.withoutFunctionDefinition(fDef)
                 newTheory = newTheory.withFunctionDefinition(fDef.mapBody(_.iflift))
             }
+            */
             
             return problemState.copy(
                 theory = newTheory,

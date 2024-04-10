@@ -15,6 +15,7 @@ object NnfTransformer extends ProblemStateTransformer {
         }
         val theory = problemState.theory
         var newTheory = theory.mapAxioms(_.nnf)
+
         // We only remove a definition before readding it so all its dependencies are in the sig
         for(cDef <- theory.signature.constantDefinitions){
             newTheory = newTheory.withoutConstantDefinition(cDef)

@@ -7,14 +7,16 @@ import fortress.util.Errors
 object IfLifter {
 
     /** Returns a Term with no ites
-      * Assumes the term argument is of sort Boolean
-      * so removal of ites is always possible
+      * Cannot assume the term argument is of sort Boolean
+      * so removal of ites is not always possible
+      * 
+      * Side Effect: distinct is also removed
       */
 
     def iflift(term:Term): Term = removeItes(liftItes(term))
 
     // pull all ites up as much as possible
-    // functions have to be reflifted through args
+    // functions have to be relifted through args
     def liftItes(term: Term): Term = {
         //println("liftItes in: "+term)
         val x:Term = term match {
@@ -24,7 +26,7 @@ object IfLifter {
         // for all the logical operators just push iflifting down
         case AndList(args) => AndList(args.map(liftItes))
         case OrList(args) => OrList(args.map(liftItes))
-        // TODO: not sure about this one
+        // distinct can be over terms so turn them in not equals
         case (distinct: Distinct) => liftItes(distinct.asPairwiseNotEquals)
         case Implication(p, q) => Implication(liftItes(p), liftItes(q))
         case Iff(p, q) => Iff(liftItes(p), liftItes(q))
@@ -62,8 +64,7 @@ object IfLifter {
         case AndList(_) | OrList(_) | Implication(_,_) |
             Iff(_,_) | Forall(_,_) | Exists(_,_) | Not(_) => term
         case IfThenElse(_, _, _) => term 
-        // TODO: not sure about this one
-        case (distinct: Distinct) => term
+        case (distinct: Distinct) => Errors.Internal.preconditionFailed(s"Should not reach this 'distinct' case in reLiftItes: ${term}")
         case Eq(a,b) => reLiftOverArgs((args: Seq[Term]) => Eq(args(0),args(1)), Seq(a,b))
         case App(fname, args) => reLiftOverArgs((args: Seq[Term]) => App(fname,args), args)
         case BuiltinApp(fname,args) => reLiftOverArgs((args:Seq[Term]) => BuiltinApp(fname,args), args)
@@ -118,7 +119,10 @@ object IfLifter {
         return c(newargs)
     }
 
-    // all ites must be Boolean now so can remove them them right away
+    // all ites are lifted to the top (although may be nested)
+    // but we can't assume they are always Boolean
+    // but if they aren't Boolean they should be at the top
+
     def removeItes(term:Term): Term =
         term match {
         case Top | Bottom | Var(_) |  DomainElement(_, _)
@@ -127,8 +131,7 @@ object IfLifter {
         // for all the logical operators just push iflifting down
         case AndList(args) => AndList(args.map(removeItes))
         case OrList(args) => OrList(args.map(removeItes))
-        // TODO: not sure about this one
-        case (distinct: Distinct) => removeItes(distinct.asPairwiseNotEquals)
+        case (distinct: Distinct) => Errors.Internal.preconditionFailed(s"Should not reach this 'distinct' case in removeItes: ${term}")
         case Implication(p, q) => Implication(removeItes(p), removeItes(q))
         case Iff(p, q) => Iff(removeItes(p), removeItes(q))
         case Forall(vars, body) => Forall(vars, removeItes(body))

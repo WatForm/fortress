@@ -17,9 +17,10 @@ object SkolemizeTransformer extends ProblemStateTransformer {
     
     override def apply(problemState: ProblemState): ProblemState = {
 
-        if (problemState.flags.containsItes==true) {
-            Errors.Internal.preconditionFailed(s"Skolemize cannot transform a problem containing ITEs")
-        }
+        // Skolemize can be applied to a problem with ites - it just won't skolemize the condition
+        // of an ite because in one case it is true and the other branch it is false
+
+        // must have done as much nnf as possible
         if (problemState.flags.isNNF==false) {
             Errors.Internal.preconditionFailed(s"Skolemize cannot transform a problem not in nnf")
         }
@@ -70,6 +71,10 @@ object SkolemizeTransformer extends ProblemStateTransformer {
             updateWithResult(skolemResult)
             resultTheory = resultTheory.withAxiom(newAxiom)
         }
+
+        /* 2024-04-10 Decided we can't skolemize function/constant bodies because we don't know if 
+           they will be used in a positive or negative context
+
         // We can do this in definitions because skolemization only cares about the free variables IN THE TERM
         // First-Order Logic and Automated Theorem Proving 2nd ed., Melvin Fitting p. 206
         // Function definitions can be skolemized as if each argument was universally quantified
@@ -102,6 +107,7 @@ object SkolemizeTransformer extends ProblemStateTransformer {
                 )
             )
         }
+        */
 
         
         val unapply: Interpretation => Interpretation = {
