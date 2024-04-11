@@ -22,16 +22,16 @@ object SkolemizeTransformer extends ProblemStateTransformer {
         // Skolemize can be applied to a problem with ites - it just won't skolemize the condition
         // of an ite because in one case it is true and the other branch it is false
 
+        // must have done as much nnf as possible
+        if (problemState.flags.haveRunNNF == false) {
+            Errors.Internal.preconditionFailed(s"NNF Transformer should be run before Skolemization")
+        }
+        
         // as much iflifting as possible
         if (problemState.flags.haveRunIfLifting==false ) {
             println(s"WARNING: IfLifting Transformer should be run before Skolemization")
         } 
-        // must have done as much nnf as possible
-        if (problemState.flags.haveRunNNF==false ) {
-            // TODO: make this an error
-            println(s"WARNING: NNF Transformer should be run before Skolemization")
-        }
-       
+
         val theory = problemState.theory
         
         val forbiddenNames = scala.collection.mutable.Set[String]()

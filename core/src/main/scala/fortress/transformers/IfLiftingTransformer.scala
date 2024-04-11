@@ -22,12 +22,10 @@ object IfLiftingTransformer extends ProblemStateTransformer {
             // if the return sort of the defn body is not Boolean
             for(cDef <- theory.signature.constantDefinitions){
                 newTheory = newTheory.withoutConstantDefinition(cDef)
-
                 newTheory = newTheory.withConstantDefinition(cDef.mapBody(t => t.iflift(cDef.sort)))
             }
             for(fDef <- theory.signature.functionDefinitions){
                 newTheory = newTheory.withoutFunctionDefinition(fDef)
-                println("In IfLiftingTransformer: "+fDef.body)
                 newTheory = newTheory.withFunctionDefinition(fDef.mapBody(t => t.iflift(fDef.resultSort)))
             }
             

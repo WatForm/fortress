@@ -5,10 +5,11 @@ import fortress.transformers._
 import fortress.problemstate._
 
 class SkolemizeTransformerTest extends UnitSuite with CommonSymbols {
-    
+   
+    // typechecking not included because it will remove a boolean ite
+    // and one of the tests checks that skolemize does not enter ites 
     def skolemizer(th:Theory) = 
-        SkolemizeTransformer(
-                    TypecheckSanitizeTransformer(ProblemState(th)))   
+        SkolemizeTransformer(NnfTransformer(ProblemState(th)))  
 
     val _a = Var("a")
     val _b = Var("b")
@@ -342,7 +343,7 @@ class SkolemizeTransformerTest extends UnitSuite with CommonSymbols {
                 Forall(z of A, Q(sk_1(z), z)),
                 P(Var("sk_2"))))
         
-        val newProblemState = SkolemizeTransformer(ProblemState(theory))
+        val newProblemState = skolemizer(theory)
         newProblemState.theory should be (expected)
         newProblemState.skolemConstants should be (Set(Var("sk_2") of A))
         newProblemState.skolemFunctions should be (Set(sk_0 from A to A, sk_1 from A to A))
@@ -389,6 +390,8 @@ class SkolemizeTransformerTest extends UnitSuite with CommonSymbols {
     }
 
     /* this is assuming iflifting is not run first */
+    // if include typechecking, typechecking will change
+    // this ITE into and (c  and  ) or (!c   and )
     test("No change inside a ITE conditional"){
         val theory = Theory.empty
             .withSorts(A)
@@ -402,7 +405,7 @@ class SkolemizeTransformerTest extends UnitSuite with CommonSymbols {
             .withFunctionDeclaration(P from (A, A) to BoolSort)
             .withAxiom(IfThenElse(Forall(x1.of(A), Exists(x2 of A, P(x1, x2))), Eq(y,z), Not(Eq(y,z))))
 
-            skolemizer(theory).theory should be (expected)
+        (skolemizer(theory).theory) should be (expected)
     }
 
     /* 2024-04-11 We no longer skolemize within a function defn because we don't know the polarity of the use

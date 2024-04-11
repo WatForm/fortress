@@ -30,11 +30,9 @@ object Skolemization {
 
             // Arguments to fcn/builtinapp with unknown polarity cannot be skolemized
             case Eq(l, r) => term
-            case App(fn, args) => App(fn, args)
-            case BuiltinApp(fn, args) => BuiltinApp(fn, args)
-
-            case IfThenElse(c, t, f) => 
-                Errors.Internal.preconditionFailed(s"skolemize - Term has an ite: ${term}")
+            case App(fn, args) => term
+            case BuiltinApp(fn, args) => term
+            case IfThenElse(c, t, f) => term
 
             case Forall(avars, body) => {
                 context = context.stackPush(avars)
