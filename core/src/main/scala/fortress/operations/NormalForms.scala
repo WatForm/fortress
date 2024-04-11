@@ -66,10 +66,10 @@ object NormalForms {
         case Eq(l, r) => term
         case Not(Eq(l, r)) => term // Note that Eq does not compare booleans
 
-        case Var(_) | DomainElement(_, _)
+        case Var(_) | Not(Var(_)) | DomainElement(_, _)
             | IntegerLiteral(_) | BitVectorLiteral(_, _) | EnumValue(_)
              => term
-        case Not(Var(_)) | Not(DomainElement(_, _)) 
+        case Not(DomainElement(_, _)) 
             | Not(IntegerLiteral(_)) |  Not(BitVectorLiteral(_, _)) | Not(EnumValue(_)) 
             => Errors.Internal.preconditionFailed(s"Term is not well-sorted: ${term}")
 

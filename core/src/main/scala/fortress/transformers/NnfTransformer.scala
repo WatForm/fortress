@@ -11,7 +11,7 @@ object NnfTransformer extends ProblemStateTransformer {
     override def apply(problemState: ProblemState): ProblemState = {
 
         if (problemState.flags.haveRunIfLifting==true) {
-            Errors.Internal.preconditionFailed(s"IfLifting Transformer should be run before nnf")
+            println(s"WARNING: IfLifting Transformer should be run before nnf")
         }
         val theory = problemState.theory
         var newTheory = theory.mapAxioms(_.nnf)

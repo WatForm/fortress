@@ -39,7 +39,7 @@ class SymmetryBreakingTransformer_MostUsedTest extends UnitSuite {
 
         val scopes = Map(A -> ExactScope(2), B -> ExactScope(2))
         val transformer = new SymmetryBreakingTransformer_MostUsed(LowArityFirstAndMostUsedOrderFactory, DefaultSymmetryBreakerFactoryDL(None))
-        transformer(ProblemState(theory, scopes)) should be(ProblemState(expected, scopes, Set.empty, Set.empty, expectedRangeFormulas, List.empty, Flags(distinctConstants = true, isNNF = true, verbose = false)))
+        transformer(ProblemState(theory, scopes)) should be(ProblemState(expected, scopes, Set.empty, Set.empty, expectedRangeFormulas, List.empty, Flags(distinctConstants = true, haveRunNNF = true, verbose = false)))
     }
     test("constants_with_unbounded") {
         val theory = Theory.empty
@@ -57,7 +57,7 @@ class SymmetryBreakingTransformer_MostUsedTest extends UnitSuite {
 
         val scopes = Map(A -> ExactScope(2))
         val transformer = new SymmetryBreakingTransformer_MostUsed(LowArityFirstAndMostUsedOrderFactory, DefaultSymmetryBreakerFactoryDL(None))
-        transformer(ProblemState(theory, scopes)) should be(ProblemState(expected, scopes, Set.empty, Set.empty, expectedRangeFormulas, List.empty, Flags(distinctConstants = true, isNNF = true, verbose = false)))
+        transformer(ProblemState(theory, scopes)) should be(ProblemState(expected, scopes, Set.empty, Set.empty, expectedRangeFormulas, List.empty, Flags(distinctConstants = true, haveRunNNF = true, verbose = false)))
     }
 
     test("function arity 1") {
@@ -86,7 +86,7 @@ class SymmetryBreakingTransformer_MostUsedTest extends UnitSuite {
 
         val scopes = Map(A -> ExactScope(2), B -> ExactScope(3))
         val transformer = new SymmetryBreakingTransformer_MostUsed(LowArityFirstAndMostUsedOrderFactory, DefaultSymmetryBreakerFactoryDL(None))
-        transformer(ProblemState(theory, scopes)) should be(ProblemState(expected, scopes, Set.empty, Set.empty, expectedRangeFormulas, List.empty, Flags(distinctConstants = true, isNNF = true, verbose = false)))
+        transformer(ProblemState(theory, scopes)) should be(ProblemState(expected, scopes, Set.empty, Set.empty, expectedRangeFormulas, List.empty, Flags(distinctConstants = true, haveRunNNF = true, verbose = false)))
     }
 
     test("function arity 1 - with_unbounded") {
@@ -103,7 +103,7 @@ class SymmetryBreakingTransformer_MostUsedTest extends UnitSuite {
 
         val scopes = Map(A -> ExactScope(2))
         val transformer = new SymmetryBreakingTransformer_MostUsed(LowArityFirstAndMostUsedOrderFactory, DefaultSymmetryBreakerFactoryDL(None))
-        transformer(ProblemState(theory, scopes)) should be(ProblemState(expected, scopes, Set.empty, Set.empty, expectedRangeFormulas, List.empty, Flags(distinctConstants = true, isNNF = true, verbose = false)))
+        transformer(ProblemState(theory, scopes)) should be(ProblemState(expected, scopes, Set.empty, Set.empty, expectedRangeFormulas, List.empty, Flags(distinctConstants = true, haveRunNNF = true, verbose = false)))
     }
 
     test("function arity 2") {

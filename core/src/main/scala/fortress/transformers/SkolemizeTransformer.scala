@@ -24,11 +24,11 @@ object SkolemizeTransformer extends ProblemStateTransformer {
 
         // as much iflifting as possible
         if (problemState.flags.haveRunIfLifting==false ) {
-            Errors.Internal.preconditionFailed(s"IfLifting Transformer should be run before Skolemization")
+            println(s"WARNING: IfLifting Transformer should be run before Skolemization")
         } 
         // must have done as much nnf as possible
         if (problemState.flags.haveRunNNF==false ) {
-            Errors.Internal.preconditionFailed(s"NNF Transformer should be run before Skolemization")
+            println(s"WARNING: NNF Transformer should be run before Skolemization")
         }
        
         val theory = problemState.theory
