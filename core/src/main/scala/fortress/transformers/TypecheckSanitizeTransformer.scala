@@ -16,20 +16,27 @@ object TypecheckSanitizeTransformer extends ProblemStateTransformer {
         val theory = problemState.theory
         var containsItes = false
         var containsExists = false
-        def sanitizeAxiom(axiom: Term): Term = {
+        def sanitizeTerm(t: Term, mustBeBool:Boolean): Term = {
             // Check axiom typechecks as bool
             // Note that a formula cannot typecheck if it has any free variables (that are not constants of the signature)
-            val result: TypeCheckResult = axiom.typeCheck(theory.signature)
+            val result: TypeCheckResult = t.typeCheck(theory.signature)
             containsItes = containsItes || result.containsItes
             containsExists = containsExists || result.containsExists
             // System.out.println(axiom.toString + (result.sort).toString) ;
-            Errors.Internal.precondition(result.sort == BoolSort)
+            if (mustBeBool) Errors.Internal.precondition(result.sort == BoolSort)
             result.sanitizedTerm
         }
 
-        val newTheory = theory.mapAxioms(t => sanitizeAxiom(t))
+        var newTheory = theory.mapAxioms(t => sanitizeTerm(t, true))
 
-        // somehow we need to get the ite/exists results from all t's aggregrated
+        for(cDef <- theory.signature.constantDefinitions){
+            newTheory = newTheory.withoutConstantDefinition(cDef)
+            newTheory = newTheory.withConstantDefinition(cDef.mapBody(t => sanitizeTerm(t, false)))
+        }
+        for(fDef <- theory.signature.functionDefinitions){
+            newTheory = newTheory.withoutFunctionDefinition(fDef)
+            newTheory = newTheory.withFunctionDefinition(fDef.mapBody(t => sanitizeTerm(t, false)))
+        }
 
         problemState.copy(
             theory = newTheory,

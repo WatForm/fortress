@@ -15,6 +15,7 @@ class IfLiftingTransformerTest extends UnitSuite {
     val F = FuncDecl("f", A, B)
     val G = FuncDecl("g", Seq(A,A), B)
 
+
     val a1 = Var("a1")
     val a2 = Var("a2")
     val a3 = Var("a3")
@@ -27,6 +28,12 @@ class IfLiftingTransformerTest extends UnitSuite {
     val fa1 = App("f", a1)
     val fa2 = App("f", a2)
     val fa3 = App("f", a3)
+
+    val KDefn = FunctionDefinition("K", Seq((Var("x")) of A), B, 
+            App("f", IfThenElse(c1,a1,a2)))
+    val KDefnLifted = FunctionDefinition("K", Seq((Var("x")) of A), B, 
+            IfThenElse(c1, App("f", a1), App("f", a2)))
+    
 
     val baseTheory = Theory.empty
         .withSorts(A,B)
@@ -199,5 +206,15 @@ class IfLiftingTransformerTest extends UnitSuite {
                     Not(Eq(fa1,fa2))
                 ))
         iflift(typechecker(ProblemState(theory))).theory should be(expected)         
-    }        
+    }   
+
+    test("non-Boolean ite") {
+        val theory = baseTheory
+            .withFunctionDefinition(KDefn)
+        val expected = baseTheory
+            .withFunctionDefinition(KDefnLifted)
+
+        iflift(typechecker(ProblemState(theory))).theory should be(expected)       
+
+    }     
 }

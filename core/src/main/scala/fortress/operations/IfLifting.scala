@@ -12,9 +12,11 @@ object IfLifter {
       * Side Effect: distinct is also removed
       */
 
-    def iflift(term:Term, s:Sort): Term = 
-        if (s == BoolSort) removeItesForBoolTerm(liftItes(term))
-        else liftItes(term)
+    def iflift(term:Term, s:Sort): Term = {
+        //println("enter iflift: "+term+" "+s)
+        if (s == BoolSort) return removeItesForBoolTerm(liftItes(term))
+        else return liftItes(term)
+}
 
     // pull all ites up as much as possible
     // functions have to be relifted through args
