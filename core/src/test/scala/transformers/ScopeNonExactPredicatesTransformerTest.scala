@@ -6,7 +6,7 @@ import fortress.transformers._
 
 class ScopeNonExactPredicatesTransformerTest extends UnitSuite with CommonSymbols {
 
-    val transformer = new TheoryApplication(ScopeNonExactPredicatesTransformer)
+    def transformer(p:ProblemState) = ScopeNonExactPredicatesTransformer(TypecheckSanitizeTransformer(p))
 
     val baseTheory = Theory.empty
             .withSort(A)
@@ -28,7 +28,7 @@ class ScopeNonExactPredicatesTransformerTest extends UnitSuite with CommonSymbol
         scopes = scopes + (A -> ExactScope(3))
         scopes = scopes + (B -> ExactScope(3))
 
-        transformer(theory, scopes) should be (expected)
+        transformer(ProblemState(theory, scopes)) should be (ProblemState(expected))
 
     }
 
@@ -51,7 +51,7 @@ class ScopeNonExactPredicatesTransformerTest extends UnitSuite with CommonSymbol
         scopes = scopes + (A -> NonExactScope(3))
         scopes = scopes + (B -> NonExactScope(3))
 
-        transformer(theory, scopes) should be (expected)
+        transformer(ProblemState(theory, scopes)) should be (ProblemState(expected))
 
     }
 
@@ -77,7 +77,7 @@ class ScopeNonExactPredicatesTransformerTest extends UnitSuite with CommonSymbol
                 //println("theory: " + theory.toString)
                 //println("result: " + transformer(theory, scopes).toString)
 
-        transformer(theory, scopes) should be (expected)
+        transformer(ProblemState(theory, scopes)) should be (ProblemState(expected))
 
     }
 
@@ -97,7 +97,7 @@ class ScopeNonExactPredicatesTransformerTest extends UnitSuite with CommonSymbol
         scopes = scopes + (A -> NonExactScope(3))
         scopes = scopes + (B -> ExactScope(3))
 
-        transformer(theory, scopes) should be (expected)
+        transformer(ProblemState(theory, scopes)) should be (ProblemState(expected))
 
 
     }

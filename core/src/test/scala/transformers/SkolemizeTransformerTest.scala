@@ -8,9 +8,7 @@ class SkolemizeTransformerTest extends UnitSuite with CommonSymbols {
     
     def skolemizer(th:Theory) = 
         SkolemizeTransformer(
-            NnfTransformer(
-                IfLiftingTransformer(
-                    TypecheckSanitizeTransformer(ProblemState(th)))))    
+                    TypecheckSanitizeTransformer(ProblemState(th)))   
 
     val _a = Var("a")
     val _b = Var("b")
@@ -390,6 +388,7 @@ class SkolemizeTransformerTest extends UnitSuite with CommonSymbols {
         skolemizer(theory).theory should be (expected)
     }
 
+    /* this is assuming iflifting is not run first */
     test("No change inside a ITE conditional"){
         val theory = Theory.empty
             .withSorts(A)
@@ -405,6 +404,9 @@ class SkolemizeTransformerTest extends UnitSuite with CommonSymbols {
 
             skolemizer(theory).theory should be (expected)
     }
+
+    /* 2024-04-11 We no longer skolemize within a function defn because we don't know the polarity of the use
+       of the function 
 
     test("Function Definition"){
         val fDef = FunctionDefinition(
@@ -456,4 +458,5 @@ class SkolemizeTransformerTest extends UnitSuite with CommonSymbols {
         // We can and probably should do more complicated tests
 
     }
+    */
 }
