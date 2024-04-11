@@ -28,6 +28,7 @@ object SkolemizeTransformer extends ProblemStateTransformer {
         } 
         // must have done as much nnf as possible
         if (problemState.flags.haveRunNNF==false ) {
+            // TODO: 
             println(s"WARNING: NNF Transformer should be run before Skolemization")
         }
        

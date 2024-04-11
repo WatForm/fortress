@@ -25,9 +25,7 @@ object IfLiftingTransformer extends ProblemStateTransformer {
 
                 newTheory = newTheory.withConstantDefinition(cDef.mapBody(t => t.iflift(cDef.sort)))
             }
-            println("here1")
             for(fDef <- theory.signature.functionDefinitions){
-                println("here2")
                 newTheory = newTheory.withoutFunctionDefinition(fDef)
                 println("In IfLiftingTransformer: "+fDef.body)
                 newTheory = newTheory.withFunctionDefinition(fDef.mapBody(t => t.iflift(fDef.resultSort)))

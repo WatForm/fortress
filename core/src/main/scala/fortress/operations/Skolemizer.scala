@@ -26,9 +26,10 @@ object Skolemization {
             case AndList(args) => AndList(args map recur)
             case OrList(args) => OrList(args map recur)
             case Distinct(_) | Iff (_, _) | Implication(_, _) => Errors.Internal.preconditionFailed(s"Term not in negation normal form: ${term}")
-            case Eq(l, r) => Eq(recur(l), recur(r))
+
 
             // Arguments to fcn/builtinapp with unknown polarity cannot be skolemized
+            case Eq(l, r) => term
             case App(fn, args) => App(fn, args)
             case BuiltinApp(fn, args) => BuiltinApp(fn, args)
 

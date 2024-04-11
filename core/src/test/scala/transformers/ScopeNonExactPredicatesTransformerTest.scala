@@ -28,7 +28,7 @@ class ScopeNonExactPredicatesTransformerTest extends UnitSuite with CommonSymbol
         scopes = scopes + (A -> ExactScope(3))
         scopes = scopes + (B -> ExactScope(3))
 
-        transformer(ProblemState(theory, scopes)) should be (ProblemState(expected))
+        transformer(ProblemState(theory, scopes)) should be (ProblemState(expected,scopes))
 
     }
 
@@ -51,7 +51,10 @@ class ScopeNonExactPredicatesTransformerTest extends UnitSuite with CommonSymbol
         scopes = scopes + (A -> NonExactScope(3))
         scopes = scopes + (B -> NonExactScope(3))
 
-        transformer(ProblemState(theory, scopes)) should be (ProblemState(expected))
+        var newscopes = Map.empty[Sort, Scope]
+        newscopes = newscopes + (A -> ExactScope(3)) + (B -> ExactScope(3))
+
+        transformer(ProblemState(theory, scopes)) should be (ProblemState(expected, newscopes))
 
     }
 
