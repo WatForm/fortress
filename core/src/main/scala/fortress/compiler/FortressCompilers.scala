@@ -39,6 +39,32 @@ abstract class ConstantsMethodCompiler() extends LogicCompiler {
 
 }
 
+abstract class ConstantsClaessenCompiler() extends LogicCompiler {
+    override def compilerName: String = "ConstantsClaessen"
+    override def transformerSequence: Seq[ProblemStateTransformer] = {
+        val transformerSequence = new scala.collection.mutable.ListBuffer[ProblemStateTransformer]
+        transformerSequence += TypecheckSanitizeTransformer
+        transformerSequence += EnumEliminationTransformer
+        transformerSequence += ClosureEliminationClaessenTransformer
+        transformerSequence += ScopeNonExactPredicatesTransformer
+        // transformerSequence += IntegerToBitVectorTransformer    
+        transformerSequence += OPFIIntsTransformer 
+
+        transformerSequence += IfLiftingTransformer
+        transformerSequence += NnfTransformer
+        transformerSequence += SkolemizeTransformer
+
+        transformerSequence += new SymmetryBreakingTransformer(MonoFirstThenFunctionsFirstAnyOrder)
+        transformerSequence += SimplifyWithScalarQuantifiersTransformer
+        transformerSequence += QuantifiersToDefinitionsTransformer
+        transformerSequence += StandardQuantifierExpansionTransformer
+        transformerSequence += RangeFormulaStandardTransformer
+        transformerSequence += new SimplifyTransformer
+        transformerSequence += DomainEliminationTransformer
+        transformerSequence.toList
+    }
+
+}
 /*
    use datatypes 
    don't get rid of quantifiers - not EUF (no nnf, no skolemization and no quantifier expansion)
