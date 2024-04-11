@@ -15,15 +15,22 @@ import fortress.util.Errors
   */
 object SkolemizeTransformer extends ProblemStateTransformer {
     
+    override def name: String = "Skolemize Transformer"
+
     override def apply(problemState: ProblemState): ProblemState = {
 
         // Skolemize can be applied to a problem with ites - it just won't skolemize the condition
         // of an ite because in one case it is true and the other branch it is false
 
+        // as much iflifting as possible
+        if (problemState.flags.haveRunIfLifting==false ) {
+            Errors.Internal.preconditionFailed(s"IfLifting Transformer should be run before Skolemization")
+        } 
         // must have done as much nnf as possible
-        if (problemState.flags.isNNF==false) {
-            Errors.Internal.preconditionFailed(s"Skolemize cannot transform a problem not in nnf")
+        if (problemState.flags.haveRunNNF==false ) {
+            Errors.Internal.preconditionFailed(s"NNF Transformer should be run before Skolemization")
         }
+       
         val theory = problemState.theory
         
         val forbiddenNames = scala.collection.mutable.Set[String]()
@@ -75,7 +82,8 @@ object SkolemizeTransformer extends ProblemStateTransformer {
         /* 2024-04-10 Decided we can't skolemize function/constant bodies because we don't know if 
            they will be used in a positive or negative context
 
-        // We can do this in definitions because skolemization only cares about the free variables IN THE TERM
+        Leftover comments:
+        // We can skolemize in definitions because skolemization only cares about the free variables IN THE TERM
         // First-Order Logic and Automated Theorem Proving 2nd ed., Melvin Fitting p. 206
         // Function definitions can be skolemized as if each argument was universally quantified
         val functionDefinitions = resultTheory.functionDefinitions
@@ -127,10 +135,11 @@ object SkolemizeTransformer extends ProblemStateTransformer {
             theory = resultTheory,
             skolemConstants = problemState.skolemConstants ++ newSkolemConstants.toSet,
             skolemFunctions = problemState.skolemFunctions ++ newSkolemFunctions.toSet,
-            unapplyInterp = unapply :: problemState.unapplyInterp
+            unapplyInterp = unapply :: problemState.unapplyInterp,
+            flags = problemState.flags.copy(haveRunSkolemizer = true)
         )
     }
     
-    override def name: String = "Skolemize Transformer"
+    
     
 }

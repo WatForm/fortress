@@ -124,6 +124,12 @@ Modifies can contain: theory (signature, axioms), problemState (scopes, rangeRes
 Below is a brief description of the transformers implemented in Fortress.
 Some transformers below are for experimentation and thus not used in
 
+- iflifting is applied to defn bodies but may not eliminate all ites
+- nnf is NOT applied to args of fcns/ites/closures/Eq; nnf is applied to defn bodies
+skolemize is NOT applied to args of fcns/ites/closures 
+- skolemize is NOT applied to defn bodies
+None of these transformers can guarantee there are no ites or existentials.
+
 * ZeroArityApplicationTransformer
  - theory -> theory
  - Changes some instances of Var(x) to App(x)

@@ -13,10 +13,20 @@ import fortress.util.Errors
   */
 case class Flags private(
     distinctConstants: Boolean = true,
-    isNNF: Boolean = false,
+
+    haveRunNNF: Boolean = false,
+    haveRunIfLifting: Boolean = false,
+    haveRunSkolemizer: Boolean = false,
+    
     verbose: Boolean = false,
-    containsItes: Boolean = false,
+    
+    // typechecker turns these on if these exist in the axioms/defns
+    // but transformers (IfLifting, Skolemize) cannot turn them off
+    // because all Ites or quantifiers may not have been eliminated
+    
+    containsItes: Boolean = false,  
     containsExists: Boolean = false,
+
     containsNonExactScopes: Boolean = false,
 ) {}
 

@@ -10,8 +10,8 @@ import fortress.util.Errors
 object NnfTransformer extends ProblemStateTransformer {
     override def apply(problemState: ProblemState): ProblemState = {
 
-        if (problemState.flags.containsItes==true) {
-            Errors.Internal.preconditionFailed(s"NNF cannot transform a problem containing ite")
+        if (problemState.flags.haveRunIfLifting==true) {
+            Errors.Internal.preconditionFailed(s"IfLifting Transformer should be run before nnf")
         }
         val theory = problemState.theory
         var newTheory = theory.mapAxioms(_.nnf)
@@ -28,7 +28,7 @@ object NnfTransformer extends ProblemStateTransformer {
         
         problemState.copy(
             theory = newTheory,
-            flags = problemState.flags.copy(isNNF = true)
+            flags = problemState.flags.copy(haveRunNNF = true)
         )
     }
     
