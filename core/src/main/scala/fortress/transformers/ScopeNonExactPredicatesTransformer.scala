@@ -10,7 +10,7 @@ object  ScopeNonExactPredicatesTransformer extends ProblemStateTransformer {
 
     override def apply(problemState: ProblemState): ProblemState = {
 
-        if (problemState.flags.containsNonExactScopes) {
+        //if (problemState.flags.containsNonExactScopes) {
             problemState match {
             case ProblemState(theory, scopes, skc, skf, rangeRestricts, unapplyInterp, flags) => {
 
@@ -92,9 +92,11 @@ object  ScopeNonExactPredicatesTransformer extends ProblemStateTransformer {
                     flags
                 )
             }}
+        /*
         } else {
             return problemState
         }
+        */
     }
 
     override def name: String = "NonExactScopePredicatesTransformer"

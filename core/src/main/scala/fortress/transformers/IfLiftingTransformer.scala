@@ -10,7 +10,7 @@ import fortress.problemstate.ProblemState
 object IfLiftingTransformer extends ProblemStateTransformer {
     override def apply(problemState: ProblemState): ProblemState = {
 
-        if (problemState.flags.containsItes) {
+        //if (problemState.flags.containsItes) {
             
             val theory = problemState.theory
 
@@ -39,9 +39,11 @@ object IfLiftingTransformer extends ProblemStateTransformer {
                     haveRunIfLifting = false
                 )
             )
+        /*
         } else {
             return problemState
         }
+        */
     }
     
     override def name: String = "IfLifting Transformer"

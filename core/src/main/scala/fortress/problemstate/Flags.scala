@@ -24,9 +24,12 @@ case class Flags private(
     // but transformers (IfLifting, Skolemize) cannot turn them off
     // because all Ites or quantifiers may not have been eliminated
     
+    // the typechecker or problemstate constructor sets these flags
+    // however transformers can introduce these after typechecking, creation
+    // so we should perhaps drop these flags
+    // we can't use them to decide whether to run certain transformers or no
     containsItes: Boolean = false,  
     containsExists: Boolean = false,
-
     containsNonExactScopes: Boolean = false,
 ) {}
 
