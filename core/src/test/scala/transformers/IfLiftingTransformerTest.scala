@@ -32,7 +32,7 @@ class IfLiftingTransformerTest extends UnitSuite {
     val KDefn = FunctionDefinition("K", Seq((Var("x")) of A), B, 
             App("f", IfThenElse(c1,a1,a2)))
     val KDefnLifted = FunctionDefinition("K", Seq((Var("x")) of A), B, 
-            IfThenElse(c1, App("f", a1), App("f", a2)))
+            IfThenElse(c1, App("f", Var("x")), App("f", a2)))
     
 
     val baseTheory = Theory.empty
