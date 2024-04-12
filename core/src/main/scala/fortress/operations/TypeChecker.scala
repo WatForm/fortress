@@ -411,6 +411,9 @@ class TypeChecker(signature: Signature) extends TermVisitorWithTypeContext[TypeC
         )
     }
     
+    def visitDefnBody(t: Term): TypeCheckResult = {
+        return visit(t)
+    }
     override def visitExistsInner(exists: Exists): TypeCheckResult = {
         // Check variables don't clash with function names
         // and that their sort exists

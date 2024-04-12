@@ -12,6 +12,7 @@ case class TermOps private (term: Term) {
       * when comparing Bool sorts. Such a term is called "sanitized".
       */
     def typeCheck(signature: Signature): TypeCheckResult = (new TypeChecker(signature)).visit(term)
+    def typeCheckInContext(signature: Signature, vars:Seq[AnnotatedVar]): TypeCheckResult = (new TypeChecker(signature)).visitDefn(term,vars)
     
     /** Returns the set of Vars that appear unquantified in this term.
       * This only looks at syntax without respect to a given signature,

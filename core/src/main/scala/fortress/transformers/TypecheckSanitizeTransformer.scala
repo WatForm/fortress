@@ -11,31 +11,40 @@ import fortress.problemstate.ProblemState
   * Throws an exception if the theory does not type-check correctly.
   */
 object TypecheckSanitizeTransformer extends ProblemStateTransformer {
-    
+
+    // Note that a formula will not typecheck if it has any free variables (that are not constants of the signature)
+
     override def apply(problemState: ProblemState): ProblemState = {
         val theory = problemState.theory
         var containsItes = false
         var containsExists = false
-        def sanitizeTerm(t: Term, mustBeBool:Boolean): Term = {
-            // Check axiom typechecks as bool
-            // Note that a formula cannot typecheck if it has any free variables (that are not constants of the signature)
-            val result: TypeCheckResult = t.typeCheck(theory.signature)
+
+        def checkResult(result:TypeCheckResult, s:Sort):Term = {
             containsItes = containsItes || result.containsItes
             containsExists = containsExists || result.containsExists
             // System.out.println(axiom.toString + (result.sort).toString) ;
-            if (mustBeBool) Errors.Internal.precondition(result.sort == BoolSort)
-            result.sanitizedTerm
-        }
-
-        var newTheory = theory.mapAxioms(t => sanitizeTerm(t, true))
+            if (result.sort != s) 
+                // This error message isn't great because typechecking does change
+                // some parts of the term such as ites over Booleans
+                Errors.Internal.preconditionFailed(s"typechecking of "+result.sanitizedTerm.toString + " had sort "+ result.sort.toString + "when it should be "+s)
+            return result.sanitizedTerm            
+        }        
+        var newTheory = theory.mapAxioms(
+                t => checkResult(t.typeCheck(theory.signature), BoolSort))
 
         for(cDef <- theory.signature.constantDefinitions){
             newTheory = newTheory.withoutConstantDefinition(cDef)
-            newTheory = newTheory.withConstantDefinition(cDef.mapBody(t => sanitizeTerm(t, false)))
+            newTheory = newTheory.withConstantDefinition(
+                cDef.mapBody(b => 
+                    checkResult(cDef.body.typeCheck(theory.signature),cDef.sort)))
         }
         for(fDef <- theory.signature.functionDefinitions){
             newTheory = newTheory.withoutFunctionDefinition(fDef)
-            newTheory = newTheory.withFunctionDefinition(fDef.mapBody(t => sanitizeTerm(t, false)))
+            newTheory = newTheory.withFunctionDefinition(
+                fDef.mapBody(b => 
+                    checkResult(
+                        fDef.body.typeCheckInContext(theory.signature,fDef.argSortedVar),
+                        fDef.resultSort)))
         }
 
         problemState.copy(
