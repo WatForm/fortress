@@ -32,6 +32,7 @@ object TypecheckSanitizeTransformer extends ProblemStateTransformer {
         var newTheory = theory.mapAxioms(
                 t => checkResult(t.typeCheck(theory.signature), BoolSort))
 
+        // There is nothing to stop recursive definitions
         for(cDef <- theory.signature.constantDefinitions){
             newTheory = newTheory.withoutConstantDefinition(cDef)
             newTheory = newTheory.withConstantDefinition(
