@@ -6,9 +6,8 @@ import fortress.problemstate.ProblemState
 
 class NnfTransformerTest extends UnitSuite with CommonSymbols {
 
-    
-    
     val nnf = NnfTransformer
+
     val _a = Var("a")
     val _b = Var("b")
 

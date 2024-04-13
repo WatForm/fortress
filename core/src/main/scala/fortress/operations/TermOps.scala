@@ -12,6 +12,7 @@ case class TermOps private (term: Term) {
       * when comparing Bool sorts. Such a term is called "sanitized".
       */
     def typeCheck(signature: Signature): TypeCheckResult = (new TypeChecker(signature)).visit(term)
+    def typeCheckInContext(signature: Signature, vars:Seq[AnnotatedVar]): TypeCheckResult = (new TypeChecker(signature)).visitDefn(term,vars)
     
     /** Returns the set of Vars that appear unquantified in this term.
       * This only looks at syntax without respect to a given signature,
@@ -31,7 +32,12 @@ case class TermOps private (term: Term) {
       * The term must be sanitized to call this method.
       */
     def nnf: Term = NormalForms.nnf(term)
-    
+
+    /** Removes all ites from the term by iflifting
+      * The term must be sanitized to call this method.
+      */
+    def iflift(s:Sort): Term = IfLifter.iflift(term,s)
+
     /** Does not account for variable capture.
       * If in doubt do not use this function.
       */

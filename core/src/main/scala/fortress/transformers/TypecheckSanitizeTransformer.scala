@@ -11,21 +11,48 @@ import fortress.problemstate.ProblemState
   * Throws an exception if the theory does not type-check correctly.
   */
 object TypecheckSanitizeTransformer extends ProblemStateTransformer {
-    
+
+    // Note that a formula will not typecheck if it has any free variables (that are not constants of the signature)
+
     override def apply(problemState: ProblemState): ProblemState = {
         val theory = problemState.theory
-        def sanitizeAxiom(axiom: Term): Term = {
-            // Check axiom typechecks as bool
-            // Note that a formula cannot typecheck if it has any free variables (that are not constants of the signature)
-            val result: TypeCheckResult = axiom.typeCheck(theory.signature)
+        var containsItes = false
+        var containsExists = false
+
+        def checkResult(result:TypeCheckResult, s:Sort):Term = {
+            containsItes = containsItes || result.containsItes
+            containsExists = containsExists || result.containsExists
             // System.out.println(axiom.toString + (result.sort).toString) ;
-            Errors.Internal.precondition(result.sort == BoolSort)
-            result.sanitizedTerm
+            if (result.sort != s) 
+                // This error message isn't great because typechecking does change
+                // some parts of the term such as ites over Booleans
+                Errors.Internal.preconditionFailed(s"typechecking of "+result.sanitizedTerm.toString + " had sort "+ result.sort.toString + "when it should be "+s)
+            return result.sanitizedTerm            
+        }        
+        var newTheory = theory.mapAxioms(
+                t => checkResult(t.typeCheck(theory.signature), BoolSort))
+
+        for(cDef <- theory.signature.constantDefinitions){
+            newTheory = newTheory.withoutConstantDefinition(cDef)
+            newTheory = newTheory.withConstantDefinition(
+                cDef.mapBody(b => 
+                    checkResult(cDef.body.typeCheck(theory.signature),cDef.sort)))
+        }
+        for(fDef <- theory.signature.functionDefinitions){
+            newTheory = newTheory.withoutFunctionDefinition(fDef)
+            newTheory = newTheory.withFunctionDefinition(
+                fDef.mapBody(b => 
+                    checkResult(
+                        fDef.body.typeCheckInContext(theory.signature,fDef.argSortedVar),
+                        fDef.resultSort)))
         }
 
-        val newTheory = theory.mapAxioms(t => sanitizeAxiom(t))
         problemState.copy(
-            theory = newTheory
+            theory = newTheory,
+            flags = problemState.flags.copy(
+                containsItes = containsItes,
+                containsExists = containsExists
+            )
         )
     }
     

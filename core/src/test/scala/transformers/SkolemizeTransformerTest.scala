@@ -5,9 +5,12 @@ import fortress.transformers._
 import fortress.problemstate._
 
 class SkolemizeTransformerTest extends UnitSuite with CommonSymbols {
-    
-    val skolemizer = new TheoryApplication(SkolemizeTransformer)
-    
+   
+    // typechecking not included because it will remove a boolean ite
+    // and one of the tests checks that skolemize does not enter ites 
+    def skolemizer(th:Theory) = 
+        SkolemizeTransformer(NnfTransformer(ProblemState(th)))  
+
     val _a = Var("a")
     val _b = Var("b")
 
@@ -33,7 +36,7 @@ class SkolemizeTransformerTest extends UnitSuite with CommonSymbols {
             .withConstantDeclaration(sk_0 of A)
             .withAxiom(P(sk_0))
         
-        skolemizer(theory) should be (expected)
+        skolemizer(theory).theory should be (expected)
     }
     
     test("simple skolem function") {
@@ -49,7 +52,7 @@ class SkolemizeTransformerTest extends UnitSuite with CommonSymbols {
             .withFunctionDeclaration(sk_0 from A to A)
             .withAxiom(Forall(x of A, Q(x, sk_0(x))))
             
-        skolemizer(theory) should be (expected)
+        skolemizer(theory).theory should be (expected)
     }
     
     test("all exists all") {
@@ -65,7 +68,7 @@ class SkolemizeTransformerTest extends UnitSuite with CommonSymbols {
             .withFunctionDeclaration(sk_0 from A to A)
             .withAxiom(Forall(x of A, Forall(z of A, R(x, sk_0(x), z))))
         
-        skolemizer(theory) should be (expected)
+        skolemizer(theory).theory should be (expected)
     }
     
     test("multiple skolem functions") {
@@ -90,7 +93,7 @@ class SkolemizeTransformerTest extends UnitSuite with CommonSymbols {
                 Forall(z of A, Q(sk_1(z), z)),
                 P(Var("sk_2"))))
         
-        skolemizer(theory) should be (expected)
+        skolemizer(theory).theory should be (expected)
     }
     
     // TODO how to test when technically the order of arguments is not guaranteed?
@@ -111,7 +114,7 @@ class SkolemizeTransformerTest extends UnitSuite with CommonSymbols {
             .withConstantDeclaration(Var("sk_0").of(B))
             .withAxiom(Forall(x of A, S(Var("sk_0"))))
         
-        skolemizer(theory) should be (expected)
+        skolemizer(theory).theory should be (expected)
     }
     
     // Only the free variables actually used should be made as arguments to the skolem function
@@ -129,7 +132,7 @@ class SkolemizeTransformerTest extends UnitSuite with CommonSymbols {
             .withFunctionDeclaration(sk_0 from A to B)
             .withAxiom(Forall(Seq(x of A, z of A), T(z, sk_0(z))))
         
-        skolemizer(theory) should be (expected)
+        skolemizer(theory).theory should be (expected)
     }
     
     test("multivariable Exists") {
@@ -145,7 +148,7 @@ class SkolemizeTransformerTest extends UnitSuite with CommonSymbols {
             .withFunctionDeclaration(sk_1 from A to A)
             .withAxiom(Forall(x of A, R(x, sk_0(x), sk_1(x))))
         
-        skolemizer(theory) should be (expected)
+        skolemizer(theory).theory should be (expected)
     }
     
     test("multi argument") {
@@ -162,7 +165,7 @@ class SkolemizeTransformerTest extends UnitSuite with CommonSymbols {
             .withFunctionDeclaration(sk_0 from (A, B) to A)
             .withAxiom(Forall(Seq(x of A, z of B), R(x, sk_0(x, z), z)))
         
-        skolemizer(theory) should be (expected)
+        skolemizer(theory).theory should be (expected)
     }
     
     // Constants should not be included as arguments to skolem functions
@@ -182,7 +185,7 @@ class SkolemizeTransformerTest extends UnitSuite with CommonSymbols {
             .withFunctionDeclaration(sk_0 from A to A)
             .withAxiom(Forall(x of A, R(x, sk_0(x), z)))
         
-        skolemizer(theory) should be (expected)
+        skolemizer(theory).theory should be (expected)
     }
     
     // Former bug: was not adding sk_0 to constants, so when encountering it
@@ -204,7 +207,7 @@ class SkolemizeTransformerTest extends UnitSuite with CommonSymbols {
             .withFunctionDeclaration(sk_1 from A to A)
             .withAxiom(Forall(x of A, R(x, Var("sk_0"), sk_1(x))))
         
-        skolemizer(theory) should be (expected)
+        skolemizer(theory).theory should be (expected)
     }
     
     test("name generation 1") {
@@ -223,7 +226,7 @@ class SkolemizeTransformerTest extends UnitSuite with CommonSymbols {
             .withConstantDeclaration(Var("sk_1") of A)
             .withAxiom(P(Var("sk_1")))
         
-        skolemizer(theory) should be (expected)
+        skolemizer(theory).theory should be (expected)
     }
     
     test("name generation 2") {
@@ -259,7 +262,7 @@ class SkolemizeTransformerTest extends UnitSuite with CommonSymbols {
                 P(Var("sk_3")),
                 Forall(x of A, Q(x, sk_6(x)))))
         
-        skolemizer(theory) should be (expected)
+        skolemizer(theory).theory should be (expected)
     }
     
     test("multiple formulas") {
@@ -289,7 +292,7 @@ class SkolemizeTransformerTest extends UnitSuite with CommonSymbols {
             .withAxiom(P(Var("sk_1")))
             .withAxiom(Forall(x of A, Q(x, sk_0(x))))
         
-        skolemizer(theory) should (equal (expected1) or equal(expected2))
+        skolemizer(theory).theory should (equal (expected1) or equal(expected2))
     }
 
     test("exists shadowing forall variable (old fortress bug)") {
@@ -315,7 +318,7 @@ class SkolemizeTransformerTest extends UnitSuite with CommonSymbols {
                 {!P(_a) and !Q(_a, sk_0(_a))}
             ))
         
-        skolemizer(theory) should be (expected)
+        skolemizer(theory).theory should be (expected)
     }
 
     test("skolem functions, constants added to problem state") {
@@ -340,7 +343,7 @@ class SkolemizeTransformerTest extends UnitSuite with CommonSymbols {
                 Forall(z of A, Q(sk_1(z), z)),
                 P(Var("sk_2"))))
         
-        val newProblemState = SkolemizeTransformer(ProblemState(theory))
+        val newProblemState = skolemizer(theory)
         newProblemState.theory should be (expected)
         newProblemState.skolemConstants should be (Set(Var("sk_2") of A))
         newProblemState.skolemFunctions should be (Set(sk_0 from A to A, sk_1 from A to A))
@@ -366,7 +369,7 @@ class SkolemizeTransformerTest extends UnitSuite with CommonSymbols {
             .withFunctionDeclaration(sk_0 from A to A)
             .withAxiom(Forall(x of A, Q(x, sk_0(x))))
         
-        skolemizer(theory) should be (expected)
+        skolemizer(theory).theory should be (expected)
     }
 
     test("forall variable shadowing another forall variable") {
@@ -383,9 +386,12 @@ class SkolemizeTransformerTest extends UnitSuite with CommonSymbols {
             .withFunctionDeclaration(sk_0 from C to A)
             .withAxiom(Forall(x of B, P(x) and Forall(x of C, Q(x, sk_0(x)))))
         
-        skolemizer(theory) should be (expected)
+        skolemizer(theory).theory should be (expected)
     }
 
+    /* this is assuming iflifting is not run first */
+    // if include typechecking, typechecking will change
+    // this ITE into and (c  and  ) or (!c   and )
     test("No change inside a ITE conditional"){
         val theory = Theory.empty
             .withSorts(A)
@@ -399,8 +405,11 @@ class SkolemizeTransformerTest extends UnitSuite with CommonSymbols {
             .withFunctionDeclaration(P from (A, A) to BoolSort)
             .withAxiom(IfThenElse(Forall(x1.of(A), Exists(x2 of A, P(x1, x2))), Eq(y,z), Not(Eq(y,z))))
 
-            skolemizer(theory) should be (expected)
+        (skolemizer(theory).theory) should be (expected)
     }
+
+    /* 2024-04-11 We no longer skolemize within a function defn because we don't know the polarity of the use
+       of the function 
 
     test("Function Definition"){
         val fDef = FunctionDefinition(
@@ -432,7 +441,7 @@ class SkolemizeTransformerTest extends UnitSuite with CommonSymbols {
             .withAxiom(App("Q", y))
             .withFunctionDefinition(expectedFDef)
         
-        skolemizer(theory) should be (expected)
+        skolemizer(theory).theory should be (expected)
 
     }
 
@@ -446,10 +455,11 @@ class SkolemizeTransformerTest extends UnitSuite with CommonSymbols {
             .withConstantDeclaration(z of A)
             .withConstantDefinition(xDef)
 
-        val result = skolemizer(theory)
+        val result = skolemizer(theory).theory
 
         result.constantDefinitions.toSeq(0) should be (ConstantDefinition(AnnotatedVar(x, BoolSort), Eq(Var("sk_0"), z)))
         // We can and probably should do more complicated tests
 
     }
+    */
 }

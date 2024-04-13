@@ -6,6 +6,7 @@ import fortress.util.Errors
 import fortress.operations.TermOps._
 import fortress.interpretation.Interpretation
 import fortress.problemstate.ProblemState
+import fortress.problemstate.ExactScope
 
 /** Replaces enum values with domain elements, following the mapping from the
   * computeEnumSortMapping method.
@@ -24,6 +25,13 @@ object EnumEliminationTransformer extends ProblemStateTransformer {
         
         var newSig = theory.signature
                         .withoutEnums
+        
+        // Replace scopes of enums with exact scope
+        var newScopes = problemState.scopes
+
+        for ((sort, enumConstants) <- theory.enumConstants) {
+            newScopes = newScopes.updated(sort, ExactScope(enumConstants.length, true))
+        }
 
         // We only remove a definition before readding it so all its dependencies are in the sig
         // definitions are basically untested
@@ -44,7 +52,8 @@ object EnumEliminationTransformer extends ProblemStateTransformer {
         //ProblemState(newTheory, scopes, skc, skf, rangeRestricts, unapply :: unapplyInterp, distinctConstants)
         problemState.copy(
             theory = newTheory,
-            unapplyInterp = unapply :: problemState.unapplyInterp
+            unapplyInterp = unapply :: problemState.unapplyInterp,
+            scopes = newScopes
         )
     }
     

@@ -7,6 +7,8 @@ import fortress.symmetry._
 
 class SymmetryBreakingTransformerTest extends UnitSuite {
 
+    val typechecker = TypecheckSanitizeTransformer
+
     val A = Sort.mkSortConst("A")
     val B = Sort.mkSortConst("B")
     val C = Sort.mkSortConst("C")
@@ -56,7 +58,8 @@ class SymmetryBreakingTransformerTest extends UnitSuite {
         )
 
         val transformer = new SymmetryBreakingTransformer(FunctionsFirstAnyOrder)
-        transformer(ProblemState(theory, scopes)) should be(ProblemState(expected, scopes, Set.empty, Set.empty, expectedRangeFormulas, List.empty, Flags(distinctConstants = true, isNNF=false, verbose = false)))
+
+        transformer(typechecker(ProblemState(theory, scopes))) should be (ProblemState(expected, scopes, Set.empty, Set.empty, expectedRangeFormulas, List.empty, Flags(distinctConstants = true, haveRunNNF=false, verbose = false)))
     }
 
     test("with symmetry breaking") {
@@ -87,6 +90,6 @@ class SymmetryBreakingTransformerTest extends UnitSuite {
         )
 
         val transformer = new SymmetryBreakingTransformer(SymmetryBreakingOptions(FunctionsFirstAnyOrder, breakSkolem = true, sortInference = true, patternOptimization = false))
-        transformer(ProblemState(theory, scopes)) should be(ProblemState(expected, scopes, Set.empty, Set.empty, expectedRangeFormulas, List.empty, Flags(distinctConstants = true)))
+        transformer(typechecker(ProblemState(theory, scopes))) should be (ProblemState(expected, scopes, Set.empty, Set.empty, expectedRangeFormulas, List.empty, Flags(distinctConstants = true)))
     }
 }

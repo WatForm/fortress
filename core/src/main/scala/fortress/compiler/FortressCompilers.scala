@@ -13,6 +13,7 @@ import scala.collection.mutable.ListBuffer
     need range formulas
 */
 abstract class ConstantsMethodCompiler() extends LogicCompiler {
+    override def compilerName: String = "Constants"
     override def transformerSequence: Seq[ProblemStateTransformer] = {
         val transformerSequence = new scala.collection.mutable.ListBuffer[ProblemStateTransformer]
         transformerSequence += TypecheckSanitizeTransformer
@@ -21,8 +22,11 @@ abstract class ConstantsMethodCompiler() extends LogicCompiler {
         transformerSequence += ScopeNonExactPredicatesTransformer
         // transformerSequence += IntegerToBitVectorTransformer    
         transformerSequence += OPFIIntsTransformer 
+
+        transformerSequence += IfLiftingTransformer
         transformerSequence += NnfTransformer
         transformerSequence += SkolemizeTransformer
+
         transformerSequence += new SymmetryBreakingTransformer(MonoFirstThenFunctionsFirstAnyOrder)
         transformerSequence += SimplifyWithScalarQuantifiersTransformer
         transformerSequence += QuantifiersToDefinitionsTransformer
@@ -35,20 +39,47 @@ abstract class ConstantsMethodCompiler() extends LogicCompiler {
 
 }
 
+abstract class ConstantsClaessenCompiler() extends LogicCompiler {
+    override def compilerName: String = "ConstantsClaessen"
+    override def transformerSequence: Seq[ProblemStateTransformer] = {
+        val transformerSequence = new scala.collection.mutable.ListBuffer[ProblemStateTransformer]
+        transformerSequence += TypecheckSanitizeTransformer
+        transformerSequence += EnumEliminationTransformer
+        transformerSequence += ClosureEliminationClaessenTransformer
+        transformerSequence += ScopeNonExactPredicatesTransformer
+        // transformerSequence += IntegerToBitVectorTransformer    
+        transformerSequence += OPFIIntsTransformer 
+
+        transformerSequence += IfLiftingTransformer
+        transformerSequence += NnfTransformer
+        transformerSequence += SkolemizeTransformer
+
+        transformerSequence += new SymmetryBreakingTransformer(MonoFirstThenFunctionsFirstAnyOrder)
+        transformerSequence += SimplifyWithScalarQuantifiersTransformer
+        transformerSequence += QuantifiersToDefinitionsTransformer
+        transformerSequence += StandardQuantifierExpansionTransformer
+        transformerSequence += RangeFormulaStandardTransformer
+        transformerSequence += new SimplifyTransformer
+        transformerSequence += DomainEliminationTransformer
+        transformerSequence.toList
+    }
+
+}
 /*
    use datatypes 
    don't get rid of quantifiers - not EUF (no nnf, no skolemization and no quantifier expansion)
    no range formulas (b/c datatype limits output to finite)
 */
 abstract class DatatypeMethodNoRangeCompiler() extends LogicCompiler {
+    override def compilerName: String = "DatatypeNoRangeFormulas"
     override def transformerSequence: Seq[ProblemStateTransformer] = {
         val transformerSequence = new scala.collection.mutable.ListBuffer[ProblemStateTransformer]
         transformerSequence += TypecheckSanitizeTransformer
         transformerSequence += EnumEliminationTransformer
-        // transformerSequence += NnfTransformer
+
         transformerSequence += ClosureEliminationEijckTransformer
         transformerSequence += ScopeNonExactPredicatesTransformer
-        // transformerSequence += IntegerToBitVectorTransformer      
+
         transformerSequence += OPFIIntsTransformer
         transformerSequence += new SymmetryBreakingTransformer(MonoFirstThenFunctionsFirstAnyOrder)
         transformerSequence += SimplifyWithScalarQuantifiersTransformer
@@ -66,6 +97,7 @@ abstract class DatatypeMethodNoRangeCompiler() extends LogicCompiler {
    use range formulas 
 */
 abstract class DatatypeMethodWithRangeCompiler() extends LogicCompiler {
+    override def compilerName: String = "DatatypeWithRangeFormulas"
     override def transformerSequence: Seq[ProblemStateTransformer] = {
         val transformerSequence = new scala.collection.mutable.ListBuffer[ProblemStateTransformer]
         transformerSequence += TypecheckSanitizeTransformer
@@ -91,6 +123,7 @@ abstract class DatatypeMethodWithRangeCompiler() extends LogicCompiler {
    don't use range formulas (b/c datatype limits output to finite)
 */
 abstract class DatatypeMethodNoRangeEUFCompiler() extends LogicCompiler {
+    override def compilerName: String = "DatatypeNoRangeFormulasEUF"
     override def transformerSequence: Seq[ProblemStateTransformer] = {
         val transformerSequence = new scala.collection.mutable.ListBuffer[ProblemStateTransformer]
         transformerSequence += TypecheckSanitizeTransformer
@@ -99,8 +132,11 @@ abstract class DatatypeMethodNoRangeEUFCompiler() extends LogicCompiler {
         transformerSequence += ScopeNonExactPredicatesTransformer
         // transformerSequence += IntegerToBitVectorTransformer      
         transformerSequence += OPFIIntsTransformer
+
+        transformerSequence += IfLiftingTransformer
         transformerSequence += NnfTransformer
         transformerSequence += SkolemizeTransformer
+
         transformerSequence += new SymmetryBreakingTransformer(MonoFirstThenFunctionsFirstAnyOrder)
         transformerSequence += SimplifyWithScalarQuantifiersTransformer
         transformerSequence += QuantifiersToDefinitionsTransformer
@@ -117,16 +153,20 @@ abstract class DatatypeMethodNoRangeEUFCompiler() extends LogicCompiler {
    include range formulas
 */
 abstract class DatatypeMethodWithRangeEUFCompiler() extends LogicCompiler {
+    override def compilerName: String = "DatatypeWithRangeFormulasEUF"
     override def transformerSequence: Seq[ProblemStateTransformer] = {
         val transformerSequence = new scala.collection.mutable.ListBuffer[ProblemStateTransformer]
         transformerSequence += TypecheckSanitizeTransformer
         transformerSequence += EnumEliminationTransformer
         transformerSequence += ClosureEliminationEijckTransformer
         transformerSequence += ScopeNonExactPredicatesTransformer
-        // transformerSequence += IntegerToBitVectorTransformer      
+
         transformerSequence += OPFIIntsTransformer
+
+        transformerSequence += IfLiftingTransformer
         transformerSequence += NnfTransformer
         transformerSequence += SkolemizeTransformer
+
         transformerSequence += new SymmetryBreakingTransformer(MonoFirstThenFunctionsFirstAnyOrder)
         transformerSequence += SimplifyWithScalarQuantifiersTransformer
         transformerSequence += QuantifiersToDefinitionsTransformer
@@ -139,6 +179,7 @@ abstract class DatatypeMethodWithRangeEUFCompiler() extends LogicCompiler {
 
 }
 
+// not revised below this line
 
 /**
   * The standard Fortress compiler steps.
