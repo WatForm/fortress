@@ -9,6 +9,7 @@ import fortress.modelfind.ModelFinderResult
 import fortress.operations.TermOps._
 import fortress.operations.TheoryOps._
 import fortress.util.Milliseconds
+import org.scalatest.tagobjects.Slow
 
 
 class OPFIIntsTransformerTest extends UnitSuite {
@@ -43,6 +44,37 @@ class OPFIIntsTransformerTest extends UnitSuite {
     // This can fail, it's not robust, just for tests
     def axiomWithoutDistinct(axioms: Seq[Term]): Term = {
         axioms.filterNot(_ match {case Distinct(arguments) => true case _ => false})(0)
+    }
+
+    def ensureUnsat(theory: Theory) {
+      Using.resource(manager.setupModelFinder()) {
+        finder => {
+          finder.setTheory(theory)
+          finder.setTimeout(Seconds(10))
+          val result = finder.checkSat()
+
+          if (result == ModelFinderResult.Sat) {
+                fail(s"Incorrectly found SAT for Theory:\n${theory}")
+          }
+          result shouldBe (ModelFinderResult.Unsat)
+          //assert(result == ModelFinderResult.Unsat)
+        }
+      }
+    }
+
+    def ensureSat(theory: Theory) {
+      Using.resource(manager.setupModelFinder()) {
+        finder => {
+          finder.setTheory(theory)
+          finder.setTimeout(Seconds(10))
+          val result = finder.checkSat()
+          if (result != ModelFinderResult.Sat){
+            fail(s"Incorreclty found UNSAT for Theory:\n${theory}")
+          }
+          result shouldBe (ModelFinderResult.Sat)
+          //assert(result == ModelFinderResult.Sat)
+        }
+      }
     }
 
     test("basic literals") {
@@ -263,5 +295,67 @@ class OPFIIntsTransformerTest extends UnitSuite {
             val model = finder.viewModel()
             model.constantInterpretations(x of IntSort) should be (IntegerLiteral(-1))
         }}
+    }
+
+    test("MJ Tautologies", Slow) {
+      val a = Var("a")
+      val b = Var("b")
+      val aPlusB = Term.mkPlus(a, b)
+      val aSubB = Term.mkSub(a, b)
+      val aMultB = Term.mkMult(a, b)
+      val gt = Term.mkGT(_,_)
+      val lt = Term.mkLT(_,_)
+      val ge = Term.mkGE(_,_)
+      val neg = Term.mkNeg _
+      val zero = IntegerLiteral(0)
+      val preAndPosts: Seq[(Term, Term)] = Seq(
+        (And(gt(a, zero), gt(b, zero)), 
+        And(gt(aPlusB, zero), gt(aPlusB, a), gt(aPlusB, b))),
+        (And(lt(a, zero), lt(b, zero)), 
+        And(lt(aPlusB, zero), lt(aPlusB, a), lt(aPlusB, b))),
+        (And(gt(a, zero), lt(b, zero)), 
+        And(gt(aSubB, zero), gt(aSubB, a), gt(aSubB, b))),
+        (And(lt(a, zero), gt(b, zero)), 
+        And(lt(aSubB, zero), lt(aSubB, a), lt(aSubB, b))),
+        (And(gt(a, zero), gt(b, zero)), 
+        And(gt(aMultB, zero), ge(aMultB, a), ge(aMultB, b))),
+        (And(lt(a, zero), lt(b, zero)), 
+        And(lt(aMultB, zero), ge(aMultB, neg(a)), ge(aMultB, neg(b)))),
+        (And(gt(a, zero), lt(b, zero)), 
+        And(lt(aMultB, zero), gt(neg(aMultB), a), gt(neg(aMultB), b))),
+        (And(lt(a, zero), gt(b, zero)), 
+        And(lt(aMultB, zero), gt(neg(aMultB), a), gt(neg(aMultB), b)))
+      )
+
+      val qA = a.of(IntSort)
+      val qB = b.of(IntSort)
+      val qvars = Seq(qA, qB)
+      val all = (body: Term) => Forall(qvars, body)
+      val some = (body: Term) => Exists(qvars, body)
+      val wraps: (Term, Term) => Seq[Term] = (pre, post) => Seq(
+        all(Implication(pre, post)),
+        Not(Not(all(Implication(pre, post)))),
+        all(Not(Not(Implication(pre, post)))),
+        all(Not(And(pre, Not(post)))),
+        all(Or(Not(pre), post)),
+        Not(some(Not(Implication(pre, post)))),
+        Not(Not(Not(some(Not(Implication(pre, post)))))),
+        Not(some(And(pre, Not(post)))),
+        Not(some(Not(Not(And(pre, Not(post)))))),
+        Not(some(Not(Or(Not(pre), post))))
+      )
+
+      val transformer: NoOverflowBVTransformer = NoOverflowBVTransformer
+
+      preAndPosts.foreach(_ match { case (pre, post) =>{
+        val filledTerms = wraps(pre, post)
+        filledTerms.foreach(axiom =>{
+          val theory = Theory.empty.withAxiom(axiom)
+          ensureSat(theory)
+
+          val negTheory = Theory.empty.withAxiom(Not(axiom))
+          ensureUnsat(negTheory)
+        })
+      }})
     }
 }

@@ -389,10 +389,13 @@ object OPFIIntsTransformer extends ProblemStateTransformer {
                 val upDoesNotOverflow = Not(Or.smart(upCondition.univQuantChecks.toSeq ++ upCondition.extQuantChecks.toSeq))
                 // branches only cause an overflow if we actually use the value there
                 val overflowUniv = AndList(upDoesNotOverflow, 
-                    IfThenElse(transformedCondition, Or.smart(upTrue.univQuantChecks.toSeq), Or.smart(upFalse.univQuantChecks.toSeq))
+                    // IfThenElse(transformedCondition, Or.smart(upTrue.univQuantChecks.toSeq), Or.smart(upFalse.univQuantChecks.toSeq))
+                    // Overflow for the correct branch only
+                    Or(And(transformedCondition, Or.smart(upTrue.univQuantChecks.toSeq)), And(Not(transformedCondition), Or.smart(upFalse.univQuantChecks.toSeq)))
                     )
                 val overflowExt = AndList(upDoesNotOverflow, 
-                    IfThenElse(transformedCondition, Or.smart(upTrue.extQuantChecks.toSeq), Or.smart(upFalse.extQuantChecks.toSeq))
+                    //IfThenElse(transformedCondition, Or.smart(upTrue.extQuantChecks.toSeq), Or.smart(upFalse.extQuantChecks.toSeq))
+                    Or(And(transformedCondition, Or.smart(upTrue.extQuantChecks.toSeq)), And(Not(transformedCondition), Or.smart(upFalse.extQuantChecks.toSeq)))
                     )
                 // We only use the condensed overflows
                 val newUp = UpInfo(upCondition.extQuantChecks + overflowExt, upCondition.univQuantChecks + overflowUniv)
@@ -401,6 +404,8 @@ object OPFIIntsTransformer extends ProblemStateTransformer {
                 // predicate needs to be wrapped with the conditional's ability to overflow (the branches should already be handled)
                 val resultSort = ifTrue.typeCheck(down.typeCheckSig(newSignature, newSort)).sort
                 if (resultSort == BoolSort){
+                    // This should no longer be happening.
+                    Errors.Internal.impossibleState(s"Found ITE of Boolsort! ${term}")
                     val guardedITE = newUp.overflowPredicate(transformedITE, down.polarity, isInBounds.name)
                     (guardedITE, newUp)
                 } else {

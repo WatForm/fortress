@@ -11,6 +11,8 @@ import fortress.modelfind.ModelFinderResult
 import fortress.compiler.ConfigurableCompiler
 import fortress.modelfind.SimpleModelFinder
 
+import org.scalatest.tagobjects.Slow
+
 import fortress.util.Dump
 
 class NoOverflowBVTransformerTests extends UnitSuite with CommonSymbols {
@@ -477,5 +479,69 @@ class NoOverflowBVTransformerTests extends UnitSuite with CommonSymbols {
     }
     
 
+    test("MJ Tautologies", Slow) {
+      val a = Var("a")
+      val b = Var("b")
+      val aPlusB = Term.mkBvPlus(a, b)
+      val aSubB = Term.mkBvSub(a, b)
+      val aMultB = Term.mkBvMult(a, b)
+      val gt = Term.mkBvSignedGT(_,_)
+      val lt = Term.mkBvSignedLT(_,_)
+      val ge = Term.mkBvSignedGE(_,_)
+      val neg = Term.mkBvNeg _
+      val preAndPosts: Seq[(Term, Term)] = Seq(
+        (And(gt(a, zero4), gt(b, zero4)), 
+        And(gt(aPlusB, zero4), gt(aPlusB, a), gt(aPlusB, b))),
+        (And(lt(a, zero4), lt(b, zero4)), 
+        And(lt(aPlusB, zero4), lt(aPlusB, a), lt(aPlusB, b))),
+        (And(gt(a, zero4), lt(b, zero4)), 
+        And(gt(aSubB, zero4), gt(aSubB, a), gt(aSubB, b))),
+        (And(lt(a, zero4), gt(b, zero4)), 
+        And(lt(aSubB, zero4), lt(aSubB, a), lt(aSubB, b))),
+        (And(gt(a, zero4), gt(b, zero4)), 
+        And(gt(aMultB, zero4), ge(aMultB, a), ge(aMultB, b))),
+        (And(lt(a, zero4), lt(b, zero4)), 
+        And(lt(aMultB, zero4), ge(aMultB, neg(a)), ge(aMultB, neg(b)))),
+        (And(gt(a, zero4), lt(b, zero4)), 
+        And(lt(aMultB, zero4), gt(neg(aMultB), a), gt(neg(aMultB), b))),
+        (And(lt(a, zero4), gt(b, zero4)), 
+        And(lt(aMultB, zero4), gt(neg(aMultB), a), gt(neg(aMultB), b)))
+      )
+
+      val qA = a.of(BV4)
+      val qB = b.of(BV4)
+      val qvars = Seq(qA, qB)
+      val all = (body: Term) => Forall(qvars, body)
+      val some = (body: Term) => Exists(qvars, body)
+      val wraps: (Term, Term) => Seq[Term] = (pre, post) => Seq(
+        all(Implication(pre, post)),
+        Not(Not(all(Implication(pre, post)))),
+        all(Not(Not(Implication(pre, post)))),
+        all(Not(And(pre, Not(post)))),
+        all(Or(Not(pre), post)),
+        Not(some(Not(Implication(pre, post)))),
+        Not(Not(Not(some(Not(Implication(pre, post)))))),
+        Not(some(And(pre, Not(post)))),
+        Not(some(Not(Not(And(pre, Not(post)))))),
+        Not(some(Not(Or(Not(pre), post))))
+      )
+
+      val transformer: NoOverflowBVTransformer = NoOverflowBVTransformer
+
+      preAndPosts.foreach(_ match { case (pre, post) =>{
+        val filledTerms = wraps(pre, post)
+        filledTerms.foreach(axiom =>{
+          val theory = Theory.empty.withAxiom(axiom)
+          
+          ensureSat(theory)
+
+          val negTheory = Theory.empty.withAxiom(Not(axiom))
+          ensureUnsat(negTheory)
+        })
+      }})
+
+      // dummy 
+      true shouldBe(true)
+    }
 
 }
