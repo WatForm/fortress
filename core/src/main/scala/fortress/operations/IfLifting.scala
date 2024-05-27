@@ -9,6 +9,8 @@ object IfLifter {
       * Cannot assume the term argument is of sort Boolean
       * so removal of ites is not always possible
       * 
+      * if term is Boolean, then all ites are removed
+      * 
       * Side Effect: distinct is also removed
       */
 
