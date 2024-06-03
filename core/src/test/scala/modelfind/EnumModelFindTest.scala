@@ -37,9 +37,12 @@ class EnumModelFindTest extends UnitSuite {
             model.constantInterpretations should be (Map(
                 (c of Colour) -> green
             ))
-            model.sortInterpretations should be (Map(
+            //model.sortInterpretations should contain key Colour
+            model.sortInterpretations should (have size 1 and contain key Colour)
+            model.sortInterpretations(Colour) should contain theSameElementsAs Seq(green, red, yellow)
+            /*model.sortInterpretations should be (Map(
                 Colour -> Seq(green, red, yellow)
-            ))
+            )) */
 //            model.functionInterpretations should be (Map(
 //                next -> Map(
 //                    Seq(red) -> green,

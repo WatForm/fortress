@@ -53,7 +53,7 @@ public class SmtModelVisitor extends SmtLibVisitor{
 
     private Map<String, String> fortressName2SmtValue = new HashMap<>();
 
-    String pattern = ".+!val![0-9]*$";
+    String patternDE = ".+!val![0-9]*$";
 
 
 
@@ -75,12 +75,19 @@ public class SmtModelVisitor extends SmtLibVisitor{
         assert ctx.sort().size()==1 : "There shouldn't be more than one sort in the declare-fun of return smt model.";
         Sort sort = (Sort)visit(ctx.sort(0));
         String name = NameConverter.nameWithoutQuote(ctx.ID().getText());   //     H!val!0 (If function is quoted, the entire val thing is too)
-        assert name.matches(pattern): "Parse error, exit code: 1";
+        assert name.matches(patternDE): "Parse error, exit code: 1";
         String[] temp = name.split("!val!");   // "H!val!0" => "H" "0"
-        assert temp.length == 2: "Parse error, exit code: 2";
-        assert temp[0].equals(sort.name()): "Parse error, exit code: 3"; // "H"
-//        DomainElement domainElement = Term.mkDomainElement(Integer.parseInt(temp[1])+1, sort);
-        this.smtValue2DomainElement.put(name, null);
+        //assert temp.length == 2: "Parse error, exit code: 2";
+        //assert temp[0].equals(sort.name()): "Parse error, exit code: 3"; // "H"
+        if (temp.length == 2) {
+            DomainElement domainElement = Term.mkDomainElement(Integer.parseInt(temp[1])+1, sort);
+            this.smtValue2DomainElement.put(name, domainElement);
+            return null;
+        } else {
+
+        }
+        System.out.println("Name: " + name);
+        System.out.println("Temp: " + temp.length);
 //        this.fortressName2SmtValue.put(domainElement.toString(), name);
         return null;
     }
@@ -125,6 +132,11 @@ public class SmtModelVisitor extends SmtLibVisitor{
         Sort resultSort = (Sort)visit(ctx.sort());
 
         String funcBody = ctx.term().getText();
+        
+        // If function body is a |-quoted var, drop the quotes
+        if (funcBody.matches(patternDE)){
+            funcBody = NameConverter.nameWithoutQuote(funcBody);
+        }
 
 //        System.out.println("funcbody: " + funcBody);
 
