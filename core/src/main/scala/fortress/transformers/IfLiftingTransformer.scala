@@ -32,7 +32,7 @@ object IfLiftingTransformer extends ProblemStateTransformer {
             return problemState.copy(
                 theory = newTheory,
                 flags = problemState.flags.copy(
-                    haveRunIfLifting = false
+                    haveRunIfLifting = true
                 )
             )
         /*
