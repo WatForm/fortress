@@ -10,7 +10,7 @@ import fortress.util.Errors
 object NnfTransformer extends ProblemStateTransformer {
     override def apply(problemState: ProblemState): ProblemState = {
 
-        if (problemState.flags.haveRunIfLifting==true) {
+        if (problemState.flags.haveRunIfLifting==false) {
             println(s"WARNING: IfLifting Transformer should be run before nnf")
         }
         val theory = problemState.theory
