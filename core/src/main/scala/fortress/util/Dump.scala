@@ -4,6 +4,7 @@ import fortress.msfol._
 
 import java.io.StringWriter
 import fortress.operations.SmtlibConverter
+import fortress.operations.SmtlibTCConverter
 import fortress.problemstate._
 
 import java.io.PrintWriter
@@ -20,6 +21,13 @@ object Dump {
         return writer.toString()
     }
 
+    def theoryToSmtlibTC(theory: Theory): String = {
+        val writer = new StringWriter()
+        val converter = new SmtlibTCConverter(writer)
+        converter.writeTheory(theory)
+        return writer.toString()
+    }
+
     def termToSmtlib(term: Term): String = {
         val writer = new StringWriter()
         val converter = new SmtlibConverter(writer)
@@ -27,9 +35,28 @@ object Dump {
         return writer.toString()
     }
 
+    def termToSmtlibTC(term: Term): String = {
+        val writer = new StringWriter()
+        val converter = new SmtlibTCConverter(writer)
+        converter.write(term)
+        return writer.toString()
+    }
+
     def problemStateToSmtlib(problemState: ProblemState): String = {
         val writer = new StringWriter()
         val converter = new SmtlibConverter(writer)
+
+        converter.writeTheory(problemState.theory)
+        writer.write('\n')
+        writer.write("; Scopes\n")
+        writer.write(smtlibScopeInfo(problemState.scopes))
+        
+        return writer.toString()
+    }
+
+    def problemStateToSmtlibTC(problemState: ProblemState): String = {
+        val writer = new StringWriter()
+        val converter = new SmtlibTCConverter(writer)
 
         converter.writeTheory(problemState.theory)
         writer.write('\n')

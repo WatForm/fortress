@@ -5,6 +5,7 @@ import fortress.operations.TermOps._
 import fortress.operations.TheoryOps._
 import fortress.operations.SmtlibConverter
 import fortress.interpretation.EvaluationBasedInterpretation
+import fortress.operations.SmtlibTCConverter
 
 class  SmtlibConversionTests extends UnitSuite {
     
@@ -195,6 +196,19 @@ class  SmtlibConversionTests extends UnitSuite {
         val converter2 = new SmtlibConverter(writer2)
         converter2.writeSignature(sig)
         val result = writer2.toString()
+        result should be (expected)
+
+    }
+
+    test ("smtlibtc domain element") {
+        val writer = new java.io.StringWriter()
+        val converter = new SmtlibTCConverter(writer)
+
+        converter.write(DomainElement(2, SortConst("TestSort")))
+
+        val result = writer.toString()
+        val expected = "_@2TestSort"
+
         result should be (expected)
 
     }
