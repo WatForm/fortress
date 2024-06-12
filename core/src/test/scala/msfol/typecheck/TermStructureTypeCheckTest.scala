@@ -23,7 +23,9 @@ class TermStructureTypeCheckTest extends UnitSuite {
     val R = FuncDecl.mkFuncDecl("R", A, A, Sort.Bool)
     
     // val structure
-    
+
+    /* 2024-04-11 can now have quantifiers within applications 
+
     test("forall inside app") {
         // Forall is not allowed inside an application
         val sig = Signature.empty
@@ -45,6 +47,7 @@ class TermStructureTypeCheckTest extends UnitSuite {
             t.typeCheck(sig)
         }
     }
+    */
     
     // We now allow this
     /*

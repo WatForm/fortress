@@ -7,147 +7,142 @@ import java.sql.Ref
 
 class SmtlibConverter(writer: java.io.Writer) {
 
-    // Use a writer for efficiency
-    def write(t: Term): Unit = {
-        def recur(term: Term): Unit = term match {
-            case DomainElement(_, _) =>
-                Errors.Internal.preconditionFailed("Domain elements cannot be converted to SMTLIB2")
-            // case d @ DomainElement(index, sort) => writer.write(d.asSmtConstant.name)
-            case EnumValue(name) => writer.write(nameWithQuote(name))
-            case Top => writer.write("true")
-            case Bottom => writer.write("false")
-            case Var(name) => writer.write(nameWithQuote(name))
-            case Not(p) => writeGeneralApp("not", Seq(p))
-            case AndList(args) => writeGeneralApp("and", args)
-            case OrList(args) => writeGeneralApp("or", args)
-            case Distinct(args) => writeGeneralApp("distinct", args)
-            case Implication(left, right) => writeGeneralApp("=>", Seq(left, right))
-            case Iff(left, right) => writeGeneralApp("=", Seq(left, right))
-            case Eq(left, right) => writeGeneralApp("=", Seq(left, right))
-            case App(fname, args) => writeGeneralApp(nameWithQuote(fname), args)
-            case IfThenElse(condition, ifTrue, ifFalse) => writeGeneralApp("ite", Seq(condition, ifTrue, ifFalse))
-            case Exists(vars, body) => {
-                writer.write("(exists (")
-                var num = 0
-                for(av <- vars) {
-                    if(num > 0) {
-                        writer.write(' ')
-                    }
-                    writer.write('(')
-                    writer.write(nameWithQuote(av.name))
+    def write(term: Term): Unit = term match {
+        case DomainElement(_, _) =>
+            Errors.Internal.preconditionFailed("Domain elements cannot be converted to SMTLIB2")
+        // case d @ DomainElement(index, sort) => writer.write(d.asSmtConstant.name)
+        case EnumValue(name) => writer.write(nameWithQuote(name))
+        case Top => writer.write("true")
+        case Bottom => writer.write("false")
+        case Var(name) => writer.write(nameWithQuote(name))
+        case Not(p) => writeGeneralApp("not", Seq(p))
+        case AndList(args) => writeGeneralApp("and", args)
+        case OrList(args) => writeGeneralApp("or", args)
+        case Distinct(args) => writeGeneralApp("distinct", args)
+        case Implication(left, right) => writeGeneralApp("=>", Seq(left, right))
+        case Iff(left, right) => writeGeneralApp("=", Seq(left, right))
+        case Eq(left, right) => writeGeneralApp("=", Seq(left, right))
+        case App(fname, args) => writeGeneralApp(nameWithQuote(fname), args)
+        case IfThenElse(condition, ifTrue, ifFalse) => writeGeneralApp("ite", Seq(condition, ifTrue, ifFalse))
+        case Exists(vars, body) => {
+            writer.write("(exists (")
+            var num = 0
+            for(av <- vars) {
+                if(num > 0) {
                     writer.write(' ')
-                    writeSort(av.sort)
-                    writer.write(')')
-                    num += 1
                 }
-                writer.write(") ")
-                recur(body)
-                writer.write(')')
-            }
-            case Forall(vars, body) => {
-                writer.write("(forall (")
-                var num = 0
-                for(av <- vars) {
-                    if(num > 0) {
-                        writer.write(' ')
-                    }
-                    writer.write('(')
-                    writer.write(nameWithQuote(av.name))
-                    writer.write(' ')
-                    writeSort(av.sort)
-                    writer.write(')')
-                    num += 1
-                }
-                writer.write(") ")
-                recur(body)
-                writer.write(')')
-            }
-            
-            // Integers
-            case IntegerLiteral(value) => {
-                if(value >= 0) {
-                    writer.write(value.toString)
-                } else {
-                    writeGeneralApp("-", Seq(IntegerLiteral(- value)))
-                }
-            }
-            case BuiltinApp(IntPlus, args) => writeGeneralApp("+", args)
-            case BuiltinApp(IntNeg, args) => writeGeneralApp("-", args)
-            case BuiltinApp(IntSub, args) => writeGeneralApp("-", args)
-            case BuiltinApp(IntMult, args) => writeGeneralApp("*", args)
-            case BuiltinApp(IntDiv, args) => writeGeneralApp("div", args)
-            case BuiltinApp(IntMod, args) => writeGeneralApp("mod", args)
-            case BuiltinApp(IntLE, args) => writeGeneralApp("<=", args)
-            case BuiltinApp(IntLT, args) => writeGeneralApp("<", args)
-            case BuiltinApp(IntGE, args) => writeGeneralApp(">=", args)
-            case BuiltinApp(IntGT, args) => writeGeneralApp(">", args)
-            
-            // BitVectors
-            case BitVectorLiteral(value, bitwidth) => {
-                // (_ bv10 32) is a bitvector of size 32 that representes the numeral 10
-                // We use signed bitvectors, so we can just use bvneg and the absolute value 
-                val isNegative = value < 0
-                val absValue = value.abs.toInt
-                if (isNegative) {
-                    writer.write("(bvneg")
-                }
-                writer.write("(_ bv")
-                writer.write(absValue.toString())
+                writer.write('(')
+                writer.write(nameWithQuote(av.name))
                 writer.write(' ')
-                writer.write(bitwidth.toString)
+                writeSort(av.sort)
                 writer.write(')')
-                if (isNegative){
-                    writer.write(')')
-                }
+                num += 1
             }
-            case BuiltinApp(BvPlus, args) => writeGeneralApp("bvadd", args)
-            case BuiltinApp(BvNeg, args) => writeGeneralApp("bvneg", args)
-            case BuiltinApp(BvSub, args) => writeGeneralApp("bvsub", args)
-            case BuiltinApp(BvMult, args) => writeGeneralApp("bvmul", args)
-            case BuiltinApp(BvSignedDiv, args) => writeGeneralApp("bvsdiv", args)
-            case BuiltinApp(BvSignedRem, args) => writeGeneralApp("bvsrem", args)
-            case BuiltinApp(BvSignedMod, args) => writeGeneralApp("bvsmod", args)
-            case BuiltinApp(BvSignedLE, args) => writeGeneralApp("bvsle", args)
-            case BuiltinApp(BvSignedLT, args) => writeGeneralApp("bvslt", args)
-            case BuiltinApp(BvSignedGE, args) => writeGeneralApp("bvsge", args)
-            case BuiltinApp(BvSignedGT, args) => writeGeneralApp("bvsgt", args)
-            case BuiltinApp(BvConcat, args) => writeGeneralApp("concat", args)
-            case BuiltinApp(CastBVToInt, args) => writeGeneralApp("bv2int", args)
-            case BuiltinApp(CastIntToBV(bitwidth), args) => writeGeneralApp(s"(_ int2bv $bitwidth)", args)
-
-
-            case Closure(fname, arg1, arg2, fixedArgs) => {
-                writer.write("(closure ")
-                writer.write(nameWithQuote(fname))
-                for(arg <- arg1 +: arg2 +: fixedArgs) {
-                    writer.write(' ')
-                    recur(arg)
-                }
-                writer.write(')')
-            }
-            case ReflexiveClosure(fname, arg1, arg2, fixedArgs) => {
-                writer.write("(reflexive-closure ")
-                writer.write(nameWithQuote(fname))
-                for(arg <- arg1 +: arg2 +: fixedArgs) {
-                    writer.write(' ')
-                    recur(arg)
-                }
-                writer.write(')')
-            }
+            writer.write(") ")
+            write(body)
+            writer.write(')')
         }
-        
-        // Does NOT do quoting on its own
-        def writeGeneralApp(functionName: String, args: Seq[Term]): Unit = {
-            writer.write('(')
-            writer.write(functionName)
-            for(arg <- args) {
+        case Forall(vars, body) => {
+            writer.write("(forall (")
+            var num = 0
+            for(av <- vars) {
+                if(num > 0) {
+                    writer.write(' ')
+                }
+                writer.write('(')
+                writer.write(nameWithQuote(av.name))
                 writer.write(' ')
-                recur(arg)
+                writeSort(av.sort)
+                writer.write(')')
+                num += 1
             }
+            writer.write(") ")
+            write(body)
             writer.write(')')
         }
         
-        recur(t)
+        // Integers
+        case IntegerLiteral(value) => {
+            if(value >= 0) {
+                writer.write(value.toString)
+            } else {
+                writeGeneralApp("-", Seq(IntegerLiteral(- value)))
+            }
+        }
+        case BuiltinApp(IntPlus, args) => writeGeneralApp("+", args)
+        case BuiltinApp(IntNeg, args) => writeGeneralApp("-", args)
+        case BuiltinApp(IntSub, args) => writeGeneralApp("-", args)
+        case BuiltinApp(IntMult, args) => writeGeneralApp("*", args)
+        case BuiltinApp(IntDiv, args) => writeGeneralApp("div", args)
+        case BuiltinApp(IntMod, args) => writeGeneralApp("mod", args)
+        case BuiltinApp(IntLE, args) => writeGeneralApp("<=", args)
+        case BuiltinApp(IntLT, args) => writeGeneralApp("<", args)
+        case BuiltinApp(IntGE, args) => writeGeneralApp(">=", args)
+        case BuiltinApp(IntGT, args) => writeGeneralApp(">", args)
+        
+        // BitVectors
+        case BitVectorLiteral(value, bitwidth) => {
+            // (_ bv10 32) is a bitvector of size 32 that representes the numeral 10
+            // We use signed bitvectors, so we can just use bvneg and the absolute value 
+            val isNegative = value < 0
+            val absValue = value.abs.toInt
+            if (isNegative) {
+                writer.write("(bvneg")
+            }
+            writer.write("(_ bv")
+            writer.write(absValue.toString())
+            writer.write(' ')
+            writer.write(bitwidth.toString)
+            writer.write(')')
+            if (isNegative){
+                writer.write(')')
+            }
+        }
+        case BuiltinApp(BvPlus, args) => writeGeneralApp("bvadd", args)
+        case BuiltinApp(BvNeg, args) => writeGeneralApp("bvneg", args)
+        case BuiltinApp(BvSub, args) => writeGeneralApp("bvsub", args)
+        case BuiltinApp(BvMult, args) => writeGeneralApp("bvmul", args)
+        case BuiltinApp(BvSignedDiv, args) => writeGeneralApp("bvsdiv", args)
+        case BuiltinApp(BvSignedRem, args) => writeGeneralApp("bvsrem", args)
+        case BuiltinApp(BvSignedMod, args) => writeGeneralApp("bvsmod", args)
+        case BuiltinApp(BvSignedLE, args) => writeGeneralApp("bvsle", args)
+        case BuiltinApp(BvSignedLT, args) => writeGeneralApp("bvslt", args)
+        case BuiltinApp(BvSignedGE, args) => writeGeneralApp("bvsge", args)
+        case BuiltinApp(BvSignedGT, args) => writeGeneralApp("bvsgt", args)
+        case BuiltinApp(BvConcat, args) => writeGeneralApp("concat", args)
+        case BuiltinApp(CastBVToInt, args) => writeGeneralApp("bv2int", args)
+        case BuiltinApp(CastIntToBV(bitwidth), args) => writeGeneralApp(s"(_ int2bv $bitwidth)", args)
+
+
+        case Closure(fname, arg1, arg2, fixedArgs) => {
+            writer.write("(closure ")
+            writer.write(nameWithQuote(fname))
+            for(arg <- arg1 +: arg2 +: fixedArgs) {
+                writer.write(' ')
+                write(arg)
+            }
+            writer.write(')')
+        }
+        case ReflexiveClosure(fname, arg1, arg2, fixedArgs) => {
+            writer.write("(reflexive-closure ")
+            writer.write(nameWithQuote(fname))
+            for(arg <- arg1 +: arg2 +: fixedArgs) {
+                writer.write(' ')
+                write(arg)
+            }
+            writer.write(')')
+        }
+    }
+
+    // Does NOT do quoting on its own
+    def writeGeneralApp(functionName: String, args: Seq[Term]): Unit = {
+        writer.write('(')
+        writer.write(functionName)
+        for(arg <- args) {
+            writer.write(' ')
+            write(arg)
+        }
+        writer.write(')')
     }
     
     def writeSort(sort: Sort): Unit = sort match {
@@ -282,5 +277,12 @@ class SmtlibConverter(writer: java.io.Writer) {
     def writeTheory(theory: Theory): Unit = {
         writeSignature(theory.signature)
         theory.axioms.foreach(writeAssertion)
+    }
+}
+
+class SmtlibTCConverter(writer: java.io.Writer) extends SmtlibConverter(writer){
+    override def write(term: Term): Unit = term match {
+        case DomainElement(_, _) => writer.write(term.toString())
+        case _ => super.write(term)
     }
 }

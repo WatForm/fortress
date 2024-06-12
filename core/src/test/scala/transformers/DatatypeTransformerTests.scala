@@ -48,7 +48,7 @@ class DatatypeTransformerTests extends UnitSuite {
             Flags(
                 distinctConstants = false,
                 verbose = false,
-                isNNF = false
+                haveRunNNF = false
             ),
         ))
     }
@@ -84,7 +84,7 @@ class DatatypeTransformerTests extends UnitSuite {
             Flags(
             distinctConstants = false,
             verbose = false,
-            isNNF = false,
+            haveRunNNF = false,
             ),
         ))
     }

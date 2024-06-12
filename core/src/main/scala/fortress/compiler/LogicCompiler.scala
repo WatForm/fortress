@@ -67,6 +67,7 @@ trait LogicCompiler {
     }
 
     def transformerSequence: Seq[ProblemStateTransformer]
+    def compilerName: String = "UnnamedCompiler"
 }
 
 /**

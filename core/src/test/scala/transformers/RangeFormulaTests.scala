@@ -251,7 +251,7 @@ class RangeFormulaTests extends UnitSuite {
             List.empty,
             Flags(
                 distinctConstants = true,
-                isNNF = false,
+                haveRunNNF = false,
                 verbose = false,
             ),
         )
@@ -264,7 +264,7 @@ class RangeFormulaTests extends UnitSuite {
             List.empty,
             Flags(
                 distinctConstants = true,
-                isNNF = false,
+                haveRunNNF = false,
                 verbose = false,
             ),
         )

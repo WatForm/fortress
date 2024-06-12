@@ -13,22 +13,28 @@ import scala.collection.mutable.ListBuffer
     need range formulas
 */
 abstract class ConstantsMethodCompiler() extends LogicCompiler {
+    override def compilerName: String = "Constants"
     override def transformerSequence: Seq[ProblemStateTransformer] = {
         val transformerSequence = new scala.collection.mutable.ListBuffer[ProblemStateTransformer]
         transformerSequence += TypecheckSanitizeTransformer
         transformerSequence += EnumEliminationTransformer
         transformerSequence += ClosureEliminationEijckTransformer
         transformerSequence += ScopeNonExactPredicatesTransformer
+
+        transformerSequence += OPFIIntsTransformer
         // transformerSequence += IntegerToBitVectorTransformer    
+      
+        transformerSequence += IfLiftingTransformer
         transformerSequence += NnfTransformer
         transformerSequence += SkolemizeTransformer
+      
         transformerSequence += new SymmetryBreakingTransformer(SymmetryBreakingOptions(
             selectionHeuristic = MonoFirstThenFunctionsFirstAnyOrder,
             breakSkolem = true,
             sortInference = false,
             patternOptimization = true,
         ))
-        transformerSequence += OPFIIntsTransformer
+
         transformerSequence += SimplifyWithScalarQuantifiersTransformer
         transformerSequence += QuantifiersToDefinitionsTransformer
         transformerSequence += StandardQuantifierExpansionTransformer
@@ -40,27 +46,65 @@ abstract class ConstantsMethodCompiler() extends LogicCompiler {
 
 }
 
-/*
-   use datatypes 
-   don't get rid of quantifiers - not EUF (no nnf, no skolemization and no quantifier expansion)
-   no range formulas (b/c datatype limits output to finite)
-*/
-abstract class DatatypeMethodNoRangeCompiler() extends LogicCompiler {
+abstract class ConstantsClaessenCompiler() extends LogicCompiler {
+    override def compilerName: String = "ConstantsClaessen"
     override def transformerSequence: Seq[ProblemStateTransformer] = {
         val transformerSequence = new scala.collection.mutable.ListBuffer[ProblemStateTransformer]
         transformerSequence += TypecheckSanitizeTransformer
         transformerSequence += EnumEliminationTransformer
-        // transformerSequence += NnfTransformer
-        transformerSequence += ClosureEliminationEijckTransformer
+        transformerSequence += ClosureEliminationClaessenTransformer
         transformerSequence += ScopeNonExactPredicatesTransformer
-        // transformerSequence += IntegerToBitVectorTransformer      
+  
+        // transformerSequence += IntegerToBitVectorTransformer    
+        transformerSequence += OPFIIntsTransformer 
+
+        transformerSequence += IfLiftingTransformer
+        transformerSequence += NnfTransformer
+        transformerSequence += SkolemizeTransformer
+
         transformerSequence += new SymmetryBreakingTransformer(SymmetryBreakingOptions(
             selectionHeuristic = MonoFirstThenFunctionsFirstAnyOrder,
             breakSkolem = true,
             sortInference = false,
             patternOptimization = true,
         ))
-        transformerSequence += OPFIIntsTransformer
+        
+        transformerSequence += SimplifyWithScalarQuantifiersTransformer
+        transformerSequence += QuantifiersToDefinitionsTransformer
+        transformerSequence += StandardQuantifierExpansionTransformer
+        transformerSequence += RangeFormulaStandardTransformer
+        transformerSequence += new SimplifyTransformer
+        transformerSequence += DomainEliminationTransformer
+        transformerSequence.toList
+    }
+
+}
+/*
+   use datatypes 
+   don't get rid of quantifiers - not EUF (no nnf, no skolemization and no quantifier expansion)
+   no range formulas (b/c datatype limits output to finite)
+*/
+abstract class DatatypeMethodNoRangeCompiler() extends LogicCompiler {
+    override def compilerName: String = "DatatypeNoRangeFormulas"
+    override def transformerSequence: Seq[ProblemStateTransformer] = {
+        val transformerSequence = new scala.collection.mutable.ListBuffer[ProblemStateTransformer]
+        transformerSequence += TypecheckSanitizeTransformer
+        transformerSequence += EnumEliminationTransformer
+
+        transformerSequence += ClosureEliminationEijckTransformer
+        transformerSequence += ScopeNonExactPredicatesTransformer
+
+        transformerSequence += OPFIIntsTransformer 
+        // transformerSequence += IntegerToBitVectorTransformer  
+      
+        transformerSequence += new SymmetryBreakingTransformer(SymmetryBreakingOptions(
+            selectionHeuristic = MonoFirstThenFunctionsFirstAnyOrder,
+            breakSkolem = true,
+            sortInference = false,
+            patternOptimization = true,
+        ))
+
+        
         transformerSequence += SimplifyWithScalarQuantifiersTransformer
         transformerSequence += QuantifiersToDefinitionsTransformer
         transformerSequence += new SimplifyTransformer
@@ -76,6 +120,7 @@ abstract class DatatypeMethodNoRangeCompiler() extends LogicCompiler {
    use range formulas 
 */
 abstract class DatatypeMethodWithRangeCompiler() extends LogicCompiler {
+    override def compilerName: String = "DatatypeWithRangeFormulas"
     override def transformerSequence: Seq[ProblemStateTransformer] = {
         val transformerSequence = new scala.collection.mutable.ListBuffer[ProblemStateTransformer]
         transformerSequence += TypecheckSanitizeTransformer
@@ -83,14 +128,17 @@ abstract class DatatypeMethodWithRangeCompiler() extends LogicCompiler {
         // transformerSequence += NnfTransformer
         transformerSequence += ClosureEliminationEijckTransformer
         transformerSequence += ScopeNonExactPredicatesTransformer
-        // transformerSequence += IntegerToBitVectorTransformer      
+
+        // transformerSequence += IntegerToBitVectorTransformer     
+        transformerSequence += OPFIIntsTransformer
+        
         transformerSequence += new SymmetryBreakingTransformer(SymmetryBreakingOptions(
             selectionHeuristic = MonoFirstThenFunctionsFirstAnyOrder,
             breakSkolem = true,
             sortInference = false,
             patternOptimization = true,
         ))
-        transformerSequence += OPFIIntsTransformer
+        
         transformerSequence += RangeFormulaStandardTransformer
         transformerSequence += SimplifyWithScalarQuantifiersTransformer
         transformerSequence += QuantifiersToDefinitionsTransformer
@@ -106,22 +154,28 @@ abstract class DatatypeMethodWithRangeCompiler() extends LogicCompiler {
    don't use range formulas (b/c datatype limits output to finite)
 */
 abstract class DatatypeMethodNoRangeEUFCompiler() extends LogicCompiler {
+    override def compilerName: String = "DatatypeNoRangeFormulasEUF"
     override def transformerSequence: Seq[ProblemStateTransformer] = {
         val transformerSequence = new scala.collection.mutable.ListBuffer[ProblemStateTransformer]
         transformerSequence += TypecheckSanitizeTransformer
         transformerSequence += EnumEliminationTransformer
         transformerSequence += ClosureEliminationEijckTransformer
         transformerSequence += ScopeNonExactPredicatesTransformer
+
         // transformerSequence += IntegerToBitVectorTransformer      
+        transformerSequence += OPFIIntsTransformer
+   
+        transformerSequence += IfLiftingTransformer
         transformerSequence += NnfTransformer
         transformerSequence += SkolemizeTransformer
+      
         transformerSequence += new SymmetryBreakingTransformer(SymmetryBreakingOptions(
             selectionHeuristic = MonoFirstThenFunctionsFirstAnyOrder,
             breakSkolem = true,
             sortInference = false,
             patternOptimization = true,
         ))
-        transformerSequence += OPFIIntsTransformer
+
         transformerSequence += SimplifyWithScalarQuantifiersTransformer
         transformerSequence += QuantifiersToDefinitionsTransformer
         transformerSequence += StandardQuantifierExpansionTransformer
@@ -137,22 +191,29 @@ abstract class DatatypeMethodNoRangeEUFCompiler() extends LogicCompiler {
    include range formulas
 */
 abstract class DatatypeMethodWithRangeEUFCompiler() extends LogicCompiler {
+    override def compilerName: String = "DatatypeWithRangeFormulasEUF"
     override def transformerSequence: Seq[ProblemStateTransformer] = {
         val transformerSequence = new scala.collection.mutable.ListBuffer[ProblemStateTransformer]
         transformerSequence += TypecheckSanitizeTransformer
         transformerSequence += EnumEliminationTransformer
         transformerSequence += ClosureEliminationEijckTransformer
         transformerSequence += ScopeNonExactPredicatesTransformer
-        // transformerSequence += IntegerToBitVectorTransformer      
+      
+
+        // transformerSequence += IntegerToBitVectorTransformer    
+        transformerSequence += OPFIIntsTransformer
+      
+        transformerSequence += IfLiftingTransformer
         transformerSequence += NnfTransformer
         transformerSequence += SkolemizeTransformer
+
         transformerSequence += new SymmetryBreakingTransformer(SymmetryBreakingOptions(
             selectionHeuristic = MonoFirstThenFunctionsFirstAnyOrder,
             breakSkolem = true,
             sortInference = false,
             patternOptimization = true,
         ))
-        transformerSequence += OPFIIntsTransformer
+
         transformerSequence += SimplifyWithScalarQuantifiersTransformer
         transformerSequence += QuantifiersToDefinitionsTransformer
         transformerSequence += StandardQuantifierExpansionTransformer
@@ -164,6 +225,7 @@ abstract class DatatypeMethodWithRangeEUFCompiler() extends LogicCompiler {
 
 }
 
+// not revised below this line
 
 /**
   * The standard Fortress compiler steps.
