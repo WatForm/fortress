@@ -12,7 +12,7 @@ class SimplifyWithRangeTransformer extends ProblemStateTransformer {
         val theory = problemState.theory
         val rangeRestricts = problemState.rangeRestrictions
 
-        val newTheory = theory.mapAxioms(_.simplifyWithRange(rangeRestricts))
+        val newTheory = theory.mapAllTerms(_.simplifyWithRange(rangeRestricts))
         // val newTheory = theory.mapAxioms(_.simplify)
         // ProblemState(newTheory, scopes, skc, skf, rangeRestricts, unapplyInterp, distinctConstants)
         problemState.copy(theory=newTheory)

@@ -9,9 +9,9 @@ import fortress.problemstate.ProblemState
 object SimplifyWithScalarQuantifiersTransformer extends ProblemStateTransformer {
     override def apply(problemState: ProblemState): ProblemState = {
         val newTheory = problemState.theory
-        .mapAxioms(_.simplify)  // necessary before ScalarQuantifierSimplifier
-        .mapAxioms(ScalarQuantifierSimplifier.simplify)
-        .mapAxioms(_.simplify)  // clean up anything introduced
+        .mapAllTerms(_.simplify)  // necessary before ScalarQuantifierSimplifier
+        .mapAllTerms(ScalarQuantifierSimplifier.simplify)
+        .mapAllTerms(_.simplify)  // clean up anything introduced
 
         problemState.copy(
             theory = newTheory

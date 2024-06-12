@@ -10,7 +10,7 @@ import fortress.problemstate.ProblemState
 class SimplifyTransformer extends ProblemStateTransformer {
 
     override def apply(problemState: ProblemState): ProblemState =  {
-      problemState.copy(theory = problemState.theory.mapAxioms(_.simplify))
+      problemState.copy(theory = problemState.theory.mapAllTerms(_.simplify))
     }
 
     override def name: String = "Simplify Transformer"

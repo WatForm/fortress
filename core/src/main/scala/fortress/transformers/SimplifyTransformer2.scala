@@ -18,7 +18,7 @@ class SimplifyTransformer2 extends ProblemStateTransformer {
     
     override def apply(problemState: ProblemState): ProblemState =  {
       problemState.copy(
-        theory = problemState.theory.mapAxioms(Simplifier2.simplify)
+        theory = problemState.theory.mapAllTerms(Simplifier2.simplify)
       )
     }
     
