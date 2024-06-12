@@ -25,10 +25,7 @@ object PortusPatternAccumulator {
     private object DomainElementAccumulator extends NaturalSetAccumulation[DomainElement] {
         override val exceptionalMappings: PartialFunction[Term, Set[DomainElement]] = {
             case de @ DomainElement(_, _) => Set(de)
-            case term if obeysPattern(term) => {
-                println(s"[fortress] filtered out term ${term}!")
-                Set()
-            } // ignore those that obey the pattern
+            case term if obeysPattern(term) => Set() // ignore those that obey the pattern
         }
 
         def apply(term: Term): Set[DomainElement] = naturalRecur(term)

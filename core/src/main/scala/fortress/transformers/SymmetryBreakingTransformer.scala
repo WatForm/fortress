@@ -155,8 +155,6 @@ class SymmetryBreakingTransformer(
             }
         }
 
-        println(s"[fortress] stale domain elements: ${tracker.state.allStaleValues}")
-
         // First, perform symmetry breaking on constants
         breakConstants(theory.constantDeclarations diff constantsToOmit)
 
