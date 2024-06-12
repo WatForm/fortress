@@ -50,7 +50,9 @@ case class Signature private (
     
     @varargs
     def withSorts(sorts: Sort*): Signature = withSorts(sorts.asJava)
-    
+
+    def mapSorts(f: Sort => Sort): Signature = copy(sorts = sorts map f)
+
     def withFunctionDeclaration(fdecl: FuncDecl): Signature = {
         assertFuncDeclConsistent(fdecl)
         this.copy(functionDeclarations= functionDeclarations + fdecl)
@@ -74,7 +76,10 @@ case class Signature private (
     
     @varargs
     def withFunctionDeclarations(fdecls: FuncDecl*): Signature = withFunctionDeclarations(fdecls.asJava)
-    
+
+    def mapFunctionDeclarations(f: FuncDecl => FuncDecl): Signature =
+        copy(functionDeclarations = functionDeclarations map f)
+
     def withConstantDeclaration(c: AnnotatedVar): Signature = {
         assertConstDeclConsistent(c);
         this.copy(constantDeclarations = constantDeclarations + c)
@@ -98,7 +103,10 @@ case class Signature private (
     
     @varargs
     def withConstantDeclarations(constants: AnnotatedVar*): Signature = withConstantDeclarations(constants.asJava)
-    
+
+    def mapConstantDeclarations(f: AnnotatedVar => AnnotatedVar): Signature =
+        copy(constantDeclarations = constantDeclarations map f)
+
     def withConstantDefinition(cDef: ConstantDefinition): Signature = {
         assertConstantDefnConsistent(cDef)
         this.copy(constantDefinitions = constantDefinitions + cDef)
@@ -123,6 +131,9 @@ case class Signature private (
     }
 
     def withoutFunctionDefinitions(): Signature = copy(functionDefinitions = Set.empty)
+
+    def mapConstantDefinitions(f: ConstantDefinition => ConstantDefinition): Signature =
+        copy(constantDefinitions = constantDefinitions map f)
 
     def withEnumSort(t: Sort, values: Seq[EnumValue]) = {
         // TODO more consistency checking
@@ -183,6 +194,9 @@ case class Signature private (
     }
 
     def withoutFunctionDefinitions(funcDefs: FunctionDefinition*): Signature = withoutFunctionDefinitions(funcDefs.asJava)
+
+    def mapFunctionDefinitions(f: FunctionDefinition => FunctionDefinition): Signature =
+        copy(functionDefinitions = functionDefinitions map f)
 
     // TypeChecking
     
