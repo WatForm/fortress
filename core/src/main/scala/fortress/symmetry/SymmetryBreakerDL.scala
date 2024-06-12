@@ -64,14 +64,15 @@ abstract class SymmetryBreakerDL(
         newConstraints ++= rangeRestrictions map (_.asFormula)
         newRangeRestrictions ++= rangeRestrictions
         // Add to used values
-        stalenessTracker.markStale(rangeRestrictions flatMap (_.asFormula.domainElements))
+        for (restriction <- rangeRestrictions)
+            stalenessTracker.markDomainElementsStale(restriction.asFormula)
     }
 
     protected def addGeneralConstraints(fmls: Set[Term]): Unit = {
         // Add to constraints
         newConstraints ++= fmls
         // Add to used values
-        stalenessTracker.markStale(fmls flatMap (_.domainElements))
+        for (fml <- fmls) stalenessTracker.markDomainElementsStale(fml)
     }
 
     protected def addDeclaration(f: FuncDecl): Unit = {

@@ -12,12 +12,17 @@ import fortress.util.Errors
 class StalenessState private (
     val sorts: Set[Sort],
     scopeMap: Map[Sort, Scope],
-    staleMap: Map[Sort, IndexedSeq[DomainElement]]
+    staleMap: Map[Sort, IndexedSeq[DomainElement]],
+    // Were the domain elements filtered via the pattern optimization?
+    patternOptimization: Boolean = false,
 ) {
     
     def scope(sort: Sort): Scope = scopeMap(sort)
     
     def staleValues(sort: Sort): IndexedSeq[DomainElement] = staleMap(sort)
+
+    // testing only
+    def allStaleValues: Map[Sort, IndexedSeq[DomainElement]] = staleMap
     
     def freshValues(sort: Sort): IndexedSeq[DomainElement] = {
         val stale = staleValues(sort)
@@ -33,7 +38,9 @@ class StalenessState private (
         DomainElement.range(1 to sc.size , sort)
     }
     
-    def createTrackerWithState: StalenessTracker = StalenessTracker.create(sorts, staleMap, scopeMap)
+    def createTrackerWithState: StalenessTracker = if (patternOptimization)
+        StalenessTracker.createWithPatternOptimization(sorts, staleMap, scopeMap)
+    else StalenessTracker.create(sorts, staleMap, scopeMap)
 
     def afterSubstitution(sortSubstitution: SortSubstitution): StalenessState = {
         val newSorts = sorts map sortSubstitution
@@ -66,7 +73,7 @@ class StalenessState private (
                 }
             }
         }.toMap
-        StalenessState(newSorts, newScopeMap, newStaleMap)
+        StalenessState(newSorts, newScopeMap, newStaleMap, patternOptimization)
     }
 }
 
@@ -74,13 +81,14 @@ object StalenessState {
     def apply(
         sorts: Set[Sort],
         scopes: Map[Sort, Scope],
-        staleElems: Map[Sort, Seq[DomainElement]]
+        staleElems: Map[Sort, Seq[DomainElement]],
+        patternOptimization: Boolean = false,
     ): StalenessState = {
         
         val staleMap = staleElems.map{
             case(sort, seq) => sort -> seq.toIndexedSeq.sorted
         }.toMap
-        new StalenessState(sorts, scopes, staleMap)
+        new StalenessState(sorts, scopes, staleMap, patternOptimization)
     }
     
     def apply(
@@ -93,5 +101,18 @@ object StalenessState {
             case(sort, seq) => sort -> seq.toIndexedSeq.sorted
         }.toMap
         new StalenessState(sorts, scopes, staleMap)
+    }
+
+    def apply(
+        sorts: Set[Sort],
+        scopes: Map[Sort, Scope],
+        staleElems: Map[Sort, Set[DomainElement]],
+        patternOptimization: Boolean,
+    )(implicit d: DummyImplicit): StalenessState = {
+
+        val staleMap = staleElems.map{
+            case(sort, seq) => sort -> seq.toIndexedSeq.sorted
+        }.toMap
+        new StalenessState(sorts, scopes, staleMap, patternOptimization)
     }
 }

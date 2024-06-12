@@ -253,7 +253,7 @@ object SymmetryDL {
             }
             val implications = predicateImplicationChain(P, argLists)
             constraints ++= implications
-            tracker.markStale(implications flatMap (_.domainElements))
+            for (implication <- implications) tracker.markDomainElementsStale(implication)
             argSorts = argSorts.filterNot(_ == sort)
         }
 
