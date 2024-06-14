@@ -1,6 +1,7 @@
 package fortress.operations
 
 import fortress.msfol._
+import fortress.operations.TermOps._
 import fortress.util.Errors
 
 object NormalForms {
@@ -8,12 +9,12 @@ object NormalForms {
       * It is assumed that Eq is not used on sort Bool and so uses of Eq are atomic.
       * Additionally it is assumed that applications and arguments to applications
       * are atomic. 
-      * 
+      *
       * Side Effect: eliminates Implication, Iff, Distinct
       * */
     def nnf(term: Term): Term = term match {
 
-        case Top | Bottom => term 
+        case Top | Bottom => term
         case Not(Top) => Bottom
         case Not(Bottom) => Top
 
@@ -21,7 +22,7 @@ object NormalForms {
 
         case AndList(args) => AndList(args.map(nnf))
         case Not(AndList(args)) => OrList(args.map(arg => nnf(Not(arg))))
-        
+
         case OrList(args) => OrList(args.map(nnf))
         case Not(OrList(args)) => AndList(args.map(arg => nnf(Not(arg))))
 
@@ -62,19 +63,96 @@ object NormalForms {
 
         case ReflexiveClosure(fname, arg1, arg2, args) => term
         case Not(ReflexiveClosure(fname, arg1, arg2, args)) => term
-            
+
         case Eq(l, r) => term
         case Not(Eq(l, r)) => term // Note that Eq does not compare booleans
 
         case Var(_) | Not(Var(_)) | DomainElement(_, _)
             | IntegerLiteral(_) | BitVectorLiteral(_, _) | EnumValue(_)
              => term
-        case Not(DomainElement(_, _)) 
-            | Not(IntegerLiteral(_)) |  Not(BitVectorLiteral(_, _)) | Not(EnumValue(_)) 
+        case Not(DomainElement(_, _))
+            | Not(IntegerLiteral(_)) |  Not(BitVectorLiteral(_, _)) | Not(EnumValue(_))
             => Errors.Internal.preconditionFailed(s"Term is not well-sorted: ${term}")
 
 
     }
 
-    def prenex(term: Term): Term = ???
+    // precondition: NNF
+    // TODO maybe lots of tree traversals due to lack of caching with freeVarsConstSymbols
+    // TODO what to do about ITEs? currently we ignore them, are they eliminated?
+    private object Miniscoping extends NaturalTermRecursion {
+        override val exceptionalMappings: PartialFunction[Term, Term] = {
+            // Push forall through conjunctions and exists through disjunctions always
+            case Forall(vars, AndList(args)) => AndList(args map { arg => naturalRecur(Forall(vars, arg)) })
+            case Exists(vars, OrList(args)) => OrList(args map { arg => naturalRecur(Exists(vars, arg)) })
+
+            // Push forall through disjunctions and exists through conjunctions when possible
+            // This is valid since Fortress sorts cannot be empty
+            case Forall(vars, OrList(args)) =>
+                val (hasLast, hasntLast) = args.partition(arg => arg.freeVarConstSymbols contains vars.last.variable)
+                if (hasntLast.isEmpty) Forall(vars, naturalRecur(OrList(args))) // max depth, move on
+                else {
+                    // push it in and recurse
+                    val body = Or.smart(hasntLast :+ Forall(vars.last, Or.smart(hasLast)))
+                    naturalRecur(
+                        if (vars.init.isEmpty) body
+                        else Forall(vars.init, body)
+                    )
+                }
+            case Exists(vars, AndList(args)) =>
+                val (hasLast, hasntLast) = args.partition(arg => arg.freeVarConstSymbols contains vars.last.variable)
+                if (hasntLast.isEmpty) Exists(vars, naturalRecur(AndList(args))) // max depth, move on
+                else {
+                    // push it in and recurse
+                    val body = And.smart(hasntLast :+ Exists(vars.last, And.smart(hasLast)))
+                    naturalRecur(
+                        if (vars.init.isEmpty) body
+                        else Exists(vars.init, body)
+                    )
+                }
+
+            // Push forall(exists) and exists(forall) in again after recursion if possible
+            case Forall(vars, exists @ Exists(_, _)) =>
+                val body = naturalRecur(exists)
+                body match {
+                    case Exists(_, _) => Forall(vars, body) // it's still an exists, can't push in
+                    case _ => naturalRecur(Forall(vars, body)) // try to push in
+                }
+            case Exists(vars, forall @ Forall(_, _)) =>
+                val body = naturalRecur(forall)
+                body match {
+                    case Forall(_, _) => Exists(vars, body) // it's still a forall, can't push in
+                    case _ => naturalRecur(Exists(vars, body)) // try to push in
+                }
+
+            // Merge nested foralls/exists
+            case Forall(vars1, Forall(vars2, body)) => naturalRecur(Forall(vars1 ++ vars2, body))
+            case Exists(vars1, Exists(vars2, body)) => naturalRecur(Exists(vars1 ++ vars2, body))
+
+            // Eliminate quantifiers where the quantified variable doesn't appear in the term
+            case f @ Forall(vars, Not(_) | Eq(_, _) | App(_, _) | BuiltinApp(_, _)
+                              | Closure(_, _, _, _) | ReflexiveClosure(_, _, _, _) | IfThenElse(_, _, _))
+                if (f.body.freeVarConstSymbols intersect vars.map(_.variable).toSet).isEmpty =>
+                val remainingVars = vars.filter(f.body.freeVarConstSymbols contains _.variable)
+                if (remainingVars.isEmpty) f.body
+                else Forall(remainingVars, f.body)
+            case e @ Exists(vars, Not(_) | Eq(_, _) | App(_, _) | BuiltinApp(_, _)
+                              | Closure(_, _, _, _) | ReflexiveClosure(_, _, _, _) | IfThenElse(_, _, _))
+                if (e.body.freeVarConstSymbols intersect vars.map(_.variable).toSet).isEmpty =>
+                val remainingVars = vars.filter(e.body.freeVarConstSymbols contains _.variable)
+                if (remainingVars.isEmpty) e.body
+                else Exists(remainingVars, e.body)
+
+            // Error on things we don't support: implication, iff, distinct should be eliminated
+            case Implication(_, _) | Iff(_, _) | Distinct(_) =>
+                Errors.Internal.preconditionFailed("Miniscoping requires NNF (implications, iff, distinct eliminated)")
+        }
+    }
+
+    // expects term to be in NNF
+    def antiPrenex(term: Term): Term = Miniscoping.naturalRecur(term)
+
+    // start with anti-prenex, pull up foralls through conjunctions and exists through disjunctions
+    def partialPrenex(term: Term): Term = ???
+
 }

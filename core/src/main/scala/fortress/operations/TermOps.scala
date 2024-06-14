@@ -33,6 +33,8 @@ case class TermOps private (term: Term) {
       */
     def nnf: Term = NormalForms.nnf(term)
 
+    def antiPrenex: Term = NormalForms.antiPrenex(term)
+
     /** Removes all ites from the term by iflifting
       * The term must be sanitized to call this method.
       */

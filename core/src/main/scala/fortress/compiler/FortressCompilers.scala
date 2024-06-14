@@ -31,6 +31,8 @@ abstract class ConstantsMethodCompiler() extends LogicCompiler {
         // to come after nnf
         transformerSequence += SimplifyWithScalarQuantifiersTransformer
 
+        transformerSequence += AntiPrenexTransformer
+
         transformerSequence += SkolemizeTransformer
       
         transformerSequence += new SymmetryBreakingTransformer(SymmetryBreakingOptions(
@@ -40,7 +42,6 @@ abstract class ConstantsMethodCompiler() extends LogicCompiler {
             patternOptimization = true,
         ))
 
-        
         transformerSequence += QuantifiersToDefinitionsTransformer
         transformerSequence += StandardQuantifierExpansionTransformer
         transformerSequence += RangeFormulaStandardTransformer
