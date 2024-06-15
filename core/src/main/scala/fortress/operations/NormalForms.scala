@@ -130,13 +130,13 @@ object NormalForms {
             case Exists(vars1, Exists(vars2, body)) => naturalRecur(Exists(vars1 ++ vars2, body))
 
             // Eliminate quantifiers where the quantified variable doesn't appear in the term
-            case f @ Forall(vars, Not(_) | Eq(_, _) | App(_, _) | BuiltinApp(_, _)
+            case f @ Forall(vars, _: LeafTerm | Not(_) | Eq(_, _) | App(_, _) | BuiltinApp(_, _)
                               | Closure(_, _, _, _) | ReflexiveClosure(_, _, _, _) | IfThenElse(_, _, _))
                 if (f.body.freeVarConstSymbols intersect vars.map(_.variable).toSet).isEmpty =>
                 val remainingVars = vars.filter(f.body.freeVarConstSymbols contains _.variable)
                 if (remainingVars.isEmpty) f.body
                 else Forall(remainingVars, f.body)
-            case e @ Exists(vars, Not(_) | Eq(_, _) | App(_, _) | BuiltinApp(_, _)
+            case e @ Exists(vars, _: LeafTerm | Not(_) | Eq(_, _) | App(_, _) | BuiltinApp(_, _)
                               | Closure(_, _, _, _) | ReflexiveClosure(_, _, _, _) | IfThenElse(_, _, _))
                 if (e.body.freeVarConstSymbols intersect vars.map(_.variable).toSet).isEmpty =>
                 val remainingVars = vars.filter(e.body.freeVarConstSymbols contains _.variable)
@@ -150,9 +150,47 @@ object NormalForms {
     }
 
     // expects term to be in NNF
+    // TODO: the sorting from Lampert for more complete anti-prenexing
     def antiPrenex(term: Term): Term = Miniscoping.naturalRecur(term)
 
-    // start with anti-prenex, pull up foralls through conjunctions and exists through disjunctions
-    def partialPrenex(term: Term): Term = ???
+    // precondition: no name conflicts between quantified variables - run MaxAlphaRenaming
+    // bring foralls up through disjunctions and exists up through conjunctions
+    private object PartialPrenex extends NaturalTermRecursion {
+        override val exceptionalMappings: PartialFunction[Term, Term] = {
+            case OrList(args) =>
+                val newArgs = args map naturalRecur // recurse bottom-up
+                val (foralls: Seq[Forall], others: Seq[Term]) = newArgs partition { _.isInstanceOf[Forall] }
+                if (foralls.isEmpty) Or.smart(newArgs)
+                else {
+                    val allVars = foralls.flatMap(_.vars)
+                    Errors.Internal.assertion(allVars.map(_.name).distinct.size == allVars.size,
+                        "PartialPrenex requires all quantified variables to have distinct names!")
+                    Forall(allVars, Or.smart(foralls.map(_.body) ++ others))
+                }
+            case AndList(args) =>
+                val newArgs = args map naturalRecur // recurse bottom-up
+                val (exists: Seq[Exists], others: Seq[Term]) = newArgs partition { _.isInstanceOf[Exists] }
+                if (exists.isEmpty) And.smart(newArgs)
+                else {
+                    val allVars = exists.flatMap(_.vars)
+                    Errors.Internal.assertion(allVars.map(_.name).distinct.size == allVars.size,
+                        "PartialPrenex requires all quantified variables to have distinct names!")
+                    Exists(allVars, And.smart(exists.map(_.body) ++ others))
+                }
+
+            // Ensure nested foralls/exists are merged - otherwise we might miss some in the previous steps
+            case Forall(vars, body) => naturalRecur(body) match {
+                case Forall(subVars, subBody) => Forall(vars ++ subVars, subBody)
+                case newBody => Forall(vars, newBody)
+            }
+            case Exists(vars, body) => naturalRecur(body) match {
+                case Exists(subVars, subBody) => Exists(vars ++ subVars, subBody)
+                case newBody => Exists(vars, newBody)
+            }
+        }
+    }
+
+    // pull up foralls through conjunctions and exists through disjunctions
+    def partialPrenex(term: Term): Term = PartialPrenex.naturalRecur(term)
 
 }
