@@ -93,7 +93,8 @@ object NormalForms {
                 if (hasntLast.isEmpty) Forall(vars, naturalRecur(OrList(args))) // max depth, move on
                 else {
                     // push it in and recurse
-                    val body = Or.smart(hasntLast :+ Forall(vars.last, Or.smart(hasLast)))
+                    val body = if (hasLast.isEmpty) Or.smart(hasntLast)
+                    else Or.smart(hasntLast :+ Forall(vars.last, Or.smart(hasLast)))
                     naturalRecur(
                         if (vars.init.isEmpty) body
                         else Forall(vars.init, body)
@@ -104,7 +105,8 @@ object NormalForms {
                 if (hasntLast.isEmpty) Exists(vars, naturalRecur(AndList(args))) // max depth, move on
                 else {
                     // push it in and recurse
-                    val body = And.smart(hasntLast :+ Exists(vars.last, And.smart(hasLast)))
+                    val body = if (hasLast.isEmpty) And.smart(hasntLast)
+                    else And.smart(hasntLast :+ Exists(vars.last, And.smart(hasLast)))
                     naturalRecur(
                         if (vars.init.isEmpty) body
                         else Exists(vars.init, body)
@@ -131,17 +133,17 @@ object NormalForms {
 
             // Eliminate quantifiers where the quantified variable doesn't appear in the term
             case f @ Forall(vars, _: LeafTerm | Not(_) | Eq(_, _) | App(_, _) | BuiltinApp(_, _)
-                              | Closure(_, _, _, _) | ReflexiveClosure(_, _, _, _) | IfThenElse(_, _, _))
-                if (f.body.freeVarConstSymbols intersect vars.map(_.variable).toSet).isEmpty =>
-                val remainingVars = vars.filter(f.body.freeVarConstSymbols contains _.variable)
-                if (remainingVars.isEmpty) f.body
-                else Forall(remainingVars, f.body)
+                              | Closure(_, _, _, _) | ReflexiveClosure(_, _, _, _) | IfThenElse(_, _, _)) =>
+                val freeVars = f.body.freeVarConstSymbols
+                val remainingVars = vars.filter(freeVars contains _.variable)
+                if (remainingVars.isEmpty) naturalRecur(f.body)
+                else Forall(remainingVars, naturalRecur(f.body))
             case e @ Exists(vars, _: LeafTerm | Not(_) | Eq(_, _) | App(_, _) | BuiltinApp(_, _)
-                              | Closure(_, _, _, _) | ReflexiveClosure(_, _, _, _) | IfThenElse(_, _, _))
-                if (e.body.freeVarConstSymbols intersect vars.map(_.variable).toSet).isEmpty =>
-                val remainingVars = vars.filter(e.body.freeVarConstSymbols contains _.variable)
-                if (remainingVars.isEmpty) e.body
-                else Exists(remainingVars, e.body)
+                              | Closure(_, _, _, _) | ReflexiveClosure(_, _, _, _) | IfThenElse(_, _, _)) =>
+                val freeVars = e.body.freeVarConstSymbols
+                val remainingVars = vars.filter(freeVars contains _.variable)
+                if (remainingVars.isEmpty) naturalRecur(e.body)
+                else Exists(remainingVars, naturalRecur(e.body))
 
             // Error on things we don't support: implication, iff, distinct should be eliminated
             case Implication(_, _) | Iff(_, _) | Distinct(_) =>
@@ -151,7 +153,9 @@ object NormalForms {
 
     // expects term to be in NNF
     // TODO: the sorting from Lampert for more complete anti-prenexing
-    def antiPrenex(term: Term): Term = Miniscoping.naturalRecur(term)
+    def miniscope(term: Term): Term = Miniscoping.naturalRecur(term)
+
+    def antiPrenex(term: Term): Term = miniscope(term)
 
     // precondition: no name conflicts between quantified variables - run MaxAlphaRenaming
     // bring foralls up through disjunctions and exists up through conjunctions
