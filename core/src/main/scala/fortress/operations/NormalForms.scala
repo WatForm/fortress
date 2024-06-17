@@ -152,10 +152,7 @@ object NormalForms {
     }
 
     // expects term to be in NNF
-    // TODO: the sorting from Lampert for more complete anti-prenexing
     def miniscope(term: Term): Term = Miniscoping.naturalRecur(term)
-
-    def antiPrenex(term: Term): Term = miniscope(term)
 
     // precondition: no name conflicts between quantified variables - run MaxAlphaRenaming
     // bring foralls up through disjunctions and exists up through conjunctions
@@ -196,5 +193,56 @@ object NormalForms {
 
     // pull up foralls through conjunctions and exists through disjunctions
     def partialPrenex(term: Term): Term = PartialPrenex.naturalRecur(term)
+
+    // merge nested AndLists, OrLists, Forall, Exists
+    private object MergeNested extends NaturalTermRecursion {
+        override val exceptionalMappings: PartialFunction[Term, Term] = {
+            case AndList(args) => AndList(conjuncts(args) map naturalRecur)
+            case OrList(args) => OrList(disjuncts(args) map naturalRecur)
+            case Forall(vars1, Forall(vars2, body)) => naturalRecur(Forall(vars1 ++ vars2, body))
+            case Exists(vars1, Exists(vars2, body)) => naturalRecur(Exists(vars1 ++ vars2, body))
+        }
+
+        private def conjuncts(args: Seq[Term]): Seq[Term] = args flatMap {
+            case AndList(subArgs) => conjuncts(subArgs)
+            case term => Seq(term)
+        }
+
+        private def disjuncts(args: Seq[Term]): Seq[Term] = args flatMap {
+            case OrList(subArgs) => disjuncts(subArgs)
+            case term => Seq(term)
+        }
+    }
+
+    // quantifier sorting from Lampert
+    // preconditions: nested ands/ors and foralls/exists merged, no Forall
+    private object QuantifierSorting extends NaturalTermRecursion {
+        override val exceptionalMappings: PartialFunction[Term, Term] = {
+            case Forall(vars, OrList(disjuncts)) =>
+                Forall(sortVars(vars, disjuncts), OrList(disjuncts map naturalRecur))
+            case Exists(vars, AndList(conjuncts)) =>
+                Exists(sortVars(vars, conjuncts), AndList(conjuncts map naturalRecur))
+        }
+
+        private def sortVars(vars: Seq[AnnotatedVar], args: Seq[Term]): Seq[AnnotatedVar] = {
+            // Sort vars by decreasing number of args in which the variable appears
+            val freeVarsList = args map { _.freeVarConstSymbols }
+            val counts = vars.map { annVar => annVar -> freeVarsList.count(_.contains(annVar.variable)) }.toMap
+            vars.sortBy(counts)(Ordering[Int].reverse)
+        }
+    }
+
+    private def sortQuantifiers(term: Term): Term = QuantifierSorting.naturalRecur(MergeNested.naturalRecur(term))
+
+    // prerequisite: max alpha renaming performed; no quantified variables have the same name
+    def antiPrenex(term: Term): Term = {
+        // Procedure from Lampart section 2 "Purification", minus the CNF/DNF conversion (costly)
+        var result = term
+        result = miniscope(result)
+        result = partialPrenex(result)
+        result = sortQuantifiers(result)
+        result = miniscope(result)
+        result
+    }
 
 }

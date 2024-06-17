@@ -8,7 +8,7 @@ import fortress.util.Errors
   * Contains flags for a problem state
   *
   * @param distinctConstants
-  * @param isNNF Is the problem state in negation normal form
+  * @param haveRunNNF Is the problem state in negation normal form
   * @param verbose Debug verbose output should be printed
   */
 case class Flags private(
@@ -17,6 +17,8 @@ case class Flags private(
     haveRunNNF: Boolean = false,
     haveRunIfLifting: Boolean = false,
     haveRunSkolemizer: Boolean = false,
+
+    haveRunMaxAlphaRenaming: Boolean = false,
     
     verbose: Boolean = false,
     

@@ -27,10 +27,9 @@ abstract class ConstantsMethodCompiler() extends LogicCompiler {
         transformerSequence += IfLiftingTransformer
         transformerSequence += NnfTransformer
 
-        // eliminates the introduction of some skolem functions, but needs
-        // to come after nnf
+        transformerSequence += MaxAlphaRenamingTransformer
+        // eliminates the introduction of some skolem functions, but needs to come after nnf and max alpha renaming
         transformerSequence += SimplifyWithScalarQuantifiersTransformer
-
         transformerSequence += AntiPrenexTransformer
 
         transformerSequence += SkolemizeTransformer
@@ -67,11 +66,11 @@ abstract class ConstantsClaessenCompiler() extends LogicCompiler {
         transformerSequence += IfLiftingTransformer
         transformerSequence += NnfTransformer
 
-        // eliminates the introduction of some skolem functions, but needs
-        // to come after nnf
+        transformerSequence += MaxAlphaRenamingTransformer
+        // eliminates the introduction of some skolem functions, but needs to come after nnf and max alpha renaming
         transformerSequence += SimplifyWithScalarQuantifiersTransformer
+        transformerSequence += AntiPrenexTransformer
 
-        
         transformerSequence += SkolemizeTransformer
 
         transformerSequence += new SymmetryBreakingTransformer(SymmetryBreakingOptions(
@@ -110,8 +109,12 @@ abstract class DatatypeMethodNoRangeCompiler() extends LogicCompiler {
         // transformerSequence += IntegerToBitVectorTransformer  
 
         // nnf needs to help with SimplifyWithScalarQuantifiersTransformer
-        transformerSequence += NnfTransformer        
+        transformerSequence += NnfTransformer
+
+        transformerSequence += MaxAlphaRenamingTransformer
+        // eliminates the introduction of some skolem functions, but needs to come after nnf and max alpha renaming
         transformerSequence += SimplifyWithScalarQuantifiersTransformer
+        transformerSequence += AntiPrenexTransformer
 
         transformerSequence += new SymmetryBreakingTransformer(SymmetryBreakingOptions(
             selectionHeuristic = MonoFirstThenFunctionsFirstAnyOrder,
@@ -149,7 +152,11 @@ abstract class DatatypeMethodWithRangeCompiler() extends LogicCompiler {
         
         // nnf needs to help with SimplifyWithScalarQuantifiersTransformer
         transformerSequence += NnfTransformer
+
+        transformerSequence += MaxAlphaRenamingTransformer
+        // eliminates the introduction of some skolem functions, but needs to come after nnf and max alpha renaming
         transformerSequence += SimplifyWithScalarQuantifiersTransformer
+        transformerSequence += AntiPrenexTransformer
 
         transformerSequence += new SymmetryBreakingTransformer(SymmetryBreakingOptions(
             selectionHeuristic = MonoFirstThenFunctionsFirstAnyOrder,
@@ -187,10 +194,11 @@ abstract class DatatypeMethodNoRangeEUFCompiler() extends LogicCompiler {
         transformerSequence += IfLiftingTransformer
         transformerSequence += NnfTransformer
 
-        // eliminates the introduction of some skolem functions, but needs
-        // to come after nnf
+        transformerSequence += MaxAlphaRenamingTransformer
+        // eliminates the introduction of some skolem functions, but needs to come after nnf and max alpha renaming
         transformerSequence += SimplifyWithScalarQuantifiersTransformer
-        
+        transformerSequence += AntiPrenexTransformer
+
         transformerSequence += SkolemizeTransformer
       
         transformerSequence += new SymmetryBreakingTransformer(SymmetryBreakingOptions(
@@ -229,9 +237,10 @@ abstract class DatatypeMethodWithRangeEUFCompiler() extends LogicCompiler {
         transformerSequence += IfLiftingTransformer
         transformerSequence += NnfTransformer
 
-        // eliminates the introduction of some skolem functions, but needs
-        // to come after nnf
+        transformerSequence += MaxAlphaRenamingTransformer
+        // eliminates the introduction of some skolem functions, but needs to come after nnf and max alpha renaming
         transformerSequence += SimplifyWithScalarQuantifiersTransformer
+        transformerSequence += AntiPrenexTransformer
 
         transformerSequence += SkolemizeTransformer
 

@@ -49,7 +49,7 @@ object ScalarQuantifierSimplifier extends NaturalTermRecursion {
                 // just pick the first one
                 val expr = substitutableExprs.head
                 remainingDisjuncts = substituteAll(remainingDisjuncts, variable, expr)
-                println("ScalarQuantifierSimplifier eliminated one (forall)!")
+//                println("ScalarQuantifierSimplifier eliminated one (forall)!")
             }
             substitutableExprs.isEmpty
         }
@@ -74,7 +74,7 @@ object ScalarQuantifierSimplifier extends NaturalTermRecursion {
                 // just pick the first one
                 val expr = substitutableExprs.head
                 remainingConjuncts = substituteAll(remainingConjuncts, variable, expr)
-                println("ScalarQuantifierSimplifier eliminated one (exists)!")
+//                println("ScalarQuantifierSimplifier eliminated one (exists)!")
             }
             substitutableExprs.isEmpty
         }
