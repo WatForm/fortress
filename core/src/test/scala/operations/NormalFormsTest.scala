@@ -63,7 +63,6 @@ class NormalFormsTest extends UnitSuite with CommonSymbols {
             And(p, Exists(y of A, Forall(x of A, Or(And(Not(R(x,x)), S(y)), Q(x,y)))))),
     )
 
-    // TODO: Could also fuzz test, checking that each result is miniscoped
     miniscopeTable foreach { case (input, output) =>
         test(f"miniscope: $input => $output") {
             NormalForms.miniscope(input) should be(output)

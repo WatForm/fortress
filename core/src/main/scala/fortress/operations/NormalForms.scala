@@ -78,8 +78,8 @@ object NormalForms {
     }
 
     // precondition: NNF
-    // TODO maybe lots of tree traversals due to lack of caching with freeVarsConstSymbols
-    // TODO what to do about ITEs? currently we ignore them, are they eliminated?
+    // Note: we recurse through ITEs but do not push quantifiers through them.
+    // TODO: freeVarsConstSymbols doesn't cache, so there may be many tree traversals here. This could be a bottleneck.
     private object Miniscoping extends NaturalTermRecursion {
         override val exceptionalMappings: PartialFunction[Term, Term] = {
             // Push forall through conjunctions and exists through disjunctions always
@@ -151,7 +151,10 @@ object NormalForms {
         }
     }
 
-    // expects term to be in NNF
+    /** Performs miniscoping on the term. This pushes quantifiers inwards as far as possible without reordering them.
+      * See Lampert (https://doi.org/10.1093/jigpal/jzx003) section 2 "Purification".
+      * Precondition: term is in NNF.
+      */
     def miniscope(term: Term): Term = Miniscoping.naturalRecur(term)
 
     // precondition: no name conflicts between quantified variables - run MaxAlphaRenaming
@@ -191,7 +194,12 @@ object NormalForms {
         }
     }
 
-    // pull up foralls through conjunctions and exists through disjunctions
+    /** Move foralls upwards through disjunctions and exists upwards through conjunctions, merging.
+      * E.g.: forall x. (forall y. p) & (forall z. q) --> forall x, y, z. p & q
+      * See Lampert (https://doi.org/10.1093/jigpal/jzx003) section 2 "Purification".
+      * Precondition: term is in NNF and all quantified variables have distinct names (MaxAlphaRenaming is run).
+      * For best results, run miniscoping first.
+      */
     def partialPrenex(term: Term): Term = PartialPrenex.naturalRecur(term)
 
     // merge nested AndLists, OrLists, Forall, Exists
@@ -234,9 +242,13 @@ object NormalForms {
 
     private def sortQuantifiers(term: Term): Term = QuantifierSorting.naturalRecur(MergeNested.naturalRecur(term))
 
-    // prerequisite: max alpha renaming performed; no quantified variables have the same name
+    /** Anti-prenex normal form: push quantifiers inwards as far as possible, rearranging quantifiers to minimize the
+      * size of the quantified formulas.
+      * See Lampert (https://doi.org/10.1093/jigpal/jzx003) section 2 "Purification".
+      * Precondition: term is in NNF and all quantified variables have distinct names (MaxAlphaRenaming is run).
+      */
     def antiPrenex(term: Term): Term = {
-        // Procedure from Lampart section 2 "Purification", minus the CNF/DNF conversion (costly)
+        // Procedure from Lampert section 2 "Purification", minus the CNF/DNF conversion (costly)
         var result = term
         result = miniscope(result)
         result = partialPrenex(result)
