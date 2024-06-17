@@ -15,6 +15,7 @@ object ImplSensitive extends Tag("fortress.tags.ImplSensitive")
 
 trait CommonFunctionalSymbols extends UnitSuite {
     val f = FunctionSymbol("f")
+    val g = FunctionSymbol("g")
     val P = FunctionSymbol("P")
     val Q = FunctionSymbol("Q")
     val R = FunctionSymbol("R")

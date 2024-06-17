@@ -33,6 +33,20 @@ case class TermOps private (term: Term) {
       */
     def nnf: Term = NormalForms.nnf(term)
 
+    /**
+      * Returns the anti-prenex normal form of this term: quantifiers are pushed inwards as far as possible
+      * and rearranged to minimize the size of the quantified formulas.
+      * The term must be in NNF and maximum alpha renaming must have been performed to call this method.
+      */
+    def antiPrenex: Term = NormalForms.antiPrenex(term)
+
+    /**
+      * Move universal quantifiers upwards through disjunctions and existential quantifiers upwards
+      * through conjunctions.
+      * The term must be in NNF and maximum alpha renaming must have been performed to call this method.
+      */
+    def partialPrenex: Term = NormalForms.partialPrenex(term)
+
     /** Removes all ites from the term by iflifting
       * The term must be sanitized to call this method.
       */

@@ -31,6 +31,9 @@ trait LogicCompiler {
                 if(countdown.isExpired) return Left(CompilerError.Timeout)
                 loggers.foreach(_.transformerStarted(transformer))
 
+//                println(s"Theory before ${transformer.name}:\n-----")
+//                println(Dump.theoryToSmtlibTC(pState.theory))
+//                println("-----")
                 val (finalPState, elapsedNano) = measureTime {
                     transformer(pState)
                 }
@@ -40,7 +43,11 @@ trait LogicCompiler {
                 finalPState
             })
         }}
-        
+
+//        println(s"Final theory:\n-----")
+//        println(Dump.theoryToSmtlibTC(finalProblemState.theory))
+//        println("-----")
+
         object Result extends CompilerResult {
             override val theory: Theory = finalProblemState.theory
 

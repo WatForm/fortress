@@ -26,6 +26,8 @@ case class TheoryOps private(theory: Theory) {
         theory.signature.mapFunctionDefinitions(_.mapBody(f)).mapConstantDefinitions(_.mapBody(f)),
         theory.axioms.map(f))
 
+    def maxAlphaRenaming: Theory = MaxAlphaRenaming.rename(theory)
+
     def smtlib: String = {
         val writer = new java.io.StringWriter
         val converter = new SmtlibConverter(writer)
