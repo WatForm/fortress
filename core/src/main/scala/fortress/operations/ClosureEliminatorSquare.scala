@@ -28,8 +28,8 @@ class ClosureEliminatorSquare(topLevelTerm: Term, signature: Signature, scopes: 
         // TODO support more arguments
 
         def expandClosure(functionName: String): Unit = {
-            val rel = signature.functionWithName(functionName).get
-            val sort: Sort = rel.argSorts(0)
+            // Find the sort we are closing over
+            val sort = getClosingSortOfFunction(functionName)
 
             val closureName = getClosureName(functionName)
 
@@ -117,8 +117,8 @@ class ClosureEliminatorSquare(topLevelTerm: Term, signature: Signature, scopes: 
                 if (!queryFunction(closureName)) {
                     expandClosure(functionName)
                 }
-                val rel = signature.functionWithName(functionName).get
-                val sort = rel.argSorts(0)
+                // Find the sort we are closing over
+                val sort = getClosingSortOfFunction(functionName)
 
                 val fixedSorts = getFixedSorts(functionName)
                 val fixedVars = getFixedVars(fixedSorts.length)

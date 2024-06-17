@@ -49,6 +49,7 @@ abstract class ClosureEliminator(topLevelTerm: Term, signature: Signature, scope
 
         def queryFunction(name: String): Boolean = signature.hasFuncDeclWithName(name) || closureFunctions.exists(f => f.name == name) || auxilaryFunctions.exists(_.name == name)
 
+        // Creates variables to represent `numArgs` additional "fixed" variables
         def getFixedVars(numArgs: Int): Seq[Var] = for (n: Int <- 0 to numArgs - 1) yield Var("fa"+ n.toString())
 
         def funcContains(fname: String, x: Term, y: Term, arguments: Seq[Term]): Term = {
@@ -73,11 +74,21 @@ abstract class ClosureEliminator(topLevelTerm: Term, signature: Signature, scope
         }
 
         // Gets the sorts for fixed arguments (everything after the first 2 args)
-        def getFixedSorts(fname: String): Seq[Sort] = signature.queryFunctionDeclaration(fname) match {
-            case None => Errors.Internal.impossibleState("Function " + fname + " does not exist when closing over it!")
-            case Some(FuncDecl(_, sorts, _)) => sorts.drop(2).toList
+        def getFixedSorts(fname: String): Seq[Sort] = signature.queryFunction(fname) match {
+            case None => Errors.Internal.impossibleState("Function " + fname + " does not exist in signature when closing over it!")
+            case Some(Left(FuncDecl(_, sorts, _))) => sorts.drop(2).toList
+            case Some(Right(FunctionDefinition(_, params, _, _))) => params.map(_.sort).drop(2).toList
         }
 
+        def getClosingSortOfFunction(fname: String): Sort = signature.queryFunction(fname) match {
+            case None => Errors.Internal.impossibleState(f"Could not find ${fname} when closing over it")
+            case Some(func) => func match {
+                case Left(fdef) => fdef.argSorts(0)
+                case Right(fdec) => fdec.argSorts(0)
+            }
+        }
+
+        // Gets annotated variables for the fixed arguments
         def getFixedAVars(fname: String): Seq[AnnotatedVar] = {
             val fixedSorts = getFixedSorts(fname)
             fixedSorts.zipWithIndex.map {
