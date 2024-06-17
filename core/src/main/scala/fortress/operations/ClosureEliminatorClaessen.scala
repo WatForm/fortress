@@ -80,8 +80,8 @@ class ClosureEliminatorClaessen(topLevelTerm: Term, signature: Signature, scopes
 
         def visitReflexiveClosure(rc: ReflexiveClosure): Term = {
             val reflexiveClosureName = getReflexiveClosureName(rc.functionName)
-            val rel = signature.queryFunctionDeclaration(rc.functionName).get
-            val sort = rel.argSorts(0)
+            // Find the sort we are closing over
+            val sort = getClosingSortOfFunction(rc.functionName)
             if (!queryFunction(reflexiveClosureName)){
                 defineReflexiveClosure(sort, rc.functionName)
             }
@@ -92,8 +92,8 @@ class ClosureEliminatorClaessen(topLevelTerm: Term, signature: Signature, scopes
         def visitClosure(c: Closure): Term = {
             val closureName = getClosureName(c.functionName)
             val reflexiveClosureName = getReflexiveClosureName(c.functionName)
-            val rel = signature.queryFunctionDeclaration(c.functionName).get
-            val sort = rel.argSorts(0)
+            // Find the sort we are closing over
+            val sort = getClosingSortOfFunction(c.functionName)
 
             if (!queryFunction(closureName)){
                 if (!queryFunction(reflexiveClosureName)){

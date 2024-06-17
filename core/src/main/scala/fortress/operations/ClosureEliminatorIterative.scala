@@ -35,8 +35,8 @@ class ClosureEliminatorIterative(topLevelTerm: Term, signature: Signature, scope
             // If we have not generated the function yet
             if (!queryFunction(closureName)) {
                 // Look at original function to make declaration for the closure function
-                val rel = signature.queryFunctionDeclaration(functionName).get
-                val sort = rel.argSorts(0)
+                // Find the sort we are closing over
+                val sort = getClosingSortOfFunction(functionName)
 
                 val fixedSorts = getFixedSorts(functionName)
                 val fixedVars = getFixedVars(fixedSorts.length)
@@ -111,8 +111,8 @@ class ClosureEliminatorIterative(topLevelTerm: Term, signature: Signature, scope
                 val fixedVars = getFixedVars(fixedSorts.length)
                 val fixedArgVars = fixedVars.zip(fixedSorts) map (pair => (pair._1.of(pair._2)))
                 
-                val rel = signature.queryFunctionDeclaration(functionName).get
-                val sort = rel.argSorts(0)
+                // Find the sort we are closing over
+                val sort = getClosingSortOfFunction(functionName)
                 closureFunctions += FuncDecl(reflexiveClosureName, Seq(sort, sort) ++ fixedSorts, Sort.Bool)
                 val x = Var(nameGen.freshName("x"))
                 val y = Var(nameGen.freshName("y"))

@@ -22,7 +22,7 @@ class TypeChecker(signature: Signature) extends TermVisitorWithTypeContext[TypeC
     override def visitTop(): TypeCheckResult =
         TypeCheckResult(
             sanitizedTerm = Top, 
-            sort = BoolSort, 
+            sort = BoolSort,
             containsConnectives = false, 
             containsQuantifiers = false, 
             containsItes = false,
@@ -307,7 +307,7 @@ class TypeChecker(signature: Signature) extends TermVisitorWithTypeContext[TypeC
         val funcName = c.functionName
 
         // Check function we are closing over exists
-        if(! (signature hasFuncDeclWithName  funcName) ) {
+        if(! (signature hasFuncWithName  funcName) ) {
             throw new TypeCheckException.UnknownFunction("Could not find function: " + funcName)
         }
         
@@ -328,19 +328,28 @@ class TypeChecker(signature: Signature) extends TermVisitorWithTypeContext[TypeC
         if (results(0).sort != results(1).sort) {
             throw new TypeCheckException.WrongSort("Trying to close over arguments of different sorts in " + c.toString())
         }
+        
         // This is the arguments to the closure. Will always be at least length 2 by construction
         val argSorts = results.map(_.sort)
         Errors.Internal.precondition(argSorts.length >= 2, c.toString() + "has only" + argSorts.length + " arguments! 2 or more expected")        // the sort we are closing over
+        // The sort we are closing over
         val closingSort = argSorts(0)
+
+        // Get sorts of the function/relation being closed over
+        val (paramSorts, resultSort) = signature.queryFunction(funcName) match {
+            case None => throw new TypeCheckException.UnknownFunction("Function " + funcName + " does not exist in signature when closing over it!")
+            case Some(Left(FuncDecl(_, sorts, resultSort))) => (sorts.toList, resultSort)
+            case Some(Right(FunctionDefinition(_, params, resultSort, _))) => (params.map(_.sort).toList, resultSort)
+        }
 
         if (argSorts.length == 2) {
             // relation must be A->A or AxA-> Bool
-            if (signature.queryFunctionDeclaration(funcName, Seq(closingSort), closingSort).isEmpty && signature.queryFunctionDeclaration(funcName, Seq(closingSort, closingSort), Sort.Bool).isEmpty) {
+            if (!((paramSorts.equals(List(closingSort)) && resultSort == closingSort) ||(paramSorts.equals(List(closingSort, closingSort)) && resultSort == BoolSort))){
                 throw new TypeCheckException.WrongSort("Trying to close over " + funcName +" as unary function or binary relation in " + c.toString())
             }
         } else {
             // Check that arguments match the function declaration
-            if (signature.queryFunctionDeclaration(funcName, argSorts, Sort.Bool).isEmpty) {
+            if (!(paramSorts == argSorts && resultSort == BoolSort)) {
                 throw new TypeCheckException.WrongSort("Attempting to close over a relation that does not end in a BoolSort or with the wrong argument sorts in " + c.toString())
             }
         }
@@ -363,7 +372,7 @@ class TypeChecker(signature: Signature) extends TermVisitorWithTypeContext[TypeC
         // 2. arguments contain no connectives or quantifiers
         val funcName = rc.functionName
 
-        if(! (signature hasFuncDeclWithName  funcName) ) {
+        if(! (signature hasFuncWithName  funcName) ) {
             throw new TypeCheckException.UnknownFunction("Could not find function: " + funcName)
         }
         
@@ -383,21 +392,29 @@ class TypeChecker(signature: Signature) extends TermVisitorWithTypeContext[TypeC
         if (results(0).sort != results(1).sort) {
             throw new TypeCheckException.WrongSort("Trying to close over arguments of different sorts in " + rc.toString())
         }
+        
         // This is the arguments to the closure. Will always be at least length 2 by construction
         val argSorts = results.map(_.sort)
-        Errors.Internal.precondition(argSorts.length >= 2, rc.toString() + "has only" + argSorts.length + " arguments! 2 or more expected")
-        // the sort we are closing over
+        Errors.Internal.precondition(argSorts.length >= 2, rc.toString() + "has only" + argSorts.length + " arguments! 2 or more expected")        // the sort we are closing over
+        // The sort we are closing over
         val closingSort = argSorts(0)
+
+        // Get sorts of the function/relation being closed over
+        val (paramSorts, resultSort) = signature.queryFunction(funcName) match {
+            case None => throw new TypeCheckException.UnknownFunction("Function " + funcName + " does not exist in signature when closing over it!")
+            case Some(Left(FuncDecl(_, sorts, resultSort))) => (sorts.toList, resultSort)
+            case Some(Right(FunctionDefinition(_, params, resultSort, _))) => (params.map(_.sort).toList, resultSort)
+        }
 
         if (argSorts.length == 2) {
             // relation must be A->A or AxA-> Bool
-            if (signature.queryFunctionDeclaration(funcName, Seq(closingSort), closingSort).isEmpty && signature.queryFunctionDeclaration(funcName, Seq(closingSort, closingSort), Sort.Bool).isEmpty) {
+            if (!((paramSorts.equals(List(closingSort)) && resultSort == closingSort) ||(paramSorts.equals(List(closingSort, closingSort)) && resultSort == BoolSort))){
                 throw new TypeCheckException.WrongSort("Trying to close over " + funcName +" as unary function or binary relation in " + rc.toString())
             }
         } else {
             // Check that arguments match the function declaration
-            if (signature.queryFunctionDeclaration(funcName, argSorts, Sort.Bool).isEmpty) {
-                throw new TypeCheckException.WrongSort("Attempting to close over a relation that does not end in a BoolSort in " + rc.toString())
+            if (!(paramSorts == argSorts && resultSort == BoolSort)) {
+                throw new TypeCheckException.WrongSort("Attempting to close over a relation that does not end in a BoolSort or with the wrong argument sorts in " + rc.toString())
             }
         }
 

@@ -21,6 +21,7 @@ trait ClosureEliminationTransformer extends ProblemStateTransformer {
         val scopes = problemState.scopes
         val forbiddenNames = scala.collection.mutable.Set[String]()
         
+        // Collect names we cannot use when making new declarations
         for(sort <- theory.sorts) {
             forbiddenNames += sort.name
         }
@@ -28,9 +29,17 @@ trait ClosureEliminationTransformer extends ProblemStateTransformer {
         for(fdecl <- theory.functionDeclarations) {
             forbiddenNames += fdecl.name
         }
+
+        for (fdef <- theory.functionDefinitions) {
+            forbiddenNames += fdef.name
+        }
         
         for(constant <- theory.constantDeclarations) {
             forbiddenNames += constant.name
+        }
+
+        for (cdef <- theory.constantDefinitions) {
+            forbiddenNames += cdef.name
         }
         
         val nameGenerator = new IntSuffixNameGenerator(forbiddenNames.toSet, 0)

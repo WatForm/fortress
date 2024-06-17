@@ -301,9 +301,11 @@ case class Signature private (
     def hasFuncDeclWithName(name: String): Boolean = functionDeclarations.exists(_.name == name)
 
     def hasFuncDefWithName(name: String): Boolean = functionDefinitions.exists(_.name == name)
+
+    def hasFuncWithName(name: String): Boolean = hasFuncDeclWithName(name) || hasFuncDefWithName(name)
     
     def functionWithName(name: String): Option[FuncDecl] = functionDeclarations.find(_.name == name)
-    
+
     // Includes an unapply function
     def replaceIntegersWithBitVectors(bitwidth: Int): (Signature, Interpretation => Interpretation) = {
         def replaceSort(s: Sort): Sort = s match {

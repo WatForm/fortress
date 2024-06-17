@@ -130,8 +130,8 @@ class ClosureEliminatorEijck(topLevelTerm: Term, signature: Signature, scopes: M
             // Skip if we already did it
             if (!queryFunction(closureName)){
                 // use index to find sort
-                val rel = signature.queryFunctionDeclaration(functionName).get
-                val sort = rel.argSorts(0)
+                // Find the sort we are closing over
+                val sort = getClosingSortOfFunction(functionName)
 
                 val fixedSorts = getFixedSorts(functionName)
                 val fixedVars = getFixedVars(fixedSorts.length)
@@ -197,9 +197,8 @@ class ClosureEliminatorEijck(topLevelTerm: Term, signature: Signature, scopes: M
             // Skip if we already did it
             if (!queryFunction(reflexiveClosureName)){
                 // use index to find sort
-                val rel = signature.queryFunctionDeclaration(functionName).get
-                var argSorts = new ArrayList(rel.argSorts.asJava)
-                val sort = rel.argSorts(0)
+                // Find the sort we are closing over
+                val sort = getClosingSortOfFunction(functionName)
 
                 val fixedSorts = getFixedSorts(functionName)
                 val fixedVars = getFixedVars(fixedSorts.length)

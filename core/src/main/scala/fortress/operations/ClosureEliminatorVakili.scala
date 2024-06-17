@@ -21,8 +21,8 @@ class ClosureEliminatorVakili(topLevelTerm: Term, allowedRelations: Set[String],
 
         def createClosure(functionName: String): Unit = {
             // get the sort we close over
-            val rel = signature.queryFunctionDeclaration(functionName).get
-            val sort = rel.argSorts(0)
+            // Find the sort we are closing over
+            val sort = getClosingSortOfFunction(functionName)
             
             val closureName = getClosureName(functionName)
             val fixedSorts = getFixedSorts(functionName)

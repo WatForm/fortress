@@ -75,8 +75,8 @@ class ClosureEliminatorLiu(topLevelTerm: Term, signature: Signature, scopes: Map
 
             if (!queryFunction(reflexiveClosureName)){
                 // Build the closure
-                val rel = signature.queryFunctionDeclaration(functionName).get
-                val sort = rel.argSorts(0)
+                // Find the sort we are closing over
+                val sort = getClosingSortOfFunction(functionName)
 
                 val p = nameAuxFunction(closureName)
                 if(!queryFunction(p)){
@@ -116,9 +116,8 @@ class ClosureEliminatorLiu(topLevelTerm: Term, signature: Signature, scopes: Map
 
             if (!queryFunction(closureName)){
                 // Build the closure
-                val rel = signature.queryFunctionDeclaration(functionName).get
-                var argSorts = new ArrayList(rel.argSorts.asJava)
-                val sort = rel.argSorts(0)
+                // Find the sort we are closing over
+                val sort = getClosingSortOfFunction(functionName)
 
                 val p = nameAuxFunction(closureName)
                 if(!queryFunction(p)){

@@ -488,6 +488,141 @@ trait CETransfomerBehaviors{ this: AnyFlatSpec =>
                 assert(result == ModelFinderResult.Unsat) 
             }}
         }
+
+        it should "close over definitions" in {
+            val a = EnumValue("a")
+            val b = EnumValue("b")
+            val c = EnumValue("c")
+
+            val A  = SortConst("A")
+
+            val R = FunctionDefinition("R", Seq(x.of(A), y.of(A), z.of(BoolSort)), BoolSort,
+                Or(
+                    And(Eq(x, a), Eq(y, b), Eq(z, Top)),
+                    And(Eq(x, b), Eq(y, c), Eq(z, Top))
+                )
+            )
+            val correctClosure = Forall(axy :+ z.of(Sort.Bool),
+                Iff(
+                    Closure(R.name, x, y, Seq(z)),
+                    Or(
+                        And(Eq(x, a), Eq(y, b), Eq(z, Top)),
+                        And(Eq(x, a), Eq(y, c), Eq(z, Top)),
+                        And(Eq(x, b), Eq(y, c), Eq(z, Top)),
+                    )
+                )
+            )
+            /*
+            val correctReflexiveClosure = Forall(axy,
+                Iff(ReflexiveClosure(R.name, Seq(x,y), x, y),
+                    Or(Eq(x,y), Closure(R.name, Seq(x,y), x, y))
+                )
+            )
+            */
+            val m = Var("m")
+            val n = Var("n")
+            val o = Var("o")
+            /*
+            val correctReflexiveClosure = Forall(axy appended z.of(Sort.Bool),
+                Iff(
+                    ReflexiveClosure(R.name, x, y, Seq(z)),
+                    Or(
+                        Eq(x, y),
+                        And(Eq(x, a), Eq(y, b), Eq(z, Top)),
+                        And(Eq(x, a), Eq(y, c), Eq(z, Top)),
+                        And(Eq(x, b), Eq(y, c), Eq(z, Top))
+                    )
+                )
+            )
+            */
+            val correctReflexiveClosure = Forall(Seq(m.of(A), n.of(A), o.of(BoolSort)),
+                Iff(
+                    ReflexiveClosure(R.name, m, n, Seq(o)),
+                    Or(
+                        Eq(m, n),
+                        And(Eq(m, a), Eq(n, b), Eq(o, Top)),
+                        And(Eq(m, a), Eq(n, c), Eq(o, Top)),
+                        And(Eq(m, b), Eq(n, c), Eq(o, Top))
+                    )
+                )
+            )
+            val defIsSufficient = And(correctClosure, correctReflexiveClosure)
+            val defIsNotSufficient = Not(correctReflexiveClosure)
+            val defIsNotSufficient2 = Not(correctClosure)
+
+            val basicTheory = baseTheory
+                .withFunctionDefinition(R)
+                .withEnumSort(A, a, b, c)
+                
+            val goodTheory = basicTheory
+                .withAxiom(defIsSufficient)
+
+            val badTheory = basicTheory
+                            .withAxiom(defIsNotSufficient)
+            
+            val badTheory2 = basicTheory
+                            .withAxiom(defIsNotSufficient2)
+            
+                            
+            /*
+            // Use to get a debug dump. Will break tests
+            manager.removeOption("QuantifierExpansion")
+            val comp = manager.setupCompiler()
+            val simpleTheory = baseTheory.withAxiom(correctReflexiveClosure).withEnumSort(A, a, b, c).withFunctionDeclaration(R)
+            val mp = Map[Sort, Int](A -> 3)
+            val timeoutGiven = Seconds(200).toMilli
+            val compresult = comp.compile(simpleTheory, mp, timeoutGiven, Seq.empty)
+
+            compresult match {
+                case Right(result) => {
+                    println("===============")
+                    println(Dump.theoryToSmtlib(result.theory))
+                    println("===============")
+                    result.theory.axioms.foreach {
+                        axiom => println(Dump.termToSmtlib(axiom))
+                    }
+                    println("===============")
+                }
+                case _ => ()
+            }
+            // end of debug section
+            */
+            
+            
+            Using.resource(manager.setupModelFinder()){ finder => {
+                finder.setTheory(goodTheory)
+                finder.setExactScope(A, 3)
+                finder.setTimeout(Seconds(10))
+                assert(finder.checkSat() == (ModelFinderResult.Sat)) 
+            }}
+            
+            Using.resource(manager.setupModelFinder()){ finder => {
+                finder.setTheory(badTheory)
+                finder.setExactScope(A, 3)
+                finder.setTimeout(Seconds(10))
+
+                val result = finder.checkSat()
+                // for debugging
+                if (result == ModelFinderResult.Sat) {
+                    val modelstring = finder.viewModel().toString()
+                    print(modelstring)
+                }
+                assert(result == ModelFinderResult.Unsat) 
+            }}
+
+            Using.resource(manager.setupModelFinder()){ finder => {
+                finder.setTheory(badTheory2)
+                finder.setExactScope(A, 3)
+                finder.setTimeout(Seconds(10))
+
+                val result = finder.checkSat()
+                if (result == ModelFinderResult.Sat) {
+                    val modelstring = finder.viewModel().toString()
+                    print(modelstring)
+                }
+                assert(result == ModelFinderResult.Unsat) 
+            }}  
+        }
     }
 }
 
