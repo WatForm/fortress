@@ -26,6 +26,10 @@ case class TheoryOps private(theory: Theory) {
         theory.signature.mapFunctionDefinitions(_.mapBody(f)).mapConstantDefinitions(_.mapBody(f)),
         theory.axioms.map(f))
 
+    def allTerms: Set[Term] = theory.axioms ++
+        theory.signature.functionDefinitions.map(_.body) ++
+        theory.signature.constantDefinitions.map(_.body)
+
     def maxAlphaRenaming: Theory = MaxAlphaRenaming.rename(theory)
 
     def smtlib: String = {
