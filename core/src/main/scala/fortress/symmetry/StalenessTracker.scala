@@ -3,9 +3,8 @@ package fortress.symmetry
 import fortress.msfol._
 import fortress.operations.PortusPatternAccumulator
 import fortress.operations.TermOps._
+import fortress.operations.TheoryOps._
 import fortress.problemstate._
-
-import scala.collection.mutable
 
 class StalenessTracker protected (
     val sorts: Set[Sort],
@@ -40,10 +39,7 @@ class PortusPatternStalenessTracker(
 object StalenessTracker {
     def create(theory: Theory, scopes: Map[Sort, Scope]): StalenessTracker = {
         // Determine which domain elements have been used in the original theory
-        val axiomStaleElements: Set[DomainElement] = theory.axioms flatMap (_.domainElements)
-        val constDefnStaleElements: Set[DomainElement] = theory.constantDefinitions.flatMap(defn => defn.body.domainElements)
-        val fnDefnStaleElements: Set[DomainElement] = theory.constantDefinitions.flatMap(defn => defn.body.domainElements)
-        val allStaleDomainElements: Set[DomainElement] = axiomStaleElements union constDefnStaleElements union fnDefnStaleElements
+        val allStaleDomainElements: Set[DomainElement] = theory.allTerms.flatMap(_.domainElements)
         val staleMap: Map[Sort, Set[DomainElement]] = {
             for (sort <- theory.sorts if !sort.isBuiltin) yield {
                 val set = allStaleDomainElements filter (_.sort == sort)
@@ -56,7 +52,7 @@ object StalenessTracker {
     def createWithPatternOptimization(theory: Theory, scopes: Map[Sort, Scope]): PortusPatternStalenessTracker = {
         // Determine which domain elements have been used in the original theory
         val allStaleDomainElements: Set[DomainElement] =
-            theory.axioms flatMap PortusPatternAccumulator.domainElementsExceptPatternIn
+            theory.allTerms flatMap PortusPatternAccumulator.domainElementsExceptPatternIn
         val staleMap: Map[Sort, Set[DomainElement]] = {
             for (sort <- theory.sorts if !sort.isBuiltin) yield {
                 val set = allStaleDomainElements filter (_.sort == sort)
