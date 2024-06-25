@@ -15,7 +15,7 @@ import fortress.util.Errors
   * @param unapplyInterp a LIFO stack of instructions (given as a LIFO stack of functions) that describe how to undo 
   *                      the transformations thus far when giving an interpretation back to the user 
   * @param distinctConstants ?
-  * @param isNNF flag set to true to indicate every formula is in negation normal form
+  * @param flags set to if a transformer has been run
   * @param verbose flag set to indicate output should be verobse
   */
 case class ProblemState private (
