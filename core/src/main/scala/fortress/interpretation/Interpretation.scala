@@ -6,7 +6,7 @@ import fortress.msfol._
 import fortress.operations._
 import fortress.sortinference._
 import fortress.msfol.DSL._
-import fortress.solverinterface.Z3IncSolver
+import fortress.solverinterface.Z3NonIncCliSolver
 import fortress.util.{ArgumentListGenerator, Errors, Milliseconds}
 
 /** An interpretation of a first-order logic signature. */
@@ -124,7 +124,7 @@ trait Interpretation {
                 .withConstantDeclaration(evalResultAnnotated)
                 .withAxiom(evalResult === BuiltinApp(fn, evalArgs))
         
-        val solver = new Z3IncSolver
+        val solver = new Z3NonIncCliSolver
         solver.setTheory(theory)
         solver.solve(Milliseconds(1000))
         val solvedInstance = solver.solution

@@ -1,6 +1,18 @@
 # `fortress.solverinterface` Package
 
 The `fortress.solverinterface` package is Fortress's way of connecting to external solvers.
-The important trait (interface) is the `SolverStrategy`, which is the abstract representation of communicating between Fortress and an external solver.
-The abstract `SolverTemplate` class, which implements `SolverStrategy`, provides more details of the communication protocol, but does not directly talk to any solvers.
-Concrete implementations of `SolverTemplate` directly talk to external solvers.
+
+Trait SolverInterface provides an interface to all solvers  .openSession() creates a particular solver.
+
+Solver is a trait that solvers are instances of.
+
+The solvers are arranged hierarchically:
+Solver
+	- SMTLIBCliSolver - common function for interfacing with SMTLIB solvers are the cmd-line
+		+ CVC4CliSolver
+		+ Z3NonIncCliSolver
+
+ProcessSession is an extra class used by SMTLIBCLiSolver to use Java's ProcessBuilder interface.
+
+TODO:
+- remove SolverInterface after a solver is set directly in the ModelFinder

@@ -8,86 +8,86 @@ import fortress.compiler._
 import fortress.config.Manager
 
 class FortressZERO(solverInterface: SolverInterface) extends CompilationModelFinder(solverInterface) {
-    def this() = this(Z3IncCliInterface)
+    def this() = this(Z3NonIncCliInterface)
 
     override def createCompiler(): LogicCompiler = new FortressZEROCompiler()
 }
 
 class FortressONE(solverInterface: SolverInterface) extends CompilationModelFinder(solverInterface) {
-    def this() = this(Z3IncCliInterface)
+    def this() = this(Z3NonIncCliInterface)
     
     override def createCompiler(): LogicCompiler = new FortressONECompiler()
 }
 
 class FortressTWO(solverInterface: SolverInterface) extends CompilationModelFinder(solverInterface) {
-    def this() = this(Z3IncCliInterface)
+    def this() = this(Z3NonIncCliInterface)
     
     override def createCompiler(): LogicCompiler = new FortressTWOCompiler()
 }
 
 class FortressTWO_SI(solverInterface: SolverInterface) extends CompilationModelFinder(solverInterface) {
-    def this() = this(Z3IncCliInterface)
+    def this() = this(Z3NonIncCliInterface)
     
     override def createCompiler(): LogicCompiler = new FortressTWOCompiler_SI()
 }
 
 class FortressTHREE(solverInterface: SolverInterface) extends CompilationModelFinder(solverInterface) {
-    def this() = this(Z3IncCliInterface)
+    def this() = this(Z3NonIncCliInterface)
     
     override def createCompiler(): LogicCompiler = new FortressTHREECompiler()
 }
 
 class FortressTHREE_SI(solverInterface: SolverInterface) extends CompilationModelFinder(solverInterface) {
-    def this() = this(Z3IncCliInterface)
+    def this() = this(Z3NonIncCliInterface)
     
     override def createCompiler(): LogicCompiler = new FortressTHREECompiler_SI()
 }
 
 class FortressFOUR(solverInterface: SolverInterface) extends CompilationModelFinder(solverInterface) {
-    def this() = this(Z3IncCliInterface)
+    def this() = this(Z3NonIncCliInterface)
 
     override def createCompiler(): LogicCompiler = new FortressFOURCompiler()
 }
 
 class FortressFOUR_SI(solverInterface: SolverInterface) extends CompilationModelFinder(solverInterface) {
-    def this() = this(Z3IncCliInterface)
+    def this() = this(Z3NonIncCliInterface)
 
     override def createCompiler(): LogicCompiler = new FortressFOURCompiler_SI()
 }
 
 class FortressUnbounded(solverInterface: SolverInterface) extends CompilationModelFinder(solverInterface) {
-    def this() = this(Z3IncCliInterface)
+    def this() = this(Z3NonIncCliInterface)
 
     override def createCompiler(): LogicCompiler = new FortressUnboundedCompiler()
 }
 
 class FortressLearnedLiterals(solverInterface: SolverInterface) extends CompilationModelFinder(solverInterface) {
-    def this() = this(Z3IncCliInterface)
+    def this() = this(Z3NonIncCliInterface)
 
     override def createCompiler(): LogicCompiler = new FortressLearnedLiteralsCompiler()
 }
 
 class NonDistUpperBoundModelFinder(solverInterface: SolverInterface) extends CompilationModelFinder(solverInterface) {
-    def this() = this(Z3IncCliInterface)
+    def this() = this(Z3NonIncCliInterface)
 
     override def createCompiler(): LogicCompiler = new NonDistUpperBoundCompiler
 }
 
 class PredUpperBoundModelFinder(solverInterface: SolverInterface) extends CompilationModelFinder(solverInterface) {
-    def this() = this(Z3IncCliInterface)
+    def this() = this(Z3NonIncCliInterface)
 
     override def createCompiler(): LogicCompiler = new PredUpperBoundCompiler
 }
 
 class ConfigurableModelFinder(solverInterface: SolverInterface, configManager: Manager) extends CompilationModelFinder(solverInterface) {
-    def this(configManager: Manager) = this(Z3IncCliInterface, configManager)
+    def this(configManager: Manager) = this(Z3NonIncCliInterface, configManager)
 
     override def createCompiler(): LogicCompiler = configManager.setupCompiler()
 }
 
 
 object FortressModelFinders {
-    def fromString(str: String, solverInterface: SolverInterface = Z3CliInterface): Option[ModelFinder] = {
+    def fromString(str: String, solverInterface: SolverInterface = Z3NonIncCliInterface): Option[ModelFinder] = {
         str.toLowerCase() match {
             case "zero" | "fortresszero" => Some(new FortressZERO(solverInterface))
             case "one" | "fortressone" => Some(new FortressONE(solverInterface))
@@ -111,7 +111,7 @@ object FortressModelFinders {
   * @param compiler the compiler the problem will be passed through before being given to the solver
   */
 class SimpleModelFinder(solverInterface: SolverInterface, compiler: LogicCompiler) extends CompilationModelFinder(solverInterface) {
-    def this(compiler: LogicCompiler) = this(Z3IncCliInterface, compiler)
+    def this(compiler: LogicCompiler) = this(Z3NonIncCliInterface, compiler)
 
     def this(solverInterface: SolverInterface, transformers: Seq[ProblemStateTransformer]) = this(solverInterface, new ConfigurableCompiler(transformers))
 

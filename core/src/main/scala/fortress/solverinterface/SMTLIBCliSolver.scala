@@ -1,25 +1,32 @@
+/*
+    Default solving mode used by fortress.
+    All SMT CLI solvers share these functions to process the text CLI inputs and outputs
+    Write axioms to one solver process and call check-sat multiple times.
+ */
+
 package fortress.solverinterface
 
 import fortress.inputs._
 import fortress.interpretation._
-import fortress.modelfind._
+import fortress.modelfind.{ErrorResult, ModelFinderResult}
+import fortress.util._
 import fortress.msfol._
 import fortress.operations._
-import fortress.util._
+
 import scala.util.matching.Regex
-import scala.jdk.CollectionConverters._
 import java.io.CharArrayWriter
+import scala.jdk.CollectionConverters._
 import scala.collection.mutable
 
-trait SMTLIBCLISession extends solver {
-    // real smt-solver process ex: z3 or cvc4
-    protected var processSession: Option[ProcessSession] = None
 
-    protected var theory: Option[Theory] = None
+abstract class SMTLIBCliSolver extends Solver {
 
-    protected def processArgs: Seq[String]
+    protected def processArgs: Seq[String] 
     protected def timeoutArg(timeoutMillis: Milliseconds): String
 
+    protected var processSession: Option[ProcessSession] = None
+
+    private val convertedBytes: CharArrayWriter = new CharArrayWriter
 
     @throws(classOf[java.io.IOException])
     override def close(): Unit = {
@@ -28,26 +35,23 @@ trait SMTLIBCLISession extends solver {
 
     override def setTheory(theory: Theory): Unit = {
         this.theory = Some(theory)
-        processSession.foreach(_.close())
-        processSession = Some(new ProcessSession(processArgs.asJava))
-        // Convert & write theory
-        val writer = processSession.get.inputWriter
-        writer.write("(set-option :produce-models true)\n")
-        writer.write("(set-logic ALL)\n")
-        val converter = new SmtlibConverter(writer)
+        convertedBytes.reset()
+        convertedBytes.write("(set-option :produce-models true)\n")
+        convertedBytes.write("(set-logic ALL)\n")
+        val converter = new SmtlibConverter(convertedBytes)
         converter.writeTheory(theory)
     }
 
-
     override def addAxiom(axiom: Term): Unit = {
         Errors.Internal.assertion(processSession.nonEmpty, "Cannot add axiom without a live process")
-        val converter = new SmtlibConverter(processSession.get.inputWriter)
+        val converter = new SmtlibConverter(convertedBytes)
         converter.writeAssertion(axiom)
     }
 
-
     override def solve(timeoutMillis: Milliseconds): ModelFinderResult = {
-        processSession.get.write(s"(set-option :timeout ${timeoutMillis.value})") // Doesn't work for CVC4
+        processSession.foreach(_.close())
+        processSession = Some(new ProcessSession( { processArgs :+ timeoutArg(timeoutMillis) }.asJava))
+        convertedBytes.writeTo(processSession.get.inputWriter)
         processSession.get.write("(check-sat)\n")
         processSession.get.flush()
 
@@ -267,4 +271,6 @@ trait SMTLIBCLISession extends solver {
         }
         model
     }
+
+
 }

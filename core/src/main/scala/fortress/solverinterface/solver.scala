@@ -5,7 +5,10 @@ import fortress.interpretation._
 import fortress.modelfind._
 import fortress.util._
 
-trait solver extends AutoCloseable {
+trait Solver extends AutoCloseable {
+
+    protected var theory: Option[Theory] = None
+
     def setTheory(theory: Theory): Unit
     def addAxiom(axiom: Term): Unit
     def solve(timeoutMillis: Milliseconds): ModelFinderResult

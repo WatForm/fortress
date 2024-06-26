@@ -137,7 +137,7 @@ class ModelFinderProcessBuilderTest extends UnitSuite {
         constantInterpretations: Map[AnnotatedVar, Value],
         functionInterpretations: Map[FuncDecl, Map[Seq[Value], Value]]): Unit = {
         
-        testSolverStrategy(Z3CliInterface, theory, scopes, sortInterpretations, constantInterpretations, functionInterpretations)
+        testSolverStrategy(Z3NonIncCliInterface, theory, scopes, sortInterpretations, constantInterpretations, functionInterpretations)
     }
     
     def testSolverStrategy(

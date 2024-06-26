@@ -1,3 +1,5 @@
+// used in solver sessions
+
 package fortress.solverinterface
 
 import java.io._
