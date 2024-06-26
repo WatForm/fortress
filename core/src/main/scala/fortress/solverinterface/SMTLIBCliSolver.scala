@@ -19,11 +19,12 @@ import scala.jdk.CollectionConverters._
 import scala.collection.mutable
 
 
-abstract class SMTLIBCliSolver extends Solver {
+class SMTLIBCliSolver extends Solver {
 
-    protected def processArgs: Seq[String] 
-    protected def timeoutArg(timeoutMillis: Milliseconds): String
-
+    protected def processArgs: Seq[String] = ???
+    protected def timeoutArg(timeoutMillis: Milliseconds): String = ???
+    protected var theory: Option[Theory] = None
+    
     protected var processSession: Option[ProcessSession] = None
 
     private val convertedBytes: CharArrayWriter = new CharArrayWriter

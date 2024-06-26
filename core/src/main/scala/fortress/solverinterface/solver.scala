@@ -7,7 +7,7 @@ import fortress.util._
 
 trait Solver extends AutoCloseable {
 
-    protected var theory: Option[Theory] = None
+    
 
     def setTheory(theory: Theory): Unit
     def addAxiom(axiom: Term): Unit
