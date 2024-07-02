@@ -6,7 +6,7 @@ import fortress.msfol._
 import fortress.operations._
 import fortress.sortinference._
 import fortress.msfol.DSL._
-import fortress.solverinterface.Z3NonIncCliSolver
+import fortress.solvers.Z3NonIncCliSolver
 import fortress.util.{ArgumentListGenerator, Errors, Milliseconds}
 
 /** An interpretation of a first-order logic signature. */

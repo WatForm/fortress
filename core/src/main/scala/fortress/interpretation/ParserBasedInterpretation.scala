@@ -1,7 +1,7 @@
 package fortress.interpretation
 
 import fortress.msfol._
-import fortress.solverinterface._
+import fortress.solvers._
 
 abstract class ParserBasedInterpretation(signature: Signature) extends Interpretation {
     protected def getConstant(c: AnnotatedVar): Value

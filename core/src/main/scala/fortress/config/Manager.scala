@@ -1,13 +1,13 @@
 package fortress.config
 
-import fortress.compiler._
-import fortress.modelfind._
+import fortress.compilers._
+import fortress.modelfinders._
 import fortress.operations._
 import fortress.config._
 import fortress.util._
 
 /**
-  * Used to create a compiler and modelfinder in combitionation.
+  * Used to create a compiler and modelfinder in combination.
   *
   */
 class Manager {
@@ -80,7 +80,7 @@ class Manager {
         compiler
     }
 
-    def setupModelFinder(): ConfigurableModelFinder = new ConfigurableModelFinder(this)
+    //def setupModelFinder(): ConfigurableModelFinder = new ConfigurableModelFinder(this)
 
 }
 

@@ -1,8 +1,10 @@
+// TODO: get rid of this file
+
 // this is separate from solver
 // so that we can pass the solver as an object to the model finder
 // and the model finder can "create" a solver by using "openSession" 
 
-package fortress.solverinterface
+package fortress.solvers
 
 import fortress.msfol._
 import fortress.interpretation._

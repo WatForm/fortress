@@ -5,7 +5,7 @@ import java.io.StringWriter
 import fortress.data.CartesianSeqProduct
 import fortress.interpretation.Interpretation
 import fortress.msfol._
-// import fortress.solverinterface.Z3NonIncSolver
+// import fortress.solvers.Z3NonIncSolver
 import fortress.util.Errors
 import fortress.util._
 import fortress.msfol.DSL._

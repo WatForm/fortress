@@ -1,4 +1,4 @@
-package fortress.compiler
+package fortress.compilers
 
 import fortress.msfol.{Declaration, Term, Theory}
 import fortress.interpretation.Interpretation

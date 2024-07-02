@@ -1,4 +1,4 @@
-package fortress.solverinterface
+package fortress.solvers
 
 import fortress.util._
 

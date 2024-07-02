@@ -4,11 +4,11 @@
     Write axioms to one solver process and call check-sat multiple times.
  */
 
-package fortress.solverinterface
+package fortress.solvers
 
 import fortress.inputs._
 import fortress.interpretation._
-import fortress.modelfind.{ErrorResult, ModelFinderResult}
+import fortress.modelfinders.{ErrorResult, ModelFinderResult}
 import fortress.util._
 import fortress.msfol._
 import fortress.operations._

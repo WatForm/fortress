@@ -523,7 +523,7 @@ operation.wrapTheory(t:theory)
 
 ### compiler
 A packaging mechanism for a sequence of transformations.
-* LogicCompiler
+* Compiler
     - The "compile" method takes a theory and scopes, and returns either CompilerError of CompilerResult (theory,decompileInterpretation,skipForNextInterpretation )
 * TransformationCompiler
     - The "compile" method builds a problem state and applies transformers.
@@ -532,7 +532,7 @@ A packaging mechanism for a sequence of transformations.
 * FortressCompilers: Define the fortress compilers (Zero, ONE, etc) as the BaseFortressCompilers plus certain symmetry breaking.
     - Defines the SimpleModelFinder which exposes the compiler and interface to direct control from the user
 
-### solverinterface
+### solvers
 * These are ways of connecting to external solvers.
 * Main methods are:
 1) setTheory - takes a theory (returns Unit)

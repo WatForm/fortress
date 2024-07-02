@@ -1,6 +1,6 @@
 // used in solver sessions
 
-package fortress.solverinterface
+package fortress.solvers
 
 import java.io._
 import java.lang.AutoCloseable

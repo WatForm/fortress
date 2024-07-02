@@ -5,7 +5,7 @@ import fortress.msfol.Term._
 import fortress.msfol.Sort._
 import fortress.modelfind._
 import fortress.transformers._
-import fortress.solverinterface._
+import fortress.solvers._
 import fortress.interpretation._
 
 import scala.util.Using

@@ -1,10 +1,19 @@
 package fortress.cli
 
+/* 
+    A CLI for debugging that does four operations: 
+        decision (checkSat),
+        count (countValidModels), 
+        compile (prints the compiled theory),
+        checkfornewsorts (tallies how many new sorts are found in sort inference)
+    Mostly used for Joe's symmetry breaking tests
+*/
+
 import org.rogach.scallop._
 import fortress.msfol._
-import fortress.modelfind._
+import fortress.modelfinders._
 import fortress.inputs._
-import fortress.compiler._
+import fortress.compilers._
 import fortress.util._
 import fortress.logging._
 import fortress.operations.TheoryOps._
@@ -81,22 +90,20 @@ object FortressDebug {
             Seq(new RawDataLogger(new PrintWriter(System.out)))
         } else Seq()
 
+
         conf.mode() match {
             case "decision" => {
-                val modelFinder = conf.version() match {
-                    case "v0" => new FortressZERO
-                    case "v1" => new FortressONE
-                    case "v2" => new FortressTWO
-                    case "v2si" => new FortressTWO_SI
-                    case "v3" => new FortressTHREE
-                    case "v3si" => new FortressTHREE_SI
-                    case "v4" => new FortressFOUR
-                    case "v4si" => new FortressFOUR_SI
-//                    case "upperIter" => new IterativeUpperBoundModelFinder
-//                    case "parIter" => new ParallelIterativeUpperBoundModelFinder
-                    case "upperND" => new NonDistUpperBoundModelFinder
-                    case "upperPred" => new PredUpperBoundModelFinder
+
+                val modelFinder: ModelFinder = ModelFindersRegistry.fromString(conf.version()) match {
+                    case Some(mf) => mf
+                    case None => {
+                        println("Not a valid model finder.") 
+                        System.exit(1)
+                        // need this to satisfy typechecking
+                        new ModelFinder()
+                    }
                 }
+
 
                 for(logger <- loggers) {
                     modelFinder.addLogger(logger)
@@ -120,16 +127,16 @@ object FortressDebug {
             }
 
             case "count" => {
-                val modelFinder = conf.version() match {
-                    case "v0" => new FortressZERO
-                    case "v1" => new FortressONE
-                    case "v2" => new FortressTWO
-                    case "v2si" => new FortressTWO_SI
-                    case "v3" => new FortressTHREE
-                    case "v3si" => new FortressTHREE_SI
-                    case "unbounded" => new FortressUnbounded
-                    case "v3sill" => new FortressLearnedLiterals
+                val modelFinder = ModelFindersRegistry.fromString(conf.version()) match {
+                    case Some(mf) => mf
+                    case None => {
+                        println("Not a valid model finder.") 
+                        System.exit(1)
+                        // need this to satisfy typechecking
+                        new ModelFinder()
+                    }
                 }
+
 
                 modelFinder.setTheory(theory)
                 for((sort, scope) <- scopes) {
@@ -143,13 +150,14 @@ object FortressDebug {
             }
 
             case "compile" => {
-                val compiler = conf.version() match {
-                    case "v0" => new FortressZEROCompiler()
-                    case "v1" => new FortressONECompiler()
-                    case "v2" => new FortressTWOCompiler()
-                    case "v2si" => new FortressTWOCompiler_SI()
-                    case "v3" => new FortressTHREECompiler()
-                    case "v3si" => new FortressTHREECompiler_SI()
+                val compiler = CompilersRegistry.fromString(conf.version()) match {
+                    case Some(c) => c
+                    case None => {
+                        println("Not a valid compiler.") 
+                        System.exit(1)
+                        // need this to satisfy typechecking
+                        new StandardCompiler()
+                    }                    
                 }
                 val output = compiler.compile(theory, scopes, Seconds(conf.timeout()).toMilli, loggers, verbose=conf.debug())
                 output match {
@@ -159,17 +167,16 @@ object FortressDebug {
             }
 
             case "checkfornewsorts" => {
-                val compiler = conf.version() match {
-                    case "v2si" => new FortressTWOCompiler_SI()
-                    case "v3si" => new FortressTHREECompiler_SI()
-                    case other => {
-                        System.err.println("Invalid model finder for looking for new sorts "+ other )
-                        System.exit(1)
-                    }
+                if (!CompilersRegistry.doesSortInference(conf.version())) {
+                    System.err.println("Invalid compiler for looking for new sorts "+ conf.version )
+                    System.exit(1)
                 }
+
                 val old_num_sorts = wrapTheory(theory).sortCount
 
                 // the following is enough to determine if there are new sorts
+                // notice that it does not need any compiler!
+
                 // TypecheckSanitizeTransformer: Theory -> Theory
                 val theory2 = TypecheckSanitizeTransformer.apply(ProblemState(theory)).theory
                 // wrapTheory is for operations on theories

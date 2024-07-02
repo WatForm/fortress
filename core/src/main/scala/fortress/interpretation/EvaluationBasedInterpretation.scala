@@ -1,7 +1,7 @@
 package fortress.interpretation
 
 import fortress.msfol._
-import fortress.solverinterface._
+import fortress.solvers._
 import fortress.data.CartesianSeqProduct
 import fortress.util.ArgumentListGenerator
 

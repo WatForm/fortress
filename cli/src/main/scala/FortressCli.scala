@@ -2,9 +2,10 @@ package fortress.cli
 
 import org.rogach.scallop._
 import fortress.msfol._
-import fortress.modelfind._
+import fortress.modelfinders._
 import fortress.inputs._
-import fortress.compiler._
+import fortress.compilers._
+import fortress.solvers._
 import fortress.util._
 import fortress.logging._
 import fortress.problemstate._
@@ -29,13 +30,25 @@ class Conf(arguments: Seq[String]) extends ScallopConf(arguments) {
     val timeout = opt[Int](required = true, descr="timeout in seconds") // Timeout in seconds
 
     // model finder.
-    val mfConverter = singleArgConverter[ModelFinder](FortressModelFinders.fromString(_).get, {
-        case x: ju.NoSuchElementException  => Left("Not a valid FortressModelFinder")
+    val mfConverter = singleArgConverter[ModelFinder](ModelFindersRegistry.fromString(_).get, {
+        case x: ju.NoSuchElementException  => Left("Not a valid ModelFinder")
     })
-    val modelFinder = opt[ModelFinder](required = false, descr="modelfinder to use")(mfConverter)
+    val modelFinder = opt[ModelFinder](required = false, descr="modelfinder to use (default StandardCompiler/Z3NonIncSolver)")(mfConverter)
+
+    // solver
+    val solverConverter = singleArgConverter[Solver](SolverRegistry.fromString(_).get, {
+        case x: ju.NoSuchElementException  => Left("Not a valid Solver")
+    })
+    val solver = opt[Solver](required = false, descr="solver to use (default Z3NonIncSolver)")(solverConverter)
+
+    // compiler
+    val compilerConverter = singleArgConverter[Compiler](CompilersRegistry.fromString(_).get, {
+        case x: ju.NoSuchElementException  => Left("Not a valid Compiler")
+    })
+    val compiler = opt[Compiler](required = false, descr="compiler to use (default StandardCompiler)")(compilerConverter)
 
     // transformers if manually specifying
-    val transfromerConverter = new ValueConverter[List[ProblemStateTransformer]]{
+    val transformerConverter = new ValueConverter[List[ProblemStateTransformer]]{
         def parse(s: List[(String, List[String])]): Either[String,Option[List[ProblemStateTransformer]]] = {
             // Don't really care if someone makes separate lists of transformers, so we fold them together
             val transformerNames = s.map(_._2).flatten 
@@ -52,9 +65,12 @@ class Conf(arguments: Seq[String]) extends ScallopConf(arguments) {
         }
         val argType: ArgType.V = ArgType.LIST
     }
-    val transformers = opt[List[ProblemStateTransformer]](required = false,short='T', descr="alternative to modelfinder. specify transformers in order")(transfromerConverter)
+    val transformers = opt[List[ProblemStateTransformer]](required = false,short='T', descr="alternative to modelfinder. specify transformers in order")(transformerConverter)
 
     mutuallyExclusive(modelFinder, transformers)
+    mutuallyExclusive(modelFinder, compiler)
+    mutuallyExclusive(modelFinder, solver)
+    mutuallyExclusive(compiler, transformers)
 
     val generate = opt[Boolean](descr="whether to generate a model") // Whether to generate a model
     verify()
@@ -132,18 +148,35 @@ object FortressCli {
         }
 
 
-        val integerSemantics = Unbounded
+        //val integerSemantics = Unbounded
 
 
-        val modelFinder: ModelFinder = if (conf.transformers.isSupplied) {
-            new SimpleModelFinder(conf.transformers.apply())
-        } else {
+        val modelFinder: ModelFinder = // if (conf.transformers.isSupplied) {
+        //    new SimpleModelFinder(conf.transformers.apply())
+        //} else {
             conf.modelFinder.toOption match {
                 case Some(mf) => mf
-                case None => ModelFinder.createDefault()
+                case None => new ModelFinder() // the default one
+            }
+        //}
+
+        // mutually exclusive with the specification of a model finder
+        if (conf.compiler.isSupplied) {
+            conf.compiler.toOption match {
+                case Some(compiler) => modelFinder.setCompiler(compiler)
+                case None => Errors.API.cliError("Should not reach this point in CLI")
             }
         }
-//        val modelFinder: ModelFinder = ModelFinder.createPredUpperBoundModelFinder()
+
+        // mutually exclusive with the specification of a model finder
+        if (conf.solver.isSupplied) {
+            conf.solver.toOption match {
+                case Some(solver) => modelFinder.setSolver(solver)
+                case None => Errors.API.cliError("Should not reach this point in CLI")
+            }
+        }
+
+
         val loggers = if(conf.debug()) {
             Seq(new StandardLogger(new PrintWriter(System.out)))
         } else Seq()
@@ -158,8 +191,8 @@ object FortressCli {
             modelFinder.setScope(sort, scope)
         }
         modelFinder.setTimeout(Seconds(conf.timeout()))
-        //modelFinder.setBoundedIntegers(integerSemantics)
 
+        // TODO: this seems to run the compiler separately from the model finder??? 
         if(conf.debug() && conf.verbose() && conf.transformers.isSupplied){
             val compiler = new ConfigurableCompiler(conf.transformers.apply())
             val result = compiler.compile(

@@ -4,7 +4,7 @@ import fortress.msfol._
 import fortress.msfol.Term._
 import fortress.msfol.Sort._
 import fortress.msfol.FuncDecl._
-import fortress.solverinterface._
+import fortress.solvers._
 import fortress.modelfind._
 import fortress.util.Milliseconds
 

@@ -1,6 +1,6 @@
 package fortress.logging
 
-import fortress.modelfind._
+import fortress.modelfinders._
 import fortress.msfol._
 import fortress.transformers._
 import fortress.util._

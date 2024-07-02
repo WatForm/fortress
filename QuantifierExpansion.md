@@ -13,7 +13,7 @@ If all sorts are limited in their set of values then the problem is decidable, b
 (1A) assume the use of datatypes makes the solver think the problem is finite and exists/forall quantifiers are okay (already added to FortressCompilers.scala) ClosureElimination requires nnf so we can't get rid of that step. For testing with QUF we might want to simplify this further.
 
 ```
-abstract class DatatypeMethodNoRangeCompiler() extends LogicCompiler {
+abstract class DatatypeMethodNoRangeCompiler() extends Compiler {
     override def transformerSequence: Seq[ProblemStateTransformer] = {
         val transformerSequence = new scala.collection.mutable.ListBuffer[ProblemStateTransformer]
         transformerSequence += TypecheckSanitizeTransformer
@@ -33,7 +33,7 @@ abstract class DatatypeMethodNoRangeCompiler() extends LogicCompiler {
 (1B) datatypes plus range formulas (already added to FortressCompilers.scala)
 
 ```
-abstract class DatatypeMethodWithRangeCompiler() extends LogicCompiler {
+abstract class DatatypeMethodWithRangeCompiler() extends Compiler {
     override def transformerSequence: Seq[ProblemStateTransformer] = {
         val transformerSequence = new scala.collection.mutable.ListBuffer[ProblemStateTransformer]
         transformerSequence += TypecheckSanitizeTransformer

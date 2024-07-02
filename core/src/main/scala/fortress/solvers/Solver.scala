@@ -1,8 +1,8 @@
-package fortress.solverinterface
+package fortress.solvers
 
 import fortress.msfol._
 import fortress.interpretation._
-import fortress.modelfind._
+import fortress.modelfinders._
 import fortress.util._
 
 trait Solver extends AutoCloseable {
