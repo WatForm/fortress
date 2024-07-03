@@ -1,7 +1,7 @@
 import java.io.{File, FileInputStream}
 
 import fortress.inputs.SmtLibParser
-import fortress.modelfind._
+import fortress.modelfinders._
 import fortress.operations.TheoryOps._
 import fortress.msfol._
 import org.scalatest._
@@ -23,7 +23,7 @@ class CombinedModelTest extends UnitSuite {
 //         println("Parsed theory from file:")
 //         println(resultTheory)
 
-        Using.resource(new FortressTHREE()) { finder => {
+        Using.resource(new JoeTHREEModelFinder()) { finder => {
 
             finder.setTheory(resultTheory)
             finder.checkSat() should be (ModelFinderResult.Sat)
@@ -52,7 +52,7 @@ class CombinedModelTest extends UnitSuite {
         // println("Parsed theory from file:")
         // println(resultTheory)
 
-        Using.resource(new FortressZERO) { finder => {
+        Using.resource(new JoeZEROModelFinder) { finder => {
 
             finder.setTheory(resultTheory)
             finder.checkSat() should be (ModelFinderResult.Sat)
@@ -77,7 +77,7 @@ class CombinedModelTest extends UnitSuite {
         val parser = new SmtLibParser
         val resultTheory = parser.parse(fileStream).getOrElse(null)
 
-        Using.resource(new FortressZERO) { finder => {
+        Using.resource(new JoeZEROModelFinder) { finder => {
 
             // K_n is n-colourable
             finder.setExactScope(SortConst("vert"), 3)
@@ -117,7 +117,7 @@ class CombinedModelTest extends UnitSuite {
         val parser = new SmtLibParser
         val resultTheory = parser.parse(fileStream).getOrElse(null)
 
-        Using.resource(new FortressZERO) { finder => {
+        Using.resource(new JoeZEROModelFinder) { finder => {
 
             finder.setExactScope(SortConst("V1"), 2)
             finder.setExactScope(SortConst("V2"), 2)

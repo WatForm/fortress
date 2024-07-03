@@ -1,6 +1,6 @@
 import java.io.{ByteArrayInputStream, File, FileInputStream, FileOutputStream, StringBufferInputStream}
 import fortress.inputs._
-import fortress.modelfind._
+import fortress.modelfinders._
 import fortress.msfol._
 import org.scalatest._
 

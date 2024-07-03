@@ -105,6 +105,9 @@ class ModelFinder() extends AutoCloseable {
     protected def notifyLoggers(notifyFn: EventLogger => Unit): Unit = 
         for(logger <- eventLoggers) notifyFn(logger)
 
+    def compile(verbose: Boolean = false): Either[CompilerError, CompilerResult] = {
+        compiler.get.compile(theory, analysisScopes, timeoutMilliseconds, eventLoggers.toList, verbose) 
+    }
     // Parentheses are used rather than zero parameters to indicate that state may change.
 
     /** Check for a satisfying interpretation to the theory with the given scopes. */
@@ -114,7 +117,7 @@ class ModelFinder() extends AutoCloseable {
 
         //compiler = Some(createCompiler())
 
-        compiler.get.compile(theory, analysisScopes, timeoutMilliseconds, eventLoggers.toList, verbose) match {
+        this.compile(verbose) match {
             case Left(CompilerError.Timeout) => TimeoutResult
             case Left(CompilerError.Other(errMsg)) => ErrorResult(errMsg)
             case Right(compilerRes) => {

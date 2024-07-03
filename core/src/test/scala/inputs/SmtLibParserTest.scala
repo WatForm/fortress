@@ -1,6 +1,6 @@
 import java.io.{File, FileInputStream}
 import fortress.inputs._
-import fortress.modelfind._
+import fortress.modelfinders._
 import fortress.msfol._
 import fortress.problemstate.{ExactScope, NonExactScope}
 import org.scalatest._
@@ -267,7 +267,7 @@ class SmtLibParserTest extends UnitSuite {
         val resultTheory = parser.parse(fileStream).getOrElse(null)
 
 
-        Using.resource(ModelFinder.createDefault) { mf => {
+        Using.resource(new ModelFinder()) { mf => {
             mf.setTheory(resultTheory)
             val res = mf.checkSat(false)
 
@@ -317,7 +317,7 @@ class SmtLibParserTest extends UnitSuite {
 
         resultTheory should be (expected)
 
-        Using.resource(ModelFinder.createDefault) { mf => {
+        Using.resource(new ModelFinder()) { mf => {
             mf.setTheory(resultTheory)
             val res = mf.checkSat(false)
 

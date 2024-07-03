@@ -1,7 +1,7 @@
 import org.scalatest._
 import org.scalatest.flatspec._
 import fortress.util.Seconds
-import fortress.modelfind._
+import fortress.modelfinders._
 import fortress.msfol._
 import fortress.msfol.Term._
 import fortress.transformers._

@@ -7,9 +7,9 @@ import fortress.config._
 import fortress.problemstate._
 import scala.util.Using
 import fortress.util.Seconds
-import fortress.modelfind.ModelFinderResult
-import fortress.compiler.ConfigurableCompiler
-import fortress.modelfind.SimpleModelFinder
+import fortress.modelfinders.ModelFinderResult
+import fortress.compilers.ConfigurableCompiler
+//import fortress.modelfinders.SimpleModelFinder
 
 import fortress.util.Dump
 

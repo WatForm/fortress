@@ -5,7 +5,7 @@ import fortress.transformers._
 import fortress.config._
 import scala.util.Using
 import fortress.util.Seconds
-import fortress.modelfind.ModelFinderResult
+import fortress.modelfinders.ModelFinderResult
 import fortress.operations.TermOps._
 import fortress.operations.TheoryOps._
 import fortress.util.Milliseconds
@@ -227,7 +227,7 @@ class OPFIIntsTransformerTest extends UnitSuite {
             if (result == ModelFinderResult.Sat){
                 val modelstring = finder.viewModel().toString()
                 println(modelstring)
-                println(finder.createCompiler().compile(theory, Map(IntSort->ExactScope(intSize)), Seconds(10).toMilli, Seq.empty, false) match {
+                println(finder.compile(false) match {
                     case Right(value) => value.theory.smtlib
                     case _ => ""
                 })

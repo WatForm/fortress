@@ -80,8 +80,11 @@ class Manager {
         compiler
     }
 
-    //def setupModelFinder(): ConfigurableModelFinder = new ConfigurableModelFinder(this)
-
+    def setupModelFinder(): ModelFinder = {
+      val mf = new ModelFinder()
+      mf.setCompiler(this.setupCompiler())
+      mf
+    }
 }
 
 object Manager {

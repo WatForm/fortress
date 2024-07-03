@@ -1,4 +1,4 @@
-import fortress.modelfind._
+import fortress.modelfinders._
 import fortress.msfol._
 import org.scalatest._
 import scala.util.Using
@@ -18,7 +18,7 @@ class CountModelTest extends UnitSuite {
             .withAxiom(Or(p, q))
             .withAxiom(Not(And(p, q)))
 
-        Using.resource(new FortressZERO) { finder => {
+        Using.resource(new JoeZEROModelFinder) { finder => {
             finder.setTheory(theory)
 
             finder.checkSat(false) should be (ModelFinderResult.Sat)
@@ -56,7 +56,7 @@ class CountModelTest extends UnitSuite {
           .withAxiom(Or(p, q, r))
           .withAxiom(Not(And(p, q, r)))
 
-        Using.resource(new FortressZERO) { finder =>
+        Using.resource(new JoeZEROModelFinder) { finder =>
             finder.countValidModels(theory) should be (6)
         }
     }
@@ -81,7 +81,7 @@ class CountModelTest extends UnitSuite {
           .withAxiom(Not(App("next", red) === red))
           .withAxiom(c === App("next", red))
 
-        Using.resource(new FortressZERO) { finder =>
+        Using.resource(new JoeZEROModelFinder) { finder =>
             finder.countValidModels(theory) should be (8)
         }
     }
@@ -131,7 +131,7 @@ class CountModelTest extends UnitSuite {
             .withAxiom(colConstraint1)
             .withAxiom(colConstraint2)
         
-        Using.resource(new FortressZERO) { finder => {
+        Using.resource(new JoeZEROModelFinder) { finder => {
             finder.setExactScope(Row, 4)
             finder.setExactScope(Col, 4)
             finder.countValidModels(rookTheory) should be (24)
@@ -151,7 +151,7 @@ class CountModelTest extends UnitSuite {
             .withFunctionDeclarations(f)
             .withAxiom(Forall(x of A, Exists(y of A, Not(App("f", x) === y))))
         
-        Using.resource(new FortressZERO) { finder => {
+        Using.resource(new JoeZEROModelFinder) { finder => {
             finder.setExactScope(A, 3)
             finder.countValidModels(theory) should be (27)
         }}

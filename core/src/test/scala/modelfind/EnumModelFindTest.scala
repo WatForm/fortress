@@ -1,7 +1,7 @@
 import org.scalatest._
 
 import fortress.msfol._
-import fortress.modelfind._
+import fortress.modelfinders._
 
 import scala.util.Using
 
@@ -27,7 +27,7 @@ class EnumModelFindTest extends UnitSuite {
             .withAxiom(App("next", red) === green)
             .withAxiom(c === App("next", red))
         
-        Using.resource(ModelFinder.createDefault) { finder => {
+        Using.resource(new ModelFinder()) { finder => {
             finder.setTheory(theory)
             // Do not need to set scope of enum sort
             

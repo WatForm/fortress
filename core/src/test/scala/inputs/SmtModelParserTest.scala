@@ -1,5 +1,5 @@
 import fortress.inputs._
-import fortress.modelfind._
+import fortress.modelfinders._
 import fortress.msfol._
 import fortress.problemstate.{ExactScope, NonExactScope}
 import org.scalatest._

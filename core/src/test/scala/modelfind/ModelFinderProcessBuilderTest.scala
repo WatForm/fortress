@@ -3,7 +3,7 @@ import org.scalatest._
 import fortress.msfol._
 import fortress.msfol.Term._
 import fortress.msfol.Sort._
-import fortress.modelfind._
+import fortress.modelfinders._
 import fortress.transformers._
 import fortress.solvers._
 import fortress.interpretation._
@@ -128,7 +128,7 @@ class ModelFinderProcessBuilderTest extends UnitSuite {
         constantInterpretations: Map[AnnotatedVar, Value],
         functionInterpretations: Map[FuncDecl, Map[Seq[Value], Value]]): Unit = {
         
-        testSolverStrategy(CVC4CliInterface, theory, scopes, sortInterpretations, constantInterpretations, functionInterpretations)
+        testSolver(new CVC4CliSolver(), theory, scopes, sortInterpretations, constantInterpretations, functionInterpretations)
     }
     
     def testZ3(theory: Theory,
@@ -137,19 +137,20 @@ class ModelFinderProcessBuilderTest extends UnitSuite {
         constantInterpretations: Map[AnnotatedVar, Value],
         functionInterpretations: Map[FuncDecl, Map[Seq[Value], Value]]): Unit = {
         
-        testSolverStrategy(Z3NonIncCliInterface, theory, scopes, sortInterpretations, constantInterpretations, functionInterpretations)
+        testSolver(new Z3NonIncCliSolver(), theory, scopes, sortInterpretations, constantInterpretations, functionInterpretations)
     }
     
-    def testSolverStrategy(
-        solverInterface: SolverInterface,
+    def testSolver(
+        solver: Solver,
         theory: Theory,
         scopes: Map[Sort, Int],
         sortInterpretations: Map[Sort, Seq[Value]],
         constantInterpretations: Map[AnnotatedVar, Value],
         functionInterpretations: Map[FuncDecl, Map[Seq[Value], Value]]): Unit = {
             
-        Using.resource(new FortressTWO(solverInterface)) { finder => {
+        Using.resource(new JoeTWOModelFinder()) { finder => {
             finder setTheory theory
+            finder setSolver solver
             for ((sort, size) <- scopes) {
                 finder.setExactScope(sort, size)
             }
