@@ -27,7 +27,7 @@ class EnumModelFindTest extends UnitSuite {
             .withAxiom(App("next", red) === green)
             .withAxiom(c === App("next", red))
         
-        Using.resource(new ModelFinder()) { finder => {
+        Using.resource(new StandardModelFinder()) { finder => {
             finder.setTheory(theory)
             // Do not need to set scope of enum sort
             

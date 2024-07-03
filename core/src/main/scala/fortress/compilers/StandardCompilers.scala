@@ -106,17 +106,37 @@ class ClaessenCompiler() extends StandardCompiler {
 
 }
 
+class StandardSICompiler() extends StandardCompiler {
+
+    override def symmetryBreaker:ProblemStateTransformer = 
+        new SymmetryBreakingTransformer(SymmetryBreakingOptions(
+            selectionHeuristic = MonoFirstThenFunctionsFirstAnyOrder,
+            breakSkolem = true,
+            sortInference = true,
+            patternOptimization = true,
+        ))
+
+}
+
+/*
+   use datatypes but turn it into EUF by getting rid of quantifiers (skolemize, quant exp)
+   include range formulas
+*/
+class DatatypeWithRangeEUFCompiler() extends StandardCompiler {
+
+    override def enumerateFiniteValues: ProblemStateTransformer = 
+        DatatypeTransformer
+    
+}
+
 /*
    use datatypes but turn it into EUF by getting rid of quantifiers (nnf, skolemize, quant exp)
    don't use range formulas (b/c datatype limits output to finite)
 */
-class DatatypeNoRangeEUFCompiler() extends StandardCompiler {
+class DatatypeNoRangeEUFCompiler() extends DatatypeWithRangeEUFCompiler() {
 
     override def rangeFormulasOrNot: ProblemStateTransformer = 
         NullTransformer
-
-    override def enumerateFiniteValues: ProblemStateTransformer = 
-        DatatypeTransformer
     
 }
 
@@ -126,7 +146,7 @@ class DatatypeNoRangeEUFCompiler() extends StandardCompiler {
    don't get rid of quantifiers - not EUF (no nnf, no skolemize/quantifier expansion)
    use range formulas 
 */
-class DatatypeWithRangeCompiler() extends StandardCompiler {
+class DatatypeWithRangeNoEUFCompiler() extends StandardCompiler {
     override def quantifierHandler: Seq[ProblemStateTransformer] = {  
         // TODO: SHOULDN"T THIS BE NOTHING??
         val ts = new scala.collection.mutable.ListBuffer[ProblemStateTransformer]
@@ -150,7 +170,7 @@ class DatatypeWithRangeCompiler() extends StandardCompiler {
    no range formulas (b/c datatype limits output to finite)
 */
 
-class DatatypeNoRangeCompiler() extends DatatypeWithRangeCompiler {
+class DatatypeNoRangeNoEUFCompiler() extends DatatypeWithRangeNoEUFCompiler {
 
     override def quantifierHandler: Seq[ProblemStateTransformer] =  { 
         // TODO: SHOULDN"T THIS BE NOTHING??

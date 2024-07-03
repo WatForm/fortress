@@ -1,7 +1,15 @@
 # `fortress.modelfinders` Package
 
-The `fortress.modelfind` package contains the `ModelFinder` trait (interface).
-A `ModelFinder` is an object that accepts an input theory and scopes, and determines whether the theory is satisfiable or not with respect to those scopes.
-It is the main interface a user of Fortress makes use of.  The user can set the compiler, solver, timeout, etc.
+The `fortress.modelfinders` package contains the `ModelFinder` class.
+
+A `ModelFinder` is an object that accepts an input theory and scopes, and determines whether the theory is satisfiable or not with respect to those scopes for fortess.  
+
+See the file ModelFinder.scala for the interface functions.
+
+Class Hierarchy:
+ModelFinder (just the interface)
+	- StandardModelFinder (default definitions for interface functions using StandardCompiler, Z3NonIncCliSolver)
+		+ JoeModelFinders (and more below used in Joe's Symmetry Breaking IEEE TSE) 
+		+ ConfigurableModelFinder (allows compiler, solver to be parameters to the class and allows sequences of transformers as parameters)
 
 **ModelFinderRegistry.scala must be kept up-to-date as a mapping from strings to class names for model finders that the user can choose**

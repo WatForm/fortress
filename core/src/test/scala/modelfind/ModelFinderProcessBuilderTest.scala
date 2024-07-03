@@ -10,7 +10,7 @@ import fortress.interpretation._
 
 import scala.util.Using
 
-class ModelFinderProcessBuilderTest extends UnitSuite {
+class StandardModelFinderProcessBuilderTest extends UnitSuite {
     test("model with integers"){
         val x = mkVar("x")
         val theory: Theory = Theory.empty

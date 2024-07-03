@@ -3,7 +3,7 @@ package fortress.modelfinders
 import fortress.solvers._
 import fortress.compilers._
 
-abstract class JoeModelFinder extends ModelFinder {
+abstract class JoeModelFinder extends StandardModelFinder {
     setSolver(new Z3NonIncCliSolver()) 
 }
 

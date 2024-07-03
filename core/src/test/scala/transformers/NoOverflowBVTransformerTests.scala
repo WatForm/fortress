@@ -9,7 +9,7 @@ import scala.util.Using
 import fortress.util.Seconds
 import fortress.modelfinders.ModelFinderResult
 import fortress.compilers.ConfigurableCompiler
-//import fortress.modelfinders.SimpleModelFinder
+//import fortress.modelfinders.SimpleStandardModelFinder
 
 import fortress.util.Dump
 

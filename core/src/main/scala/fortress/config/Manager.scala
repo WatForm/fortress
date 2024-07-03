@@ -81,7 +81,7 @@ class Manager {
     }
 
     def setupModelFinder(): ModelFinder = {
-      val mf = new ModelFinder()
+      val mf = new StandardModelFinder()
       mf.setCompiler(this.setupCompiler())
       mf
     }

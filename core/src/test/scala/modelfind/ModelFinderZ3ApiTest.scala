@@ -6,7 +6,7 @@ import fortress.transformers._
 
 import scala.util.Using
 
-class ModelFinderZ3ApiTest extends UnitSuite {
+class StandardModelFinderZ3ApiTest extends UnitSuite {
     
     val p = Var("p")
     val q = Var("q")
@@ -25,7 +25,7 @@ class ModelFinderZ3ApiTest extends UnitSuite {
             .withConstantDeclaration(p.of(Sort.Bool))
             .withAxiom(And(p, p))
         
-        Using.resource(new ModelFinder()) { finder => {
+        Using.resource(new StandardModelFinder()) { finder => {
             finder.setTheory(theory)
             
             finder.checkSat(false) should be (ModelFinderResult.Sat)
@@ -37,7 +37,7 @@ class ModelFinderZ3ApiTest extends UnitSuite {
             .withConstantDeclaration(p.of(Sort.Bool))
             .withAxiom(And(p, Not(p)))
         
-        Using.resource(new ModelFinder()) { finder => {
+        Using.resource(new StandardModelFinder()) { finder => {
             finder.setTheory(theory)
             
             finder.checkSat(false) should be (ModelFinderResult.Unsat)
@@ -49,7 +49,7 @@ class ModelFinderZ3ApiTest extends UnitSuite {
             .withConstantDeclarations(p.of(Sort.Bool), q.of(Sort.Bool))
             .withAxiom(Not(Implication(And(p, q), q)))
         
-        Using.resource(new ModelFinder()) { finder => {
+        Using.resource(new StandardModelFinder()) { finder => {
             finder.setTheory(theory)
             
             finder.checkSat(false) should be (ModelFinderResult.Unsat)
@@ -61,7 +61,7 @@ class ModelFinderZ3ApiTest extends UnitSuite {
             .withConstantDeclarations(p.of(Sort.Bool), q.of(Sort.Bool))
             .withAxiom(Not(Implication(Or(p, q), q)))
         
-        Using.resource(new ModelFinder()) { finder => {
+        Using.resource(new StandardModelFinder()) { finder => {
             finder.setTheory(theory)
             
             finder.checkSat(false) should be (ModelFinderResult.Sat)
@@ -85,7 +85,7 @@ class ModelFinderZ3ApiTest extends UnitSuite {
             .withAxiom(premise2)
             .withAxiom(Not(conjecture))
             
-        Using.resource(new ModelFinder()) { finder => {
+        Using.resource(new StandardModelFinder()) { finder => {
             finder.setTheory(theory)
             finder.setExactScope(U, 3)
             finder.checkSat(false) should be (ModelFinderResult.Unsat)

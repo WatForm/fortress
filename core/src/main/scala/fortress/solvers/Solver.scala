@@ -5,9 +5,7 @@ import fortress.interpretation._
 import fortress.modelfinders._
 import fortress.util._
 
-trait Solver extends AutoCloseable {
-
-    
+abstract class Solver extends AutoCloseable {
 
     def setTheory(theory: Theory): Unit
     def addAxiom(axiom: Term): Unit

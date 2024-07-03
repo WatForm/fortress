@@ -100,7 +100,7 @@ object FortressDebug {
                         println("Not a valid model finder.") 
                         System.exit(1)
                         // need this to satisfy typechecking
-                        new ModelFinder()
+                        new StandardModelFinder()
                     }
                 }
 
@@ -133,7 +133,7 @@ object FortressDebug {
                         println("Not a valid model finder.") 
                         System.exit(1)
                         // need this to satisfy typechecking
-                        new ModelFinder()
+                        new StandardModelFinder()
                     }
                 }
 

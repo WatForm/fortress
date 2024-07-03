@@ -267,7 +267,7 @@ class SmtLibParserTest extends UnitSuite {
         val resultTheory = parser.parse(fileStream).getOrElse(null)
 
 
-        Using.resource(new ModelFinder()) { mf => {
+        Using.resource(new StandardModelFinder()) { mf => {
             mf.setTheory(resultTheory)
             val res = mf.checkSat(false)
 
@@ -317,7 +317,7 @@ class SmtLibParserTest extends UnitSuite {
 
         resultTheory should be (expected)
 
-        Using.resource(new ModelFinder()) { mf => {
+        Using.resource(new StandardModelFinder()) { mf => {
             mf.setTheory(resultTheory)
             val res = mf.checkSat(false)
 

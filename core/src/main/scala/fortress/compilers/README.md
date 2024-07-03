@@ -12,9 +12,10 @@ The compilers classes are arranged hierarchically:
 trait Compiler
 	- StandardCompiler - default is constants method but with common variation points
 		+ ClaessenCompiler
-		+ DatatypeNoRangeEUFCompiler
-		+ DatatypeWithRangeCompiler
-			* DatatypeNoRangeCompiler
+		+ DatatypeWithRangeEUFCompiler
+			* DatatypeNoRangeEUFCompiler
+		+ DatatypeWithRangeNoEUFCompiler
+			* DatatypeNoRangeNoEUFCompiler
 	- JoeSymmetryCompilers - compilers testing symmetry breaking and sort inference (IEEE TSE 2023)
 	- ConfigurableCompiler - ???
 	- trait PervasiveTypeChecking - adds typechecking between all transformers as a check

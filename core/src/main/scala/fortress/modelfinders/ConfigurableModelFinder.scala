@@ -15,11 +15,10 @@ import fortress.solvers._
   * there are a variety of constructors including Seq's of transformers
   * only used at API not CLI
   */
-class ConfigurableModelFinder(solver: Solver, compiler: Compiler) extends ModelFinder() {
+class ConfigurableModelFinder(solver: Solver, compiler: Compiler) extends StandardModelFinder() {
 
     this.setSolver(solver)
     this.setCompiler(compiler)
-
 
     def this(compiler: Compiler) = 
       this(new Z3NonIncCliSolver(), compiler)

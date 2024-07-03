@@ -4,12 +4,17 @@ object CompilersRegistry {
     def fromString(str: String): Option[Compiler] = {
         str.toLowerCase() match {
 
-            // StandardCompilers
+            // StandardCompilers - use constants 
             case "Standard"  => Some(new StandardCompiler())
+            case "StandardSI"  => Some(new StandardSICompiler())
+
             case "Claessen" => Some(new ClaessenCompiler())
+
+            // use datatypes to make it finite
             case "DatatypeNoRangeEUF" => Some(new DatatypeNoRangeEUFCompiler())
-            case "DatatypeWithRange" => Some(new DatatypeWithRangeCompiler())
-            case "DatatypeNoRange" => Some(new DatatypeNoRangeCompiler())
+            case "DatatypeWithRangeEUF" => Some(new DatatypeWithRangeEUFCompiler())
+            case "DatatypeWithRangeNoEUF" => Some(new DatatypeWithRangeNoEUFCompiler())
+            case "DatatypeNoRangeNoEUF" => Some(new DatatypeNoRangeNoEUFCompiler())
 
             // JoeSymmetryCompilers  
             case "v0"  => Some(new JoeONECompiler())

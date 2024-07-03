@@ -15,7 +15,7 @@ import fortress.util.Extensions._
   * Converts a theory with scopes into another ``lower-level" theory, intended to be sent to an external solver.
   * Performs this process through a sequence of transformations.
   */
-trait Compiler {
+abstract class Compiler {
 
     def transformerSequence: Seq[ProblemStateTransformer]
         

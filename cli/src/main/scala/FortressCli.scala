@@ -156,7 +156,7 @@ object FortressCli {
         //} else {
             conf.modelFinder.toOption match {
                 case Some(mf) => mf
-                case None => new ModelFinder() // the default one
+                case None => new StandardModelFinder() // the default one
             }
         //}
 

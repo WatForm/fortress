@@ -54,7 +54,7 @@ class VerifyInterpretationTests extends UnitSuite {
                 .withAxiom(Forall(temp of bool, temp === App("identity", temp)))
                 .withAxiom(Forall(temp of bool, temp === App("doubleIdentity", temp, temp)))
 
-            Using.resource(new ModelFinder()) { finder => {
+            Using.resource(new StandardModelFinder()) { finder => {
                 try {
                         finder.setTheory(theory)
                         finder.checkSat()
@@ -153,7 +153,7 @@ class VerifyInterpretationTests extends UnitSuite {
                 .withAxiom(Forall(temp of fruit, temp === App("doubleIdentity", temp, temp)))
                 .withAxiom(Forall(temp of fruit, temp === App("tripleIdentity", temp, temp, temp)))
 
-            Using.resource(new ModelFinder()) { finder => {
+            Using.resource(new StandardModelFinder()) { finder => {
                 try {
                         finder.setTheory(theory)
                         finder.setExactScope(fruit, 5)
@@ -266,7 +266,7 @@ class VerifyInterpretationTests extends UnitSuite {
                 .withAxiom(Forall(temp of fruit, temp === App("doubleIdentity", temp, temp)))
                 .withAxiom(Forall(temp of fruit, temp === App("tripleIdentity", temp, temp, temp)))
 
-            Using.resource(new ModelFinder()) { finder => {
+            Using.resource(new StandardModelFinder()) { finder => {
                 try {
                         finder.setTheory(theory)
                         finder.checkSat()
@@ -361,7 +361,7 @@ class VerifyInterpretationTests extends UnitSuite {
                 .withAxiom(IntegerLiteral(3) === three)
                 .withAxiom(IntegerLiteral(7) === seven)
 
-            Using.resource(new ModelFinder()) { finder => {
+            Using.resource(new StandardModelFinder()) { finder => {
                 try {
                         finder.setTheory(theory)
                         finder.checkSat()
