@@ -27,8 +27,8 @@ class StandardModelFinder extends ModelFinder {
 
     protected var theory: Theory = Theory.empty
     // good defaults for compiler and solver 
-    protected var compiler:Option[Compiler] = Some(new StandardCompiler)
-    protected var solver:Option[Solver] = Some(new Z3NonIncCliSolver)
+    protected var compiler:Compiler = new StandardCompiler
+    protected var solver:Solver = new Z3NonIncCliSolver
 
     // can be set by user (see functions below)
     protected var timeoutMilliseconds: Milliseconds = Milliseconds(60000)
@@ -46,20 +46,24 @@ class StandardModelFinder extends ModelFinder {
         theory = newTheory
     }
     def setSolver(newSolver: Solver): Unit = {
-        solver = Some(newSolver)
+        solver = newSolver
     }
     def setSolver(newSolver: String): Unit = {
         // leave as default if arg is not a solver
         if (SolversRegistry.fromString(newSolver) != None)
-            solver = SolversRegistry.fromString(newSolver)
+            solver = SolversRegistry.fromString(newSolver).get
+        else 
+            Errors.API.doesNotExist("no solver of that name")
     }
     def setCompiler(newCompiler: Compiler): Unit = {
-        compiler = Some(newCompiler)
+        compiler = newCompiler
     }    
      def setCompiler(newCompiler: String): Unit = {
         // leave as default if arg is not a compiler
         if (CompilersRegistry.fromString(newCompiler) != None)
-            compiler = CompilersRegistry.fromString(newCompiler)
+            compiler = CompilersRegistry.fromString(newCompiler).get
+        else 
+            Errors.API.doesNotExist("no compiler of that name")
     }    
 
     /** Set the timeout in milliseconds. */
@@ -114,7 +118,7 @@ class StandardModelFinder extends ModelFinder {
         for(logger <- eventLoggers) notifyFn(logger)
 
     def compile(verbose: Boolean = false): Either[CompilerError, CompilerResult] = {
-        compiler.get.compile(theory, analysisScopes, timeoutMilliseconds, eventLoggers.toList, verbose) 
+        compiler.compile(theory, analysisScopes, timeoutMilliseconds, eventLoggers.toList, verbose) 
     }
 
     /** Check for a satisfying interpretation to the theory with the given scopes. */
@@ -147,9 +151,8 @@ class StandardModelFinder extends ModelFinder {
     private def solverPhase(finalTheory: Theory): ModelFinderResult = {
         notifyLoggers(_.invokingSolverStrategy())
         
-        // Close solver session, if one exists
-        // TODO: could just call close from this class
-        solver.foreach(_.close())
+        // Close solver session, if one has already been started
+        solver.close()
         
         // Open new solver session
         //val session = solverInterface.openSession()
@@ -158,14 +161,14 @@ class StandardModelFinder extends ModelFinder {
         // Convert to solver format
         notifyLoggers(_.convertingToSolverFormat())
         val (_, elapsedConvertNano) = measureTime[Unit] {
-            solver.get.setTheory(finalTheory)
+            solver.setTheory(finalTheory)
         }
         notifyLoggers(_.convertedToSolverFormat(elapsedConvertNano))
 
         // Solve
         val (finalResult, elapsedSolverNano) = measureTime {
             val remainingMillis = timeoutMilliseconds - totalTimer.elapsedNano().toMilli
-            solver.get.solve(remainingMillis)
+            solver.solve(remainingMillis)
         }
         notifyLoggers(_.solverFinished(elapsedSolverNano))
 
@@ -179,7 +182,7 @@ class StandardModelFinder extends ModelFinder {
       * Can only be called after checkSat.
       */
     def viewModel(): Interpretation = {
-        val instance = solver.get.solution
+        val instance = solver.solution
         compilerResult.get.decompileInterpretation(instance)
     }
 
@@ -187,7 +190,7 @@ class StandardModelFinder extends ModelFinder {
     def nextInterpretation(): ModelFinderResult = {
         // Negate the current interpretation, but leave out the skolem functions
         // Different witnesses are not useful for counting interpretations
-        val instance = solver.get.solution
+        val instance = solver.solution
             .withoutDeclarations(compilerResult.get.skipForNextInterpretation)
 
         val newInstance: Interpretation = {
@@ -217,8 +220,8 @@ class StandardModelFinder extends ModelFinder {
 
 //        println("newAxiom: " + newAxiom)
 
-        solver.get.addAxiom(newAxiom)
-        solver.get.solve(timeoutMilliseconds)
+        solver.addAxiom(newAxiom)
+        solver.solve(timeoutMilliseconds)
     }
 
 
@@ -267,7 +270,7 @@ class StandardModelFinder extends ModelFinder {
     
     @throws(classOf[java.io.IOException])
     def close(): Unit = {
-        solver.foreach(_.close())
+        solver.close()
     }
 
 }
