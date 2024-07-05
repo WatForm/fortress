@@ -48,10 +48,19 @@ class StandardModelFinder extends ModelFinder {
     def setSolver(newSolver: Solver): Unit = {
         solver = Some(newSolver)
     }
+    def setSolver(newSolver: String): Unit = {
+        // leave as default if arg is not a solver
+        if (SolversRegistry.fromString(newSolver) != None)
+            solver = SolversRegistry.fromString(newSolver)
+    }
     def setCompiler(newCompiler: Compiler): Unit = {
         compiler = Some(newCompiler)
     }    
-    
+     def setCompiler(newCompiler: String): Unit = {
+        // leave as default if arg is not a compiler
+        if (CompilersRegistry.fromString(newCompiler) != None)
+            compiler = CompilersRegistry.fromString(newCompiler)
+    }    
 
     /** Set the timeout in milliseconds. */
     def setTimeout(milliseconds: Milliseconds): Unit = {

@@ -31,8 +31,12 @@ abstract class ModelFinder extends AutoCloseable {
 
 	// settings
    def setTheory(newTheory: Theory): Unit 
+
    def setSolver(newSolver: Solver): Unit
+   def setSolver(newSolver: String): Unit
+
    def setCompiler(newCompiler: Compiler): Unit
+   def setCompiler(newCompiler: String): Unit
 
    def setTimeout(milliseconds: Milliseconds): Unit
    def setTimeout(seconds: Seconds): Unit

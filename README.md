@@ -1,10 +1,10 @@
 # Fortress
 
-Fortress is a command-line tool and library for finite model finding in many-sorted first order logic (MSFOL) with equality.
+Fortress is a command-line tool and library for manipulating many-sorted first order logic (MSFOL) (plus transitive closure and hopefully soon, set cardinality) formulas with SMT solvers. In particular, given scopes for all the sorts of the problem, Fortress can transform problems into formulas within the equality with uninterpreted functions decidable subset of MSFOL. 
 
 Fortress takes as input:
 * a first-order logic theory specified in SMT-LIB 2.6 format (the UF fragment), and
-* a domain size ("scope") for each sort.
+* (usually) a domain size ("scope") for each sort.
 
 It answers whether the theory has a satisfying interpretation (a "model" or "solution") with the given domain sizes.
 
@@ -42,12 +42,21 @@ You can read more about how to use multi-project builds in the [sbt reference ma
 
 ### Complete Build
 ```
+sbt stage
+```
+This will compile the code produce executables:
+* For the `fortress` project, the executable is `./cli/target/universal/stage/bin/fortress`
+
+
+Alternatively,
+```
 sbt dist
 ```
-This will compile the code produce universal zip archives:
-* For the `fortress` project, the output zip is in the `cli/target/universal/` directory.
+will compile the code produce universal zip archives:
+* For the `fortress` project, the output zip is in the `cli/target/universal/fortress-x.y.z.jar` directory.
 * For the `fortressCore` project, the output zip is in the `core/target/universal/` directory.
 * For the `fortressDebug` project, the output zip is in the `debug/target/universal/` directory.
+
 
 ### Compile Only
 ```
@@ -106,6 +115,6 @@ If the gradle build is not working properly ensure that your `JAVA_HOME` environ
 
 ## Acknowledgements
 
-The original version of Fortress was created by Amirhossein Vakili and Nancy Day.  Fortress was completely rewritten in Scala by Joseph Poremba.  Joe also greatly extended the symmetry breaking used in Fortress.  Additional contributors to Fortress include: Ruomei Yan, Orson Baines, Callum Moseley, Yie Jin (James) Long, and Owen Zila.
+The original version of Fortress was created by Amirhossein Vakili and Nancy Day.  Fortress was completely rewritten in Scala by Joseph Poremba.  Joe also greatly extended the symmetry breaking used in Fortress.  Additional contributors to Fortress include: Ruomei Yan, Orson Baines, Callum Moseley, Yie Jin (James) Long, Ryan Dancy, and Owen Zila.
    
 Some TPTP files publicly available on the TPTP Problem Library(http://www.tptp.org/) are used for unit tests.

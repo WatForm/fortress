@@ -1,7 +1,7 @@
 package fortress.solvers
 
 
-object SolverRegistry {
+object SolversRegistry {
 
     def fromString(str: String): Option[Solver] = {
         str.toLowerCase() match {

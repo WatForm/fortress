@@ -36,7 +36,7 @@ class Conf(arguments: Seq[String]) extends ScallopConf(arguments) {
     val modelFinder = opt[ModelFinder](required = false, descr="modelfinder to use (default StandardCompiler/Z3NonIncSolver)")(mfConverter)
 
     // solver
-    val solverConverter = singleArgConverter[Solver](SolverRegistry.fromString(_).get, {
+    val solverConverter = singleArgConverter[Solver](SolversRegistry.fromString(_).get, {
         case x: ju.NoSuchElementException  => Left("Not a valid Solver")
     })
     val solver = opt[Solver](required = false, descr="solver to use (default Z3NonIncSolver)")(solverConverter)
