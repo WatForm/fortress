@@ -1,8 +1,6 @@
 # `fortress.solvers` Package
 
-The `fortress.solvers` package is Fortress's way of connecting to external solvers.
-
-Solver is a trait that solvers are instances of.
+The `fortress.solvers` package contains the `Solver` class, which is Fortress' way of connecting to external solvers.
 
 The solver classes are arranged hierarchically:
 Solver
