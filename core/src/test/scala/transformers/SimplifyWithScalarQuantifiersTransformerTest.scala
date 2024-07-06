@@ -1,11 +1,11 @@
 import fortress.msfol._
 import fortress.problemstate.ProblemState
-import fortress.transformers.{NnfTransformer, SimplifyWithScalarQuantifiersTransformer}
+import fortress.transformers.{MaxAlphaRenamingTransformer, NnfTransformer, SimplifyWithScalarQuantifiersTransformer}
 
 class SimplifyWithScalarQuantifiersTransformerTest extends UnitSuite with CommonSymbols {
 
     def simplify(th: Theory): Theory =
-        SimplifyWithScalarQuantifiersTransformer(NnfTransformer(ProblemState(th))).theory
+        SimplifyWithScalarQuantifiersTransformer(MaxAlphaRenamingTransformer(NnfTransformer(ProblemState(th)))).theory
 
     test("nested quantifier") {
         val y0 = Var("y_0") // due to max alpha renaming
