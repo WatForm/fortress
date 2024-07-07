@@ -53,7 +53,7 @@ class StandardModelFinder extends ModelFinder {
         if (SolversRegistry.fromString(newSolver) != None)
             solver = SolversRegistry.fromString(newSolver).get
         else 
-            Errors.API.doesNotExist("no solver of that name")
+            Errors.API.doesNotExist(s"no solver of that name $newSolver")
     }
     def setCompiler(newCompiler: Compiler): Unit = {
         compiler = newCompiler
@@ -63,7 +63,7 @@ class StandardModelFinder extends ModelFinder {
         if (CompilersRegistry.fromString(newCompiler) != None)
             compiler = CompilersRegistry.fromString(newCompiler).get
         else 
-            Errors.API.doesNotExist("no compiler of that name")
+            Errors.API.doesNotExist(s"no compiler of that name $newCompiler")
     }    
 
     /** Set the timeout in milliseconds. */

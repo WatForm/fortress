@@ -2,7 +2,7 @@ package fortress.compilers
 
 object CompilersRegistry {
     def fromString(str: String): Option[Compiler] = {
-        str.toLowerCase() match {
+        str match {
 
             // StandardCompilers - use constants 
             case "Standard"  => Some(new StandardCompiler())
@@ -30,7 +30,7 @@ object CompilersRegistry {
     }
 
     def doesSortInference(str: String): Boolean = {
-        str.toLowerCase() match {
+        str match {
 
             case "v2si" => true
             case "v3si" => true
