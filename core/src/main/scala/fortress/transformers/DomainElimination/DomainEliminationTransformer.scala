@@ -8,7 +8,7 @@ import fortress.operations.TheoryOps._
 import fortress.problemstate.ProblemState
 
 /** Introduces constants to simulate the domain elements, asserting these constants are
-  * all distinct and repalacing occurrences of domain elements with the appropriate constant.
+  * all distinct and replacing occurrences of domain elements with the appropriate constant.
   * Leaves other aspects of the Problem unchanged.
   */
 object DomainEliminationTransformer extends ProblemStateTransformer {

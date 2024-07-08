@@ -9,11 +9,10 @@ import fortress.problemstate.ProblemState
   * All other aspects of the theory remain unchanged.
   *
   * This variant removes the simplification of equality formulas between two domain constants
-  * using the fact that the the domain constants were not equal. As in the "collapsing constants"
+  * using the fact that the the domain constants were not equal because in the "collapsing constants"
   * approach for solving with non-exact scope, constants are no longer distinct.
   * */
 
-//Fortress previously was able to use the fact that the domain constants were not equal to immediately simplify equality formulas between two domain constants. Obviously, this simplification needed to be removed.
 class SimplifyTransformer2 extends ProblemStateTransformer {
     
     override def apply(problemState: ProblemState): ProblemState =  {
