@@ -2,8 +2,8 @@ import fortress.msfol._
 import fortress.problemstate._
 import fortress.transformers._
 
-class SimpleUnboundedCheckTransformerTests extends UnitSuite with CommonSymbols {
-    val transformer = new TheoryApplication(new SimpleUnboundedCheckTransformer)
+class MaxUnboundedScopesTransformerTests extends UnitSuite with CommonSymbols {
+    val transformer = new TheoryApplication(new MaxUnboundedScopesTransformer)
 
     val baseTheory = Theory.empty
             .withSort(A)
