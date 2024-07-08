@@ -1,25 +1,36 @@
 package fortress.modelfinders
 
+import fortress.util.Errors
+
 // this registry matches string names to model finders beyond the default one
 
 object ModelFindersRegistry {
+
+    // this is the only place where string names are used
+    // these MUST match the class name of the ModelFinder (minus the 'ModelFinder' on the end)
     def fromString(str: String): Option[ModelFinder] = {
-        str.toLowerCase() match {
+        str match {
 
             // Standard Model Finders
-            case "standard" => Some(new StandardModelFinder())
+            case "Standard" => checkMatch(str, new StandardModelFinder())
 
             // Joe's Model Finders
-            case "zero" | "fortresszero" => Some(new JoeZEROModelFinder())
-            case "one" | "fortressone" => Some(new JoeONEModelFinder())
-            case "two" | "fortresstwo" => Some(new JoeTWOModelFinder())
-            case "two_si" | "fortresstwo_si" => Some(new JoeTWO_SIModelFinder())
-            case "three" | "fortressthree" => Some(new JoeTHREEModelFinder())
-            case "three_si" | "fortressthree_si" => Some(new JoeTHREE_SIModelFinder())
-            case "four" | "fortressfour" => Some(new JoeFOURModelFinder())
-            case "four_si" | "fortressfour_si" => Some(new JoeFOUR_SIModelFinder())
+            case "JoeZERO" => Some(new JoeZEROModelFinder())
+            case "JoeOnee" => Some(new JoeONEModelFinder())
+            case "JoeTWO" => Some(new JoeTWOModelFinder())
+            case "JoeTWO_SI" => Some(new JoeTWO_SIModelFinder())
+            case "JoeTHREE" => Some(new JoeTHREEModelFinder())
+            case "JoeTHREE_SI" => Some(new JoeTHREE_SIModelFinder())
+            case "JoeFOUR" => Some(new JoeFOURModelFinder())
+            case "JoeFOUR_SI" => Some(new JoeFOUR_SIModelFinder())
                 
             case _ => None
         }
     }
+
+    private def checkMatch(s:String, mf:ModelFinder) = {
+        Errors.Internal.assertion(mf.name != s, s +"does not match"+ mf.name)
+        Some(mf)        
+    }
+
 }

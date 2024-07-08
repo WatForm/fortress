@@ -25,11 +25,12 @@ import fortress.logging._
 import fortress.problemstate._
 
 import java.lang.AutoCloseable
+import java.lang.Class
 import scala.collection.mutable.ListBuffer
 
 abstract class ModelFinder extends AutoCloseable {
 
-	// settings
+
    def setTheory(newTheory: Theory): Unit 
 
    def setSolver(newSolver: Solver): Unit
@@ -57,5 +58,8 @@ abstract class ModelFinder extends AutoCloseable {
 
    // closes the solvers 
    def close(): Unit
+
+   // do not overwrite in a subclass
+   def name = StringHelpers.chopOff(this.getClass.getSimpleName,"ModelFinder")
 
 }
