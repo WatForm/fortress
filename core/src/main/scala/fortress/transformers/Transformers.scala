@@ -55,7 +55,6 @@ object Transformers {
             // case "symmetrybreaking" => Errors.API.doesNotExist("Use mkSymmetryBreakingTransformer")
             case "symmetrybreakingsi" | "symmetrybreakingtransformersi" => Errors.API.doesNotExist("Use mkSymmetryBreakingTransformerSI")
             case "typechecksanitizer" | "typecheck" | "typechecksanitize" => TypecheckSanitizeTransformer
-            case "zeroarityapplication" | "zeroarityapp" | "zeroarity" | "zeroarityvar" | "zeroarityapps" | "zeroarityvars" => ZeroArityApplicationTransformer
             case "axiomatizeintpreddefinitions" | "axiomatizeintpreds" | "axiomatizeintpreddefs" | "aipd" | "aip" 
                 | "axiomatizeintegerpredicatedefinitions" | "axiomatizeintpredicatedefinitions" | "axiomatizeintegerpredicatedefs"
                 | "axiomatizeintegerpreddefs" | "axiomatizeintpredicatedefs" => AxiomatizeIntPredDefinitionsTransformer

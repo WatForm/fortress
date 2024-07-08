@@ -130,13 +130,6 @@ skolemize is NOT applied to args of fcns/ites/closures
 - skolemize is NOT applied to defn bodies
 None of these transformers can guarantee there are no ites or existentials.
 
-* ZeroArityApplicationTransformer
- - theory -> theory
- - Changes some instances of Var(x) to App(x)
- - purpose:
-    + smtlib implicitly invokes zero arity functions
-    + out parser does not recognize this and assumes these are variables
-    + corrects this behavior to invoke the zero-arity function instead
 
 * TypecheckSanitizeTransformer @Nancy
     - theory -> theory
