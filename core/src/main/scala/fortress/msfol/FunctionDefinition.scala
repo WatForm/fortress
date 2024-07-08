@@ -14,10 +14,12 @@ import fortress.util.Errors
 
 
 case class FunctionDefinition(name: String, argSortedVar: Seq[AnnotatedVar], resultSort: Sort, body: Term) {
+    /*
+    // Ignoring because 0 arity is used in parsing models
     Errors.Internal.precondition(argSortedVar.size > 0, "Cannot create nullary functions; use a constant instead")
     Errors.Internal.precondition(! Names.isIllegal(name), "Illegal function name " + name)
     Errors.Internal.precondition(name.length > 0, "Cannot create function with empty name")
-    
+    */
     override def toString: String = {
         var str = name + " ("
         val n = argSortedVar.toList.size
