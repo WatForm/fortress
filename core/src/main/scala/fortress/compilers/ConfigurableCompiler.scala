@@ -12,7 +12,7 @@ import fortress.transformers.TheoryTransformer._ // for implicit conversion to P
 import fortress.symmetry._
 import scala.collection.mutable.ListBuffer
 
-class ConfigurableCompiler(transformers: ListBuffer[ProblemStateTransformer]) extends Compiler {
+class ConfigurableCompiler(transformers: ListBuffer[ProblemStateTransformer]) extends BaseCompiler {
     def this() {
         this(new collection.mutable.ListBuffer[ProblemStateTransformer])
     }

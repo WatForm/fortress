@@ -15,14 +15,14 @@ object ModelFindersRegistry {
             case "Standard" => checkMatch(str, new StandardModelFinder())
 
             // Joe's Model Finders
-            case "JoeZERO" => Some(new JoeZEROModelFinder())
-            case "JoeOnee" => Some(new JoeONEModelFinder())
-            case "JoeTWO" => Some(new JoeTWOModelFinder())
-            case "JoeTWO_SI" => Some(new JoeTWO_SIModelFinder())
-            case "JoeTHREE" => Some(new JoeTHREEModelFinder())
-            case "JoeTHREE_SI" => Some(new JoeTHREE_SIModelFinder())
-            case "JoeFOUR" => Some(new JoeFOURModelFinder())
-            case "JoeFOUR_SI" => Some(new JoeFOUR_SIModelFinder())
+            case "JoeZERO" => checkMatch(str, new JoeZEROModelFinder())
+            case "JoeOnee" => checkMatch(str, new JoeONEModelFinder())
+            case "JoeTWO" => checkMatch(str, new JoeTWOModelFinder())
+            case "JoeTWO_SI" => checkMatch(str, new JoeTWO_SIModelFinder())
+            case "JoeTHREE" => checkMatch(str, new JoeTHREEModelFinder())
+            case "JoeTHREE_SI" => checkMatch(str, new JoeTHREE_SIModelFinder())
+            case "JoeFOUR" => checkMatch(str, new JoeFOURModelFinder())
+            case "JoeFOUR_SI" => checkMatch(str, new JoeFOUR_SIModelFinder())
                 
             case _ => None
         }

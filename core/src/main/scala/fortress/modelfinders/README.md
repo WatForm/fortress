@@ -14,4 +14,6 @@ ModelFinder (just the interface)
 
 The ModelFinders used in one project are usually packaged together in one file.
 
-**ModelFinderRegistry.scala must be kept up-to-date as a mapping from strings to class names for model finders that the user can choose**
+**ModelFinderRegistry.scala must be kept up-to-date as a mapping from strings to class names for model finders that the user can choose. An error will be thrown at run time if the string does not match the class name.**
+
+**Class names must match file names.**

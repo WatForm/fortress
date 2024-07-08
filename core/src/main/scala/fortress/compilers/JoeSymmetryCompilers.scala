@@ -9,7 +9,7 @@ import scala.collection.mutable.ListBuffer
 /**
   * The standard Joe compiler steps.
   */
-abstract class BaseJoeSymmetryCompiler() extends Compiler {
+abstract class BaseJoeSymmetryCompiler() extends BaseCompiler {
     override def transformerSequence: Seq[ProblemStateTransformer] = {
         val transformerSequence = new scala.collection.mutable.ListBuffer[ProblemStateTransformer]
         transformerSequence += TypecheckSanitizeTransformer

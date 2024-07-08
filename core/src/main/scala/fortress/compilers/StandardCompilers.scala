@@ -7,13 +7,14 @@ import fortress.transformers.TheoryTransformer._ // for implicit conversion to P
 import fortress.symmetry._
 import scala.collection.mutable.ListBuffer
 
+
 // the default values here are for the constants method
     // using constants for DEs
     // have to get rid of quantifiers (skolemize, quant exp)
     // need range formulas
 // which turns the theory into EUF (except for whatever is done for integers)
 
-class StandardCompiler extends Compiler {
+class StandardCompiler extends BaseCompiler {
 
     // these top definitions are the most common variation points
     def closureEliminator: ProblemStateTransformer = 
@@ -96,6 +97,8 @@ class StandardCompiler extends Compiler {
 
         transformerSequence.toList
     }
+
+
 
 }
 

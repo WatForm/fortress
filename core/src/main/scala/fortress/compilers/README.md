@@ -13,13 +13,14 @@ The Compilers used in one project are usually packaged together in one file.
 
 The Compiler's subclasses are arranged hierarchically:
 trait Compiler
-	- StandardCompiler - default is constants method but with common variation points
-		+ ClaessenCompiler
-		+ DatatypeWithRangeEUFCompiler
-			* DatatypeNoRangeEUFCompiler
-		+ DatatypeWithRangeNoEUFCompiler
-			* DatatypeNoRangeNoEUFCompiler
-	- JoeSymmetryCompilers - compilers testing symmetry breaking and sort inference (IEEE TSE 2023)
+    - BaseCompiler - defns used in all compilers
+		+ StandardCompiler - default is constants method but with common variation points
+			* ClaessenCompiler
+			* DatatypeWithRangeEUFCompiler
+				- DatatypeNoRangeEUFCompiler
+			* DatatypeWithRangeNoEUFCompiler
+				- DatatypeNoRangeNoEUFCompiler
+		+ JoeSymmetryCompilers - compilers testing symmetry breaking and sort inference (IEEE TSE 2023)
 	- ConfigurableCompiler - provides more flexibility in setting the set of transformers for the compiler
 	- trait PervasiveTypeChecking - adds typechecking between all transformers as a check
 
