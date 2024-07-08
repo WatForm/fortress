@@ -7,7 +7,7 @@ import fortress.operations.TheoryOps._
 import fortress.problemstate.ProblemState
 
 
-class SimpleUnboundedCheckTransformer extends ProblemStateTransformer {
+class MxUnboundedScopesTransformer extends ProblemStateTransformer {
     override def apply(problemState: ProblemState): ProblemState = {
         val theory = problemState.theory
         val scopes = problemState.scopes
