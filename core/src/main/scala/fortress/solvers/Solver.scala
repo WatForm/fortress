@@ -14,4 +14,7 @@ abstract class Solver extends AutoCloseable {
 
     @throws(classOf[java.io.IOException])
     override def close(): Unit
+
+    // do not overwrite in a subclass
+    def name = StringHelpers.chopOff(this.getClass.getSimpleName,"Solver")
 }

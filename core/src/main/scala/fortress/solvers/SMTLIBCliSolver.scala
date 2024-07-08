@@ -234,11 +234,13 @@ class SMTLIBCliSolver extends Solver {
                 case ProcessBuilderSolver.negativeIntegerCondensed(digits) => IntegerLiteral(-(digits.toInt))
                 case _ => IntegerLiteral(value.toInt)
             }
+            /*
             case UnBoundedIntSort => value match {
                 case ProcessBuilderSolver.negativeInteger(digits) => IntegerLiteral(-(digits.toInt))
                 case ProcessBuilderSolver.negativeIntegerCondensed(digits) => IntegerLiteral(-(digits.toInt))
                 case _ => IntegerLiteral(value.toInt)
             }
+            */
             case BitVectorSort(bitwidth) => value match {
                 case ProcessBuilderSolver.bitVecLiteral(radix, digits) => radix match {
                     case "x" => BitVectorLiteral.ensureSignedValue(Integer.parseInt(digits, 16), bitwidth)
