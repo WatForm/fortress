@@ -30,19 +30,19 @@ class Conf(arguments: Seq[String]) extends ScallopConf(arguments) {
     val timeout = opt[Int](required = true, descr="timeout in seconds") // Timeout in seconds
 
     // model finder.
-    val mfConverter = singleArgConverter[ModelFinder](ModelFindersRegistry.fromString(_).get, {
+    val mfConverter = singleArgConverter[ModelFinder](ModelFindersRegistry.fromString(_), {
         case x: ju.NoSuchElementException  => Left("Not a valid ModelFinder")
     })
     val modelFinder = opt[ModelFinder](required = false, descr="modelfinder to use (default StandardCompiler/Z3NonIncSolver)")(mfConverter)
 
     // solver
-    val solverConverter = singleArgConverter[Solver](SolversRegistry.fromString(_).get, {
+    val solverConverter = singleArgConverter[Solver](SolversRegistry.fromString(_), {
         case x: ju.NoSuchElementException  => Left("Not a valid Solver")
     })
     val solver = opt[Solver](required = false, descr="solver to use (default Z3NonIncSolver)")(solverConverter)
 
     // compiler
-    val compilerConverter = singleArgConverter[Compiler](CompilersRegistry.fromString(_).get, {
+    val compilerConverter = singleArgConverter[Compiler](CompilersRegistry.fromString(_), {
         case x: ju.NoSuchElementException  => Left("Not a valid Compiler")
     })
     val compiler = opt[Compiler](required = false, descr="compiler to use (default StandardCompiler)")(compilerConverter)
@@ -57,10 +57,10 @@ class Conf(arguments: Seq[String]) extends ScallopConf(arguments) {
                 if (transformerNames.isEmpty){
                     Right(None)
                 } else {
-                    Right(Some(transformerNames.map(Transformers.fromString(_))))
+                    Right(Some(transformerNames.map(TransformersRegistry.fromString(_))))
                 }
             } catch {
-                case e: Errors.API.DoesNotExistError => Left(e.getMessage())
+                case e: Errors.API.transformerDoesNotExist => Left(e.getMessage())
             }
         }
         val argType: ArgType.V = ArgType.LIST

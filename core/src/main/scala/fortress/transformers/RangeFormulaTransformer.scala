@@ -96,7 +96,7 @@ private[transformers] class RangeFormulaTransformer (useConstForDomElem: Boolean
     override def name: String = "Range Formula Transformer"
 }
 
-object RangeFormulaStandardTransformer extends RangeFormulaTransformer(false) {
+object RangeFormulaUseDEsTransformer extends RangeFormulaTransformer(false) {
 
 }
 
@@ -104,8 +104,3 @@ object RangeFormulaUseConstantsTransformer extends RangeFormulaTransformer(true)
 
 }
 
-// 2022-07-15 NAD: not sure why this is here
-//object RangeFormulaTransformer {
-//    def create(): RangeFormulaTransformer = new RangeFormulaTransformer(false)
-//    def createWithDomElemsAsConstants(): RangeFormulaTransformer = new RangeFormulaTransformer(true)
-//}

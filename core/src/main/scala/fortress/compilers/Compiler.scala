@@ -43,3 +43,4 @@ trait PervasiveTypeChecking extends Compiler {
         transformers interleave typecheckers
     }
 }
+

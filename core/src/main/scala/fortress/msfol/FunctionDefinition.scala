@@ -1,7 +1,7 @@
 package fortress.msfol
 import scala.jdk.CollectionConverters._
 import scala.annotation.varargs
-import fortress.symmetry.Func
+
 import fortress.util.Errors
 /*
   (define-fun faa ((x!0 P)) H

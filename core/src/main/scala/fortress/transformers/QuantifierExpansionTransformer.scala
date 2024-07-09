@@ -11,7 +11,7 @@ import fortress.problemstate.{ProblemState, Scope}
   * The input theory is required to have no enum sorts.
   * The scopes are not changed.
   */
-object StandardQuantifierExpansionTransformer extends QuantifierExpansionTransformer(false, false)
+object QuantifierExpansionTransformer extends QuantifierExpansionTransformer(false, false)
 
 // TODO it seems like we could remove the requirement to have no enum sorts or existential quantifiers
 

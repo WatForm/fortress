@@ -9,6 +9,12 @@ import fortress.operations.TheoryOps._
 import fortress.problemstate.ProblemState
 import fortress.problemstate.Scope
 
+// for consistency with CLI string options, we have to have an object
+// that does not have any options
+
+
+
+
 case class SymmetryBreakingOptions(
     selectionHeuristic: SelectionHeuristic, // Heuristic for selecting order of functions
     breakSkolem: Boolean, // If true, breaks skolem functions and constants
@@ -30,6 +36,18 @@ case class SymmetryBreakingOptions(
 * the original axioms plus additional symmetry breaking axioms, and is
 * equisatisfiable to the original.
 */
+
+object SymmetryBreakingOptionsDefaults extends 
+    SymmetryBreakingOptions(
+            selectionHeuristic = MonoFirstThenFunctionsFirstAnyOrder,
+            breakSkolem = true,
+            sortInference = false,
+            patternOptimization = true
+        ) {}
+
+object SymmetryBreakingWithDefaultsTransformer 
+ extends SymmetryBreakingTransformer(SymmetryBreakingOptionsDefaults) {}
+
 class SymmetryBreakingTransformer(
     options: SymmetryBreakingOptions
 ) extends ProblemStateTransformer {

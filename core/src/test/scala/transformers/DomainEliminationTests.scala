@@ -44,7 +44,7 @@ class DomainEliminationTests extends UnitSuite {
             .withAxiom(App("f", c, _1A) === _3B)
             .withAxiom(Not(d === _4B) ==> Exists(x of A, x === _2A))
         
-        val transformer = DomainEliminationTransformer
+        val transformer = ConstantsForDEsDistinctTransformer
         transformer(ProblemState(theory, scopes)) should be (ProblemState(expectedTheory, scopes))
     }
     
@@ -71,7 +71,7 @@ class DomainEliminationTests extends UnitSuite {
             .withAxiom(c === _1A)
             .withAxiom(d === _1B)
         
-        val transformer = DomainEliminationTransformer
+        val transformer = ConstantsForDEsDistinctTransformer
         transformer(ProblemState(theory, scopes)) should be (ProblemState(expectedTheory, scopes))
     }
 }

@@ -3,7 +3,7 @@ package fortress.operations
 import fortress.msfol._
 import fortress.operations.TermOps._
 
-object Simplifier2 {
+object SimplifierConstantsNotDistinct {
     def simplify(term: Term): Term = {
         def simplifyFull(term: Term): Term = term match {
             case Not(body) => simplifyStep(Not(simplifyFull(body)))

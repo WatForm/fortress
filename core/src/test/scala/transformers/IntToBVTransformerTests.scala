@@ -3,7 +3,7 @@ import fortress.msfol._
 import fortress.problemstate._
 import fortress.transformers._
 
-class IntegerToBitVectorTransformerTest extends UnitSuite {
+class IntToBVTransformerTest extends UnitSuite {
     test("basic literals") {
         val theory = Theory.empty
             .withAxiom(Not(IntegerLiteral(1) === IntegerLiteral(2)))
@@ -17,7 +17,7 @@ class IntegerToBitVectorTransformerTest extends UnitSuite {
             Map.empty + (BitVectorSort(4) -> ExactScope(16))
         )
 
-        val transformer = IntegerToBitVectorTransformer
+        val transformer = IntToBVTransformer
         val result = transformer(problemState).withoutUnapplyInterps()
         result should be (expected)
     }
@@ -38,7 +38,7 @@ class IntegerToBitVectorTransformerTest extends UnitSuite {
             Map.empty + (BitVectorSort(4) -> ExactScope(16))
         )
         
-        val transformer = IntegerToBitVectorTransformer
+        val transformer = IntToBVTransformer
         transformer(problemState).withoutUnapplyInterps() should be (expected)
     }
     
@@ -59,7 +59,7 @@ class IntegerToBitVectorTransformerTest extends UnitSuite {
             Map.empty + (BitVectorSort(4) -> ExactScope(16))
         )
 
-        val transformer = IntegerToBitVectorTransformer
+        val transformer = IntToBVTransformer
         transformer(problemState).withoutUnapplyInterps() should be (expected)
     }
     
@@ -84,7 +84,7 @@ class IntegerToBitVectorTransformerTest extends UnitSuite {
             Map.empty + (BitVectorSort(4) -> ExactScope(16))
         )
 
-        val transformer = IntegerToBitVectorTransformer
+        val transformer = IntToBVTransformer
         transformer(problemState).withoutUnapplyInterps() should be (expected)
     }
     
@@ -105,7 +105,7 @@ class IntegerToBitVectorTransformerTest extends UnitSuite {
             Map.empty + (BitVectorSort(4) -> ExactScope(16))
         )
 
-        val transformer = IntegerToBitVectorTransformer
+        val transformer = IntToBVTransformer
         transformer(problemState).withoutUnapplyInterps() should be (expected)
     }
 
@@ -135,7 +135,7 @@ class IntegerToBitVectorTransformerTest extends UnitSuite {
                     Map.empty + (BitVectorSort(4) -> ExactScope(16))
         )
 
-        val transformer = IntegerToBitVectorTransformer
+        val transformer = IntToBVTransformer
         transformer(problemState).withoutUnapplyInterps() should be (expected)
     }
 
@@ -152,7 +152,7 @@ class IntegerToBitVectorTransformerTest extends UnitSuite {
             Map.empty + (BitVectorSort(4) -> ExactScope(16))
         )
 
-        val transformer = IntegerToBitVectorTransformer
+        val transformer = IntToBVTransformer
         transformer(problemState).withoutUnapplyInterps() should be (expected)
     }
 }

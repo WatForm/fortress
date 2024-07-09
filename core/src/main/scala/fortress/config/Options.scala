@@ -30,22 +30,22 @@ case object SkolemizeOption extends ToggleOption(
 
 case object QuantifierExpansionOption extends ToggleOption(
     "QuantifierExpansion",
-    _.addTransformer(StandardQuantifierExpansionTransformer)
+    _.addTransformer(QuantifierExpansionTransformer)
 )
 
 case object RangeFormulaOption extends ToggleOption(
     "RangeFormula",
-    _.addTransformer(RangeFormulaStandardTransformer)
+    _.addTransformer(RangeFormulaUseDEsTransformer)
 )
 
 case object SimplifyOption extends ToggleOption(
     "Simplify",
-    _.addTransformer(new SimplifyTransformer)
+    _.addTransformer(SimplifyTransformer)
 )
 
 case object DatatypeOption extends ToggleOption(
     "Datatypes",
-    _.addTransformer(DatatypeTransformer)
+    _.addTransformer(DEsAsDatatypeTransformer)
 )
 
 

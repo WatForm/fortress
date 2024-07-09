@@ -7,32 +7,40 @@ object CompilersRegistry {
     // this is the only place where string names are used
     // these MUST match the class name of the Compiler (minus the 'Compiler' on the end)
 
-    def fromString(str: String): Option[Compiler] = {
-        str match {
+    def fromString(str: String): Compiler = {
+
+        // it's a little awkward to wrap every return entry
+        // in checkName, but otherwise we have to wrap the return entry
+        // in Some and deal with the option type in checkName
+        val c:Compiler = str match {
 
             // StandardCompilers - use constants 
-            case "Standard"  => checkMatch(str,new StandardCompiler())
-            case "StandardSI"  => checkMatch(str,new StandardSICompiler())
+            case "Standard"  => new StandardCompiler()
+            case "StandardSI"  => new StandardSICompiler()
 
-            case "Claessen" => checkMatch(str,new ClaessenCompiler())
+            case "Claessen" => new ClaessenCompiler()
 
             // use datatypes to make it finite
-            case "DatatypeNoRangeEUF" => checkMatch(str,new DatatypeNoRangeEUFCompiler())
-            case "DatatypeWithRangeEUF" => checkMatch(str,new DatatypeWithRangeEUFCompiler())
-            case "DatatypeWithRangeNoEUF" => checkMatch(str,new DatatypeWithRangeNoEUFCompiler())
-            case "DatatypeNoRangeNoEUF" => checkMatch(str,new DatatypeNoRangeNoEUFCompiler())
+            case "DatatypeNoRangeEUF" => new DatatypeNoRangeEUFCompiler()
+            case "DatatypeWithRangeEUF" => new DatatypeWithRangeEUFCompiler()
+            case "DatatypeWithRangeNoEUF" => new DatatypeWithRangeNoEUFCompiler()
+            case "DatatypeNoRangeNoEUF" => new DatatypeNoRangeNoEUFCompiler()
 
             // JoeSymmetryCompilers  
-            case "JoeONE"  => checkMatch(str,new JoeONECompiler())
-            case "JoeTWO"  => checkMatch(str,new JoeTWOCompiler())
-            case "JoeTWO_SI"  => checkMatch(str,new JoeTWO_SICompiler())
-            case "JoeTHREE"  => checkMatch(str,new JoeTHREECompiler())
-            case "JoeTHREE_SI"  => checkMatch(str,new JoeTHREE_SICompiler())
-            case "JoeFOUR"  => checkMatch(str,new JoeFOURCompiler())
-            case "JoeFOUR_SI"  => checkMatch(str,new JoeFOUR_SICompiler())
+            case "JoeONE"  => new JoeONECompiler()
+            case "JoeTWO"  => new JoeTWOCompiler()
+            case "JoeTWO_SI"  => new JoeTWO_SICompiler()
+            case "JoeTHREE"  => new JoeTHREECompiler()
+            case "JoeTHREE_SI"  => new JoeTHREE_SICompiler()
+            case "JoeFOUR"  => new JoeFOURCompiler()
+            case "JoeFOUR_SI"  => new JoeFOUR_SICompiler()
 
-            case _ => None
+            case _ => {
+                Errors.API.compilerDoesNotExist(str)
+                null
+            }
         }
+        checkName(str,c)
     }
 
     def doesSortInference(str: String): Boolean = {
@@ -47,9 +55,9 @@ object CompilersRegistry {
         }
     }
 
-    private def checkMatch(s:String, c:Compiler) = {
+    private def checkName(s:String, c:Compiler): Compiler = {
         Errors.Internal.assertion(c.name != s, s +"does not match"+ c.name)
-        Some(c)        
+        c        
     }
 
 }   

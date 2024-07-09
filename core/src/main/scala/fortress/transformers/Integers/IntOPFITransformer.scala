@@ -11,7 +11,7 @@ import fortress.util.Errors
 import fortress.interpretation.Interpretation
 import fortress.sortinference._
 
-object OPFIIntsTransformer extends ProblemStateTransformer {
+object IntOPFITransformer extends ProblemStateTransformer {
 
 
     // Generate mapping using min, max inclusive

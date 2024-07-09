@@ -14,7 +14,7 @@ class AxiomatizeIntPredDefinitionsTransformerTests extends UnitSuite {
 
     val A = SortConst("A")
 
-    val transformer = AxiomatizeIntPredDefinitionsTransformer
+    val transformer = AxiomatizeIntPredDefnsTransformer
 
     val baseTheory = Theory.empty
         .withConstantDeclarations(i of IntSort, j of IntSort, k of IntSort)

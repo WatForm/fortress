@@ -3,7 +3,7 @@ import fortress.problemstate._
 import fortress.transformers._
 
 class MaxUnboundedScopesTransformerTests extends UnitSuite with CommonSymbols {
-    val transformer = new TheoryApplication(new MaxUnboundedScopesTransformer)
+    val transformer = new TheoryApplication(MaxUnboundedScopesTransformer)
 
     val baseTheory = Theory.empty
             .withSort(A)

@@ -11,7 +11,7 @@ import fortress.problemstate.Scope
 import fortress.interpretation.Interpretation
 
 /** Replaces integers with bitvectors of the given bitwidth. */
-object IntegerToBitVectorTransformer extends ProblemStateTransformer {
+object IntToBVTransformer extends ProblemStateTransformer {
     
     override def apply(problemState: ProblemState): ProblemState = {
         var newProblemState = problemState

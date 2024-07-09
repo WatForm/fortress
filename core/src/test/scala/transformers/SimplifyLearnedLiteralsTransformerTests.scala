@@ -4,7 +4,7 @@ import fortress.problemstate.ProblemState
 
 class SimplifyLearnedLiteralTransformerTest extends UnitSuite {
 
-    val st = new SimplifyLearnedLiteralsTransformer
+    val st = SimplifyLearnedLiteralsTransformer
 
     def checkTransform(input: Theory, expected: Theory) = {
         val ps = ProblemState(input)

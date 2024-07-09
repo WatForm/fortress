@@ -7,7 +7,7 @@ import fortress.operations.TheoryOps._
 import fortress.problemstate.ProblemState
 import fortress.util.Errors
 
-object QuantifiersToDefinitionsTransformer extends ProblemStateTransformer {
+object QuantifiersToDefnsTransformer extends ProblemStateTransformer {
 
 
 

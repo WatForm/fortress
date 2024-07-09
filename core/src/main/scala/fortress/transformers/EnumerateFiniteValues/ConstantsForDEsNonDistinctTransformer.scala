@@ -5,14 +5,14 @@ import fortress.operations.TermOps._
 import fortress.operations.TheoryOps._
 import fortress.problemstate.ProblemState
 
-/** Introduces constants to simulate the domain elements, asserting these constants are
-  * all distinct and replacing occurrences of domain elements with the appropriate constant.
+/** Introduces constants to simulate the domain elements,  
+  * and replacing occurrences of domain elements with the appropriate constant.
   * Leaves other aspects of the Problem unchanged.
   *
   * This variant removes constraints asserting constants are distinct, thus implements the
   * "collapsing constants" approach for solving with non-exact scope.
   */
-class DomainEliminationTransformer2 extends ProblemStateTransformer {
+object ConstantsForDEsNonDistinctTransformer extends ProblemStateTransformer {
     
     override def apply(problemState: ProblemState): ProblemState = {
         val theory = problemState.theory

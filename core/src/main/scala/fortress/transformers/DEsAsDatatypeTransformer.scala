@@ -9,7 +9,7 @@ import fortress.problemstate._
   * of domain elements with the appropriate constant. Leaves other aspects of the
   * Problem unchanged.
   */
-object DatatypeTransformer extends ProblemStateTransformer {
+object DEsAsDatatypeTransformer extends ProblemStateTransformer {
 
     override def apply(problemState: ProblemState): ProblemState = {
         val theory = problemState.theory

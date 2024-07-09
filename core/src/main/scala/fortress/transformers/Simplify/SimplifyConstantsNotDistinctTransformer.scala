@@ -13,11 +13,12 @@ import fortress.problemstate.ProblemState
   * approach for solving with non-exact scope, constants are no longer distinct.
   * */
 
-class SimplifyTransformer2 extends ProblemStateTransformer {
+object SimplifyConstantsNotDistinctTransformer extends ProblemStateTransformer {
     
     override def apply(problemState: ProblemState): ProblemState =  {
       problemState.copy(
-        theory = problemState.theory.mapAllTerms(Simplifier2.simplify)
+        theory = problemState.theory.mapAllTerms(SimplifierConstantsNotDistinct
+          .simplify)
       )
     }
     

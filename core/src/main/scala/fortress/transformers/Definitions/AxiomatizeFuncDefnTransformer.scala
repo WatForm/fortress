@@ -9,7 +9,7 @@ import fortress.interpretation._
     This is just a temporary solution to deal with function definition.
  */
 
-object AxiomatizeFuncDefTransformer extends ProblemStateTransformer {
+object AxiomatizeFuncDefnTransformer extends ProblemStateTransformer {
     override def apply(problemState: ProblemState): ProblemState = {
         
         val theory = problemState.theory

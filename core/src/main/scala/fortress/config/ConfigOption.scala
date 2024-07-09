@@ -2,10 +2,7 @@ package fortress.config
 
 import fortress.compilers.ConfigurableCompiler
 import fortress.util.Errors
-/* removed 2023-10-03 b/c won't compile for Nancy
-  import java.io.ObjectInputFilter.Config
-*/
-import fortress.transformers.Transformers
+import fortress.transformers
 
 /**
   * An option for a compiler.

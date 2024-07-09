@@ -6,7 +6,7 @@ import fortress.problemstate.ProblemState
 
 /** Applies a simplification to the formulas in a theory, replacing them with equivalent formulas.
   * All other aspects of the theory remain unchanged. */
-class SimplifyLearnedLiteralsTransformer extends ProblemStateTransformer {
+object SimplifyLearnedLiteralsTransformer extends ProblemStateTransformer {
     
     override def apply(problemState: ProblemState): ProblemState =  {
         val theory = problemState.theory

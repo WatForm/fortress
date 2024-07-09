@@ -11,7 +11,7 @@ import fortress.problemstate.ProblemState
   * all distinct and replacing occurrences of domain elements with the appropriate constant.
   * Leaves other aspects of the Problem unchanged.
   */
-object DomainEliminationTransformer extends ProblemStateTransformer {
+object ConstantsForDEsDistinctTransformer extends ProblemStateTransformer {
     
     override def apply(problemState: ProblemState): ProblemState = {
         val theory = problemState.theory

@@ -49,21 +49,16 @@ class StandardModelFinder extends ModelFinder {
         solver = newSolver
     }
     def setSolver(newSolver: String): Unit = {
-        // leave as default if arg is not a solver
-        if (SolversRegistry.fromString(newSolver) != None)
-            solver = SolversRegistry.fromString(newSolver).get
-        else 
-            Errors.API.doesNotExist(s"no solver of that name $newSolver")
+        // exception raised if solver does not exist
+        solver = SolversRegistry.fromString(newSolver)
     }
     def setCompiler(newCompiler: Compiler): Unit = {
         compiler = newCompiler
     }    
      def setCompiler(newCompiler: String): Unit = {
-        // leave as default if arg is not a compiler
-        if (CompilersRegistry.fromString(newCompiler) != None)
-            compiler = CompilersRegistry.fromString(newCompiler).get
-        else 
-            Errors.API.doesNotExist(s"no compiler of that name $newCompiler")
+        // exception raised if compiler does not exist
+        compiler = CompilersRegistry.fromString(newCompiler)
+
     }    
 
     /** Set the timeout in milliseconds. */

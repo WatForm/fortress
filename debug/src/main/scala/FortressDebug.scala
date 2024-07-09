@@ -94,15 +94,8 @@ object FortressDebug {
         conf.mode() match {
             case "decision" => {
 
-                val modelFinder: ModelFinder = ModelFindersRegistry.fromString(conf.version()) match {
-                    case Some(mf) => mf
-                    case None => {
-                        println("Not a valid model finder.") 
-                        System.exit(1)
-                        // need this to satisfy typechecking
-                        new StandardModelFinder()
-                    }
-                }
+                // exception raised if name does not match a model finder
+                val modelFinder: ModelFinder = ModelFindersRegistry.fromString(conf.version())
 
 
                 for(logger <- loggers) {
@@ -127,15 +120,8 @@ object FortressDebug {
             }
 
             case "count" => {
-                val modelFinder = ModelFindersRegistry.fromString(conf.version()) match {
-                    case Some(mf) => mf
-                    case None => {
-                        println("Not a valid model finder.") 
-                        System.exit(1)
-                        // need this to satisfy typechecking
-                        new StandardModelFinder()
-                    }
-                }
+                // exception raised if name does not match a model finder
+                val modelFinder = ModelFindersRegistry.fromString(conf.version())
 
 
                 modelFinder.setTheory(theory)
@@ -150,15 +136,8 @@ object FortressDebug {
             }
 
             case "compile" => {
-                val compiler = CompilersRegistry.fromString(conf.version()) match {
-                    case Some(c) => c
-                    case None => {
-                        println("Not a valid compiler.") 
-                        System.exit(1)
-                        // need this to satisfy typechecking
-                        new StandardCompiler()
-                    }                    
-                }
+                // exception raised if name does not match a compiler
+                val compiler = CompilersRegistry.fromString(conf.version())
                 val output = compiler.compile(theory, scopes, Seconds(conf.timeout()).toMilli, loggers, verbose=conf.debug())
                 output match {
                     case Left(err) => println(err)

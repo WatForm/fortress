@@ -70,4 +70,9 @@ abstract class BaseCompiler extends Compiler {
         }
         Right(Result)
     }
+
+    def NullTransformerList = {
+        val ts = new scala.collection.mutable.ListBuffer[ProblemStateTransformer]
+        ts.toList
+    }
 }

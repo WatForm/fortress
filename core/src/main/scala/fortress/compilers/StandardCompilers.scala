@@ -24,7 +24,7 @@ class StandardCompiler extends BaseCompiler {
         ScopeNonExactPredicatesTransformer
 
     def integerHandler:ProblemStateTransformer = 
-        OPFIIntsTransformer
+        IntOPFITransformer
 
     def ifLiftOrNot:ProblemStateTransformer =
         IfLiftingTransformer
@@ -42,16 +42,16 @@ class StandardCompiler extends BaseCompiler {
 
     def quantifierHandler: Seq[ProblemStateTransformer] = { 
         val ts = new scala.collection.mutable.ListBuffer[ProblemStateTransformer]
-        ts += QuantifiersToDefinitionsTransformer
-        ts += StandardQuantifierExpansionTransformer
+        ts += QuantifiersToDefnsTransformer
+        ts += QuantifierExpansionTransformer
         ts.toList
     }
 
     def rangeFormulasOrNot: ProblemStateTransformer = 
-        RangeFormulaStandardTransformer
+        RangeFormulaUseDEsTransformer
 
     def enumerateFiniteValues: ProblemStateTransformer = 
-        DomainEliminationTransformer
+        ConstantsForDEsDistinctTransformer
 
     override def transformerSequence: Seq[ProblemStateTransformer] = {
 
@@ -90,7 +90,7 @@ class StandardCompiler extends BaseCompiler {
         // defined above
         transformerSequence += rangeFormulasOrNot
 
-        transformerSequence += new SimplifyTransformer
+        transformerSequence += SimplifyTransformer
 
         // defined above
         transformerSequence += enumerateFiniteValues
@@ -128,7 +128,7 @@ class StandardSICompiler() extends StandardCompiler {
 class DatatypeWithRangeEUFCompiler() extends StandardCompiler {
 
     override def enumerateFiniteValues: ProblemStateTransformer = 
-        DatatypeTransformer
+        DEsAsDatatypeTransformer
     
 }
 
@@ -150,12 +150,8 @@ class DatatypeNoRangeEUFCompiler() extends DatatypeWithRangeEUFCompiler() {
    use range formulas 
 */
 class DatatypeWithRangeNoEUFCompiler() extends StandardCompiler {
-    override def quantifierHandler: Seq[ProblemStateTransformer] = {  
-        // TODO: SHOULDN"T THIS BE NOTHING??
-        val ts = new scala.collection.mutable.ListBuffer[ProblemStateTransformer]
-        ts += QuantifiersToDefinitionsTransformer
-        ts.toList
-    }
+    override def quantifierHandler: Seq[ProblemStateTransformer] = 
+        NullTransformerList
 
     override def ifLiftOrNot: ProblemStateTransformer =
         NullTransformer
@@ -164,7 +160,7 @@ class DatatypeWithRangeNoEUFCompiler() extends StandardCompiler {
         NullTransformer
 
     override def enumerateFiniteValues: ProblemStateTransformer = 
-        DatatypeTransformer
+        DEsAsDatatypeTransformer
 }
 
 /*
@@ -175,18 +171,11 @@ class DatatypeWithRangeNoEUFCompiler() extends StandardCompiler {
 
 class DatatypeNoRangeNoEUFCompiler() extends DatatypeWithRangeNoEUFCompiler {
 
-    override def quantifierHandler: Seq[ProblemStateTransformer] =  { 
-        // TODO: SHOULDN"T THIS BE NOTHING??
-        val ts = new scala.collection.mutable.ListBuffer[ProblemStateTransformer]
-        ts += QuantifiersToDefinitionsTransformer
-        ts.toList
-    }
-
     override def rangeFormulasOrNot: ProblemStateTransformer = 
         NullTransformer
 
     override def enumerateFiniteValues: ProblemStateTransformer = 
-        DatatypeTransformer
+        DEsAsDatatypeTransformer
 }
 
 

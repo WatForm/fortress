@@ -8,29 +8,33 @@ object ModelFindersRegistry {
 
     // this is the only place where string names are used
     // these MUST match the class name of the ModelFinder (minus the 'ModelFinder' on the end)
-    def fromString(str: String): Option[ModelFinder] = {
-        str match {
+    def fromString(str: String): ModelFinder = {
+        val mf:ModelFinder = str match {
 
             // Standard Model Finders
-            case "Standard" => checkMatch(str, new StandardModelFinder())
+            case "Standard" =>  new StandardModelFinder()
 
             // Joe's Model Finders
-            case "JoeZERO" => checkMatch(str, new JoeZEROModelFinder())
-            case "JoeOnee" => checkMatch(str, new JoeONEModelFinder())
-            case "JoeTWO" => checkMatch(str, new JoeTWOModelFinder())
-            case "JoeTWO_SI" => checkMatch(str, new JoeTWO_SIModelFinder())
-            case "JoeTHREE" => checkMatch(str, new JoeTHREEModelFinder())
-            case "JoeTHREE_SI" => checkMatch(str, new JoeTHREE_SIModelFinder())
-            case "JoeFOUR" => checkMatch(str, new JoeFOURModelFinder())
-            case "JoeFOUR_SI" => checkMatch(str, new JoeFOUR_SIModelFinder())
+            case "JoeZERO" =>  new JoeZEROModelFinder()
+            case "JoeOnee" =>  new JoeONEModelFinder()
+            case "JoeTWO" =>  new JoeTWOModelFinder()
+            case "JoeTWO_SI" =>  new JoeTWO_SIModelFinder()
+            case "JoeTHREE" =>  new JoeTHREEModelFinder()
+            case "JoeTHREE_SI" =>  new JoeTHREE_SIModelFinder()
+            case "JoeFOUR" =>  new JoeFOURModelFinder()
+            case "JoeFOUR_SI" =>  new JoeFOUR_SIModelFinder()
                 
-            case _ => None
+            case _ => {
+                Errors.API.modelFinderDoesNotExist(str)
+                null
+            }
         }
+        checkName(str,mf)
     }
 
-    private def checkMatch(s:String, mf:ModelFinder) = {
+    private def checkName(s:String, mf:ModelFinder): ModelFinder = {
         Errors.Internal.assertion(mf.name != s, s +"does not match"+ mf.name)
-        Some(mf)        
+        mf        
     }
 
 }

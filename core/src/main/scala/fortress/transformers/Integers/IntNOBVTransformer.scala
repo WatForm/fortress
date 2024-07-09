@@ -15,7 +15,7 @@ import scala.util.Using
 import fortress.problemstate.ProblemState
 import fortress.operations.RecursiveAccumulator
 
-class NoOverflowBVTransformer extends ProblemStateTransformer (){
+object IntNOBVTransformer extends ProblemStateTransformer (){
 
 
 // TODO check going up from univ  should not default to counting as univ anymore?
@@ -645,5 +645,3 @@ class NoOverflowBVTransformer extends ProblemStateTransformer (){
       case _ => None
     }
 }
-
-object NoOverflowBVTransformer extends NoOverflowBVTransformer {}

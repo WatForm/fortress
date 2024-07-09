@@ -9,7 +9,7 @@ import fortress.operations.IntegerPredicateFinder._
 import fortress.data.NameGenerator
 import fortress.data.IntSuffixNameGenerator
 
-object AxiomatizeIntPredDefinitionsTransformer extends ProblemStateTransformer {
+object AxiomatizeIntPredDefnsTransformer extends ProblemStateTransformer {
   
     def apply(problemState: ProblemState): ProblemState = {
         val theory = problemState.theory
@@ -56,5 +56,5 @@ object AxiomatizeIntPredDefinitionsTransformer extends ProblemStateTransformer {
             theory = newTheory
         )
     }
-    override def name: String = "Axiomatize Integer-Predicate Definitions Transformer"
+
 }

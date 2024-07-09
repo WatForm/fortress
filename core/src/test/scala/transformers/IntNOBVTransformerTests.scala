@@ -2,7 +2,7 @@ import org.scalatest._
 
 import fortress.msfol._
 import fortress.transformers._
-import fortress.transformers.NoOverflowBVTransformer
+import fortress.transformers.IntNOBVTransformer
 import fortress.config._
 import fortress.problemstate._
 import scala.util.Using
@@ -13,7 +13,7 @@ import fortress.compilers.ConfigurableCompiler
 
 import fortress.util.Dump
 
-class NoOverflowBVTransformerTests extends UnitSuite with CommonSymbols {
+class IntNOBVTransformerTests extends UnitSuite with CommonSymbols {
     
     val BV4 = BitVectorSort(4)
     val zero4 = BitVectorLiteral(0, 4)
@@ -29,7 +29,7 @@ class NoOverflowBVTransformerTests extends UnitSuite with CommonSymbols {
     val managerWithOverflow = Manager.makeEmpty()
       managerWithOverflow.addOption(TypecheckSanitizeOption, 1)
       managerWithOverflow.addOption(EnumEliminationOption, 2)
-      managerWithOverflow.addOption(new ConfigOption("NoBVOverflow", _.addTransformer(NoOverflowBVTransformer)))
+      managerWithOverflow.addOption(new ConfigOption("NOBV", _.addTransformer(IntNOBVTransformer)))
       managerWithOverflow.addOption(QuantifierExpansionOption, 5001)
       managerWithOverflow.addOption(RangeFormulaOption, 5002)
       // managerWithOverflow.addOption(SimplifyOption, 5003)
@@ -108,7 +108,7 @@ class NoOverflowBVTransformerTests extends UnitSuite with CommonSymbols {
             .withConstantDeclarations(x1 of BV4, x2 of BV4)
             .withAxiom(expectedAxiom)
 
-        val transformer: NoOverflowBVTransformer = NoOverflowBVTransformer
+        val transformer: ProblemStateTransformer = IntNOBVTransformer
         val result = transformer(ProblemState(theory))
 
         //result.theory.axioms.toSeq(0) should be (expectedAxiom)

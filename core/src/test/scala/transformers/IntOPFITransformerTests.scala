@@ -11,8 +11,8 @@ import fortress.operations.TheoryOps._
 import fortress.util.Milliseconds
 
 
-class OPFIIntsTransformerTest extends UnitSuite {
-    val transformer = OPFIIntsTransformer
+class IntOPFITransformerTest extends UnitSuite {
+    val transformer = IntOPFITransformer
     val intSize = 8
     val min = -4
     val max = 3
@@ -35,7 +35,7 @@ class OPFIIntsTransformerTest extends UnitSuite {
     manager.addOption(RangeFormulaOption, 5002)
     manager.addOption(SimplifyOption, 5003)
     //manager.addOption(DatatypeOption, 5004)
-    manager.addOption(new ToggleOption("DomainElimination", _.addTransformer(DomainEliminationTransformer)), 5005)
+    manager.addOption(new ToggleOption("DomainElimination", _.addTransformer(ConstantsForDEsDistinctTransformer)), 5005)
 
     val aSort = SortConst("A")
     val x = Var("x")

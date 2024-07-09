@@ -6,7 +6,7 @@ import fortress.problemstate.ProblemState
 
 class SimplifyTransformerTest extends UnitSuite {
 
-    val st = new SimplifyTransformer
+    val st = SimplifyTransformer
 
     val A = Sort.mkSortConst("A")
 
