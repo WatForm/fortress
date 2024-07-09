@@ -15,7 +15,7 @@ import fortress.util.Errors
   */
 object SkolemizeTransformer extends ProblemStateTransformer {
     
-    override def name: String = "Skolemize Transformer"
+
 
     override def apply(problemState: ProblemState): ProblemState = {
 

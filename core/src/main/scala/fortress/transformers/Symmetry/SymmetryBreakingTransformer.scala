@@ -194,6 +194,7 @@ class SymmetryBreakingTransformer(
         loop(Set.empty)
         (newDeclarations.toList, newConstraints.toList, newRangeRestrictions.toSet)
     }
-
+    /*
     val name: String = s"Symmetry Breaking Transformer (${options})"
+    */
 }

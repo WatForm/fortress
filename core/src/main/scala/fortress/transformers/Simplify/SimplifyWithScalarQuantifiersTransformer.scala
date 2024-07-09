@@ -32,6 +32,6 @@ object SimplifyWithScalarQuantifiersTransformer extends ProblemStateTransformer 
         )
     }
 
-    override def name: String = "Simplify Scalar Quantifiers Transformer"
+
 
 }

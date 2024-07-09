@@ -99,6 +99,6 @@ object  ScopeNonExactPredicatesTransformer extends ProblemStateTransformer {
         */
     }
 
-    override def name: String = "NonExactScopePredicatesTransformer"
+
 
 }

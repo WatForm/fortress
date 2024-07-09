@@ -35,6 +35,6 @@ object SortInferenceTransformer extends ProblemStateTransformer {
         )
     }
     
-    val name: String = "Sort Inference Transformer"
+
     
 }

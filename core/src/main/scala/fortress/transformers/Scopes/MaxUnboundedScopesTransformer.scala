@@ -35,5 +35,5 @@ class MaxUnboundedScopesTransformer extends ProblemStateTransformer {
 
     }
 
-    override def name: String = "Simple Unbounded Check Transformer"
+
 }

@@ -67,5 +67,5 @@ object EnumEliminationTransformer extends ProblemStateTransformer {
         mapping.toMap
     }
     
-    override def name: String = "Enum Elimination Transformer"
+
 }

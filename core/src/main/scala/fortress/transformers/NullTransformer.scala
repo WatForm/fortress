@@ -11,6 +11,6 @@ object NullTransformer extends ProblemStateTransformer {
         problemState
     }
 
-    override def name: String = "NullTransformer"
+
 
 }

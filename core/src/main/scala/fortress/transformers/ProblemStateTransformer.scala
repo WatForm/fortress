@@ -1,5 +1,6 @@
 package fortress.transformers
 
+import fortress.util.StringHelpers
 import fortress.msfol._
 import fortress.problemstate.ProblemState
 
@@ -11,5 +12,6 @@ trait ProblemStateTransformer extends Function[ProblemState, ProblemState] {
     * produces a new one. */
     def apply(problemState: ProblemState): ProblemState
     
-    def name: String
+    // do not overwrite in a subclass
+    def name = StringHelpers.chopOff(this.getClass.getSimpleName,"Transformer")
 }

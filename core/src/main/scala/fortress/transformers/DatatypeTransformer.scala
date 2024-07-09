@@ -49,5 +49,5 @@ object DatatypeTransformer extends ProblemStateTransformer {
         )
     }
 
-    override def name: String = "Domain Elimination To Enums Transformer"
+
 }

@@ -14,6 +14,6 @@ object MaxAlphaRenamingTransformer extends ProblemStateTransformer {
         flags = problemState.flags.copy(haveRunMaxAlphaRenaming = true),
     )
 
-    override def name: String = "Max Alpha Renaming Transformer"
+
 
 }

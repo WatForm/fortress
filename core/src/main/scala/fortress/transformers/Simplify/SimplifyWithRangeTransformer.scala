@@ -18,6 +18,6 @@ class SimplifyWithRangeTransformer extends ProblemStateTransformer {
         problemState.copy(theory=newTheory)
     }
     
-    val name: String = "Simplify (with range) Transformer"
+
     
 }

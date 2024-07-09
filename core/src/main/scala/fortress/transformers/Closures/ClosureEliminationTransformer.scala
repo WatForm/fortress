@@ -105,7 +105,6 @@ trait ClosureEliminationTransformer extends ProblemStateTransformer {
         )
     }
     
-    override def name: String = "Closure Elimination Abstract"
     
 }
 

@@ -48,5 +48,5 @@ class SimplifyLearnedLiteralsTransformer extends ProblemStateTransformer {
         )
     }
 
-    override def name: String = "Simplify Transformer"
+
 }

@@ -34,5 +34,5 @@ object AxiomatizeFuncDefTransformer extends ProblemStateTransformer {
         problemState.copy(theory = resultTheory, unapplyInterp = unapply :: problemState.unapplyInterp)        
     }
 
-    override def name: String = "Axiomatize Function Definition Transformer"
+
 }

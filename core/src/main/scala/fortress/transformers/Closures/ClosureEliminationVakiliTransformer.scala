@@ -108,5 +108,5 @@ object ClosureEliminationVakiliTransformer extends ProblemStateTransformer {
         //ProblemState(resultTheory, scopes, skc, skf, rangeRestricts, unapplyInterp :+ unapply, distinctConstants)
         problemState.copy(theory=resultTheory, unapplyInterp = problemState.unapplyInterp :+ unapply)
     }
-    override def name: String = "Closure Elimination Vakili Transformer"
+
 }

@@ -23,6 +23,6 @@ object AntiPrenexTransformer extends ProblemStateTransformer {
         )
     }
 
-    override def name: String = "AntiPrenexTransformer"
+
 
 }

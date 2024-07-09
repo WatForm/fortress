@@ -10,5 +10,4 @@ object ClosureEliminationSquareTransformer extends ClosureEliminationTransformer
         new ClosureEliminatorSquare(topLevelTerm, signature, scopes, nameGen)
     }
 
-    override def name: String = "Closure Elimination Square Transformer"
 }

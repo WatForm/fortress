@@ -13,5 +13,5 @@ class SimplifyTransformer extends ProblemStateTransformer {
       problemState.copy(theory = problemState.theory.mapAllTerms(_.simplify))
     }
 
-    override def name: String = "Simplify Transformer"
+
 }

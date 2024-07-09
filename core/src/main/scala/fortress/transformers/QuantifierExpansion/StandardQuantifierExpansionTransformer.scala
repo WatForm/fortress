@@ -65,8 +65,10 @@ private[transformers] class QuantifierExpansionTransformer (useConstForDomElem: 
         problemState.copy(theory = newTheory)
     }
 
+    /*
     private val configStr1 = s"${if(useConstForDomElem) "Constants" else "-"}"
     private val configStr2 = s"${if(useSimplification) "Simplification" else "-"}"
     
     override def name: String = s"Quantifier Expansion Transformer ($configStr1, $configStr2)"
+    */
 }

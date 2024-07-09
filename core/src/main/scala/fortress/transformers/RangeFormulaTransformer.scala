@@ -97,11 +97,11 @@ private[transformers] class RangeFormulaTransformer (useConstForDomElem: Boolean
 }
 
 object RangeFormulaStandardTransformer extends RangeFormulaTransformer(false) {
-    override def name: String = "Range Formula Standard Transformer"
+
 }
 
 object RangeFormulaUseConstantsTransformer extends RangeFormulaTransformer(true) {
-    override def name: String = "Range Formula Use ConstantsTransformer"
+
 }
 
 // 2022-07-15 NAD: not sure why this is here

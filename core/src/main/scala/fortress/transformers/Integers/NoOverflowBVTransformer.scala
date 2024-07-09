@@ -17,7 +17,7 @@ import fortress.operations.RecursiveAccumulator
 
 class NoOverflowBVTransformer extends ProblemStateTransformer (){
 
-  def name = "NoOverflowBVTransformer"
+
 // TODO check going up from univ  should not default to counting as univ anymore?
   def apply(problemState: ProblemState): ProblemState = {
     val oldTheory = problemState.theory

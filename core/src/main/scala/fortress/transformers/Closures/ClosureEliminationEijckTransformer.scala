@@ -15,5 +15,4 @@ object ClosureEliminationEijckTransformer extends ClosureEliminationTransformer 
         new ClosureEliminatorEijck(topLevelTerm: Term, signature: Signature, scopes: Map[Sort, Scope], nameGen: NameGenerator)
     }
 
-    override def name: String = "Closure Elimination Eijck Transformer"
 }

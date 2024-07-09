@@ -58,5 +58,5 @@ class DomainEliminationTransformer2 extends ProblemStateTransformer {
         )
     }
     
-    override def name: String = "Domain Elimination To Constants Transformer 2"
+
 }

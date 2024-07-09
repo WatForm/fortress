@@ -32,5 +32,5 @@ object NnfTransformer extends ProblemStateTransformer {
         )
     }
     
-    override def name: String = "Negation Normal Form Transformer"
+
 }

@@ -16,6 +16,4 @@ object ClosureEliminationIterativeTransformer extends ClosureEliminationTransfor
         new ClosureEliminatorIterative(topLevelTerm: Term, signature: Signature, scopes: Map[Sort, Scope], nameGen: NameGenerator)
     }
     
-    override def name: String = "Closure Elimination Iterative Transformer"
-    
 }

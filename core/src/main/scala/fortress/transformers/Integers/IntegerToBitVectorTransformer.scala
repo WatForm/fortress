@@ -61,5 +61,5 @@ object IntegerToBitVectorTransformer extends ProblemStateTransformer {
         newProblemState
     }
     
-    override val name: String = "IntegerToBitVector Transformer"
+
 }

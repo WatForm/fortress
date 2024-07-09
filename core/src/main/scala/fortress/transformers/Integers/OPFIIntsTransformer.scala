@@ -12,7 +12,7 @@ import fortress.interpretation.Interpretation
 import fortress.sortinference._
 
 object OPFIIntsTransformer extends ProblemStateTransformer {
-    val name: String = "OPFIIntsTransformer"
+
 
     // Generate mapping using min, max inclusive
     def generateConstantMapping(min: Int, max: Int, sort: Sort): Map[Int, DomainElement] = {

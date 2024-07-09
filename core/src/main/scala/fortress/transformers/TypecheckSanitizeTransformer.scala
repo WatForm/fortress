@@ -57,5 +57,5 @@ object TypecheckSanitizeTransformer extends ProblemStateTransformer {
         )
     }
     
-    override def name: String = "Typecheck & Sanitize Transformer"
+
 }

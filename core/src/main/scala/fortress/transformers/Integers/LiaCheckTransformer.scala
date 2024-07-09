@@ -3,6 +3,8 @@ import fortress.msfol._
 import fortress.operations._
 import fortress.problemstate.ProblemState
 
+// Linear Arithmetic
+
 object LiaCheckTransformer extends ProblemStateTransformer {
 
     /** Takes in a Problem, applies some transformation to it, and produces a
@@ -63,5 +65,5 @@ object LiaCheckTransformer extends ProblemStateTransformer {
         }
     }
 
-    override def name: String = "LinearArithmeticCheckTransformer"
+
 }

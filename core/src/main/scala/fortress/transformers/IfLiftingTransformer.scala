@@ -42,5 +42,5 @@ object IfLiftingTransformer extends ProblemStateTransformer {
         */
     }
     
-    override def name: String = "IfLifting Transformer"
+
 }

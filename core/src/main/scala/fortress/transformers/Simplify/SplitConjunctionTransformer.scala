@@ -23,5 +23,5 @@ object SplitConjunctionTransformer extends ProblemStateTransformer {
         )
     }
     
-    override def name: String = "Split Conjunction Transformer"
+
 }

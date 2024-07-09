@@ -13,5 +13,4 @@ object ClosureEliminationLiuTransformer extends ClosureEliminationTransformer {
         new ClosureEliminatorLiu(topLevelTerm: Term, signature: Signature, scopes: Map[Sort, Scope], nameGen: NameGenerator)
     }
 
-    override def name: String = "Closure Elimination Liu Transformer"
 }

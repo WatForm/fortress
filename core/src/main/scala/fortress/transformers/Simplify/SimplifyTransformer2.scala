@@ -21,5 +21,5 @@ class SimplifyTransformer2 extends ProblemStateTransformer {
       )
     }
     
-    override def name: String = "Simplify Transformer 2"
+
 }

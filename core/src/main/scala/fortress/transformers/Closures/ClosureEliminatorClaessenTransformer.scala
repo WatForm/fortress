@@ -13,5 +13,5 @@ object ClosureEliminationClaessenTransformer extends ClosureEliminationTransform
         return new ClosureEliminatorClaessen(topLevelTerm: Term, signature: Signature, scopes: Map[Sort, Scope], nameGen: NameGenerator)
     }
 
-    override def name: String = "Closure Elimination Claessen Transformer"
+
 }

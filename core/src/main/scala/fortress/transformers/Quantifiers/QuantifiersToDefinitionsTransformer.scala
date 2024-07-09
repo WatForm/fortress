@@ -9,7 +9,7 @@ import fortress.util.Errors
 
 object QuantifiersToDefinitionsTransformer extends ProblemStateTransformer {
 
-    val name: String = "QuantifiersToDefinitionsTransformer"
+
 
     override def apply(problemState: ProblemState): ProblemState = problemState match {
         case ProblemState(theory, scopes, skc, skf, rangeRestricts, unapplyInterp, distinctConstants) =>
