@@ -41,7 +41,7 @@ A `ProblemState` holds:
 
 ### Additional Relevant Information
 
-- the DEsAsDatatypeTransformer (used to be called DataTypeTransformer) seems to make DEs constants, how is this different than the ConstantsForDEsDistinct/NonDistinctTransformers (???)  I have a feeling that these three are very similar and just differ in whether we add an axiom that the constants are distinct or not.  What actually choose whether datatypes are split out in SMT-LIB???
+- the DEsAsDatatypeTransformer (used to be called DataTypeTransformer) seems to make DEs constants, how is this different than the ConstantsForDEsTransformers??  I have a feeling that these three are very similar and just differ in whether we add an axiom that the constants are distinct or not.  What actually choose whether datatypes are split out in SMT-LIB???
 
 - right now ProblemState/Flags are case classes and we use .copy to change create a new copy of the ProblemState after each transformer  - this does allow the transformers pretty complete freedom
 - if we made the ProblemState mutable then we could limit the methods of the ProblemState to only allow certain operations, e.g., changing something about the scope of the problemstate in a fixed way but never adding any sorts or changing Exact to NonExact, etc.
