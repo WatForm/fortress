@@ -11,8 +11,11 @@ A `ProblemState` holds:
 	+ not every sort requires a scope (these are considered to have unbound scopes)
 	+ intsort is included here if it has a scope
 	+ **how are bit vectors handled**
+ 		- **OZ: Bitvectors use IntSort, choosing the minimal bitwidth to represent at least as many values as given in the scope of IntSort.**
+   		- **OZ cont.: IntSort is then replaced with BitVectorSort(bitwidth). Notably, BitVectors keep their bitwidth in their Sort, and thus do not require a separate scope.**
 	+ BoolSort should never be in this map
 	+ **are there any other built-in sorts?**
+		- **OZ: BoundedIntSort and UnboundedIntSort also exist. BoundedIntSort is converted to bitvectors, while UnboundedIntSort is skipped. UnboundedIntSort seems to be able to be added by the LiaCheckTransformer**
 	**NAD: I suspect it would be better to use the terminology Fixed/Nonfixed, as Changing does not mean much.**
 - skolemConstants/skolemFunctions 
 	+ these are added by the Skolemization transformer only
@@ -28,6 +31,7 @@ A `ProblemState` holds:
 - create a problem state with a theory, calculate the exact/unchanging scope for sorts of enums
 	- **should the user be required to put in scopes at this moment of creation?**
 	- **should sorts be allowed to be added?**
+		+ **OZ: I'm confused what this means. Can you elaborate? When? To the scopes map?**
 	- **the EnumEliminationTransformer makes the sort of the enum ExactScope (so I'm not sure why we are doing something in ProblemState)**
 - any NonExact scopes have to be removed before solving (**NAD: this should be a check somewhere in the Solver?**)
 - changeable scopes could be removed (MaxUnboundScopesTransformer)
