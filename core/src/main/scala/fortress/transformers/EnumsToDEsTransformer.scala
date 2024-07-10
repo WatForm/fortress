@@ -11,7 +11,7 @@ import fortress.problemstate.ExactScope
 /** Replaces enum values with domain elements, following the mapping from the
   * computeEnumSortMapping method.
   */
-object EnumEliminationTransformer extends ProblemStateTransformer {
+object EnumsToDEsTransformer extends ProblemStateTransformer {
     override def apply(problemState: ProblemState): ProblemState = {
         val theory = problemState.theory
         val scopes = problemState.scopes

@@ -13,7 +13,7 @@ abstract class BaseJoeSymmetryCompiler() extends BaseCompiler {
     override def transformerSequence: Seq[ProblemStateTransformer] = {
         val transformerSequence = new scala.collection.mutable.ListBuffer[ProblemStateTransformer]
         transformerSequence += TypecheckSanitizeTransformer
-        transformerSequence += EnumEliminationTransformer
+        transformerSequence += EnumsToDEsTransformer
         transformerSequence += LiaCheckTransformer
         transformerSequence += IntToBVTransformer
         transformerSequence += ClosureEliminationEijckTransformer
@@ -28,7 +28,7 @@ abstract class BaseJoeSymmetryCompiler() extends BaseCompiler {
         transformerSequence += QuantifierExpansionTransformer
         transformerSequence += RangeFormulaUseDEsTransformer
         transformerSequence += SimplifyTransformer
-        transformerSequence += ConstantsForDEsDistinctTransformer
+        transformerSequence += DEsToDistinctConstantsTransformer
         transformerSequence.toList
     }
 
@@ -60,7 +60,7 @@ class JoeTWO_SICompiler() extends BaseJoeSymmetryCompiler {
     override def transformerSequence: Seq[ProblemStateTransformer] = {
         val transformerSequence = new scala.collection.mutable.ListBuffer[ProblemStateTransformer]
         transformerSequence += TypecheckSanitizeTransformer
-        transformerSequence += EnumEliminationTransformer
+        transformerSequence += EnumsToDEsTransformer
         transformerSequence += IntToBVTransformer
         transformerSequence += SortInferenceTransformer
         transformerSequence += NnfTransformer
@@ -69,7 +69,7 @@ class JoeTWO_SICompiler() extends BaseJoeSymmetryCompiler {
         transformerSequence += QuantifierExpansionTransformer
         transformerSequence += RangeFormulaUseDEsTransformer
         transformerSequence += SimplifyTransformer
-        transformerSequence += ConstantsForDEsDistinctTransformer
+        transformerSequence += DEsToDistinctConstantsTransformer
         transformerSequence.toList
     }
 }
@@ -100,7 +100,7 @@ class JoeFOUR_SICompiler() extends BaseJoeSymmetryCompiler {
     override def transformerSequence: Seq[ProblemStateTransformer] = {
         val transformerSequence = new scala.collection.mutable.ListBuffer[ProblemStateTransformer]
         transformerSequence += TypecheckSanitizeTransformer
-        transformerSequence += EnumEliminationTransformer
+        transformerSequence += EnumsToDEsTransformer
         transformerSequence += IntToBVTransformer
         transformerSequence += SortInferenceTransformer
         transformerSequence += NnfTransformer
@@ -109,7 +109,7 @@ class JoeFOUR_SICompiler() extends BaseJoeSymmetryCompiler {
         transformerSequence += QuantifierExpansionTransformer
         transformerSequence += RangeFormulaUseDEsTransformer
         transformerSequence += SimplifyTransformer
-        transformerSequence += ConstantsForDEsDistinctTransformer
+        transformerSequence += DEsToDistinctConstantsTransformer
         transformerSequence.toList
     }
 }

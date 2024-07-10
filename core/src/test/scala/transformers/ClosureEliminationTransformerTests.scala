@@ -57,7 +57,7 @@ trait CETransfomerBehaviors{ this: AnyFlatSpec =>
         // This may be better as a fixture?
         val manager = Manager.makeEmpty()
         manager.addOption(TypecheckSanitizeOption, 1)
-        manager.addOption(EnumEliminationOption, 2)
+        manager.addOption(EnumsToDEsOption, 2)
         
 
         // Add in this closure eliminator
@@ -66,7 +66,7 @@ trait CETransfomerBehaviors{ this: AnyFlatSpec =>
         manager.addOption(QuantifierExpansionOption, 5001)
         manager.addOption(RangeFormulaOption, 5002)
         manager.addOption(SimplifyOption, 5003)
-        manager.addOption(DatatypeOption, 5004)
+        manager.addOption(DEsToEnumsOption, 5004)
 
         // TODO shouldn't change anything without a closure
         

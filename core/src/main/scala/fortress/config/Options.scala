@@ -18,9 +18,9 @@ case object IfLiftingOption extends ToggleOption(
     _.addTransformer(IfLiftingTransformer),
 )
 
-case object EnumEliminationOption extends ToggleOption(
+case object EnumsToDEsOption extends ToggleOption(
     "EnumElimination",
-    _.addTransformer(EnumEliminationTransformer)
+    _.addTransformer(EnumsToDEsTransformer)
 )
 
 case object NnfOption extends ToggleOption(
@@ -48,9 +48,9 @@ case object SimplifyOption extends ToggleOption(
     _.addTransformer(SimplifyTransformer)
 )
 
-case object DatatypeOption extends ToggleOption(
+case object DEsToEnumsOption extends ToggleOption(
     "Datatypes",
-    _.addTransformer(DEsAsDatatypeTransformer)
+    _.addTransformer(DEsToEnumsTransformer)
 )
 
 

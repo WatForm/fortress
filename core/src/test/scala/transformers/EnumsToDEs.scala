@@ -3,7 +3,7 @@ import fortress.msfol._
 import fortress.problemstate._
 import fortress.transformers._
 
-class EnumEliminationTests extends UnitSuite {
+class EnumsToDEsTests extends UnitSuite {
     
     val A = Sort.mkSortConst("A")
     val B = Sort.mkSortConst("B")
@@ -17,7 +17,7 @@ class EnumEliminationTests extends UnitSuite {
             .withSort(B)
             .withEnumSort(C, EnumValue("red"), EnumValue("blue"))
         
-        val mapping = EnumEliminationTransformer.computeEnumSortMapping(theory)
+        val mapping = EnumsToDEsTransformer.computeEnumSortMapping(theory)
         val expected = Map(
             EnumValue("cat") -> DomainElement(1, A),
             EnumValue("dog") -> DomainElement(2, A),
@@ -43,7 +43,7 @@ class EnumEliminationTests extends UnitSuite {
             .withAxiom(Forall(x of B,
                 Not(App("f", DomainElement(1, A), x) === DomainElement(2, C))))
         
-        val transformer = EnumEliminationTransformer
+        val transformer = EnumsToDEsTransformer
         val result = transformer(ProblemState(theory))
         result.theory should be (expected)
         result.scopes should be (Map(A -> ExactScope(3, true), C -> ExactScope(2, true)))

@@ -36,19 +36,19 @@ class ClosureEliminatorVakiliTransformerTests extends UnitSuite {
     
     val manager = Manager.makeEmpty()
     manager.addOption(TypecheckSanitizeOption, 1)
-    manager.addOption(EnumEliminationOption, 2)
+    manager.addOption(EnumsToDEsOption, 2)
     manager.addOption(IfLiftingOption,3)
     manager.addOption(NnfOption, 4)
     manager.addOption(new SimpleOption("NegativeClosureElim", ClosureEliminationVakiliTransformer), 4)
     manager.addOption(QuantifierExpansionOption, 5001)
     manager.addOption(RangeFormulaOption, 5002)
     manager.addOption(SimplifyOption, 5003)
-    manager.addOption(DatatypeOption, 5004)
+    manager.addOption(DEsToEnumsOption, 5004)
 
 
     def quickOutput(ps: ProblemState): Unit = {
         var result = TypecheckSanitizeTransformer(ps)
-        result = EnumEliminationTransformer(ps)
+        result = EnumsToDEsTransformer(ps)
         result = NnfTransformer(ps)
         result = ClosureEliminationVakiliTransformer(ps)
         println(Dump.problemStateToSmtlib(result))

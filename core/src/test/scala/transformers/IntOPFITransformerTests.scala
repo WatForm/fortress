@@ -21,7 +21,7 @@ class IntOPFITransformerTests extends UnitSuite {
 
     val manager = Manager.makeEmpty()
     manager.addOption(TypecheckSanitizeOption, 1)
-    manager.addOption(EnumEliminationOption, 2)
+    manager.addOption(EnumsToDEsOption, 2)
 
 
     // Add in this closure eliminator
@@ -34,8 +34,8 @@ class IntOPFITransformerTests extends UnitSuite {
     //manager.addOption(QuantifierExpansionOption, 5001)
     manager.addOption(RangeFormulaOption, 5002)
     manager.addOption(SimplifyOption, 5003)
-    //manager.addOption(DatatypeOption, 5004)
-    manager.addOption(new ToggleOption("DomainElimination", _.addTransformer(ConstantsForDEsDistinctTransformer)), 5005)
+    //manager.addOption(DEsToEnums, 5004)
+    manager.addOption(new ToggleOption("DomainElimination", _.addTransformer(DEsToDistinctConstantsTransformer)), 5005)
 
     val aSort = SortConst("A")
     val x = Var("x")

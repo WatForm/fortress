@@ -131,7 +131,7 @@ class  SmtlibConversionTests extends UnitSuite {
             )
         )
 
-        println(writer.toString)
+        //println(writer.toString)
 
         writer.toString should be ("(define-fun |max| ((|x| Int) (|y| Int) ) Int (ite (< |x| |y|) |y| |x|))\n")
     }

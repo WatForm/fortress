@@ -3,7 +3,7 @@ import fortress.msfol._
 import fortress.problemstate._
 import fortress.transformers._
 
-class ConstantsForDEsDistinctTests extends UnitSuite {
+class DEsToDistinctConstantsTests extends UnitSuite {
     val A = Sort.mkSortConst("A")
     val B = Sort.mkSortConst("B")
     
@@ -44,7 +44,7 @@ class ConstantsForDEsDistinctTests extends UnitSuite {
             .withAxiom(App("f", c, _1A) === _3B)
             .withAxiom(Not(d === _4B) ==> Exists(x of A, x === _2A))
         
-        val transformer = ConstantsForDEsDistinctTransformer
+        val transformer = DEsToDistinctConstantsTransformer
         transformer(ProblemState(theory, scopes)) should be (ProblemState(expectedTheory, scopes))
     }
     
@@ -71,7 +71,7 @@ class ConstantsForDEsDistinctTests extends UnitSuite {
             .withAxiom(c === _1A)
             .withAxiom(d === _1B)
         
-        val transformer = ConstantsForDEsDistinctTransformer
+        val transformer = DEsToDistinctConstantsTransformer
         transformer(ProblemState(theory, scopes)) should be (ProblemState(expectedTheory, scopes))
     }
 }

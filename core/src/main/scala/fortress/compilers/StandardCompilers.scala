@@ -51,13 +51,13 @@ class StandardCompiler extends BaseCompiler {
         RangeFormulaUseDEsTransformer
 
     def enumerateFiniteValues: ProblemStateTransformer = 
-        ConstantsForDEsDistinctTransformer
+        DEsToDistinctConstantsTransformer
 
     override def transformerSequence: Seq[ProblemStateTransformer] = {
 
         val transformerSequence = new scala.collection.mutable.ListBuffer[ProblemStateTransformer]
         transformerSequence += TypecheckSanitizeTransformer
-        transformerSequence += EnumEliminationTransformer
+        transformerSequence += EnumsToDEsTransformer
 
         // defined above
         transformerSequence += closureEliminator
@@ -128,7 +128,7 @@ class StandardSICompiler() extends StandardCompiler {
 class DatatypeWithRangeEUFCompiler() extends StandardCompiler {
 
     override def enumerateFiniteValues: ProblemStateTransformer = 
-        DEsAsDatatypeTransformer
+        DEsToEnumsTransformer
     
 }
 
@@ -160,7 +160,7 @@ class DatatypeWithRangeNoEUFCompiler() extends StandardCompiler {
         NullTransformer
 
     override def enumerateFiniteValues: ProblemStateTransformer = 
-        DEsAsDatatypeTransformer
+        DEsToEnumsTransformer
 }
 
 /*
@@ -175,7 +175,7 @@ class DatatypeNoRangeNoEUFCompiler() extends DatatypeWithRangeNoEUFCompiler {
         NullTransformer
 
     override def enumerateFiniteValues: ProblemStateTransformer = 
-        DEsAsDatatypeTransformer
+        DEsToEnumsTransformer
 }
 
 

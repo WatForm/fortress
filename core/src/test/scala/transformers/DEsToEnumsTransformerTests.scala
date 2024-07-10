@@ -3,7 +3,7 @@ import fortress.msfol._
 import fortress.problemstate._
 import fortress.transformers._
 
-class DEsAsDatatypeTransformerTests extends UnitSuite {
+class DEstoEnumsTransformerTests extends UnitSuite {
     val A = Sort.mkSortConst("A")
     val B = Sort.mkSortConst("B")
     
@@ -37,7 +37,7 @@ class DEsAsDatatypeTransformerTests extends UnitSuite {
             .withAxiom(App("f", c, _1A) === _3B)
             .withAxiom(Not(d === _4B) ==> Exists(x of A, x === _2A))
         
-        val transformer = DEsAsDatatypeTransformer
+        val transformer = DEsToEnumsTransformer
         transformer(ProblemState(theory, scopes)) should be(ProblemState(
             expectedTheory,
             scopes,
@@ -73,7 +73,7 @@ class DEsAsDatatypeTransformerTests extends UnitSuite {
             .withAxiom(c === _1A)
             .withAxiom(d === _1B)
         
-        val transformer = DEsAsDatatypeTransformer
+        val transformer = DEsToEnumsTransformer
         transformer(ProblemState(theory, scopes)) should be(ProblemState(
             expectedTheory,
             scopes,

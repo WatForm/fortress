@@ -16,8 +16,7 @@ object TransformersRegistry {
         val t:ProblemStateTransformer = name match {
 
             // string name must match the object name + 'Transformer'
-            case "DEsAsDatatype" => DEsAsDatatypeTransformer
-            case "EnumElimination" => EnumEliminationTransformer
+            case "EnumsToDEsElimination" => EnumsToDEsTransformer
             case "IfLifting" => IfLiftingTransformer
             case "Nnf" => NnfTransformer
             case "Null" => NullTransformer
@@ -41,8 +40,9 @@ object TransformersRegistry {
             case "AxiomatizeFuncDefn" => AxiomatizeFuncDefnTransformer
 
             // EnumerateFiniteValues
-            case "ConstantsForDEsDistinct" => ConstantsForDEsDistinctTransformer
-            case "ConstantsForDEsNonDistinct" => ConstantsForDEsNonDistinctTransformer
+            case "DEsToDistinctConstants" => DEsToDistinctConstantsTransformer
+            case "DEsToNonDistinctConstants" => DEsToNonDistinctConstantsTransformer
+            case "DEsToEnums" => DEsToEnumsTransformer
 
             // Integers
             case "AxiomatizeIntPredDefns" => AxiomatizeIntPredDefnsTransformer

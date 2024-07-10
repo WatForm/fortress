@@ -91,13 +91,13 @@ object Manager {
   def makeDefaultZero(): Manager = {
     var manager: Manager = new Manager
     manager.addOption(TypecheckSanitizeOption, 5001)
-    manager.addOption(EnumEliminationOption, 5002)
+    manager.addOption(EnumsToDEsOption, 5002)
     manager.addOption(NnfOption, 5003)
     // Space for symmetry breaking
     manager.addOption(QuantifierExpansionOption, 5501)
     manager.addOption(RangeFormulaOption, 5502)
     manager.addOption(SimplifyOption, 5503)
-    manager.addOption(DatatypeOption, 5504)
+    manager.addOption(DEsToEnumsOption, 5504)
     return manager
   }
 

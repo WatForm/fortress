@@ -167,7 +167,7 @@ object FortressDebug {
                     }
                     val ps2 = ProblemState.apply(theory2,analysisScopes)
                     // next EnumEliminationTransformer:ProblemState -> ProblemState 
-                    val ps3 = EnumEliminationTransformer.apply(ps2)
+                    val ps3 = EnumsToDEsTransformer.apply(ps2)
                     // doing SortInference is necessary to actually count the new sorts 
                     //    and EnumElimination is done before SortInference
                     // SortInferenceTransformer: ProblemState -> ProblemState

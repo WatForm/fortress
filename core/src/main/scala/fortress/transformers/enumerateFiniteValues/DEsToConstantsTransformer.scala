@@ -14,8 +14,10 @@ import fortress.problemstate.ProblemState
 
     We may not want constants used for DEs to be distinct if we are
     using the collapsing constants approach to non-exact scope.
+
+    This transformer is not compatible with DEsTOEnums
   */
-class ConstantsForDEsTransformer(constantsDistinct:Boolean = true) extends ProblemStateTransformer {
+class DEsToConstantsTransformer(constantsDistinct:Boolean = true) extends ProblemStateTransformer {
     
     override def apply(problemState: ProblemState): ProblemState = {
         val theory = problemState.theory
@@ -65,8 +67,8 @@ class ConstantsForDEsTransformer(constantsDistinct:Boolean = true) extends Probl
     }
 }
 
-object ConstantsForDEsDistinctTransformer 
-    extends ConstantsForDEsTransformer(constantsDistinct=true) {}
+object DEsToDistinctConstantsTransformer 
+    extends DEsToConstantsTransformer(constantsDistinct=true) {}
 
-object ConstantsForDEsNonDistinctTransformer 
-    extends ConstantsForDEsTransformer(constantsDistinct=false) {}
+object DEsToNonDistinctConstantsTransformer 
+    extends DEsToConstantsTransformer(constantsDistinct=false) {}

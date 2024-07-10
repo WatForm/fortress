@@ -20,20 +20,20 @@ class IntNOBVTransformerTests extends UnitSuite with CommonSymbols {
 
     val manager = Manager.makeEmpty()
       manager.addOption(TypecheckSanitizeOption, 1)
-      manager.addOption(EnumEliminationOption, 2)
+      manager.addOption(EnumsToDEsOption, 2)
       manager.addOption(QuantifierExpansionOption, 5001)
       manager.addOption(RangeFormulaOption, 5002)
       manager.addOption(SimplifyOption, 5003)
-      manager.addOption(DatatypeOption, 5004)
+      manager.addOption(DEsToEnumsOption, 5004)
 
     val managerWithOverflow = Manager.makeEmpty()
       managerWithOverflow.addOption(TypecheckSanitizeOption, 1)
-      managerWithOverflow.addOption(EnumEliminationOption, 2)
+      managerWithOverflow.addOption(EnumsToDEsOption, 2)
       managerWithOverflow.addOption(new ConfigOption("NOBV", _.addTransformer(IntNOBVTransformer)))
       managerWithOverflow.addOption(QuantifierExpansionOption, 5001)
       managerWithOverflow.addOption(RangeFormulaOption, 5002)
       // managerWithOverflow.addOption(SimplifyOption, 5003)
-      managerWithOverflow.addOption(DatatypeOption, 5004)
+      managerWithOverflow.addOption(DEsToEnumsOption, 5004)
 
 
     def ensureUnsat(theory: Theory) {

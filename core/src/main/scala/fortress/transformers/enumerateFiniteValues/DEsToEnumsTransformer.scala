@@ -8,8 +8,13 @@ import fortress.problemstate._
 /** Introduces enum values to simulate the domain elements, replacing occurrences
   * of domain elements with the appropriate constant. Leaves other aspects of the
   * Problem unchanged.
+  * 
+  * Any Enums present in the Theory will be converted to datatype declarations in SMT-LIB.
+  * Thus this effectively makes the method use datatype declarations in SMT-LIB to represent
+  * the constants.
+  * This should not be used with the DEsToConstantsTransformers
   */
-object DEsAsDatatypeTransformer extends ProblemStateTransformer {
+object DEsToEnumsTransformer extends ProblemStateTransformer {
 
     override def apply(problemState: ProblemState): ProblemState = {
         val theory = problemState.theory
