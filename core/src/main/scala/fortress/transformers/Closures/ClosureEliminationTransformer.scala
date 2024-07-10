@@ -62,6 +62,7 @@ trait ClosureEliminationTransformer extends ProblemStateTransformer {
             auxilaryFunctions ++= closureEliminator.getAuxilaryFunctions
             // New axioms must be in negation normal form
             resultTheory = resultTheory.withAxioms(closureEliminator.getClosureAxioms.map(NormalForms.nnf))
+            unchangingSorts ++= closureEliminator.unchangingSorts
         }
         for(axiom <- theory.axioms) {
             val closureEliminator = buildEliminator(axiom, resultTheory.signature, scopes, nameGenerator)
@@ -69,7 +70,6 @@ trait ClosureEliminationTransformer extends ProblemStateTransformer {
             val newAxiom = NormalForms.nnf(closureEliminator.convert())
             updateResult(closureEliminator)
             resultTheory = resultTheory.withAxiom(newAxiom)
-            unchangingSorts ++ closureEliminator.unchangingSorts
         }
 
         // We keep everything in the theory until we replace it so any dependencies are still there
@@ -82,7 +82,6 @@ trait ClosureEliminationTransformer extends ProblemStateTransformer {
             val newBody = NormalForms.nnf(closureEliminator.convert())
             updateResult(closureEliminator)
             resultTheory = resultTheory.withConstantDefinition(ConstantDefinition(cDef.avar, newBody))
-            unchangingSorts ++ closureEliminator.unchangingSorts
         }
 
         for (fDef <- theory.signature.functionDefinitions) {
@@ -95,7 +94,6 @@ trait ClosureEliminationTransformer extends ProblemStateTransformer {
             updateResult(closureEliminator)
             val newFDef = fDef.copy(body = newBody)
             resultTheory = resultTheory.withFunctionDefinition(newFDef)
-            unchangingSorts ++ closureEliminator.unchangingSorts
         }
 
 

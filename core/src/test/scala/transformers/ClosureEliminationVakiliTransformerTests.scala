@@ -39,7 +39,7 @@ class ClosureEliminatorVakiliTransformerTests extends UnitSuite {
     manager.addOption(EnumsToDEsOption, 2)
     manager.addOption(IfLiftingOption,3)
     manager.addOption(NnfOption, 4)
-    manager.addOption(new SimpleOption("NegativeClosureElim", ClosureEliminationVakiliTransformer), 4)
+    manager.addOption(new SimpleOption("NegativeClosureElim", ClosureEliminationVakiliTransformer), 5)
     manager.addOption(QuantifierExpansionOption, 5001)
     manager.addOption(RangeFormulaOption, 5002)
     manager.addOption(SimplifyOption, 5003)
@@ -179,6 +179,9 @@ class ClosureEliminatorVakiliTransformerTests extends UnitSuite {
             assert(finder.checkSat() == (ModelFinderResult.Sat)) 
         }}
         */
+        val scopes: Map[Sort, Scope] = Map(A -> ExactScope(3, false))
+        quickOutput(ProblemState(badTheory, scopes))
+
         Using.resource(manager.setupModelFinder()){ finder => {
             finder.setTheory(badTheory)
             finder.setExactScope(A, 3)
