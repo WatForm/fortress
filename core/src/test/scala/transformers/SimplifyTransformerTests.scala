@@ -4,7 +4,7 @@ import fortress.msfol._
 import fortress.transformers._
 import fortress.problemstate.ProblemState
 
-class SimplifyTransformerTest extends UnitSuite {
+class SimplifyTransformerTests extends UnitSuite {
 
     val st = SimplifyTransformer
 

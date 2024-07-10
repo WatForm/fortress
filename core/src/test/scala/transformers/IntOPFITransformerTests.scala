@@ -11,7 +11,7 @@ import fortress.operations.TheoryOps._
 import fortress.util.Milliseconds
 
 
-class IntOPFITransformerTest extends UnitSuite {
+class IntOPFITransformerTests extends UnitSuite {
     val transformer = IntOPFITransformer
     val intSize = 8
     val min = -4

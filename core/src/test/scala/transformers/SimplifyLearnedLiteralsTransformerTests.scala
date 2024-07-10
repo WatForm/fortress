@@ -2,7 +2,7 @@ import fortress.msfol._
 import fortress.transformers._
 import fortress.problemstate.ProblemState
 
-class SimplifyLearnedLiteralTransformerTest extends UnitSuite {
+class SimplifyLearnedLiteralTransformerTests extends UnitSuite {
 
     val st = SimplifyLearnedLiteralsTransformer
 

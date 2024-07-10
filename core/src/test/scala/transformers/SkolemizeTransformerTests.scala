@@ -4,12 +4,15 @@ import fortress.msfol._
 import fortress.transformers._
 import fortress.problemstate._
 
-class SkolemizeTransformerTest extends UnitSuite with CommonSymbols {
+class SkolemizeTransformerTests extends UnitSuite with CommonSymbols {
    
     // typechecking not included because it will remove a boolean ite
     // and one of the tests checks that skolemize does not enter ites 
     def skolemizer(th:Theory) = 
-        SkolemizeTransformer(NnfTransformer(ProblemState(th)))  
+        SkolemizeTransformer(
+            NnfTransformer(
+                ProblemState(th).withFlags(Flags(haveRunIfLifting=true)))) 
+
 
     val _a = Var("a")
     val _b = Var("b")

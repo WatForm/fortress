@@ -3,8 +3,10 @@ import fortress.msfol._
 import fortress.problemstate._
 import fortress.transformers._
 
-class RangeFormulaTests extends UnitSuite {
+class RangeFormulaUseDEsTests extends UnitSuite {
     
+    val transformer = RangeFormulaUseDEsTransformer
+
     val A = Sort.mkSortConst("A")
     val B = Sort.mkSortConst("B")
     val C = Sort.mkSortConst("C")
@@ -72,7 +74,6 @@ class RangeFormulaTests extends UnitSuite {
                 App("g", DomainElement(3, B)) === DomainElement(2, A)))
         
         val scopes = Map(A -> ExactScope(2), B -> ExactScope(3))
-        val transformer = RangeFormulaUseDEsTransformer
         transformer(ProblemState(theory, scopes)) should be (ProblemState(expected, scopes))
     }
     
@@ -104,7 +105,6 @@ class RangeFormulaTests extends UnitSuite {
                 App("f", DomainElement(2, A), DomainElement(3, B)) === DomainElement(2, C)))
         
         val scopes = Map(A -> ExactScope(2), B -> ExactScope(3), C -> ExactScope(2))
-        val transformer = RangeFormulaUseDEsTransformer
         transformer(ProblemState(theory, scopes)) should be (ProblemState(expected, scopes))
     }
     
@@ -128,7 +128,6 @@ class RangeFormulaTests extends UnitSuite {
             .withAxioms(rangeFormulas)
         
         val scopes = Map(A -> ExactScope(5), B -> ExactScope(7), C -> ExactScope(2))
-        val transformer = RangeFormulaUseDEsTransformer
         transformer(ProblemState(theory, scopes)) should be (ProblemState(expected, scopes))
     }
     
@@ -146,7 +145,6 @@ class RangeFormulaTests extends UnitSuite {
             // Nothing about p, q, P
         
         val scopes = Map(A -> ExactScope(2))
-        val transformer = RangeFormulaUseDEsTransformer
         transformer(ProblemState(theory, scopes)) should be (ProblemState(expected, scopes))
     }
     
@@ -167,7 +165,6 @@ class RangeFormulaTests extends UnitSuite {
             .withAxiom(App("g", DomainElement(1, B)) === DomainElement(1, A))
         
         val scopes = Map(A -> ExactScope(1), B -> ExactScope(1))
-        val transformer = RangeFormulaUseDEsTransformer
         transformer(ProblemState(theory, scopes)) should be (ProblemState(expected, scopes))
     }
     
@@ -197,7 +194,6 @@ class RangeFormulaTests extends UnitSuite {
                 App("g", x0, DomainElement(2, A), x1) === DomainElement(2, A))))
         
         val scopes = Map(A -> ExactScope(2))
-        val transformer = RangeFormulaUseDEsTransformer
         transformer(ProblemState(theory, scopes)) should be (ProblemState(expected, scopes))
     }
     

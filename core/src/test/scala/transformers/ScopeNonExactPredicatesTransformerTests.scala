@@ -4,7 +4,7 @@ import fortress.problemstate._
 import fortress.transformers._
 
 
-class ScopeNonExactPredicatesTransformerTest extends UnitSuite with CommonSymbols {
+class ScopeNonExactPredicatesTransformerTests extends UnitSuite with CommonSymbols {
 
     def typechecker(p:ProblemState) = TypecheckSanitizeTransformer(p)
     def transformer(p:ProblemState) = ScopeNonExactPredicatesTransformer(typechecker(p))

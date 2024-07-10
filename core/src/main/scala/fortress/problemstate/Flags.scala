@@ -11,7 +11,7 @@ import fortress.util.Errors
   * @param haveRunNNF Is the problem state in negation normal form
   * @param verbose Debug verbose output should be printed
   */
-case class Flags private(
+case class Flags (
     distinctConstants: Boolean = true,
 
     haveRunNNF: Boolean = false,
@@ -35,6 +35,7 @@ case class Flags private(
     containsNonExactScopes: Boolean = false,
 ) {}
 
+// Flags.default is the same as doing Flags() or new Flags()
 case object Flags {
     def default: Flags = Flags()
 }

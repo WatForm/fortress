@@ -3,19 +3,18 @@ import fortress.msfol._
 import fortress.problemstate._
 import fortress.transformers._
 
-class IntToBVTransformerTest extends UnitSuite {
+class IntToBVTransformerTests extends UnitSuite {
     test("basic literals") {
         val theory = Theory.empty
             .withAxiom(Not(IntegerLiteral(1) === IntegerLiteral(2)))
 
-        val problemState = ProblemState(theory,Map(IntSort -> ExactScope(16)))
+        val problemState = ProblemState(theory).withScopes(Map(IntSort -> ExactScope(16)))
 
         val expected = ProblemState(
             Theory.empty
-            .withAxiom(Not(
-                BitVectorLiteral(value = 1, bitwidth = 4) === BitVectorLiteral(value = 2, bitwidth = 4))),
-            Map.empty + (BitVectorSort(4) -> ExactScope(16))
-        )
+                .withAxiom(Not(
+                    BitVectorLiteral(value = 1, bitwidth = 4) === BitVectorLiteral(value = 2, bitwidth = 4))))
+            .withScopes(Map.empty + (BitVectorSort(4) -> ExactScope(16)))
 
         val transformer = IntToBVTransformer
         val result = transformer(problemState).withoutUnapplyInterps()
@@ -29,14 +28,13 @@ class IntToBVTransformerTest extends UnitSuite {
             .withConstantDeclaration(i of IntSort)
             .withAxiom(i === IntegerLiteral(5))
 
-        val problemState = ProblemState(theory,Map(IntSort->ExactScope(16)))
+        val problemState = ProblemState(theory).withScopes(Map(IntSort->ExactScope(16)))
 
         val expected = ProblemState(
             Theory.empty
-            .withConstantDeclaration(i of BitVectorSort(4))
-            .withAxiom(i === BitVectorLiteral(value = 5, bitwidth = 4)),
-            Map.empty + (BitVectorSort(4) -> ExactScope(16))
-        )
+                .withConstantDeclaration(i of BitVectorSort(4))
+                .withAxiom(i === BitVectorLiteral(value = 5, bitwidth = 4)))
+            .withScopes(Map.empty + (BitVectorSort(4) -> ExactScope(16)))
         
         val transformer = IntToBVTransformer
         transformer(problemState).withoutUnapplyInterps() should be (expected)
@@ -50,14 +48,13 @@ class IntToBVTransformerTest extends UnitSuite {
             .withConstantDeclarations(i of IntSort, j of IntSort)
             .withAxiom(BuiltinApp(IntPlus, i, j) === BuiltinApp(IntPlus, i, j))
 
-        val problemState = ProblemState(theory,Map(IntSort->ExactScope(16)))
+        val problemState = ProblemState(theory).withScopes(Map(IntSort->ExactScope(16)))
         
         val expected = ProblemState(
             Theory.empty
-            .withConstantDeclarations(i of BitVectorSort(4), j of BitVectorSort(4))
-            .withAxiom(BuiltinApp(BvPlus, i, j) === BuiltinApp(BvPlus, i, j)),
-            Map.empty + (BitVectorSort(4) -> ExactScope(16))
-        )
+                .withConstantDeclarations(i of BitVectorSort(4), j of BitVectorSort(4))
+                .withAxiom(BuiltinApp(BvPlus, i, j) === BuiltinApp(BvPlus, i, j))).
+            withScopes(Map.empty + (BitVectorSort(4) -> ExactScope(16)))
 
         val transformer = IntToBVTransformer
         transformer(problemState).withoutUnapplyInterps() should be (expected)
@@ -73,16 +70,15 @@ class IntToBVTransformerTest extends UnitSuite {
             .withConstantDeclaration(c of A)
             .withAxiom(App("f", c, IntegerLiteral(5)) === IntegerLiteral(7))
 
-        val problemState = ProblemState(theory,Map(IntSort->ExactScope(16)))
+        val problemState = ProblemState(theory).withScopes(Map(IntSort->ExactScope(16)))
         
         val expected = ProblemState(
             Theory.empty
-            .withSort(A)
-            .withFunctionDeclaration(FuncDecl("f", A, BitVectorSort(4), BitVectorSort(4)))
-            .withConstantDeclaration(c of A)
-            .withAxiom(App("f", c, BitVectorLiteral(value = 5, bitwidth = 4)) === BitVectorLiteral(value = 7, bitwidth = 4)),
-            Map.empty + (BitVectorSort(4) -> ExactScope(16))
-        )
+                .withSort(A)
+                .withFunctionDeclaration(FuncDecl("f", A, BitVectorSort(4), BitVectorSort(4)))
+                .withConstantDeclaration(c of A)
+                .withAxiom(App("f", c, BitVectorLiteral(value = 5, bitwidth = 4)) === BitVectorLiteral(value = 7, bitwidth = 4))).
+            withScopes(Map.empty + (BitVectorSort(4) -> ExactScope(16)))
 
         val transformer = IntToBVTransformer
         transformer(problemState).withoutUnapplyInterps() should be (expected)
@@ -96,14 +92,14 @@ class IntToBVTransformerTest extends UnitSuite {
             .withFunctionDeclaration(FuncDecl("f", IntSort, IntSort, IntSort))
             .withAxiom(Forall( Seq(x of IntSort, y of IntSort), BuiltinApp(IntPlus, x, y) === App("f", x, y)))
 
-        val problemState = ProblemState(theory,Map(IntSort->ExactScope(16)))
+        val problemState = ProblemState(theory).withScopes(Map(IntSort->ExactScope(16)))
         
         val expected = ProblemState(
             Theory.empty
-            .withFunctionDeclaration(FuncDecl("f", BitVectorSort(4), BitVectorSort(4), BitVectorSort(4)))
-            .withAxiom(Forall( Seq(x of BitVectorSort(4), y of BitVectorSort(4)), BuiltinApp(BvPlus, x, y) === App("f", x, y))),
-            Map.empty + (BitVectorSort(4) -> ExactScope(16))
-        )
+                .withFunctionDeclaration(FuncDecl("f", BitVectorSort(4), BitVectorSort(4), BitVectorSort(4)))
+                .withAxiom(Forall( Seq(x of BitVectorSort(4), y of BitVectorSort(4)), BuiltinApp(BvPlus, x, y) === App("f", x, y))))
+            .withScopes(Map.empty + (BitVectorSort(4) -> ExactScope(16)))
+
 
         val transformer = IntToBVTransformer
         transformer(problemState).withoutUnapplyInterps() should be (expected)
@@ -124,16 +120,15 @@ class IntToBVTransformerTest extends UnitSuite {
                 .withAxiom(Forall( Seq(x of IntSort, y of IntSort), BuiltinApp(IntPlus, x, y) === App("f", x, y)))
                 .withAxiom(axiom1)
 
-        val problemState = ProblemState(theory,Map(IntSort->ExactScope(16)))
+        val problemState = ProblemState(theory).withScopes(Map(IntSort->ExactScope(16)))
 
         val expected = ProblemState(
             Theory.empty
                     .withFunctionDeclaration(FuncDecl("f", BitVectorSort(4), BitVectorSort(4), BitVectorSort(4)))
                     .withFunctionDeclaration(FuncDecl("g", UnBoundedIntSort, UnBoundedIntSort, UnBoundedIntSort))
                     .withAxiom(Forall( Seq(x of BitVectorSort(4), y of BitVectorSort(4)), BuiltinApp(BvPlus, x, y) === App("f", x, y)))
-                    .withAxiom(axiom1),
-                    Map.empty + (BitVectorSort(4) -> ExactScope(16))
-        )
+                    .withAxiom(axiom1))
+            .withScopes(Map.empty + (BitVectorSort(4) -> ExactScope(16)))
 
         val transformer = IntToBVTransformer
         transformer(problemState).withoutUnapplyInterps() should be (expected)
@@ -143,14 +138,14 @@ class IntToBVTransformerTest extends UnitSuite {
         val theory = Theory.empty
             .withAxiom(Not(IntegerLiteral(1) === IntegerLiteral(2)))
 
-        val problemState = ProblemState(theory,Map(BoundedIntSort -> ExactScope(16)))
+        val problemState = ProblemState(theory)
+            .withScopes(Map(BoundedIntSort -> ExactScope(16)))
 
         val expected = ProblemState(
             Theory.empty
-            .withAxiom(Not(
-                BitVectorLiteral(value = 1, bitwidth = 4) === BitVectorLiteral(value = 2, bitwidth = 4))),
-            Map.empty + (BitVectorSort(4) -> ExactScope(16))
-        )
+                .withAxiom(Not(
+                    BitVectorLiteral(value = 1, bitwidth = 4) === BitVectorLiteral(value = 2, bitwidth = 4))))
+            .withScopes(Map.empty + (BitVectorSort(4) -> ExactScope(16)))
 
         val transformer = IntToBVTransformer
         transformer(problemState).withoutUnapplyInterps() should be (expected)

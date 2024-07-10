@@ -18,6 +18,11 @@ import fortress.util.Errors
   * @param flags set to if a transformer has been run
   * @param verbose flag set to indicate output should be verobse
   */
+
+// private here means no one can write new ProblemState elsewhere in the code
+// class ProblemState is only visible to itself and its companion object
+// the real constructors for this are in the companion object below
+
 case class ProblemState private (
     theory: Theory,
     scopes: Map[Sort, Scope],
@@ -60,12 +65,25 @@ case class ProblemState private (
     def withoutUnapplyInterps(): ProblemState = {
         copy(unapplyInterp = List.empty)
     }
+
+    def withFlags(fl:Flags):ProblemState = {
+        copy(flags = fl)
+    }
 }
 
 object ProblemState {
 
-    def apply(theory: Theory): ProblemState = ProblemState(theory, Map.empty)
+    // these are actually the constructors of ProblemStates b/c above is private
+    // so default field values do not need to be set above because the first constructor 
+    // calls the second constructor, which gives values to all the fields
+
+    // putting the type on Map.empty is needed here so that it knows whether
+    // to call the second or third constructor here
     
+    def apply(theory: Theory): ProblemState = ProblemState(theory, Map.empty[Sort,Scope])
+
+    //TODO: why does this apply function do much more than the withScopes function above??    
+
     def apply(theory: Theory, scopes: Map[Sort, Scope], verbose: Boolean = false): ProblemState = {
         // Compute the scopes for enum sorts
         // Copy whether the scope is fixed and its exactness from the regular scope if applicable for compatibility
@@ -93,6 +111,17 @@ object ProblemState {
             flags = Flags(verbose=verbose, containsNonExactScopes=containsNonExactScopes)
         )
     }
-
+    
+    def apply(theory: Theory, flags:Flags): ProblemState =
+        new ProblemState(
+            theory,
+            Map.empty[Sort,Scope],
+            Set.empty,
+            Set.empty,
+            Set.empty,
+            List.empty,
+            flags
+        )
+         
 
 }

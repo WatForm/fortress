@@ -13,6 +13,11 @@ case object TypecheckSanitizeOption extends ToggleOption(
     _.addTransformer(TypecheckSanitizeTransformer),
 )
 
+case object IfLiftingOption extends ToggleOption(
+    "IfLifting",
+    _.addTransformer(IfLiftingTransformer),
+)
+
 case object EnumEliminationOption extends ToggleOption(
     "EnumElimination",
     _.addTransformer(EnumEliminationTransformer)

@@ -2,19 +2,21 @@ import org.scalatest._
 
 import fortress.msfol._
 import fortress.transformers._
-import fortress.problemstate.ProblemState
+import fortress.problemstate._
 
-class NnfTransformerTest extends UnitSuite with CommonSymbols {
+class NnfTransformerTests extends UnitSuite with CommonSymbols {
 
     val nnf = NnfTransformer
+
+    def checkTransform(input: Theory, expected: Theory) = {
+        val ps = ProblemState(input).withFlags(Flags(haveRunIfLifting = true))
+        nnf(ps).theory should equal (expected)
+    }
 
     val _a = Var("a")
     val _b = Var("b")
 
-    def checkTransform(input: Theory, expected: Theory) = {
-        val ps = ProblemState(input)
-        nnf(ps).theory should equal (expected)
-    }
+
     
     val baseTheory = Theory.empty
         .withSort(A)
@@ -219,11 +221,12 @@ class NnfTransformerTest extends UnitSuite with CommonSymbols {
                     App("adj", x2, x3)))))
                     
         val t2 = Forall(Seq(x1.of(V), x2.of(V), x3.of(V)),
-            Implication(
-                And(
-                    Not(Eq(x1, x2)),
-                    Not(Eq(x1, x3)),
-                    Not(Eq(x2, x3))),
+            Or(
+                Or(
+                    Eq(x1, x2),
+                    Eq(x1, x3),
+                    Eq(x2, x3))
+                ,
                 Not(Eq(
                     App("adj", x1, x2),
                     App("adj", x2, x3)))))
@@ -234,9 +237,12 @@ class NnfTransformerTest extends UnitSuite with CommonSymbols {
         
         val theory1 = base.withAxiom(t1)
         val theory2 = base.withAxiom(t2)
-        
-        val resultTheory2 = nnf(ProblemState(theory2)).theory
-        checkTransform(theory1, resultTheory2)
+       
+        // 2024-07-10 NAD bug corrected here
+        // can't just run nnf on result
+        // we are testing nnf! 
+        //val resultTheory2 = nnf(ProblemState(theory2)).theory
+        checkTransform(theory1, theory2)
     }
     
     test("distinct 3") {
@@ -254,11 +260,11 @@ class NnfTransformerTest extends UnitSuite with CommonSymbols {
                     App("adj", x2, x3))))))
                     
         val t2 = Forall(Seq(x1.of(V), x2.of(V), x3.of(V)),
-            Implication(
-                And(
-                    Not(Eq(x1, x2)),
-                    Not(Eq(x1, x3)),
-                    Not(Eq(x2, x3))),
+            Or(
+                Or(
+                    Eq(x1, x2),
+                    Eq(x1, x3),
+                    Eq(x2, x3)),
                 Not(Eq(
                     App("adj", x1, x2),
                     App("adj", x2, x3)))))
@@ -269,9 +275,12 @@ class NnfTransformerTest extends UnitSuite with CommonSymbols {
         
         val theory1 = base.withAxiom(t1)
         val theory2 = base.withAxiom(t2)
-        
-        val resultTheory2 = nnf(ProblemState(theory2)).theory
-        checkTransform(theory1, resultTheory2)
+
+        // 2024-07-10 NAD bug corrected here
+        // can't just run nnf on result
+        // we are testing nnf!         
+        //val resultTheory2 = nnf(ProblemState(theory2)).theory
+        checkTransform(theory1, theory2)
     }
 
     test("forall iff") {

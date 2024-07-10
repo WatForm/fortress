@@ -4,7 +4,7 @@ import fortress.problemstate._
 import fortress.symmetry.{DefaultSymmetryBreakerFactoryDL, LowArityFirstAndMostUsedOrderFactory}
 import fortress.transformers._
 
-class SymmetryBreakingTransformer_MostUsedTest extends UnitSuite {
+class SymmetryBreakingTransformer_MostUsedTests extends UnitSuite {
 
     val A = Sort.mkSortConst("A")
     val B = Sort.mkSortConst("B")

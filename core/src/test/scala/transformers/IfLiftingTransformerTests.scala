@@ -2,12 +2,17 @@ import org.scalatest._
 
 import fortress.msfol._
 import fortress.transformers._
-import fortress.problemstate.ProblemState
+import fortress.problemstate._
 
-class IfLiftingTransformerTest extends UnitSuite {
+class IfLiftingTransformerTests extends UnitSuite {
 
 	val iflift = IfLiftingTransformer
-    val typechecker = TypecheckSanitizeTransformer
+    /*
+    def prep(x:Theory) =
+        TypecheckSanitizeTransformer(ProblemState(x).withFlags(new Flags(haveRunNNF = true)))
+    */
+    def prep(x:Theory) =
+        TypecheckSanitizeTransformer(ProblemState(x))
 
     val A = Sort.mkSortConst("A")
     val B = Sort.mkSortConst("B")
@@ -45,7 +50,8 @@ class IfLiftingTransformerTest extends UnitSuite {
             .withAxiom(Eq(fa1,fa2))
         val expected = baseTheory
             .withAxiom(Eq(fa1,fa2)) 
-        iflift(typechecker(ProblemState(theory))).theory should be(expected)                  
+        iflift(prep(theory))
+            .theory should be(expected)                  
     }
     test("simple ite") {
     	val theory = baseTheory
@@ -55,7 +61,7 @@ class IfLiftingTransformerTest extends UnitSuite {
     					AndList(c1, Eq(fa1,b)),
     					AndList(Not(c1), Eq(fa2,b))
     				   ))
-    	iflift(typechecker(ProblemState(theory))).theory should be(expected)
+    	iflift(prep(theory)).theory should be(expected)
     }
 
     test("nested ite") {
@@ -73,7 +79,7 @@ class IfLiftingTransformerTest extends UnitSuite {
                     )),
                 AndList(Not(c1), Eq(fa3,b))
             ))
-        iflift(typechecker(ProblemState(theory))).theory should be(expected)
+        iflift(prep(theory)).theory should be(expected)
     }
 
     test("other arg ite") {
@@ -88,7 +94,7 @@ class IfLiftingTransformerTest extends UnitSuite {
                     Eq(App("g",a1,a2),b)),
                 AndList(Not(c1), Eq(App("g",a1,a3),b))
             ))
-        iflift(typechecker(ProblemState(theory))).theory should be(expected)        
+        iflift(prep(theory)).theory should be(expected)        
     }
 
     test("ite in multiple args") {
@@ -112,7 +118,7 @@ class IfLiftingTransformerTest extends UnitSuite {
                         AndList(Not(c2), Eq(b,App("g",a2,a4)))
                     ))
                 ))  
-        iflift(typechecker(ProblemState(theory))).theory should be(expected)             
+        iflift(prep(theory)).theory should be(expected)             
     }
 
     test("ite in both sides of Eq") {
@@ -138,7 +144,7 @@ class IfLiftingTransformerTest extends UnitSuite {
                         ))
                 )
             )
-        iflift(typechecker(ProblemState(theory))).theory should be(expected)         
+        iflift(prep(theory)).theory should be(expected)         
     }
 
     test("and/not list") {
@@ -172,7 +178,7 @@ class IfLiftingTransformerTest extends UnitSuite {
                     Not(Eq(fa1,fa2))
                 )
             )
-        iflift(typechecker(ProblemState(theory))).theory should be(expected)         
+        iflift(prep(theory)).theory should be(expected)         
     } 
 
     test("imp") {
@@ -205,7 +211,7 @@ class IfLiftingTransformerTest extends UnitSuite {
                     ),
                     Not(Eq(fa1,fa2))
                 ))
-        iflift(typechecker(ProblemState(theory))).theory should be(expected)         
+        iflift(prep(theory)).theory should be(expected)         
     }   
 
     test("non-Boolean ite") {
@@ -214,7 +220,7 @@ class IfLiftingTransformerTest extends UnitSuite {
         val expected = baseTheory
             .withFunctionDefinition(KDefnLifted)
 
-        iflift(typechecker(ProblemState(theory))).theory should be(expected)       
+        iflift(prep(theory)).theory should be(expected)       
 
     }     
 }

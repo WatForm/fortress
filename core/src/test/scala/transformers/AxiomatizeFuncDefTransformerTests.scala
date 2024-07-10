@@ -1,7 +1,7 @@
 import fortress.msfol._
 import fortress.transformers._
 
-class AxiomatizeFuncDefnTransformerTest extends UnitSuite with CommonSymbols {
+class AxiomatizeFuncDefnTransformerTests extends UnitSuite with CommonSymbols {
 
     val axiomatize = new TheoryApplication(AxiomatizeFuncDefnTransformer)
 

@@ -5,7 +5,7 @@ import fortress.symmetry.{DefaultSymmetryBreakerFactoryDL, LowArityFirstAndMostU
 import fortress.transformers._
 import fortress.symmetry._
 
-class SymmetryBreakingTransformerTest extends UnitSuite {
+class SymmetryBreakingTransformerTests extends UnitSuite {
 
     val typechecker = TypecheckSanitizeTransformer
 

@@ -3,7 +3,7 @@ import fortress.msfol._
 import fortress.problemstate._
 import fortress.transformers._
 
-class DomainEliminationTests extends UnitSuite {
+class ConstantsForDEsDistinctTests extends UnitSuite {
     val A = Sort.mkSortConst("A")
     val B = Sort.mkSortConst("B")
     

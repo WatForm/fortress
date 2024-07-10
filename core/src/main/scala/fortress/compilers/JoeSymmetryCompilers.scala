@@ -17,6 +17,11 @@ abstract class BaseJoeSymmetryCompiler() extends BaseCompiler {
         transformerSequence += LiaCheckTransformer
         transformerSequence += IntToBVTransformer
         transformerSequence += ClosureEliminationEijckTransformer
+        
+        // the next one was not in Joe's original tests for symmetry but
+        // now must be run before NnfTransformer or there are warnings
+        transformerSequence += IfLiftingTransformer
+
         transformerSequence += NnfTransformer
         transformerSequence += SkolemizeTransformer
         transformerSequence ++= symmetryBreakingTransformers

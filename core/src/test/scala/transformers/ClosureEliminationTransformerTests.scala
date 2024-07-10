@@ -1,3 +1,4 @@
+
 import org.scalatest._
 import org.scalatest.flatspec._
 import fortress.util.Seconds
@@ -91,7 +92,8 @@ trait CETransfomerBehaviors{ this: AnyFlatSpec =>
             )
             val theory = baseTheory
                 .withAxiom(everything)
-            val ps = ProblemState(theory, Map(A -> ExactScope(4)))
+            val ps = ProblemState(theory)
+                .withScopes(Map(A -> ExactScope(4)))
             val result = newCE(ps)
 
             assert(result.theory.axioms  contains  (Forall(Seq(x of A, y of A), App("^relation", x, y))),
@@ -108,7 +110,7 @@ trait CETransfomerBehaviors{ this: AnyFlatSpec =>
                     Term.mkClosure("relation", x, y)
                 ))
                 .withConstantDeclaration(y of A)
-            val ps = ProblemState(theory, Map(A -> ExactScope(4)))
+            val ps = ProblemState(theory).withScopes(Map(A -> ExactScope(4)))
             val result = newCE(ps)
 
             val cDefsWithClosures = result.theory.constantDefinitions.filter(_.body match {
@@ -646,7 +648,7 @@ trait CETransfomerBehaviors{ this: AnyFlatSpec =>
             
             val initialScopesMap: Map[Sort, Scope] = Map(A -> ExactScope(4, isUnchanging=false))
 
-            val initialProblemState = ProblemState(newTheory, initialScopesMap)
+            val initialProblemState = ProblemState(newTheory).withScopes(initialScopesMap)
 
             val expectedScopes: Map[Sort, Scope] = Map(A -> ExactScope(4, isUnchanging=true))
             val result = closureEliminator(initialProblemState)

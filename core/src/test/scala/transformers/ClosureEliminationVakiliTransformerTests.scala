@@ -37,12 +37,14 @@ class ClosureEliminatorVakiliTransformerTests extends UnitSuite {
     val manager = Manager.makeEmpty()
     manager.addOption(TypecheckSanitizeOption, 1)
     manager.addOption(EnumEliminationOption, 2)
-    manager.addOption(NnfOption, 3)
+    manager.addOption(IfLiftingOption,3)
+    manager.addOption(NnfOption, 4)
     manager.addOption(new SimpleOption("NegativeClosureElim", ClosureEliminationVakiliTransformer), 4)
     manager.addOption(QuantifierExpansionOption, 5001)
     manager.addOption(RangeFormulaOption, 5002)
     manager.addOption(SimplifyOption, 5003)
     manager.addOption(DatatypeOption, 5004)
+
 
     def quickOutput(ps: ProblemState): Unit = {
         var result = TypecheckSanitizeTransformer(ps)
@@ -58,7 +60,9 @@ class ClosureEliminatorVakiliTransformerTests extends UnitSuite {
             .withAxiom(axiom)
             .withFunctionDeclaration(FuncDecl("relation", A, A, BoolSort))
         
-        val ps: ProblemState = ProblemState(theory, Map[Sort,Scope](A -> ExactScope(4)))
+        val ps: ProblemState = ProblemState(theory)
+            .withScopes(Map[Sort,Scope](A -> ExactScope(4)))
+            .withFlags(Flags(haveRunNNF = true))
 
         ClosureEliminationVakiliTransformer(ps).theory should be (theory)
     }
