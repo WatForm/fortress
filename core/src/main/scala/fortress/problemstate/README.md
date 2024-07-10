@@ -12,6 +12,7 @@ A `ProblemState` holds:
 	+ intsort is included here if it has a scope
 	+ **how are bit vectors handled**
  		- **OZ: Bitvectors use IntSort, choosing the minimal bitwidth to represent at least as many values as given in the scope of IntSort.**
+  		- **NAD: arent's BitVectors a distinct sort from IntSort?**
    		- **OZ cont.: IntSort is then replaced with BitVectorSort(bitwidth). Notably, BitVectors keep their bitwidth in their Sort, and thus do not require a separate scope.**
 	+ BoolSort should never be in this map
 	+ **are there any other built-in sorts?**
@@ -32,6 +33,7 @@ A `ProblemState` holds:
 	- **should the user be required to put in scopes at this moment of creation?**
 	- **should sorts be allowed to be added?**
 		+ **OZ: I'm confused what this means. Can you elaborate? When? To the scopes map?**
+		+ NAD: sorts exist in the theory and in the scope map, should scopes be allowed to be added to the scopemap after the theory is created?
 	- **the EnumEliminationTransformer makes the sort of the enum ExactScope (so I'm not sure why we are doing something in ProblemState)**
 - any NonExact scopes have to be removed before solving (**NAD: this should be a check somewhere in the Solver?**)
 - changeable scopes could be removed (MaxUnboundScopesTransformer)
