@@ -1,17 +1,21 @@
 package fortress.transformers
 
-import scala.jdk.CollectionConverters._
+// import scala.jdk.CollectionConverters._
 import fortress.msfol._
-import fortress.util.Errors
+//import fortress.util.Errors
 import fortress.operations.TermOps._
 import fortress.operations.TheoryOps._
 import fortress.problemstate.ProblemState
 
-/** Introduces constants to simulate the domain elements, asserting these constants are
-  * all distinct and replacing occurrences of domain elements with the appropriate constant.
-  * Leaves other aspects of the Problem unchanged.
+/** Introduces constants to simulate the domain elements (DEs), 
+    (optionally) asserting these constants are all distinct,
+     and replacing occurrences of domain elements with the appropriate constant.
+     Leaves other aspects of the Problem unchanged.
+
+    We may not want constants used for DEs to be distinct if we are
+    using the collapsing constants approach to non-exact scope.
   */
-object ConstantsForDEsDistinctTransformer extends ProblemStateTransformer {
+class ConstantsForDEsTransformer(constantsDistinct:Boolean = true) extends ProblemStateTransformer {
     
     override def apply(problemState: ProblemState): ProblemState = {
         val theory = problemState.theory
@@ -27,18 +31,13 @@ object ConstantsForDEsDistinctTransformer extends ProblemStateTransformer {
             de => de.asSmtConstant of de.sort
         }
 
-        // Assert the constants are distinct
-        val distinctConstraints = for(
-            (sort, domainElems) <- domainElemsMap if (domainElems.size > 1)
-        ) yield Distinct(domainElems map (_.asSmtConstant))
-        
         // Eliminate domain elements in existing axioms
         val convertedAxioms = theory.axioms map (_.eliminateDomainElementsConstants)
 
         var newSig = theory.signature
             .withConstantDeclarations(domainConstants)
 
-        // We only remove a definition before readding it so all its dependencies are in the sig
+        // We only remove a definition before reading it so all its dependencies are in the sig
         // definitions are basically untested
         for(cDef <- theory.signature.constantDefinitions){
             newSig = newSig.withoutConstantDefinition(cDef)
@@ -49,16 +48,25 @@ object ConstantsForDEsDistinctTransformer extends ProblemStateTransformer {
             newSig = newSig.withFunctionDefinition(fDef.mapBody(_.eliminateDomainElementsConstants))
         }
 
-        val newTheory = Theory(newSig, convertedAxioms ++ distinctConstraints)
-
-//            println("Theory after domain elimination:")
-//            println(newTheory + "\n------------------------\n")
+        val newTheory:Theory =
+            if (constantsDistinct) {
+                // Assert the constants are distinct
+                val distinctConstraints = 
+                    for((sort, domainElems) <- domainElemsMap if (domainElems.size > 1)) 
+                        yield Distinct(domainElems map (_.asSmtConstant))
+                Theory(newSig, convertedAxioms ++ distinctConstraints)
+            }
+            else Theory(newSig, convertedAxioms)
         
         problemState.copy(
             theory = newTheory,
-            flags = problemState.flags.copy(distinctConstants = true)
+            flags = problemState.flags.copy(distinctConstants = constantsDistinct)
         )
     }
-    
-
 }
+
+object ConstantsForDEsDistinctTransformer 
+    extends ConstantsForDEsTransformer(constantsDistinct=true) {}
+
+object ConstantsForDEsNonDistinctTransformer 
+    extends ConstantsForDEsTransformer(constantsDistinct=false) {}
