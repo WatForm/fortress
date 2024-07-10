@@ -30,6 +30,8 @@ class ClosureEliminatorSquare(topLevelTerm: Term, signature: Signature, scopes: 
         def expandClosure(functionName: String): Unit = {
             // Find the sort we are closing over
             val sort = getClosingSortOfFunction(functionName)
+            // Record the sort as no longer being able change scope
+            unchangingSorts += sort
 
             val closureName = getClosureName(functionName)
 
@@ -119,6 +121,8 @@ class ClosureEliminatorSquare(topLevelTerm: Term, signature: Signature, scopes: 
                 }
                 // Find the sort we are closing over
                 val sort = getClosingSortOfFunction(functionName)
+                // Record the sort as no longer being able change scope
+                unchangingSorts += sort
 
                 val fixedSorts = getFixedSorts(functionName)
                 val fixedVars = getFixedVars(fixedSorts.length)

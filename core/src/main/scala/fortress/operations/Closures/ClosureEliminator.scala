@@ -21,6 +21,9 @@ abstract class ClosureEliminator(topLevelTerm: Term, signature: Signature, scope
     val auxilaryFunctions = scala.collection.mutable.Set[FuncDecl]()
     val closureAxioms = scala.collection.mutable.Set[Term]()
 
+    // Sorts that must be made unchanging. Used by iterative closure elimiators.
+    val unchangingSorts = scala.collection.mutable.Set[Sort]()
+
     val visitor: ClosureVisitor
 
     /** Returns the set of generated closure functions. Must be called after convert. */

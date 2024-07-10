@@ -50,6 +50,9 @@ trait ClosureEliminationTransformer extends ProblemStateTransformer {
         val closureFunctions = scala.collection.mutable.Set[FuncDecl]()
         val auxilaryFunctions = scala.collection.mutable.Set[FuncDecl]()
 
+        // Sorts that must become unchanging in their scope
+        val unchangingSorts = scala.collection.mutable.Set[Sort]()
+
         /** Updates the resultTheory with values from the closureEliminator after it runs its conversion
         */
         def updateResult(closureEliminator: ClosureEliminator): Unit = {
@@ -66,6 +69,7 @@ trait ClosureEliminationTransformer extends ProblemStateTransformer {
             val newAxiom = NormalForms.nnf(closureEliminator.convert())
             updateResult(closureEliminator)
             resultTheory = resultTheory.withAxiom(newAxiom)
+            unchangingSorts ++ closureEliminator.unchangingSorts
         }
 
         // We keep everything in the theory until we replace it so any dependencies are still there
@@ -78,6 +82,7 @@ trait ClosureEliminationTransformer extends ProblemStateTransformer {
             val newBody = NormalForms.nnf(closureEliminator.convert())
             updateResult(closureEliminator)
             resultTheory = resultTheory.withConstantDefinition(ConstantDefinition(cDef.avar, newBody))
+            unchangingSorts ++ closureEliminator.unchangingSorts
         }
 
         for (fDef <- theory.signature.functionDefinitions) {
@@ -90,6 +95,7 @@ trait ClosureEliminationTransformer extends ProblemStateTransformer {
             updateResult(closureEliminator)
             val newFDef = fDef.copy(body = newBody)
             resultTheory = resultTheory.withFunctionDefinition(newFDef)
+            unchangingSorts ++ closureEliminator.unchangingSorts
         }
 
 
@@ -98,10 +104,22 @@ trait ClosureEliminationTransformer extends ProblemStateTransformer {
         def unapply(interp: Interpretation) = {
             interp.withoutFunctions(closureFunctions.toSet).withoutFunctions(auxilaryFunctions.toSet)
         }
+
+        // Change result theory to ensure each unchangingSort can no longer change its scope
+        var newScopes: Map[Sort, Scope] = problemState.scopes.map({
+            case (sort, scope) => sort -> (if (unchangingSorts contains sort){
+                scope.mkUnchanging()
+            } else {
+                // Leave the others unchanged
+                scope
+            })
+        }).toMap
+        
         
         problemState.copy(
             theory=resultTheory,
-            unapplyInterp = problemState.unapplyInterp :+ unapply
+            unapplyInterp = problemState.unapplyInterp :+ unapply,
+            scopes = newScopes,
         )
     }
     

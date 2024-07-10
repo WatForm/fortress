@@ -6,6 +6,7 @@ sealed trait Scope {
     def isExact: Boolean // If false scope can have up to size elements
     def size: Int
     def isUnchanging: Boolean // the problem cannot be attempted at different scope sizes
+    def mkUnchanging(): Scope
 }
 
 case class ExactScope(size: Int, isUnchanging: Boolean) extends Scope {

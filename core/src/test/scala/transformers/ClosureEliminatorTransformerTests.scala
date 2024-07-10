@@ -17,6 +17,12 @@ import fortress.problemstate._
 import java.io.StringWriter
 import fortress.util.Dump
 import fortress.util.Milliseconds
+import fortress.compilers.ConfigurableCompiler
+import fortress.compilers.Compiler
+import fortress.transformers._
+import fortress.modelfinders.ConfigurableModelFinder
+import fortress.compilers.CompilerError
+import fortress.compilers.CompilerResult
 
 // This should eventually be more of an integration test
 // See https://www.scalatest.org/user_guide/sharing_tests
@@ -624,6 +630,32 @@ trait CETransfomerBehaviors{ this: AnyFlatSpec =>
             }}  
         }
     }
+
+    def fixedScopeClosureEliminationTransformer(closureEliminator: ClosureEliminationTransformer): Unit = {
+       
+        // val finder = new ConfigurableModelFinder(compiler)
+        
+
+        it should "prevent closed sorts' scopes from changing" in {
+            val allConnected = Forall(Seq(x.of(A), y.of(A)),
+                Term.mkClosure("arbitraryRelation", x, y)
+            )
+            val newTheory = baseTheory
+                .withAxiom(allConnected)
+                .withFunctionDeclaration(FuncDecl.mkFuncDecl("arbitraryRelation", A, A, Sort.Bool))
+            
+            val initialScopesMap: Map[Sort, Scope] = Map(A -> ExactScope(4, isUnchanging=false))
+
+            val initialProblemState = ProblemState(newTheory, initialScopesMap)
+
+            val expectedScopes: Map[Sort, Scope] = Map(A -> ExactScope(4, isUnchanging=true))
+            val result = closureEliminator(initialProblemState)
+            
+
+            assertResult(expectedScopes)(result.scopes)
+        
+        }
+    }
 }
 
 class ClosureEliminationIterativeTransformerTest extends AnyFlatSpec with CETransfomerBehaviors {
@@ -632,10 +664,14 @@ class ClosureEliminationIterativeTransformerTest extends AnyFlatSpec with CETran
 
 class ClosureEliminationEijckTransformerTest extends AnyFlatSpec with CETransfomerBehaviors {
     "ClosureEliminationEijckTransformer" should behave like anyClosureEliminationTransformer(ClosureEliminationEijckTransformer)
+
+    it should behave like fixedScopeClosureEliminationTransformer(ClosureEliminationEijckTransformer)
 }
 
 class ClosureEliminationSquareTransformerTest extends AnyFlatSpec with CETransfomerBehaviors {
     "ClosureEliminationSquareTransformer" should behave like anyClosureEliminationTransformer(ClosureEliminationSquareTransformer)
+
+    it should behave like fixedScopeClosureEliminationTransformer(ClosureEliminationSquareTransformer)
 }
 
 class ClosureEliminationLiuTransformerTest extends AnyFlatSpec with CETransfomerBehaviors {

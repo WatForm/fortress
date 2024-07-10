@@ -37,6 +37,8 @@ class ClosureEliminatorIterative(topLevelTerm: Term, signature: Signature, scope
                 // Look at original function to make declaration for the closure function
                 // Find the sort we are closing over
                 val sort = getClosingSortOfFunction(functionName)
+                // Record the sort as no longer being able change scope
+                unchangingSorts += sort
 
                 val fixedSorts = getFixedSorts(functionName)
                 val fixedVars = getFixedVars(fixedSorts.length)
@@ -113,6 +115,9 @@ class ClosureEliminatorIterative(topLevelTerm: Term, signature: Signature, scope
                 
                 // Find the sort we are closing over
                 val sort = getClosingSortOfFunction(functionName)
+                // Record the sort as no longer being able change scope
+                unchangingSorts += sort
+                
                 closureFunctions += FuncDecl(reflexiveClosureName, Seq(sort, sort) ++ fixedSorts, Sort.Bool)
                 val x = Var(nameGen.freshName("x"))
                 val y = Var(nameGen.freshName("y"))
