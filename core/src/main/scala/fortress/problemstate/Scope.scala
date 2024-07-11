@@ -7,6 +7,9 @@ sealed trait Scope {
     def size: Int
     def isUnchanging: Boolean // the problem cannot be attempted at different scope sizes
     def mkUnchanging(): Scope
+
+    // moving towards giving it a new name
+    def isFixed():Boolean = isUnchanging
 }
 
 case class ExactScope(size: Int, isUnchanging: Boolean) extends Scope {

@@ -20,6 +20,8 @@ object CompilersRegistry {
 
             case "Claessen" => new ClaessenCompiler()
 
+            case "AlmostNothing" => new AlmostNothingCompiler()
+
             // use datatypes to make it finite
             case "DatatypeNoRangeEUF" => new DatatypeNoRangeEUFCompiler()
             case "DatatypeWithRangeEUF" => new DatatypeWithRangeEUFCompiler()

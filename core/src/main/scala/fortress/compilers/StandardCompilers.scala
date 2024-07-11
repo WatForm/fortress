@@ -17,59 +17,59 @@ import scala.collection.mutable.ListBuffer
 class StandardCompiler extends BaseCompiler {
 
     // these top definitions are the most common variation points
-    def closureEliminator: ProblemStateTransformer = 
-        ClosureEliminationEijckTransformer
+    def closureEliminator: ListBuffer[ProblemStateTransformer] = 
+        ListOfOne(ClosureEliminationEijckTransformer)
 
-    def nonExactScopeEliminator: ProblemStateTransformer = 
-        ScopeNonExactPredicatesTransformer
+    def scopes: ListBuffer[ProblemStateTransformer] = 
+        ListOfOne(ScopeNonExactPredicatesTransformer)
 
-    def integerHandler:ProblemStateTransformer = 
-        IntOPFITransformer
+    def integerHandler:ListBuffer[ProblemStateTransformer] = 
+        ListOfOne(IntOPFITransformer)
 
-    def ifLiftOrNot:ProblemStateTransformer =
-        IfLiftingTransformer
+    def ifLiftOrNot:ListBuffer[ProblemStateTransformer] =
+        ListOfOne(IfLiftingTransformer)
 
-    def skolemizeOrNot: ProblemStateTransformer =
-        SkolemizeTransformer
+    def skolemizeOrNot: ListBuffer[ProblemStateTransformer] =
+        ListOfOne(SkolemizeTransformer)
 
-    def symmetryBreaker:ProblemStateTransformer = 
-        new SymmetryBreakingTransformer(SymmetryBreakingOptions(
+    def symmetryBreaker:ListBuffer[ProblemStateTransformer] =
+        ListOfOne(new SymmetryBreakingTransformer(SymmetryBreakingOptions(
             selectionHeuristic = MonoFirstThenFunctionsFirstAnyOrder,
             breakSkolem = true,
             sortInference = false,
             patternOptimization = true,
-        ))
+        )))
 
-    def quantifierHandler: Seq[ProblemStateTransformer] = { 
-        val ts = new scala.collection.mutable.ListBuffer[ProblemStateTransformer]
+    def quantifierHandler: ListBuffer[ProblemStateTransformer] = { 
+        val ts = NullTransformerList
         ts += QuantifiersToDefnsTransformer
         ts += QuantifierExpansionTransformer
-        ts.toList
+        ts
     }
 
-    def rangeFormulasOrNot: ProblemStateTransformer = 
-        RangeFormulaUseDEsTransformer
+    def rangeFormulasOrNot: ListBuffer[ProblemStateTransformer] = 
+        ListOfOne(RangeFormulaUseDEsTransformer)
 
-    def enumerateFiniteValues: ProblemStateTransformer = 
-        DEsToDistinctConstantsTransformer
+    def enumerateFiniteValues: ListBuffer[ProblemStateTransformer] = 
+        ListOfOne(DEsToDistinctConstantsTransformer)
 
     override def transformerSequence: Seq[ProblemStateTransformer] = {
 
-        val transformerSequence = new scala.collection.mutable.ListBuffer[ProblemStateTransformer]
+        val transformerSequence = NullTransformerList
         transformerSequence += TypecheckSanitizeTransformer
         transformerSequence += EnumsToDEsTransformer
 
         // defined above
-        transformerSequence += closureEliminator
+        transformerSequence ++= closureEliminator
         
         // defined above
-        transformerSequence += nonExactScopeEliminator
+        transformerSequence ++= scopes
 
         // defined above
-        transformerSequence += integerHandler
+        transformerSequence ++= integerHandler
 
         // defined above
-        transformerSequence += ifLiftOrNot
+        transformerSequence ++= ifLiftOrNot
 
         transformerSequence += NnfTransformer
 
@@ -79,21 +79,21 @@ class StandardCompiler extends BaseCompiler {
         transformerSequence += AntiPrenexTransformer
 
         // defined above
-        transformerSequence += skolemizeOrNot
+        transformerSequence ++= skolemizeOrNot
 
         // defined above
-        transformerSequence += symmetryBreaker 
+        transformerSequence ++= symmetryBreaker 
 
         // defined above
         transformerSequence ++= quantifierHandler
 
         // defined above
-        transformerSequence += rangeFormulasOrNot
+        transformerSequence ++= rangeFormulasOrNot
 
         transformerSequence += SimplifyTransformer
 
         // defined above
-        transformerSequence += enumerateFiniteValues
+        transformerSequence ++= enumerateFiniteValues
 
         transformerSequence.toList
     }
@@ -104,20 +104,21 @@ class StandardCompiler extends BaseCompiler {
 
 class ClaessenCompiler() extends StandardCompiler {
 
-    override def closureEliminator: ProblemStateTransformer = 
-        ClosureEliminationClaessenTransformer
+    override def closureEliminator: ListBuffer[ProblemStateTransformer] =
+        ListOfOne(ClosureEliminationClaessenTransformer)
 
 }
 
 class StandardSICompiler() extends StandardCompiler {
 
-    override def symmetryBreaker:ProblemStateTransformer = 
-        new SymmetryBreakingTransformer(SymmetryBreakingOptions(
-            selectionHeuristic = MonoFirstThenFunctionsFirstAnyOrder,
-            breakSkolem = true,
-            sortInference = true,
-            patternOptimization = true,
-        ))
+    override def symmetryBreaker:ListBuffer[ProblemStateTransformer] = 
+        ListOfOne(
+            new SymmetryBreakingTransformer(SymmetryBreakingOptions(
+                selectionHeuristic = MonoFirstThenFunctionsFirstAnyOrder,
+                breakSkolem = true,
+                sortInference = true,
+                patternOptimization = true,
+            )))
 
 }
 
@@ -127,8 +128,8 @@ class StandardSICompiler() extends StandardCompiler {
 */
 class DatatypeWithRangeEUFCompiler() extends StandardCompiler {
 
-    override def enumerateFiniteValues: ProblemStateTransformer = 
-        DEsToEnumsTransformer
+    override def enumerateFiniteValues: ListBuffer[ProblemStateTransformer] = 
+        ListOfOne(DEsToEnumsTransformer)
     
 }
 
@@ -138,8 +139,8 @@ class DatatypeWithRangeEUFCompiler() extends StandardCompiler {
 */
 class DatatypeNoRangeEUFCompiler() extends DatatypeWithRangeEUFCompiler() {
 
-    override def rangeFormulasOrNot: ProblemStateTransformer = 
-        NullTransformer
+    override def rangeFormulasOrNot: ListBuffer[ProblemStateTransformer] = 
+        NullTransformerList
     
 }
 
@@ -150,17 +151,17 @@ class DatatypeNoRangeEUFCompiler() extends DatatypeWithRangeEUFCompiler() {
    use range formulas 
 */
 class DatatypeWithRangeNoEUFCompiler() extends StandardCompiler {
-    override def quantifierHandler: Seq[ProblemStateTransformer] = 
+    override def quantifierHandler: ListBuffer[ProblemStateTransformer] = 
         NullTransformerList
 
-    override def ifLiftOrNot: ProblemStateTransformer =
-        NullTransformer
+    override def ifLiftOrNot: ListBuffer[ProblemStateTransformer] =
+        NullTransformerList
 
-    override def skolemizeOrNot: ProblemStateTransformer =
-        NullTransformer
+    override def skolemizeOrNot: ListBuffer[ProblemStateTransformer] =
+        NullTransformerList
 
-    override def enumerateFiniteValues: ProblemStateTransformer = 
-        DEsToEnumsTransformer
+    override def enumerateFiniteValues: ListBuffer[ProblemStateTransformer] = 
+        ListOfOne(DEsToEnumsTransformer)
 }
 
 /*
@@ -171,11 +172,19 @@ class DatatypeWithRangeNoEUFCompiler() extends StandardCompiler {
 
 class DatatypeNoRangeNoEUFCompiler() extends DatatypeWithRangeNoEUFCompiler {
 
-    override def rangeFormulasOrNot: ProblemStateTransformer = 
-        NullTransformer
+    override def rangeFormulasOrNot: ListBuffer[ProblemStateTransformer] = 
+        NullTransformerList
 
-    override def enumerateFiniteValues: ProblemStateTransformer = 
-        DEsToEnumsTransformer
+    override def enumerateFiniteValues: ListBuffer[ProblemStateTransformer] = 
+        ListOfOne(DEsToEnumsTransformer)
 }
 
+class MaxUnboundedScopesCompiler extends StandardCompiler {
+    override def scopes: ListBuffer[ProblemStateTransformer] = {
+        val ts:ListBuffer[ProblemStateTransformer] = NullTransformerList
+        ts += MaxUnboundedScopesTransformer
+        ts += ScopeNonExactPredicatesTransformer
+        ts
+    }
+}
 

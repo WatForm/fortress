@@ -14,9 +14,11 @@ A `ProblemState` holds:
  		- **OZ: Bitvectors use IntSort, choosing the minimal bitwidth to represent at least as many values as given in the scope of IntSort.**
   		- **NAD: arent's BitVectors a distinct sort from IntSort?**
    		- **OZ cont.: IntSort is then replaced with BitVectorSort(bitwidth). Notably, BitVectors keep their bitwidth in their Sort, and thus do not require a separate scope.**
+   		- BV never appear in Scope map
 	+ BoolSort should never be in this map
 	+ **are there any other built-in sorts?**
 		- **OZ: BoundedIntSort and UnboundedIntSort also exist. BoundedIntSort is converted to bitvectors, while UnboundedIntSort is skipped. UnboundedIntSort seems to be able to be added by the LiaCheckTransformer**
+		- **take Unbounded/BoundedSort out**
 	**NAD: I suspect it would be better to use the terminology Fixed/Nonfixed, as Changing does not mean much.**
 - skolemConstants/skolemFunctions 
 	+ these are added by the Skolemization transformer only

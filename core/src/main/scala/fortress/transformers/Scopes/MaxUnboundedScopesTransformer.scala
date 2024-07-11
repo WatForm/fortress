@@ -11,26 +11,11 @@ object MaxUnboundedScopesTransformer extends ProblemStateTransformer {
     override def apply(problemState: ProblemState): ProblemState = {
         val theory = problemState.theory
         val scopes = problemState.scopes
-        
-        //save all sorts that are quantified or have transitive closure applied to them
-        var sortSet: Set[Sort] = Set.empty
 
-        for( axiom <- theory.axioms ) {
-            sortSet = sortSet ++ SimpleUnboundedChecker.getBoundedSort(axiom)
-        }
+        // by removing fixed sorts of fixed scope
+        // from the scope set, they become unbounded
+        val new_scopes = scopes.filter( scope => { !scope._2.isFixed() } )
 
-        val new_scopes = scopes.filter( scope => { sortSet.contains(scope._1) } )
-        /*
-        ProblemState(
-            theory,
-            new_scopes,
-            skc,
-            skf,
-            rangeRestricts,
-            unapplyInterp,
-            distinctConstants
-        )
-        */
         problemState.copy(scopes = new_scopes)
 
     }
