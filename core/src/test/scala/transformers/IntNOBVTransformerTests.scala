@@ -3,7 +3,6 @@ import org.scalatest._
 import fortress.msfol._
 import fortress.transformers._
 import fortress.transformers.IntNOBVTransformer
-import fortress.config._
 import fortress.problemstate._
 import scala.util.Using
 import fortress.util.Seconds
