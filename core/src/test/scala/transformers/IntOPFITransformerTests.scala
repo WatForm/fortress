@@ -5,7 +5,7 @@ import fortress.transformers._
 import fortress.config._
 import scala.util.Using
 import fortress.util.Seconds
-import fortress.modelfinders.ModelFinderResult
+import fortress.modelfinders._
 import fortress.operations.TermOps._
 import fortress.operations.TheoryOps._
 import fortress.util.Milliseconds
@@ -19,24 +19,20 @@ class IntOPFITransformerTests extends UnitSuite {
     val intScope = ExactScope(intSize, true)
     val simpleIntScopes = Map[Sort, Scope](IntSort -> intScope)
 
-    val manager = Manager.makeEmpty()
-    manager.addOption(TypecheckSanitizeOption, 1)
-    manager.addOption(EnumsToDEsOption, 2)
-
-
-    // Add in this closure eliminator
-    manager.addOption(new ToggleOption("OPFIInts", _.addTransformer(transformer)), 102)
+    val transformers = Seq(
+        TypecheckSanitizeTransformer,
+        EnumsToDEsTransformer,
+        IntOPFITransformer,
+        RangeFormulaUseConstantsTransformer,
+        SimplifyTransformer,
+        DEsToDistinctConstantsTransformer
+    )
 
     val isInBoundsName = "isInBoundsOAF_0"
     val toInt = "toInt_0"
     val fromInt = "fromInt_0"
 
-    //manager.addOption(QuantifierExpansionOption, 5001)
-    manager.addOption(RangeFormulaOption, 5002)
-    manager.addOption(SimplifyOption, 5003)
-    //manager.addOption(DEsToEnums, 5004)
-    manager.addOption(new ToggleOption("DomainElimination", _.addTransformer(DEsToDistinctConstantsTransformer)), 5005)
-
+    
     val aSort = SortConst("A")
     val x = Var("x")
     val y = Var("y")
@@ -218,7 +214,7 @@ class IntOPFITransformerTests extends UnitSuite {
         }
         */
 
-        Using.resource(manager.setupModelFinder()){finder =>{
+        Using.resource(new ConfigurableModelFinder(transformers)){finder =>{
             finder.setTheory(theory)
             finder.setExactScope(IntSort, intSize)
             finder.setTimeout(Seconds(10))
@@ -252,7 +248,7 @@ class IntOPFITransformerTests extends UnitSuite {
             .withConstantDeclaration(x of IntSort)
             .withAxiom(axiom)
 
-        Using.resource(manager.setupModelFinder()){finder =>{
+        Using.resource(new ConfigurableModelFinder(transformers)){finder =>{
             finder.setTheory(theory)
             finder.setExactScope(IntSort, 4) // This ensures the only possible answer should be -1
             finder.setTimeout(Seconds(20))

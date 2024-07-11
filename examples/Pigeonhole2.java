@@ -2,12 +2,10 @@ import fortress.msfol.*;
 import static fortress.msfol.Term.*;
 import fortress.msfol.Sort.*;
 import fortress.msfol.FuncDecl.*;
-import fortress.modelfind.*;
+import fortress.modelfinders.*;
 
 
 import fortress.transformers.*;
-
-import fortress.config.*;
 
 import java.util.List;
 import java.io.*;
@@ -66,7 +64,7 @@ public class Pigeonhole2 {
         };
 
         // Initialize a model finder
-        try(ModelFinder finder = SimpleModelFinder(transformers)) {
+        try(ModelFinder finder = ConfigurableModelFinder(transformers)) {
             // Set the theory of the model finder
             finder.setTheory(pigeonholeTheory);
             
