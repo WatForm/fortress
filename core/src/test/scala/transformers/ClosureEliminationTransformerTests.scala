@@ -3,10 +3,10 @@ import org.scalatest._
 import org.scalatest.flatspec._
 import fortress.util.Seconds
 import fortress.modelfinders._
+import fortress.modelfinders.ConfigurableModelFinder
 import fortress.msfol._
 import fortress.msfol.Term._
 import fortress.transformers._
-import fortress.config._
 
 import scala.util.Using
 import fortress.data.IntSuffixNameGenerator
@@ -53,20 +53,15 @@ trait CETransfomerBehaviors{ this: AnyFlatSpec =>
 
         //behavior of "A Closure Eliminator"
 
-        // Create a barebones modelfinder configuration
-        // This may be better as a fixture?
-        val manager = Manager.makeEmpty()
-        manager.addOption(TypecheckSanitizeOption, 1)
-        manager.addOption(EnumsToDEsOption, 2)
-        
-
-        // Add in this closure eliminator
-        manager.addOption(new ToggleOption("ClosureElim", _.addTransformer(newCE)), 102)
-        
-        manager.addOption(QuantifierExpansionOption, 5001)
-        manager.addOption(RangeFormulaOption, 5002)
-        manager.addOption(SimplifyOption, 5003)
-        manager.addOption(DEsToEnumsOption, 5004)
+        val compiler: Compiler = new ConfigurableCompiler(Seq(
+            TypecheckSanitizeTransformer,
+            EnumsToDEsTransformer,
+            newCE,
+            QuantifierExpansionTransformer,
+            RangeFormulaUseConstantsTransformer,
+            SimplifyTransformer,
+            DEsToEnumsTransformer,
+        ))
 
         // TODO shouldn't change anything without a closure
         
@@ -78,12 +73,11 @@ trait CETransfomerBehaviors{ this: AnyFlatSpec =>
                 .withAxiom(allConnected)
                 .withFunctionDeclaration(FuncDecl.mkFuncDecl("arbitraryRelation", A, A, Sort.Bool))
 
-            Using.resource(manager.setupModelFinder()){ finder => {
-                finder.setTheory(newTheory)
-                finder.setExactScope(A, 4)
-                finder.setTimeout(Seconds(10))
-                assert(finder.checkSat() == (ModelFinderResult.Sat)) 
-            }}
+            val finder = new ConfigurableModelFinder(compiler)
+            finder.setTheory(newTheory)
+            finder.setExactScope(A, 4)
+            finder.setTimeout(Seconds(10))
+            assert(finder.checkSat() == (ModelFinderResult.Sat)) 
         }
 
         it should "transformProperly" in {
@@ -146,13 +140,12 @@ trait CETransfomerBehaviors{ this: AnyFlatSpec =>
                 .withAxiom(somethingWrong)
                 .withFunctionDeclaration(FuncDecl.mkFuncDecl("emptyrel", A, A, Sort.Bool))
             
-            Using.resource(manager.setupModelFinder()){ finder => {
-                finder.setTheory(newTheory)
-                finder.setExactScope(A, 3)
-                finder.setTimeout(Seconds(10))
-                val result = finder.checkSat()
-                assert(result == (ModelFinderResult.Unsat)) 
-            }}
+            val finder = new ConfigurableModelFinder(compiler)
+            finder.setTheory(newTheory)
+            finder.setExactScope(A, 3)
+            finder.setTimeout(Seconds(10))
+            val result = finder.checkSat()
+            assert(result == (ModelFinderResult.Unsat))
 
         }
 
@@ -222,14 +215,14 @@ trait CETransfomerBehaviors{ this: AnyFlatSpec =>
                             .withEnumSort(A, a, b, c)
                             .withFunctionDeclaration(R)
             
-            Using.resource(manager.setupModelFinder()){ finder => {
+            Using.resource(new ConfigurableModelFinder(compiler)){ finder => {
                 finder.setTheory(goodTheory)
                 finder.setExactScope(A, 3)
                 finder.setTimeout(Seconds(10))
                 assert(finder.checkSat() == (ModelFinderResult.Sat)) 
             }}
             
-            Using.resource(manager.setupModelFinder()){ finder => {
+            Using.resource(new ConfigurableModelFinder(compiler)){ finder => {
                 finder.setTheory(badTheory)
                 finder.setExactScope(A, 3)
                 finder.setTimeout(Seconds(10))
@@ -243,7 +236,7 @@ trait CETransfomerBehaviors{ this: AnyFlatSpec =>
                 assert(result == ModelFinderResult.Unsat) 
             }}
 
-            Using.resource(manager.setupModelFinder()){ finder => {
+            Using.resource(new ConfigurableModelFinder(compiler)){ finder => {
                 finder.setTheory(badTheory2)
                 finder.setExactScope(A, 3)
                 finder.setTimeout(Seconds(10))
@@ -364,14 +357,14 @@ trait CETransfomerBehaviors{ this: AnyFlatSpec =>
             */
             
             
-            Using.resource(manager.setupModelFinder()){ finder => {
+            Using.resource(new ConfigurableModelFinder(compiler)){ finder => {
                 finder.setTheory(goodTheory)
                 finder.setExactScope(A, 3)
                 finder.setTimeout(Seconds(10))
                 assert(finder.checkSat() == (ModelFinderResult.Sat)) 
             }}
             
-            Using.resource(manager.setupModelFinder()){ finder => {
+            Using.resource(new ConfigurableModelFinder(compiler)){ finder => {
                 finder.setTheory(badTheory)
                 finder.setExactScope(A, 3)
                 finder.setTimeout(Seconds(10))
@@ -385,7 +378,7 @@ trait CETransfomerBehaviors{ this: AnyFlatSpec =>
                 assert(result == ModelFinderResult.Unsat) 
             }}
 
-            Using.resource(manager.setupModelFinder()){ finder => {
+            Using.resource(new ConfigurableModelFinder(compiler)){ finder => {
                 finder.setTheory(badTheory2)
                 finder.setExactScope(A, 3)
                 finder.setTimeout(Seconds(10))
@@ -461,14 +454,14 @@ trait CETransfomerBehaviors{ this: AnyFlatSpec =>
                             .withEnumSort(A, a, b, c)
                             .withFunctionDeclaration(R)
             
-            Using.resource(manager.setupModelFinder()){ finder => {
+            Using.resource(new ConfigurableModelFinder(compiler)){ finder => {
                 finder.setTheory(goodTheory)
                 finder.setExactScope(A, 3)
                 finder.setTimeout(Seconds(10))
                 assert(finder.checkSat() == (ModelFinderResult.Sat)) 
             }}
             
-            Using.resource(manager.setupModelFinder()){ finder => {
+            Using.resource(new ConfigurableModelFinder(compiler)){ finder => {
                 finder.setTheory(badTheory)
                 finder.setExactScope(A, 3)
                 finder.setTimeout(Seconds(10))
@@ -482,7 +475,7 @@ trait CETransfomerBehaviors{ this: AnyFlatSpec =>
                 assert(result == ModelFinderResult.Unsat) 
             }}
 
-            Using.resource(manager.setupModelFinder()){ finder => {
+            Using.resource(new ConfigurableModelFinder(compiler)){ finder => {
                 finder.setTheory(badTheory2)
                 finder.setExactScope(A, 3)
                 finder.setTimeout(Seconds(10))
@@ -597,14 +590,14 @@ trait CETransfomerBehaviors{ this: AnyFlatSpec =>
             */
             
             
-            Using.resource(manager.setupModelFinder()){ finder => {
+            Using.resource(new ConfigurableModelFinder(compiler)){ finder => {
                 finder.setTheory(goodTheory)
                 finder.setExactScope(A, 3)
                 finder.setTimeout(Seconds(10))
                 assert(finder.checkSat() == (ModelFinderResult.Sat)) 
             }}
             
-            Using.resource(manager.setupModelFinder()){ finder => {
+            Using.resource(new ConfigurableModelFinder(compiler)){ finder => {
                 finder.setTheory(badTheory)
                 finder.setExactScope(A, 3)
                 finder.setTimeout(Seconds(10))
@@ -618,7 +611,7 @@ trait CETransfomerBehaviors{ this: AnyFlatSpec =>
                 assert(result == ModelFinderResult.Unsat) 
             }}
 
-            Using.resource(manager.setupModelFinder()){ finder => {
+            Using.resource(new ConfigurableModelFinder(compiler)){ finder => {
                 finder.setTheory(badTheory2)
                 finder.setExactScope(A, 3)
                 finder.setTimeout(Seconds(10))

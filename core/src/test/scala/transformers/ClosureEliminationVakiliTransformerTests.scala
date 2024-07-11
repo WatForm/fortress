@@ -5,7 +5,6 @@ import fortress.modelfinders._
 import fortress.msfol._
 import fortress.msfol.Term._
 import fortress.transformers._
-import fortress.config._
 
 import scala.util.Using
 import fortress.data.IntSuffixNameGenerator
@@ -33,17 +32,17 @@ class ClosureEliminatorVakiliTransformerTests extends UnitSuite {
         .withSort(A)
         .withFunctionDeclaration(relation)
 
-    
-    val manager = Manager.makeEmpty()
-    manager.addOption(TypecheckSanitizeOption, 1)
-    manager.addOption(EnumsToDEsOption, 2)
-    manager.addOption(IfLiftingOption,3)
-    manager.addOption(NnfOption, 4)
-    manager.addOption(new SimpleOption("NegativeClosureElim", ClosureEliminationVakiliTransformer), 5)
-    manager.addOption(QuantifierExpansionOption, 5001)
-    manager.addOption(RangeFormulaOption, 5002)
-    manager.addOption(SimplifyOption, 5003)
-    manager.addOption(DEsToEnumsOption, 5004)
+    val transformers = Seq(
+        TypecheckSanitizeTransformer,
+        EnumsToDEsTransformer,
+        IfLiftingTransformer,
+        NnfTransformer,
+        ClosureEliminationVakiliTransformer,
+        QuantifierExpansionTransformer,
+        RangeFormulaUseConstantsTransformer,
+        SimplifyTransformer,
+        DEsToEnumsTransformer,
+    )
 
 
     def quickOutput(ps: ProblemState): Unit = {
@@ -82,13 +81,12 @@ class ClosureEliminatorVakiliTransformerTests extends UnitSuite {
         val ps: ProblemState = ProblemState(newTheory, Map[Sort,Scope](A -> ExactScope(4)))
         quickOutput(ps)
         */
-        Using.resource(manager.setupModelFinder()){ finder => {
+        Using.resource(new ConfigurableModelFinder(transformers)){ finder => {
                 finder.setTheory(newTheory)
                 finder.setExactScope(A, 3)
                 finder.setTimeout(Seconds(10))
                 val result = finder.checkSat()
                 assert(result == (ModelFinderResult.Sat)) 
-                
             }}
     }
 
@@ -102,7 +100,7 @@ class ClosureEliminatorVakiliTransformerTests extends UnitSuite {
             .withAxiom(somethingMissing)
             .withFunctionDeclaration(FuncDecl("fullrel", A, A, BoolSort))
         
-        Using.resource(manager.setupModelFinder()){ finder => {
+        Using.resource(new ConfigurableModelFinder(transformers)){ finder => {
                 finder.setTheory(newTheory)
                 finder.setExactScope(A, 3)
                 finder.setTimeout(Seconds(10))
@@ -182,7 +180,7 @@ class ClosureEliminatorVakiliTransformerTests extends UnitSuite {
         val scopes: Map[Sort, Scope] = Map(A -> ExactScope(3, false))
         quickOutput(ProblemState(badTheory, scopes))
 
-        Using.resource(manager.setupModelFinder()){ finder => {
+        Using.resource(new ConfigurableModelFinder(transformers)){ finder => {
             finder.setTheory(badTheory)
             finder.setExactScope(A, 3)
             finder.setTimeout(Seconds(10))
@@ -196,7 +194,7 @@ class ClosureEliminatorVakiliTransformerTests extends UnitSuite {
             assert(result == ModelFinderResult.Unsat) 
         }}
 
-        Using.resource(manager.setupModelFinder()){ finder => {
+        Using.resource(new ConfigurableModelFinder(transformers)){ finder => {
             finder.setTheory(badTheory2)
             finder.setExactScope(A, 3)
             finder.setTimeout(Seconds(10))

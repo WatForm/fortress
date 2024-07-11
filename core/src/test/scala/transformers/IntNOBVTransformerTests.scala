@@ -7,7 +7,7 @@ import fortress.config._
 import fortress.problemstate._
 import scala.util.Using
 import fortress.util.Seconds
-import fortress.modelfinders.ModelFinderResult
+import fortress.modelfinders._
 import fortress.compilers.ConfigurableCompiler
 //import fortress.modelfinders.SimpleStandardModelFinder
 
@@ -18,26 +18,28 @@ class IntNOBVTransformerTests extends UnitSuite with CommonSymbols {
     val BV4 = BitVectorSort(4)
     val zero4 = BitVectorLiteral(0, 4)
 
-    val manager = Manager.makeEmpty()
-      manager.addOption(TypecheckSanitizeOption, 1)
-      manager.addOption(EnumsToDEsOption, 2)
-      manager.addOption(QuantifierExpansionOption, 5001)
-      manager.addOption(RangeFormulaOption, 5002)
-      manager.addOption(SimplifyOption, 5003)
-      manager.addOption(DEsToEnumsOption, 5004)
 
-    val managerWithOverflow = Manager.makeEmpty()
-      managerWithOverflow.addOption(TypecheckSanitizeOption, 1)
-      managerWithOverflow.addOption(EnumsToDEsOption, 2)
-      managerWithOverflow.addOption(new ConfigOption("NOBV", _.addTransformer(IntNOBVTransformer)))
-      managerWithOverflow.addOption(QuantifierExpansionOption, 5001)
-      managerWithOverflow.addOption(RangeFormulaOption, 5002)
-      // managerWithOverflow.addOption(SimplifyOption, 5003)
-      managerWithOverflow.addOption(DEsToEnumsOption, 5004)
+    val transformers = Seq(
+      TypecheckSanitizeTransformer,
+      EnumsToDEsTransformer,
+      QuantifierExpansionTransformer,
+      RangeFormulaUseConstantsTransformer,
+      SimplifyTransformer,
+      DEsToEnumsTransformer,
+    )
 
+    val transformersWithOverflow = Seq(
+      TypecheckSanitizeTransformer,
+      EnumsToDEsTransformer,
+      IntNOBVTransformer,
+      QuantifierExpansionTransformer,
+      RangeFormulaUseConstantsTransformer,
+      SimplifyTransformer,
+      DEsToEnumsTransformer,
+    )
 
     def ensureUnsat(theory: Theory) {
-      Using.resource(managerWithOverflow.setupModelFinder()) {
+      Using.resource(new ConfigurableModelFinder(transformersWithOverflow)) {
         finder => {
           finder.setTheory(theory)
           finder.setTimeout(Seconds(10))
@@ -54,7 +56,7 @@ class IntNOBVTransformerTests extends UnitSuite with CommonSymbols {
     }
 
     def ensureSat(theory: Theory) {
-      Using.resource(managerWithOverflow.setupModelFinder()) {
+      Using.resource(new ConfigurableModelFinder(transformersWithOverflow)) {
         finder => {
           finder.setTheory(theory)
           finder.setTimeout(Seconds(10))
@@ -66,7 +68,7 @@ class IntNOBVTransformerTests extends UnitSuite with CommonSymbols {
     }
 
     def printConverted(theory: Theory, scopes: Map[Sort, Scope] = Map.empty){
-      val compiler = managerWithOverflow.setupCompiler()
+      val compiler = new ConfigurableCompiler(transformersWithOverflow)
       compiler.compile(theory, scopes, Seconds(10).toMilli, Seq.empty, false) match {
         case Left(_) => ()
         case Right(result) => println(result.theory)
