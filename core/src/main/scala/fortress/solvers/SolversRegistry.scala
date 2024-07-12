@@ -17,7 +17,7 @@ object SolversRegistry {
     }
 
     private def checkName(s:String, sv:Solver):Solver = {
-        Errors.Internal.assertion(sv.name != s, s +"does not match"+ sv.name)
+        Errors.Internal.assertion(sv.name == s, s +"does not match"+ sv.name)
         sv        
     }
 

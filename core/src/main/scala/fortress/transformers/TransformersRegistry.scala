@@ -78,7 +78,7 @@ object TransformersRegistry {
     }
 
     private def checkName(s:String, t:ProblemStateTransformer): ProblemStateTransformer = {
-        Errors.Internal.assertion(t.name != s, s +"does not match"+ t.name)
+        Errors.Internal.assertion(t.name == s, s +"does not match"+ t.name)
         t        
     }
 }
