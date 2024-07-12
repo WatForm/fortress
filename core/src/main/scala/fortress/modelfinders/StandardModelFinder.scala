@@ -113,6 +113,7 @@ class StandardModelFinder extends ModelFinder {
         for(logger <- eventLoggers) notifyFn(logger)
 
     def compile(verbose: Boolean = false): Either[CompilerError, CompilerResult] = {
+        println("in model finder compile")
         compiler.compile(theory, analysisScopes, timeoutMilliseconds, eventLoggers.toList, verbose) 
     }
 

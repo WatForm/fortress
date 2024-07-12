@@ -88,6 +88,8 @@ object FortressCli {
         
         val parser : SmtLibParser = new SmtLibParser
         val parseResult = parser.parse(conf.file())
+
+        println("Parsing ...")
         val theory : Theory = parseResult match {
             case Left(x) =>
                 System.err.println("Parse error: " + x.getMessage);
@@ -185,8 +187,9 @@ object FortressCli {
             modelFinder.addLogger(logger)
         }
 
-
+        println("Setting theory ...")
         modelFinder.setTheory(theory)
+        println("Setting scopes (if any) ...")
         for((sort, scope) <- scopes) {
             modelFinder.setScope(sort, scope)
         }
@@ -195,6 +198,7 @@ object FortressCli {
         // TODO: this seems to run the compiler separately from the model finder??? 
         if(conf.debug() && conf.verbose() && conf.transformers.isSupplied){
             val compiler = new ConfigurableCompiler(conf.transformers.apply())
+            println("Compiling ...")
             val result = compiler.compile(
                 theory, scopes,
                 Seconds(conf.timeout()).toMilli, Seq.empty,
@@ -213,7 +217,7 @@ object FortressCli {
                 }
             )
         }
-
+        println("Solving ...")
         val result = modelFinder.checkSat()
         println(result)
         if(conf.generate()) {

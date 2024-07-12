@@ -24,6 +24,8 @@ abstract class BaseCompiler extends Compiler {
         loggers: Seq[EventLogger],
         verbose: Boolean,
     ): Either[CompilerError, CompilerResult] = {
+
+        println("in base compiler compile")
         val initialProblemState = ProblemState(theory, scopes, verbose)
 
         val finalProblemState = withCountdown(timeout) { countdown => {
