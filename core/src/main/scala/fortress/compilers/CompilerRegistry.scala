@@ -58,7 +58,7 @@ object CompilersRegistry {
     }
 
     private def checkName(s:String, c:Compiler): Compiler = {
-        Errors.Internal.assertion(!(c.name.equals(s)), s +" does not match "+ c.name)
+        Errors.Internal.assertion(c.name.equals(s), s +" does not match "+ c.name)
         c        
     }
 
