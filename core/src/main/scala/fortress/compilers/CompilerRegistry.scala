@@ -18,6 +18,8 @@ object CompilersRegistry {
             case "Standard"  => new StandardCompiler()
             case "StandardSI"  => new StandardSICompiler()
 
+            case "MaxUnboundedScopes" => new MaxUnboundedScopesCompiler()
+                
             case "Claessen" => new ClaessenCompiler()
 
             case "AlmostNothing" => new AlmostNothingCompiler()
