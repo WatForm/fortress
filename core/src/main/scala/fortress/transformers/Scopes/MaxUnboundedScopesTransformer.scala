@@ -12,18 +12,9 @@ object MaxUnboundedScopesTransformer extends ProblemStateTransformer {
         val theory = problemState.theory
         val scopes = problemState.scopes
 
-        print("Scopes before MaxUnbounded Scopes Transformer")
-        println(scopes)
-
-        for (sc <- scopes)
-            println(sc._2.isFixed())
-
-        // by removing fixed sorts of fixed scope
-        // from the scope set, they become unbounded
-        val new_scopes = scopes.filter( _._2.isFixed() )
-
-        print("Scopes after MaxUnbounded Scopes Transformer")
-        println(new_scopes)
+        // keep only the fixed sorts
+        // the sorts no longer in the scopes map become unbounded
+        val new_scopes = scopes.filter( _._2.isFixed() )  
 
         problemState.copy(scopes = new_scopes)
 
