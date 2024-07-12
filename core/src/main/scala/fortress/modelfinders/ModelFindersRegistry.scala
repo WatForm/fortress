@@ -33,7 +33,7 @@ object ModelFindersRegistry {
     }
 
     private def checkName(s:String, mf:ModelFinder): ModelFinder = {
-        Errors.Internal.assertion(mf.name == s, s +"does not match"+ mf.name)
+        Errors.Internal.assertion(mf.name == s, s +" does not match "+ mf.name)
         mf        
     }
 
