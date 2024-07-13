@@ -11,8 +11,13 @@ import scala.util.Right;
 import java.io.*;
 import java.util.Optional;
 import java.util.Map;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.MatchResult;
+import java.util.regex.Pattern;
 
 public class SmtLibParser implements TheoryParser {
     
@@ -20,6 +25,9 @@ public class SmtLibParser implements TheoryParser {
     private Optional<String> logic;
 
     private boolean usingSmtPlus;
+
+    protected final Pattern scopesPattern = Pattern.compile("(\\(\\s*(?<sort>[[a-zA-Z][~!@$%^&*_\\-+=<>.?/]][[a-zA-Z][~!@$%^&*_\\-+=<>.?/][0-9]]*|\\|[[\\u0021-\\u005B][\\u005D-\\u007B][\\u007D-\\u007E]\\s]+\\|)\\s+(?<scope>[0-9]+)\\s*\\))");
+    protected final Pattern fixedPattern = Pattern.compile("(\\(\\s*(?<sort>[[a-zA-Z][~!@$%^&*_\\-+=<>.?/]][[a-zA-Z][~!@$%^&*_\\-+=<>.?/][0-9]]*|\\|[[\\u0021-\\u005B][\\u005D-\\u007B][\\u007D-\\u007E]\\s]+\\|)\\s*\\))");
     
     public SmtLibParser(boolean usingSmtPlus) {
         this.info = new HashMap<>();
@@ -73,67 +81,107 @@ public class SmtLibParser implements TheoryParser {
         return logic;
     }
 
+    protected String withoutBarQuotes(String input){
+        if (input.charAt(0) == '|'){
+            return input.substring(1, input.length() -1);
+        } else {
+            return input;
+        }
+    }
+
+    protected Sort sortFromName(String name){
+        name = withoutBarQuotes(name);
+        if (name.equals("Int") || name.equals("IntSort")){
+            return IntSort$.MODULE$;
+        } else {
+            return new SortConst(name);
+        }
+    }
+
     @Override
-    public Map<Sort, Scope> getScopes() {
-        Map<Sort, Scope> scopes = new HashMap();
+    public Map<Sort, Scope> getScopes() throws IOException {
+        Map<Sort, Scope> scopes = new HashMap<Sort, Scope>();
+
+        
+        HashSet<Sort> unchangingSorts = new HashSet<Sort>();
 
         String unchangingSortInfo = info.getOrDefault("unchanging-scope", "");
-        // Split at closing parens
-        String[] unchangingSortStrings = unchangingSortInfo.split("\\)");
-        HashSet<String> unchangingSorts = new HashSet<String>();
-        for(int i = 0; i < unchangingSortStrings.length; i++){
-            String sortName = unchangingSortStrings[i];
-            if (sortName.equals("")){
-                continue;
+        if (!unchangingSortInfo.isEmpty()){
+            // Split at closing parens
+            // Start matching the data
+            Matcher unchangingMatcher = fixedPattern.matcher(unchangingSortInfo);
+            int previousEnd = -1;
+            System.out.println(unchangingSortInfo);
+            while(unchangingMatcher.find()){
+                // Ensure only whitespace between
+                for (int i = previousEnd+1; i < unchangingMatcher.start(); i++){
+                    if (!Character.isWhitespace(unchangingSortInfo.charAt(i))){
+                        throw new IOException("Malformed unchanging-scope info at character " + i + ".");
+                    }
+                }
+                previousEnd = unchangingMatcher.end();
+                // Extract the sort
+                String sortName = unchangingMatcher.group("sort");
+                sortName = withoutBarQuotes(sortName);
+                Sort sort = sortFromName(sortName);
+                unchangingSorts.add(sort);
             }
-            // Add name to the set of fixed sorts (trim out opening paren)
-            unchangingSorts.add(sortName.substring(1, sortName.length()));
         }
+        
         
 
 
         String scopeInfo = this.info.getOrDefault("exact-scope", "");
         // We expect scopeInfo to be in the form "(A 5)(B 3) ..."
-        String[] exactScopes = scopeInfo.split("\\)");
-        
-        // exact scopes now has "(<sort> <scope>" in each index
-        for(int i = 0; i < exactScopes.length; i++){
-            String info = exactScopes[i];
-            if (info.equals("")){
-                continue;
+
+        if (!scopeInfo.isEmpty()){
+            Matcher scopesMatcher = scopesPattern.matcher(scopeInfo);
+
+            int previousEnd = -1;
+            while(scopesMatcher.find()){
+                // Ensure only whitespace between
+                for (int i = previousEnd+1; i < scopesMatcher.start(); i++){
+                    if (!Character.isWhitespace(scopeInfo.charAt(i))){
+                        throw new IOException("Malformed exact-scope info at character " + i + ".");
+                    }
+                }
+                previousEnd = scopesMatcher.end();
+
+                String sortName = scopesMatcher.group("sort");
+                Sort sort = sortFromName(sortName);
+                
+                int scopeSize = Integer.parseInt(scopesMatcher.group("scope"));
+
+                ExactScope scope = new ExactScope(scopeSize, unchangingSorts.contains(sort));
+                
+                scopes.put(sort, scope);
             }
-            int spaceIndex = info.lastIndexOf(' ');
-            // Trim the first paren and take the name (up to the space)
-            String sortName = info.substring(1, spaceIndex);
-            String scopeSizeString = info.substring(spaceIndex + 1);
-            int scopeSize = Integer.parseInt(scopeSizeString);
-            Sort sort = null;
-            if (sortName.equals("Int") || sortName.equals("IntSort")){
-                sort = IntSort$.MODULE$;
-            } else {
-                sort = new SortConst(sortName);
-            }
-            ExactScope scope = new ExactScope(scopeSize, unchangingSorts.contains(sortName));
-            scopes.put(sort, scope);
         }
+        
 
         scopeInfo = this.info.getOrDefault("nonexact-scope", "");
-        // We expect scopeInfo to be in the form "(A 5)(B 3) ..."
-        String[] nonExactScopes = scopeInfo.split("\\)");
-        // exact scopes now has "(<sort> <scope>" in each index
-        for(int i = 0; i < nonExactScopes.length; i++){
-            String info = nonExactScopes[i];
-            if (info.equals("")){
-                continue;
-            }
-            int spaceIndex = info.lastIndexOf(' ');
-            String sortName = info.substring(1, spaceIndex);
-            String scopeSizeString = info.substring(spaceIndex + 1);
-            int scopeSize = Integer.parseInt(scopeSizeString);
+        if (!scopeInfo.isEmpty()){
+            Matcher scopesMatcher = scopesPattern.matcher(scopeInfo);
 
-            Sort sort = new SortConst(sortName);
-            NonExactScope scope = new NonExactScope(scopeSize, unchangingSorts.contains(sortName));
-            scopes.put(sort, scope);
+            int previousEnd = -1;
+            while(scopesMatcher.find()){
+                // Ensure only whitespace between
+                for (int i = previousEnd+1; i < scopesMatcher.start(); i++){
+                    if (!Character.isWhitespace(scopeInfo.charAt(i))){
+                        throw new IOException("Malformed nonexact-scope info at character " + i + ".");
+                    }
+                }
+                previousEnd = scopesMatcher.end();
+
+                String sortName = scopesMatcher.group("sort");
+                Sort sort = sortFromName(sortName);
+                
+                int scopeSize = Integer.parseInt(scopesMatcher.group("scope"));
+
+                NonExactScope scope = new NonExactScope(scopeSize, unchangingSorts.contains(sort));
+                
+                scopes.put(sort, scope);
+            }
         }
 
         return scopes;
