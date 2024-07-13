@@ -397,6 +397,7 @@ class SmtLibParserTest extends UnitSuite {
 
         val A = SortConst("A")
         val B = SortConst("B")
+        val CwithParens = SortConst("C()()()")
         var parsedScopes = parser.getScopes()
         parsedScopes should contain (Entry(A, ExactScope(1, true)))
         parsedScopes should contain (Entry(B, ExactScope(2)))
@@ -415,6 +416,15 @@ class SmtLibParserTest extends UnitSuite {
         fileStream = new FileInputStream(file)
         parser.parse(fileStream)
         parsedScopes = parser.getScopes()
+        parsedScopes should contain (Entry(A, ExactScope(1, true)))
+        parsedScopes should contain (Entry(B, NonExactScope(2, true)))
+
+        parser = new SmtLibParser
+        file = new File(classLoader.getResource("sample_sorts4.smt2").getFile)
+        fileStream = new FileInputStream(file)
+        parser.parse(fileStream)
+        parsedScopes = parser.getScopes()
+        parsedScopes should contain (Entry(CwithParens, ExactScope(4, true)))
         parsedScopes should contain (Entry(A, ExactScope(1, true)))
         parsedScopes should contain (Entry(B, NonExactScope(2, true)))
 
