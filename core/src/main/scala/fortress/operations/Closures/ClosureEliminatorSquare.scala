@@ -30,6 +30,7 @@ class ClosureEliminatorSquare(topLevelTerm: Term, signature: Signature, scopes: 
         def expandClosure(functionName: String): Unit = {
             // Find the sort we are closing over
             val sort = getClosingSortOfFunction(functionName)
+            Errors.Internal.precondition(scopes.contains(sort), "sort in closure must be bounded when using iterative eliminator.")
             // Record the sort as no longer being able change scope
             unchangingSorts += sort
 

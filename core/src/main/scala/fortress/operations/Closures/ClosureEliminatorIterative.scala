@@ -37,6 +37,7 @@ class ClosureEliminatorIterative(topLevelTerm: Term, signature: Signature, scope
                 // Look at original function to make declaration for the closure function
                 // Find the sort we are closing over
                 val sort = getClosingSortOfFunction(functionName)
+                Errors.Internal.precondition(scopes.contains(sort), "sort in closure must be bounded when using iterative eliminator.")
                 // Record the sort as no longer being able change scope
                 unchangingSorts += sort
 
