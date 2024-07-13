@@ -111,7 +111,6 @@ public class SmtLibParser implements TheoryParser {
             // Start matching the data
             Matcher unchangingMatcher = fixedPattern.matcher(unchangingSortInfo);
             int previousEnd = -1;
-            System.out.println(unchangingSortInfo);
             while(unchangingMatcher.find()){
                 // Ensure only whitespace between
                 for (int i = previousEnd+1; i < unchangingMatcher.start(); i++){
