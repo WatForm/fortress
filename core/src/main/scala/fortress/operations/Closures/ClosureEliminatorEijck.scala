@@ -42,8 +42,6 @@ class ClosureEliminatorEijck(topLevelTerm: Term, signature: Signature, scopes: M
         /** Axioms to define a midpoint being closer to the starting node than the ending node along a path for the given relation */
         def addClosenessAxioms(sort: Sort, functionName: String): String = {
 
-            Errors.Internal.precondition(scopes.contains(sort), "sort in closure must be bounded")
-
             // How to actually ensure this does not exist from something else?
             val closenessName: String = "^Close^" + functionName;
             // If we already made this, then we can just leave.
