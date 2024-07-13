@@ -101,7 +101,7 @@ object Dump {
 
         val unchangingSorts: Seq[Sort] = scopes.filter(_ match {case (_, scope) => scope.isUnchanging}).keys.toSeq
 
-        writer.write("(set-info :unchanging-scopes \"")
+        writer.write("(set-info :unchanging-scope \"")
         unchangingSorts.foreach(sort => {
             writer.write('(')
             writer.write(sort.name)
