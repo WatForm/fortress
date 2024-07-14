@@ -47,10 +47,16 @@ object NormalForms {
         case (distinct: Distinct) => nnf(distinct.asPairwiseNotEquals)
         case Not(distinct @ Distinct(_)) => nnf(Not(distinct.asPairwiseNotEquals))
 
-        /* nnf makes no changes to term types below this line */
+        // We do not eliminate ITEs here: see IfLifting. ITE elim is hard because the return type might not be boolean.
+        // However, to enable miniscoping + anti-prenexing + partial prenexing to operate within ITEs, we recurse into
+        // the ITE subformulas too. Note that this means the return value is NOT fully in NNF because the ITE condition
+        // appears both negated and unnegated when ITEs are eliminated.
+        case IfThenElse(condition, ifTrue, ifFalse) =>
+            IfThenElse(nnf(condition), nnf(ifTrue), nnf(ifFalse))
+        case Not(IfThenElse(condition, ifTrue, ifFalse)) =>
+            IfThenElse(nnf(condition), nnf(Not(ifTrue)), nnf(Not(ifFalse)))
 
-        case IfThenElse(condition, ifTrue, ifFalse) => term
-        case Not(IfThenElse(condition, ifTrue, ifFalse)) => term
+        /* nnf makes no changes to term types below this line */
 
         case App(fname, args) => term
         case Not(App(fname, args)) => term
