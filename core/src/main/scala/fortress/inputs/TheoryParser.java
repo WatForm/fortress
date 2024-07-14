@@ -14,6 +14,6 @@ public interface TheoryParser {
 
     public abstract  Either<Errors.ParserError, Theory> parse(String filePath) throws IOException;
 
-    public abstract Map<Sort, Scope> getScopes();
+    public abstract Map<Sort, Scope> getScopes() throws ParserException;
 
 }
