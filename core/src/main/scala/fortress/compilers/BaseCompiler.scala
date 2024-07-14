@@ -25,7 +25,7 @@ abstract class BaseCompiler extends Compiler {
         verbose: Boolean,
     ): Either[CompilerError, CompilerResult] = {
 
-        println("in base compiler compile")
+        //println("in base compiler compile")
         val initialProblemState = ProblemState(theory, scopes, verbose)
 
         val finalProblemState = withCountdown(timeout) { countdown => {

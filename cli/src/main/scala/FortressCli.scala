@@ -22,6 +22,7 @@ class Conf(arguments: Seq[String]) extends ScallopConf(arguments) {
     val scopeMap = props[String]('S', descr="scope sizes for individual sorts in the form <sort>[?]=<scope>[u] ex: A=2 B?=3 C=4u ... where ? = non-exact and u = unchanging.")
     val file = trailArg[String](required = true, descr="file(s) to run on")
 
+    // TODO: we want to flip the meaning of this and change its name
     val importScope = opt[Boolean](descr="Import scope from smttc file if present.")
 
     val debug = opt[Boolean](descr="Writes debug output to console", noshort=true)
@@ -72,7 +73,7 @@ class Conf(arguments: Seq[String]) extends ScallopConf(arguments) {
     mutuallyExclusive(modelFinder, solver)
     mutuallyExclusive(compiler, transformers)
 
-    val generate = opt[Boolean](descr="whether to generate a model") // Whether to generate a model
+    val generate = opt[Boolean](descr="generate a model if a SAT result") 
     verify()
 }
 
@@ -85,11 +86,10 @@ object FortressCli {
             println(conf.summary)
             println("----------------")
         }
-        
+       
+        if (conf.verbose()) println("Parsing ...") 
         val parser : SmtLibParser = new SmtLibParser
-        val parseResult = parser.parse(conf.file())
-
-        println("Parsing ...")
+        val parseResult = parser.parse(conf.file()) 
         val theory : Theory = parseResult match {
             case Left(x) =>
                 System.err.println("Parse error: " + x.getMessage);
@@ -98,21 +98,22 @@ object FortressCli {
             case Right(x) => x
         }
 
-        // Default scopes
+        // Scopes from cmd line
+        if (conf.verbose()) println("Setting scopes (if any)")
         var scopes: Map[Sort, Scope] = conf.scope.toOption match {
             case Some(scope) => {
                 for(sort <- theory.sorts) yield sort -> ExactScope(scope)
             }.toMap
             case None => Map()
         }
-
-        // Load scope from file
+        // Scopes in file
         if (conf.importScope()){
             val parsedScopes = parser.getScopes().asScala
             scopes = scopes ++ parsedScopes
         }
 
-
+        // NAD? what stops the scope of a sort from being specified multiple
+        // times at the cmd line and/or in the file??
         // Override with specific scopes
         for ( (sort, scope) <- conf.scopeMap ) {
             var scopeValue: Int = 0
@@ -124,7 +125,10 @@ object FortressCli {
                 scopeValue = scope.toInt
                 isUnchanging = false
             }
-            Errors.API.checkCliInput(scopeValue > 0, "Scope must be > 0. Got " + scopeValue.toString()+".")
+            if (scopeValue <= 0) {
+                System.err.println("Scope must be > 0. Got " + scopeValue.toString()+".");
+                System.exit(1)
+            }
             
             var sortName = sort
             val scopeVal = if( sort.charAt(sort.length-1) == '?' ) { // "P?=2"
@@ -149,32 +153,30 @@ object FortressCli {
             println(scopes)
         }
 
-
-        //val integerSemantics = Unbounded
-
-
-        val modelFinder: ModelFinder = // if (conf.transformers.isSupplied) {
-        //    new SimpleModelFinder(conf.transformers.apply())
-        //} else {
+        val modelFinder: ModelFinder = 
             conf.modelFinder.toOption match {
                 case Some(mf) => mf
                 case None => new StandardModelFinder() // the default one
             }
-        //}
 
         // mutually exclusive with the specification of a model finder
         if (conf.compiler.isSupplied) {
             conf.compiler.toOption match {
                 case Some(compiler) => modelFinder.setCompiler(compiler)
-                case None => Errors.API.cliError("Should not reach this point in CLI")
+                case None => Errors.Internal.impossibleState
             }
+        }
+
+        // mutually exclusive with the specification of a model finder
+        if (conf.transformers.isSupplied) {
+            modelFinder.setCompiler(new ConfigurableCompiler(conf.transformers.apply()))
         }
 
         // mutually exclusive with the specification of a model finder
         if (conf.solver.isSupplied) {
             conf.solver.toOption match {
                 case Some(solver) => modelFinder.setSolver(solver)
-                case None => Errors.API.cliError("Should not reach this point in CLI")
+                case None => Errors.Internal.impossibleState
             }
         }
 
@@ -187,7 +189,7 @@ object FortressCli {
             modelFinder.addLogger(logger)
         }
 
-        println("Setting theory ...")
+        if (conf.verbose()) println("Setting theory ...")
         modelFinder.setTheory(theory)
         println("Setting scopes (if any) ...")
         for((sort, scope) <- scopes) {
@@ -195,10 +197,10 @@ object FortressCli {
         }
         modelFinder.setTimeout(Seconds(conf.timeout()))
 
-        // TODO: this seems to run the compiler separately from the model finder??? 
+        // NAD? this seems to run the compiler separately from the model finder??? 
         if(conf.debug() && conf.verbose() && conf.transformers.isSupplied){
             val compiler = new ConfigurableCompiler(conf.transformers.apply())
-            println("Compiling ...")
+            if (conf.verbose()) println("Compiling ...")
             val result = compiler.compile(
                 theory, scopes,
                 Seconds(conf.timeout()).toMilli, Seq.empty,
@@ -210,14 +212,12 @@ object FortressCli {
                     println("=====original=====")
                     println(TheoryOps.wrapTheory(TypecheckSanitizeTransformer(ProblemState(theory, scopes)).theory).smtlib)
                     println("========new=======")
-                    //println(cr.theory)
-                    //println("------------------")
                     println(TheoryOps.wrapTheory(cr.theory).smtlib)
                     println("==================")
                 }
             )
         }
-        println("Solving ...")
+        if (conf.verbose()) println("Solving ...")
         val result = modelFinder.checkSat()
         println(result)
         if(conf.generate()) {
