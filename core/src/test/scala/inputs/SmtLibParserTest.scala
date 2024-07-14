@@ -430,6 +430,16 @@ class SmtLibParserTest extends UnitSuite {
 
     }
 
+    test("scope-info errors"){
+        val classLoader = getClass.getClassLoader
+        var parser = new SmtLibParser
+        var file = new File(classLoader.getResource("sample_sorts_bad.smt2").getFile)
+        var fileStream = new FileInputStream(file)
+        
+        parser.parse(fileStream)
+        assertThrows[ParserException](parser.getScopes())
+    }
+
     test("test function definition") {
         val classLoader = getClass.getClassLoader
         val file = new File(classLoader.getResource("funcDef.smt2").getFile)

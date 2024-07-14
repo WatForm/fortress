@@ -99,7 +99,7 @@ public class SmtLibParser implements TheoryParser {
     }
 
     @Override
-    public Map<Sort, Scope> getScopes() throws IOException {
+    public Map<Sort, Scope> getScopes() throws ParserException {
         Map<Sort, Scope> scopes = new HashMap<Sort, Scope>();
 
         
@@ -110,12 +110,12 @@ public class SmtLibParser implements TheoryParser {
             // Split at closing parens
             // Start matching the data
             Matcher unchangingMatcher = fixedPattern.matcher(unchangingSortInfo);
-            int previousEnd = -1;
+            int previousEnd = 0;
             while(unchangingMatcher.find()){
                 // Ensure only whitespace between
-                for (int i = previousEnd+1; i < unchangingMatcher.start(); i++){
+                for (int i = previousEnd; i < unchangingMatcher.start(); i++){
                     if (!Character.isWhitespace(unchangingSortInfo.charAt(i))){
-                        throw new IOException("Malformed unchanging-scope info at character " + i + ".");
+                        throw new ParserException("Malformed unchanging-scope info at character " + i + ".");
                     }
                 }
                 previousEnd = unchangingMatcher.end();
@@ -124,6 +124,12 @@ public class SmtLibParser implements TheoryParser {
                 sortName = withoutBarQuotes(sortName);
                 Sort sort = sortFromName(sortName);
                 unchangingSorts.add(sort);
+            }
+
+            for (int i = previousEnd; i < unchangingSortInfo.length(); i++){
+                if (!Character.isWhitespace(unchangingSortInfo.charAt(i))){
+                    throw new ParserException("Malformed unchanging-scope info at character " + i + ".");
+                }
             }
         }
         
@@ -136,12 +142,12 @@ public class SmtLibParser implements TheoryParser {
         if (!scopeInfo.isEmpty()){
             Matcher scopesMatcher = scopesPattern.matcher(scopeInfo);
 
-            int previousEnd = -1;
+            int previousEnd = 0;
             while(scopesMatcher.find()){
                 // Ensure only whitespace between
-                for (int i = previousEnd+1; i < scopesMatcher.start(); i++){
+                for (int i = previousEnd; i < scopesMatcher.start(); i++){
                     if (!Character.isWhitespace(scopeInfo.charAt(i))){
-                        throw new IOException("Malformed exact-scope info at character " + i + ".");
+                        throw new ParserException("Malformed exact-scope info at character " + i + ".");
                     }
                 }
                 previousEnd = scopesMatcher.end();
@@ -155,6 +161,12 @@ public class SmtLibParser implements TheoryParser {
                 
                 scopes.put(sort, scope);
             }
+
+            for (int i = previousEnd; i < scopeInfo.length(); i++){
+                if (!Character.isWhitespace(scopeInfo.charAt(i))){
+                    throw new ParserException("Malformed exact-scope info at character " + i + ".");
+                }
+            }
         }
         
 
@@ -162,12 +174,12 @@ public class SmtLibParser implements TheoryParser {
         if (!scopeInfo.isEmpty()){
             Matcher scopesMatcher = scopesPattern.matcher(scopeInfo);
 
-            int previousEnd = -1;
+            int previousEnd = 0;
             while(scopesMatcher.find()){
                 // Ensure only whitespace between
-                for (int i = previousEnd+1; i < scopesMatcher.start(); i++){
+                for (int i = previousEnd; i < scopesMatcher.start(); i++){
                     if (!Character.isWhitespace(scopeInfo.charAt(i))){
-                        throw new IOException("Malformed nonexact-scope info at character " + i + ".");
+                        throw new ParserException("Malformed nonexact-scope info at character " + i + ".");
                     }
                 }
                 previousEnd = scopesMatcher.end();
@@ -180,6 +192,12 @@ public class SmtLibParser implements TheoryParser {
                 NonExactScope scope = new NonExactScope(scopeSize, unchangingSorts.contains(sort));
                 
                 scopes.put(sort, scope);
+            }
+
+            for (int i = previousEnd; i < scopeInfo.length(); i++){
+                if (!Character.isWhitespace(scopeInfo.charAt(i))){
+                    throw new ParserException("Malformed nonexact-scope info at character " + i + ".");
+                }
             }
         }
 
