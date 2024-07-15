@@ -126,7 +126,7 @@ class IntToBVTransformerTests extends UnitSuite {
         val expected = ProblemState(
             Theory.empty
                     .withFunctionDeclaration(FuncDecl("f", BitVectorSort(4), BitVectorSort(4), BitVectorSort(4)))
-                    .withFunctionDeclaration(FuncDecl("g", IntSort, IntSort, IntSort))
+                    .withFunctionDeclaration(FuncDecl("g", BitVectorSort(4), BitVectorSort(4), BitVectorSort(4)))
                     .withAxiom(Forall( Seq(x of BitVectorSort(4), y of BitVectorSort(4)), BuiltinApp(BvPlus, x, y) === App("f", x, y)))
                     .withAxiom(axiom1))
             .withScopes(Map.empty + (BitVectorSort(4) -> ExactScope(16)))
