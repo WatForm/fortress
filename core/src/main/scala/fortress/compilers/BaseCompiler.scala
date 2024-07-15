@@ -11,7 +11,7 @@ import fortress.util.Control.measureTime
 import fortress.util.Control.withCountdown
 import fortress.util.Extensions._
 
-import scala.collection.mutable.ListBuffer
+
 
 // these are definitions that are common for all compilers
 
@@ -75,14 +75,4 @@ abstract class BaseCompiler extends Compiler {
         Right(Result)
     }
 
-    def NullTransformerList:ListBuffer[ProblemStateTransformer] = {
-        val ts = new scala.collection.mutable.ListBuffer[ProblemStateTransformer]
-        ts
-    }
-
-    def ListOfOne(x:ProblemStateTransformer):ListBuffer[ProblemStateTransformer] = {
-        val ts = NullTransformerList
-        ts += x
-        ts
-    }
 }

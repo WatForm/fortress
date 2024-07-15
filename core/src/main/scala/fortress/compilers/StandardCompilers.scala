@@ -18,22 +18,22 @@ class StandardCompiler extends BaseCompiler {
 
     // these top definitions are the most common variation points
     def closureEliminator: ListBuffer[ProblemStateTransformer] = 
-        ListOfOne(ClosureEliminationEijckTransformer)
+        CompilersRegistry.ListOfOne(ClosureEliminationEijckTransformer)
 
     def scopes: ListBuffer[ProblemStateTransformer] = 
-        ListOfOne(ScopeNonExactPredicatesTransformer)
+        CompilersRegistry.ListOfOne(ScopeNonExactPredicatesTransformer)
 
     def integerHandler:ListBuffer[ProblemStateTransformer] = 
-        ListOfOne(IntOPFITransformer)
+        CompilersRegistry.ListOfOne(IntOPFITransformer)
 
     def ifLiftOrNot:ListBuffer[ProblemStateTransformer] =
-        ListOfOne(IfLiftingTransformer)
+        CompilersRegistry.ListOfOne(IfLiftingTransformer)
 
     def skolemizeOrNot: ListBuffer[ProblemStateTransformer] =
-        ListOfOne(SkolemizeTransformer)
+        CompilersRegistry.ListOfOne(SkolemizeTransformer)
 
     def symmetryBreaker:ListBuffer[ProblemStateTransformer] =
-        ListOfOne(new SymmetryBreakingTransformer(SymmetryBreakingOptions(
+        CompilersRegistry.ListOfOne(new SymmetryBreakingTransformer(SymmetryBreakingOptions(
             selectionHeuristic = MonoFirstThenFunctionsFirstAnyOrder,
             breakSkolem = true,
             sortInference = false,
@@ -41,21 +41,21 @@ class StandardCompiler extends BaseCompiler {
         )))
 
     def quantifierHandler: ListBuffer[ProblemStateTransformer] = { 
-        val ts = NullTransformerList
+        val ts = CompilersRegistry.NullTransformerList
         ts += QuantifiersToDefnsTransformer
         ts += QuantifierExpansionTransformer
         ts
     }
 
     def rangeFormulasOrNot: ListBuffer[ProblemStateTransformer] = 
-        ListOfOne(RangeFormulaUseDEsTransformer)
+        CompilersRegistry.ListOfOne(RangeFormulaUseDEsTransformer)
 
     def enumerateFiniteValues: ListBuffer[ProblemStateTransformer] = 
-        ListOfOne(DEsToDistinctConstantsTransformer)
+        CompilersRegistry.ListOfOne(DEsToDistinctConstantsTransformer)
 
     override def transformerSequence: Seq[ProblemStateTransformer] = {
 
-        val transformerSequence = NullTransformerList
+        val transformerSequence = CompilersRegistry.NullTransformerList
         transformerSequence += TypecheckSanitizeTransformer
         transformerSequence += EnumsToDEsTransformer
 
@@ -105,14 +105,14 @@ class StandardCompiler extends BaseCompiler {
 class ClaessenCompiler() extends StandardCompiler {
 
     override def closureEliminator: ListBuffer[ProblemStateTransformer] =
-        ListOfOne(ClosureEliminationClaessenTransformer)
+        CompilersRegistry.ListOfOne(ClosureEliminationClaessenTransformer)
 
 }
 
 class StandardSICompiler() extends StandardCompiler {
 
     override def symmetryBreaker:ListBuffer[ProblemStateTransformer] = 
-        ListOfOne(
+        CompilersRegistry.ListOfOne(
             new SymmetryBreakingTransformer(SymmetryBreakingOptions(
                 selectionHeuristic = MonoFirstThenFunctionsFirstAnyOrder,
                 breakSkolem = true,
@@ -129,7 +129,7 @@ class StandardSICompiler() extends StandardCompiler {
 class DatatypeWithRangeEUFCompiler() extends StandardCompiler {
 
     override def enumerateFiniteValues: ListBuffer[ProblemStateTransformer] = 
-        ListOfOne(DEsToEnumsTransformer)
+        CompilersRegistry.ListOfOne(DEsToEnumsTransformer)
     
 }
 
@@ -140,7 +140,7 @@ class DatatypeWithRangeEUFCompiler() extends StandardCompiler {
 class DatatypeNoRangeEUFCompiler() extends DatatypeWithRangeEUFCompiler() {
 
     override def rangeFormulasOrNot: ListBuffer[ProblemStateTransformer] = 
-        NullTransformerList
+        CompilersRegistry.NullTransformerList
     
 }
 
@@ -152,16 +152,16 @@ class DatatypeNoRangeEUFCompiler() extends DatatypeWithRangeEUFCompiler() {
 */
 class DatatypeWithRangeNoEUFCompiler() extends StandardCompiler {
     override def quantifierHandler: ListBuffer[ProblemStateTransformer] = 
-        NullTransformerList
+        CompilersRegistry.NullTransformerList
 
     override def ifLiftOrNot: ListBuffer[ProblemStateTransformer] =
-        NullTransformerList
+        CompilersRegistry.NullTransformerList
 
     override def skolemizeOrNot: ListBuffer[ProblemStateTransformer] =
-        NullTransformerList
+        CompilersRegistry.NullTransformerList
 
     override def enumerateFiniteValues: ListBuffer[ProblemStateTransformer] = 
-        ListOfOne(DEsToEnumsTransformer)
+        CompilersRegistry.ListOfOne(DEsToEnumsTransformer)
 }
 
 /*
@@ -173,15 +173,16 @@ class DatatypeWithRangeNoEUFCompiler() extends StandardCompiler {
 class DatatypeNoRangeNoEUFCompiler() extends DatatypeWithRangeNoEUFCompiler {
 
     override def rangeFormulasOrNot: ListBuffer[ProblemStateTransformer] = 
-        NullTransformerList
+        CompilersRegistry.NullTransformerList
 
     override def enumerateFiniteValues: ListBuffer[ProblemStateTransformer] = 
-        ListOfOne(DEsToEnumsTransformer)
+        CompilersRegistry.ListOfOne(DEsToEnumsTransformer)
 }
 
 class MaxUnboundedScopesCompiler extends StandardCompiler {
     override def scopes: ListBuffer[ProblemStateTransformer] = {
-        val ts:ListBuffer[ProblemStateTransformer] = NullTransformerList
+        val ts:ListBuffer[ProblemStateTransformer] = 
+        CompilersRegistry.NullTransformerList
         ts += MaxUnboundedScopesTransformer
         ts += ScopeNonExactPredicatesTransformer
         ts

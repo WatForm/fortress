@@ -19,11 +19,24 @@ import scala.collection.mutable.ListBuffer
   Note: this class can't have arguments if we want to use a straightforward string
   registry to look it up!
 
-  See ConfigurableModelFinder to use and API interface that takes classes for the compiler,solver
-  as arguments.
+  Typical usage is to setTheory, setScopes, checkSat, viewInterpretation (if SAT)
+
+  But for consistency, we record the "phase" of model finding through internal flags
+  (theorySet,haveCompiled,haveSolved)
+
+  Anytime the theory or scopes are set, haveCompiled and haveSolved are set to false
+
+  If checkSat is called when haveCompiled is false, then it will compile first.
+
+  If viewModel, nextInterp, or counting are called before checkSat has been called, first it will solve.
+
+
 
   */
 class StandardModelFinder extends ModelFinder {
+
+
+
 
     protected var theory: Theory = Theory.empty
     // good defaults for compiler and solver 
@@ -38,12 +51,27 @@ class StandardModelFinder extends ModelFinder {
     protected var eventLoggers: ListBuffer[EventLogger] = ListBuffer.empty
     // Counts the total time elapsed
     private val totalTimer: StopWatch = new StopWatch()
-    private var compilerResult: Option[CompilerResult] = None
 
+    // phases of model finding
+    private var theorySet:Boolean = false
+    private var haveCompiled:Boolean = false
+    private var haveSolved:Boolean = false
+    // only contains a valid value if haveCompiled is true
+    private var compilerResult: Either[CompilerError, CompilerResult] = null
+    // only useful to viewModels if it has a SatSolution
+    private var hasSatSolution:Boolean = false
+
+
+    def resetPhases() = {
+        haveCompiled = false 
+        haveSolved = false 
+    }
 
     /** Set the theory of the model finder. */
     def setTheory(newTheory: Theory): Unit = {
         theory = newTheory
+        theorySet = true
+        resetPhases()
     }
     def setSolver(newSolver: Solver): Unit = {
         solver = newSolver
@@ -72,11 +100,13 @@ class StandardModelFinder extends ModelFinder {
         setTimeout(seconds.toMilli)
     }
 
+
     /** Set the exact scope of the given sort, which is the size of the domain for that sort. */
     def setScope(sort: Sort, scope: Scope): Unit = {
         Errors.Internal.precondition(!(sort.name == "Bool"), "Cannot set analysis scope for bool sort.")
         Errors.Internal.precondition(scope.size>0)
         analysisScopes = analysisScopes + (sort -> scope)
+        resetPhases()
     }
 
     /** |A| = 3 **/
@@ -86,6 +116,7 @@ class StandardModelFinder extends ModelFinder {
         // note that IntSort scopes are specified in bitwidth
         val scope = ExactScope(size)
         analysisScopes = analysisScopes + (sort -> scope)
+        resetPhases()
     }
 
     /** Set the non-exact scope of the given sort, which is the size of the domain for that sort. */
@@ -96,6 +127,7 @@ class StandardModelFinder extends ModelFinder {
         // note that IntSort scopes are specified in bitwidth
         val scope = NonExactScope(size)
         analysisScopes = analysisScopes + (sort -> scope)
+        resetPhases()
     }
 
     def setOutput(writer: java.io.Writer): Unit = {
@@ -113,8 +145,14 @@ class StandardModelFinder extends ModelFinder {
         for(logger <- eventLoggers) notifyFn(logger)
 
     def compile(verbose: Boolean = false): Either[CompilerError, CompilerResult] = {
-        //println("in model finder compile")
-        compiler.compile(theory, analysisScopes, timeoutMilliseconds, eventLoggers.toList, verbose) 
+        if (!theorySet) 
+            Errors.Internal.impossibleState("Called model finder compile or checkSat with no set theory")
+        if (!haveCompiled) {
+            haveCompiled = true 
+            // can only interpret compiler result (timeout/error, during solving or in CLI)
+            compilerResult = compiler.compile(theory, analysisScopes, timeoutMilliseconds, eventLoggers.toList, verbose)           
+        } 
+        compilerResult
     }
 
     /** Check for a satisfying interpretation to the theory with the given scopes. */
@@ -122,15 +160,12 @@ class StandardModelFinder extends ModelFinder {
         // Restart the timer
         totalTimer.startFresh()
 
-        //compiler = Some(createCompiler())
-
         this.compile(verbose) match {
             case Left(CompilerError.Timeout) => TimeoutResult
             case Left(CompilerError.Other(errMsg)) => ErrorResult(errMsg)
             case Right(compilerRes) => {
-                compilerResult = Some(compilerRes)
 
-                val finalTheory = compilerResult.get.theory
+                val finalTheory = compilerRes.theory
 
 //                println("final theory: \n" + finalTheory + "\n\n")
 
@@ -145,6 +180,7 @@ class StandardModelFinder extends ModelFinder {
 
     // Returns the final ModelFinderResult
     private def solverPhase(finalTheory: Theory): ModelFinderResult = {
+
         notifyLoggers(_.invokingSolverStrategy())
         
         // Close solver session, if one has already been started
@@ -170,24 +206,35 @@ class StandardModelFinder extends ModelFinder {
 
         notifyLoggers(_.finished(finalResult, totalTimer.elapsedNano()))
 
+        haveSolved = true
+        if (finalResult == SatResult) hasSatSolution = true 
         finalResult
+        
     }
 
     /** View the satisfying interpretation, if one exists.
       * Otherwise, throws an error.
-      * Can only be called after checkSat.
       */
     def viewModel(): Interpretation = {
+        // can't be solved if it did not successfully compile
+        if (!haveSolved) checkSat()
+        if (!hasSatSolution) Errors.Internal.impossibleState("can only view models if the problem is SAT")
         val instance = solver.solution
-        compilerResult.get.decompileInterpretation(instance)
+        compilerResult.right.get.decompileInterpretation(instance)
     }
 
     /** Return the next satisfying interpretation. */
     def nextInterpretation(): ModelFinderResult = {
+
+        // have to have solved first, although if this is called directly, then
+        // user would never see first interpretation
+        if (!haveSolved) checkSat() 
+        if (!hasSatSolution) Errors.Internal.impossibleState("can only view models if the problem is SAT")
+
         // Negate the current interpretation, but leave out the skolem functions
         // Different witnesses are not useful for counting interpretations
         val instance = solver.solution
-            .withoutDeclarations(compilerResult.get.skipForNextInterpretation)
+            .withoutDeclarations(compilerResult.right.get.skipForNextInterpretation)
 
         val newInstance: Interpretation = {
 
@@ -212,11 +259,13 @@ class StandardModelFinder extends ModelFinder {
 
 //        println("instance:\n " + newInstance)
 
-        val newAxiom = Not(And.smart(newInstance.toConstraints.toList map (compilerResult.get.eliminateDomainElements(_))))
+        val newAxiom = Not(And.smart(newInstance.toConstraints.toList map (compilerResult.right.get.eliminateDomainElements(_))))
 
 //        println("newAxiom: " + newAxiom)
 
         solver.addAxiom(newAxiom)
+
+        // this will reset whether the problem has a sat solution or not
         solver.solve(timeoutMilliseconds)
     }
 
@@ -225,8 +274,9 @@ class StandardModelFinder extends ModelFinder {
     /** Count the total number of satisfying interpretations. */
 
     def countValidModels(newTheory: Theory): Int = {
-        theory = newTheory
+        setTheory(newTheory)
 
+        //NAD? do we only count models that are completely finite?
         // deleting this precondition is because those theory with enum sort
 //        Errors.Internal.precondition(theory.signature.sorts.size == analysisScopes.size,
 //            "Sorry, we can't count valid models for a theory with unbounded sorts")

@@ -70,7 +70,7 @@ object TransformersRegistry {
             case "SplitConjunction" => SplitConjunctionTransformer
 
             case _ => {
-                Errors.API.transformerDoesNotExist(name)
+                throw Errors.API.transformerDoesNotExist(name)
                 null
             }
         }

@@ -13,35 +13,29 @@ import java.lang.Error
 object Errors {
 
     object API {
-        class DoesNotExistError(message: String) extends Error(message)
+        case class DoesNotExistError(message: String) extends Error(message)
 
-        class transformerDoesNotExist(message:String) extends Error(message) 
-        def transformerDoesNotExist(message:String): Unit = 
-            throw new transformerDoesNotExist(message)
-
-        class modelFinderDoesNotExist(message:String) extends Error(message)
-        def modelFinderDoesNotExist(message:String): Unit = 
-            throw new modelFinderDoesNotExist(message)
+        case class transformerDoesNotExist(message:String) extends Error(message) 
  
-        class compilerDoesNotExist(message:String) extends Error(message)
-        def compilerDoesNotExist(message:String): Unit = 
-            throw new compilerDoesNotExist(message)
+    
+        case class modelFinderDoesNotExist(message:String) extends Error(message)
 
-        class solverDoesNotExist(message:String) extends Error(message)
-        def solverDoesNotExist(message:String): Unit = 
-            throw new solverDoesNotExist(message)
+ 
+        case class compilerDoesNotExist(message:String) extends Error(message)
+
+        case class solverDoesNotExist(message:String) extends Error(message)
+
 
         def doesNotExist(message: String) = throw new DoesNotExistError("Does Not Exist Error: " + message)
         // API errors are when the user of the API does something wrong - these can be catchable Exceptions
 
-        class CliError(message: String) extends Error(message)
-        def cliError(message: String) = throw new CliError("CLI Error: " + message)
+ 
+    }
 
-        def checkCliInput(condition: Boolean, message: String): Unit = 
-            if (!condition) cliError(message) else ()
-
-
-
+    // for the CLI, we don't throw exceptions, but give an error message and exit
+    def cliError(message:String) {
+        System.err.println(message)
+        System.exit(1)
     }
 
     object Internal {

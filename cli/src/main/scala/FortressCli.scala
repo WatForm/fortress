@@ -17,6 +17,9 @@ import java.{util => ju}
 import fortress.operations.TheoryOps
 
 class Conf(arguments: Seq[String]) extends ScallopConf(arguments) {
+
+    // these options all have to be lower case
+
     val scope = opt[Int](required = false, descr="default scope for all sorts")
     // Scope Map could be props[Scope] with a special converter, but we already change the keys so its not a huge deal
     val scopeMap = props[String]('S', descr="scope sizes for individual sorts in the form <sort>[?]=<scope>[u] ex: A=2 B?=3 C=4u ... where ? = non-exact and u = unchanging.")
@@ -28,49 +31,24 @@ class Conf(arguments: Seq[String]) extends ScallopConf(arguments) {
     val debug = opt[Boolean](descr="Writes debug output to console", noshort=true)
     val verbose = opt[Boolean](descr="Writes even more output to console", noshort=true)
     
-    val timeout = opt[Int](required = true, descr="timeout in seconds") // Timeout in seconds
+    val timeout = opt[Int](required = true, descr="(required) timeout in seconds") // Timeout in seconds
 
-    // model finder.
-    val mfConverter = singleArgConverter[ModelFinder](ModelFindersRegistry.fromString(_), {
-        case x: ju.NoSuchElementException  => Left("Not a valid ModelFinder")
-    })
-    val modelFinder = opt[ModelFinder](required = false, descr="modelfinder to use (default StandardCompiler/Z3NonIncSolver)")(mfConverter)
+    // 2024-07-15 NAD changed these from being ModelFinders to just Strings and do the conversion 
+    // from a String to a ModelFinder below in main() to make it easier to handle exception
+    // that comes from not finding it in the lookup registry
+    val modelfinder = opt[String](required = false, descr="modelfinder to use (default StandardCompiler/Z3NonIncSolver)")
 
-    // solver
-    val solverConverter = singleArgConverter[Solver](SolversRegistry.fromString(_), {
-        case x: ju.NoSuchElementException  => Left("Not a valid Solver")
-    })
-    val solver = opt[Solver](required = false, descr="solver to use (default Z3NonIncSolver)")(solverConverter)
+    val solver = opt[String](required = false, descr="solver to use (default Z3NonIncSolver)")
 
-    // compiler
-    val compilerConverter = singleArgConverter[Compiler](CompilersRegistry.fromString(_), {
-        case x: ju.NoSuchElementException  => Left("Not a valid Compiler")
-    })
-    val compiler = opt[Compiler](required = false, descr="compiler to use (default StandardCompiler)")(compilerConverter)
+    val compiler = opt[String](required = false, descr="compiler to use (default StandardCompiler)")
 
-    // transformers if manually specifying
-    val transformerConverter = new ValueConverter[List[ProblemStateTransformer]]{
-        def parse(s: List[(String, List[String])]): Either[String,Option[List[ProblemStateTransformer]]] = {
-            // Don't really care if someone makes separate lists of transformers, so we fold them together
-            val transformerNames = s.map(_._2).flatten 
-            try {
-                // Handle the empty list properly
-                if (transformerNames.isEmpty){
-                    Right(None)
-                } else {
-                    Right(Some(transformerNames.map(TransformersRegistry.fromString(_))))
-                }
-            } catch {
-                case e: Errors.API.transformerDoesNotExist => Left(e.getMessage())
-            }
-        }
-        val argType: ArgType.V = ArgType.LIST
-    }
-    val transformers = opt[List[ProblemStateTransformer]](required = false,short='T', descr="alternative to modelfinder. specify transformers in order")(transformerConverter)
+    val transformers = opt[List[String]](required = false,short='T', descr="specify transformers in order")
 
-    mutuallyExclusive(modelFinder, transformers)
-    mutuallyExclusive(modelFinder, compiler)
-    mutuallyExclusive(modelFinder, solver)
+    val compileOnly = opt[Boolean](descr="Output the SMT-LIB after the compile and stop",noshort=true)
+
+    mutuallyExclusive(modelfinder, transformers)
+    mutuallyExclusive(modelfinder, compiler)
+    mutuallyExclusive(modelfinder, solver)
     mutuallyExclusive(compiler, transformers)
 
     val generate = opt[Boolean](descr="generate a model if a SAT result") 
@@ -153,32 +131,62 @@ object FortressCli {
             println(scopes)
         }
 
+
         val modelFinder: ModelFinder = 
-            conf.modelFinder.toOption match {
-                case Some(mf) => mf
-                case None => new StandardModelFinder() // the default one
+            try {
+                conf.modelfinder.toOption match {
+                    case Some(mfname) => ModelFindersRegistry.fromString(mfname)
+                    case None => new StandardModelFinder() // the default one
+                }
+            } catch {
+                case (Errors.API.modelFinderDoesNotExist(y)) =>
+                    // will exit gracefully
+                    Errors.cliError("Model finder does not exist: "+y) 
+                new StandardModelFinder() // will never reach here               
             }
 
         // mutually exclusive with the specification of a model finder
         if (conf.compiler.isSupplied) {
-            conf.compiler.toOption match {
-                case Some(compiler) => modelFinder.setCompiler(compiler)
-                case None => Errors.Internal.impossibleState
-            }
+            try {
+                conf.compiler.toOption match {
+                    case Some(compiler) => modelFinder.setCompiler(CompilersRegistry.fromString(compiler))
+                    case None => () // leave as StandardCompiler in model finder
+                }
+            } catch {
+                case (Errors.API.compilerDoesNotExist(y)) => 
+                    // will exit gracefully
+                    Errors.cliError("Compiler does not exist: "+y)
+            }                
         }
 
         // mutually exclusive with the specification of a model finder
         if (conf.transformers.isSupplied) {
-            modelFinder.setCompiler(new ConfigurableCompiler(conf.transformers.apply()))
+            try {
+                val tlist = CompilersRegistry.NullTransformerList
+                for (t <- conf.transformers.toOption.get ) {
+                    tlist += TransformersRegistry.fromString(t)
+                }
+                modelFinder.setCompiler(new ConfigurableCompiler(tlist.toList))
+            } catch {
+                case (Errors.API.transformerDoesNotExist(y)) => 
+                    // will exit gracefully
+                    Errors.cliError("Transformer does not exist: "+y)
+            }                                            
         }
 
         // mutually exclusive with the specification of a model finder
         if (conf.solver.isSupplied) {
-            conf.solver.toOption match {
-                case Some(solver) => modelFinder.setSolver(solver)
-                case None => Errors.Internal.impossibleState
-            }
-        }
+            try {
+                conf.solver.toOption match {
+                    case Some(solver) => modelFinder.setSolver(SolversRegistry.fromString(solver))
+                    case None => () // leave as default Solver in model finder
+                }
+            } catch {
+                case (Errors.API.solverDoesNotExist(y)) => 
+                    // will exit gracefully
+                    Errors.cliError("Solver does not exist: "+y)
+            }                
+        } 
 
 
         val loggers = if(conf.debug()) {
@@ -197,27 +205,26 @@ object FortressCli {
         }
         modelFinder.setTimeout(Seconds(conf.timeout()))
 
-        // NAD? this seems to run the compiler separately from the model finder??? 
-        if(conf.debug() && conf.verbose() && conf.transformers.isSupplied){
-            val compiler = new ConfigurableCompiler(conf.transformers.apply())
-            if (conf.verbose()) println("Compiling ...")
-            val result = compiler.compile(
-                theory, scopes,
-                Seconds(conf.timeout()).toMilli, Seq.empty,
-                verbose = conf.verbose()
-            ).fold(
-                ce => println("Error compiling", ce),
-                cr => {
-                    val result = cr.theory
+        if (conf.verbose()) println("Compiling ...")
+
+        modelFinder.compile() match {
+            case Left(ce) => { 
+                Errors.cliError("Error compiling" + ce.toString())
+            }
+            case Right(cr) => {
+                if (conf.compileOnly()) {
+                    val theoryAfterCompile = cr.theory
                     println("=====original=====")
                     println(TheoryOps.wrapTheory(TypecheckSanitizeTransformer(ProblemState(theory, scopes)).theory).smtlib)
                     println("========new=======")
-                    println(TheoryOps.wrapTheory(cr.theory).smtlib)
+                    println(TheoryOps.wrapTheory(theoryAfterCompile).smtlib)
                     println("==================")
+                    System.exit(1)
                 }
-            )
+            }
         }
         if (conf.verbose()) println("Solving ...")
+        // this won't redo compiling due to flags in the modelFinder
         val result = modelFinder.checkSat()
         println(result)
         if(conf.generate()) {

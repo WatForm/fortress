@@ -10,7 +10,7 @@ import scala.collection.mutable.ListBuffer
 class AlmostNothingCompiler extends BaseCompiler {
 
     override def transformerSequence: Seq[ProblemStateTransformer] = {
-        val transformerSequence = NullTransformerList
+        val transformerSequence = CompilersRegistry.NullTransformerList
         transformerSequence += TypecheckSanitizeTransformer
         transformerSequence += EnumsToDEsTransformer
         transformerSequence += DEsToDistinctConstantsTransformer

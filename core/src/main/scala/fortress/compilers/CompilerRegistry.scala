@@ -1,6 +1,9 @@
 package fortress.compilers
 
 import fortress.util.Errors
+import fortress.problemstate._
+import fortress.transformers._
+import scala.collection.mutable.ListBuffer
 
 object CompilersRegistry {
 
@@ -40,7 +43,7 @@ object CompilersRegistry {
             case "JoeFOUR_SI"  => new JoeFOUR_SICompiler()
 
             case _ => {
-                Errors.API.compilerDoesNotExist(str)
+                throw Errors.API.compilerDoesNotExist(str)
                 null
             }
         }
@@ -64,4 +67,15 @@ object CompilersRegistry {
         c        
     }
 
+
+    def NullTransformerList:ListBuffer[ProblemStateTransformer] = {
+        val ts = new scala.collection.mutable.ListBuffer[ProblemStateTransformer]
+        ts
+    }
+
+    def ListOfOne(x:ProblemStateTransformer):ListBuffer[ProblemStateTransformer] = {
+        val ts = NullTransformerList
+        ts += x
+        ts
+    }
 }   

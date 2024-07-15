@@ -25,7 +25,7 @@ object ModelFindersRegistry {
             case "JoeFOUR_SI" =>  new JoeFOUR_SIModelFinder()
                 
             case _ => {
-                Errors.API.modelFinderDoesNotExist(str)
+                throw Errors.API.modelFinderDoesNotExist(str)
                 null
             }
         }

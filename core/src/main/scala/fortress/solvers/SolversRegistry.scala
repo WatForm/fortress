@@ -9,7 +9,7 @@ object SolversRegistry {
             case "CVC4Cli" => new CVC4CliSolver
             case "Z3NonIncCli" => new Z3NonIncCliSolver
             case _ => {
-                Errors.API.solverDoesNotExist(str)
+                throw Errors.API.solverDoesNotExist(str)
                 null
             }
         }
