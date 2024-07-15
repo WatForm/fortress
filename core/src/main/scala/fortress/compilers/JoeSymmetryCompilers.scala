@@ -14,7 +14,6 @@ abstract class BaseJoeSymmetryCompiler() extends BaseCompiler {
         val transformerSequence = new scala.collection.mutable.ListBuffer[ProblemStateTransformer]
         transformerSequence += TypecheckSanitizeTransformer
         transformerSequence += EnumsToDEsTransformer
-        transformerSequence += LiaCheckTransformer
         transformerSequence += IntToBVTransformer
         transformerSequence += ClosureEliminationEijckTransformer
         

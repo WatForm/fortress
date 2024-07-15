@@ -38,6 +38,7 @@ object IntToBVTransformer extends ProblemStateTransformer {
                 .withUnapplyInterp(unapply)
         }
 
+        /*
         if (problemState.scopes.contains(BoundedIntSort)) {
             val numValues = problemState.scopes(BoundedIntSort).size
             // Do log_2 of numValues to find bitwidth
@@ -57,6 +58,7 @@ object IntToBVTransformer extends ProblemStateTransformer {
                 .withUnapplyInterp(unapply)
 
         }
+        */
 
         newProblemState
     }
