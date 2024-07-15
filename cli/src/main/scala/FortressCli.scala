@@ -22,6 +22,8 @@ class Conf(arguments: Seq[String]) extends ScallopConf(arguments) {
 
     val scope = opt[Int](required = false, descr="default scope for sorts")
     // Scope Map could be props[Scope] with a special converter, but we already change the keys so its not a huge deal
+    // NAD?  how are duplicates in the specification of the scope at the CLI handled here?
+    // as in fortress -SA=2 B?=3 A=4u ?? it's a map so currently no error message is given
     val scopeMap = props[String]('S', descr="scope sizes for individual sorts (overrides those in file) in the form <sort>[?]=<scope>[u] ex: A=2 B?=3 C=4u ... where ? = non-exact and u = unchanging.")
     val file = trailArg[String](required = true, descr="file(s) to run on")
 
@@ -117,7 +119,6 @@ object FortressCli {
                 case "int" | "intsort" => IntSort
                 case _ => SortConst(sortName)
             }
-            if (scopes.contains(sortConst)) Errors.cliError(sortConst + " given multiple scopes")
             scopes += (sortConst -> scopeVal)
         }
 
