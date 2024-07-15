@@ -13,7 +13,7 @@ import fortress.util.NameConverter
 /** A syntactic Term in the logic. */
 sealed trait Term {
     def accept[T](visitor: TermVisitor[T]): T
-    
+
     def freeVarConstSymbolsJava: java.util.Set[Var] = this.freeVarConstSymbols.asJava
 
     // for lia check
@@ -46,11 +46,11 @@ case object Bottom extends Term with LeafTerm with Value {
 case class Var private(name: String) extends Term with LeafTerm {
     Errors.Internal.precondition(name.length > 0, "Cannot create variable with empty name")
     Errors.Internal.precondition(! name.contains('|'), "Illegal character '|' in var name " + name + ".")
-    
+
     override def toString: String = name
     def getName: String = name
     override def accept[T](visitor: TermVisitor[T]): T = visitor.visitVar(this)
-    
+
     /** Returns an AnnotatedVar that represents this variable annotated with
       * with a sort. */
     def of(sort: Sort) = AnnotatedVar(this, sort)
@@ -66,12 +66,12 @@ with Caching[Var, String] {
         Errors.Internal.precondition(! Names.isIllegal(name), "Illegal variable name " + name)
         create(name)
     }
-    
+
     private [msfol] def mkWithoutNameRestriction(name: String): Var = new Var(name)
 }
 case class EnumValue private (name: String) extends Term with LeafTerm with Value {
     Errors.Internal.precondition(name.length > 0)
-    
+
     override def toString: String = name
     override def accept[T](visitor: TermVisitor[T]): T = visitor.visitEnumValue(this)
 }
@@ -92,18 +92,18 @@ with Caching[EnumValue, String] {
 case class Not private (body: Term) extends Term {
     override def accept[T](visitor: TermVisitor[T]): T = visitor.visitNot(this)
     def mapBody(mapping: Term => Term): Term = Not(mapping(body))
-    
+
     override def toString: String = "~(" + body.toString + ")"
 }
 
 /** Represents a conjunction. */
 case class AndList private (arguments: Seq[Term]) extends Term {
     Errors.Internal.precondition(arguments.size >= 2, "AndList must contain at least 2 values.")
-    
+
     override def accept[T](visitor: TermVisitor[T]): T = visitor.visitAndList(this)
     def mapArguments(mapping: Term => Term): Term =
         AndList(arguments.map(mapping))
-    
+
     override def toString: String = "And(" + arguments.mkString(", ") + ")"
 }
 
@@ -113,7 +113,7 @@ object AndList {
 
 object And {
     def apply(args: Term*): Term = AndList(args.toList)
-    
+
     def smart(args: Seq[Term]): Term = {
         if (args.size == 0) Top
         else if (args.size == 1) args.head
@@ -124,11 +124,11 @@ object And {
 /** Represents a disjunction. */
 case class OrList private (arguments: Seq[Term]) extends Term {
     Errors.Internal.precondition(arguments.size >= 2, "OrList must contain at least 2 values")
-    
+
     override def accept[T](visitor: TermVisitor[T]): T = visitor.visitOrList(this)
     def mapArguments(mapping: Term => Term): Term =
         OrList(arguments.map(mapping))
-    
+
     override def toString: String = "Or(" + arguments.mkString(", ") + ")"
 }
 
@@ -138,7 +138,7 @@ object OrList {
 
 object Or {
     def apply(args: Term*): Term = OrList(args.toList)
-    
+
     def smart(args: Seq[Term]): Term = {
         if (args.size == 0) Bottom
         else if (args.size == 1) args.head
@@ -149,11 +149,11 @@ object Or {
 /** Represents a formula signifying whether its arguments have distinct values. */
 case class Distinct private (arguments: Seq[Term]) extends Term {
     Errors.Internal.precondition(arguments.size >= 2)
-    
+
     override def accept[T](visitor: TermVisitor[T]): T = visitor.visitDistinct(this)
     def mapArguments(mapping: Term => Term): Term =
         Distinct(arguments.map(mapping))
-    
+
     def asPairwiseNotEquals: Term = {
         // TODO update this to be scala code
         val pairs: java.util.List[Term] = new java.util.ArrayList[Term]()
@@ -170,7 +170,7 @@ case class Distinct private (arguments: Seq[Term]) extends Term {
         Errors.Internal.assertion(pairs.size() == (n*(n - 1) / 2), "" + n + " terms, but somehow generated " + pairs.size() + " pairs")
         Term.mkAnd(pairs)
     }
-    
+
     override def toString: String = "Distinct(" + arguments.mkString(", ") + ")"
 }
 
@@ -183,7 +183,7 @@ case class Implication private (left: Term, right: Term) extends Term {
     override def accept[T](visitor: TermVisitor[T]): T = visitor.visitImplication(this)
     def mapArguments(mapping: Term => Term): Term =
         Implication(mapping(left), mapping(right))
-    
+
     override def toString: String = left.toString + " => " + right.toString
 }
 
@@ -194,7 +194,7 @@ case class Iff private (left: Term, right: Term) extends Term {
     override def accept[T](visitor: TermVisitor[T]): T = visitor.visitIff(this)
     def mapArguments(mapping: Term => Term): Term =
         Iff(mapping(left), mapping(right))
-    
+
     override def toString: String = left.toString + " <=> " + right.toString
 }
 
@@ -203,7 +203,7 @@ case class Eq private (left: Term, right: Term) extends Term {
     override def accept[T](visitor: TermVisitor[T]): T = visitor.visitEq(this)
     def mapArguments(mapping: Term => Term): Term =
         Eq(mapping(left), mapping(right))
-        
+
     override def toString: String = left.toString + " = " + right.toString
 }
 
@@ -211,13 +211,13 @@ case class Eq private (left: Term, right: Term) extends Term {
 case class App private (functionName: String, arguments: Seq[Term]) extends Term {
     Errors.Internal.precondition(functionName.length >= 1, "Empty function name")
     Errors.Internal.precondition(arguments.size >= 1, "Nullary function application " + functionName + " should be a Var")
-    
+
     def getArguments: java.util.List[Term] = arguments.asJava
     def getFunctionName: String = functionName
     override def accept[T](visitor: TermVisitor[T]): T  = visitor.visitApp(this)
     def mapArguments(mapping: Term => Term): Term =
         App(functionName, arguments.map(mapping))
-    
+
     override def toString: String = functionName + "(" + arguments.mkString(", ") + ")"
 }
 
@@ -231,9 +231,9 @@ with Caching[App, (String, Seq[Term])] {
 
 case class BuiltinApp private (function: BuiltinFunction, arguments: Seq[Term]) extends Term {
     Errors.Internal.precondition(arguments.size >= 1, "Nullary builtin function application " + function)
-    
+
     override def accept[T](visitor: TermVisitor[T]): T = visitor.visitBuiltinApp(this)
-    
+
     def mapArguments(mapping: Term => Term): Term =
         BuiltinApp(function, arguments.map(mapping))
 }
@@ -253,12 +253,12 @@ case class Exists private (vars: Seq[AnnotatedVar], body: Term) extends Quantifi
     Errors.Internal.precondition(vars.size >= 1, "Quantifier must bind at least one variable");
     // Check variables distinct
     Errors.Internal.precondition(vars.map(av => av.name).toSet.size == vars.size, "Duplicate variable name in quantifier")
-    
+
     override def accept[T](visitor: TermVisitor[T]): T = visitor.visitExists(this)
     def mapBody(mapping: Term => Term): Term = Exists(vars, mapping(body))
-    
+
     override def toString: String = "exists " + vars.mkString(", ") + " . " + body.toString
-    
+
     def varsJava: java.util.List[AnnotatedVar] = vars.asJava
 }
 
@@ -271,12 +271,12 @@ case class Forall private (vars: Seq[AnnotatedVar], body: Term) extends Quantifi
     Errors.Internal.precondition(vars.size >= 1, "Quantifier must bind at least one variable")
     // Check variables distinct
     Errors.Internal.precondition(vars.map(av => av.name).toSet.size == vars.size, "Duplicate variable name in quantifier")
-    
+
     override def accept[T](visitor: TermVisitor[T]): T = visitor.visitForall(this)
     def mapBody(mapping: Term => Term): Term = Forall(vars, mapping(body))
-    
+
     override def toString: String = "forall " + vars.mkString(", ") + " . " + body.toString
-    
+
     def varsJava: java.util.List[AnnotatedVar] = vars.asJava
 }
 
@@ -290,9 +290,9 @@ object Forall {
   * DomainElements are indexed starting with 1.*/
 case class DomainElement private (index: Int, sort: Sort) extends Term with LeafTerm with Value {
     Errors.Internal.precondition(index >= 1)
-    
+
     override def accept[T](visitor: TermVisitor[T]): T = visitor.visitDomainElement(this)
-    
+
     // TODO need to restrict any other code from using this naming convention
     val asSmtConstant: Var = Var.mkWithoutNameRestriction(DomainElement.prefix + index.toString + sort.toString)
 
@@ -307,7 +307,7 @@ with Caching[DomainElement, (Int, Sort)] {
     def apply(index: Int, sort: Sort): DomainElement = create((index, sort))
 
     private[msfol] val prefix = "_@"
-    
+
     def interpretName(name: String): Option[DomainElement] = {
         if(name startsWith DomainElement.prefix) {
             val s = name drop DomainElement.prefix.length
@@ -317,10 +317,10 @@ with Caching[DomainElement, (Int, Sort)] {
             Some(DomainElement(indexStr.toInt, SortConst(sortStr)))
         } else None
     }
-    
+
     def range(rangeOver: Range, sort: Sort): IndexedSeq[DomainElement] =
         rangeOver map (i => DomainElement(i, sort))
-    
+
     implicit val ordering: math.Ordering[DomainElement] = math.Ordering.fromLessThan(_.index < _.index)
 }
 
@@ -355,6 +355,15 @@ object BitVectorLiteral {
         BitVectorLiteral(signedValue, bitwidth)
     }
 }
+
+// need to make a class that captures cardinality, as well as nmodify the language
+// BOOKMARK, UNFINISHED
+case class SetCardinality private (t : Term) extends Term {
+    override def accept[T](visitor: TermVisitor[T]): T = visitor.visitSetCardinality(this)
+
+    override def toString: String = "#(" + t.toString + ")"
+}
+
 
 case class IfThenElse private (condition: Term, ifTrue: Term, ifFalse: Term) extends Term {
     override def accept[T](visitor: TermVisitor[T]): T = visitor.visitIfThenElse(this)
@@ -395,10 +404,10 @@ case class ReflexiveClosure private (functionName: String, arg1: Term, arg2: Ter
 object Term {
     /** Returns a Term representing Top/Verum */
     val mkTop = Top
-    
+
     /** Returns a Term representing Bottom/Falsum */
     val mkBottom = Bottom
-    
+
     /** Returns a Term representing the variable (or constant, depending on the
       * context in which it is used) with the given name.
       */
@@ -416,9 +425,9 @@ object Term {
             case None => Var(name)
         }
     }
-    
+
     def mkEnumValue(name: String): EnumValue = EnumValue(name)
-    
+
     /** Returns a Term representing the conjunction of the given terms. One or
       * more terms must be provided. If only one Term t is provided, the return
       * value will be exactly t.
@@ -432,7 +441,7 @@ object Term {
             AndList(args.toList)
         }
     }
-    
+
     /** Returns a term representing the conjunction of the given terms. One or
       * more terms must be provided. If only one term t is provided, the return
       * value will be exactly t.
@@ -445,7 +454,7 @@ object Term {
             AndList(args.asScala.toList)
         }
     }
-    
+
     /** Returns a term representing the disjunction of the given terms. One or
       * more terms must be provided. If only one term t is provided, the return
       * value will be exactly t.
@@ -459,7 +468,7 @@ object Term {
             OrList(args.toList)
         }
     }
-    
+
     /** Returns a term representing the conjunction of the given terms. One or
       * more terms must be provided. If only one term t is provided, the return
       * value will be exactly t.
@@ -472,18 +481,18 @@ object Term {
             OrList(args.asScala.toList)
         }
     }
-    
+
     /** Returns a Term representing the negation of the given term. */
     def mkNot(body: Term): Term = Not(body)
-    
+
     /** Returns a term representing the implication "t1 implies t2". */
     def mkImp(t1: Term, t2: Term): Term = Implication(t1, t2)
-    
+
     /** Returns a term representing the truth value of whether t1 and t2 are equal.
       * Users should also use this for the bi-equivalence "t1 iff t2".
       */
     def mkEq(t1: Term, t2: Term): Term = Eq(t1, t2)
-    
+
     /** Returns a term representing the constraint that the given terms have
       * distinct values. Two or more terms must be provided
       */
@@ -491,7 +500,7 @@ object Term {
         Errors.Internal.precondition(arguments.size >= 2, "Two or more arguments must be given")
         Distinct(arguments.asScala.toList)
     }
-    
+
     /** Returns a term representing the constraint that the given terms have
       * distinct values. Two or more terms must be provided.
       */
@@ -500,7 +509,7 @@ object Term {
         Errors.Internal.precondition(arguments.length >= 2, "Two or more arguments must be given")
         Distinct(arguments.toList);
     }
-    
+
     /** Returns a term representing the result of the application of a function with
       * the given functionName to the given arguments. At least one or more arguments
       * must be provided.
@@ -508,43 +517,47 @@ object Term {
     @varargs
     def mkApp(functionName: String, arguments: Term*): Term =
         App(functionName, arguments.toList)
-    
+
     /** Returns a term representing the result of the application of a function with
       * the given functionName to the given arguments. At least one or more arguments
       * must be provided.
       */
     def mkApp(functionName: String, arguments: java.util.List[_ <: Term]): Term =
         App(functionName, arguments.asScala.toList)
-    
+
     /** Returns a term representing the universal quantification of the given body
       * over the given annotated variables.
       * At least one or more variables must be provided.
       */
     def mkForall(vars: java.util.List[AnnotatedVar], body: Term): Term =
         Forall(vars.asScala.toList, body)
-    
+
     /** Returns a term representing the universal quantification of the given body
       * over the given annotated variable.
       */
     def mkForall(x: AnnotatedVar, body: Term): Term =
         Forall(List(x), body)
-    
+
     /** Returns a term representing the existential quantification of the given body
       * over the given annotated variables.
       * At least one or more variables must be provided.
       */
     def mkExists(vars: java.util.List[AnnotatedVar], body: Term): Term =
         Exists(vars.asScala.toList, body)
-    
+
     /** Returns a term representing the existential quantification of the given body
     * over the given annotated variable.
     */
     def mkExists(x: AnnotatedVar, body: Term): Term =
         Exists(List(x), body)
-    
+
     /** Returns a term representing the bi-implication "t1 iff t2". */
     def mkIff(t1: Term, t2: Term): Term = Iff(t1, t2)
-    
+
+    // bookmark
+    def mkSetCardinality(t: Term): Term =
+        SetCardinality(t)
+
     def mkIfThenElse(condition: Term, ifTrue: Term, ifFalse: Term): Term = IfThenElse(condition, ifTrue, ifFalse)
 
     def mkClosure(functionName: String, arg1: Term, arg2: Term): Term =
@@ -565,7 +578,7 @@ object Term {
         Closure(functionName, args(0), args(1), args.slice(2, args.length))
     }
 
-    
+
     def mkReflexiveClosure(functionName: String, arg1: Term, arg2: Term): Term =
         ReflexiveClosure(functionName, arg1, arg2)
     def mkReflexiveClosure(functionName: String, arg1: Term, arg2: Term, fixedArgs: Seq[Term]): Term =

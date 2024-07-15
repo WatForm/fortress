@@ -32,7 +32,7 @@ abstract class ClosureEliminator(topLevelTerm: Term, signature: Signature, scope
     def getClosureFunctions: Set[FuncDecl] = closureFunctions.toSet
 
     def getClosureDefns: Set[FunctionDefinition] = closureDefns.toSet
-    
+
     def getAuxilaryFunctions: Set[FuncDecl] = auxilaryFunctions.toSet
 
     def getAuxilaryDefns: Set[FunctionDefinition] = auxilaryDefns.toSet
@@ -71,7 +71,7 @@ abstract class ClosureEliminator(topLevelTerm: Term, signature: Signature, scope
                 //Default to just including the arguments
                 case None => return App(fname, Seq(x, y) ++ arguments)
             }
-            
+
             // Depending on arity, we check membership differently
             fdecl.arity match {
                 // We ignore arguments even if we take them in for the case of arity 1 or 2 so that we can leave them in for iterative methods
@@ -79,7 +79,7 @@ abstract class ClosureEliminator(topLevelTerm: Term, signature: Signature, scope
                 case 2 => App(fname, x, y)
                 case arity => {
                     // We currently assume closing non-binary relations close over arguments 0 and 1
-                    Errors.Internal.precondition(arity == arguments.length + 2, 
+                    Errors.Internal.precondition(arity == arguments.length + 2,
                         "Closing over a function of arity " + arity.toString() + "but arguments was length " + arguments.length.toString() + "instead of " + (arity-2).toString())
                     App(fname, Seq[Term](x, y) ++ arguments)
                 }
@@ -109,29 +109,29 @@ abstract class ClosureEliminator(topLevelTerm: Term, signature: Signature, scope
                     AnnotatedVar(Var("fa" + n.toString()), sort)
             }
         }
-        
+
         def visitTop: Term = Top
-        
+
         def visitBottom: Term = Bottom
-        
+
         def visitVar(variable: Var): Term = variable
-        
+
         def visitNot(term: Not): Term = term.mapBody(visit)
-        
+
         def visitAndList(term: AndList): Term = term.mapArguments(visit)
-        
+
         def visitOrList(term: OrList): Term = term.mapArguments(visit)
-        
+
         def visitDistinct(term: Distinct): Term = term.mapArguments(visit)
-        
+
         def visitIff(term: Iff): Term = term.mapArguments(visit)
-        
+
         def visitImplication(term: Implication): Term = term.mapArguments(visit)
-        
+
         def visitEq(term: Eq): Term = term.mapArguments(visit)
-        
+
         def visitApp(term: App): Term = term.mapArguments(visit)
-        
+
         def visitBuiltinApp(term: BuiltinApp): Term = term.mapArguments(visit)
 
         // defined specifically for closure elim method
@@ -141,16 +141,18 @@ abstract class ClosureEliminator(topLevelTerm: Term, signature: Signature, scope
         def visitReflexiveClosure(rc: ReflexiveClosure): Term
 
         def visitForallInner(term: Forall): Term = term.mapBody(visit)
-        
+
         def visitExistsInner(term: Exists): Term = term.mapBody(visit)
-        
+
         def visitDomainElement(d: DomainElement): Term = d
-        
+
         def visitIntegerLiteral(literal: IntegerLiteral): Term = literal
-        
+
         def visitBitVectorLiteral(literal: BitVectorLiteral): Term = literal
-        
+
         def visitEnumValue(e: EnumValue): Term = e
+
+        def visitSetCardinality (term: SetCardinality): Term = ???
 
         def visitIfThenElse(ite: IfThenElse): Term = IfThenElse(visit(ite.condition), visit(ite.ifTrue), visit(ite.ifFalse))
     }
