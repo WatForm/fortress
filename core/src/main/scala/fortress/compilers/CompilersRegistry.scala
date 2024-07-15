@@ -17,7 +17,7 @@ object CompilersRegistry {
         // in Some and deal with the option type in checkName
         val c:Compiler = str match {
             // dummy compiler to test with
-            case "test" => new SetCardinalityCompiler()
+            case "SetCardinality" => new SetCardinalityCompiler()
 
             // StandardCompilers - use constants
             case "Standard"  => new StandardCompiler()

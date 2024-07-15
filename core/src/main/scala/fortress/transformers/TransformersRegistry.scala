@@ -16,6 +16,7 @@ object TransformersRegistry {
 
             // string name must match the object name + 'Transformer'
             case "EnumsToDEsElimination" => EnumsToDEsTransformer
+            case "SetCardinality" => SetCardinalityTransformer
             case "IfLifting" => IfLiftingTransformer
             case "Nnf" => NnfTransformer
             case "Null" => NullTransformer
@@ -81,6 +82,6 @@ object TransformersRegistry {
 
     private def checkName(s:String, t:ProblemStateTransformer): ProblemStateTransformer = {
         Errors.Internal.assertion(t.name == s, s +" does not match "+ t.name)
-        t        
+        t
     }
 }
