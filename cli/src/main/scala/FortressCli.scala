@@ -20,16 +20,13 @@ class Conf(arguments: Seq[String]) extends ScallopConf(arguments) {
 
     // these options all have to be lower case
 
-    val scope = opt[Int](required = false, descr="default scope for all sorts")
+    val scope = opt[Int](required = false, descr="default scope for sorts")
     // Scope Map could be props[Scope] with a special converter, but we already change the keys so its not a huge deal
-    val scopeMap = props[String]('S', descr="scope sizes for individual sorts in the form <sort>[?]=<scope>[u] ex: A=2 B?=3 C=4u ... where ? = non-exact and u = unchanging.")
+    val scopeMap = props[String]('S', descr="scope sizes for individual sorts (overrides those in file) in the form <sort>[?]=<scope>[u] ex: A=2 B?=3 C=4u ... where ? = non-exact and u = unchanging.")
     val file = trailArg[String](required = true, descr="file(s) to run on")
 
-    // TODO: we want to flip the meaning of this and change its name
-    val importScope = opt[Boolean](descr="Import scope from smttc file if present.")
-
     val debug = opt[Boolean](descr="Writes debug output to console", noshort=true)
-    val verbose = opt[Boolean](descr="Writes even more output to console", noshort=true)
+    val verbose = opt[Boolean](descr="Writes steps in process to console", noshort=true)
     
     val timeout = opt[Int](required = true, descr="(required) timeout in seconds") // Timeout in seconds
 
@@ -76,23 +73,19 @@ object FortressCli {
             case Right(x) => x
         }
 
-        // Scopes from cmd line
-        if (conf.verbose()) println("Setting scopes (if any)")
+        // Default scopes from cmd line; might be none
+        // assumes duplicates in the file mapping having already been dealt
+        // with in the parse
         var scopes: Map[Sort, Scope] = conf.scope.toOption match {
             case Some(scope) => {
                 for(sort <- theory.sorts) yield sort -> ExactScope(scope)
             }.toMap
             case None => Map()
         }
-        // Scopes in file
-        if (conf.importScope()){
-            val parsedScopes = parser.getScopes().asScala
-            scopes = scopes ++ parsedScopes
-        }
+        // Scopes in file -- could be none; override defaults
+        for ((sort,scope) <- parser.getScopes().asScala) scopes += (sort -> scope)
 
-        // NAD? what stops the scope of a sort from being specified multiple
-        // times at the cmd line and/or in the file??
-        // Override with specific scopes
+        // Scopes from cmd line, override defaults and scopes in file
         for ( (sort, scope) <- conf.scopeMap ) {
             var scopeValue: Int = 0
             var isUnchanging = false
@@ -119,10 +112,12 @@ object FortressCli {
                 ExactScope(scopeValue, isUnchanging)
             }
 
+            // built in sorts
             val sortConst = sortName.toLowerCase match {
                 case "int" | "intsort" => IntSort
                 case _ => SortConst(sortName)
             }
+            if (scopes.contains(sortConst)) Errors.cliError(sortConst + " given multiple scopes")
             scopes += (sortConst -> scopeVal)
         }
 
@@ -199,7 +194,8 @@ object FortressCli {
 
         if (conf.verbose()) println("Setting theory ...")
         modelFinder.setTheory(theory)
-        println("Setting scopes (if any) ...")
+
+        if (conf.verbose()) println("Setting scopes (if any) ...")
         for((sort, scope) <- scopes) {
             modelFinder.setScope(sort, scope)
         }
