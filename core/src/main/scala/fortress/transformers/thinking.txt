@@ -1,0 +1,212 @@
+FILES OF INTEREST
+(trying to clean up changes)
+- FOFTPTP.gr - antlr grammar
+
+
+Look @ iflifting
+Ifliftinf trnasformer
+ - calls iflifting trnasformer on every axiom
+ which walks over ast
+
+
+ f(x) = ite (b, c, d)
+ite(b, f(x) = c, f(x) = d)
+..
+
+keep going until c and d are booleans
+
+..
+
+(b AND f(x) = c) OR (!b AND f(x) = d)
+
+
+look @ terms
+and adding to the grammar - ANTLR, takes BNF
+proceses the grammar
+
+SMTLIB - std language for SMTs that we're adding to
+grammar (which we're adding set cardinatlty to)
+
+
+What I'm eventually going to do
+
+setCardinalty
+ - calls cardinatlity trnasformer
+
+
+ sc((not())) = not(sc(x))
+s(#()) = blank
+
+
+ look into cases in scala
+
+
+potentially set up transformer as a null operation
+
+
+
+Questions I have while looking at the codebase - things to talk about
+- theory vs problem state?
+- mapBody and mapAxioms
+- msfol folder - many sorted first order logic?
+
+
+Things I'm getting used to (scala specific):
+- scala is a functional programming language
+- the way you can pass in funcitons to functions (higher order maybe??)
+- map and filter
+- foldr and foldl
+
+
+We have our problem state - which consists of:
+- theory - a collection of axioms and the language?
+- scopes
+- any additional information
+
+
+
+
+undergrad thesis aside
+- thesis course - not the same as fasttrack to masters
+- reading course - introduction to formal methods
+
+combined bachelor masters
+
+undergrad and grad at same place is a lot of the same places and same ideas
+
+in the us - grad school and cs is different
+canada - most people do masters and then phd
+in the us - a m        transformerSequence += EnumEliminationTransformer
+asers is a terminal degree - basically getting a phd is like redoing a masters
+
+
+
+
+negation normal form and skiloemization
+- we really want to do skiloemization to get rid of quantifiers
+- we need negations to do skoloemization
+
+why ites are a problem
+- ite(forall something, c, d)
+- leads to forall p OR not forall p
+so we do iflifting BEFORE negation normal form
+
+for ites that sneaks through, nnf moves past it
+
+
+- equivalent - rearranging the symbols basically
+- equisatisfyable - rearranged and added variables where they mean the same thing
+
+skolemization is a process that makes a problem equisatisfyable
+
+each of our transformations aims to create an equivalent or equisatisfyable problem
+
+SAT solvers - propositional logic solvers
+- take in cnf (v) ^ (v)
+- the process of going from problem to cnf is expensive
+Tseitsin's encoding
+
+
+
+What can the cardinatlity operator apply to?
+In our case we need to be able to get rid of ALL the set cardinatlity
+We need to limit from the user point of view
+
+
+precedence between set cardinality and transitive closure
+
+transitive closure - keep doing blank until nothing changes
+ex: r;r;r;r;r;r
+second order operation, because you're doing the operation on the entire operation
+this is a FINITE operation
+
+
+can I have a set cardinatlity of the (transitive closure of R)?
+what can we take the set cardinality of
+
+right now, cardinality is being done in portus, so it comes before transifitve closure
+
+Nancy suspects that from a fortress scope, we'll just be dealing with cardinatlity of a predicate
+- which in this case is a thing with scopes that returns true or false
+- cardinality - how many arguments make that true
+
+
+create a setCardinalty dummy transformer
+
+
+
+bare bones transformers I need (/have been exposed to):
+- negation normal form
+- skolemization
+- iflifting
+- symmetry reduction
+- quantifierexpansion
+- transitive closure
+- set cardinality
+
+order??
+- negation normal form ← brings in the negatives
+- skolemization ← gets rid of all types essentially, brings things into one universe
+- iflifting ← turns if then else statements into predicate logic
+- symmetry reduction ← prevents state space explosion problem
+- quantifierexpansion (idk if we do this or if the smt solver does)
+- transitive closure ← keep doing blank until nothing changes (f;f;f;f)
+- set cardinality (!!) ← turns cardinality into a bunch of ite statements
+
+so clearly set cardinatlity has to come before iflifting
+
+we also know that set cardinality is done in portus before, so we can act like it's done before everything (?)
+
+(looking at other compilers) it looks like the proper order without set cardinality is:
+- TypecheckSanitizeTransformer
+- IfLiftingTransformer
+- ClosureEliminationTransformer (there's a bunch but this is for transitive closure)
+- NnfTransformer (negation normal form)
+- SkolemizeTransformer
+- symmetryBreakingTransformers (there's a whole bunch)
+(they all also seem to end with these two, not sure what they do tho ↓)
+- SimplifyTransformer
+- DomainEliminationTransformer
+
+The easy to use words are:
+- typecheck
+**this is where I think set cardinality should go ***
+- cardinality
+- iflifting
+- ceeijck (again there's a bunch of options for this one but I'm picking the Eijck)
+- nnf
+- skolemize
+- symmetry
+- simplify
+- domainelimination
+
+
+fortress --timeout 30 -T 'typecheck' 'cardinality' 'iflifting' 'ceeijck' 'nnf' 'skolemize' 'symmetry' 'simplify' 'domainelimination' -S A=3 B=2 --generate function.smt2
+
+
+
+A note about running and debugging and whatnot
+use sbt stage and create an alias that points to ./cli/universal/whatever
+--help
+
+RIGHT NOW I AM USING THE UNCHANGED EXECUTABLE
+
+
+
+
+
+Overarching steps:
+
+need to add something to the parser
+
+then the parsed thing will become a part of a term
+term: SetCardinalty(t: Term)
+- probably shouldnt be a boolean sort
+
+msfol/Term.py
+
+then write the transformer that eliminates set cardinatlity
+- made up of an operation on a term and then the thing that calls a term
+
+
+sbt test will run testing directory

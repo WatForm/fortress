@@ -13,6 +13,7 @@ import scala.collection.immutable.Map
 import scala.collection.mutable
 
 case class TheoryOps private(theory: Theory) {
+    // this function takes another function (woa) and applies that function to all the axioms in the theory
     def mapAxioms(f: Term => Term) = Theory(theory.signature, theory.axioms map f)
 
     def someAxioms(f: (Term, Map[Sort, Scope]) => Term, helpMap: Map[Sort, Scope]) = Theory(theory.signature, theory.axioms.map(f(_, helpMap)))
@@ -120,7 +121,7 @@ case class TheoryOps private(theory: Theory) {
             .map(_.name)
         val funcDefnNames = theory.functionDefinitions.withFilter({case FunctionDefinition(_, argSortedVar, resultSort, _) =>
             val argSorts = argSortedVar.map(_.sort)
-            
+
             resultSort == BoolSort &&
             // contains an int arg
             (argSorts.contains(IntSort) || argSorts.exists({case BitVectorSort(_) => true case _ => false}))
