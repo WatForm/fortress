@@ -149,7 +149,7 @@ class SmtlibConverter(writer: java.io.Writer) {
         case SortConst(name) => writer.write(nameWithQuote(name))
         case BoolSort => writer.write("Bool")
         case IntSort => writer.write("Int")
-        case UnBoundedIntSort => writer.write("Int")
+        // case UnBoundedIntSort => writer.write("Int")
         case BitVectorSort(bitwidth) => {
             writer.write("(_ BitVec ")
             writer.write(bitwidth.toString)

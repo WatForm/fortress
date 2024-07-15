@@ -338,8 +338,10 @@ case class Signature private (
         val newFunctionDefinitions = functionDefinitions.map(
             //Something in this seems wrong. What about integer args?
             funcDef => {
+                /*
                 if( funcDef.resultSort == UnBoundedIntSort ) funcDef
                 else {
+                */
                     val newDef = FunctionDefinition(
                         funcDef.name,
                         funcDef.argSortedVar.map(replaceSortInAnnVar),
@@ -347,7 +349,9 @@ case class Signature private (
                         TermConverter.intToSignedBitVector(funcDef.body, bitwidth)
                     )
                     newDef
+                /*
                 }
+                */
                 
             }
         )
@@ -476,6 +480,7 @@ case class Signature private (
         (newSig, unapply)
     }
 
+    /*
     def replaceIntSorts(boundedSet: Set[String]): Signature = {
         def replace(s: Sort): Sort = s match {
             case IntSort => UnBoundedIntSort
@@ -518,6 +523,7 @@ case class Signature private (
         val newEnums = enumConstants
         Signature(newSorts, newFunctionDeclarations, newFunctionDefinitions, newConstantDeclarations, newConstantDefinitions, newEnums)
     }
+    */
     
     def withoutEnums = copy(enumConstants = Map.empty)
     
