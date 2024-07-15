@@ -14,7 +14,7 @@ sealed trait Scope {
 
 case class ExactScope(size: Int, isUnchanging: Boolean) extends Scope {
     Errors.Internal.precondition(size > 0, "ExactScope size must be positive")
-    def isExact = true
+    val isExact = true
     def mkUnchanging(): ExactScope =
         new ExactScope(this.size, true)
 
@@ -26,8 +26,7 @@ object ExactScope{
 
 case class NonExactScope(size: Int, isUnchanging: Boolean) extends Scope {
     Errors.Internal.precondition(size > 0, "NonExactScope size must be positive")
-    def isExact = false
-
+    val isExact = false
     def mkUnchanging(): NonExactScope =
         new NonExactScope(this.size, true)
 }

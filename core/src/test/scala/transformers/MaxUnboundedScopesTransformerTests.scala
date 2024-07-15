@@ -9,6 +9,7 @@ class MaxUnboundedScopesTransformerTests extends UnitSuite with CommonSymbols {
             .withSort(A)
             .withSort(B)
             .withSort(C)
+            .withSort(D)
             .withFunctionDeclaration(P from A to BoolSort)
             .withFunctionDeclaration(Q from B to BoolSort)
             .withFunctionDeclaration(R from C to BoolSort)
@@ -27,7 +28,9 @@ class MaxUnboundedScopesTransformerTests extends UnitSuite with CommonSymbols {
         var expected: Map[Sort, Scope] = Map.empty
         expected = expected + (A -> ExactScope(1))
 
-        transformer(theory, scopes, "flag") should be (expected)
+        // NAD 2024-07-24 changed this to empty
+        // because this transformer no longer cares about quantifiers
+        transformer(theory, scopes, "flag") should be (Map.empty)
     }
     //TODO: we need more unit tests
 
@@ -40,7 +43,9 @@ class MaxUnboundedScopesTransformerTests extends UnitSuite with CommonSymbols {
         expected = expected + (B -> ExactScope(1))
         expected = expected + (C -> ExactScope(1))
 
-        transformer(theory, scopes, "flag") should be (expected)
+        // NAD 2024-07-24 changed this to empty
+        // because this transformer no longer cares about quantifiers
+        transformer(theory, scopes, "flag") should be (Map.empty)
     }
 
 
@@ -51,6 +56,28 @@ class MaxUnboundedScopesTransformerTests extends UnitSuite with CommonSymbols {
 
         var expected: Map[Sort, Scope] = Map.empty
         expected = expected + (C -> ExactScope(1))
+        // NAD 2024-07-24 changed this to empty
+        // because this transformer no longer cares about quantifiers
+        transformer(theory, scopes, "flag") should be (Map.empty)
+    }
+
+    test("does not change fixed scopes") {
+        val theory = baseTheory
+                .withAxiom(Exists(x of A, Exists(y of B, App("P", x) ==> App("Q", y))))
+                .withAxiom(Forall(z of C, Not(App("P", z))))
+
+        var scopes = Map.empty[Sort, Scope]
+
+        scopes = scopes + (A -> ExactScope(1,true))
+        scopes = scopes + (B -> NonExactScope(4,true))
+        scopes = scopes + (C -> NonExactScope(1))
+        scopes = scopes + (D -> ExactScope(2))
+
+        var expected: Map[Sort, Scope] = Map.empty
+        expected = Map.empty[Sort,Scope] + (A -> ExactScope(1, true)) + (B -> NonExactScope(4,true)) 
+
         transformer(theory, scopes, "flag") should be (expected)
     }
+
+
 }
