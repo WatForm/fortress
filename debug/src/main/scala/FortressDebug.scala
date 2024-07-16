@@ -23,16 +23,16 @@ import fortress.transformers._
 import java.io._
 
 class Conf(arguments: Seq[String]) extends ScallopConf(arguments) {
-    val mode = opt[String](required = true)
+    val mode = opt[String](required = true,descr="decision/count/compile/checkfornewsorts")
     val scope = opt[Int](required = true) // scope is required for compile/decision/count
-    val version = opt[String](required = true)
+    val version = opt[String](required = true,descr="name of modelFinder")
     val file = trailArg[String](required = true)
     val scopeMap = props[String]('S')
-    val debug = opt[Boolean]()
-    val rawdata = opt[Boolean]()
-    val timeout = opt[Int](required = true) // Timeout in seconds
-    val validate = opt[Boolean]() // verify returned instance for SAT problems
-    val viewModel = opt[Boolean]()
+    val debug = opt[Boolean]("supplies more information about execution time")
+    val rawdata = opt[Boolean](descr="log information in machine-friendly format")
+    val timeout = opt[Int](required = true, descr="timeout in seconds") // Timeout in seconds
+    val validate = opt[Boolean](descr="verify returned instance for SAT problems satisfies original model")
+    val viewModel = opt[Boolean](descr="display an interpretation that satisfies the model")
     verify()
 }
 

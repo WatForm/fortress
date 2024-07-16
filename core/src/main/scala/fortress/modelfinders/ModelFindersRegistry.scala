@@ -16,7 +16,7 @@ object ModelFindersRegistry {
 
             // Joe's Model Finders
             case "JoeZERO" =>  new JoeZEROModelFinder()
-            case "JoeOnee" =>  new JoeONEModelFinder()
+            case "JoeONE" =>  new JoeONEModelFinder()
             case "JoeTWO" =>  new JoeTWOModelFinder()
             case "JoeTWO_SI" =>  new JoeTWO_SIModelFinder()
             case "JoeTHREE" =>  new JoeTHREEModelFinder()
