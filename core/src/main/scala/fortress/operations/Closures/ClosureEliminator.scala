@@ -56,7 +56,7 @@ abstract class ClosureEliminator(topLevelTerm: Term, signature: Signature, scope
 
     abstract class ClosureVisitor extends TermVisitorWithTypeContext[Term](signature) {
 
-        def queryFunction(name: String): Boolean = signature.hasFuncDeclWithName(name) ||
+        def queryFunction(name: String): Boolean = signature.hasFuncWithName(name) ||
             closureFunctions.exists(_.name == name) ||
             closureDefns.exists(_.name == name) ||
             auxilaryFunctions.exists(_.name == name) ||
