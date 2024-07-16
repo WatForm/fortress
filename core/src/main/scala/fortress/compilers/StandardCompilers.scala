@@ -109,6 +109,13 @@ class ClaessenCompiler() extends StandardCompiler {
 
 }
 
+class SquareDefnsCompiler() extends StandardCompiler {
+
+    override def closureEliminator: ListBuffer[ProblemStateTransformer] =
+        ListOfOne(ClosureEliminationSquareDefnsTransformer)
+
+}
+
 class StandardSICompiler() extends StandardCompiler {
 
     override def symmetryBreaker:ListBuffer[ProblemStateTransformer] = 
