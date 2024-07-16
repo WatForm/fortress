@@ -50,6 +50,9 @@ trait ClosureEliminationTransformer extends ProblemStateTransformer {
         val closureFunctions = scala.collection.mutable.Set[FuncDecl]()
         val auxilaryFunctions = scala.collection.mutable.Set[FuncDecl]()
 
+        val closureDefns = scala.collection.mutable.Set[FunctionDefinition]()
+        val auxilaryDefns = scala.collection.mutable.Set[FunctionDefinition]()
+
         // Sorts that must become unchanging in their scope
         val unchangingSorts = scala.collection.mutable.Set[Sort]()
 
@@ -58,8 +61,12 @@ trait ClosureEliminationTransformer extends ProblemStateTransformer {
         def updateResult(closureEliminator: ClosureEliminator): Unit = {
             resultTheory = resultTheory.withFunctionDeclarations(closureEliminator.getClosureFunctions)
             closureFunctions ++= closureEliminator.getClosureFunctions
+            resultTheory = resultTheory.withFunctionDefinitions(closureEliminator.getClosureDefns)
+            closureDefns ++= closureEliminator.getClosureDefns
             resultTheory = resultTheory.withFunctionDeclarations(closureEliminator.getAuxilaryFunctions)
             auxilaryFunctions ++= closureEliminator.getAuxilaryFunctions
+            resultTheory = resultTheory.withFunctionDefinitions(closureEliminator.getAuxilaryDefns)
+            auxilaryDefns ++= closureEliminator.getAuxilaryDefns
             // New axioms must be in negation normal form
             resultTheory = resultTheory.withAxioms(closureEliminator.getClosureAxioms.map(NormalForms.nnf))
             unchangingSorts ++= closureEliminator.unchangingSorts
@@ -100,7 +107,10 @@ trait ClosureEliminationTransformer extends ProblemStateTransformer {
 
         // Remove the added functions
         def unapply(interp: Interpretation) = {
-            interp.withoutFunctions(closureFunctions.toSet).withoutFunctions(auxilaryFunctions.toSet)
+            interp.withoutFunctions(closureFunctions.toSet)
+                .withoutFunctionDefinitions(closureDefns.toSet)
+                .withoutFunctions(auxilaryFunctions.toSet)
+                .withoutFunctionDefinitions(auxilaryDefns.toSet)
         }
 
         // Change result theory to ensure each unchangingSort can no longer change its scope

@@ -17,8 +17,10 @@ abstract class ClosureEliminator(topLevelTerm: Term, signature: Signature, scope
 
     // All closure functions we have generated (helps to avoid duplicates)
     val closureFunctions = scala.collection.mutable.Set[FuncDecl]()
+    val closureDefns = scala.collection.mutable.Set[FunctionDefinition]()
     // Generated axioms
     val auxilaryFunctions = scala.collection.mutable.Set[FuncDecl]()
+    val auxilaryDefns = scala.collection.mutable.Set[FunctionDefinition]()
     val closureAxioms = scala.collection.mutable.Set[Term]()
 
     // Sorts that must be made unchanging. Used by iterative closure elimiators.
@@ -28,8 +30,12 @@ abstract class ClosureEliminator(topLevelTerm: Term, signature: Signature, scope
 
     /** Returns the set of generated closure functions. Must be called after convert. */
     def getClosureFunctions: Set[FuncDecl] = closureFunctions.toSet
+
+    def getClosureDefns: Set[FunctionDefinition] = closureDefns.toSet
     
     def getAuxilaryFunctions: Set[FuncDecl] = auxilaryFunctions.toSet
+
+    def getAuxilaryDefns: Set[FunctionDefinition] = auxilaryDefns.toSet
 
     /** Returns the set of generated closure axioms. Must be called after convert. */
     def getClosureAxioms: Set[Term] =  closureAxioms.toSet
@@ -50,7 +56,11 @@ abstract class ClosureEliminator(topLevelTerm: Term, signature: Signature, scope
 
     abstract class ClosureVisitor extends TermVisitorWithTypeContext[Term](signature) {
 
-        def queryFunction(name: String): Boolean = signature.hasFuncDeclWithName(name) || closureFunctions.exists(f => f.name == name) || auxilaryFunctions.exists(_.name == name)
+        def queryFunction(name: String): Boolean = signature.hasFuncDeclWithName(name) ||
+            closureFunctions.exists(_.name == name) ||
+            closureDefns.exists(_.name == name) ||
+            auxilaryFunctions.exists(_.name == name) ||
+            auxilaryDefns.exists(_.name == name)
 
         // Creates variables to represent `numArgs` additional "fixed" variables
         def getFixedVars(numArgs: Int): Seq[Var] = for (n: Int <- 0 to numArgs - 1) yield Var("fa"+ n.toString())
