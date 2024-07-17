@@ -10,7 +10,7 @@ There are two ways to create an MSFOL theory: from a file or using the fortress 
 
 ## Creating a MSFOL theory from a file:
 
-inputs.TptpFofParser, inputs.SmtlibParser both make a msfol.theory from a file
+inputs.TptpFofParser, inputs.SmtlibParser both make a msfol.theory from a file in the smttc format (see the README.md)
 
 Sample use:
 
@@ -168,39 +168,6 @@ if(result.equals(ModelFinderResult.Sat())) {
 }
 ```
 
-## Using smttc
-
-`.smttc` is an extension to the `.smt2` file format that includes Fortress features.
-
-### Transitive Closure
-
-The most notable feature included in `.smttc` is transitive closure. 
-Transitive closure expressions are written as `(closure R x y [fixedargs...])` or `(reflexive-closure R x y [fixedargs...])` for reflexive closure.
-
-The term `(closure R start end)` evaluates to true if there is an edge from `start` to `end` in the transitive closure of `R`.
-`R` should be the identifier for the relation to be closed over. `start` and `end` are terms.
-
-Fortress also supports transitive closure over relations of higher airity.
-Consider `R: A x A x B x C`. One can write `(closure R start end fixB fixC)` where `fixB` is a term of sort `B` and `fixC` is a term of sort `C`.
-The closure then works as above over the relation `R'` where `(start, end) \in R'` if and only if `(start, end, fixB, fixC) \in R`.
-
-### Scope Information
-
-Fortress supports three `set-info` keywords for setting scope information from a `.smttc` file:
-- `:exact-scope` is used to set exact scopes
-- `:nonexact-scope` is used to set non-exact scopes
-- `:unchanging-scope` is used to specify which sorts Fortress is not allowed to change
-
-Each of these keywords expect a string value. The `exact` and `nonexact` scope methods expect a series of optionally whitespace separated `(sort scope)` specifiers. Sort must be an identifier and scope must be an integer. There must be at least some amount of whitespace separating the sort and scope.
-
-The specifier for unchanging scopes expects a series of `(sort)`s optionally separated by whitespace.
-
-For example:
-```smt2
-(set-info :exact-scope "(A 1) (|Complicated Name!!| 3)")
-(set-info :nonexact-scope "(B 2)")
-(set-info :unchanging-scope "(A)(|Complicated Name!!|)")
-```
 
 
 

@@ -68,6 +68,17 @@ sbt compile
 ```
 sbt test
 ```
+## Using Fortress as a Library
+
+Most often Fortress is used as a library.  You can either:
+* put `./core/target/universal/stage/lib` (built by sbt stage) in your class path 
+or
+* copy `./core/target/universal/fortresscore-0.1.0.zip` (built by sbt dist) somewhere, uzip it, and put that location in your class path.  
+
+All 4 jars must be in the class path.
+
+Instructions on using the Fortress API interface can be found in the [API guide](APIGuide.md).
+
 
 
 ## Running the Fortress CLI
@@ -79,7 +90,7 @@ or
 
 The options to the Fortress CLI, can be found by running `fortress --help`. In addition:
 
-* A filename is required of a file in an augments SMT-LIB format.  The augmentations are 1) transitive closure and reflexive transitive closure operators (`*`, `^`); 2) set cardinality (`#``) operator; and 3) information on scopes specifed as: @Owen
+* A filename is required of a file in an augments [smttc file format](# smttc-file-format).
 
 * The lists of possible modelFinders, compilers, solvers, and transformers can be found in the Registry files within the code, e.g., ./core/src/main/scala/fortress/compilers/CompilersRegistry.scala contains the Compiler names.  But good defaults are used if these options are not provided in the command-line.
 
@@ -93,16 +104,38 @@ This creates a theory using the `function.smttc` file, and determines whether th
 If a model exists, fortress outputs `Sat` and writes out the model (because of the `--generate` option).
 
 
-## Using Fortress as a Library
+## smttc File Format
 
-Most often Fortress is used as a library.  You can either:
-* put `./core/target/universal/stage/lib` (built by sbt stage) in your class path 
-or
-* copy `./core/target/universal/fortresscore-0.1.0.zip` (built by sbt dist) somewhere, uzip it, and put that location in your class path.  
+Fortress reads (at the CLI or API) files in the smttc format. `.smttc` is a minor extension to the `.smt2` file format that includes a few special Fortress features.  These features are described below.
 
-All 4 jars must be in the class path.
+### Transitive Closure
 
-Instructions on using the Fortress API interface can be found in the API guide.
+smttc has a built-in operator for transitive closure.  Transitive closure expressions are written as `(closure R x y [fixedargs...])` or `(reflexive-closure R x y [fixedargs...])` for reflexive closure.
+
+The term `(closure R start end)` evaluates to true if there is an edge from `start` to `end` in the transitive closure of `R`.
+`R` should be the identifier for the relation to be closed over. `start` and `end` are terms.
+
+Fortress also supports transitive closure over relations of higher airity.
+Consider `R: A x A x B x C`. One can write `(closure R start end fixB fixC)` where `fixB` is a term of sort `B` and `fixC` is a term of sort `C`.
+The closure then works as above over the relation `R'` where `(start, end) \in R'` if and only if `(start, end, fixB, fixC) \in R`.
+
+### Scope Information
+
+smttc supports three `set-info` keywords for setting scope information in the file:
+- `:exact-scope` is used to set exact scopes
+- `:nonexact-scope` is used to set non-exact scopes
+- `:unchanging-scope` is used to specify which sorts Fortress is not allowed to change
+
+Each of these keywords expects a string value. The `exact` and `nonexact` scope methods expect a series of optionally whitespace separated `(sort scope)` specifiers. Sort must be an identifier and scope must be an integer. There must be at least some amount of whitespace separating the sort and scope.
+
+The specifier for unchanging scopes expects a series of `(sort)`s optionally separated by whitespace.
+
+For example:
+```smt2
+(set-info :exact-scope "(A 1) (|Complicated Name!!| 3)")
+(set-info :nonexact-scope "(B 2)")
+(set-info :unchanging-scope "(A)(|Complicated Name!!|)")
+```
 
 
 ## Running Fortress Debug Tools (Developers)

@@ -80,6 +80,7 @@ object FortressCli {
         // with in the parse
         var scopes: Map[Sort, Scope] = conf.scope.toOption match {
             case Some(scope) => {
+                if (scope <= 0) Errors.cliError("default scope must be above zero")
                 for(sort <- theory.sorts) yield sort -> ExactScope(scope)
             }.toMap
             case None => Map()
