@@ -68,6 +68,8 @@ sbt compile
 ```
 sbt test
 ```
+
+
 ## Using Fortress as a Library
 
 Most often Fortress is used as a library.  You can either:
@@ -81,7 +83,7 @@ Instructions on using the Fortress API interface can be found in the [API guide]
 
 
 
-## Running the Fortress CLI
+## Using the Fortress CLI
 
 You can run the Fortress CLI, by either:
 * `./cli/target/universal/stage/bin/fortress` (built by sbt stage)
@@ -143,7 +145,7 @@ For example:
 Information on the architecture of Fortress is available in the [Developer's Guide](DevelopersGuide.md).
 
 
-## Running Fortress Debug Tools (Developers)
+## Using the Fortress CLI Debug Tools (Developers)
 
 You can run the FortressDebug CLI, by either:
 * ``./debug/target/universal/stage/bin/fortressDebug`
