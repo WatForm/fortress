@@ -90,7 +90,7 @@ or
 
 The options to the Fortress CLI, can be found by running `fortress --help`. In addition:
 
-* A filename is required of a file in an augments [smttc file format](# smttc-file-format).
+* A filename is required of a file in an augments [smttc file format](#smttc-file-format).
 
 * The lists of possible modelFinders, compilers, solvers, and transformers can be found in the Registry files within the code, e.g., ./core/src/main/scala/fortress/compilers/CompilersRegistry.scala contains the Compiler names.  But good defaults are used if these options are not provided in the command-line.
 
@@ -136,6 +136,11 @@ For example:
 (set-info :nonexact-scope "(B 2)")
 (set-info :unchanging-scope "(A)(|Complicated Name!!|)")
 ```
+
+
+## Developer's Guide
+
+Information on the architecture of Fortress is available in the [Developer's Guide](DevelopersGuide.md).
 
 
 ## Running Fortress Debug Tools (Developers)
