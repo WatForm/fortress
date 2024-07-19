@@ -7,7 +7,7 @@ import fortress.problemstate._
 
 object ClosureEliminationSquareTransformer extends ClosureEliminationTransformer {
     override def buildEliminator(topLevelTerm: Term, signature: Signature, scopes: Map[Sort,Scope], nameGen: NameGenerator): ClosureEliminator = {
-        new ClosureEliminatorSquare(topLevelTerm, signature, scopes, nameGen)
+        new ClosureEliminatorSquare(useDefns = false, topLevelTerm, signature, scopes, nameGen)
     }
 
 }
