@@ -1,4 +1,4 @@
-# Fortress User Guide
+# Fortress API Guide
 
 Fortress is a Java library for finite model finding (FMF).
 It uses many-sorted first-order logic (MSFOL), which is a variation of first-order logic that uses a system of simple sorts (i.e. simple types).
@@ -10,7 +10,7 @@ There are two ways to create an MSFOL theory: from a file or using the fortress 
 
 ## Creating a MSFOL theory from a file:
 
-inputs.TptpFofParser, inputs.SmtlibParser both make a msfol.theory from a file
+inputs.TptpFofParser, inputs.SmtlibParser both make a msfol.theory from a file in the smttc format (see the README.md)
 
 Sample use:
 
@@ -167,6 +167,7 @@ if(result.equals(ModelFinderResult.Sat())) {
     System.out.println(finder.viewModel());
 }
 ```
+
 
 
 

@@ -105,7 +105,8 @@ class IntToBVTransformerTests extends UnitSuite {
         transformer(problemState).withoutUnapplyInterps() should be (expected)
     }
 
-    test("IntSort & UnboundedIntSort") {
+    // NAD 2024-05-15 This test used to contain UnBoundedIntSort
+    test("IntSort") {
         val x = Var("x")
         val y = Var("y")
         val z = Var("z")
@@ -116,7 +117,7 @@ class IntToBVTransformerTests extends UnitSuite {
 
         val theory = Theory.empty
                 .withFunctionDeclaration(FuncDecl("f", IntSort, IntSort, IntSort))
-                .withFunctionDeclaration(FuncDecl("g", UnBoundedIntSort, UnBoundedIntSort, UnBoundedIntSort))
+                .withFunctionDeclaration(FuncDecl("g", IntSort, IntSort, IntSort))
                 .withAxiom(Forall( Seq(x of IntSort, y of IntSort), BuiltinApp(IntPlus, x, y) === App("f", x, y)))
                 .withAxiom(axiom1)
 
@@ -125,7 +126,7 @@ class IntToBVTransformerTests extends UnitSuite {
         val expected = ProblemState(
             Theory.empty
                     .withFunctionDeclaration(FuncDecl("f", BitVectorSort(4), BitVectorSort(4), BitVectorSort(4)))
-                    .withFunctionDeclaration(FuncDecl("g", UnBoundedIntSort, UnBoundedIntSort, UnBoundedIntSort))
+                    .withFunctionDeclaration(FuncDecl("g", BitVectorSort(4), BitVectorSort(4), BitVectorSort(4)))
                     .withAxiom(Forall( Seq(x of BitVectorSort(4), y of BitVectorSort(4)), BuiltinApp(BvPlus, x, y) === App("f", x, y)))
                     .withAxiom(axiom1))
             .withScopes(Map.empty + (BitVectorSort(4) -> ExactScope(16)))
@@ -134,12 +135,13 @@ class IntToBVTransformerTests extends UnitSuite {
         transformer(problemState).withoutUnapplyInterps() should be (expected)
     }
 
+    // this used to contain a bounded int
     test("BoundedIntSort"){
         val theory = Theory.empty
             .withAxiom(Not(IntegerLiteral(1) === IntegerLiteral(2)))
 
         val problemState = ProblemState(theory)
-            .withScopes(Map(BoundedIntSort -> ExactScope(16)))
+            .withScopes(Map.empty + (IntSort -> ExactScope(16)))
 
         val expected = ProblemState(
             Theory.empty

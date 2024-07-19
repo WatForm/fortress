@@ -33,6 +33,11 @@ case object IntSort extends Sort {
     override def isBuiltin: Boolean = true
 }
 
+/*
+2024-07-15 NAD
+This was an attempt to distinguish uses of IntSorts that must be bound (because of quantification)
+from those that can remain Unbounded
+
 case object BoundedIntSort extends Sort {
     override def name: String = "BoundedIntSort"
 
@@ -45,7 +50,7 @@ case object UnBoundedIntSort extends Sort {
 
     override def isBuiltin: Boolean = true
 }
-
+*/
 
 /** The BitVector sort for a given bitwidth. */
 case class BitVectorSort private (bitwidth: Int) extends Sort {
@@ -65,9 +70,11 @@ object Sort {
     
     val Bool: Sort = BoolSort
     val Int: Sort = IntSort
+    /*
     val BoundedInt: Sort = BoundedIntSort
     val UnBoundedInt: Sort = UnBoundedIntSort
-
+    */
+    
     def BitVector(bitwidth: Int): Sort = BitVectorSort(bitwidth)
     
     def nameMimicsBuiltin(name: String): Boolean = {

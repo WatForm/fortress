@@ -50,7 +50,7 @@ object TransformersRegistry {
             case "IntToBV" => IntToBVTransformer
             case "IntNOBV" => IntNOBVTransformer
             case "IntOPFI" => IntOPFITransformer
-            case "LiaCheck" => LiaCheckTransformer
+            // case "LiaCheck" => LiaCheckTransformer
 
             // Quantifiers
             case "AntiPrenex" => AntiPrenexTransformer
@@ -71,7 +71,7 @@ object TransformersRegistry {
             case "SplitConjunction" => SplitConjunctionTransformer
 
             case _ => {
-                Errors.API.transformerDoesNotExist(name)
+                throw Errors.API.transformerDoesNotExist(name)
                 null
             }
         }
