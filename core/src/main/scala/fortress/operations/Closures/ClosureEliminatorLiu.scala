@@ -24,6 +24,7 @@ class ClosureEliminatorLiu(topLevelTerm: Term, signature: Signature, scopes: Map
             val fixedVars = getFixedVars(fixedSorts.length)
             val fixedArgVars = fixedVars.zip(fixedSorts) map (pair => (pair._1.of(pair._2)))
 
+            // p:TxTxfixedSorts->Int represents distance on shortest path
             auxilaryFunctions += FuncDecl(p, Seq(sort, sort) ++ fixedSorts, Sort.Int)
 
             val x = Var(nameGen.freshName("x"))
@@ -33,14 +34,17 @@ class ClosureEliminatorLiu(topLevelTerm: Term, signature: Signature, scopes: Map
             val axyz = List(x.of(sort), y.of(sort), z.of(sort))
             val az = z.of(sort)
             
-            // It takes 1 step in original function
+            // all x,y:T, fixed...:Fixed... . R(x,y,fixed...) <=> p(x,y,fixed...) = 1
+            // If there is an edge from x to y on the original R, then the shortest path is length 1
             closureAxioms += Forall(axy ++ fixedArgVars,
                 Iff(
                     funcContains(functionName, x, y, fixedVars),
                     Term.mkEq(App(p, Seq(x,y) ++ fixedVars), IntegerLiteral(1))
                 )
             )
-            // P remains positive
+
+            // If p(x,y, fixed...) > 0 then there exists a path from x to y
+            // if there is a path from x to y and y to z then there exists a path from x to z
             closureAxioms += Forall(axyz ++ fixedArgVars,
                 Implication(
                     And(
@@ -52,6 +56,9 @@ class ClosureEliminatorLiu(topLevelTerm: Term, signature: Signature, scopes: Map
             )
 
             // Take a step
+            // all x,y:T, fixed...:Fixed... . p(x,y,fixed...) > 1 => exists z: T. p(x,z, fixed...) = 1 & p(x,y,fixed...) = p(z, y, fixed...) + 1.
+            // If there is a path of length > 1 from x to y then there exists a point z st there is an edge from x to z and
+            //   the shortest path from x to y has a length equal to 1 plus the shortest length from z to y.
             closureAxioms += Forall(axy ++ fixedArgVars,
                 Implication(
                     Term.mkGT(App(p, Seq(x,y) ++ fixedVars), IntegerLiteral(1)),
@@ -73,11 +80,13 @@ class ClosureEliminatorLiu(topLevelTerm: Term, signature: Signature, scopes: Map
             val reflexiveClosureName = getReflexiveClosureName(functionName)
             val closureName = getClosureName(functionName)
 
+            // If we have yet to define R*, do so now
             if (!queryFunction(reflexiveClosureName)){
                 // Build the closure
                 // Find the sort we are closing over
                 val sort = getClosingSortOfFunction(functionName)
 
+                // If we haven't defined p, do so now
                 val p = nameAuxFunction(closureName)
                 if(!queryFunction(p)){
                     defineAuxFunction(sort, functionName)
@@ -92,7 +101,7 @@ class ClosureEliminatorLiu(topLevelTerm: Term, signature: Signature, scopes: Map
                 val fixedArgVars = fixedVars.zip(fixedSorts) map (pair => (pair._1.of(pair._2)))
 
 
-                // Reflexive Closure when P > 0 or x = y
+                // x,y is in TC iff x=y or there is a path from x to y (p(x,y) > 0)
                 closureFunctions += FuncDecl(reflexiveClosureName, Seq(sort, sort) ++ fixedSorts, Sort.Bool)
                 closureAxioms += Forall(axy ++ fixedArgVars,
                     Iff(
@@ -114,11 +123,14 @@ class ClosureEliminatorLiu(topLevelTerm: Term, signature: Signature, scopes: Map
             val reflexiveClosureName = getReflexiveClosureName(functionName)
             val closureName = getClosureName(functionName)
 
+
+            // If R^ is undefined, define it now
             if (!queryFunction(closureName)){
                 // Build the closure
                 // Find the sort we are closing over
                 val sort = getClosingSortOfFunction(functionName)
 
+                // define p if it has not yet been defined
                 val p = nameAuxFunction(closureName)
                 if(!queryFunction(p)){
                     defineAuxFunction(sort, functionName)
@@ -133,6 +145,8 @@ class ClosureEliminatorLiu(topLevelTerm: Term, signature: Signature, scopes: Map
                 val fixedArgVars = fixedVars.zip(fixedSorts) map (pair => (pair._1.of(pair._2)))
 
                 // Closure when P > 0
+                // R^(x,y) iff p(x,y) > 0
+                // If there is a path of length > 0 between two points, then those points are in the transitive closure
                 closureFunctions += FuncDecl(closureName, Seq(sort, sort) ++ fixedSorts, Sort.Bool)
                 closureAxioms += Forall(axy ++ fixedArgVars,
                     Iff(

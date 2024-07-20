@@ -55,6 +55,9 @@ abstract class ClosureEliminator(topLevelTerm: Term, signature: Signature, scope
         // Creates variables to represent `numArgs` additional "fixed" variables
         def getFixedVars(numArgs: Int): Seq[Var] = for (n: Int <- 0 to numArgs - 1) yield Var("fa"+ n.toString())
 
+        // Checks if the original function fname connects x to y with the given fixed arguments
+        // This contains cases for f: T->T and f: TxTxFixed...->Bool
+        // Returns a Term that will evaluate to true if fname links x and y with the given fixed args
         def funcContains(fname: String, x: Term, y: Term, arguments: Seq[Term]): Term = {
             val fdecl = signature.functionWithName(fname) match {
                 case Some(fdecl) => fdecl
@@ -83,6 +86,7 @@ abstract class ClosureEliminator(topLevelTerm: Term, signature: Signature, scope
             case Some(Right(FunctionDefinition(_, params, _, _))) => params.map(_.sort).drop(2).toList
         }
 
+        // Gets the sort being closed over (basically always the sort of the first argument)
         def getClosingSortOfFunction(fname: String): Sort = signature.queryFunction(fname) match {
             case None => Errors.Internal.impossibleState(f"Could not find ${fname} when closing over it")
             case Some(func) => func match {
@@ -100,6 +104,7 @@ abstract class ClosureEliminator(topLevelTerm: Term, signature: Signature, scope
             }
         }
         
+        // Default arguments are pass through, except closures should be overwritten
         def visitTop: Term = Top
         
         def visitBottom: Term = Bottom

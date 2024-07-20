@@ -56,11 +56,13 @@ class ClosureEliminatorSquare(topLevelTerm: Term, signature: Signature, scopes: 
 
             // iteratively square the relation
             for (iter <- 1 to max_count(sort)){
-                // Make the next squared level
+                // Make the next squared level auxN
                 val iterationName = functionName + "^" + iter.toString()
                 val iterationDecl = FuncDecl(iterationName, Seq(sort, sort) ++ fixedSorts, Sort.Bool)
                 auxilaryFunctions += iterationDecl
-                // Define it
+                // auxN(x,y) <=> auxN-1(x,y) | (auxN-1(x,z) & auxN-1(z,y)) 
+                // Each relation contains a pair if the previous relation contained the pair or
+                //   the previous relation contained two pairs x z and z y which we can connect
                 closureAxioms += Forall(axy ++ fixedArgVars,
                     Iff(App(iterationName, Seq(x, y) ++ fixedVars),
                         Or(
@@ -79,7 +81,7 @@ class ClosureEliminatorSquare(topLevelTerm: Term, signature: Signature, scopes: 
 
                 previousRelation = iterationName
             }
-            // Define the closure itself
+            // Define the closure itself as the highest level of the squarings
             closureAxioms += Forall(axy ++ fixedArgVars,
                     Iff(App(closureName, Seq(x, y) ++ fixedVars),
                         Or(
@@ -115,8 +117,9 @@ class ClosureEliminatorSquare(topLevelTerm: Term, signature: Signature, scopes: 
             val reflexiveClosureName = "*" + functionName
             val closureName = "^" + functionName
 
-            // Skip if we already did it
+            // Skip if we already defined the reflexive closure
             if (!queryFunction(reflexiveClosureName)){
+                // If we haven't done the transitive closure do so now
                 if (!queryFunction(closureName)) {
                     expandClosure(functionName)
                 }
@@ -128,7 +131,7 @@ class ClosureEliminatorSquare(topLevelTerm: Term, signature: Signature, scopes: 
                 val fixedSorts = getFixedSorts(functionName)
                 val fixedVars = getFixedVars(fixedSorts.length)
                 val fixedArgVars = fixedVars.zip(fixedSorts) map (pair => (pair._1.of(pair._2)))
-
+                
                 closureFunctions += FuncDecl(reflexiveClosureName, Seq(sort, sort) ++ fixedSorts, Sort.Bool)
                 
                 val x = Var(nameGen.freshName("x"))
@@ -136,7 +139,8 @@ class ClosureEliminatorSquare(topLevelTerm: Term, signature: Signature, scopes: 
                 val axy = List(x.of(sort), y.of(sort))
 
                 
-
+                // R*(x,y) <=> R^(x,y) | x=y
+                // The a pair is in the reflexive transitive closure if it is in the transitive closure or it is reflexive (x=y)
                 closureAxioms += Forall(axy ++ fixedArgVars,
                     Iff(App(reflexiveClosureName, Seq(x, y) ++ fixedVars),
                         Or(
