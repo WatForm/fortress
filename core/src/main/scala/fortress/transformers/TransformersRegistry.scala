@@ -33,6 +33,7 @@ object TransformersRegistry {
             case "ClosureEliminationIterative" => ClosureEliminationIterativeTransformer
             case "ClosureEliminationLiu" => ClosureEliminationLiuTransformer
             case "ClosureEliminationSquare" => ClosureEliminationSquareTransformer
+            case "ClosureEliminationSquareDefns" => ClosureEliminationSquareDefnsTransformer
             case "ClosureEliminationVakili" => ClosureEliminationVakiliTransformer
             case "ClosureEliminationClaessen" => ClosureEliminationClaessenTransformer
 
