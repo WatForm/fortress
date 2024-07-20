@@ -23,57 +23,15 @@ import fortress.util.Errors
 // class ProblemState is only visible to itself and its companion object
 // the real constructors for this are in the companion object below
 
-class ProblemState (
+case class ProblemState private (
     theory: Theory,
     scopes: Map[Sort, Scope],
-    verbose: Boolean = false,
-    correctnessChecks: Boolean = false
+    skolemConstants: Set[AnnotatedVar],
+    skolemFunctions: Set[FuncDecl],
+    rangeRestrictions: Set[RangeRestriction],
+    unapplyInterp: List[Interpretation => Interpretation],
+    flags: Flags
 ) {
-
-    private var skolemConstants: Set[AnnotatedVar] = Set.empty
-    private var skolemFunctions: Set[FuncDecl] = Set.empty
-    private var rangeRestrictions: Set[RangeRestriction] = Set.empty
-    private var unapplyInterp: List[Interpretation => Interpretation] = List.empty
-
-    // 'state' flags
-    private var isPartialNNF: Boolean = false
-    private var usesDistintConstantsForDEs: Boolean = false
-    private var containsItes: Boolean = false,  
-    private var containsExists: Boolean = false,
-    private var containtsQuantifiers: Boolean = false
-
-    // 'process' flags
-    // these are set by an individual transformer
-    // and cause warnings to be issued if a transformer has not
-    // been run before another
-    private var haveRunIfLifting: Boolean = false
-    private var haveRunNnf: Boolean = false
-    private var haveRunSkolemizer: Boolean = false,
-
-    // initialization
-    // ???
-    // should we run typechecking right away???
-
-    // make sure any sorts in the scope map are sorts in the theory
-
-
-
-    // Compute the scopes for enum sorts
-    // Copy whether the scope is fixed and its exactness from the regular scope if applicable for compatibility
-
-    val enumScopes = theory.signature.enumConstants.map {
-        case (sort, enumValues) => sort -> makeScopeWithExactness(sort, enumValues.size, isFixed(sort))
-    }.toMap
-
-    flags.containsNonExactScopes = scopes.values.exists(sc => sc.isExact == false)
-    // Check there is no conflict between the enum scopes and the provided scopes
-    Errors.Internal.precondition(fortress.util.Maps.noConflict(enumScopes, scopes), "Conflict between enums and provide scopes")
-
-    def isFixed(sort: Sort) =
-        if (scopes contains sort) scopes(sort).isUnchanging
-        else true
-
-
 //    Errors.Internal.precondition(scopes.values.forall(_. > 0), "Scopes must be positive")
     // allow setting scope for IntSort but not other builtins
     // Errors.Internal.precondition(scopes.keySet.forall( (x:Sort) => !x.isBuiltin || x == IntSort))
@@ -90,16 +48,14 @@ class ProblemState (
     // TODO add precondition that theory domain elements respect the scopes
 
     def withTheory(newtheory: Theory): ProblemState = {
-        theory = newtheory
+        copy(theory = newtheory)
     }
     def withScopes(newscopes: Map[Sort, Scope]): ProblemState = {
-        scopes = newscopes
-        /*
         val unchangingScopeSorts = scopes.filter((scopeInfo: (Sort, Scope)) => scopeInfo._2.isUnchanging)
         // Check that every unchanging scope is unchanged
         Errors.Internal.precondition(unchangingScopeSorts.forall((scopeInfo: (Sort, Scope)) => newscopes.get(scopeInfo._1) == Some(scopeInfo._2)), "Attempted to change an unchanging scope!")
         copy(scopes = newscopes)
-        */
+        
     }
 
     def withUnapplyInterp(unapp: Interpretation => Interpretation): ProblemState = {
@@ -117,14 +73,33 @@ class ProblemState (
 
 object ProblemState {
 
-    // this is the only actually the constructors of ProblemStates b/c above is private
+    // these are actually the constructors of ProblemStates b/c above is private
     // so default field values do not need to be set above because the first constructor 
     // calls the second constructor, which gives values to all the fields
 
     // putting the type on Map.empty is needed here so that it knows whether
     // to call the second or third constructor here
-       
+    
+    def apply(theory: Theory): ProblemState = ProblemState(theory, Map.empty[Sort,Scope])
+
+    //TODO: why does this apply function do much more than the withScopes function above??    
+
     def apply(theory: Theory, scopes: Map[Sort, Scope], verbose: Boolean = false): ProblemState = {
+        // Compute the scopes for enum sorts
+        // Copy whether the scope is fixed and its exactness from the regular scope if applicable for compatibility
+        def isFixed(sort: Sort) =
+            if (scopes contains sort) scopes(sort).isUnchanging
+            else true
+        def makeScopeWithExactness(sort: Sort, size: Int, isUnchanging: Boolean) =
+            if ((scopes contains sort) && scopes(sort).isExact) ExactScope(size, isUnchanging)
+            else NonExactScope(size, isUnchanging)
+        val enumScopes = theory.signature.enumConstants.map {
+            case (sort, enumValues) => sort -> makeScopeWithExactness(sort, enumValues.size, isFixed(sort))
+        }.toMap
+
+        val containsNonExactScopes = scopes.values.exists(sc => sc.isExact == false)
+        // Check there is no conflict between the enum scopes and the provided scopes
+        Errors.Internal.precondition(fortress.util.Maps.noConflict(enumScopes, scopes), "Conflict between enums and provide scopes")
 
         new ProblemState(
             theory,
@@ -136,5 +111,17 @@ object ProblemState {
             flags = Flags(verbose=verbose, containsNonExactScopes=containsNonExactScopes)
         )
     }
+    
+    def apply(theory: Theory, flags:Flags): ProblemState =
+        new ProblemState(
+            theory,
+            Map.empty[Sort,Scope],
+            Set.empty,
+            Set.empty,
+            Set.empty,
+            List.empty,
+            flags
+        )
+         
 
 }

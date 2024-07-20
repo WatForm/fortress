@@ -4,16 +4,14 @@ import fortress.interpretation.Interpretation
 import fortress.msfol._
 import fortress.util.Errors
 
-// Contains flags for a problem state
-// that are changed by transformers
-
-// no need to make this a case class
-// let it be mutable
-
-class Flags (
-
-
-
+/**
+  * Contains flags for a problem state
+  *
+  * @param distinctConstants
+  * @param haveRunNNF Is the problem state in negation normal form
+  * @param verbose Debug verbose output should be printed
+  */
+case class Flags (
     distinctConstants: Boolean = true,
 
     haveRunNNF: Boolean = false,
@@ -22,7 +20,7 @@ class Flags (
 
     haveRunMaxAlphaRenaming: Boolean = false,
     
-    
+    verbose: Boolean = false,
     
     // typechecker turns these on if these exist in the axioms/defns
     // but transformers (IfLifting, Skolemize) cannot turn them off
