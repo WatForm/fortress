@@ -112,7 +112,7 @@ class ClaessenCompiler() extends StandardCompiler {
 class SquareDefnsCompiler() extends StandardCompiler {
 
     override def closureEliminator: ListBuffer[ProblemStateTransformer] =
-        ListOfOne(ClosureEliminationSquareDefnsTransformer)
+        CompilersRegistry.ListOfOne(ClosureEliminationSquareDefnsTransformer)
 
 }
 
