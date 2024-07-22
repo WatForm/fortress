@@ -32,7 +32,7 @@ case object Top extends Term with LeafTerm with Value {
     override def accept[T](visitor: TermVisitor[T]): T = visitor.visitTop()
 }
 
-/** Term that represents Bottom. */
+/** Term that represents False. */
 case object Bottom extends Term with LeafTerm with Value {
     override def toString: String = "false"
     override def accept[T](visitor: TermVisitor[T]): T = visitor.visitBottom()
@@ -358,7 +358,11 @@ object BitVectorLiteral {
 
 // need to make a class that captures cardinality, as well as nmodify the language
 // BOOKMARK, UNFINISHED
+// uses a visitor pattern
+// when we hit a setCardinality node, the visitSetCardinality function gets called on it
 case class SetCardinality private (t : Term) extends Term {
+    // t(x) x describes a set
+
     override def accept[T](visitor: TermVisitor[T]): T = visitor.visitSetCardinality(this)
 
     override def toString: String = "#(" + t.toString + ")"

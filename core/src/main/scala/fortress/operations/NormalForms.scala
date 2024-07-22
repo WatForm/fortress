@@ -5,20 +5,23 @@ import fortress.operations.TermOps._
 import fortress.util.Errors
 
 object NormalForms {
-    /** Returns the negation normal form of a term. 
+    /** Returns the negation normal form of a term.
       * It is assumed that Eq is not used on sort Bool and so uses of Eq are atomic.
       * Additionally it is assumed that applications and arguments to applications
-      * are atomic. 
+      * are atomic.
       *
       * Side Effect: eliminates Implication, Iff, Distinct
       * */
+    // bookmark, want to do something like this
+    // set cardinality calls set cardinality on its subparts (ish)
+
     def nnf(term: Term): Term = term match {
 
         case Top | Bottom => term
         case Not(Top) => Bottom
         case Not(Bottom) => Top
 
-        case Not(Not(p)) => nnf(p)
+        case Not(Not(p)) => nnf(p) //recursive
 
         case AndList(args) => AndList(args.map(nnf))
         case Not(AndList(args)) => OrList(args.map(arg => nnf(Not(arg))))

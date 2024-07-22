@@ -214,3 +214,20 @@ sbt test will run testing directory
 
 this works now!!!!
 fortress --timeout 30 -S A=3 B=2 --generate -c SetCardinality function.smt2
+
+next steps:
+implementing and understanding visitSetCardinality
+actually working on the transformer
+
+
+main direction: *** the direction to move for now
+operation - what is the OPERATION to remove set cardinality
+once we get to set cardinality we do something nice
+
+
+next - how does set cardinality affect the rest of the code:
+start with type checking
+in some operations - doing set cardinality would be an error
+
+
+is the plus sign a part of our language?
