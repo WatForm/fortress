@@ -19,7 +19,7 @@ object IfLifter {
         //println("enter iflift: "+term+" "+s)
         if (s == BoolSort) return removeItesForBoolTerm(liftItes(term))
         else return liftItes(term)
-}
+    }
 
     // pull all ites up as much as possible
     // functions have to be relifted through args

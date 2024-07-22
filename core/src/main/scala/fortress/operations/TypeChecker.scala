@@ -217,7 +217,7 @@ class TypeChecker(signature: Signature) extends TermVisitorWithTypeContext[TypeC
     }
 
     override def visitIfThenElse(ite: IfThenElse): TypeCheckResult = {
-        val condResult = visit(ite.condition)
+        val condResult = visit(ite.condition) // need to recurse similar to this
         val tResult = visit(ite.ifTrue)
         val fResult = visit(ite.ifFalse)
 
@@ -312,6 +312,7 @@ class TypeChecker(signature: Signature) extends TermVisitorWithTypeContext[TypeC
     }
 
 
+    // bookmark
     override def visitClosure(c: Closure): TypeCheckResult = {
         // Check argument:
         // 1. types match function declaration
@@ -357,6 +358,7 @@ class TypeChecker(signature: Signature) extends TermVisitorWithTypeContext[TypeC
         if (argSorts.length == 2) {
             // relation must be A->A or AxA-> Bool
             if (!((paramSorts.equals(List(closingSort)) && resultSort == closingSort) ||(paramSorts.equals(List(closingSort, closingSort)) && resultSort == BoolSort))){
+                // throwing error for typechecking mistake
                 throw new TypeCheckException.WrongSort("Trying to close over " + funcName +" as unary function or binary relation in " + c.toString())
             }
         } else {
