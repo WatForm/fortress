@@ -204,15 +204,22 @@ class TypeChecker(signature: Signature) extends TermVisitorWithTypeContext[TypeC
         )
     }
 
-    override def visitSetCardinality(cardinality: SetCardinality): TypeCheckResult = {
+    override def visitSetCardinality(c: SetCardinality): TypeCheckResult = {
+        val result = visit(c.predicate)
+
+        // check if the sort of the predicate is a bool
+        if (result.sort != BoolSort){
+            throw new TypeCheckException.WrongSort("Expected sort Bool but was " + result.sort.name + " in " + c.toString)
+        }
+
         // not entirely sure what should go here
         TypeCheckResult(
-            sanitizedTerm = cardinality,
-            sort = IntSort,
-            containsConnectives = false,
-            containsQuantifiers = false,
-            containsItes = false,
-            containsExists = false,
+            sanitizedTerm = c,
+            sort = BoolSort,
+            containsConnectives = result.containsConnectives,
+            containsQuantifiers = result.containsQuantifiers,
+            containsItes = result.containsItes,
+            containsExists = result.containsExists
         )
     }
 

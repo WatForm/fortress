@@ -207,6 +207,7 @@ case class Eq private (left: Term, right: Term) extends Term {
     override def toString: String = left.toString + " = " + right.toString
 }
 
+// bookmark
 /** Represents a function or predicate application. */
 case class App private (functionName: String, arguments: Seq[Term]) extends Term {
     Errors.Internal.precondition(functionName.length >= 1, "Empty function name")
@@ -360,12 +361,12 @@ object BitVectorLiteral {
 // BOOKMARK, UNFINISHED
 // uses a visitor pattern
 // when we hit a setCardinality node, the visitSetCardinality function gets called on it
-case class SetCardinality private (t : Term) extends Term {
+case class SetCardinality private (predicate : App) extends Term {
     // t(x) x describes a set
 
     override def accept[T](visitor: TermVisitor[T]): T = visitor.visitSetCardinality(this)
 
-    override def toString: String = "#(" + t.toString + ")"
+    override def toString: String = "#(" + predicate.toString + ")"
 }
 
 
@@ -559,7 +560,7 @@ object Term {
     def mkIff(t1: Term, t2: Term): Term = Iff(t1, t2)
 
     // bookmark
-    def mkSetCardinality(t: Term): Term =
+    def mkSetCardinality(t: App): Term =
         SetCardinality(t)
 
     def mkIfThenElse(condition: Term, ifTrue: Term, ifFalse: Term): Term = IfThenElse(condition, ifTrue, ifFalse)

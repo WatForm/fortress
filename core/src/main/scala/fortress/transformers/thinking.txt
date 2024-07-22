@@ -230,4 +230,90 @@ start with type checking
 in some operations - doing set cardinality would be an error
 
 
-is the plus sign a part of our language?
+Points of confusion:
+- is the plus sign a part of our language? I  know and and plus are not the same but I want some sort of andlist equivalent I think
+- how do I draw out the scope from the predicate?
+- I think my end goal is to loop through the relevant scopes to that predicate, and feed predicate(scope variable) to ite
+- How does the SetCardinality term come into play here?
+- What is our base case? What am I working towards in the cases?
+
+
+
+Our App can be of any arity, but must return a boolean
+- We have to check this somewhere
+
+Fortress does not do type inference (mostly)
+there are a couple of polymorphic terms
+
+can either check...
+
+..when the term is constructed
+
+or
+
+..in typechecing pass
+
+
+Term - defining the class of the node in the ast tree
+Termvisitor - the plumbing
+
+next challenge - the typechcecking
+
+we want an App that returns a Bool
+
+new case in the typechecking operation
+
+
+cardinality eliminator (operator)
+- walks over every kind of term and recurses down, recursing into arguments, until it hits a cardinality
+- for most terms you do nothing
+- but for cardinality you do something intersesting
+
+
+What ryan does
+
+DEFINE a function specific for a sort
+FinA(a: A):= ite(inA(a), 1, 0)
+^ try for apps of arity one
+
+
+#(_)
+
+whats in _? P
+
+P: A -> bool
+
+cardp := fp(all elements in A)
+
+all elements in A -> enumerate
+
+operatuion changes one axiom
+
+every instance of cardinality with need an findp and a cardp
+
+each cardinality makes its own function specific to that cardinality
+
+
+Look at closure eliminator to see where to put function definiitons
+
+operation will find what info you need, and ask the trasformer to make definiitons
+
+do it with definitions!!!
+
+
+look at plus and mkplus
+
+
+plan:
+1) typechecking
+2) write some tests !!!
+3) then look at operation, which walks and recurses into every term
+    all you have to do is replace cardinality of arg with some name (unique!)
+4) need to return some sort of request for functions
+5) Then the transformer will collect the information you need for the definitions and create them
+6) Then you need to take the sorts and set them to be fixed
+
+
+eventually replace #(P) with card P
+
+test in between everything! lots of unit tests
