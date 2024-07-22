@@ -1,6 +1,6 @@
 # Fortress
 
-Fortress is a command-line tool and library for manipulating many-sorted first order logic (MSFOL) (plus transitive closure and hopefully soon, set cardinality) formulas with SMT solvers. In particular, given scopes for all the sorts of the problem, Fortress can transform problems into formulas within the equality with uninterpreted functions decidable subset of MSFOL. 
+Fortress is a command-line tool and library for manipulating many-sorted first order logic (MSFOL) (plus transitive closure and hopefully soon, set cardinality) formulas with SMT solvers. In particular, given scopes for all the sorts of the problem, Fortress can transform problems into formulas within the equality with uninterpreted functions decidable subset of MSFOL.
 
 Fortress takes as input:
 * a first-order logic theory specified in SMT-LIB 2.6 format, and
@@ -8,11 +8,11 @@ Fortress takes as input:
 
 It answers whether the theory has a satisfying interpretation (a "model" or "solution") with the given domain sizes.
 
-Fortress was original described in the paper "Finite Model Finding Using the Logic of Equality with Uninterpreted Functions", [available here](https://cs.uwaterloo.ca/~nday/pdf/refereed/2016-VaDa-fm.pdf), and has been re-implemented to create a powerful and general tool.  
+Fortress was originally described in the paper "Finite Model Finding Using the Logic of Equality with Uninterpreted Functions", [available here](https://cs.uwaterloo.ca/~nday/pdf/refereed/2016-VaDa-fm.pdf), and has been re-implemented to create a powerful and general tool.
 
-Details on using Fortress as the command line are available in this file.  The fortress CLI take as input a file in an augmented SMT-LIB format.
+Details on using Fortress as the command line are available [in this file](#using-the-fortress-cli). The fortress CLI take as input a file in an augmented SMT-LIB format.
 
-Details on using Fortress as a library are available in UserGuide.md .  
+Details on using Fortress as a library are available in UserGuide.md .
 
 Details on the internal code organization and design decisions in Fortress can be found in DevelopersGuide.md .
 
@@ -73,9 +73,9 @@ sbt test
 ## Using Fortress as a Library
 
 Most often Fortress is used as a library.  You can either:
-* put `./core/target/universal/stage/lib` (built by sbt stage) in your class path 
+* put `./core/target/universal/stage/lib` (built by sbt stage) in your class path
 or
-* copy `./core/target/universal/fortresscore-0.1.0.zip` (built by sbt dist) somewhere, uzip it, and put that location in your class path.  
+* copy `./core/target/universal/fortresscore-0.1.0.zip` (built by sbt dist) somewhere, uzip it, and put that location in your class path.
 
 All 4 jars must be in the class path.
 
@@ -90,13 +90,16 @@ You can run the Fortress CLI, by either:
 or
 * Unzipping `cli/target/universal/fortresscore-x.y.z.zip` and running `./cli/target/universal/fortresscli-0.1.0/bin/fortress` (built by sbt dist)
 
+### Options for the Fortress CLI
+
 The options to the Fortress CLI, can be found by running `fortress --help`. In addition:
 
-* A filename is required of a file in an augments [smttc file format](#smttc-file-format).
+* A filename is required of a file in an augmented [smttc file format](#smttc-file-format).
 
-* The lists of possible modelFinders, compilers, solvers, and transformers can be found in the Registry files within the code, e.g., ./core/src/main/scala/fortress/compilers/CompilersRegistry.scala contains the Compiler names.  But good defaults are used if these options are not provided in the command-line.
+* The lists of possible modelFinders, compilers, solvers, and transformers can be found in the Registry files within the code, e.g., ./core/src/main/scala/fortress/compilers/CompilersRegistry.scala contains the Compiler names. But good defaults are used if these options are not provided in the command-line.
 
-* A scopes is set for a sort using the default scope (`--scope {SCOPE}` if provided), which is overwritten by a scope for the sort provided in the file, which is overwritten by a scope provided in the command-line argument `-S {SORT}={SCOPE}`, `-S` can take a sequence of `{SORT}={SCOPE}`s or it can be used multiple times in the command line.
+* A scope can be set with default values (`--scope`), individually on a sort by sort basis (`-S`), and in the input file.
+    * A scope is set for a sort using the default scope (`--scope {SCOPE}` if provided), which is overwritten by a scope for the sort provided in the file, which is overwritten by a scope provided in the command-line argument `-S {SORT}={SCOPE}`. `-S` can take a sequence of `{SORT}={SCOPE}`s or it can be used multiple times in the command line.
 
 Example usage:
 ```
@@ -148,14 +151,14 @@ Information on the architecture of Fortress is available in the [Developer's Gui
 ## Using the Fortress CLI Debug Tools (Developers)
 
 You can run the FortressDebug CLI, by either:
-* ``./debug/target/universal/stage/bin/fortressDebug`
+* `./debug/target/universal/stage/bin/fortressDebug`
 or
 * Unzipping `debug/target/universal/fortressdebug-x.y.z.zip` and running `./debug/target/universal/fortressdebug-0.1.0/bin/fortressdebug`
 
 The options to the FortressDebug, can be found by running `fortressDebug --help`. In particular:
 * `-S {SORT}={SCOPE}` - Sets the scope of a sort. This option can be used multiple times (the `-S` can be omitted after the first use).
 * `--scope {SCOPE}` - Sets the default scope to use when a sort has no specified scope. This is overriden by `-S` for a specific sort.
-* `-T {transformer1} {transformer2} ...` - Specify exactly which transformers will be used, in order. 
+* `-T {transformer1} {transformer2} ...` - Specify exactly which transformers will be used, in order.
 * `--version {VERSION}`- Sets the model finder and compiler version. The options for versions can be found in the ./core/src/main/scala/fortress/modelFinders/ModelFindersRegistry.scala
 
 
@@ -165,7 +168,7 @@ fortressdebug --timeout 60 --mode count -S A=3 B=2 --version JoeONE function.smt
 ```
 
 You can increase the JVM stack size by setting option "-J-Xss<size>", for example, "-J-Xss8m" sets the max stack size to 8 MB. You might want to increase stack size, because the antlr parser causes stack overflow errors when parsing large smt2 and tptp files.
-    
+
 ## Troubleshooting
 
 If the gradle build is not working properly ensure that your `JAVA_HOME` environment variable is correctly set (to the folder where the jdk that you are using is installed).
@@ -173,5 +176,5 @@ If the gradle build is not working properly ensure that your `JAVA_HOME` environ
 ## Acknowledgements
 
 The original version of Fortress was created by Amirhossein Vakili and Nancy Day.  Fortress was completely rewritten in Scala by Joseph Poremba.  Joe also greatly extended the symmetry breaking used in Fortress.  Additional contributors to Fortress include: Ruomei Yan, Orson Baines, Callum Moseley, Yie Jin (James) Long, Ryan Dancy, and Owen Zila.
-   
+
 Some TPTP files publicly available on the TPTP Problem Library(http://www.tptp.org/) are used for unit tests.
