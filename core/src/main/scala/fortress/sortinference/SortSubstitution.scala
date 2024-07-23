@@ -39,7 +39,10 @@ trait GeneralSortSubstitution {
             Forall(newVars, apply(body))
         }
         case DomainElement(index, sort) => DomainElement(index, apply(sort))
-        case EnumValue(_) | BuiltinApp(_, _) | IntegerLiteral(_) | BitVectorLiteral(_, _) => ???
+        case EnumValue(_) => term 
+        case BuiltinApp(name, args) => BuiltinApp(name, args map apply)
+        case IntegerLiteral(_) => term  
+        case BitVectorLiteral(_, _) => term
         case IfThenElse(condition, ifTrue, ifFalse) => IfThenElse(apply(condition), apply(ifTrue), apply(ifFalse))
     }
     
