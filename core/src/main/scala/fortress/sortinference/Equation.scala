@@ -77,6 +77,7 @@ object Equation {
                 (BoolSort, (lEqns union rEqns) + Equation(lSort, rSort) )
             }
             case App(name, args) => {
+                Errors.Internal.assertion(functionMap.contains(name),name+" not in functionMap")
                 val (argSorts, resSort) = functionMap(name)
                 Errors.Internal.assertion(argSorts.size == args.size)
                 val recurInfo = args map {recur(_, context)}
