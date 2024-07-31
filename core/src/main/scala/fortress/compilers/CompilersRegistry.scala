@@ -23,8 +23,7 @@ object CompilersRegistry {
 
             case "MaxUnboundedScopes" => new MaxUnboundedScopesCompiler()
                 
-            case "Claessen" => new ClaessenCompiler()
-            case "SquareDefns" => new SquareDefnsCompiler()
+            case "Eijck" => new EijckCompiler()
 
             case "AlmostNothing" => new AlmostNothingCompiler()
 

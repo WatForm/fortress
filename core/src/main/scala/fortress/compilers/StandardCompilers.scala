@@ -18,7 +18,7 @@ class StandardCompiler extends BaseCompiler {
 
     // these top definitions are the most common variation points
     def closureEliminator: ListBuffer[ProblemStateTransformer] = 
-        CompilersRegistry.ListOfOne(ClosureEliminationEijckTransformer)
+        CompilersRegistry.ListOfOne(ClosureEliminationSquareDefnsTransformer)
 
     def scopes: ListBuffer[ProblemStateTransformer] = 
         CompilersRegistry.ListOfOne(ScopeNonExactPredicatesTransformer)
@@ -102,19 +102,13 @@ class StandardCompiler extends BaseCompiler {
 
 }
 
-class ClaessenCompiler() extends StandardCompiler {
+class EijckCompiler() extends StandardCompiler {
 
     override def closureEliminator: ListBuffer[ProblemStateTransformer] =
-        CompilersRegistry.ListOfOne(ClosureEliminationClaessenTransformer)
+        CompilersRegistry.ListOfOne(ClosureEliminationEijckTransformer)
 
 }
 
-class SquareDefnsCompiler() extends StandardCompiler {
-
-    override def closureEliminator: ListBuffer[ProblemStateTransformer] =
-        CompilersRegistry.ListOfOne(ClosureEliminationSquareDefnsTransformer)
-
-}
 
 class StandardSICompiler() extends StandardCompiler {
 
