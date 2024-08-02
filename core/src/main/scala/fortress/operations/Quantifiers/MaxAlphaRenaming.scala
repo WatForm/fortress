@@ -53,8 +53,10 @@ object MaxAlphaRenaming {
             newSig = newSig withConstantDefinition (cDef mapBody renameTerm)
         }
         for (fDef <- theory.signature.functionDefinitions) {
+            // Also rename the arguments to avoid getting out of sync with the body
             newSig = newSig withoutFunctionDefinition fDef
-            newSig = newSig withFunctionDefinition (fDef mapBody renameTerm)
+            newSig = newSig withFunctionDefinition FunctionDefinition(
+                fDef.name, freshVars(fDef.argSortedVar), fDef.resultSort, renameTerm(fDef.body))
         }
 
         val newAxioms = theory.axioms map renameTerm
