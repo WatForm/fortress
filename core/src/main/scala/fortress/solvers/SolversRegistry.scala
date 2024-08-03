@@ -7,6 +7,7 @@ object SolversRegistry {
     def fromString(str: String): Solver = {
        val sv:Solver = str match {
             case "CVC4Cli" => new CVC4CliSolver
+            case "CVC5Cli" => new CVC5CliSolver
             case "Z3NonIncCli" => new Z3NonIncCliSolver
             case _ => {
                 throw Errors.API.solverDoesNotExist(str)
