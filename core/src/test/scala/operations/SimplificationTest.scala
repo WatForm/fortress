@@ -42,15 +42,15 @@ class SimplificationTest extends UnitSuite {
         t3.simplify should be(Bottom)
     }
 
-    test("applications, equals and closures are atomic") {
+    test("applications, equals and closures are not atomic") {
         val t1 = (App("f", y) ==> Top) === Top
         val t2 = App("f", OrList(Top, Bottom))
         val t3 = Term.mkClosure("R", Bottom <==> Top, IfThenElse(Bottom, Top, App("f", x)))
 
 
-        t1.simplify should be((App("f", y) ==> Top) === Top)
-        t2.simplify should be(App("f", OrList(Top, Bottom)))
-        t3.simplify should be(Term.mkClosure("R", Bottom <==> Top, IfThenElse(Bottom, Top, App("f", x))))
+        t1.simplify should be(Top)
+        t2.simplify should be(App("f", Top))
+        t3.simplify should be(Term.mkClosure("R", Bottom, App("f", x)))
     }
 
     test("equal simplification") {
