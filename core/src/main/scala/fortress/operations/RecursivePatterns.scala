@@ -4,8 +4,8 @@ import fortress.msfol._
 
 trait NaturalTermRecursion {
     val exceptionalMappings: PartialFunction[Term, Term]
-    
-    def naturalRecur(term: Term): Term = 
+
+    def naturalRecur(term: Term): Term =
         if (exceptionalMappings isDefinedAt term) exceptionalMappings(term)
         else term match {
             case leaf: LeafTerm => term
@@ -24,7 +24,17 @@ trait NaturalTermRecursion {
             case Forall(vars, body) => Forall(vars, naturalRecur(body))
             case IfThenElse(condition, ifTrue, ifFalse) =>
                 IfThenElse(naturalRecur(condition), naturalRecur(ifTrue), naturalRecur(ifFalse))
-    }
+        }
+}
+
+/**
+  * Recurse through each node of the AST, calling mapTerm on each of them and replacing the AST node with the result.
+  */
+trait NaturalEachTermRecursion extends NaturalTermRecursion {
+    def mapTerm(term: Term): Term
+
+    override val exceptionalMappings: PartialFunction[Term, Term] = PartialFunction.empty
+    override def naturalRecur(term: Term): Term = mapTerm(super.naturalRecur(term))
 }
 
 /** Helper trait for implementing recursive accumulation of sets.
@@ -32,7 +42,7 @@ trait NaturalTermRecursion {
   * you can customize the output. */
 trait NaturalSetAccumulation[A] {
     val exceptionalMappings: PartialFunction[Term, Set[A]]
-    
+
     def naturalRecur(term: Term): Set[A] =
         if (exceptionalMappings isDefinedAt term) exceptionalMappings(term)
         else term match {
@@ -51,5 +61,32 @@ trait NaturalSetAccumulation[A] {
             case Exists(vars, body) => naturalRecur(body)
             case Forall(vars, body) => naturalRecur(body)
             case IfThenElse(condition, ifTrue, ifFalse) => naturalRecur(condition) union naturalRecur(ifTrue) union naturalRecur(ifFalse)
+        }
+}
+
+/**
+  * Helper trait for implementing any recursive reduction over the AST.
+  */
+abstract class NaturalReduction[R](val identity: R, val op: (R, R) => R) {
+    val exceptionalMappings: PartialFunction[Term, R]
+
+    def naturalRecur(term: Term): R =
+        if (exceptionalMappings isDefinedAt term) exceptionalMappings(term)
+        else term match {
+            case leaf: LeafTerm => identity
+            case Not(p) => naturalRecur(p)
+            case AndList(args) => (args map naturalRecur) reduce (op(_, _))
+            case OrList(args) => (args map naturalRecur) reduce (op(_, _))
+            case Distinct(args) => (args map naturalRecur) reduce (op(_, _))
+            case Implication(l, r) => op(naturalRecur(l), naturalRecur(r))
+            case Iff(l, r) => op(naturalRecur(l), naturalRecur(r))
+            case Eq(l, r) => op(naturalRecur(l), naturalRecur(r))
+            case App(f, args) => (args map naturalRecur) reduce (op(_, _))
+            case BuiltinApp(function, args) => (args map naturalRecur) reduce (op(_, _))
+            case Closure(_, arg1, arg2, args) => op(op(naturalRecur(arg1), naturalRecur(arg2)), args map naturalRecur reduce (op(_, _)))
+            case ReflexiveClosure(_, arg1, arg2, args) => op(op(naturalRecur(arg1), naturalRecur(arg2)), args map naturalRecur reduce (op(_, _)))
+            case Exists(vars, body) => naturalRecur(body)
+            case Forall(vars, body) => naturalRecur(body)
+            case IfThenElse(condition, ifTrue, ifFalse) => op(op(naturalRecur(condition), naturalRecur(ifTrue)), naturalRecur(ifFalse))
         }
 }

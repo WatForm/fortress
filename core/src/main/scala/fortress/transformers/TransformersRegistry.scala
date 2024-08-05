@@ -1,8 +1,7 @@
 package fortress.transformers
 
+import fortress.transformers.Definitions.EliminateUnusedTransformer
 import fortress.util.Errors
-import javax.xml.crypto.Data
-import fortress.symmetry._
 
 // look up transformer associated with a string name
 // raise an exception if not found
@@ -39,6 +38,10 @@ object TransformersRegistry {
 
             // Definitions
             case "AxiomatizeFuncDefn" => AxiomatizeFuncDefnTransformer
+//            case "InlineDefinitions" => InlineDefinitionsTransformer
+            case "EliminateUnusedDefns" => EliminateUnusedTransformer
+
+            case "Evaluate" => EvaluateTransformer
 
             // EnumerateFiniteValues
             case "DEsToDistinctConstants" => DEsToDistinctConstantsTransformer

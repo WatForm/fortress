@@ -33,6 +33,7 @@ abstract class BaseCompiler extends Compiler {
                 if(countdown.isExpired) return Left(CompilerError.Timeout)
                 loggers.foreach(_.transformerStarted(transformer))
 
+                println(s"Running ${transformer.name}")
 //                println(s"Theory before ${transformer.name}:\n-----")
 //                println(Dump.theoryToSmtlibTC(pState.theory))
 //                println("-----")

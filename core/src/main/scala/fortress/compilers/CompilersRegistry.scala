@@ -22,7 +22,13 @@ object CompilersRegistry {
             case "StandardSI"  => new StandardSICompiler()
 
             case "MaxUnboundedScopes" => new MaxUnboundedScopesCompiler()
-                
+
+            case "InlineDefnsSize" => new InlineDefnsSizeCompiler()
+            case "InlineDefnsAnyConst" => new InlineDefnsAnyConstCompiler()
+            case "InlineDefnsAllConst" => new InlineDefnsAllConstCompiler()
+            case "InlineDefnsIndep" => new InlineDefnsIndepCompiler()
+            case "Evaluate" => new EvaluateCompiler()
+
             case "Eijck" => new EijckCompiler()
 
             case "AlmostNothing" => new AlmostNothingCompiler()
