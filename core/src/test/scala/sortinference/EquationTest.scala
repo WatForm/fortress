@@ -104,4 +104,12 @@ class EquationTest extends UnitSuite {
         equations should contain (Equation(beta, charlie)) // ax6
         equations.filter(!redundant(_)) should have size (13)
     }
+
+    test("more builtin sorts") {
+        pending
+    }
+
+    test("enum values") {
+        pending
+    }
 }

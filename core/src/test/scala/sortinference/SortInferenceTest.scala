@@ -133,4 +133,90 @@ class SortInferenceTest extends UnitSuite {
         generalTheory should be (theory)
         substitution shouldBe Symbol("isIdentity")
     }
+
+    test("function definitions 1") {
+        val x = Var("x")
+        val y = Var("y")
+        // g : A * A -> A
+        val g = FuncDecl("g", A, A, A)
+        // f: A * A -> A
+        // f(x, y) = g(x, g(x, y))
+        val f = FunctionDefinition("f", Seq(x of A, y of A), A, App("g", x, App("g", x, y)))
+
+        // Result should be as in
+        // g: A * B -> B
+        // f: A * B -> B
+
+        val theory = Theory.empty
+            .withSorts(A)
+            .withFunctionDeclarations(g)
+            .withFunctionDefinitions(f)
+        
+        val (generalTheory, substitution) = theory.inferSorts
+        generalTheory.sorts.size should be (2)
+        val gGeneral = generalTheory.functionDeclarations.find(_.name == "g").get
+        val fGeneral = generalTheory.functionDefinitions.find(_.name == "f").get
+        val g1 = gGeneral.argSorts(0)
+        val g2 = gGeneral.argSorts(1)
+        val g3 = gGeneral.resultSort
+        val f1 = fGeneral.argSorts(0)
+        val f2 = fGeneral.argSorts(1)
+        val f3 = fGeneral.resultSort
+        g1 should not be (g2)
+        g2 should be (g3)
+        f1 should be (g1)
+        f2 should be (g2)
+        f3 should be (g3)
+        substitution(generalTheory) should be (theory)
+    }
+
+    test("function definitions 2") {
+        val x = Var("x")
+        val y = Var("y")
+        // g : A * A -> A
+        val g = FuncDecl("g", A, A, A)
+        val h = FuncDecl("h", A, A, A)
+        // f: A * A -> A
+        // f(x, y) = h(g(x, y), x)
+        val f = FunctionDefinition("f", Seq(x of A, y of A), A, App("h", App("g", x, y), x))
+
+        // Result should be as in
+        // g: A * B -> C
+        // h: C * A -> D
+        // f: A * B -> D
+
+        val theory = Theory.empty
+            .withSorts(A)
+            .withFunctionDeclarations(g, h)
+            .withFunctionDefinitions(f)
+        
+        val (generalTheory, substitution) = theory.inferSorts
+        generalTheory.sorts.size should be (4)
+        val gGeneral = generalTheory.functionDeclarations.find(_.name == "g").get
+        val hGeneral = generalTheory.functionDeclarations.find(_.name == "h").get
+        val fGeneral = generalTheory.functionDefinitions.find(_.name == "f").get
+        val g1 = gGeneral.argSorts(0)
+        val g2 = gGeneral.argSorts(1)
+        val g3 = gGeneral.resultSort
+        val h1 = hGeneral.argSorts(0)
+        val h2 = hGeneral.argSorts(1)
+        val h3 = hGeneral.resultSort
+        val f1 = fGeneral.argSorts(0)
+        val f2 = fGeneral.argSorts(1)
+        val f3 = fGeneral.resultSort
+        Set(g1, g2, g3, h3).size should be (4)
+        Set(g1, h2, f1).size should be (1) // A
+        Set(g2, f2).size should be (1) // B
+        Set(g3, h1).size should be (1) // C
+        Set(h3, f3).size should be (1)
+        substitution(generalTheory) should be (theory)
+    }
+
+    test("bitvectors and integers") {
+        pending
+    }
+
+    test("enum values") {
+        pending
+    }
 }
