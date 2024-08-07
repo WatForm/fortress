@@ -4,6 +4,7 @@ import fortress.msfol._
 import fortress.util.Errors
 
 case class Equation(x: Sort, y: Sort)
+// case class Equation(x: SortConst, y: SortConst)
 
 object Equation {
 
@@ -60,9 +61,16 @@ object Equation {
             case Distinct(args) => {
                 val recurInfo = args map {recur(_, context)}
                 // All must be the same sort
-                val newEqns: Seq[Option[Equation]] = for(sort <- recurInfo.map(_._1)) yield sort match {
-                    case s: SortConst => Some(Equation(recurInfo.head._1, s))
-                    case _ => None
+                val headSort = recurInfo.head._1
+                val newEqns: Seq[Option[Equation]] = for {
+                    sort <- recurInfo.tail.map(_._1)
+                 } yield (headSort, sort) match {
+                    case (hs: SortConst, s: SortConst) => Some(Equation(hs, s))
+                    case (hs, s) => {
+                        // Should be equal builtin sorts
+                        Errors.Internal.assertion(hs == s)
+                        None
+                    }
                 }
                 val eqns = recurInfo flatMap (_._2)
                 (BoolSort, (eqns ++ newEqns.flatten).toSet)
@@ -262,9 +270,10 @@ object Equation {
         val recurInfo = formulas map {recur(_, List.empty)}
         val recurSorts = recurInfo map (_._1)
         val equations = (recurInfo flatMap (_._2))
-        // Add equations saying that all formulas must be boolean
-        val formulaEquations = recurSorts.map(Equation(_, BoolSort))
-        equations ++ formulaEquations.toSet
+        // // Add equations saying that all formulas must be boolean
+        // val formulaEquations = recurSorts.map(Equation(_, BoolSort))
+        // equations ++ formulaEquations.toSet
+        equations
     }
 
     type SortVar = SortConst

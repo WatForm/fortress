@@ -17,6 +17,26 @@ class SortInferenceTest extends UnitSuite {
     val _2 = Sort.mkSortConst("S2")
     val _3 = Sort.mkSortConst("S3")
     val _4 = Sort.mkSortConst("S4")
+
+    def testEquivalenceClasses(equivalenceClasses: Seq[Seq[Sort]]): Unit = {
+        // All items in equivalence class are equal
+        for {
+            eqClass <- equivalenceClasses
+            i <- eqClass
+            j <- eqClass
+        } i should be (j)
+
+        // Items in different classes are not equal
+        for {
+            c1 <- 0 to equivalenceClasses.size - 1
+            c2 <- 0 to equivalenceClasses.size - 1
+            if c1 < c2
+            eqClass1 = equivalenceClasses(c1)
+            eqClass2 = equivalenceClasses(c2)
+            i <- eqClass1
+            j <- eqClass2
+        } i should not be (j)
+    }
     
     test("function, no axioms") {
         val f = FuncDecl("f", A, A, A)
@@ -164,10 +184,11 @@ class SortInferenceTest extends UnitSuite {
         val Seq(c1Gen, c2Gen, c3Gen, c4Gen) = Seq("c1", "c2", "c3", "c4").map(c => generalTheory.constantDeclarations.find(_.name == c).get)
         val pGen = generalTheory.functionDeclarations.find(_.name == "p").get
         
-        c1Gen.sort should be (c2Gen.sort)
-        c3Gen.sort should be (c4Gen.sort)
-        c3Gen.sort should be (pGen.argSorts(0))
-        Set(c1Gen.sort, c3Gen.sort).size should be (2)
+        val equivalenceClasses = Seq(
+            Seq(c1Gen.sort, c2Gen.sort),
+            Seq(c3Gen.sort, c4Gen.sort, pGen.argSorts(0))
+        )
+        testEquivalenceClasses(equivalenceClasses)
 
         substitution(generalTheory) should be (theory)
     }
