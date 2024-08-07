@@ -52,6 +52,13 @@ class StandardCompiler extends BaseCompiler {
     def rangeFormulasOrNot: ListBuffer[ProblemStateTransformer] = 
         CompilersRegistry.ListOfOne(RangeFormulaUseDEsTransformer)
 
+    def simplifiers: ListBuffer[ProblemStateTransformer] = {
+        val ts = CompilersRegistry.NullTransformerList
+        ts += SimplifyTransformer
+        ts += EliminateUnusedTransformer
+        ts 
+    }
+
     def enumerateFiniteValues: ListBuffer[ProblemStateTransformer] = 
         CompilersRegistry.ListOfOne(DEsToDistinctConstantsTransformer)
 
@@ -92,8 +99,7 @@ class StandardCompiler extends BaseCompiler {
         // defined above
         transformerSequence ++= rangeFormulasOrNot
 
-        transformerSequence += SimplifyTransformer
-        transformerSequence += EliminateUnusedTransformer
+        transformerSequence ++= simplifiers
 
         // defined above
         transformerSequence ++= enumerateFiniteValues
@@ -130,7 +136,7 @@ class StandardSICompiler() extends StandardCompiler {
    use datatypes but turn it into EUF by getting rid of quantifiers (skolemize, quant exp)
    include range formulas
 */
-class DatatypeWithRangeEUFCompiler() extends StandardCompiler {
+class DatatypeWithRangeEUFCompiler() extends EvaluateCompiler {
 
     override def enumerateFiniteValues: ListBuffer[ProblemStateTransformer] = 
         CompilersRegistry.ListOfOne(DEsToEnumsTransformer)
@@ -154,7 +160,7 @@ class DatatypeNoRangeEUFCompiler() extends DatatypeWithRangeEUFCompiler() {
    don't get rid of quantifiers - not EUF (no nnf, no skolemize/quantifier expansion)
    use range formulas 
 */
-class DatatypeWithRangeNoEUFCompiler() extends StandardCompiler {
+class DatatypeWithRangeNoEUFCompiler() extends EvaluateCompiler {
     override def quantifierHandler: ListBuffer[ProblemStateTransformer] = 
         CompilersRegistry.NullTransformerList
 
@@ -194,20 +200,26 @@ class MaxUnboundedScopesCompiler extends StandardCompiler {
 }
 
 class EvaluateCompiler extends StandardCompiler {
-    override def quantifierHandler: ListBuffer[ProblemStateTransformer] = {
-        val transformerSequence = CompilersRegistry.NullTransformerList
-        transformerSequence += QuantifierExpansionTransformer
-        transformerSequence += EvaluateTransformer
-        transformerSequence
+    override def quantifierHandler: ListBuffer[ProblemStateTransformer] = 
+        // no QuantifiersToDefnsTransformer
+        CompilersRegistry.ListOfOne(QuantifierExpansionTransformer)
+
+    override def simplifiers: ListBuffer[ProblemStateTransformer] = {
+        val ts = CompilersRegistry.NullTransformerList
+        ts += EvaluateTransformer
+        ts += SimplifyTransformer
+        ts += EliminateUnusedTransformer
+        ts
     }
 }
 
 class EvaluateQDefCompiler extends StandardCompiler {
-    override def quantifierHandler: ListBuffer[ProblemStateTransformer] = {
-        val transformerSequence = CompilersRegistry.NullTransformerList
-        transformerSequence += QuantifiersToDefnsTransformer
-        transformerSequence += QuantifierExpansionTransformer
-        transformerSequence += EvaluateTransformer
-        transformerSequence
+    // uses standard quantifierHandler, which includes QuantifiersToDefnsTransformer
+    override def simplifiers: ListBuffer[ProblemStateTransformer] = {
+        val ts = CompilersRegistry.NullTransformerList
+        ts += EvaluateTransformer
+        ts += SimplifyTransformer
+        ts += EliminateUnusedTransformer
+        ts
     }
 }
