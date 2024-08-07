@@ -1,8 +1,7 @@
 package fortress.transformers
 
+import fortress.transformers.Definitions.EliminateUnusedTransformer
 import fortress.util.Errors
-import javax.xml.crypto.Data
-import fortress.symmetry._
 
 // look up transformer associated with a string name
 // raise an exception if not found
@@ -27,6 +26,8 @@ object TransformersRegistry {
             // options can be set in symmetry breaking to vary its behaviour
             case "SymmetryBreakingWithDefaults" => SymmetryBreakingWithDefaultsTransformer
             case "TypecheckSanitize" => TypecheckSanitizeTransformer
+            case "Evaluate" => EvaluateTransformer
+            case "EliminateUnused" => EliminateUnusedTransformer
 
             // ClosureEliminator
             case "ClosureEliminationEijck" => ClosureEliminationEijckTransformer

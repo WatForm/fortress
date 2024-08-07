@@ -22,7 +22,10 @@ object CompilersRegistry {
             case "StandardSI"  => new StandardSICompiler()
 
             case "MaxUnboundedScopes" => new MaxUnboundedScopesCompiler()
-                
+
+            case "Evaluate" => new EvaluateCompiler()
+            case "EvaluateQDef" => new EvaluateQDefCompiler()
+
             case "Eijck" => new EijckCompiler()
 
             case "AlmostNothing" => new AlmostNothingCompiler()

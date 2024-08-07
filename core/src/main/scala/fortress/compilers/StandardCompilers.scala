@@ -1,6 +1,8 @@
 package fortress.compilers
 
 //import fortress.msfol._
+import fortress.operations._
+import fortress.transformers.Definitions.EliminateUnusedTransformer
 import fortress.transformers._
 import fortress.transformers.TheoryTransformer._ // for implicit conversion to ProblemStateTransformer
 //import fortress.modelfind._
@@ -23,7 +25,7 @@ class StandardCompiler extends BaseCompiler {
     def scopes: ListBuffer[ProblemStateTransformer] = 
         CompilersRegistry.ListOfOne(ScopeNonExactPredicatesTransformer)
 
-    def integerHandler:ListBuffer[ProblemStateTransformer] = 
+    def integerHandler:ListBuffer[ProblemStateTransformer] =
         CompilersRegistry.ListOfOne(IntOPFITransformer)
 
     def ifLiftOrNot:ListBuffer[ProblemStateTransformer] =
@@ -91,6 +93,7 @@ class StandardCompiler extends BaseCompiler {
         transformerSequence ++= rangeFormulasOrNot
 
         transformerSequence += SimplifyTransformer
+        transformerSequence += EliminateUnusedTransformer
 
         // defined above
         transformerSequence ++= enumerateFiniteValues
@@ -190,3 +193,21 @@ class MaxUnboundedScopesCompiler extends StandardCompiler {
     }
 }
 
+class EvaluateCompiler extends StandardCompiler {
+    override def quantifierHandler: ListBuffer[ProblemStateTransformer] = {
+        val transformerSequence = CompilersRegistry.NullTransformerList
+        transformerSequence += QuantifierExpansionTransformer
+        transformerSequence += EvaluateTransformer
+        transformerSequence
+    }
+}
+
+class EvaluateQDefCompiler extends StandardCompiler {
+    override def quantifierHandler: ListBuffer[ProblemStateTransformer] = {
+        val transformerSequence = CompilersRegistry.NullTransformerList
+        transformerSequence += QuantifiersToDefnsTransformer
+        transformerSequence += QuantifierExpansionTransformer
+        transformerSequence += EvaluateTransformer
+        transformerSequence
+    }
+}
