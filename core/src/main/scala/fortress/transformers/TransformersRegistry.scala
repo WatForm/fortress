@@ -26,6 +26,8 @@ object TransformersRegistry {
             // options can be set in symmetry breaking to vary its behaviour
             case "SymmetryBreakingWithDefaults" => SymmetryBreakingWithDefaultsTransformer
             case "TypecheckSanitize" => TypecheckSanitizeTransformer
+            case "Evaluate" => EvaluateTransformer
+            case "EliminateUnused" => EliminateUnusedTransformer
 
             // ClosureEliminator
             case "ClosureEliminationEijck" => ClosureEliminationEijckTransformer
@@ -39,9 +41,6 @@ object TransformersRegistry {
             // Definitions
             case "AxiomatizeFuncDefn" => AxiomatizeFuncDefnTransformer
 //            case "InlineDefinitions" => InlineDefinitionsTransformer
-            case "EliminateUnusedDefns" => EliminateUnusedTransformer
-
-            case "Evaluate" => EvaluateTransformer
 
             // EnumerateFiniteValues
             case "DEsToDistinctConstants" => DEsToDistinctConstantsTransformer
