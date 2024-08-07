@@ -10,8 +10,8 @@ object Equation {
     // Accumulates equations between sort variables
     // Does not accumulate equations for builtin types like Bool, Int, BitVector etc.
     def accumulate(
-        constantMap: Map[String, Sort],
-        functionMap: Map[String, (Seq[Sort], Sort)],
+        constantLookupTable: Map[String, AnnotatedVar],
+        functionLookupTable: Map[String, FuncDecl],
         formulas: Set[Term] // We assume the input formulas must be sorted as Bool (we add these equations)
     ): Set[Equation] = {
 
@@ -29,7 +29,7 @@ object Equation {
             case Top | Bottom => (BoolSort, Set.empty)
             case Var(name) => lookup(name, context) match {
                 case Some(sort) => (sort, Set.empty)
-                case None => (constantMap(name), Set.empty)
+                case None => (constantLookupTable(name).sort, Set.empty)
             }
             case Not(p) => {
                 val (pSort, eqns) = recur(p, context)
@@ -95,8 +95,8 @@ object Equation {
                 (BoolSort, (lEqns union rEqns) ++ newEqn)
             }
             case App(name, args) => {
-                Errors.Internal.assertion(functionMap.contains(name),name+" not in functionMap")
-                val (argSorts, resSort) = functionMap(name)
+                Errors.Internal.assertion(functionLookupTable.contains(name),name+" not in functionMap")
+                val FuncDecl(_, argSorts, resSort) = functionLookupTable(name)
                 Errors.Internal.assertion(argSorts.size == args.size)
                 val recurInfo = args map {recur(_, context)}
                 val recurArgSorts = recurInfo map (_._1)

@@ -246,6 +246,7 @@ class SortInferenceTest extends UnitSuite {
             .withFunctionDeclaration(f)
             .withConstantDeclarations(c1 of A, c2 of A, c3 of A)
             .withConstantDefinition(c4Defn)
+            .withAxiom(ax)
 
         val (generalTheory, substitution) = theory.inferSorts
         generalTheory.sorts.size should be (3)

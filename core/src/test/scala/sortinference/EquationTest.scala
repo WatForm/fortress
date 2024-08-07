@@ -31,26 +31,26 @@ class EquationTest extends UnitSuite {
     val Seq(i1, i2) = Seq("i1", "i2").map(Var(_))
 
     val constantMap = Map(
-        "c1" -> x,
-        "c2" -> y,
-        "c3" -> z,
-        "c4" -> n,
-        "c5" -> m,
-        "c6" -> alpha,
-        "c7" -> beta,
-        "c8" -> charlie,
-        "r1" -> BoolSort,
-        "r2" -> BoolSort,
-        "i1" -> IntSort,
-        "i2" -> IntSort
+        "c1" -> (c1 of x),
+        "c2" -> (c2 of y),
+        "c3" -> (c3 of z),
+        "c4" -> (c4 of n),
+        "c5" -> (c5 of m),
+        "c6" -> (c6 of alpha),
+        "c7" -> (c7 of beta),
+        "c8" -> (c8 of charlie),
+        "r1" -> (r1 of BoolSort),
+        "r2" -> (r2 of BoolSort),
+        "i1" -> (i1 of IntSort),
+        "i2" -> (i2 of IntSort)
     )
     val functionMap = Map(
-        "f" -> (Seq(f1, f2), f_OUT),
-        "g" -> (Seq(BoolSort, IntSort), g_OUT),
-        "h" -> (Seq(h1, h2), IntSort),
-        "P" -> (Seq(p1, p2), BoolSort),
-        "Q" -> (Seq(BoolSort, IntSort), BoolSort),
-        "U" -> (Seq(u1), u_OUT)
+        "f" -> FuncDecl("f", Seq(f1, f2), f_OUT),
+        "g" -> FuncDecl("g", Seq(BoolSort, IntSort), g_OUT),
+        "h" -> FuncDecl("h", Seq(h1, h2), IntSort),
+        "P" -> FuncDecl("P", Seq(p1, p2), BoolSort),
+        "Q" -> FuncDecl("Q", Seq(BoolSort, IntSort), BoolSort),
+        "U" -> FuncDecl("U", Seq(u1), u_OUT)
     )
 
     val v1 = Var("v1")

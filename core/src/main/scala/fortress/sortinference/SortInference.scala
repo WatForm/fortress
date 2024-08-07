@@ -17,41 +17,37 @@ object SortInference {
         
         // Associate each constant with a fresh sort variable
         // Constants with declarations
-        val freshConstDeclMapExpanded: Map[String, Sort] = theory.constantDeclarations.map {c => c.name -> freshSubstitution(c).sort}.toMap
+        val freshConstDeclMap: Map[AnnotatedVar, AnnotatedVar] = theory.constantDeclarations.map(c => c -> freshSubstitution(c)).toMap
+        // Constants with definitions
+        val freshConstDefnMap: Map[ConstantDefinition, ConstantDefinition] = theory.constantDefinitions.map(c => c -> freshSubstitution(c)).toMap
+        // All constants
+        val constantLookupTable: Map[String, AnnotatedVar] = freshConstDeclMap.map{case (originalAv, newAv) => originalAv.name -> newAv} ++ freshConstDefnMap.map{case (originalDefn, newDefn) => originalDefn.name -> newDefn.avar}
         
         // Associate each function with a collection of fresh sorts
         // Functions with declarations
         val freshFuncDeclMap: Map[FuncDecl, FuncDecl] = theory.functionDeclarations.map(f => (f -> freshSubstitution(f))).toMap
-        val freshFuncDeclMapExpanded: Map[String, (Seq[Sort], Sort)] = theory.functionDeclarations.map { f => {
-            val fSub = freshFuncDeclMap(f)
-            f.name -> (fSub.argSorts, fSub.resultSort)
-        }}.toMap
         // Functions with definitions
         val freshFuncDefnMap: Map[FunctionDefinition, FunctionDefinition] = theory.functionDefinitions.map(f => (f -> freshSubstitution(f))).toMap
-        val freshFuncDefnMapExpanded: Map[String, (Seq[Sort], Sort)] = theory.functionDefinitions.map { f => {
-            val fSub = freshFuncDefnMap(f)
-            f.name -> (fSub.argSorts, fSub.resultSort)
-        }}.toMap
         // All functions
-        val freshSortsFuncMap = freshFuncDeclMapExpanded.concat(freshFuncDefnMapExpanded)
+        val functionLookupTable: Map[String, FuncDecl] = freshFuncDeclMap.map{case (originalDecl, newDecl) => originalDecl.name -> newDecl} ++ freshFuncDefnMap.map{case (originalDefn, newDefn) => originalDefn.name -> newDefn.asDeclWithoutBody}
         
         // Maps original theory axiom to fresh axiom
         val freshAxioms: Map[Term, Term] = { theory.axioms map (ax => ax -> freshSubstitution(ax)) }.toMap
         
-        // Gather equations from axioms and function definition bodies
-        // val funcDefnAxioms = freshSortsFuncD
+        // Gather equations from axioms and definition bodies
+        val constDefnAxioms = freshConstDefnMap.values.map(_.asAxiom).toSet
         val funcDefnAxioms = freshFuncDefnMap.values.map(_.asAxiom).toSet
-        val equations: Set[Equation] = Equation.accumulate(freshConstDeclMapExpanded, freshSortsFuncMap, freshAxioms.values.toSet union funcDefnAxioms)
+        val temporaryAxioms = constDefnAxioms union funcDefnAxioms
+        val equations: Set[Equation] = Equation.accumulate(constantLookupTable, functionLookupTable, freshAxioms.values.toSet union temporaryAxioms)
         
         // Solve equations, giving substitution from fresh theory to general theory
         val sortSubstitution = Equation.unify(equations.toList)
         
         // Create new signature and terms using substitution
-        val newConstants: Set[AnnotatedVar] = theory.constantDeclarations map (av => {
-            Var(av.name) of sortSubstitution(freshConstDeclMapExpanded(av.name))
-        })
-        val newFunctionDeclarations: Set[FuncDecl] = theory.functionDeclarations map (f => {sortSubstitution(freshFuncDeclMap(f))})
-        val newFunctionDefinitions: Set[FunctionDefinition] = theory.functionDefinitions.map (f => {sortSubstitution(freshFuncDefnMap(f))})
+        val newConstantDeclarations: Set[AnnotatedVar] = theory.constantDeclarations.map(av => sortSubstitution(freshConstDeclMap(av)))
+        val newConstantDefintions: Set[ConstantDefinition] = theory.constantDefinitions.map(cdef => sortSubstitution(freshConstDefnMap(cdef)))
+        val newFunctionDeclarations: Set[FuncDecl] = theory.functionDeclarations.map(f => sortSubstitution(freshFuncDeclMap(f)))
+        val newFunctionDefinitions: Set[FunctionDefinition] = theory.functionDefinitions.map(f => sortSubstitution(freshFuncDefnMap(f)))
         
         // Maps original theory axiom to general axiom 
         val generalAxioms: Map[Term, Term] = for((originAx, freshAx) <- freshAxioms) yield (originAx -> sortSubstitution(freshAx))
@@ -60,7 +56,8 @@ object SortInference {
         
         val generalTheory = Theory.empty
             .withSorts(usedSorts.toSeq : _*)
-            .withConstantDeclarations(newConstants)
+            .withConstantDeclarations(newConstantDeclarations)
+            .withConstantDefinitions(newConstantDefintions)
             .withFunctionDeclarations(newFunctionDeclarations)
             .withFunctionDefinitions(newFunctionDefinitions)
             .withAxioms(generalAxioms.values)
