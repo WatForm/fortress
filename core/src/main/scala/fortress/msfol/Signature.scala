@@ -145,6 +145,11 @@ case class Signature private (
         this.copy(sorts = sorts+t, enumConstants = enumConstants + (t -> values.asScala.toList))
     }
 
+    def withEnumSorts(map: Map[Sort, Seq[EnumValue]]): Signature = {
+        // TODO more consistency checking
+        this.copy(sorts = sorts ++ map.keySet, enumConstants = enumConstants ++ map)
+    }
+
     def withFunctionDefinition(funcDef: FunctionDefinition): Signature = {
         assertFuncDefConsistent(funcDef)
         copy(functionDefinitions = functionDefinitions + funcDef)

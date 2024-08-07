@@ -30,7 +30,7 @@ class EquationTest extends UnitSuite {
     val Seq(r1, r2) = Seq("r1", "f2").map(Var(_))
     val Seq(i1, i2) = Seq("i1", "i2").map(Var(_))
 
-    val constantMap = Map(
+    val constantLookupTable = Map(
         "c1" -> (c1 of x),
         "c2" -> (c2 of y),
         "c3" -> (c3 of z),
@@ -44,7 +44,7 @@ class EquationTest extends UnitSuite {
         "i1" -> (i1 of IntSort),
         "i2" -> (i2 of IntSort)
     )
-    val functionMap = Map(
+    val functionLookupTable = Map(
         "f" -> FuncDecl("f", Seq(f1, f2), f_OUT),
         "g" -> FuncDecl("g", Seq(BoolSort, IntSort), g_OUT),
         "h" -> FuncDecl("h", Seq(h1, h2), IntSort),
@@ -52,6 +52,8 @@ class EquationTest extends UnitSuite {
         "Q" -> FuncDecl("Q", Seq(BoolSort, IntSort), BoolSort),
         "U" -> FuncDecl("U", Seq(u1), u_OUT)
     )
+
+    val enumLookupTable: Map[EnumValue, Sort] = Map.empty
 
     val v1 = Var("v1")
     val v2 = Var("v2")
@@ -69,7 +71,7 @@ class EquationTest extends UnitSuite {
         val ax2 = App("f", c1, c2) === c2
         val ax3 = Not(App("P", c1, c2))
 
-        val equations = Equation.accumulate(constantMap, functionMap, Set(ax1, ax2, ax3))
+        val equations = Equation.accumulate(constantLookupTable, functionLookupTable, enumLookupTable, Set(ax1, ax2, ax3))
         equations should contain (Equation(t1, x)) // ax1
         equations should contain (Equation(x, y)) // ax1
         equations should contain (Equation(x, f1)) // ax2

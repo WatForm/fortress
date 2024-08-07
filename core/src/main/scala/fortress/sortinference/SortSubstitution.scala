@@ -65,14 +65,13 @@ trait GeneralSortSubstitution {
     // Apply the Sort function to every appearence of a Sort in a Signature.
     def apply(signature: Signature): Signature = signature match {
         case Signature(sorts, functionDeclarations, functionDefinitions, constantDeclarations, constantDefinitions, enumConstants) => {
-            Errors.Internal.precondition(enumConstants.isEmpty)
             Signature(
                 sorts map apply,
                 functionDeclarations map apply,
                 functionDefinitions map apply,
                 constantDeclarations map apply,
                 constantDefinitions map apply,
-                Map.empty
+                enumConstants.map{case(sort, enumConstants) => (apply(sort), enumConstants)}
             )
         }
     }

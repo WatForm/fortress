@@ -12,6 +12,7 @@ object Equation {
     def accumulate(
         constantLookupTable: Map[String, AnnotatedVar],
         functionLookupTable: Map[String, FuncDecl],
+        enumLookupTable: Map[EnumValue, Sort],
         formulas: Set[Term] // We assume the input formulas must be sorted as Bool (we add these equations)
     ): Set[Equation] = {
 
@@ -155,7 +156,7 @@ object Equation {
                 // (ifTrueSort, condEqns union ifTrueEqns union ifFalseEqns + Equation(condSort, BoolSort) + Equation(ifTrueSort, ifFalseSort))
                 (ifTrueSort, condEqns union ifTrueEqns union ifFalseEqns ++ bothBranchesSameEqn)
             }
-            case EnumValue(_) => ???
+            case e: EnumValue => (enumLookupTable(e), Set.empty)
             case IntegerLiteral(_) => (IntSort, Set.empty)
             case BitVectorLiteral(value, bitwidth) => (BitVectorSort(bitwidth), Set.empty)
             case BuiltinApp(fn, args) => {
