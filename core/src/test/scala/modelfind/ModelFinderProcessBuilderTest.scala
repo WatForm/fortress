@@ -24,7 +24,7 @@ class StandardModelFinderProcessBuilderTest extends UnitSuite {
         )
         val functionInterpretations: Map[FuncDecl, Map[Seq[Value], Value]] = Map()
         
-        testCVC4(theory, Map(), sortInterpretations, constantInterpretations, functionInterpretations)
+        testCVC5(theory, Map(), sortInterpretations, constantInterpretations, functionInterpretations)
         testZ3(theory, Map(), sortInterpretations, constantInterpretations, functionInterpretations)
     }
     
@@ -40,7 +40,7 @@ class StandardModelFinderProcessBuilderTest extends UnitSuite {
         )
         val functionInterpretations: Map[FuncDecl, Map[Seq[Value], Value]] = Map()
         
-        testCVC4(theory, Map(), sortInterpretations, constantInterpretations, functionInterpretations)
+        testCVC5(theory, Map(), sortInterpretations, constantInterpretations, functionInterpretations)
         testZ3(theory, Map(), sortInterpretations, constantInterpretations, functionInterpretations)
     }
     
@@ -56,7 +56,7 @@ class StandardModelFinderProcessBuilderTest extends UnitSuite {
         )
         val functionInterpretations: Map[FuncDecl, Map[Seq[Value], Value]] = Map()
         
-        testCVC4(theory, Map(), sortInterpretations, constantInterpretations, functionInterpretations)
+        testCVC5(theory, Map(), sortInterpretations, constantInterpretations, functionInterpretations)
         testZ3(theory, Map(), sortInterpretations, constantInterpretations, functionInterpretations)
     }
     
@@ -78,7 +78,7 @@ class StandardModelFinderProcessBuilderTest extends UnitSuite {
         
         val scopes: Map[Sort, Int] = Map(S -> 1)
         
-        testCVC4(theory, scopes, sortInterpretations, constantInterpretations, functionInterpretations)
+        testCVC5(theory, scopes, sortInterpretations, constantInterpretations, functionInterpretations)
         testZ3(theory, scopes, sortInterpretations, constantInterpretations, functionInterpretations)
     }
     
@@ -118,17 +118,17 @@ class StandardModelFinderProcessBuilderTest extends UnitSuite {
         
         val scopes: Map[Sort, Int] = Map(S -> 2)
         
-        testCVC4(theory, scopes, sortInterpretations, constantInterpretations, functionInterpretations)
+        testCVC5(theory, scopes, sortInterpretations, constantInterpretations, functionInterpretations)
         testZ3(theory, scopes, sortInterpretations, constantInterpretations, functionInterpretations)
     }
     
-    def testCVC4(theory: Theory,
+    def testCVC5(theory: Theory,
         scopes: Map[Sort, Int],
         sortInterpretations: Map[Sort, Seq[Value]],
         constantInterpretations: Map[AnnotatedVar, Value],
         functionInterpretations: Map[FuncDecl, Map[Seq[Value], Value]]): Unit = {
         
-        testSolver(new CVC4CliSolver(), theory, scopes, sortInterpretations, constantInterpretations, functionInterpretations)
+        testSolver(new CVC5CliSolver(), theory, scopes, sortInterpretations, constantInterpretations, functionInterpretations)
     }
     
     def testZ3(theory: Theory,
