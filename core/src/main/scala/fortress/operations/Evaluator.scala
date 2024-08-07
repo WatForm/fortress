@@ -10,13 +10,11 @@ import scala.collection.mutable
   */
 class Evaluator(theory: Theory) {
 
-//    private val cache = mutable.Map[(String, Term), Option[Value]]()
     private val defnCache = mutable.Map[(String, Seq[Option[Value]]), Option[Value]]()
 
     def evaluate(term: Term): Option[Value] = doEvaluate(term, Map.empty)
 
     // Get the value that term evaluates to, or None if term is not interpretation-independent.
-    // TODO we need to more reliably replace bottom-up
     private def doEvaluate(term: Term, varMap: Map[Var, Option[Value]]): Option[Value] = term match {
         // Value literals
         case Top => Some(Top)
@@ -103,7 +101,7 @@ class Evaluator(theory: Theory) {
                 case Bottom => doEvaluate(ifFalse, varMap)
             }
 
-        // TODO: Evaluate quantifiers by expanding.
+        // TODO: Evaluate quantifiers by expanding?
         case Forall(vars, body) => None
         case Exists(vars, body) => None
 
@@ -111,7 +109,7 @@ class Evaluator(theory: Theory) {
         case Closure(_, _, _, _) => None
         case ReflexiveClosure(_, _, _, _) => None
 
-        // TODO: Evaluate integers and bitvectors and functions of them.
+        // TODO: Evaluate integers and bitvectors and functions of them!
         case IntegerLiteral(_) => None
         case BitVectorLiteral(_, _) => None
         case BuiltinApp(_, _) => None
