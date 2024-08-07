@@ -27,7 +27,7 @@ class SortInferenceTest extends UnitSuite {
         
         val (generalTheory, substitution) = theory.inferSorts
         generalTheory.sorts.size should be (3)
-        
+
         substitution(generalTheory) should be (theory)
     }
     
@@ -139,6 +139,14 @@ class SortInferenceTest extends UnitSuite {
         val (generalTheory, substitution) = theory.inferSorts
         generalTheory should be (theory)
         substitution shouldBe Symbol("isIdentity")
+    }
+
+    test("if-then-else") {
+        pending
+    }
+
+    test("closures") {
+        pending
     }
 
     test("function definitions 1") {
@@ -405,9 +413,9 @@ class SortInferenceTest extends UnitSuite {
         Set(c4General.sort, c5General.sort, BitVector(8)).size should be (3)
         c6General.sort should be (BitVector(8))
         gGeneral.argSorts(0) should be (c4General.sort)
-        gGeneral.resultSort should be (IntSort)
+        gGeneral.resultSort should be (BitVectorSort(8))
         fGeneral.argSorts(0) should be (c5General.sort)
-        fGeneral.argSorts(1) should be (IntSort)
+        fGeneral.argSorts(1) should be (BitVectorSort(8))
         fGeneral.resultSort should be (c4General.sort)
 
         substitution(generalTheory) should be (theory)

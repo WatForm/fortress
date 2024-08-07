@@ -80,36 +80,31 @@ class EquationTest extends UnitSuite {
         equations.filter(!redundant(_)) should have size (7)
     }
 
-    test("basic builtin sorts") {
-        val ax1 = Exists(Seq(v1 of t1, v2 of t2), App("g", v1, c1) === v2)
-        val ax2 = App("h", c1, c2) === c3
-        val ax3 = App("U", c4) <==> Top
-        val ax4 = Not(Bottom ==> c5)
-        val ax5 = Exists(v3 of t3, App("U", v3))
-        val ax6 = IfThenElse(c6, c7, c8)
 
-        val equations = Equation.accumulate(constantMap, functionMap, Set(ax1, ax2, ax3, ax4, ax5, ax6))
-        equations should contain (Equation(t1, BoolSort)) // ax1
-        equations should contain (Equation(x, IntSort)) // ax1
-        equations should contain (Equation(g_OUT, t2)) // ax1
-        equations should contain (Equation(x, h1)) // ax2
-        equations should contain (Equation(y, h2)) // ax2
-        equations should contain (Equation(IntSort, z)) // ax2
-        equations should contain (Equation(u1, n)) // ax3
-        equations should contain (Equation(u_OUT, BoolSort)) // ax3
-        equations should contain (Equation(BoolSort, m)) // ax4
-        equations should contain (Equation(t3, u1)) // ax5
-        equations should contain (Equation(BoolSort, u_OUT)) // ax5
-        equations should contain (Equation(alpha, BoolSort)) // ax6
-        equations should contain (Equation(beta, charlie)) // ax6
-        equations.filter(!redundant(_)) should have size (13)
-    }
+    // Updated: should not accumulate equations for builtin sorts
+    // test("basic builtin sorts") {
+    //     val ax1 = Exists(Seq(v1 of t1, v2 of t2), App("g", v1, c1) === v2)
+    //     val ax2 = App("h", c1, c2) === c3
+    //     val ax3 = App("U", c4) <==> Top
+    //     val ax4 = Not(Bottom ==> c5)
+    //     val ax5 = Exists(v3 of t3, App("U", v3))
+    //     val ax6 = IfThenElse(c6, c7, c8)
 
-    test("more builtin sorts") {
-        pending
-    }
+    //     val equations = Equation.accumulate(constantMap, functionMap, Set(ax1, ax2, ax3, ax4, ax5, ax6))
+    //     equations should contain (Equation(t1, BoolSort)) // ax1
+    //     equations should contain (Equation(x, IntSort)) // ax1
+    //     equations should contain (Equation(g_OUT, t2)) // ax1
+    //     equations should contain (Equation(x, h1)) // ax2
+    //     equations should contain (Equation(y, h2)) // ax2
+    //     equations should contain (Equation(IntSort, z)) // ax2
+    //     equations should contain (Equation(u1, n)) // ax3
+    //     equations should contain (Equation(u_OUT, BoolSort)) // ax3
+    //     equations should contain (Equation(BoolSort, m)) // ax4
+    //     equations should contain (Equation(t3, u1)) // ax5
+    //     equations should contain (Equation(BoolSort, u_OUT)) // ax5
+    //     equations should contain (Equation(alpha, BoolSort)) // ax6
+    //     equations should contain (Equation(beta, charlie)) // ax6
+    //     equations.filter(!redundant(_)) should have size (13)
+    // }
 
-    test("enum values") {
-        pending
-    }
 }
