@@ -136,7 +136,7 @@ class StandardSICompiler() extends StandardCompiler {
    use datatypes but turn it into EUF by getting rid of quantifiers (skolemize, quant exp)
    include range formulas
 */
-class DatatypeWithRangeEUFCompiler() extends EvaluateCompiler {
+class DatatypeWithRangeEUFCompiler() extends StandardCompiler {
 
     override def enumerateFiniteValues: ListBuffer[ProblemStateTransformer] = 
         CompilersRegistry.ListOfOne(DEsToEnumsTransformer)
@@ -160,7 +160,7 @@ class DatatypeNoRangeEUFCompiler() extends DatatypeWithRangeEUFCompiler() {
    don't get rid of quantifiers - not EUF (no nnf, no skolemize/quantifier expansion)
    use range formulas 
 */
-class DatatypeWithRangeNoEUFCompiler() extends EvaluateCompiler {
+class DatatypeWithRangeNoEUFCompiler() extends StandardCompiler {
     override def quantifierHandler: ListBuffer[ProblemStateTransformer] = 
         CompilersRegistry.NullTransformerList
 
