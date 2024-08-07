@@ -28,6 +28,7 @@ object CompilersRegistry {
             case "InlineDefnsAllConst" => new InlineDefnsAllConstCompiler()
             case "InlineDefnsIndep" => new InlineDefnsIndepCompiler()
             case "Evaluate" => new EvaluateCompiler()
+            case "EvaluateQDef" => new EvaluateQDefCompiler()
 
             case "Eijck" => new EijckCompiler()
 

@@ -245,3 +245,13 @@ class EvaluateCompiler extends StandardCompiler {
         transformerSequence
     }
 }
+
+class EvaluateQDefCompiler extends StandardCompiler {
+    override def quantifierHandler: ListBuffer[ProblemStateTransformer] = {
+        val transformerSequence = CompilersRegistry.NullTransformerList
+        transformerSequence += QuantifiersToDefnsTransformer
+        transformerSequence += QuantifierExpansionTransformer
+        transformerSequence += EvaluateTransformer
+        transformerSequence
+    }
+}
