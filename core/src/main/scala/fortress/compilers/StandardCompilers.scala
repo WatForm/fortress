@@ -193,42 +193,6 @@ class MaxUnboundedScopesCompiler extends StandardCompiler {
     }
 }
 
-class InlineDefnsSizeCompiler extends StandardCompiler {
-    override def quantifierHandler: ListBuffer[ProblemStateTransformer] = {
-        val transformerSequence = CompilersRegistry.NullTransformerList
-        transformerSequence += QuantifierExpansionTransformer
-        transformerSequence += new InlineDefinitionsTransformer(theory => new SizeAfterSimplifyingHeuristic(0.9, theory))
-        transformerSequence
-    }
-}
-
-class InlineDefnsAnyConstCompiler extends StandardCompiler {
-    override def quantifierHandler: ListBuffer[ProblemStateTransformer] = {
-        val transformerSequence = CompilersRegistry.NullTransformerList
-        transformerSequence += QuantifierExpansionTransformer
-        transformerSequence += new InlineDefinitionsTransformer(_ => AnyConstantArgsHeuristic)
-        transformerSequence
-    }
-}
-
-class InlineDefnsAllConstCompiler extends StandardCompiler {
-    override def quantifierHandler: ListBuffer[ProblemStateTransformer] = {
-        val transformerSequence = CompilersRegistry.NullTransformerList
-        transformerSequence += QuantifierExpansionTransformer
-        transformerSequence += new InlineDefinitionsTransformer(_ => AllConstantArgsHeuristic)
-        transformerSequence
-    }
-}
-
-class InlineDefnsIndepCompiler extends StandardCompiler {
-    override def quantifierHandler: ListBuffer[ProblemStateTransformer] = {
-        val transformerSequence = CompilersRegistry.NullTransformerList
-        transformerSequence += QuantifierExpansionTransformer
-        transformerSequence += new InlineDefinitionsTransformer(theory => new InterpretationIndependentHeuristic(theory))
-        transformerSequence
-    }
-}
-
 class EvaluateCompiler extends StandardCompiler {
     override def quantifierHandler: ListBuffer[ProblemStateTransformer] = {
         val transformerSequence = CompilersRegistry.NullTransformerList

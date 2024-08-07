@@ -40,7 +40,6 @@ object TransformersRegistry {
 
             // Definitions
             case "AxiomatizeFuncDefn" => AxiomatizeFuncDefnTransformer
-//            case "InlineDefinitions" => InlineDefinitionsTransformer
 
             // EnumerateFiniteValues
             case "DEsToDistinctConstants" => DEsToDistinctConstantsTransformer
