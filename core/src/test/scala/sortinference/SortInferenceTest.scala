@@ -142,7 +142,34 @@ class SortInferenceTest extends UnitSuite {
     }
 
     test("if-then-else") {
-        pending
+        val c1 = Var("c1")
+        val c2 = Var("c2")
+        val c3 = Var("c3")
+        val c4 = Var("c4")
+        val p = FuncDecl("p", A, BoolSort)
+        val ax = App("p", IfThenElse(Eq(c1, c2), c3, c4))
+
+        val theory = Theory.empty
+            .withSorts(A)
+            .withConstantDeclarations(c1 of A, c2 of A, c3 of A, c4 of A)
+            .withFunctionDeclaration(p)
+            .withAxiom(ax)
+        
+        // Result should be
+        // c1: A, c2: A, c3: B, c4: B
+        // p: B -> Bool
+
+        val (generalTheory, substitution) = theory.inferSorts
+        generalTheory.sorts.size should be (2)
+        val Seq(c1Gen, c2Gen, c3Gen, c4Gen) = Seq("c1", "c2", "c3", "c4").map(c => generalTheory.constantDeclarations.find(_.name == c).get)
+        val pGen = generalTheory.functionDeclarations.find(_.name == "p").get
+        
+        c1Gen.sort should be (c2Gen.sort)
+        c3Gen.sort should be (c4Gen.sort)
+        c3Gen.sort should be (pGen.argSorts(0))
+        Set(c1Gen.sort, c3Gen.sort).size should be (2)
+
+        substitution(generalTheory) should be (theory)
     }
 
     test("closures") {
