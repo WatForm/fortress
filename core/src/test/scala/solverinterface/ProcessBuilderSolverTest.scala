@@ -24,8 +24,8 @@ class ProcessBuilderSolverTest extends UnitSuite {
         
     val timeout = new Milliseconds(1000)
         
-    test("cvc4 basic incremental solve") {
-        Using.resource(new CVC4CliSolver) { solver => {
+    test("cvc5 basic incremental solve") {
+        Using.resource(new CVC5CliSolver) { solver => {
             solver.setTheory(theory)
             solver.solve(timeout) should be (ModelFinderResult.Sat)
             solver.addAxiom(x)
@@ -54,9 +54,9 @@ class ProcessBuilderSolverTest extends UnitSuite {
         )
     
     // Don't know if we should support this behaviour
-    test("cvc4 solve 2 different theories with 1 solver") {
+    test("cvc5 solve 2 different theories with 1 solver") {
         pending
-        Using.resource(new CVC4CliSolver) { solver => {
+        Using.resource(new CVC5CliSolver) { solver => {
             // solver.solve(theory, timeout, Seq()) should be (ModelFinderResult.Sat);
             // solver.solve(theory2, timeout, Seq()) should be (ModelFinderResult.Sat);
         }}
