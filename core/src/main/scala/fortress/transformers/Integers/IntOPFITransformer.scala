@@ -386,16 +386,18 @@ object IntOPFITransformer extends ProblemStateTransformer {
 
                 // up Does not overflow when all of its overflows are false
                 // Or.smart will default to false if no values included
-                val upDoesNotOverflow = Not(Or.smart(upCondition.univQuantChecks.toSeq ++ upCondition.extQuantChecks.toSeq))
+                // Be careful about not introducing dummy terms to avoid blowing up the term size
+                val upDoesNotOverflow = if (upCondition.univQuantChecks.isEmpty && upCondition.extQuantChecks.isEmpty) Set()
+                else Set(Not(Or.smart(upCondition.univQuantChecks.toSeq ++ upCondition.extQuantChecks.toSeq)))
                 // branches only cause an overflow if we actually use the value there
-                val overflowUniv = AndList(upDoesNotOverflow, 
-                    IfThenElse(transformedCondition, Or.smart(upTrue.univQuantChecks.toSeq), Or.smart(upFalse.univQuantChecks.toSeq))
-                    )
-                val overflowExt = AndList(upDoesNotOverflow, 
-                    IfThenElse(transformedCondition, Or.smart(upTrue.extQuantChecks.toSeq), Or.smart(upFalse.extQuantChecks.toSeq))
-                    )
+                val overflowUniv = if (upTrue.univQuantChecks.isEmpty && upFalse.univQuantChecks.isEmpty) Set()
+                else Set(And.smart(upDoesNotOverflow.toSeq :+ IfThenElse(transformedCondition,
+                    Or.smart(upTrue.univQuantChecks.toSeq), Or.smart(upFalse.univQuantChecks.toSeq))))
+                val overflowExt = if (upTrue.extQuantChecks.isEmpty && upFalse.extQuantChecks.isEmpty) Set()
+                else Set(And.smart(upDoesNotOverflow.toSeq :+ IfThenElse(transformedCondition,
+                    Or.smart(upTrue.extQuantChecks.toSeq), Or.smart(upFalse.extQuantChecks.toSeq))))
                 // We only use the condensed overflows
-                val newUp = UpInfo(upCondition.extQuantChecks + overflowExt, upCondition.univQuantChecks + overflowUniv)
+                val newUp = UpInfo(upCondition.extQuantChecks ++ overflowExt, upCondition.univQuantChecks ++ overflowUniv)
                 val transformedITE = IfThenElse(transformedCondition, transformedIfTrue, transformedIfFalse)
 
                 // predicate needs to be wrapped with the conditional's ability to overflow (the branches should already be handled)

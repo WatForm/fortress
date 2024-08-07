@@ -14,10 +14,13 @@ object Simplifier {
             case Distinct(args) => simplifyStep(Distinct(args.map(simplifyFull)))
             case Exists(vars, body) => simplifyStep(Exists(vars, simplifyFull(body)))
             case Forall(vars, body) => simplifyStep(Forall(vars, simplifyFull(body)))
-            // We consider applications, equals and closures to be atomic and have non-Boolean arguments
-            // so we need not recurse on their arguments
-            case Eq(_, _) | App(_, _) | BuiltinApp(_, _) | Closure(_, _, _, _)
-                 | ReflexiveClosure(_, _, _, _) => simplifyStep(term)
+            case Eq(left, right) => simplifyStep(Eq(simplifyFull(left), simplifyFull(right)))
+            case App(name, args) => simplifyStep(App(name, args.map(simplifyFull)))
+            case BuiltinApp(op, args) => simplifyStep(BuiltinApp(op, args.map(simplifyFull)))
+            case Closure(name, arg1, arg2, fixedArgs) =>
+                simplifyStep(Closure(name, simplifyFull(arg1), simplifyFull(arg2), fixedArgs.map(simplifyFull)))
+            case ReflexiveClosure(name, arg1, arg2, fixedArgs) =>
+                simplifyStep(ReflexiveClosure(name, simplifyFull(arg1), simplifyFull(arg2), fixedArgs.map(simplifyFull)))
             case Top | Bottom | Var(_) | EnumValue(_) | DomainElement(_, _)
                  | IntegerLiteral(_) | BitVectorLiteral(_, _) => term
             case IfThenElse(condition, ifTrue, ifFalse) => simplifyStep(
