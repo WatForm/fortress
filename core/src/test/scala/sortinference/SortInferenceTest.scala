@@ -27,6 +27,7 @@ class SortInferenceTest extends UnitSuite {
         
         val (generalTheory, substitution) = theory.inferSorts
         generalTheory.sorts.size should be (3)
+        
         substitution(generalTheory) should be (theory)
     }
     
@@ -39,6 +40,7 @@ class SortInferenceTest extends UnitSuite {
         
         val (generalTheory, substitution) = theory.inferSorts
         generalTheory.sorts.size should be (3)
+
         substitution(generalTheory) should be (theory)
     }
     
@@ -61,6 +63,7 @@ class SortInferenceTest extends UnitSuite {
             
         val (generalTheory, substitution) = theory.inferSorts
         generalTheory.sorts.size should be (3)
+
         substitution(generalTheory) should be (theory)
     }
     
@@ -79,6 +82,7 @@ class SortInferenceTest extends UnitSuite {
         
         val (generalTheory, substitution) = theory.inferSorts
         generalTheory.sorts.size should be (3)
+
         substitution(generalTheory) should be (theory)
     }
     
@@ -97,6 +101,7 @@ class SortInferenceTest extends UnitSuite {
             
         val (generalTheory, substitution) = theory.inferSorts
         generalTheory.sorts.size should be (2)
+
         substitution(generalTheory) should be (theory)
     }
     
@@ -116,6 +121,7 @@ class SortInferenceTest extends UnitSuite {
         
         val (generalTheory, substitution) = theory.inferSorts
         generalTheory.sorts.size should be (2)
+
         substitution(generalTheory) should be (theory)
     }
     
@@ -168,6 +174,7 @@ class SortInferenceTest extends UnitSuite {
         f0 should be (g0)
         f1 should be (g1)
         fout should be (gout)
+
         substitution(generalTheory) should be (theory)
     }
 
@@ -210,6 +217,7 @@ class SortInferenceTest extends UnitSuite {
         Set(g1, f1).size should be (1) // B
         Set(gout, h0).size should be (1) // C
         Set(h2, f2).size should be (1)
+
         substitution(generalTheory) should be (theory)
     }
 
@@ -306,7 +314,7 @@ class SortInferenceTest extends UnitSuite {
         val pGeneral = generalTheory.functionDeclarations.find(_.name == "p").get
         val qGeneral = generalTheory.functionDeclarations.find(_.name == "q").get
         val c1Sort = c1General.sort
-        val c2Sort = c1General.sort
+        val c2Sort = c2General.sort
         val f0 = fGeneral.argSorts(0)
         val f1 = fGeneral.argSorts(1)
         val fout = fGeneral.resultSort
@@ -324,8 +332,8 @@ class SortInferenceTest extends UnitSuite {
         pout should be (BoolSort)
         q0 should be (BoolSort)
         qout should be (BoolSort)
-        substitution(generalTheory) should be (theory)
 
+        substitution(generalTheory) should be (theory)
     }
 
     test("integers should play no role in sort inference") {
@@ -362,6 +370,7 @@ class SortInferenceTest extends UnitSuite {
         fGeneral.argSorts(0) should be (c2General.sort)
         fGeneral.argSorts(1) should be (IntSort)
         fGeneral.resultSort should be (c1General.sort)
+        
         substitution(generalTheory) should be (theory)
     }
 
@@ -400,6 +409,7 @@ class SortInferenceTest extends UnitSuite {
         fGeneral.argSorts(0) should be (c5General.sort)
         fGeneral.argSorts(1) should be (IntSort)
         fGeneral.resultSort should be (c4General.sort)
+
         substitution(generalTheory) should be (theory)
     }
 }

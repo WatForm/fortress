@@ -185,7 +185,7 @@ object SortSubstitution {
         new SortSubstitution((constantDeclsMapping ++ constantDefnsMapping ++  functionsMapping).toMap)
     }
 
-    // Takes two terms that have the same shape modulo sorts, and produces a substitutuion
+    // Takes two terms that have the same shape modulo sorts, and produces a substitution
     // which turns the input term into the output term
     def computeTermMapping(input: Term, output: Term): SortSubstitution = {
         def recur(input: Term, output: Term): Map[Sort, Sort] = (input, output) match {
@@ -217,6 +217,7 @@ object SortSubstitution {
             case (IfThenElse(c1, t1, f1), IfThenElse(c2, t2, f2)) => recurs(Seq(c1, t1, f1), Seq(c2, t2, f2))
             case (IntegerLiteral(_), IntegerLiteral(_)) => Map()
             case (BitVectorLiteral(_, _), BitVectorLiteral(_, _)) => Map()
+            case (BuiltinApp(f1, args1), BuiltinApp(f2, args2)) => recurs(args1, args2)
             case _ => ???
         }
 
