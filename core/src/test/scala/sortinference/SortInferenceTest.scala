@@ -173,7 +173,35 @@ class SortInferenceTest extends UnitSuite {
     }
 
     test("closures") {
-        pending
+        val c1 = Var("c1")
+        val c2 = Var("c2")
+        val c3 = Var("c3")
+        val c4 = Var("c4")
+
+        val p = FuncDecl("p", A, A, A, A, BoolSort)
+        val ax = ReflexiveClosure("p", c1, c2, Seq(c3, c4))
+
+        val theory = Theory.empty
+            .withSorts(A)
+            .withConstantDeclarations(c1 of A, c2 of A, c3 of A, c4 of A)
+            .withFunctionDeclaration(p)
+            .withAxiom(ax)
+
+        // Result should be
+        // c1: A, c2: A, c3: B, c4: C
+        // p: A x A x B x C -> BoolSort
+
+        val (generalTheory, substitution) = theory.inferSorts
+        generalTheory.sorts.size should be (3)
+        val Seq(c1Gen, c2Gen, c3Gen, c4Gen) = Seq("c1", "c2", "c3", "c4").map(c => generalTheory.constantDeclarations.find(_.name == c).get)
+        val pGen = generalTheory.functionDeclarations.find(_.name == "p").get
+        
+        Set(c1Gen.sort, c2Gen.sort, pGen.argSorts(0), pGen.argSorts(1)).size should be (1)
+        Set(c3Gen.sort, pGen.argSorts(2)).size should be (1)
+        Set(c4Gen.sort, pGen.argSorts(3)).size should be (1)
+        pGen.resultSort should be (BoolSort)
+        Set(c1Gen.sort, c3Gen.sort, c4Gen.sort).size should be (3)
+        substitution(generalTheory) should be (theory)
     }
 
     test("function definitions 1") {

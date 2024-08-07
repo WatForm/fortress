@@ -217,6 +217,18 @@ object SortSubstitution {
             case (IntegerLiteral(_), IntegerLiteral(_)) => Map()
             case (BitVectorLiteral(_, _), BitVectorLiteral(_, _)) => Map()
             case (BuiltinApp(f1, args1), BuiltinApp(f2, args2)) => recurs(args1, args2)
+            case (Closure(f1, args1a, args1b, fixedArgs1), Closure(f2, args2a, args2b, fixedArgs2)) => {
+                val mapA = recur(args1a, args2a)
+                val mapB = recur(args1b, args2b)
+                val mapFixed = recurs(fixedArgs1, fixedArgs2)
+                Maps.merge(Maps.merge(mapA, mapB), mapFixed)
+            }
+            case (ReflexiveClosure(f1, args1a, args1b, fixedArgs1), ReflexiveClosure(f2, args2a, args2b, fixedArgs2)) => {
+                val mapA = recur(args1a, args2a)
+                val mapB = recur(args1b, args2b)
+                val mapFixed = recurs(fixedArgs1, fixedArgs2)
+                Maps.merge(Maps.merge(mapA, mapB), mapFixed)
+            }
             case _ => ???
         }
 

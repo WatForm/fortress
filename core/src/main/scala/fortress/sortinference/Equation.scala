@@ -96,9 +96,12 @@ object Equation {
                 (BoolSort, (lEqns union rEqns) ++ newEqn)
             }
             case App(name, args) => {
-                Errors.Internal.assertion(functionLookupTable.contains(name),name+" not in functionMap")
+                Errors.Internal.assertion(functionLookupTable.contains(name), name + " not in functionMap")
+
                 val FuncDecl(_, argSorts, resSort) = functionLookupTable(name)
+                
                 Errors.Internal.assertion(argSorts.size == args.size)
+
                 val recurInfo = args map {recur(_, context)}
                 val recurArgSorts = recurInfo map (_._1)
                 val recurEqns = recurInfo flatMap (_._2)
@@ -107,16 +110,59 @@ object Equation {
                 val newEqns: Seq[Option[Equation]] = for {
                     (sort1, sort2) <- argSorts zip recurArgSorts
                 } yield (sort1, sort2) match {
-                    case (s1: SortConst, s2: SortConst) => Some(Equation(sort1, sort2))
+                    case (s1: SortConst, s2: SortConst) => Some(Equation(s1, s2))
                     case (s1, s2) => {
                         // Should be equal builtin sorts
                         Errors.Internal.assertion(s1 == s2)
                         None
                     }
-                } 
+                }
                 
                 val eqns = (recurEqns ++ newEqns.flatten).toSet
                 (resSort, eqns)
+            }
+            case cl @ Closure(functionName, arg1, arg2, fixedArgs) => {
+                Errors.Internal.assertion(functionLookupTable.contains(functionName), functionName + " not in functionMap")
+
+                val FuncDecl(_, argSorts, resSort) = functionLookupTable(functionName)
+                
+                Errors.Internal.assertion(argSorts.size == fixedArgs.size + 2)
+                Errors.Internal.assertion(resSort == BoolSort)
+                
+                val (sortArg1, eqnsArg1) = recur(arg1, context)
+                val (sortArg2, eqnsArg2) = recur(arg2, context)
+                val fixedRecurInfo = fixedArgs map {recur(_, context)}
+                val fixedRecurArgSorts = fixedRecurInfo map (_._1)
+                val fixedRecurEqns = fixedRecurInfo flatMap (_._2)
+                
+                // Add to equations that the argument sorts must match up
+                val newEqns: Seq[Option[Equation]] = for {
+                    (sortA, sortB) <- argSorts zip (Seq(sortArg1, sortArg2) ++ fixedRecurArgSorts)
+                } yield (sortA, sortB) match {
+                    case (s1: SortConst, s2: SortConst) => Some(Equation(s1, s2))
+                    case (s1, s2) => {
+                        // Should be equal builtin sorts
+                        Errors.Internal.assertion(s1 == s2)
+                        None
+                    }
+                }
+
+                // Add to equations that arg1, arg2 must have same sort
+
+                val arg12Equation: Option[Equation] = (sortArg1, sortArg2) match {
+                    case (s1: SortConst, s2: SortConst) => Some(Equation(s1, s2))
+                    case (s1, s2) => {
+                        // Should be equal builtin sorts
+                        Errors.Internal.assertion(s1 == s2)
+                        None
+                    }
+                }
+                
+                (BoolSort, eqnsArg1 ++ eqnsArg2 ++ fixedRecurEqns ++ newEqns.flatten ++ arg12Equation)
+            }
+            case ReflexiveClosure(functionName, arg1, arg2, fixedArgs) => {
+                // Should be exactly the same as transitive closure
+                recur(Closure(functionName, arg1, arg2, fixedArgs), context)
             }
             case Exists(avars, body) => {
                 // Must put variables on context stack in reverse
