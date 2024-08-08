@@ -40,7 +40,12 @@ case class FunctionDefinition(name: String, argSortedVar: Seq[AnnotatedVar], res
     }
 
     def asAxiom: Term = {
-        Forall(argSortedVar, Eq(App(name, argSortedVar.map(_.variable)), body))
+        if(resultSort == BoolSort) {
+            Forall(argSortedVar, Iff(App(name, argSortedVar.map(_.variable)), body))
+        } else {
+            Forall(argSortedVar, Eq(App(name, argSortedVar.map(_.variable)), body))
+        }
+        
     }
 
     def asDeclWithoutBody: FuncDecl = FuncDecl(name, argSortedVar.map(_.sort), resultSort)

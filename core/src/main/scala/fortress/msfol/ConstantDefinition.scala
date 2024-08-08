@@ -11,7 +11,13 @@ case class ConstantDefinition(avar: AnnotatedVar, body: Term) {
 
     def mapBody(f: Term => Term): ConstantDefinition = copy(body = f(body))
 
-    def asAxiom: Term = Eq(avar.variable, body)
+    def asAxiom: Term = {
+        if(sort == BoolSort) {
+            Iff(variable, body)
+        } else {
+            Eq(variable, body)
+        }
+    }
 }
 
 object ConstantDefinition{
