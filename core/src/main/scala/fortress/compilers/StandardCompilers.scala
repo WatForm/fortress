@@ -213,6 +213,12 @@ class EvaluateCompiler extends StandardCompiler {
     }
 }
 
+class NoQDefCompiler extends StandardCompiler {
+    override def quantifierHandler: ListBuffer[ProblemStateTransformer] =
+        // no QuantifiersToDefnsTransformer
+        CompilersRegistry.ListOfOne(QuantifierExpansionTransformer)
+}
+
 class EvaluateQDefCompiler extends StandardCompiler {
     // uses standard quantifierHandler, which includes QuantifiersToDefnsTransformer
     override def simplifiers: ListBuffer[ProblemStateTransformer] = {

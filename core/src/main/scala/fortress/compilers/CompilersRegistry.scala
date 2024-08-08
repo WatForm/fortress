@@ -25,6 +25,7 @@ object CompilersRegistry {
 
             case "Evaluate" => new EvaluateCompiler()
             case "EvaluateQDef" => new EvaluateQDefCompiler()
+            case "NoQDef" => new NoQDefCompiler()
 
             case "Eijck" => new EijckCompiler()
 
