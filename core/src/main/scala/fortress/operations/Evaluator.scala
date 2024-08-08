@@ -105,12 +105,20 @@ class Evaluator(theory: Theory) {
                 case Top => recurse(right)
                 case Bottom => Some(Top) // (false => x) == true for all x
             }
-        case Iff(left, right) => (recurse(left) zip recurse(right)) map {
-            case (a, b) => fromBool(toBool(a) == toBool(b))
-        }
-        case Eq(left, right) => (recurse(left) zip recurse(right)) map {
-            case (a, b) => fromBool(a == b)
-        }
+        case Iff(left, right) =>
+            // Short-circuit: if left is unknown, don't evaluate right
+            recurse(left) flatMap { leftValue =>
+                recurse(right) map { rightValue =>
+                    fromBool(toBool(leftValue) == toBool(rightValue))
+                }
+            }
+        case Eq(left, right) =>
+            // Short-circuit: if left is unknown, don't evaluate right
+            recurse(left) flatMap { leftValue =>
+                recurse(right) map { rightValue =>
+                    fromBool(leftValue == rightValue)
+                }
+            }
         case IfThenElse(condition, ifTrue, ifFalse) =>
             // Short-circuit: if condition evaluates, don't even evaluate the other branch
             recurse(condition) flatMap {
