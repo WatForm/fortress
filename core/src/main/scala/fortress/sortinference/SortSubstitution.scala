@@ -19,7 +19,7 @@ trait GeneralSortSubstitution {
     
     // Apply the Sort function to every appearence of a Sort in a Term.
     def apply(term: Term): Term = term match {
-        case Top | Bottom | Var(_)  => term
+        case Top | Bottom | Var(_) | EnumValue(_) | IntegerLiteral(_) | BitVectorLiteral(_, _) => term
         case Not(p) => Not(apply(p))
         case AndList(args) => AndList(args map apply)
         case OrList(args) => OrList(args map apply)
@@ -39,10 +39,7 @@ trait GeneralSortSubstitution {
             Forall(newVars, apply(body))
         }
         case DomainElement(index, sort) => DomainElement(index, apply(sort))
-        case EnumValue(_) => term 
         case BuiltinApp(name, args) => BuiltinApp(name, args map apply)
-        case IntegerLiteral(_) => term  
-        case BitVectorLiteral(_, _) => term
         case IfThenElse(condition, ifTrue, ifFalse) => IfThenElse(apply(condition), apply(ifTrue), apply(ifFalse))
     }
     
@@ -68,14 +65,13 @@ trait GeneralSortSubstitution {
     // Apply the Sort function to every appearence of a Sort in a Signature.
     def apply(signature: Signature): Signature = signature match {
         case Signature(sorts, functionDeclarations, functionDefinitions, constantDeclarations, constantDefinitions, enumConstants) => {
-            Errors.Internal.precondition(enumConstants.isEmpty)
             Signature(
                 sorts map apply,
                 functionDeclarations map apply,
                 functionDefinitions map apply,
                 constantDeclarations map apply,
                 constantDefinitions map apply,
-                Map.empty
+                enumConstants.map{case(sort, enumConstants) => (apply(sort), enumConstants)}
             )
         }
     }
@@ -188,7 +184,7 @@ object SortSubstitution {
         new SortSubstitution((constantDeclsMapping ++ constantDefnsMapping ++  functionsMapping).toMap)
     }
 
-    // Takes two terms that have the same shape modulo sorts, and produces a substitutuion
+    // Takes two terms that have the same shape modulo sorts, and produces a substitution
     // which turns the input term into the output term
     def computeTermMapping(input: Term, output: Term): SortSubstitution = {
         def recur(input: Term, output: Term): Map[Sort, Sort] = (input, output) match {
@@ -220,6 +216,19 @@ object SortSubstitution {
             case (IfThenElse(c1, t1, f1), IfThenElse(c2, t2, f2)) => recurs(Seq(c1, t1, f1), Seq(c2, t2, f2))
             case (IntegerLiteral(_), IntegerLiteral(_)) => Map()
             case (BitVectorLiteral(_, _), BitVectorLiteral(_, _)) => Map()
+            case (BuiltinApp(f1, args1), BuiltinApp(f2, args2)) => recurs(args1, args2)
+            case (Closure(f1, args1a, args1b, fixedArgs1), Closure(f2, args2a, args2b, fixedArgs2)) => {
+                val mapA = recur(args1a, args2a)
+                val mapB = recur(args1b, args2b)
+                val mapFixed = recurs(fixedArgs1, fixedArgs2)
+                Maps.merge(Maps.merge(mapA, mapB), mapFixed)
+            }
+            case (ReflexiveClosure(f1, args1a, args1b, fixedArgs1), ReflexiveClosure(f2, args2a, args2b, fixedArgs2)) => {
+                val mapA = recur(args1a, args2a)
+                val mapB = recur(args1b, args2b)
+                val mapFixed = recurs(fixedArgs1, fixedArgs2)
+                Maps.merge(Maps.merge(mapA, mapB), mapFixed)
+            }
             case _ => ???
         }
 
@@ -282,4 +291,24 @@ class ValuedSortSubstitution(sortMapping: Map[Sort,Sort], valueMapping: Map[Valu
 
         FunctionDefinition(name, newArgSorts, newResultSort, newBody)
     }}
+}
+
+// A substitution that always assigns a unique new sort to every sort it sees.
+// Even if it sees the same sort twice, it will spit out a different sort
+class FreshCountingSubstitution extends GeneralSortSubstitution {
+    var index = 0
+    def freshInt(): Int = {
+        val temp = index
+        index += 1
+        temp
+    }
+
+    def sortVar(index: Int): SortConst = SortConst("S" + index.toString)
+        
+    def sortVarAsInt(s: SortConst): Int = s.name.tail.toInt
+    
+    override def apply(sort: Sort) = sort match {
+        case SortConst(_) => sortVar(freshInt())
+        case sort => sort
+    }
 }

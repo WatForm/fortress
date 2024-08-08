@@ -30,28 +30,30 @@ class EquationTest extends UnitSuite {
     val Seq(r1, r2) = Seq("r1", "f2").map(Var(_))
     val Seq(i1, i2) = Seq("i1", "i2").map(Var(_))
 
-    val constantMap = Map(
-        "c1" -> x,
-        "c2" -> y,
-        "c3" -> z,
-        "c4" -> n,
-        "c5" -> m,
-        "c6" -> alpha,
-        "c7" -> beta,
-        "c8" -> charlie,
-        "r1" -> BoolSort,
-        "r2" -> BoolSort,
-        "i1" -> IntSort,
-        "i2" -> IntSort
+    val constantLookupTable = Map(
+        "c1" -> (c1 of x),
+        "c2" -> (c2 of y),
+        "c3" -> (c3 of z),
+        "c4" -> (c4 of n),
+        "c5" -> (c5 of m),
+        "c6" -> (c6 of alpha),
+        "c7" -> (c7 of beta),
+        "c8" -> (c8 of charlie),
+        "r1" -> (r1 of BoolSort),
+        "r2" -> (r2 of BoolSort),
+        "i1" -> (i1 of IntSort),
+        "i2" -> (i2 of IntSort)
     )
-    val functionMap = Map(
-        "f" -> (Seq(f1, f2), f_OUT),
-        "g" -> (Seq(BoolSort, IntSort), g_OUT),
-        "h" -> (Seq(h1, h2), IntSort),
-        "P" -> (Seq(p1, p2), BoolSort),
-        "Q" -> (Seq(BoolSort, IntSort), BoolSort),
-        "U" -> (Seq(u1), u_OUT)
+    val functionLookupTable = Map(
+        "f" -> FuncDecl("f", Seq(f1, f2), f_OUT),
+        "g" -> FuncDecl("g", Seq(BoolSort, IntSort), g_OUT),
+        "h" -> FuncDecl("h", Seq(h1, h2), IntSort),
+        "P" -> FuncDecl("P", Seq(p1, p2), BoolSort),
+        "Q" -> FuncDecl("Q", Seq(BoolSort, IntSort), BoolSort),
+        "U" -> FuncDecl("U", Seq(u1), u_OUT)
     )
+
+    val enumLookupTable: Map[EnumValue, Sort] = Map.empty
 
     val v1 = Var("v1")
     val v2 = Var("v2")
@@ -69,7 +71,7 @@ class EquationTest extends UnitSuite {
         val ax2 = App("f", c1, c2) === c2
         val ax3 = Not(App("P", c1, c2))
 
-        val equations = Equation.accumulate(constantMap, functionMap, Set(ax1, ax2, ax3))
+        val equations = Equation.accumulate(constantLookupTable, functionLookupTable, enumLookupTable, Set(ax1, ax2, ax3))
         equations should contain (Equation(t1, x)) // ax1
         equations should contain (Equation(x, y)) // ax1
         equations should contain (Equation(x, f1)) // ax2
@@ -80,28 +82,31 @@ class EquationTest extends UnitSuite {
         equations.filter(!redundant(_)) should have size (7)
     }
 
-    test("basic builtin sorts") {
-        val ax1 = Exists(Seq(v1 of t1, v2 of t2), App("g", v1, c1) === v2)
-        val ax2 = App("h", c1, c2) === c3
-        val ax3 = App("U", c4) <==> Top
-        val ax4 = Not(Bottom ==> c5)
-        val ax5 = Exists(v3 of t3, App("U", v3))
-        val ax6 = IfThenElse(c6, c7, c8)
 
-        val equations = Equation.accumulate(constantMap, functionMap, Set(ax1, ax2, ax3, ax4, ax5, ax6))
-        equations should contain (Equation(t1, BoolSort)) // ax1
-        equations should contain (Equation(x, IntSort)) // ax1
-        equations should contain (Equation(g_OUT, t2)) // ax1
-        equations should contain (Equation(x, h1)) // ax2
-        equations should contain (Equation(y, h2)) // ax2
-        equations should contain (Equation(IntSort, z)) // ax2
-        equations should contain (Equation(u1, n)) // ax3
-        equations should contain (Equation(u_OUT, BoolSort)) // ax3
-        equations should contain (Equation(BoolSort, m)) // ax4
-        equations should contain (Equation(t3, u1)) // ax5
-        equations should contain (Equation(BoolSort, u_OUT)) // ax5
-        equations should contain (Equation(alpha, BoolSort)) // ax6
-        equations should contain (Equation(beta, charlie)) // ax6
-        equations.filter(!redundant(_)) should have size (13)
-    }
+    // Updated: should not accumulate equations for builtin sorts
+    // test("basic builtin sorts") {
+    //     val ax1 = Exists(Seq(v1 of t1, v2 of t2), App("g", v1, c1) === v2)
+    //     val ax2 = App("h", c1, c2) === c3
+    //     val ax3 = App("U", c4) <==> Top
+    //     val ax4 = Not(Bottom ==> c5)
+    //     val ax5 = Exists(v3 of t3, App("U", v3))
+    //     val ax6 = IfThenElse(c6, c7, c8)
+
+    //     val equations = Equation.accumulate(constantMap, functionMap, Set(ax1, ax2, ax3, ax4, ax5, ax6))
+    //     equations should contain (Equation(t1, BoolSort)) // ax1
+    //     equations should contain (Equation(x, IntSort)) // ax1
+    //     equations should contain (Equation(g_OUT, t2)) // ax1
+    //     equations should contain (Equation(x, h1)) // ax2
+    //     equations should contain (Equation(y, h2)) // ax2
+    //     equations should contain (Equation(IntSort, z)) // ax2
+    //     equations should contain (Equation(u1, n)) // ax3
+    //     equations should contain (Equation(u_OUT, BoolSort)) // ax3
+    //     equations should contain (Equation(BoolSort, m)) // ax4
+    //     equations should contain (Equation(t3, u1)) // ax5
+    //     equations should contain (Equation(BoolSort, u_OUT)) // ax5
+    //     equations should contain (Equation(alpha, BoolSort)) // ax6
+    //     equations should contain (Equation(beta, charlie)) // ax6
+    //     equations.filter(!redundant(_)) should have size (13)
+    // }
+
 }

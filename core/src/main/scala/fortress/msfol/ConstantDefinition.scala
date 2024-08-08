@@ -10,6 +10,8 @@ case class ConstantDefinition(avar: AnnotatedVar, body: Term) {
     override def toString: String = {f"ConstantDefinition(${avar}, ${body})"}
 
     def mapBody(f: Term => Term): ConstantDefinition = copy(body = f(body))
+
+    def asAxiom: Term = Eq(avar.variable, body)
 }
 
 object ConstantDefinition{

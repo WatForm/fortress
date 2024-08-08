@@ -145,6 +145,11 @@ case class Theory private (signature: Signature, axioms: Set[Term]) {
         // TODO consistency checking
         Theory(signature.withEnumSort(t, values), axioms)
     }
+
+    def withEnumSorts(map: Map[Sort, Seq[EnumValue]]) = {
+      // TODO consistency checking
+      Theory(signature.withEnumSorts(map), axioms)
+    }
     
     // End of published interface
     

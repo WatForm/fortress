@@ -29,7 +29,7 @@ class UnificationTest extends UnitSuite {
             Equation(IntSort, IntSort)
         )
 
-        val unifier: SortSubstitution = Unification.unify(equations.toList)
+        val unifier: SortSubstitution = Equation.unify(equations.toList)
         unifier(S1) should be (BoolSort)
         unifier(S2) should be (BoolSort)
         unifier(S3) should be (IntSort)

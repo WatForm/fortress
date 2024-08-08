@@ -38,6 +38,12 @@ case class FunctionDefinition(name: String, argSortedVar: Seq[AnnotatedVar], res
     def mapBody(f: Term => Term): FunctionDefinition = {
         FunctionDefinition(name, argSortedVar, resultSort, f(body))
     }
+
+    def asAxiom: Term = {
+        Forall(argSortedVar, Eq(App(name, argSortedVar.map(_.variable)), body))
+    }
+
+    def asDeclWithoutBody: FuncDecl = FuncDecl(name, argSortedVar.map(_.sort), resultSort)
 }
 
 object FunctionDefinition {

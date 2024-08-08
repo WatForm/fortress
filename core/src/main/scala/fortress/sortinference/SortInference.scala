@@ -6,72 +6,73 @@ import scala.collection.mutable
 import fortress.data._
 import scala.language.implicitConversions
 
-// Only allows for Bool and SortConst
 object SortInference {
     
-    // Computes a substitution that maps a more generally-sorted theory to the original theory
+    // Given a theory, computes the most generally-sorted form of that theory (first return value), and a sort substitution (second return value) that maps the generally-sorted theory to the original input theory
     def inferSorts(theory: Theory): (Theory, SortSubstitution) = {
-        /** 
-            Booleans don't need to be factored into equation solving.
-            Only solve equations between type variables.
-        */
-        def sortVar(index: Int): SortConst = SortConst("S" + index.toString)
+        // Bool, Int, BitVector don't need to be factored into equation solving.
+        // Only solve equations between sort variables.
         
-        def sortVarAsInt(s: SortConst): Int = s.name.tail.toInt
-        
-        object freshSubstitution extends GeneralSortSubstitution {
-            var index = 0
-            def freshInt(): Int = {
-                val temp = index
-                index += 1
-                temp
-            }
-            
-            override def apply(sort: Sort) = sort match {
-                case SortConst(_) => sortVar(freshInt())
-                case sort => sort
-            }
-        }
+        val freshSubstitution = new FreshCountingSubstitution
         
         // Associate each constant with a fresh sort variable
-        val constantMap: Map[String, Sort] = theory.constantDeclarations.map {c => c.name -> freshSubstitution(c).sort}.toMap
+        // Constants with declarations
+        val freshConstDeclMap: Map[AnnotatedVar, AnnotatedVar] = theory.constantDeclarations.map(c => c -> freshSubstitution(c)).toMap
+        // Constants with definitions
+        val freshConstDefnMap: Map[ConstantDefinition, ConstantDefinition] = theory.constantDefinitions.map(c => c -> freshSubstitution(c)).toMap
+        // All constants
+        val constantLookupTable: Map[String, AnnotatedVar] = freshConstDeclMap.map{case (originalAv, newAv) => originalAv.name -> newAv} ++ freshConstDefnMap.map{case (originalDefn, newDefn) => originalDefn.name -> newDefn.avar}
         
         // Associate each function with a collection of fresh sorts
-        val fnMap: Map[String, (Seq[Sort], Sort)] = theory.functionDeclarations.map { f => {
-            val f_sub = freshSubstitution(f)
-            f.name -> (f_sub.argSorts, f_sub.resultSort)
-        }}.toMap
+        // Functions with declarations
+        val freshFuncDeclMap: Map[FuncDecl, FuncDecl] = theory.functionDeclarations.map(f => (f -> freshSubstitution(f))).toMap
+        // Functions with definitions
+        val freshFuncDefnMap: Map[FunctionDefinition, FunctionDefinition] = theory.functionDefinitions.map(f => (f -> freshSubstitution(f))).toMap
+        // All functions
+        val functionLookupTable: Map[String, FuncDecl] = freshFuncDeclMap.map{case (originalDecl, newDecl) => originalDecl.name -> newDecl} ++ freshFuncDefnMap.map{case (originalDefn, newDefn) => originalDefn.name -> newDefn.asDeclWithoutBody}
+
+        // For enums, generate only one fresh sort for all enums of the same sort; i.e. they all get the same sort
+        val freshEnumSorts = theory.enumConstants.map{case(sort, enumConstants) => (freshSubstitution(sort), enumConstants)}
+        val enumLookupTable = for {
+            (sort, enumConstants) <- freshEnumSorts
+            enumConst <- enumConstants
+        } yield (enumConst -> sort)
         
         // Maps original theory axiom to fresh axiom
         val freshAxioms: Map[Term, Term] = { theory.axioms map (ax => ax -> freshSubstitution(ax)) }.toMap
         
-        // Gather equations
-        val equations: Set[Equation] = Equation.accumulate(constantMap, fnMap, freshAxioms.values.toSet)
+        // Gather equations from axioms and definition bodies
+        val constDefnAxioms = freshConstDefnMap.values.map(_.asAxiom).toSet
+        val funcDefnAxioms = freshFuncDefnMap.values.map(_.asAxiom).toSet
+        val temporaryAxioms = constDefnAxioms union funcDefnAxioms
+        val equations: Set[Equation] = Equation.accumulate(constantLookupTable, functionLookupTable, enumLookupTable, freshAxioms.values.toSet union temporaryAxioms)
         
-        // Solve Equations, giving substitution from fresh theory to general theory
-        val sortSubstitution = Unification.unify(equations.toList)
+        // Solve equations, giving substitution from fresh theory to general theory
+        val sortSubstitution = Equation.unify(equations.toList)
         
         // Create new signature and terms using substitution
-        val newConstants: Set[AnnotatedVar] = theory.constantDeclarations map (av => {
-            Var(av.name) of sortSubstitution(constantMap(av.name))
-        })
+        val newConstantDeclarations: Set[AnnotatedVar] = theory.constantDeclarations.map(av => sortSubstitution(freshConstDeclMap(av)))
+        val newConstantDefintions: Set[ConstantDefinition] = theory.constantDefinitions.map(cdef => sortSubstitution(freshConstDefnMap(cdef)))
+
+        val newFunctionDeclarations: Set[FuncDecl] = theory.functionDeclarations.map(f => sortSubstitution(freshFuncDeclMap(f)))
+        val newFunctionDefinitions: Set[FunctionDefinition] = theory.functionDefinitions.map(f => sortSubstitution(freshFuncDefnMap(f)))
         
-        val newFunctions: Set[FuncDecl] = theory.functionDeclarations map (f => {
-            val (argSorts, resSort) = fnMap(f.name)
-            val newArgSorts: Seq[Sort] = argSorts map sortSubstitution
-            val newResSort = sortSubstitution(resSort)
-            FuncDecl(f.name, newArgSorts, newResSort)
-        })
+        val newEnumConstants: Map[Sort, Seq[EnumValue]] = for {
+            (sort, enumConstants) <- freshEnumSorts
+        } yield (sortSubstitution(sort), enumConstants)
         
         // Maps original theory axiom to general axiom 
         val generalAxioms: Map[Term, Term] = for((originAx, freshAx) <- freshAxioms) yield (originAx -> sortSubstitution(freshAx))
         
-        val usedSorts: Set[Sort] = (0 to (freshSubstitution.index - 1)).map(sortVar(_)).map(sortSubstitution(_)).toSet
+        val usedSorts: Set[Sort] = (0 to (freshSubstitution.index - 1)).map(freshSubstitution.sortVar(_)).map(sortSubstitution(_)).toSet
         
         val generalTheory = Theory.empty
             .withSorts(usedSorts.toSeq : _*)
-            .withConstantDeclarations(newConstants)
-            .withFunctionDeclarations(newFunctions)
+            .withConstantDeclarations(newConstantDeclarations)
+            .withConstantDefinitions(newConstantDefintions)
+            .withFunctionDeclarations(newFunctionDeclarations)
+            .withFunctionDefinitions(newFunctionDefinitions)
+            .withEnumSorts(newEnumConstants)
             .withAxioms(generalAxioms.values)
         
         // Now have to compute substitution to go from general theory to original theory
