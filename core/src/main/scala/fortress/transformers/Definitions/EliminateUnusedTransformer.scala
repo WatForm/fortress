@@ -16,7 +16,7 @@ object EliminateUnusedTransformer extends ProblemStateTransformer {
     private object AccumulateUsedNames extends NaturalSetAccumulation[String] {
         override val exceptionalMappings: PartialFunction[Term, Set[String]] = {
             case Var(name) => Set(name)
-            case App(name, _) => Set(name)
+            case App(name, args) => Set(name) ++ args.map(naturalRecur).fold(Set.empty)(_ union _)
         }
     }
 
