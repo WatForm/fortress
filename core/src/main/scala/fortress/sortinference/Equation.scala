@@ -90,8 +90,8 @@ object Equation {
             case Eq(l, r) => {
                 val (lSort, lEqns) = recur(l, context)
                 val (rSort, rEqns) = recur(r, context)
-                Errors.Internal.assertion(lSort != BoolSort)
-                Errors.Internal.assertion(rSort != BoolSort)
+                Errors.Internal.assertion(lSort != BoolSort, "Eq should not be between booleans")
+                Errors.Internal.assertion(rSort != BoolSort, "Eq should not be between booleans")
                 val newEqn: Option[Equation] = (lSort, rSort) match {
                     case (l: SortConst, r: SortConst) => Some(Equation(l, r))
                     case (l, r) => {
