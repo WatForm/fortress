@@ -328,6 +328,19 @@ class NegativeTypeCheckTest extends UnitSuite {
             t.typeCheck(sig)
         }
     }
+    
+    // not entirely sure what to test here, as Set cardinality only takes Predicates at compilation time
+    // test ("cardinatlity mismatch arg sort"){
+    //     val sig = Signature.empty 
+    //         .withSort(A)
+    //         .withConstantDeclarations(x of A, y of A)
+    //         .withFunctionDeclarations(P)
+            
+    //     val t = SetCardinality(3)
+    //     an [fortress.data.TypeCheckException.WrongSort] should be thrownBy {
+    //         t.typeCheck(sig)
+    //     }
+    // }
 
 
     test("closure mismatch arg sort 1") {

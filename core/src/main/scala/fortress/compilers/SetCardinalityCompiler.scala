@@ -9,9 +9,10 @@ import fortress.transformers.TheoryTransformer._ // for implicit conversion to P
 import fortress.symmetry._
 import scala.collection.mutable.ListBuffer
 
-class SetCardinalityCompiler() extends StandardCompiler {
 
-    override def setCardinalityOrNot: ListBuffer[ProblemStateTransformer] =
-        ListOfOne(SetCardinalityTransformer)
+class SetCardinalityCompiler extends StandardCompiler {
 
+    override def setCardinalityOrNot: ListBuffer[ProblemStateTransformer] = {
+        CompilersRegistry.ListOfOne(SetCardinalityTransformer)
+    }
 }

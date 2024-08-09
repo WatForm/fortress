@@ -29,7 +29,7 @@ class StandardCompiler extends BaseCompiler {
         CompilersRegistry.ListOfOne(IntOPFITransformer)
 
     def setCardinalityOrNot:ListBuffer[ProblemStateTransformer] =
-        ListOfOne(NullTransformer)
+        CompilersRegistry.ListOfOne(NullTransformer)
 
     def ifLiftOrNot:ListBuffer[ProblemStateTransformer] =
         CompilersRegistry.ListOfOne(IfLiftingTransformer)
