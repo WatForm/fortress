@@ -157,15 +157,15 @@ class DatatypeNoRangeEUFCompiler() extends DatatypeWithRangeEUFCompiler() {
 
 /*
    use datatypes 
-   don't get rid of quantifiers - not EUF (no nnf, no skolemize/quantifier expansion)
+   don't get rid of quantifiers - not EUF (no skolemize/quantifier expansion)
    use range formulas 
 */
 class DatatypeWithRangeNoEUFCompiler() extends StandardCompiler {
     override def quantifierHandler: ListBuffer[ProblemStateTransformer] = 
         CompilersRegistry.NullTransformerList
 
-    override def ifLiftOrNot: ListBuffer[ProblemStateTransformer] =
-        CompilersRegistry.NullTransformerList
+    //override def ifLiftOrNot: ListBuffer[ProblemStateTransformer] =
+    //    CompilersRegistry.NullTransformerList
 
     override def skolemizeOrNot: ListBuffer[ProblemStateTransformer] =
         CompilersRegistry.NullTransformerList

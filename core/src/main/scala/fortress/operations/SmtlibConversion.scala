@@ -9,7 +9,7 @@ class SmtlibConverter(writer: java.io.Writer) {
 
     def write(term: Term): Unit = term match {
         case DomainElement(_, _) =>
-            Errors.Internal.preconditionFailed("Domain elements cannot be converted to SMTLIB2")
+            Errors.Internal.preconditionFailed("Domain elements cannot be converted to SMTLIB2 "+term)
         // case d @ DomainElement(index, sort) => writer.write(d.asSmtConstant.name)
         case EnumValue(name) => writer.write(nameWithQuote(name))
         case Top => writer.write("true")
