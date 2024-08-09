@@ -29,8 +29,9 @@ trait NaturalTermRecursion {
 
 /**
   * Recurse through each node of the AST, calling mapTerm on each of them and replacing the AST node with the result.
+  * Recursion is bottom-up.
   */
-trait NaturalEachTermRecursion extends NaturalTermRecursion {
+trait NaturalEachTermBottomUpRecursion extends NaturalTermRecursion {
     def mapTerm(term: Term): Term
 
     override val exceptionalMappings: PartialFunction[Term, Term] = PartialFunction.empty
