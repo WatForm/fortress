@@ -97,9 +97,9 @@ class DeBruijnConverter {
         override def visitBitVectorLiteral(literal: BitVectorLiteral): Term = ???
 
         override def visitEnumValue(e: EnumValue): Term = ???
-
+        
         override def visitSetCardinality(term: SetCardinality): Term = ???
-
+        
         override def visitIfThenElse(ite: IfThenElse): Term = ???
 
     }
