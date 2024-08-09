@@ -1,6 +1,6 @@
 package fortress.transformers
 
-import fortress.operations.EvaluationInliner
+import fortress.operations.Simplification.EvaluationInliner
 import fortress.problemstate.ProblemState
 
 /**
