@@ -156,6 +156,8 @@ abstract class ClosureEliminator(topLevelTerm: Term, signature: Signature, scope
         def visitBitVectorLiteral(literal: BitVectorLiteral): Term = literal
 
         def visitEnumValue(e: EnumValue): Term = e
+        
+        def visitSetCardinality (term: SetCardinality): Term = ???
 
         def visitSetCardinality (term: SetCardinality): Term = ???
 
