@@ -1,11 +1,12 @@
 package fortress.operations
 
 import fortress.msfol._
-import fortress.util.Errors
 
 import scala.collection.mutable
 
-/** Compiles function definitions into Scala functions on demand. */
+/**
+  * Compiles function definitions into Scala functions on demand and evaluates them if interpretation-independent.
+  */
 // TODO: fix nonexhaustive match warnings here and Evaluator
 class DefinitionJit(theory: Theory) {
 
@@ -14,14 +15,20 @@ class DefinitionJit(theory: Theory) {
     private val jitCache = mutable.Map[String, JitFunc]()
     private val resultCache = mutable.Map[(String, Seq[Option[Value]]), Option[Value]]()
 
+    /**
+      * Evaluate defn at args and return the value result, or None if the result is interpretation-dependent.
+      * The JIT function will be cached and used for subsequent evaluations of this interpretation.
+      */
     def evaluate(defn: FunctionDefinition, args: Seq[Option[Value]]): Option[Value] =
         resultCache.getOrElseUpdate((defn.name, args), compile(defn)(args))
 
+    // Compile the definition and return the corresponding JIT function.
     private def compile(defn: FunctionDefinition): JitFunc = jitCache.getOrElseUpdate(defn.name, {
         val varIdxs = defn.argSortedVar.map(_.variable).zipWithIndex.toMap
         compileTerm(defn.body, varIdxs)
     })
 
+    // JIT the term to a function. varIdxs is the mapping from variable names to indices in the argument list.
     private def compileTerm(term: Term, varIdxs: Map[Var, Int]): JitFunc = term match {
         case Top => _ => Some(Top)
         case Bottom => _ => Some(Bottom)
@@ -85,18 +92,8 @@ class DefinitionJit(theory: Theory) {
                 case Top => jitRight(args) // (true => x) == x for all x
                 case Bottom => Some(Top) // (false => x) == true for all x
             }
-        case Iff(left, right) =>
-            val jitLeft = compileTerm(left, varIdxs)
-            val jitRight = compileTerm(right, varIdxs)
-            args => (jitLeft(args) zip jitRight(args)) map {
-                case (evalLeft, evalRight) => fromBool(toBool(evalLeft) == toBool(evalRight))
-            }
-        case Eq(left, right) =>
-            val jitLeft = compileTerm(left, varIdxs)
-            val jitRight = compileTerm(right, varIdxs)
-            args => (jitLeft(args) zip jitRight(args)) map {
-                case (evalLeft, evalRight) => fromBool(evalLeft == evalRight)
-            }
+        case Iff(left, right) => evalEqIff(left, right, varIdxs)
+        case Eq(left, right) => evalEqIff(left, right, varIdxs)
         case IfThenElse(condition, ifTrue, ifFalse) =>
             val jitCondition = compileTerm(condition, varIdxs)
             val jitIfTrue = compileTerm(ifTrue, varIdxs)
@@ -120,13 +117,14 @@ class DefinitionJit(theory: Theory) {
         case BuiltinApp(_, _) => _ => None
     }
 
-    // TODO abstract, this is duplicated in Evaluator
-    private def toBool(v: Value): Boolean = v match {
-        case Top => true
-        case Bottom => false
-        case _ => Errors.Internal.preconditionFailed("Cannot convert value other than Top, Bottom to Boolean")
+    private def evalEqIff(left: Term, right: Term, varIdxs: Map[Var, Int]): JitFunc = {
+        val jitLeft = compileTerm(left, varIdxs)
+        val jitRight = compileTerm(right, varIdxs)
+        args => (jitLeft(args) zip jitRight(args)) map {
+            case (evalLeft, evalRight) =>
+                if (evalLeft == evalRight) Top
+                else Bottom
+        }
     }
-
-    private def fromBool(b: Boolean): Value = if (b) Top else Bottom
 
 }

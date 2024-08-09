@@ -1,7 +1,6 @@
 package fortress.operations
 
 import fortress.msfol._
-import fortress.util.Errors
 
 /**
   * Evaluates intepretation-independent terms to values if possible.
@@ -16,7 +15,6 @@ class Evaluator(private var theory: Theory) {
       */
     def changeTheory(theory: Theory): Unit = {
         this.theory = theory
-        // TODO: change jit's theory here?
     }
 
     // Get the value that term evaluates to, or None if term is not interpretation-independent.
@@ -45,6 +43,7 @@ class Evaluator(private var theory: Theory) {
             case Bottom => Top
         }
         case AndList(args) =>
+            // TODO: This can be simplified since tryCastToValue is cheap
             def reduceAnd(args: Seq[Term]): Option[Value] = args match {
                 // Reduce with short-circuiting: don't even evaluate if we've short-circuited
                 case Seq() => Some(Top)
@@ -93,20 +92,8 @@ class Evaluator(private var theory: Theory) {
                 case Top => tryCastToValue(right)
                 case Bottom => Some(Top) // (false => x) == true for all x
             }
-        case Iff(left, right) =>
-            // Short-circuit: if left is unknown, don't evaluate right
-            tryCastToValue(left) flatMap { leftValue =>
-                tryCastToValue(right) map { rightValue =>
-                    fromBool(toBool(leftValue) == toBool(rightValue))
-                }
-            }
-        case Eq(left, right) =>
-            // Short-circuit: if left is unknown, don't evaluate right
-            tryCastToValue(left) flatMap { leftValue =>
-                tryCastToValue(right) map { rightValue =>
-                    fromBool(leftValue == rightValue)
-                }
-            }
+        case Iff(left, right) => evalEqIff(left, right)
+        case Eq(left, right) => evalEqIff(left, right)
         case IfThenElse(condition, ifTrue, ifFalse) =>
             // Short-circuit: if condition evaluates, don't even evaluate the other branch
             tryCastToValue(condition) flatMap {
@@ -128,17 +115,17 @@ class Evaluator(private var theory: Theory) {
         case BuiltinApp(_, _) => None
     }
 
+    // Short-circuit: if left is unknown, don't evaluate right
+    private def evalEqIff(left: Term, right: Term): Option[Value] = tryCastToValue(left) flatMap { leftValue =>
+        tryCastToValue(right) map { rightValue =>
+            if (leftValue == rightValue) Top
+            else Bottom
+        }
+    }
+
     private def tryCastToValue(term: Term): Option[Value] = term match {
         case value: Value => Some(value)
         case _ => None
     }
-
-    private def toBool(v: Value): Boolean = v match {
-        case Top => true
-        case Bottom => false
-        case _ => Errors.Internal.preconditionFailed("Cannot convert value other than Top, Bottom to Boolean")
-    }
-
-    private def fromBool(b: Boolean): Value = if (b) Top else Bottom
 
 }
