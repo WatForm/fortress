@@ -8,9 +8,17 @@ import scala.collection.mutable
 /**
   * Evaluates intepretation-independent terms to values if possible.
   */
-class Evaluator(theory: Theory) {
+class Evaluator(private var theory: Theory) {
 
     private val defnCache = mutable.Map[(String, Seq[Option[Value]]), Option[Value]]()
+
+    /**
+      * Swap the theory without clearing the cache.
+      * For use when definition bodies have been simplified but not semantically changed.
+      */
+    def changeTheory(theory: Theory): Unit = {
+        this.theory = theory
+    }
 
     /** Evaluate the term fully to a value if possible. */
     def evaluate(term: Term): Option[Value] = fullEvaluate(term, Map.empty)

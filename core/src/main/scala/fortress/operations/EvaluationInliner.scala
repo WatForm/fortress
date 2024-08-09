@@ -13,4 +13,8 @@ class EvaluationInliner(theory: Theory) extends NaturalEachTermBottomUpRecursion
         case None => term // couldn't map it
     }
 
+    def changeTheory(theory: Theory): Unit = {
+        evaluator.changeTheory(theory)
+    }
+
 }
