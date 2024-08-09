@@ -19,7 +19,7 @@ object CompilersRegistry {
             // dummy compiler to test with
             case "SetCardinality" => new SetCardinalityCompiler()
 
-            // StandardCompilers - use constants
+            // StandardCompilers - use constants 
             case "Standard"  => new StandardCompiler()
             case "StandardSI"  => new StandardSICompiler()
 
@@ -39,7 +39,7 @@ object CompilersRegistry {
             case "DatatypeWithRangeNoEUF" => new DatatypeWithRangeNoEUFCompiler()
             case "DatatypeNoRangeNoEUF" => new DatatypeNoRangeNoEUFCompiler()
 
-            // JoeSymmetryCompilers
+            // JoeSymmetryCompilers  
             case "JoeONE"  => new JoeONECompiler()
             case "JoeTWO"  => new JoeTWOCompiler()
             case "JoeTWO_SI"  => new JoeTWO_SICompiler()
@@ -70,7 +70,7 @@ object CompilersRegistry {
 
     private def checkName(s:String, c:Compiler): Compiler = {
         Errors.Internal.assertion(c.name ==s, s +" does not match "+ c.name)
-        c
+        c        
     }
 
 
@@ -84,4 +84,4 @@ object CompilersRegistry {
         ts += x
         ts
     }
-}
+}   

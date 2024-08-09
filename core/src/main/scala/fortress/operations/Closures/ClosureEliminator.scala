@@ -159,8 +159,6 @@ abstract class ClosureEliminator(topLevelTerm: Term, signature: Signature, scope
         
         def visitSetCardinality (term: SetCardinality): Term = ???
 
-        def visitSetCardinality (term: SetCardinality): Term = ???
-
         def visitIfThenElse(ite: IfThenElse): Term = IfThenElse(visit(ite.condition), visit(ite.ifTrue), visit(ite.ifFalse))
     }
 }
