@@ -61,7 +61,7 @@ class  SmtlibConversionTests extends UnitSuite {
                     .withAxiom(App("P", Seq(x,y)))
 
         theory.smtlib should be ("(declare-sort |B| 0)" + '\n' +
-                                "(declare-datatypes () ((|A| |_@1A| |_@2A|)))" + '\n' +
+                                "(declare-datatype |A| ( ( |_@1A| )( |_@2A| ) ))" + '\n' +
                                 "(declare-fun |f| (|A|) |B|)" + '\n' +
                                 "(declare-fun |P| (|A| |B|) Bool)" + '\n' +
                                 "(declare-const |x| |A|)" + '\n' +
@@ -115,7 +115,7 @@ class  SmtlibConversionTests extends UnitSuite {
         val converter = new SmtlibConverter(writer)
 
         converter.writeEnumConst(A, Seq(_1A, _2A))
-        writer.toString should be ("(declare-datatypes () ((|A| |_@1A| |_@2A|)))\n")
+        writer.toString should be ("(declare-datatype |A| ( ( |_@1A| )( |_@2A| ) ))\n")
     }
 
     test("function definition1") {

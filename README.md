@@ -94,7 +94,7 @@ or
 
 The options to the Fortress CLI, can be found by running `fortress --help`. In addition:
 
-* A filename is required of a file in an augmented [smttc file format](#smttc-file-format).
+* A filename is required of a file in an augmented [smttc file format](smttc.md).
 
 * The lists of possible modelFinders, compilers, solvers, and transformers can be found in the Registry files within the code, e.g., ./core/src/main/scala/fortress/compilers/CompilersRegistry.scala contains the Compiler names. But good defaults are used if these options are not provided in the command-line.
 
@@ -107,40 +107,6 @@ fortress --timeout 30 -S A=3 B=2 --generate function.smttc
 ```
 This creates a theory using the `function.smttc` file, and determines whether there is a satisfying interpretation for this theory where the scope of sort `A` is 3 and the scope of sort `B` is 2.
 If a model exists, fortress outputs `Sat` and writes out the model (because of the `--generate` option).
-
-
-## smttc File Format
-
-Fortress reads (at the CLI or API) files in the smttc format. `.smttc` is a minor extension to the `.smt2` file format that includes a few special Fortress features.  These features are described below.
-
-### Transitive Closure
-
-smttc has a built-in operator for transitive closure.  Transitive closure expressions are written as `(closure R x y [fixedargs...])` or `(reflexive-closure R x y [fixedargs...])` for reflexive closure.
-
-The term `(closure R start end)` evaluates to true if there is an edge from `start` to `end` in the transitive closure of `R`.
-`R` should be the identifier for the relation to be closed over. `start` and `end` are terms.
-
-Fortress also supports transitive closure over relations of higher airity.
-Consider `R: A x A x B x C`. One can write `(closure R start end fixB fixC)` where `fixB` is a term of sort `B` and `fixC` is a term of sort `C`.
-The closure then works as above over the relation `R'` where `(start, end) \in R'` if and only if `(start, end, fixB, fixC) \in R`.
-
-### Scope Information
-
-smttc supports three `set-info` keywords for setting scope information in the file:
-- `:exact-scope` is used to set exact scopes
-- `:nonexact-scope` is used to set non-exact scopes
-- `:unchanging-scope` is used to specify which sorts Fortress is not allowed to change
-
-Each of these keywords expects a string value. The `exact` and `nonexact` scope methods expect a series of optionally whitespace separated `(sort scope)` specifiers. Sort must be an identifier and scope must be an integer. There must be at least some amount of whitespace separating the sort and scope.
-
-The specifier for unchanging scopes expects a series of `(sort)`s optionally separated by whitespace.
-
-For example:
-```smt2
-(set-info :exact-scope "(A 1) (|Complicated Name!!| 3)")
-(set-info :nonexact-scope "(B 2)")
-(set-info :unchanging-scope "(A)(|Complicated Name!!|)")
-```
 
 
 ## Developer's Guide
@@ -175,6 +141,6 @@ If the gradle build is not working properly ensure that your `JAVA_HOME` environ
 
 ## Acknowledgements
 
-The original version of Fortress was created by Amirhossein Vakili and Nancy Day.  Fortress was completely rewritten in Scala by Joseph Poremba.  Joe also greatly extended the symmetry breaking used in Fortress.  Additional contributors to Fortress include: Ruomei Yan, Orson Baines, Callum Moseley, Yie Jin (James) Long, Ryan Dancy, and Owen Zila.
+The original version of Fortress was created by Amirhossein Vakili and Nancy Day.  Fortress was completely rewritten in Scala by Joseph Poremba and greatly enhanced by Ryan Dancy.  Joe also greatly extended the symmetry breaking used in Fortress.  Additional contributors to Fortress include: Ruomei Yan, Orson Baines, Callum Moseley, Yie Jin (James) Long, and Owen Zila.
 
 Some TPTP files publicly available on the TPTP Problem Library(http://www.tptp.org/) are used for unit tests.

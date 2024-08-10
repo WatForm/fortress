@@ -41,11 +41,13 @@ object DEsToEnumsTransformer extends ProblemStateTransformer {
             newSig = newSig.withFunctionDefinition(fDef.mapBody(_.eliminateDomainElementsEnums))
         }
 
+
         var newTheory = Theory(newSig, convertedAxioms)
 
         newTheory = enumValuesMap.foldLeft(newTheory) {
             case (t, (s, enumValueSeq)) => t.withEnumSort(s, enumValueSeq: _*)
         }
+
 
         //ProblemState(newTheory, scopes, skc, skf, rangeRestricts, unapplyInterp, distinctConstants = false)
         problemState.copy(

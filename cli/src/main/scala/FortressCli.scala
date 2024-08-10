@@ -212,11 +212,16 @@ object FortressCli {
             case Right(cr) => {
                 if (conf.compileOnly()) {
                     val theoryAfterCompile = cr.theory
-                    println("=====original=====")
-                    println(TheoryOps.wrapTheory(TypecheckSanitizeTransformer(ProblemState(theory, scopes)).theory).smtlib)
-                    println("========new=======")
+                    //println("=====original=====")
+                    // This may have DEs in it !  We parse the input constants
+                    // as DEs if they have certain names (and ignore their constant decl
+                    // if they have those names)
+                    // If we wanted to directly dump the input then we would
+                    // need to convert the DEs back to constants 
+                    //println(TheoryOps.wrapTheory(TypecheckSanitizeTransformer(ProblemState(theory, scopes)).theory).smtlib)
+                    //println("========new=======")
                     println(TheoryOps.wrapTheory(theoryAfterCompile).smtlib)
-                    println("==================")
+                    //println("==================")
                     System.exit(1)
                 }
             }

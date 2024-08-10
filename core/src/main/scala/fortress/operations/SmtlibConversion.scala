@@ -237,10 +237,12 @@ class SmtlibConverter(writer: java.io.Writer) {
     }
 
     def writeEnumConst(sort: Sort, enums: Seq[EnumValue]): Unit = {
-        writer.write("(declare-datatypes () ((")
+        writer.write("(declare-datatype ")
         writeSort(sort)
-        enums.foreach(enumEntry => writer.write(' ' + nameWithQuote(enumEntry.name)))
-        writer.write(")))\n")
+        // all our datatypes are sorts that take 0 arguments
+        writer.write(" ( ")
+        enums.foreach(enumEntry => writer.write("( " + nameWithQuote(enumEntry.name) + " )"))
+        writer.write(" ))\n")
     }
 
     /**

@@ -102,6 +102,10 @@ class StandardCompiler extends BaseCompiler {
         transformerSequence ++= simplifiers
 
         // defined above
+        // must be done to eliminate all DEs
+        // conversion to constants or datatypes(enums)
+        // is necessary before can write SMT-LIB output
+        // for either solving or compileOnly
         transformerSequence ++= enumerateFiniteValues
 
         transformerSequence.toList
