@@ -212,6 +212,7 @@ object FortressCli {
             case Right(cr) => {
                 if (conf.compileOnly()) {
                     val theoryAfterCompile = cr.theory
+
                     //println("=====original=====")
                     // This may have DEs in it !  We parse the input constants
                     // as DEs if they have certain names (and ignore their constant decl
