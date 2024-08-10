@@ -213,7 +213,7 @@ object FortressCli {
                 if (conf.compileOnly()) {
                     val theoryAfterCompile = cr.theory
                     println("=====original=====")
-                    println(TheoryOps.wrapTheory(TypecheckSanitizeTransformer(ProblemState(theory, scopes)).theory).smtlib)
+                    println(TheoryOps.wrapTheory(TypecheckSanitizeTransformer(ProblemState(theoryAfterCompile, scopes)).theory).smtlib)
                     println("========new=======")
                     println(TheoryOps.wrapTheory(theoryAfterCompile).smtlib)
                     println("==================")
