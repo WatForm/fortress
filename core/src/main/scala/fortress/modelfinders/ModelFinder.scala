@@ -49,8 +49,8 @@ abstract class ModelFinder extends AutoCloseable {
    def addLogger(logger: EventLogger): Unit
 
    // operations
-   def compile(verbose: Boolean = false): Either[CompilerError, CompilerResult]
-   def checkSat(verbose: Boolean = false): ModelFinderResult
+   def compile(verbose: Boolean = false, forceFullCompile: Boolean = false): Either[CompilerError, CompilerResult]
+   def checkSat(verbose: Boolean = false, alwaysSolve: Boolean = false): ModelFinderResult
    def viewModel(): Interpretation
    def nextInterpretation(): ModelFinderResult
    def countValidModels(): Int

@@ -20,6 +20,7 @@ abstract class BaseCompiler extends Compiler {
         timeout: Milliseconds,
         loggers: Seq[EventLogger],
         verbose: Boolean,
+        forceFullCompile: Boolean,
     ): Either[CompilerError, CompilerResult] = {
         class Result(finalProblemState: ProblemState) extends CompilerResult {
             override val theory: Theory = finalProblemState.theory
@@ -60,7 +61,8 @@ abstract class BaseCompiler extends Compiler {
 
                 loggers.foreach(_.transformerFinished(transformer, elapsedNano))
 
-                if (finalPState.flags.trivialResult.isDefined) return Right(new Result(finalPState))
+                if (!forceFullCompile && finalPState.flags.trivialResult.isDefined)
+                    return Right(new Result(finalPState))
 
                 finalPState
             })
