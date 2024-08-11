@@ -1,6 +1,7 @@
 package fortress.transformers
 
 import fortress.operations.EvaluationInliner
+import fortress.operations.TheoryOps._
 import fortress.problemstate.ProblemState
 
 /**
@@ -24,7 +25,11 @@ object EvaluateTransformer extends ProblemStateTransformer {
             inliner.changeTheory(theory)
         }
         val newAxioms = theory.axioms.map(inliner.naturalRecur)
-        problemState.copy(theory = theory.copy(axioms = newAxioms))
+        val newTheory = theory.copy(axioms = newAxioms)
+        problemState.copy(
+            theory = newTheory,
+            flags = problemState.flags.copy(trivialResult = newTheory.checkTrivial),
+        )
     }
 
 }

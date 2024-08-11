@@ -95,6 +95,12 @@ case class TheoryOps private(theory: Theory) {
         inferSortsCount > 0
     }
 
+    // Returns a TrivialResult if this theory is trivial according to its axioms
+    def checkTrivial: Option[TrivialResult] =
+        if (theory.axioms contains Bottom) Some(TrivialResult.Unsat)
+        else if (theory.axioms forall (_ == Top)) Some(TrivialResult.Sat)
+        else None
+
     // Returns whether sort inference found any new sorts
     def mostUsedDeclarations: Map[Declaration, Int] = {
         val helper = (r: mutable.Map[Declaration, Int], i: Declaration) => r + (i -> 0)
