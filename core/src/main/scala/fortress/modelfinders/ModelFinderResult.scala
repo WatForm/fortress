@@ -1,9 +1,5 @@
 package fortress.modelfinders
 
-import fortress.problemstate.{TrivialResult, TrivialSat, TrivialUnsat}
-
-import scala.language.implicitConversions
-
 /** The various return possibilities of the model finder.
   * SAT means the theory is satisfiable.
   * UNSAT means the theory is unsatisfiable.
@@ -35,9 +31,4 @@ object ModelFinderResult {
     val Unsat: ModelFinderResult = UnsatResult
     val Unknown: ModelFinderResult = UnknownResult
     val Timeout: ModelFinderResult = TimeoutResult
-
-    implicit def fromTrivialResult(trivialResult: TrivialResult): ModelFinderResult = trivialResult match {
-        case TrivialSat => Sat
-        case TrivialUnsat => Unsat
-    }
 }

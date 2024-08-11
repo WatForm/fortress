@@ -2,10 +2,13 @@ package fortress.problemstate
 
 sealed trait TrivialResult
 
-case object TrivialSat extends TrivialResult
+// Represents that the problem is trivially valid.
+case object TrivialValid extends TrivialResult
+
+// Represents that the problem is trivially unsatisfiable.
 case object TrivialUnsat extends TrivialResult
 
 object TrivialResult {
-    val Sat: TrivialResult = TrivialSat
+    val Valid: TrivialResult = TrivialValid
     val Unsat: TrivialResult = TrivialUnsat
 }

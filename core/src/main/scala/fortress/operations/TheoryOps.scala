@@ -98,7 +98,7 @@ case class TheoryOps private(theory: Theory) {
     // Returns a TrivialResult if this theory is trivial according to its axioms
     def checkTrivial: Option[TrivialResult] =
         if (theory.axioms contains Bottom) Some(TrivialResult.Unsat)
-        else if (theory.axioms forall (_ == Top)) Some(TrivialResult.Sat)
+        else if (theory.axioms forall (_ == Top)) Some(TrivialResult.Valid)
         else None
 
     // Returns whether sort inference found any new sorts

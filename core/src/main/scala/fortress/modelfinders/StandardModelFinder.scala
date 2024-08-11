@@ -181,11 +181,14 @@ class StandardModelFinder extends ModelFinder {
 
     private def trivialSolverPhase(trivialResult: TrivialResult, finalTheory: Theory): ModelFinderResult = {
         haveSolved = true
-        if (trivialResult == TrivialResult.Sat) {
+        if (trivialResult == TrivialResult.Valid) {
             hasSatSolution = true
             trivialSolution = Some(finalTheory.signature.trivialInterpretation(analysisScopes))
         }
-        val finalResult: ModelFinderResult = trivialResult
+        val finalResult = trivialResult match {
+            case TrivialValid => SatResult
+            case TrivialUnsat => UnsatResult
+        }
         notifyLoggers(_.finished(finalResult, totalTimer.elapsedNano()))
         finalResult
     }
