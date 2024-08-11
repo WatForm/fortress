@@ -1,9 +1,5 @@
 package fortress.problemstate
 
-import fortress.interpretation.Interpretation
-import fortress.msfol._
-import fortress.util.Errors
-
 /**
   * Contains flags for a problem state
   *
@@ -19,20 +15,23 @@ case class Flags (
     haveRunSkolemizer: Boolean = false,
 
     haveRunMaxAlphaRenaming: Boolean = false,
-    
+
     verbose: Boolean = false,
-    
+
     // typechecker turns these on if these exist in the axioms/defns
     // but transformers (IfLifting, Skolemize) cannot turn them off
     // because all Ites or quantifiers may not have been eliminated
-    
+
     // the typechecker or problemstate constructor sets these flags
     // however transformers can introduce these after typechecking, creation
     // so we should perhaps drop these flags
     // we can't use them to decide whether to run certain transformers or no
-    containsItes: Boolean = false,  
+    containsItes: Boolean = false,
     containsExists: Boolean = false,
     containsNonExactScopes: Boolean = false,
+
+    // This should be set if a transformer determines that the model is trivial.
+    trivialResult: Option[TrivialResult] = None,
 ) {}
 
 // Flags.default is the same as doing Flags() or new Flags()

@@ -2,12 +2,17 @@ package fortress.compilers
 
 import fortress.msfol.{Declaration, Term, Theory}
 import fortress.interpretation.Interpretation
+import fortress.problemstate.TrivialResult
 
 /** Result from a compiler. */
 trait CompilerResult {
 
     /** The output theory from the compilation process. */
     val theory: Theory
+
+    /** Set if the compilation process determines that the theory is trivially sat or unsat. */
+    val trivialResult: Option[TrivialResult]
+    def isTrivial: Boolean = trivialResult.isDefined
 
     /**
       * A function which undoes the transformations in the compilation process for an interpretation.

@@ -9,7 +9,6 @@ import fortress.solvers._
 import fortress.logging._
 import fortress.problemstate._
 
-import java.lang.AutoCloseable
 import scala.collection.mutable.ListBuffer
 
 /**
@@ -60,6 +59,8 @@ class StandardModelFinder extends ModelFinder {
     private var compilerResult: Either[CompilerError, CompilerResult] = null
     // only useful to viewModels if it has a SatSolution
     private var hasSatSolution:Boolean = false
+    // if the model is trivially SAT, here's its interpretation
+    private var trivialSolution: Option[Interpretation] = None
 
 
     def resetPhases() = {
@@ -163,19 +164,30 @@ class StandardModelFinder extends ModelFinder {
         this.compile(verbose) match {
             case Left(CompilerError.Timeout) => TimeoutResult
             case Left(CompilerError.Other(errMsg)) => ErrorResult(errMsg)
-            case Right(compilerRes) => {
-
+            case Right(compilerRes) =>
                 val finalTheory = compilerRes.theory
 
 //                println("final theory: \n" + finalTheory + "\n\n")
 
                 notifyLoggers(_.allTransformersFinished(finalTheory, totalTimer.elapsedNano))
 
-                val finalResult: ModelFinderResult = solverPhase(finalTheory)
-
-                finalResult
-            }
+                if (compilerRes.isTrivial) {
+                    trivialSolverPhase(compilerRes.trivialResult.get, finalTheory)
+                } else {
+                    solverPhase(finalTheory)
+                }
         }
+    }
+
+    private def trivialSolverPhase(trivialResult: TrivialResult, finalTheory: Theory): ModelFinderResult = {
+        haveSolved = true
+        if (trivialResult == TrivialResult.Sat) {
+            hasSatSolution = true
+            trivialSolution = Some(finalTheory.signature.trivialInterpretation(analysisScopes))
+        }
+        val finalResult: ModelFinderResult = trivialResult
+        notifyLoggers(_.finished(finalResult, totalTimer.elapsedNano()))
+        finalResult
     }
 
     // Returns the final ModelFinderResult
@@ -209,8 +221,9 @@ class StandardModelFinder extends ModelFinder {
         haveSolved = true
         if (finalResult == SatResult) hasSatSolution = true 
         finalResult
-        
     }
+
+    private def getSolution: Interpretation = trivialSolution.getOrElse(solver.solution)
 
     /** View the satisfying interpretation, if one exists.
       * Otherwise, throws an error.
@@ -219,7 +232,7 @@ class StandardModelFinder extends ModelFinder {
         // can't be solved if it did not successfully compile
         if (!haveSolved) checkSat()
         if (!hasSatSolution) Errors.Internal.impossibleState("can only view models if the problem is SAT")
-        val instance = solver.solution
+        val instance = getSolution
         compilerResult.right.get.decompileInterpretation(instance)
     }
 
@@ -230,6 +243,8 @@ class StandardModelFinder extends ModelFinder {
         // user would never see first interpretation
         if (!haveSolved) checkSat() 
         if (!hasSatSolution) Errors.Internal.impossibleState("can only view models if the problem is SAT")
+        // TODO: pass a flag to disable returning early when trivial if we want to use the nextInterpretation feature
+        if (trivialSolution.isDefined) Errors.Internal.preconditionFailed("Can only get the next interpretation if not trivial")
 
         // Negate the current interpretation, but leave out the skolem functions
         // Different witnesses are not useful for counting interpretations
