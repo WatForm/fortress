@@ -164,18 +164,13 @@ class DatatypeNoRangeEUFCompiler() extends DatatypeWithRangeEUFCompiler() {
    don't get rid of quantifiers - not EUF (no skolemize/quantifier expansion)
    use range formulas 
 */
-class DatatypeWithRangeNoEUFCompiler() extends StandardCompiler {
+class DatatypeWithRangeNoEUFCompiler() extends DatatypeWithRangeEUFCompiler {
     override def quantifierHandler: ListBuffer[ProblemStateTransformer] = 
         CompilersRegistry.NullTransformerList
-
-    //override def ifLiftOrNot: ListBuffer[ProblemStateTransformer] =
-    //    CompilersRegistry.NullTransformerList
 
     override def skolemizeOrNot: ListBuffer[ProblemStateTransformer] =
         CompilersRegistry.NullTransformerList
 
-    override def enumerateFiniteValues: ListBuffer[ProblemStateTransformer] = 
-        CompilersRegistry.ListOfOne(DEsToEnumsTransformer)
 }
 
 /*
@@ -189,8 +184,6 @@ class DatatypeNoRangeNoEUFCompiler() extends DatatypeWithRangeNoEUFCompiler {
     override def rangeFormulasOrNot: ListBuffer[ProblemStateTransformer] = 
         CompilersRegistry.NullTransformerList
 
-    override def enumerateFiniteValues: ListBuffer[ProblemStateTransformer] = 
-        CompilersRegistry.ListOfOne(DEsToEnumsTransformer)
 }
 
 class MaxUnboundedScopesCompiler extends StandardCompiler {
