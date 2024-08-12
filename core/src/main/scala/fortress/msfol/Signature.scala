@@ -1,7 +1,7 @@
 package fortress.msfol 
 
 import fortress.data.{CartesianSeqProduct, InsertionOrderedSet}
-import fortress.util.Errors
+import fortress.util.{Errors, IntegerSize}
 import fortress.operations.TypeCheckResult
 
 import scala.jdk.CollectionConverters._
@@ -11,6 +11,7 @@ import fortress.interpretation.Interpretation
 import fortress.interpretation.BasicInterpretation
 import fortress.operations.TermOps._
 import fortress.problemstate.Scope
+import fortress.util.Extensions.IntExtension
 
 // Persistent and Immutable
 // Internally consistent
@@ -543,15 +544,28 @@ case class Signature private (
             sort -> (1 to scope).map(DomainElement(_, sort))
         }.toMap
 
+        def getSortInterp(sort: Sort): Seq[Value] = sort match {
+            case BoolSort => Seq(Top, Bottom)
+            case IntSort =>
+                val numValues = scopes.get(IntSort).size
+                val bitwidth: Int = math.round(math.ceil(math.log(numValues) / math.log(2))).toInt
+                (IntegerSize.minimumIntValue(bitwidth) to IntegerSize.maximumIntValue(bitwidth))
+                    .map(IntegerLiteral)
+            case BitVectorSort(bvBitwidth) =>
+                (IntegerSize.minimumIntValue(bvBitwidth) to IntegerSize.maximumIntValue(bvBitwidth))
+                    .map(BitVectorLiteral(_, bvBitwidth))
+            case _ => sortInterps(sort)
+        }
+
         val constantInterps: Map[AnnotatedVar, Value] = constantDeclarations.map { constVar =>
             // Just use the first domain element in its sort
-            constVar -> sortInterps(constVar.sort).head
+            constVar -> getSortInterp(constVar.sort).head
         }.toMap
 
         val functionInterps: Map[FuncDecl, Map[Seq[Value], Value]] = functionDeclarations.map { funcDecl =>
             // For each tuple in the cartesian product of the domain, choose the first domain element in the range
-            val rangeElement = sortInterps(funcDecl.resultSort).head
-            val domainProduct = new CartesianSeqProduct(funcDecl.argSorts.map(sortInterps).map(_.toIndexedSeq).toIndexedSeq)
+            val rangeElement = getSortInterp(funcDecl.resultSort).head
+            val domainProduct = new CartesianSeqProduct(funcDecl.argSorts.map(getSortInterp).map(_.toIndexedSeq).toIndexedSeq)
             funcDecl -> {
                 for (domainTuple <- domainProduct)
                     yield domainTuple.asInstanceOf[Seq[Value]] -> rangeElement

@@ -44,13 +44,14 @@ object IntegerSize {
         }
         case _ => Errors.Internal.impossibleState("Trying to get bitwidth of '" + term.toString() + "'")
     }
-    /** The minimum value which can be stored in a two's complement bitvector of width `bitwidth`. */
-    def minimumIntValue(bitwidth: Int): Int = -(2 ** (bitwidth - 1))
-    /** The maximum value which can be stored in a two's complement bitvector of width `bitwidth`. */
-    def maximumIntValue(bitwidth: Int): Int = (2 ** (bitwidth - 1)) - 1
 
     def bitvectorWidthOfSort(sort: Sort): Option[Int] = sort match {
         case BitVectorSort(width) => Some(width)
         case _ => Errors.Internal.impossibleState("Cannot get bitwidth of non-bitvector! Got " + sort.toString() + " instead.")
     }
+
+    /** The minimum value which can be stored in a two's complement bitvector of width `bitwidth`. */
+    def minimumIntValue(bitwidth: Int): Int = -(2 ** (bitwidth - 1))
+    /** The maximum value which can be stored in a two's complement bitvector of width `bitwidth`. */
+    def maximumIntValue(bitwidth: Int): Int = (2 ** (bitwidth - 1)) - 1
 }
