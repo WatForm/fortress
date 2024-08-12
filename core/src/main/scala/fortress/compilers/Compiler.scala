@@ -25,6 +25,9 @@ abstract class Compiler {
         timeout: Milliseconds,
         loggers: Seq[EventLogger],
         verbose: Boolean,
+        // Use this to force the compiler not to return early in the case of a trivial model.
+        // Instead, the compiler will always generate a model that can be passed to a solver.
+        forceFullCompile: Boolean = false,
     ): Either[CompilerError, CompilerResult]
 
    // do not overwrite in a subclass

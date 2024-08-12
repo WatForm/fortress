@@ -1,14 +1,16 @@
 package fortress.msfol 
 
-import fortress.data.InsertionOrderedSet
+import fortress.data.{CartesianSeqProduct, InsertionOrderedSet}
 import fortress.util.Errors
 import fortress.operations.TypeCheckResult
+
 import scala.jdk.CollectionConverters._
-import scala.annotation.varargs // So we can call Scala varargs methods from Java
+import scala.annotation.varargs
 import fortress.operations._
 import fortress.interpretation.Interpretation
 import fortress.interpretation.BasicInterpretation
 import fortress.operations.TermOps._
+import fortress.problemstate.Scope
 
 // Persistent and Immutable
 // Internally consistent
@@ -531,7 +533,34 @@ case class Signature private (
     */
     
     def withoutEnums = copy(enumConstants = Map.empty)
-    
+
+    /** Get any interpretation fitting this signature. */
+    def trivialInterpretation(scopes: Map[Sort, Scope]): Interpretation = {
+        // Don't include definitions because they aren't included in interpretations returned from solvers
+        val defaultScope = 1 // just use this scope for anything unbound
+        val sortInterps: Map[Sort, Seq[Value]] = sorts.map { sort =>
+            val scope: Int = scopes get sort map (_.size) getOrElse defaultScope
+            sort -> (1 to scope).map(DomainElement(_, sort))
+        }.toMap
+
+        val constantInterps: Map[AnnotatedVar, Value] = constantDeclarations.map { constVar =>
+            // Just use the first domain element in its sort
+            constVar -> sortInterps(constVar.sort).head
+        }.toMap
+
+        val functionInterps: Map[FuncDecl, Map[Seq[Value], Value]] = functionDeclarations.map { funcDecl =>
+            // For each tuple in the cartesian product of the domain, choose the first domain element in the range
+            val rangeElement = sortInterps(funcDecl.resultSort).head
+            val domainProduct = new CartesianSeqProduct(funcDecl.argSorts.map(sortInterps).map(_.toIndexedSeq).toIndexedSeq)
+            funcDecl -> {
+                for (domainTuple <- domainProduct)
+                    yield domainTuple.asInstanceOf[Seq[Value]] -> rangeElement
+            }.toMap
+        }.toMap
+
+        BasicInterpretation(sortInterps, constantInterps, functionInterps, Set())
+    }
+
     private
     def assertSortConsistent(t: Sort): Unit = {
         // Sort must not share a name with any function declaration

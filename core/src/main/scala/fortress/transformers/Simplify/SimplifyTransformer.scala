@@ -1,6 +1,5 @@
 package fortress.transformers
 
-import fortress.msfol._
 import fortress.operations.TermOps._
 import fortress.operations.TheoryOps._
 import fortress.problemstate.ProblemState
@@ -10,7 +9,11 @@ import fortress.problemstate.ProblemState
 object SimplifyTransformer extends ProblemStateTransformer {
 
     override def apply(problemState: ProblemState): ProblemState =  {
-      problemState.copy(theory = problemState.theory.mapAllTerms(_.simplify))
+        val newTheory = problemState.theory.mapAllTerms(_.simplify)
+        problemState.copy(
+            theory = newTheory,
+            flags = problemState.flags.copy(trivialResult = newTheory.checkTrivial),
+        )
     }
 
 

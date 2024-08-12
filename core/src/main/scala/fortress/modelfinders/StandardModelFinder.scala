@@ -9,7 +9,6 @@ import fortress.solvers._
 import fortress.logging._
 import fortress.problemstate._
 
-import java.lang.AutoCloseable
 import scala.collection.mutable.ListBuffer
 
 /**
@@ -60,6 +59,8 @@ class StandardModelFinder extends ModelFinder {
     private var compilerResult: Either[CompilerError, CompilerResult] = null
     // only useful to viewModels if it has a SatSolution
     private var hasSatSolution:Boolean = false
+    // if the model is trivially SAT, here's its interpretation
+    private var trivialSolution: Option[Interpretation] = None
 
 
     def resetPhases() = {
@@ -144,38 +145,52 @@ class StandardModelFinder extends ModelFinder {
     protected def notifyLoggers(notifyFn: EventLogger => Unit): Unit = 
         for(logger <- eventLoggers) notifyFn(logger)
 
-    def compile(verbose: Boolean = false): Either[CompilerError, CompilerResult] = {
+    def compile(verbose: Boolean = false, forceFull: Boolean = false): Either[CompilerError, CompilerResult] = {
         if (!theorySet) 
             Errors.Internal.impossibleState("Called model finder compile or checkSat with no set theory")
         if (!haveCompiled) {
             haveCompiled = true 
             // can only interpret compiler result (timeout/error, during solving or in CLI)
-            compilerResult = compiler.compile(theory, analysisScopes, timeoutMilliseconds, eventLoggers.toList, verbose)           
+            compilerResult = compiler.compile(theory, analysisScopes, timeoutMilliseconds, eventLoggers.toList, verbose, forceFull)
         } 
         compilerResult
     }
 
     /** Check for a satisfying interpretation to the theory with the given scopes. */
-    def checkSat(verbose: Boolean = false): ModelFinderResult = {
+    def checkSat(verbose: Boolean = false, alwaysSolve: Boolean = false): ModelFinderResult = {
         // Restart the timer
         totalTimer.startFresh()
 
-        this.compile(verbose) match {
+        this.compile(verbose, alwaysSolve) match {
             case Left(CompilerError.Timeout) => TimeoutResult
             case Left(CompilerError.Other(errMsg)) => ErrorResult(errMsg)
-            case Right(compilerRes) => {
-
+            case Right(compilerRes) =>
                 val finalTheory = compilerRes.theory
 
 //                println("final theory: \n" + finalTheory + "\n\n")
 
                 notifyLoggers(_.allTransformersFinished(finalTheory, totalTimer.elapsedNano))
 
-                val finalResult: ModelFinderResult = solverPhase(finalTheory)
-
-                finalResult
-            }
+                if (compilerRes.isTrivial && !alwaysSolve) {
+                    trivialSolverPhase(compilerRes.trivialResult.get, finalTheory)
+                } else {
+                    solverPhase(finalTheory)
+                }
         }
+    }
+
+    private def trivialSolverPhase(trivialResult: TrivialResult, finalTheory: Theory): ModelFinderResult = {
+        haveSolved = true
+        if (trivialResult == TrivialResult.Valid) {
+            hasSatSolution = true
+            trivialSolution = Some(finalTheory.signature.trivialInterpretation(analysisScopes))
+        }
+        val finalResult = trivialResult match {
+            case TrivialValid => SatResult
+            case TrivialUnsat => UnsatResult
+        }
+        notifyLoggers(_.finished(finalResult, totalTimer.elapsedNano()))
+        finalResult
     }
 
     // Returns the final ModelFinderResult
@@ -209,8 +224,9 @@ class StandardModelFinder extends ModelFinder {
         haveSolved = true
         if (finalResult == SatResult) hasSatSolution = true 
         finalResult
-        
     }
+
+    private def getSolution: Interpretation = trivialSolution.getOrElse(solver.solution)
 
     /** View the satisfying interpretation, if one exists.
       * Otherwise, throws an error.
@@ -219,7 +235,7 @@ class StandardModelFinder extends ModelFinder {
         // can't be solved if it did not successfully compile
         if (!haveSolved) checkSat()
         if (!hasSatSolution) Errors.Internal.impossibleState("can only view models if the problem is SAT")
-        val instance = solver.solution
+        val instance = getSolution
         compilerResult.right.get.decompileInterpretation(instance)
     }
 
@@ -228,8 +244,11 @@ class StandardModelFinder extends ModelFinder {
 
         // have to have solved first, although if this is called directly, then
         // user would never see first interpretation
-        if (!haveSolved) checkSat() 
+        if (!haveSolved) checkSat(alwaysSolve = true)
         if (!hasSatSolution) Errors.Internal.impossibleState("can only view models if the problem is SAT")
+        // We can only get the next interpretation if we have gone to the solver
+        // This is why we pass alwaysSolve above
+        if (trivialSolution.isDefined) Errors.Internal.preconditionFailed("Can only get the next interpretation if not trivial")
 
         // Negate the current interpretation, but leave out the skolem functions
         // Different witnesses are not useful for counting interpretations
@@ -281,7 +300,7 @@ class StandardModelFinder extends ModelFinder {
 //        Errors.Internal.precondition(theory.signature.sorts.size == analysisScopes.size,
 //            "Sorry, we can't count valid models for a theory with unbounded sorts")
         
-        checkSat() match {
+        checkSat(alwaysSolve = true) match {
             case SatResult =>
             case UnsatResult => return 0
             case UnknownResult => Errors.Internal.solverError("Solver gave unknown result")
