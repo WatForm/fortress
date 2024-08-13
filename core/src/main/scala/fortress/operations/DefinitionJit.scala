@@ -199,9 +199,28 @@ class DefinitionJit(theory: Theory) {
                 case (_, BitVectorLiteral(0, _)) => None // don't try and handle div-by-zero here
                 case (BitVectorLiteral(i, bw1), BitVectorLiteral(j, bw2)) if bw1 == bw2 => Some(wrapBv(i / j, bw1))
             }
-        // TODO: What's the difference betweeen BvSignedMod and BvSignedRem?
-        case BuiltinApp(BvSignedMod, _) => _ => None
-        case BuiltinApp(BvSignedRem, _) => _ => None
+        case BuiltinApp(BvSignedMod, Seq(x, y)) =>
+            val jitX = compileTerm(x, varIdxs)
+            val jitY = compileTerm(y, varIdxs)
+            args => (jitX(args) zip jitY(args)) flatMap {
+                case (_, BitVectorLiteral(0, _)) => None // don't try and handle mod-by-zero here
+                case (BitVectorLiteral(i, bw1), BitVectorLiteral(j, bw2)) if bw1 == bw2 =>
+                    // In BvSignedMod, the sign follows the divisor (second argument)
+                    // https://z3prover.github.io/api/html/group__capi.html#ga9f99e96fc60cb67789fab87be0ba5919
+                    val result = (i.abs % j.abs) * j.sign
+                    Some(wrapBv(result, bw1))
+            }
+        case BuiltinApp(BvSignedRem, Seq(x, y)) =>
+            val jitX = compileTerm(x, varIdxs)
+            val jitY = compileTerm(y, varIdxs)
+            args => (jitX(args) zip jitY(args)) flatMap {
+                case (_, BitVectorLiteral(0, _)) => None // don't try and handle rem-by-zero here
+                case (BitVectorLiteral(i, bw1), BitVectorLiteral(j, bw2)) if bw1 == bw2 =>
+                    // In BvSignedRem, the sign follows the dividend (first argument)
+                    // https://z3prover.github.io/api/html/group__capi.html#ga9f99e96fc60cb67789fab87be0ba5919
+                    val result = (i.abs % j.abs) * i.sign
+                    Some(wrapBv(result, bw1))
+            }
         case BuiltinApp(BvSignedLE, Seq(x, y)) =>
             val jitX = compileTerm(x, varIdxs)
             val jitY = compileTerm(y, varIdxs)
