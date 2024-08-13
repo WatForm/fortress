@@ -103,6 +103,155 @@ class DefinitionJit(theory: Theory) {
                 case Bottom => jitIfFalse(args)
             }
 
+        // Evaluate integers
+        case i @ IntegerLiteral(_) => _ => Some(i)
+        case BuiltinApp(IntNeg, Seq(x)) =>
+            val jitX = compileTerm(x, varIdxs)
+            args => jitX(args) map {
+                case IntegerLiteral(i) => IntegerLiteral(-i)
+            }
+        case BuiltinApp(IntPlus, Seq(x, y)) =>
+            val jitX = compileTerm(x, varIdxs)
+            val jitY = compileTerm(y, varIdxs)
+            args => (jitX(args) zip jitY(args)) map {
+                case (IntegerLiteral(i), IntegerLiteral(j)) => IntegerLiteral(i + j)
+            }
+        case BuiltinApp(IntSub, Seq(x, y)) =>
+            val jitX = compileTerm(x, varIdxs)
+            val jitY = compileTerm(y, varIdxs)
+            args => (jitX(args) zip jitY(args)) map {
+                case (IntegerLiteral(i), IntegerLiteral(j)) => IntegerLiteral(i - j)
+            }
+        case BuiltinApp(IntMult, Seq(x, y)) =>
+            val jitX = compileTerm(x, varIdxs)
+            val jitY = compileTerm(y, varIdxs)
+            args => (jitX(args) zip jitY(args)) map {
+                case (IntegerLiteral(i), IntegerLiteral(j)) => IntegerLiteral(i * j)
+            }
+        case BuiltinApp(IntDiv, Seq(x, y)) =>
+            val jitX = compileTerm(x, varIdxs)
+            val jitY = compileTerm(y, varIdxs)
+            args => (jitX(args) zip jitY(args)) flatMap {
+                case (IntegerLiteral(_), IntegerLiteral(0)) => None // do not evaluate div-by-zero
+                case (IntegerLiteral(i), IntegerLiteral(j)) => Some(IntegerLiteral(i / j))
+            }
+        case BuiltinApp(IntMod, Seq(x, y)) =>
+            val jitX = compileTerm(x, varIdxs)
+            val jitY = compileTerm(y, varIdxs)
+            args => (jitX(args) zip jitY(args)) flatMap {
+                case (IntegerLiteral(_), IntegerLiteral(0)) => None // do not evaluate mod-by-zero
+                case (IntegerLiteral(i), IntegerLiteral(j)) => Some(IntegerLiteral(i % j))
+            }
+        case BuiltinApp(IntLE, Seq(x, y)) =>
+            val jitX = compileTerm(x, varIdxs)
+            val jitY = compileTerm(y, varIdxs)
+            args => (jitX(args) zip jitY(args)) map {
+                case (IntegerLiteral(i), IntegerLiteral(j)) => fromBool(i <= j)
+            }
+        case BuiltinApp(IntLT, Seq(x, y)) =>
+            val jitX = compileTerm(x, varIdxs)
+            val jitY = compileTerm(y, varIdxs)
+            args => (jitX(args) zip jitY(args)) map {
+                case (IntegerLiteral(i), IntegerLiteral(j)) => fromBool(i < j)
+            }
+        case BuiltinApp(IntGE, Seq(x, y)) =>
+            val jitX = compileTerm(x, varIdxs)
+            val jitY = compileTerm(y, varIdxs)
+            args => (jitX(args) zip jitY(args)) map {
+                case (IntegerLiteral(i), IntegerLiteral(j)) => fromBool(i >= j)
+            }
+        case BuiltinApp(IntGT, Seq(x, y)) =>
+            val jitX = compileTerm(x, varIdxs)
+            val jitY = compileTerm(y, varIdxs)
+            args => (jitX(args) zip jitY(args)) map {
+                case (IntegerLiteral(i), IntegerLiteral(j)) => fromBool(i > j)
+            }
+
+        // Evaluate BitVectors
+        case bv @ BitVectorLiteral(_, _) => _ => Some(bv)
+        case BuiltinApp(BvNeg, Seq(x)) =>
+            val jitX = compileTerm(x, varIdxs)
+            args => jitX(args) map {
+                case BitVectorLiteral(i, bitwidth) => wrapBv(-i, bitwidth)
+            }
+        case BuiltinApp(BvPlus, Seq(x, y)) =>
+            val jitX = compileTerm(x, varIdxs)
+            val jitY = compileTerm(y, varIdxs)
+            args => (jitX(args) zip jitY(args)) map {
+                case (BitVectorLiteral(i, bw1), BitVectorLiteral(j, bw2)) if bw1 == bw2 => wrapBv(i + j, bw1)
+            }
+        case BuiltinApp(BvSub, Seq(x, y)) =>
+            val jitX = compileTerm(x, varIdxs)
+            val jitY = compileTerm(y, varIdxs)
+            args => (jitX(args) zip jitY(args)) map {
+                case (BitVectorLiteral(i, bw1), BitVectorLiteral(j, bw2)) if bw1 == bw2 => wrapBv(i - j, bw1)
+            }
+        case BuiltinApp(BvMult, Seq(x, y)) =>
+            val jitX = compileTerm(x, varIdxs)
+            val jitY = compileTerm(y, varIdxs)
+            args => (jitX(args) zip jitY(args)) map {
+                case (BitVectorLiteral(i, bw1), BitVectorLiteral(j, bw2)) if bw1 == bw2 => wrapBv(i * j, bw1)
+            }
+        case BuiltinApp(BvSignedDiv, Seq(x, y)) =>
+            val jitX = compileTerm(x, varIdxs)
+            val jitY = compileTerm(y, varIdxs)
+            args => (jitX(args) zip jitY(args)) flatMap {
+                case (_, BitVectorLiteral(0, _)) => None // don't try and handle div-by-zero here
+                case (BitVectorLiteral(i, bw1), BitVectorLiteral(j, bw2)) if bw1 == bw2 => Some(wrapBv(i / j, bw1))
+            }
+        case BuiltinApp(BvSignedMod, Seq(x, y)) =>
+            val jitX = compileTerm(x, varIdxs)
+            val jitY = compileTerm(y, varIdxs)
+            args => (jitX(args) zip jitY(args)) flatMap {
+                case (_, BitVectorLiteral(0, _)) => None // don't try and handle mod-by-zero here
+                case (BitVectorLiteral(i, bw1), BitVectorLiteral(j, bw2)) if bw1 == bw2 =>
+                    // In BvSignedMod, the sign follows the divisor (second argument)
+                    // https://z3prover.github.io/api/html/group__capi.html#ga9f99e96fc60cb67789fab87be0ba5919
+                    val result = (i.abs % j.abs) * j.sign
+                    Some(wrapBv(result, bw1))
+            }
+        case BuiltinApp(BvSignedRem, Seq(x, y)) =>
+            val jitX = compileTerm(x, varIdxs)
+            val jitY = compileTerm(y, varIdxs)
+            args => (jitX(args) zip jitY(args)) flatMap {
+                case (_, BitVectorLiteral(0, _)) => None // don't try and handle rem-by-zero here
+                case (BitVectorLiteral(i, bw1), BitVectorLiteral(j, bw2)) if bw1 == bw2 =>
+                    // In BvSignedRem, the sign follows the dividend (first argument)
+                    // https://z3prover.github.io/api/html/group__capi.html#ga9f99e96fc60cb67789fab87be0ba5919
+                    val result = (i.abs % j.abs) * i.sign
+                    Some(wrapBv(result, bw1))
+            }
+        case BuiltinApp(BvSignedLE, Seq(x, y)) =>
+            val jitX = compileTerm(x, varIdxs)
+            val jitY = compileTerm(y, varIdxs)
+            args => (jitX(args) zip jitY(args)) map {
+                case (BitVectorLiteral(i, bw1), BitVectorLiteral(j, bw2)) if bw1 == bw2 => fromBool(i <= j)
+            }
+        case BuiltinApp(BvSignedLT, Seq(x, y)) =>
+            val jitX = compileTerm(x, varIdxs)
+            val jitY = compileTerm(y, varIdxs)
+            args => (jitX(args) zip jitY(args)) map {
+                case (BitVectorLiteral(i, bw1), BitVectorLiteral(j, bw2)) if bw1 == bw2 => fromBool(i < j)
+            }
+        case BuiltinApp(BvSignedGE, Seq(x, y)) =>
+            val jitX = compileTerm(x, varIdxs)
+            val jitY = compileTerm(y, varIdxs)
+            args => (jitX(args) zip jitY(args)) map {
+                case (BitVectorLiteral(i, bw1), BitVectorLiteral(j, bw2)) if bw1 == bw2 => fromBool(i >= j)
+            }
+        case BuiltinApp(BvSignedGT, Seq(x, y)) =>
+            val jitX = compileTerm(x, varIdxs)
+            val jitY = compileTerm(y, varIdxs)
+            args => (jitX(args) zip jitY(args)) map {
+                case (BitVectorLiteral(i, bw1), BitVectorLiteral(j, bw2)) if bw1 == bw2 => fromBool(i > j)
+            }
+        case BuiltinApp(BvConcat, Seq(x, y)) =>
+            val jitX = compileTerm(x, varIdxs)
+            val jitY = compileTerm(y, varIdxs)
+            args => (jitX(args) zip jitY(args)) map {
+                case (BitVectorLiteral(i, bw1), BitVectorLiteral(j, bw2)) => BitVectorLiteral((i << bw2) | j, bw1 + bw2)
+            }
+
         // TODO: Evaluate quantifiers by expanding?
         case Forall(_, _) => _ => None
         case Exists(_, _) => _ => None
@@ -110,21 +259,19 @@ class DefinitionJit(theory: Theory) {
         // TODO: Evaluate closures. (Currently, run this after closure elimination).
         case Closure(_, _, _, _) => _ => None
         case ReflexiveClosure(_, _, _, _) => _ => None
-
-        // TODO: Evaluate integers and bitvectors and functions of them!
-        case IntegerLiteral(_) => _ => None
-        case BitVectorLiteral(_, _) => _ => None
-        case BuiltinApp(_, _) => _ => None
     }
 
     private def evalEqIff(left: Term, right: Term, varIdxs: Map[Var, Int]): JitFunc = {
         val jitLeft = compileTerm(left, varIdxs)
         val jitRight = compileTerm(right, varIdxs)
         args => (jitLeft(args) zip jitRight(args)) map {
-            case (evalLeft, evalRight) =>
-                if (evalLeft == evalRight) Top
-                else Bottom
+            case (evalLeft, evalRight) => fromBool(evalLeft == evalRight)
         }
     }
+
+    private def fromBool(bool: Boolean): Value = if (bool) Top else Bottom
+
+    private def wrapBv(value: Int, bitwidth: Int): BitVectorLiteral =
+        BitVectorLiteral(value & ((1 << bitwidth) - 1), bitwidth)
 
 }

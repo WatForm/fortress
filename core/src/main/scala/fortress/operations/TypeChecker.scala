@@ -260,7 +260,7 @@ class TypeChecker(signature: Signature) extends TermVisitorWithTypeContext[TypeC
         
 
         val resultSort: Sort = signature.queryFunction(funcName, argSorts) match {
-            case None => throw new TypeCheckException.WrongSort(signature.functionWithName(funcName).get.toString + " cannot accept argument sorts " + argSorts.toString + " in " + app.toString)
+            case None => throw new TypeCheckException.WrongSort(funcName + " cannot accept argument sorts " + argSorts.toString + " in " + app.toString)
             case Some(Left(fdecl)) => fdecl.resultSort
             case Some(Right(fdefn)) => fdefn.resultSort
         }
