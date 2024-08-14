@@ -1,5 +1,6 @@
 package fortress.transformers.Definitions
 
+import fortress.interpretation.{BasicInterpretation, Interpretation}
 import fortress.msfol._
 import fortress.operations.NaturalSetAccumulation
 import fortress.problemstate.ProblemState
@@ -45,6 +46,25 @@ object EliminateUnusedTransformer extends ProblemStateTransformer {
         val fDefs = problemState.theory.functionDefinitions.filter(usedNames contains _.name)
         val cDefs = problemState.theory.constantDefinitions.filter(usedNames contains _.name)
 
+        val unapply: Interpretation => Interpretation = interp => {
+            // Use trivial interpretations for the function/constant declarations we filtered out
+            val trivialInterp = problemState.theory.signature.trivialInterpretation(problemState.scopes)
+            val newFuncInterps = (
+                for (fDecl <- problemState.theory.functionDeclarations)
+                    yield fDecl -> interp.functionInterpretations.getOrElse(fDecl, trivialInterp.functionInterpretations(fDecl))
+            ).toMap
+            val newConstInterps = (
+                for (cDecl <- problemState.theory.constantDeclarations)
+                    yield cDecl -> interp.constantInterpretations.getOrElse(cDecl, trivialInterp.constantInterpretations(cDecl))
+            ).toMap
+            BasicInterpretation(
+                interp.sortInterpretations,
+                newConstInterps,
+                newFuncInterps,
+                interp.functionDefinitions,
+            )
+        }
+
         problemState.copy(theory = problemState.theory.copy(
             signature = problemState.theory.signature.copy(
                 functionDeclarations = fDecls,
@@ -52,7 +72,7 @@ object EliminateUnusedTransformer extends ProblemStateTransformer {
                 functionDefinitions = fDefs,
                 constantDefinitions = cDefs,
             ),
-        ))
+        )).withUnapplyInterp(unapply)
     }
 
 }
