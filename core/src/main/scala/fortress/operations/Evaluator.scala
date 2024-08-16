@@ -135,6 +135,9 @@ class Evaluator(private var theory: Theory) {
         case BuiltinApp(IntGT, Seq(x, y)) => (tryCastToValue(x) zip tryCastToValue(y)) map {
             case (IntegerLiteral(i), IntegerLiteral(j)) => fromBool(i > j)
         }
+        case BuiltinApp(IntEQ, Seq(x, y)) => (tryCastToValue(x) zip tryCastToValue(y)) map {
+            case (IntegerLiteral(i), IntegerLiteral(j)) => fromBool(i == j)
+        }
 
         // Evaluate BitVectors
         case bv @ BitVectorLiteral(_, _) => Some(bv)
@@ -181,6 +184,9 @@ class Evaluator(private var theory: Theory) {
         }
         case BuiltinApp(BvSignedGT, Seq(x, y)) => (tryCastToValue(x) zip tryCastToValue(y)) map {
             case (BitVectorLiteral(i, bw1), BitVectorLiteral(j, bw2)) if bw1 == bw2 => fromBool(i > j)
+        }
+        case BuiltinApp(BvEQ, Seq(x, y)) => (tryCastToValue(x) zip tryCastToValue(y)) map {
+            case (BitVectorLiteral(i, bw1), BitVectorLiteral(j, bw2)) if bw1 == bw2 => fromBool(i == j)
         }
         case BuiltinApp(BvConcat, Seq(x, y)) => (tryCastToValue(x) zip tryCastToValue(y)) map {
             case (BitVectorLiteral(i, bw1), BitVectorLiteral(j, bw2)) => BitVectorLiteral((i << bw2) | j, bw1 + bw2)

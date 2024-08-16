@@ -53,6 +53,7 @@ case object IntLE extends BinaryIntegerRelation
 case object IntLT extends BinaryIntegerRelation
 case object IntGE extends BinaryIntegerRelation
 case object IntGT extends BinaryIntegerRelation
+case object IntEQ extends BinaryIntegerRelation
 
 ///////////////
 // Bit Vectors
@@ -104,6 +105,7 @@ case object BvSignedLE extends BinaryBitVectorRelation
 case object BvSignedLT extends BinaryBitVectorRelation
 case object BvSignedGE extends BinaryBitVectorRelation
 case object BvSignedGT extends BinaryBitVectorRelation
+case object BvEQ extends BinaryBitVectorRelation
 
 
 case object BvConcat extends BitVectorConcatFunction

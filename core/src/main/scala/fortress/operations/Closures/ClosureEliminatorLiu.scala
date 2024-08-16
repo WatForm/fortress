@@ -37,7 +37,7 @@ class ClosureEliminatorLiu(topLevelTerm: Term, signature: Signature, scopes: Map
             closureAxioms += Forall(axy ++ fixedArgVars,
                 Iff(
                     funcContains(functionName, x, y, fixedVars),
-                    Term.mkEq(App(p, Seq(x,y) ++ fixedVars), IntegerLiteral(1))
+                    Term.mkIntEq(App(p, Seq(x,y) ++ fixedVars), IntegerLiteral(1))
                 )
             )
             // P remains positive
@@ -57,8 +57,8 @@ class ClosureEliminatorLiu(topLevelTerm: Term, signature: Signature, scopes: Map
                     Term.mkGT(App(p, Seq(x,y) ++ fixedVars), IntegerLiteral(1)),
                     Exists(az,
                         And(
-                            Term.mkEq(App(p, Seq(x,z) ++ fixedVars), IntegerLiteral(1)),
-                            Term.mkEq(
+                            Term.mkIntEq(App(p, Seq(x,z) ++ fixedVars), IntegerLiteral(1)),
+                            Term.mkIntEq(
                                 App(p, Seq(x,y) ++ fixedVars),
                                 Term.mkPlus(App(p, Seq(z,y) ++ fixedVars), IntegerLiteral(1))
                             )
@@ -99,7 +99,7 @@ class ClosureEliminatorLiu(topLevelTerm: Term, signature: Signature, scopes: Map
                         App(reflexiveClosureName, Seq(x,y) ++ fixedVars),
                         Or(
                             Term.mkGT(App(p, Seq(x,y) ++ fixedVars), IntegerLiteral(0)),
-                            Eq(x,y)
+                            Term.sortedEq(sort, x,y)
                         )
                     )
                 )

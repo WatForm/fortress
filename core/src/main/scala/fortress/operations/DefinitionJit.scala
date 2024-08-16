@@ -166,6 +166,12 @@ class DefinitionJit(theory: Theory) {
             args => (jitX(args) zip jitY(args)) map {
                 case (IntegerLiteral(i), IntegerLiteral(j)) => fromBool(i > j)
             }
+        case BuiltinApp(IntEQ, Seq(x, y)) =>
+            val jitX = compileTerm(x, varIdxs)
+            val jitY = compileTerm(y, varIdxs)
+            args => (jitX(args) zip jitY(args)) map {
+                case (IntegerLiteral(i), IntegerLiteral(j)) => fromBool(i == j)
+            }
 
         // Evaluate BitVectors
         case bv @ BitVectorLiteral(_, _) => _ => Some(bv)
@@ -244,6 +250,12 @@ class DefinitionJit(theory: Theory) {
             val jitY = compileTerm(y, varIdxs)
             args => (jitX(args) zip jitY(args)) map {
                 case (BitVectorLiteral(i, bw1), BitVectorLiteral(j, bw2)) if bw1 == bw2 => fromBool(i > j)
+            }
+        case BuiltinApp(BvEQ, Seq(x, y)) =>
+            val jitX = compileTerm(x, varIdxs)
+            val jitY = compileTerm(y, varIdxs)
+            args => (jitX(args) zip jitY(args)) map {
+                case (BitVectorLiteral(i, bw1), BitVectorLiteral(j, bw2)) if bw1 == bw2 => fromBool(i == j)
             }
         case BuiltinApp(BvConcat, Seq(x, y)) =>
             val jitX = compileTerm(x, varIdxs)

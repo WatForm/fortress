@@ -20,6 +20,7 @@ object TermConverter {
                case BuiltinApp(IntLT, args) => BuiltinApp(BvSignedLT, args map naturalRecur)
                case BuiltinApp(IntGE, args) => BuiltinApp(BvSignedGE, args map naturalRecur)
                case BuiltinApp(IntGT, args) => BuiltinApp(BvSignedGT, args map naturalRecur)
+               case BuiltinApp(IntEQ, args) => BuiltinApp(BvEQ, args map naturalRecur)
                case Exists(vars, body) => {
                    val newVars = vars.map(
                        v => if (v.sort == IntSort) { v.variable of BitVectorSort(bitwidth) } else v

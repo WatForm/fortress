@@ -47,19 +47,19 @@ class ClosureEliminatorClaessen(topLevelTerm: Term, signature: Signature, scopes
             closureAxioms += Forall(Seq(x,y).map(_.of(sort)) ++ fixedArgVars, Not(App(C, Seq(x, x, y) ++ fixedVars)))
             closureAxioms += Forall(Seq(x,y).map(_.of(sort)) ++ fixedArgVars,
                 Implication(
-                    And(App(reflexiveClosureName, Seq(x, y) ++ fixedVars), Not(Eq(x, y))),
+                    And(App(reflexiveClosureName, Seq(x, y) ++ fixedVars), Not(Term.sortedEq(sort, x, y))),
                     App(C, Seq(x, App(s, Seq(x, y) ++ fixedVars), y) ++ fixedVars)
                 )
             )
             closureAxioms += Forall(Seq(x,y).map(_.of(sort)) ++ fixedArgVars,
                 Implication(
-                    And(App(reflexiveClosureName, Seq(x, y) ++ fixedVars), Not(Eq(x, y))),
+                    And(App(reflexiveClosureName, Seq(x, y) ++ fixedVars), Not(Term.sortedEq(sort, x, y))),
                     App(reflexiveClosureName, Seq(App(s, Seq(x, y) ++ fixedVars), y) ++ fixedVars)
                 )
             )
             closureAxioms += Forall(Seq(x,y).map(_.of(sort)) ++ fixedArgVars,
                 Implication(
-                    And(App(reflexiveClosureName, Seq(x, y) ++ fixedVars), Not(Eq(x, y))),
+                    And(App(reflexiveClosureName, Seq(x, y) ++ fixedVars), Not(Term.sortedEq(sort, x, y))),
                     funcContains(functionName, x, App(s, Seq(x, y) ++ fixedVars), fixedVars)
                 )
             )

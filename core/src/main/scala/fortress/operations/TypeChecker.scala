@@ -190,9 +190,12 @@ class TypeChecker(signature: Signature) extends TermVisitorWithTypeContext[TypeC
         }
         
         // Replaces (Bool) = (Bool) with Iff
-        val sanTerm =
-            if (leftResult.sort == BoolSort) Iff(leftResult.sanitizedTerm, rightResult.sanitizedTerm)
-            else Eq(leftResult.sanitizedTerm, rightResult.sanitizedTerm)
+        val sanTerm = leftResult.sort match {
+            case BoolSort => Iff(leftResult.sanitizedTerm, rightResult.sanitizedTerm)
+            case IntSort => BuiltinApp(IntEQ, Seq(leftResult.sanitizedTerm, rightResult.sanitizedTerm))
+            case BitVectorSort(bitwidth) => BuiltinApp(BvEQ, Seq(leftResult.sanitizedTerm, rightResult.sanitizedTerm))
+            case _ => Eq(leftResult.sanitizedTerm, rightResult.sanitizedTerm)
+        }
         
         TypeCheckResult(
             sanitizedTerm = sanTerm, 

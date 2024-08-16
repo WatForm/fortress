@@ -141,7 +141,7 @@ class ClosureEliminatorSquare(private val useDefns: Boolean = true, topLevelTerm
 
                 val body = Or(
                     App(closureName, Seq(x, y) ++ fixedVars),
-                    Eq(x, y),
+                    Term.sortedEq(sort, x, y),
                 )
                 if (useDefns) {
                     closureDefns += FunctionDefinition(reflexiveClosureName, axy ++ fixedArgVars, Sort.Bool, body)

@@ -80,7 +80,7 @@ class ClosureEliminatorEijck(topLevelTerm: Term, signature: Signature, scopes: M
                 Or(
                     Not(App(closenessName, List(x,y,y) ++ fixedVars)),
                     Not(App(closenessName, List(y,z,z) ++ fixedVars)),
-                    Eq(x,z),
+                    Term.sortedEq(sort,x,z),
                     App(closenessName, List(x,z,z) ++ fixedVars)
                 )
             )
@@ -88,7 +88,7 @@ class ClosureEliminatorEijck(topLevelTerm: Term, signature: Signature, scopes: M
             closureAxioms += Forall(axyz ++ fixedArgVars,
                 Or(
                     Not(App(closenessName, List(x,y,z) ++ fixedVars)),
-                    Eq(y, z),
+                    Term.sortedEq(sort, y, z),
                     App(closenessName, List(y,z,z) ++ fixedVars)
                 )
             )
@@ -97,7 +97,7 @@ class ClosureEliminatorEijck(topLevelTerm: Term, signature: Signature, scopes: M
             closureAxioms += Forall(axy ++ fixedArgVars,
                 Or(
                     Not(funcContains(functionName, x, y, fixedVars)),
-                    Eq(x,y),
+                    Term.sortedEq(sort, x,y),
                     App(closenessName, List(x,y,y) ++ fixedVars)
                 )
             )
@@ -158,7 +158,7 @@ class ClosureEliminatorEijck(topLevelTerm: Term, signature: Signature, scopes: M
                             App(reflexiveClosureName, List(x,y) ++ fixedVars),
                             Or(
                                 App(closenessName, List(x,y,y) ++ fixedVars),
-                                Eq(x,y)
+                                Term.sortedEq(sort, x,y)
                             )
                         )
                     )
@@ -173,7 +173,7 @@ class ClosureEliminatorEijck(topLevelTerm: Term, signature: Signature, scopes: M
                                 funcContains(functionName, x, z, fixedVars),
                                 Or(
                                     App(closenessName, List(z,y,y) ++ fixedVars),
-                                    Eq(z,y)
+                                    Term.sortedEq(sort, z,y)
                                 )
                             )
                         )
@@ -216,7 +216,7 @@ class ClosureEliminatorEijck(topLevelTerm: Term, signature: Signature, scopes: M
                         App(reflexiveClosureName, List(x,y) ++ fixedVars),
                         Or(
                             App(closenessName, List(x,y,y) ++ fixedVars),
-                            Eq(x,y)
+                            Term.sortedEq(sort, x,y)
                         )
                     )
                 )

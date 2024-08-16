@@ -89,15 +89,15 @@ class ClosureEliminatorIterative(topLevelTerm: Term, signature: Signature, scope
                     closureAxioms += Forall((avars :+ az :+ u.of(sort)) ++ fixedArgVars,
                         Implication(And(App(helperName, Seq(x, y, u) ++ fixedVars), App(helperName, Seq(y, z, u) ++ fixedVars)), App(helperName, Seq(x, z, u) ++ fixedVars)))
                     closureAxioms += Forall((avars :+ az) ++ fixedArgVars,
-                        Implication(And(App(helperName, Seq(x, y, y) ++ fixedVars), App(helperName, Seq(y, z, z) ++ fixedVars), Not(Eq(x, z))), App(helperName, Seq(x, z, z) ++ fixedVars)))
+                        Implication(And(App(helperName, Seq(x, y, y) ++ fixedVars), App(helperName, Seq(y, z, z) ++ fixedVars), Not(Term.sortedEq(sort, x, z))), App(helperName, Seq(x, z, z) ++ fixedVars)))
                     closureAxioms += Forall((avars :+ az) ++ fixedArgVars,
-                        Implication(And(App(helperName, Seq(x, y, z) ++ fixedVars), Not(Eq(y, z))), App(helperName, Seq(y, z, z) ++ fixedVars)))
+                        Implication(And(App(helperName, Seq(x, y, z) ++ fixedVars), Not(Term.sortedEq(sort, y, z))), App(helperName, Seq(y, z, z) ++ fixedVars)))
                     closureAxioms += Forall(avars ++ fixedArgVars,
-                        Implication(And(funcContains(functionName, x, y, fixedVars), Not(Eq(x, y))), App(helperName, Seq(x, y, y) ++ fixedVars)))
+                        Implication(And(funcContains(functionName, x, y, fixedVars), Not(Term.sortedEq(sort, x, y))), App(helperName, Seq(x, y, y) ++ fixedVars)))
                     closureAxioms += Forall(avars ++ fixedArgVars,
                         Implication(App(helperName, Seq(x, y, y) ++ fixedVars), Exists(az, And(funcContains(functionName, x, z, fixedVars), App(helperName, Seq(x, z, y) ++ fixedVars)))))
                     closureAxioms += Forall(avars ++ fixedArgVars,
-                        Iff(App(reflexiveClosureName, Seq(x, y) ++ fixedVars), Or(App(helperName, Seq(x, y, y) ++ fixedVars), Eq(x, y))))
+                        Iff(App(reflexiveClosureName, Seq(x, y) ++ fixedVars), Or(App(helperName, Seq(x, y, y) ++ fixedVars), Term.sortedEq(sort, x, y))))
                     closureAxioms += Forall(avars ++ fixedArgVars,
                         Iff(App(closureName, Seq(x, y) ++ fixedVars), Exists(az, And(funcContains(functionName, x, z, fixedVars), App(reflexiveClosureName, Seq(z, y) ++ fixedVars)))))
                 }
@@ -134,13 +134,13 @@ class ClosureEliminatorIterative(topLevelTerm: Term, signature: Signature, scope
                     val u = Var(nameGen.freshName("u"));
                     closureAxioms += Forall(avars, Not(App(helperName, Seq(x, x, y) ++ fixedVars)))
                     closureAxioms += Forall(avars :+ az :+ u.of(sort), Implication(And(App(helperName, List(x, y, u) ++ fixedVars), App(helperName, List(y, z, u) ++ fixedVars)), App(helperName, List(x, z, u) ++ fixedVars)))
-                    closureAxioms += Forall(avars :+ az, Implication(And(App(helperName, Seq(x, y, y) ++ fixedVars), App(helperName, Seq(y, z, z) ++ fixedVars), Not(Eq(x, z))), App(helperName, Seq(x, z, z) ++ fixedVars)))
-                    closureAxioms += Forall(avars :+ az, Implication(And(App(helperName, Seq(x, y, z) ++ fixedVars), Not(Eq(y, z))), App(helperName, Seq(y, z, z) ++ fixedVars)))
-                    closureAxioms += Forall(avars, Implication(And(funcContains(functionName, x, y, fixedVars), Not(Eq(x, y))), App(helperName, Seq(x, y, y) ++ fixedVars)))
+                    closureAxioms += Forall(avars :+ az, Implication(And(App(helperName, Seq(x, y, y) ++ fixedVars), App(helperName, Seq(y, z, z) ++ fixedVars), Not(Term.sortedEq(sort, x, z))), App(helperName, Seq(x, z, z) ++ fixedVars)))
+                    closureAxioms += Forall(avars :+ az, Implication(And(App(helperName, Seq(x, y, z) ++ fixedVars), Not(Term.sortedEq(sort, y, z))), App(helperName, Seq(y, z, z) ++ fixedVars)))
+                    closureAxioms += Forall(avars, Implication(And(funcContains(functionName, x, y, fixedVars), Not(Term.sortedEq(sort, x, y))), App(helperName, Seq(x, y, y) ++ fixedVars)))
                     closureAxioms += Forall(avars, Implication(App(helperName, Seq(x, y, y) ++ fixedVars), Exists(az, And(funcContains(functionName, x, z, fixedVars), App(helperName, Seq(x, z, y) ++ fixedVars)))))
-                    closureAxioms += Forall(avars, Iff(App(reflexiveClosureName, Seq(x, y) ++ fixedVars), Or(App(helperName, Seq(x, y, y) ++ fixedVars), Eq(x, y))))
+                    closureAxioms += Forall(avars, Iff(App(reflexiveClosureName, Seq(x, y) ++ fixedVars), Or(App(helperName, Seq(x, y, y) ++ fixedVars), Term.sortedEq(sort, x, y))))
                 } else if (queryFunction(closureName)) {
-                    closureAxioms += Forall(avars, Iff(App(reflexiveClosureName, Seq(x, y) ++ fixedVars), Or(Eq(x, y), App(closureName, Seq(x, y) ++ fixedVars))))
+                    closureAxioms += Forall(avars, Iff(App(reflexiveClosureName, Seq(x, y) ++ fixedVars), Or(Term.sortedEq(sort, x, y), App(closureName, Seq(x, y) ++ fixedVars))))
                 } else {
                     closureFunctions += FuncDecl(closureName, Seq(sort, sort) ++ fixedSorts, Sort.Bool)
                     for (s <- 1 until scala.math.ceil(scala.math.log(scope.size)/scala.math.log(2)).toInt) {
@@ -150,7 +150,7 @@ class ClosureEliminatorIterative(topLevelTerm: Term, signature: Signature, scope
                         functionName = newFunctionName;
                     }
                     closureAxioms += Forall(avars, Iff(App(closureName, Seq(x, y) ++ fixedVars), Or(funcContains(functionName, x, y, fixedVars), Exists(az, And(funcContains(functionName, x, z, fixedVars), funcContains(functionName, z, y, fixedVars))))))
-                    closureAxioms += Forall(avars, Iff(App(reflexiveClosureName, Seq(x, y) ++ fixedVars), Or(Eq(x, y), App(closureName, Seq(x, y) ++ fixedVars))))
+                    closureAxioms += Forall(avars, Iff(App(reflexiveClosureName, Seq(x, y) ++ fixedVars), Or(Term.sortedEq(sort, x, y), App(closureName, Seq(x, y) ++ fixedVars))))
                 }
             }
             App(reflexiveClosureName, Seq(rc.arg1, rc.arg2) ++ rc.fixedArgs).mapArguments(visit)

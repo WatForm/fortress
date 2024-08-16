@@ -26,6 +26,7 @@ object LiaChecker {
         case BuiltinApp(IntGT, Seq(t1, t2)) => helper(t1, t2)
         case BuiltinApp(IntLE, Seq(t1, t2)) => helper(t1, t2)
         case BuiltinApp(IntLT, Seq(t1, t2)) => helper(t1, t2)
+        case BuiltinApp(IntEQ, Seq(t1, t2)) => helper(t1, t2)
         case BuiltinApp(IntMult, Seq(t1, t2)) => {
             val (isLia1, hasVar1) = checkTerm(t1)
             val (isLia2, hasVar2) = checkTerm(t2)

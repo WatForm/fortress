@@ -103,8 +103,8 @@ trait Interpretation {
             case IntPlus | IntNeg | IntSub | IntMult | IntDiv | IntMod => evalResult of Sort.Int
             case BvPlus | BvNeg | BvSub | BvMult | BvSignedDiv | BvSignedRem | BvSignedMod =>
                 evalResult of Sort.BitVector(evalArgs.head.asInstanceOf[BitVectorLiteral].bitwidth);
-            case IntLE | IntLT | IntGE | IntGT |
-                 BvSignedLE | BvSignedLT | BvSignedGE | BvSignedGT => evalResult of Sort.Bool
+            case IntLE | IntLT | IntGE | IntGT | IntEQ |
+                 BvSignedLE | BvSignedLT | BvSignedGE | BvSignedGT | BvEQ => evalResult of Sort.Bool
             case CastBVToInt => {
                 isBv2Int = true
                 evalResult of Sort.Int

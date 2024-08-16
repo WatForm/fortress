@@ -80,7 +80,7 @@ class ClosureEliminatorVakili(topLevelTerm: Term, allowedRelations: Set[String],
                 Iff(
                     App(reflexiveClosureName, x +: y +: fixedVars),
                     Or(
-                        Eq(x, y),
+                        Term.sortedEq(sort, x, y),
                         App(closureName, x +: y +: fixedVars)
                     )
                 )

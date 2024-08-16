@@ -110,6 +110,7 @@ class InterpretationVerifier(theory: Theory) {
                             case IntGT => x > y
                             case IntLE => x <= y
                             case IntLT => x < y
+                            case IntEQ => x == y
                         })
                     }
                     case f: BinaryBitVectorFunction => {
@@ -147,6 +148,7 @@ class InterpretationVerifier(theory: Theory) {
                             case BvSignedGT => x > y
                             case BvSignedLE => x <= y
                             case BvSignedLT => x < y
+                            case BvEQ => x == y
                         })
                     }
                     case IntNeg => {
