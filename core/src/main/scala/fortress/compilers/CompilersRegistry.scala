@@ -26,6 +26,10 @@ object CompilersRegistry {
             case "Evaluate" => new EvaluateCompiler()
             case "EvaluateQDef" => new EvaluateQDefCompiler()
 
+            // Bitvector
+            case "UncheckedBV" => new UncheckedBVCompiler()
+            case "NOBV" => new NOBVCompiler()
+
             case "Eijck" => new EijckCompiler()
 
             case "AlmostNothing" => new AlmostNothingCompiler()

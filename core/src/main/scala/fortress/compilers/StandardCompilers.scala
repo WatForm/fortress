@@ -115,6 +115,16 @@ class StandardCompiler extends BaseCompiler {
 
 }
 
+class UncheckedBVCompiler extends StandardCompiler {
+    override def integerHandler: ListBuffer[ProblemStateTransformer] =
+        CompilersRegistry.ListOfOne(IntToBVTransformer)
+}
+
+class NOBVCompiler extends StandardCompiler {
+    override def integerHandler: ListBuffer[ProblemStateTransformer] =
+        ListBuffer[ProblemStateTransformer](IntToBVTransformer, IntNOBVTransformer)
+}
+
 class EijckCompiler() extends StandardCompiler {
 
     override def closureEliminator: ListBuffer[ProblemStateTransformer] =
