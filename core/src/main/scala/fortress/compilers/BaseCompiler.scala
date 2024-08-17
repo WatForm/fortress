@@ -28,8 +28,8 @@ abstract class BaseCompiler extends Compiler {
             override val trivialResult: Option[TrivialResult] = finalProblemState.flags.trivialResult
 
             override def decompileInterpretation(interpretation: Interpretation): Interpretation = {
-                finalProblemState.unapplyInterp.foldLeft(interpretation) {
-                    (interp, unapplyFn) => unapplyFn(interp)
+                finalProblemState.unapplyInterp.foldRight(interpretation) {
+                    (unapplyFn, interp) => unapplyFn(interp)
                 }
             }
 
