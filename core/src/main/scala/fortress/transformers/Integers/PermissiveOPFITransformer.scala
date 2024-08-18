@@ -29,13 +29,15 @@ object PermissiveOPFITransformer extends ProblemStateTransformer {
         sets reduce (_ union _)
     }
 
+    def unknown(checks: Set[Term]): Term = OrList(checks.toSeq)
+
     // If a value would overflow, set it to false
     def knownOrFalse(term: Term, checks: Set[Term]): Term = {
         if (checks.isEmpty){
             term
         } else {
             // term & !(check0 | check1 | ...)
-            And(term, Not(OrList(checks.toSeq)))
+            And(term, Not(unknown(checks)))
         }
     }
 
@@ -45,7 +47,7 @@ object PermissiveOPFITransformer extends ProblemStateTransformer {
             term
         } else {
             // term & !(check0 | check1 | ...)
-            And(term, OrList(checks.toSeq))
+            And(term, unknown(checks))
         }
     }
 
@@ -54,7 +56,7 @@ object PermissiveOPFITransformer extends ProblemStateTransformer {
         if (checks.isEmpty){
             term
         } else {
-            And(term, Not(OrList(checks.toSeq)))
+            And(term, Not(unknown(checks)))
         }
     }
 
@@ -63,7 +65,7 @@ object PermissiveOPFITransformer extends ProblemStateTransformer {
         if (checks.isEmpty){
             Not(term)
         } else {
-            And(Not(term), Not(OrList(checks.toSeq)))
+            And(Not(term), Not(unknown(checks)))
         }
     }
 
@@ -228,7 +230,7 @@ object PermissiveOPFITransformer extends ProblemStateTransformer {
                 if (flatChecks.isEmpty){
                     (AndList(transformedArgs), Set.empty)
                 } else {
-                    val anyValueUnknown = OrList(flatChecks.toSeq)
+                    val anyValueUnknown = unknown(flatChecks)
 
                     val anyKnownFalse = OrList(
                         termsAndChecks.map({
@@ -253,7 +255,7 @@ object PermissiveOPFITransformer extends ProblemStateTransformer {
                 if (flatChecks.isEmpty){
                     (OrList(transformedArgs), Set.empty)
                 } else {
-                    val anyValueUnknown = OrList(flatChecks.toSeq)
+                    val anyValueUnknown = unknown(flatChecks)
 
                     val anyKnownTrue = OrList(
                         termsAndChecks.map({
@@ -277,9 +279,9 @@ object PermissiveOPFITransformer extends ProblemStateTransformer {
                 // TODO optimize with polarity and quantification
                  
                 // Overflows if condition overflows, or chosen path overflows
-                val condOverflows = OrList(checkCondition.toList)
-                val trueOverflows = OrList(checkTrue.toSeq)
-                val falseOverflows = OrList(checkFalse.toSeq)
+                val condOverflows = unknown(checkCondition)
+                val trueOverflows = unknown(checkTrue)
+                val falseOverflows = unknown(checkFalse)
                 val newCheck = Or(condOverflows, And(newCond, trueOverflows), And(Not(newCond), falseOverflows))
 
                 val newTerm = IfThenElse(newCond, newTrue, newFalse)
@@ -311,6 +313,56 @@ object PermissiveOPFITransformer extends ProblemStateTransformer {
                 transform(unfoldedTerm, down)
             }
 
+            case Forall(quants, body) => {
+                // Separate out integer variables
+                val (intQuantNames, nonintQuants) = quants partitionMap (_ match {
+                    case AnnotatedVar(Var(name), IntSort) =>
+                        Left(name)
+                    case AnnotatedVar(variable, sort) =>
+                        Right(AnnotatedVar(variable, sort))
+                })
+                // Integer variables become opfi variables
+                val intQuants = intQuantNames map (name => AnnotatedVar(Var(name),opfiSort))
+                // The non-integer variables remain the same
+                val newQuants = intQuants ++ nonintQuants
+                val newDown = down.quantified(intQuantNames.toSet)
+                
+                val (transformedBody, bodyUnknown) = transform(body, newDown)
+
+                // Unknown if every value is unknown (This is permissive)
+                val upTerms: Set[Term] = Set(Forall(newQuants, unknown(bodyUnknown)))
+
+                // If the body is unknown, ignore it by making it true
+                val newBody = knownOrTrue(transformedBody, bodyUnknown)
+
+                (Forall(newQuants, newBody), upTerms)
+            }
+
+            case Exists(quants, body) => {
+                // Separate out integer variables
+                val (intQuantNames, nonintQuants) = quants partitionMap (_ match {
+                    case AnnotatedVar(Var(name), IntSort) =>
+                        Left(name)
+                    case AnnotatedVar(variable, sort) =>
+                        Right(AnnotatedVar(variable, sort))
+                })
+                // Integer variables become opfi variables
+                val intQuants = intQuantNames map (name => AnnotatedVar(Var(name),opfiSort))
+                // The non-integer variables remain the same
+                val newQuants = intQuants ++ nonintQuants
+                val newDown = down.quantified(intQuantNames.toSet)
+                
+                val (transformedBody, bodyUnknown) = transform(body, newDown)
+
+                // Unknown if every value is unknown (This is permissive)
+                val upTerms: Set[Term] = Set(Forall(newQuants, unknown(bodyUnknown)))
+
+                // If the body is unknown, ignore it by making it false
+                val newBody = knownOrFalse(transformedBody, bodyUnknown)
+
+                (Exists(newQuants, newBody), upTerms)
+            }
+
             case BuiltinApp(function, arguments) => {
                 val newArgsAndChecks = arguments.map(transform(_, down.unknownPolarity))
                 val (newArgs, argChecks) = newArgsAndChecks.unzip
@@ -320,7 +372,10 @@ object PermissiveOPFITransformer extends ProblemStateTransformer {
                 // TODO optimize for polarity
 
                 // integer predicates can overflow if out of bounds
-                // TODO how to handle castToBV?
+                /* NOTE we have decided to not handle casting int to bitvector at this point.
+                The cast takes a bitwidth which could intentionally be smaller than the integer being used.
+                As such, it is hard to say what would be "overflow" and what would be intended behavior.
+                */
                 // TODO Division by zero?
                 val outOfBoundsChecks: Set[Term] = function match {
                     case _: BinaryIntegerRelation => {
@@ -338,13 +393,10 @@ object PermissiveOPFITransformer extends ProblemStateTransformer {
             }
 
             case Eq(left, right) => {
-                // We *should * be able to assume that these are non-boolean values
-                
-                // Unfortunately, we must typecheck if these are integer values
+                val (newLeft, overLeft) = transform(left, down.unknownPolarity)
+                val (newRight, overRight) = transform(right, down.unknownPolarity)
 
-                // TODO to typecheck we will need other known types
-                // This could be sped up with typed Eq?
-                ???
+                (Eq(newLeft, newRight), overLeft union overRight)
             }
 
             // Literals are known values
@@ -371,6 +423,11 @@ object PermissiveOPFITransformer extends ProblemStateTransformer {
         def flipPolarity(): DownInfo = copy(polarity = flip(polarity))
 
         def unknownPolarity(): DownInfo = copy(polarity = Indeterminate)
+
+        def quantified(): DownInfo = copy(isQuantified = true)
+
+        def quantified(newOpfis: Set[String]): DownInfo = 
+            copy(isQuantified = true, opfiVars = opfiVars union newOpfis)
     }
 
     
