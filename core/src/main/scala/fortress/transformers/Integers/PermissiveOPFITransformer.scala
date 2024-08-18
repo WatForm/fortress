@@ -29,7 +29,7 @@ object PermissiveOPFITransformer extends ProblemStateTransformer {
         sets reduce (_ union _)
     }
 
-    def unknown(checks: Set[Term]): Term = OrList(checks.toSeq)
+    def unknown(checks: Set[Term]): Term = if (checks.isEmpty) {Bottom} else {OrList(checks.toSeq)}
 
     // If a value would overflow, set it to false
     def knownOrFalse(term: Term, checks: Set[Term]): Term = {
@@ -106,6 +106,7 @@ object PermissiveOPFITransformer extends ProblemStateTransformer {
 
         // Scopes change with the new sort
         val newScopes = problemState.scopes + (opfiSort -> ExactScope(numValues, true))
+        val newSorts = problemState.theory.sorts + opfiSort
 
         // Create a mapping of integer values to constants
         val intToConstants: Map[Int, DomainElement] = generateConstantMapping(min, max, opfiSort)
@@ -140,11 +141,7 @@ object PermissiveOPFITransformer extends ProblemStateTransformer {
             case _ => App(functionDefCastFromInt.name, term)
         }
 
-        // replaces int sort while leaving other sorts unchanged
-        def replaceIntSort(sort: Sort): Sort = sort match {
-            case IntSort => opfiSort
-            case x => x
-        }
+        
 
         // This is used to filter out terms that won't overflow (since we are currently casting them TO ints from an in bound constant)
         def withoutCastsToInt(terms: Seq[Term]): Seq[Term] = {
@@ -154,6 +151,21 @@ object PermissiveOPFITransformer extends ProblemStateTransformer {
             })
         }
 
+        // Casts only the args of opfi sort
+        def castArgs(args: Seq[Term], argSorts: Seq[Sort]): Seq[Term] = {
+            args.zip(argSorts).map({
+                case (arg, sort) => {
+                    if (sort == opfiSort){
+                        castFromInt(arg)
+                    } else {
+                        arg
+                    }
+                } 
+            })
+        }
+
+        /*
+
         // find function declarations that contain ints and therefore need to be changed
         // We store this to make casting easier later
         val (intFuncDecls, otherFuncDecls) = problemState.theory.functionDeclarations.partition(decl => decl.argSorts.contains(IntSort) || decl.resultSort == IntSort)
@@ -162,31 +174,49 @@ object PermissiveOPFITransformer extends ProblemStateTransformer {
             case FuncDecl(name, argSorts, resultSort) =>
                 FuncDecl(name, argSorts map replaceIntSort, replaceIntSort(resultSort))
         })
+        */
 
-        // TODO cast arguments in function decls
+        // replaces int sort while leaving other sorts unchanged
+        def replaceIntSort(sort: Sort): Sort = sort match {
+            case IntSort => opfiSort
+            case x => x
+        }
+
+        def replaceIntArg(avar: AnnotatedVar): AnnotatedVar = avar match {
+            case AnnotatedVar(v, sort) => AnnotatedVar(v, opfiSort)
+            case _ => avar
+        }
+
+        // cast ints to opfi in function declarations
+        val newFuncDecls = problemState.theory.functionDeclarations.map(fdec => fdec match {
+            case FuncDecl(name, args, resultSort) => {
+                val newArgs = args map replaceIntSort
+                val newResult = replaceIntSort(resultSort)
+
+                FuncDecl(name, newArgs, newResult)
+            }
+        })
+
+        val newFuncDeclsByName = newFuncDecls.map(decl => decl match {case FuncDecl(name, _, _) => name -> decl}).toMap
+
+
+        /* Function definitions get extra arguments for each of their arguments.
+           They also produce additional definitions to represent the body of the definition overflowing
+           We can't transform the definitions yet, as we need the names to define transform.
+           So, for now we just define the names.
+        */
+
+        // Maps name of function definition to overflow definition.
+        // The bodies are currently just Bottom, but they will be overridden later
+        val overflowDefnNames = problemState.theory.functionDefinitions.toSeq.map({
+            case FunctionDefinition(name, _, _, _) => name -> varNameGenerator.freshName("opfiUnknownDefn_" + name)
+        }).toMap
+        // NOTE:  Const defn names are handled via parameterOverflows in DownInfo, so we do not need to calculate them here
+        // We do this because quantifiers can shadow constant names from higher levels
 
         // TODO cast, add args, and transform defns
 
         // TODO treat constants as defns with no args
-
-        /**
-         * Any arguments to a function that are OPFI ints are currently ints
-         * We need to cast them back.
-         * This function is designed to do that.
-         * 
-         * Returns a tuple. 
-         * The first value is args all of the functions arguments properly wrapped in casts.
-         * The second value is a sequence of (unwrapped) arguments that were changed, and thus need to be checked for overflows.
-         */
-        def castFunctionArgs() = ???
-
-        // We need to transform the definitions, but before we can do that, we cast them so we can use
-        var newConstDecls = problemState.theory.signature.constantDeclarations.map(_ match {
-            case AnnotatedVar(variable, IntSort) => { 
-                AnnotatedVar(variable, opfiSort)
-            }
-            case x => x
-        })
 
 
         // Recursive transformation
@@ -325,7 +355,7 @@ object PermissiveOPFITransformer extends ProblemStateTransformer {
                 val intQuants = intQuantNames map (name => AnnotatedVar(Var(name),opfiSort))
                 // The non-integer variables remain the same
                 val newQuants = intQuants ++ nonintQuants
-                val newDown = down.quantified(intQuantNames.toSet)
+                val newDown = down.quantified(intQuantNames.toSet, nonintQuants.map(_.name).toSet)
                 
                 val (transformedBody, bodyUnknown) = transform(body, newDown)
 
@@ -350,7 +380,7 @@ object PermissiveOPFITransformer extends ProblemStateTransformer {
                 val intQuants = intQuantNames map (name => AnnotatedVar(Var(name),opfiSort))
                 // The non-integer variables remain the same
                 val newQuants = intQuants ++ nonintQuants
-                val newDown = down.quantified(intQuantNames.toSet)
+                val newDown = down.quantified(intQuantNames.toSet, nonintQuants.map(_.name).toSet)
                 
                 val (transformedBody, bodyUnknown) = transform(body, newDown)
 
@@ -361,6 +391,41 @@ object PermissiveOPFITransformer extends ProblemStateTransformer {
                 val newBody = knownOrFalse(transformedBody, bodyUnknown)
 
                 (Exists(newQuants, newBody), upTerms)
+            }
+
+            case App(functionName, arguments) => {
+                // arguments have unknown polarity
+                val (transformedArgs, argUnknownsTerms) = arguments.map(transform(_, down.unknownPolarity)).unzip
+                
+                // TODO optimize with polarity
+
+                overflowDefnNames.get(functionName) match {
+                    case None => {
+                        // This is a declaration, not a definition
+                        // So we call, casting arguments as needed
+                        newFuncDeclsByName(functionName) match {
+                            case FuncDecl(_, argSorts, resultSort) => {
+                                val newArgs = castArgs(transformedArgs, argSorts)
+                                // Cast back to int if this is an opfi term
+                                val newTerm = if (resultSort == opfiSort){
+                                    castToInt(App(functionName, newArgs))
+                                } else {
+                                    App(functionName, newArgs)
+                                }
+                                // Unknown if any arg is unknown
+                                val newUnknown = unionAll(argUnknownsTerms)
+
+                                (newTerm, newUnknown)
+                            }
+                        }
+                    }
+                    case Some(overflowDefName) => {
+                        val argUnknowns = argUnknownsTerms.map(unknown)
+                        val newTerm = App(functionName, transformedArgs ++ argUnknowns)
+                        val newUnknown: Set[Term] = Set(App(overflowDefName, argUnknowns))
+                        (newTerm, newUnknown)
+                    }
+                }
             }
 
             case BuiltinApp(function, arguments) => {
@@ -408,7 +473,73 @@ object PermissiveOPFITransformer extends ProblemStateTransformer {
             case Bottom => (Bottom, Set.empty)
 
         }
+
+        // cast ints to opfi in constant declarations
+        val newConstDecls = problemState.theory.constantDeclarations.map(replaceIntArg)
+
+        // TODO set of all int declarations that will be cast to int
+        val opfiVars: Set[String] = newConstDecls.filter(_.sort == opfiSort).map(_.name)
+
+        // TODO constant definitions
+        val originalConstDefns = problemState.theory.constantDefinitions
+        // We generate this before transforming as we need this information WHEN transforming
+        val constDefnUnknownVars: Map[String, Var] = originalConstDefns.toSeq.map(defn => defn.name -> Var(varNameGenerator.freshName("opfiUnkownConst_"+name))).toMap
+
+        val constDownInfo = DownInfo(Indeterminate, false, constDefnUnknownVars, opfiVars)
+        // NOTE would it be more efficient to make this Seq rather than set? Probably not enough defns to matter
+        val newConstDefns = originalConstDefns.map({
+            case ConstantDefinition(avar, body) => {
+                val (transformedBody, unknownBody) = transform(body, constDownInfo)
+
+                val transformedDefn = ConstantDefinition(avar, transformedBody)
+
+                val overflowDefnAvar = constDefnUnknownVars(avar.name).of(BoolSort)
+                val overflowDefn = ConstantDefinition(overflowDefnAvar, unknown(unknownBody))
+                Set(transformedDefn, overflowDefn)
+            }
+        }).flatten
+
+        // TODO optimize when we know a definition does not overflow?
+
+
+        // Now we must transform function definitions and create the unknown definitions
+        val newFuncDefns = problemState.theory.functionDefinitions.toSeq.map({
+            case FunctionDefinition(oldName, params, resultSort, body) => {
+                // Add overflow parameters
+                val paramNames = params.map(_.name)
+                val overflowParams = paramNames.map(name => Var(varNameGenerator.freshName("opfiIsUnknown_"+name)))
+                val newParams = params ++ overflowParams.map(_.of(opfiSort))
+
+                // recurse into body with a mapping from params to their overflow params
+                // Include constant defn unknown variables as well
+                val parameterOverflows = Map.from(paramNames zip overflowParams) ++ constDefnUnknownVars
+                val down = DownInfo(Indeterminate, false, parameterOverflows, opfiVars)
+
+                val (transformedBody, unknownBody) = transform(body, down)
+
+                val newDefn = FunctionDefinition(oldName, newParams, resultSort, transformedBody)
+                val overflowedDefn = FunctionDefinition(overflowDefnNames(oldName), newParams, BoolSort, unknown(unknownBody))
+
+                Seq(newDefn, overflowedDefn)
+            }
+        }).flatten
+
+        val axiomDown = DownInfo(Positive, false, constDefnUnknownVars, opfiVars)
+
+        val newAxioms = problemState.theory.axioms.map(term => {
+            val (transformedTerm, unknownChecks) = transform(term, axiomDown)
+            
+            knownAndTrue(transformedTerm, unknownChecks)
+        })
+
         
+        // TODO unapply
+        val newTheory = Theory(
+            Signature(newSorts, newFuncDecls, newFuncDefns.toSet, newConstDecls, newConstDefns, problemState.theory.enumConstants),
+            newAxioms
+        )
+
+        // newScopes
 
         ???
     }
@@ -426,8 +557,16 @@ object PermissiveOPFITransformer extends ProblemStateTransformer {
 
         def quantified(): DownInfo = copy(isQuantified = true)
 
-        def quantified(newOpfis: Set[String]): DownInfo = 
-            copy(isQuantified = true, opfiVars = opfiVars union newOpfis)
+        def quantified(newOpfis: Set[String], nonIntQuants: Set[String]): DownInfo = {
+            val allQuantVars = newOpfis union nonIntQuants
+            copy(
+            isQuantified = true,
+            opfiVars = (opfiVars diff nonIntQuants) union newOpfis,
+            // Remove anything quantified here. It will be a known value
+            parameterOverflows = parameterOverflows.filter({case (name -> _) => !allQuantVars.contains(name)})
+            )
+        }
+        
     }
 
     
