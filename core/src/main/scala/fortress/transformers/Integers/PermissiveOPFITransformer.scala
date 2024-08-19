@@ -6,6 +6,8 @@ import fortress.msfol._
 import fortress.data.NameGenerator
 import fortress.data.IntSuffixNameGenerator
 import fortress.problemstate.ExactScope
+import fortress.interpretation.Interpretation
+import fortress.sortinference.ValuedSortSubstitution
 
 object Polarity extends Enumeration {
     type Polarity = Value
@@ -66,6 +68,32 @@ object PermissiveOPFITransformer extends ProblemStateTransformer {
             Not(term)
         } else {
             And(Not(term), Not(unknown(checks)))
+        }
+    }
+
+    /**
+     * If we would normally return a transfromed `newTerm` with overflow checks `checks`, if we have a determined polarity
+     * and `isQuantified` is false, we can simplify the checks into the current term.
+     **/
+    def polaritySimplify(newTerm: Term, checks: Set[Term], down: DownInfo): (Term, Set[Term]) = {
+        // If the term is quantified, we must pass the checks up to the permissive quantifier
+        // If no checks exist, then the term cannot be unknown and cannot be simplified
+        if (down.isQuantified || checks.isEmpty){
+            return (newTerm, checks)
+        }
+
+        down.polarity match {
+            case Indeterminate => (newTerm, checks) // no simplification here
+            case Positive => {
+                // Make the overflow False
+                val finalTerm = knownOrFalse(newTerm, checks)
+                (finalTerm, Set.empty)
+            }
+            case Negative => {
+                // Make the overflow True
+                val finalTerm = knownOrTrue(newTerm, checks)
+                (finalTerm, Set.empty)
+            }
         }
     }
 
@@ -239,7 +267,7 @@ object PermissiveOPFITransformer extends ProblemStateTransformer {
                 // Transform the body with opposite polarity
                 val (transfomedBody, check) = transform(body, down.flipPolarity)
                 // Check remains the same
-                (Not(transfomedBody), check)
+                polaritySimplify(Not(transfomedBody), check, down)
             }
 
             case Distinct(arguments) => {
@@ -247,14 +275,12 @@ object PermissiveOPFITransformer extends ProblemStateTransformer {
 
                 // TODO simplify when possible
 
-                (Distinct(transformedArgs), unionAll(checks))
+                polaritySimplify(Distinct(transformedArgs), unionAll(checks), down)
             }
 
             case AndList(arguments) => {
                 val termsAndChecks = arguments.map(transform(_, down))
                 val (transformedArgs, checks) = termsAndChecks.unzip
-
-                // TODO simplify when possible
                 
                 val flatChecks = unionAll(checks)
                 if (flatChecks.isEmpty){
@@ -271,15 +297,13 @@ object PermissiveOPFITransformer extends ProblemStateTransformer {
 
                     // unknown when one unknown and no known false
                     val newCheck = And(anyValueUnknown, Not(anyKnownFalse))
-                    (AndList(transformedArgs), Set(newCheck))
+                    polaritySimplify(AndList(transformedArgs), Set(newCheck), down)
                 }
             }
 
             case OrList(arguments) => {
                 val termsAndChecks = arguments.map(transform(_, down))
                 val (transformedArgs, checks) = termsAndChecks.unzip
-
-                // TODO simplify when possible
                 
                 val flatChecks = unionAll(checks)
                 if (flatChecks.isEmpty){
@@ -296,7 +320,7 @@ object PermissiveOPFITransformer extends ProblemStateTransformer {
 
                     // unknown when one unknown and no known true
                     val newCheck = And(anyValueUnknown, Not(anyKnownTrue))
-                    (OrList(transformedArgs), Set(newCheck))
+                    polaritySimplify(OrList(transformedArgs), Set(newCheck), down)
                 }
             }
 
@@ -305,8 +329,6 @@ object PermissiveOPFITransformer extends ProblemStateTransformer {
                 val (newCond, checkCondition) = transform(condition, down)
                 val (newTrue, checkTrue) = transform(ifTrue, down)
                 val (newFalse, checkFalse) = transform(ifFalse, down)
-
-                // TODO optimize with polarity and quantification
                  
                 // Overflows if condition overflows, or chosen path overflows
                 val condOverflows = unknown(checkCondition)
@@ -317,7 +339,7 @@ object PermissiveOPFITransformer extends ProblemStateTransformer {
                 val newTerm = IfThenElse(newCond, newTrue, newFalse)
                 
             
-                (newTerm, Set(newCheck))
+                polaritySimplify(newTerm, Set(newCheck), down)
             }
 
             case Implication(left, right) => {
@@ -330,7 +352,7 @@ object PermissiveOPFITransformer extends ProblemStateTransformer {
                 val newTerm = Implication(transformedLeft, transformedRight)
                 val newCheck = checkLeft union checkRight
 
-                (newTerm, newCheck)
+                polaritySimplify(newTerm, newCheck, down)
             }
 
             case Iff(left, right) => {
@@ -365,7 +387,7 @@ object PermissiveOPFITransformer extends ProblemStateTransformer {
                 // If the body is unknown, ignore it by making it true
                 val newBody = knownOrTrue(transformedBody, bodyUnknown)
 
-                (Forall(newQuants, newBody), upTerms)
+                polaritySimplify(Forall(newQuants, newBody), upTerms, down)
             }
 
             case Exists(quants, body) => {
@@ -390,14 +412,15 @@ object PermissiveOPFITransformer extends ProblemStateTransformer {
                 // If the body is unknown, ignore it by making it false
                 val newBody = knownOrFalse(transformedBody, bodyUnknown)
 
-                (Exists(newQuants, newBody), upTerms)
+                polaritySimplify(Exists(newQuants, newBody), upTerms, down)
             }
 
             case App(functionName, arguments) => {
                 // arguments have unknown polarity
                 val (transformedArgs, argUnknownsTerms) = arguments.map(transform(_, down.unknownPolarity)).unzip
                 
-                // TODO optimize with polarity
+                // We do not need to simplify APP, as whatever is one level higher will simplify
+                // And we only simplify if bool sort
 
                 overflowDefnNames.get(functionName) match {
                     case None => {
@@ -415,6 +438,7 @@ object PermissiveOPFITransformer extends ProblemStateTransformer {
                                 // Unknown if any arg is unknown
                                 val newUnknown = unionAll(argUnknownsTerms)
 
+                                
                                 (newTerm, newUnknown)
                             }
                         }
@@ -434,7 +458,8 @@ object PermissiveOPFITransformer extends ProblemStateTransformer {
 
                 val anyArgOverflows = unionAll(argChecks)
                 
-                // TODO optimize for polarity
+                // We do not need to simplify APP, as whatever is one level higher will simplify
+                // And we only simplify if bool sort
 
                 // integer predicates can overflow if out of bounds
                 /* NOTE we have decided to not handle casting int to bitvector at this point.
@@ -461,7 +486,7 @@ object PermissiveOPFITransformer extends ProblemStateTransformer {
                 val (newLeft, overLeft) = transform(left, down.unknownPolarity)
                 val (newRight, overRight) = transform(right, down.unknownPolarity)
 
-                (Eq(newLeft, newRight), overLeft union overRight)
+                polaritySimplify(Eq(newLeft, newRight), overLeft union overRight, down)
             }
 
             // Literals are known values
@@ -532,16 +557,40 @@ object PermissiveOPFITransformer extends ProblemStateTransformer {
             knownAndTrue(transformedTerm, unknownChecks)
         })
 
+
         
         // TODO unapply
         val newTheory = Theory(
-            Signature(newSorts, newFuncDecls, newFuncDefns.toSet, newConstDecls, newConstDefns, problemState.theory.enumConstants),
+            Signature(newSorts,
+                newFuncDecls,
+                newFuncDefns.toSet,
+                newConstDecls,
+                newConstDefns,
+                problemState.theory.enumConstants
+            ),
             newAxioms
         )
 
-        // newScopes
+        // Unapply by converting opfi sort and constants to integers
+        val constantsToIntLits: Map[fortress.msfol.Value, fortress.msfol.Value] = constantsToInts.map({
+            case (const, i) => const -> IntegerLiteral(i)
+        })
+        def unapplyInterp(interp: Interpretation): Interpretation = {
+            val substitute = new ValuedSortSubstitution(Map(opfiSort -> IntSort), constantsToIntLits)
+            // Cast the sorts, we have to handle function definitions directly.
+            //interp.applySortSubstitution(substitute).withoutFunctionDefinitions(Set(castToIntDefn, castFromIntDefn, isInBounds))
+            interp
+            .withoutFunctionDefinitions(Set(functionDefCastToInt, functionDefCastFromInt, isOutOfBounds))
+            .applySortSubstitution(substitute)
+            .withoutSorts(Set(IntSort))
+        }
 
-        ???
+        // construct the new problemstate
+        problemState
+            .withScopes(newScopes)
+            .withTheory(newTheory)
+            .withUnapplyInterp(unapplyInterp)
+            .withFlags(problemState.flags.copy(haveRunNNF=false))
     }
     
 
