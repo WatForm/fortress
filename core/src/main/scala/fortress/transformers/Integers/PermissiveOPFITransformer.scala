@@ -31,7 +31,7 @@ object PermissiveOPFITransformer extends ProblemStateTransformer {
         sets reduce (_ union _)
     }
 
-    def unknown(checks: Set[Term]): Term = if (checks.isEmpty) {Bottom} else {OrList(checks.toSeq)}
+    def unknown(checks: Set[Term]): Term = Or.smart(checks.toSeq)
 
     // If a value would overflow, set it to false
     def knownOrFalse(term: Term, checks: Set[Term]): Term = {
@@ -164,9 +164,15 @@ object PermissiveOPFITransformer extends ProblemStateTransformer {
             case App(functionDefCastFromInt.name, Seq(baseTerm)) => baseTerm
             case _ => App(functionDefCastToInt.name, term)
         }
-        def castFromInt(term: Term): Term = term match {
-            case App(functionDefCastToInt.name, Seq(baseTerm)) => baseTerm
-            case _ => App(functionDefCastFromInt.name, term)
+
+        // Term cast with an overflow if needed
+        def castFromInt(term: Term): (Term, Set[Term]) = term match {
+            case App(functionDefCastToInt.name, Seq(baseTerm)) => (baseTerm, Set.empty[Term])
+            // overflows if out term is out of bounds
+            case _ => (
+                App(functionDefCastFromInt.name, term),
+                Set[Term](App(isOutOfBounds.name, Seq(term)))
+            )
         }
 
         
@@ -180,16 +186,18 @@ object PermissiveOPFITransformer extends ProblemStateTransformer {
         }
 
         // Casts only the args of opfi sort
-        def castArgs(args: Seq[Term], argSorts: Seq[Sort]): Seq[Term] = {
-            args.zip(argSorts).map({
-                case (arg, sort) => {
-                    if (sort == opfiSort){
-                        castFromInt(arg)
-                    } else {
-                        arg
-                    }
-                } 
-            })
+        def castArgs(args: Seq[Term], argSorts: Seq[Sort]): (Seq[Term], Set[Term]) = {
+            // Cast each arg that needs it, it overflows if the value being cast is out of bounds
+            val (castArgs, checks) = args.zip(argSorts).map({
+                case (arg, sort) if sort == opfiSort => {
+                    // Cast from int checks for overflows
+                    castFromInt(arg)
+                }      
+                // If we don't cast, we can't overflow here      
+                case (arg, _) =>  (arg, Set.empty[Term])
+            }).unzip
+
+            (castArgs, unionAll(checks))
         }
 
         /*
@@ -211,7 +219,7 @@ object PermissiveOPFITransformer extends ProblemStateTransformer {
         }
 
         def replaceIntArg(avar: AnnotatedVar): AnnotatedVar = avar match {
-            case AnnotatedVar(v, sort) => AnnotatedVar(v, opfiSort)
+            case AnnotatedVar(v, IntSort) => AnnotatedVar(v, opfiSort)
             case _ => avar
         }
 
@@ -288,10 +296,9 @@ object PermissiveOPFITransformer extends ProblemStateTransformer {
                 } else {
                     val anyValueUnknown = unknown(flatChecks)
 
-                    val anyKnownFalse = OrList(
+                    val anyKnownFalse = Or.smart(
                         termsAndChecks.map({
-                            case (subterm, check) => 
-                                And(subterm, Not(OrList(check.toSeq)))
+                            case (subterm, check) => knownAndFalse(subterm, check)
                         })
                     )
 
@@ -428,7 +435,7 @@ object PermissiveOPFITransformer extends ProblemStateTransformer {
                         // So we call, casting arguments as needed
                         newFuncDeclsByName(functionName) match {
                             case FuncDecl(_, argSorts, resultSort) => {
-                                val newArgs = castArgs(transformedArgs, argSorts)
+                                val (newArgs, castChecks) = castArgs(transformedArgs, argSorts)
                                 // Cast back to int if this is an opfi term
                                 val newTerm = if (resultSort == opfiSort){
                                     castToInt(App(functionName, newArgs))
@@ -436,7 +443,7 @@ object PermissiveOPFITransformer extends ProblemStateTransformer {
                                     App(functionName, newArgs)
                                 }
                                 // Unknown if any arg is unknown
-                                val newUnknown = unionAll(argUnknownsTerms)
+                                val newUnknown = unionAll(argUnknownsTerms) union castChecks
 
                                 
                                 (newTerm, newUnknown)
@@ -470,7 +477,10 @@ object PermissiveOPFITransformer extends ProblemStateTransformer {
                 val outOfBoundsChecks: Set[Term] = function match {
                     case _: BinaryIntegerRelation => {
                         // Add a check if any args are out of bounds
-                        newArgs.map(App(isOutOfBounds.name, _)).toSet
+                        // Args that contain toInt at the top_level are not included
+                        val potentiallyOverflowingArgs = withoutCastsToInt(newArgs)
+
+                        potentiallyOverflowingArgs.map[Term](App(isOutOfBounds.name, _)).toSet
                     }
                     case _ => {
                         Set.empty
@@ -528,7 +538,7 @@ object PermissiveOPFITransformer extends ProblemStateTransformer {
 
 
         // Now we must transform function definitions and create the unknown definitions
-        val newFuncDefns = problemState.theory.functionDefinitions.toSeq.map({
+        val newFuncDefns = problemState.theory.functionDefinitions.map({
             case FunctionDefinition(oldName, params, resultSort, body) => {
                 // Add overflow parameters
                 val paramNames = params.map(_.name)
@@ -547,7 +557,8 @@ object PermissiveOPFITransformer extends ProblemStateTransformer {
 
                 Seq(newDefn, overflowedDefn)
             }
-        }).flatten
+        }) // Include the opfi defnitions
+        .flatten union Set(functionDefCastFromInt, functionDefCastToInt, isOutOfBounds)
 
         val axiomDown = DownInfo(Positive, false, constDefnUnknownVars, opfiVars)
 
