@@ -132,13 +132,13 @@ object SkolemizeTransformer extends ProblemStateTransformer {
             distinctConstants
         )
         */
-        problemState.copy(
-            theory = resultTheory,
-            skolemConstants = problemState.skolemConstants ++ newSkolemConstants.toSet,
-            skolemFunctions = problemState.skolemFunctions ++ newSkolemFunctions.toSet,
-            unapplyInterp = unapply :: problemState.unapplyInterp,
-            flags = problemState.flags.copy(haveRunSkolemizer = true)
-        )
+
+        problemState
+        .withTheory(resultTheory)
+        .withSkolemConstants(problemState.skolemConstants ++ newSkolemConstants.toSet)
+        .withSkolemFunctions(problemState.skolemFunctions ++ newSkolemFunctions.toSet)
+        .withUnapplyInterp(unapply)
+        .withFlags(problemState.flags.copy(haveRunSkolemizer = true))
     }
     
     

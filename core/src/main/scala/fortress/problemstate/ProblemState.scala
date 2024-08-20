@@ -59,7 +59,7 @@ case class ProblemState private (
     }
 
     def withUnapplyInterp(unapp: Interpretation => Interpretation): ProblemState = {
-        copy(unapplyInterp = unapplyInterp :+ unapp)
+        copy(unapplyInterp = unapp :: unapplyInterp)
     }
 
     def withoutUnapplyInterps(): ProblemState = {
@@ -68,6 +68,30 @@ case class ProblemState private (
 
     def withFlags(fl:Flags):ProblemState = {
         copy(flags = fl)
+    }
+
+    /**
+      * Replaces skolem constants with `sk`
+      */
+    def withSkolemConstants(skc: Set[AnnotatedVar]): ProblemState = {
+        copy(skolemConstants = skc)
+    }
+
+    /**
+      * Replaces skolem functions with `skf`
+      */
+    def withSkolemFunctions(skf: Set[FuncDecl]): ProblemState = {
+        copy(skolemFunctions = skf)
+    }
+
+    /**
+      * Replaces range restrictions with argument.
+      *
+      * @param rangeRestrictions
+      * @return A new `ProblemState`
+      */
+    def withRangeRestrictions(rangeRestrictions: Set[RangeRestriction]): ProblemState = {
+        copy(rangeRestrictions = rangeRestrictions)
     }
 }
 

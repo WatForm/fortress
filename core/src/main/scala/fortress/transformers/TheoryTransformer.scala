@@ -19,8 +19,8 @@ object TheoryTransformer {
     implicit def asProblemStateTransformer(theoryTransformer: TheoryTransformer): ProblemStateTransformer = {
         object asPST extends ProblemStateTransformer {
             override def apply(problemState: ProblemState): ProblemState = {
-                problemState.copy(
-                    theory = theoryTransformer(problemState.theory, problemState.flags)
+                problemState.withTheory(
+                    theoryTransformer(problemState.theory, problemState.flags)
                 )
             }
             

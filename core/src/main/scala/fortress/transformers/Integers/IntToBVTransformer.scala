@@ -34,7 +34,7 @@ object IntToBVTransformer extends ProblemStateTransformer {
             // remove IntSort from the scopes map
             val newScopes: Map[Sort, Scope] = problemState.scopes.filter(x => !(x._1 == IntSort)) + (BitVectorSort(bitwidth) -> ExactScope(totalValues))
             // change the theory
-            newProblemState = problemState.withTheory(Theory.mkTheoryWithSignature(newSig).withAxioms(newAxioms)).withScopes(newScopes)
+            newProblemState = problemState.withTheory(Theory(newSig, newAxioms)).withScopes(newScopes)
                 .withUnapplyInterp(unapply)
         }
 

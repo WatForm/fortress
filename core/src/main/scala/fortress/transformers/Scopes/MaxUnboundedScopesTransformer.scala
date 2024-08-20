@@ -14,10 +14,9 @@ object MaxUnboundedScopesTransformer extends ProblemStateTransformer {
 
         // keep only the fixed sorts
         // the sorts no longer in the scopes map become unbounded
-        val new_scopes = scopes.filter( _._2.isFixed() )  
+        val newScopes = scopes.filter({case (_, scope) => scope.isFixed()})  
         
-        problemState.copy(scopes = new_scopes)
-
+        problemState.withScopes(newScopes)
     }
 
 

@@ -65,14 +65,17 @@ object EliminateUnusedTransformer extends ProblemStateTransformer {
             )
         }
 
-        problemState.copy(theory = problemState.theory.copy(
-            signature = problemState.theory.signature.copy(
+        val newSignature = problemState.theory.signature.copy(
                 functionDeclarations = fDecls,
                 constantDeclarations = cDecls,
                 functionDefinitions = fDefs,
                 constantDefinitions = cDefs,
-            ),
-        )).withUnapplyInterp(unapply)
+            )
+        val newTheory = problemState.theory.copy(signature = newSignature)
+
+        problemState
+        .withTheory(newTheory)
+        .withUnapplyInterp(unapply)
     }
 
 }

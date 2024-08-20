@@ -25,14 +25,12 @@ object SortInferenceTransformer extends ProblemStateTransformer {
         }
         val unapply: Interpretation => Interpretation = _.applySortSubstitution(sortSubstitution)
 
-        // ProblemState(generalTheory, newScopes.toMap, skc map (sortSubstitution(_)), skf map (sortSubstitution(_)), rangeRestricts, unapply :: unapplyInterp, distinctConstants)
-        problemState.copy(
-            theory = generalTheory,
-            scopes = newScopes.toMap,
-            skolemConstants = problemState.skolemConstants map (sortSubstitution(_)),
-            skolemFunctions = problemState.skolemFunctions map (sortSubstitution(_)),
-            unapplyInterp = unapply :: problemState.unapplyInterp,
-        )
+        problemState
+        .withTheory(generalTheory)
+        .withScopes(newScopes.toMap)
+        .withSkolemConstants(problemState.skolemConstants map (sortSubstitution(_)))
+        .withSkolemFunctions(problemState.skolemFunctions map (sortSubstitution(_)))
+        .withUnapplyInterp(unapply)
     }
     
 

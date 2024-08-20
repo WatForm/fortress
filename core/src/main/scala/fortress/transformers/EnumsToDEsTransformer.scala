@@ -50,11 +50,10 @@ object EnumsToDEsTransformer extends ProblemStateTransformer {
 
         // The problem contain scopes for the enums, which should remain the same
         //ProblemState(newTheory, scopes, skc, skf, rangeRestricts, unapply :: unapplyInterp, distinctConstants)
-        problemState.copy(
-            theory = newTheory,
-            unapplyInterp = unapply :: problemState.unapplyInterp,
-            scopes = newScopes
-        )
+        problemState
+        .withTheory(newTheory)
+        .withUnapplyInterp(unapply)
+        .withScopes(newScopes)
     }
     
     def computeEnumSortMapping(theory: Theory): Map[EnumValue, DomainElement] = {

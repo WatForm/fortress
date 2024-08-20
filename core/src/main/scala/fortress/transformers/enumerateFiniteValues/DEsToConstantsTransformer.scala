@@ -60,10 +60,9 @@ class DEsToConstantsTransformer(constantsDistinct:Boolean = true) extends Proble
             }
             else Theory(newSig, convertedAxioms)
         
-        problemState.copy(
-            theory = newTheory,
-            flags = problemState.flags.copy(distinctConstants = constantsDistinct)
-        )
+        problemState
+        .withTheory(newTheory)
+        .withFlags(problemState.flags.copy(distinctConstants = constantsDistinct))
     }
 }
 

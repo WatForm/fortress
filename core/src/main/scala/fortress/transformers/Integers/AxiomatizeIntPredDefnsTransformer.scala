@@ -52,9 +52,8 @@ object AxiomatizeIntPredDefnsTransformer extends ProblemStateTransformer {
         .withFunctionDeclarations(newFuncDecls)
         .withAxioms(funcAxioms)
 
-        problemState.copy(
-            theory = newTheory
-        )
+        problemState
+        .withTheory(newTheory)
     }
 
 }
