@@ -474,10 +474,14 @@ case class Signature private (
                     }
                     case x => x
                 })
-
+            
+            // Add a finite sort interpretation for integers
+            // To is an inclusive range
+            val integerValues: Seq[Value] = 
+                (IntegerSize.minimumIntValue(bitwidth) to IntegerSize.maximumIntValue(bitwidth)) map (IntegerLiteral(_))
 
             BasicInterpretation(
-                interp.sortInterpretations,
+                interp.sortInterpretations + (IntSort -> integerValues),
                 newConsts,
                 newFunctionInterps,
                 newFunctionDefinitions)
