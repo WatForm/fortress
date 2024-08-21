@@ -10,10 +10,9 @@ object SimplifyTransformer extends ProblemStateTransformer {
 
     override def apply(problemState: ProblemState): ProblemState =  {
         val newTheory = problemState.theory.mapAllTerms(_.simplify)
-        problemState.copy(
-            theory = newTheory,
-            flags = problemState.flags.copy(trivialResult = newTheory.checkTrivial),
-        )
+        problemState
+        .withTheory(newTheory)
+        .withFlags(problemState.flags.copy(trivialResult = newTheory.checkTrivial))
     }
 
 

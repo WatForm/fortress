@@ -62,7 +62,7 @@ class SymmetryBreakingTransformer(
     }
 
     def apply(problemState: ProblemState): ProblemState = problemState match {
-        case ProblemState(theory, scopes, skc, skf, rangeRestricts, unapplyInterp, distinctConstants) => {
+        case ProblemState(theory, scopes, skc, skf, rangeRestricts, unapplyInterp, flags) => {
 
             val (newDecls, newConstraints, newRangeRestrictions) = if(options.sortInference) {
                 // Perform sort inference first
@@ -92,7 +92,9 @@ class SymmetryBreakingTransformer(
 
             // Add symmetry breaking function declarations, constraints, and range restrictions
             val newTheory = theory.withFunctionDeclarations(newDecls).withAxioms(newConstraints)
-            ProblemState(newTheory, scopes, skc, skf, rangeRestricts union newRangeRestrictions, unapplyInterp, distinctConstants)
+            problemState
+            .withTheory(newTheory)
+            .withRangeRestrictions(rangeRestricts union newRangeRestrictions)
         }
     }
 

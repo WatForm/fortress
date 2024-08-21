@@ -18,9 +18,7 @@ object SplitConjunctionTransformer extends ProblemStateTransformer {
         theory.axioms.map(splitConjunctions)
     	val newTheory = Theory(theory.signature, newAxioms)
 
-        problemState.copy(
-            theory = newTheory
-        )
+        problemState.withTheory(newTheory)
     }
     
 

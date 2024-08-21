@@ -59,7 +59,7 @@ case class ProblemState private (
     }
 
     def withUnapplyInterp(unapp: Interpretation => Interpretation): ProblemState = {
-        copy(unapplyInterp = unapplyInterp :+ unapp)
+        copy(unapplyInterp = unapp :: unapplyInterp)
     }
 
     def withoutUnapplyInterps(): ProblemState = {
@@ -68,6 +68,30 @@ case class ProblemState private (
 
     def withFlags(fl:Flags):ProblemState = {
         copy(flags = fl)
+    }
+
+    /**
+      * Replaces skolem constants with `sk`
+      */
+    def withSkolemConstants(skc: Set[AnnotatedVar]): ProblemState = {
+        copy(skolemConstants = skc)
+    }
+
+    /**
+      * Replaces skolem functions with `skf`
+      */
+    def withSkolemFunctions(skf: Set[FuncDecl]): ProblemState = {
+        copy(skolemFunctions = skf)
+    }
+
+    /**
+      * Replaces range restrictions with argument.
+      *
+      * @param rangeRestrictions
+      * @return A new `ProblemState`
+      */
+    def withRangeRestrictions(rangeRestrictions: Set[RangeRestriction]): ProblemState = {
+        copy(rangeRestrictions = rangeRestrictions)
     }
 }
 
@@ -85,17 +109,11 @@ object ProblemState {
     //TODO: why does this apply function do much more than the withScopes function above??    
 
     def apply(theory: Theory, scopes: Map[Sort, Scope], verbose: Boolean = false): ProblemState = {
-        // Compute the scopes for enum sorts
-        // Copy whether the scope is fixed and its exactness from the regular scope if applicable for compatibility
-        def isFixed(sort: Sort) =
-            if (scopes contains sort) scopes(sort).isUnchanging
-            else true
-        def makeScopeWithExactness(sort: Sort, size: Int, isUnchanging: Boolean) =
-            if ((scopes contains sort) && scopes(sort).isExact) ExactScope(size, isUnchanging)
-            else NonExactScope(size, isUnchanging)
-        val enumScopes = theory.signature.enumConstants.map {
-            case (sort, enumValues) => sort -> makeScopeWithExactness(sort, enumValues.size, isFixed(sort))
-        }.toMap
+        // Compute the scopes for enum sorts without one provided
+        val enumScopes = theory.signature.enumConstants
+            .withFilter({case (sort, _) => !scopes.contains(sort)})
+            .map({case (sort, enumValues) => sort -> ExactScope(enumValues.length, true)})
+            .toMap
 
         val containsNonExactScopes = scopes.values.exists(sc => sc.isExact == false)
         // Check there is no conflict between the enum scopes and the provided scopes

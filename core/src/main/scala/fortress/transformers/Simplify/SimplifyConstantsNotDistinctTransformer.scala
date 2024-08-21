@@ -14,13 +14,8 @@ import fortress.problemstate.ProblemState
   * */
 
 object SimplifyConstantsNotDistinctTransformer extends ProblemStateTransformer {
-    
-    override def apply(problemState: ProblemState): ProblemState =  {
-      problemState.copy(
-        theory = problemState.theory.mapAllTerms(SimplifierConstantsNotDistinct
-          .simplify)
-      )
-    }
-    
-
+    override def apply(problemState: ProblemState): ProblemState =
+        problemState.withTheory(
+            problemState.theory.mapAllTerms(SimplifierConstantsNotDistinct.simplify)
+        )
 }
