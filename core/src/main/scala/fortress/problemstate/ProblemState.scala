@@ -110,9 +110,18 @@ object ProblemState {
 
     def apply(theory: Theory, scopes: Map[Sort, Scope], verbose: Boolean = false): ProblemState = {
         // Compute the scopes for enum sorts without one provided
+        // Error if provided scope does not match number of elements
         val enumScopes = theory.signature.enumConstants
-            .withFilter({case (sort, _) => !scopes.contains(sort)})
-            .map({case (sort, enumValues) => sort -> ExactScope(enumValues.length, true)})
+            .map({case (sort, enumValues) => {
+                if (scopes contains sort){
+                    val scope = scopes(sort)
+                    Errors.Internal.precondition(scope.size == enumValues.size,
+                        f"Sort ${sort} was provided ${enumValues.size} enum values, but given a scope of ${scope.size}")
+                    sort -> scope
+                } else {
+                    sort -> ExactScope(enumValues.length, true)
+                }
+            }})
             .toMap
 
         val containsNonExactScopes = scopes.values.exists(sc => sc.isExact == false)
