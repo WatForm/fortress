@@ -21,6 +21,7 @@ class VerifyInterpretationTests extends UnitSuite {
         runSortTests()
         runSortNoEnumTests()
         runIntTests()
+        runIntElimTests()
 
         def injectAxiomAndTest(theory: Theory, interpretation: Interpretation)(axiom: Term): Boolean = {
                 theory.withAxiom(axiom).verifyInterpretation(interpretation)
@@ -373,38 +374,38 @@ class VerifyInterpretationTests extends UnitSuite {
                 val run: Term => Boolean = injectAxiomAndTest(rawTheory, interpretation)
 
                 test("int eq"){
-                        assertTrue(run(zero === IntegerLiteral(0)))
-                        assertTrue(run(seven === IntegerLiteral(7)))
-                        assertFalse(run(one === IntegerLiteral(7)))
-                        assertFalse(run(three === IntegerLiteral(0)))
+                        assertTrue(run(BuiltinApp(IntEQ, Seq(zero, IntegerLiteral(0)))))
+                        assertTrue(run(BuiltinApp(IntEQ, Seq(seven, IntegerLiteral(7)))))
+                        assertFalse(run(BuiltinApp(IntEQ, Seq(one, IntegerLiteral(7)))))
+                        assertFalse(run(BuiltinApp(IntEQ, Seq(three, IntegerLiteral(0)))))
                 }
 
                 test("int builtins"){
-                        assertTrue(run(BuiltinApp(IntPlus, zero, one) === IntegerLiteral(1)))
-                        assertTrue(run(BuiltinApp(IntPlus, BuiltinApp(IntPlus, one, one), one) === IntegerLiteral(3)))
-                        assertFalse(run(BuiltinApp(IntPlus, three, seven) === IntegerLiteral(0)))
-                        assertFalse(run(BuiltinApp(IntPlus, BuiltinApp(IntPlus, one, zero), one) === IntegerLiteral(3)))
+                        assertTrue(run(BuiltinApp(IntEQ, Seq(BuiltinApp(IntPlus, zero, one), IntegerLiteral(1)))))
+                        assertTrue(run(BuiltinApp(IntPlus, BuiltinApp(IntPlus, one, one), one) intEquals IntegerLiteral(3)))
+                        assertFalse(run(BuiltinApp(IntPlus, three, seven) intEquals IntegerLiteral(0)))
+                        assertFalse(run(BuiltinApp(IntPlus, BuiltinApp(IntPlus, one, zero), one) intEquals IntegerLiteral(3)))
 
-                        assertTrue(run(BuiltinApp(IntSub, one, zero) === IntegerLiteral(1)))
-                        assertTrue(run(BuiltinApp(IntSub, BuiltinApp(IntSub, one, zero), one) === IntegerLiteral(0)))
-                        assertFalse(run(BuiltinApp(IntSub, one, zero) === IntegerLiteral(3)))
-                        assertFalse(run(BuiltinApp(IntSub, BuiltinApp(IntSub, one, zero), one) === IntegerLiteral(7)))
+                        assertTrue(run(BuiltinApp(IntSub, one, zero) intEquals IntegerLiteral(1)))
+                        assertTrue(run(BuiltinApp(IntSub, BuiltinApp(IntSub, one, zero), one) intEquals IntegerLiteral(0)))
+                        assertFalse(run(BuiltinApp(IntSub, one, zero) intEquals IntegerLiteral(3)))
+                        assertFalse(run(BuiltinApp(IntSub, BuiltinApp(IntSub, one, zero), one) intEquals IntegerLiteral(7)))
 
-                        assertTrue(run(BuiltinApp(IntNeg, zero) === IntegerLiteral(0)))
-                        assertFalse(run(BuiltinApp(IntNeg, one) === IntegerLiteral(0)))
+                        assertTrue(run(BuiltinApp(IntNeg, zero) intEquals IntegerLiteral(0)))
+                        assertFalse(run(BuiltinApp(IntNeg, one) intEquals IntegerLiteral(0)))
 
-                        assertTrue(run(BuiltinApp(IntMult, one, one) === IntegerLiteral(1)))
-                        assertFalse(run(BuiltinApp(IntMult, one, one) === IntegerLiteral(3)))
+                        assertTrue(run(BuiltinApp(IntMult, one, one) intEquals IntegerLiteral(1)))
+                        assertFalse(run(BuiltinApp(IntMult, one, one) intEquals IntegerLiteral(3)))
 
-                        assertTrue(run(BuiltinApp(IntDiv, seven, three) === IntegerLiteral(2)))
-                        assertTrue(run(BuiltinApp(IntDiv, seven, one) === IntegerLiteral(7)))
-                        assertTrue(run(BuiltinApp(IntDiv, zero, one) === IntegerLiteral(0)))
-                        assertFalse(run(BuiltinApp(IntDiv, seven, three) === IntegerLiteral(1)))
+                        assertTrue(run(BuiltinApp(IntDiv, seven, three) intEquals IntegerLiteral(2)))
+                        assertTrue(run(BuiltinApp(IntDiv, seven, one) intEquals IntegerLiteral(7)))
+                        assertTrue(run(BuiltinApp(IntDiv, zero, one) intEquals IntegerLiteral(0)))
+                        assertFalse(run(BuiltinApp(IntDiv, seven, three) intEquals IntegerLiteral(1)))
 
-                        assertTrue(run(BuiltinApp(IntMod, seven, three) === IntegerLiteral(1)))
-                        assertTrue(run(BuiltinApp(IntMod, seven, one) === IntegerLiteral(0)))
-                        assertTrue(run(BuiltinApp(IntMod, zero, one) === IntegerLiteral(0)))
-                        assertFalse(run(BuiltinApp(IntMod, seven, three) === IntegerLiteral(0)))
+                        assertTrue(run(BuiltinApp(IntMod, seven, three) intEquals IntegerLiteral(1)))
+                        assertTrue(run(BuiltinApp(IntMod, seven, one) intEquals IntegerLiteral(0)))
+                        assertTrue(run(BuiltinApp(IntMod, zero, one) intEquals IntegerLiteral(0)))
+                        assertFalse(run(BuiltinApp(IntMod, seven, three) intEquals IntegerLiteral(0)))
 
                         assertTrue(run(BuiltinApp(IntLE, zero, one)))
                         assertTrue(run(BuiltinApp(IntLE, one, one)))
@@ -423,5 +424,36 @@ class VerifyInterpretationTests extends UnitSuite {
                         assertFalse(run(BuiltinApp(IntGT, zero, one)))
                 }
             }}
+        }
+
+        def runIntElimTests(): Unit = {
+                val a = Var("a")
+                val x = Var("x")
+
+                val notA = FuncDecl("notA", IntSort, IntSort)
+
+                val rawTheory = Theory.empty.withConstantDeclaration(a of IntSort)
+                        .withFunctionDeclaration(notA)
+
+                val theory = rawTheory
+                        .withAxiom(BuiltinApp(IntGT, Seq(a, IntegerLiteral(0))))
+                        .withAxiom(Forall(x of IntSort, Not(BuiltinApp(IntEQ, a, App("notA", x)))))
+                
+                Using.resource(new StandardModelFinder()) { finder => {
+                
+                        try {
+                                finder.setTheory(theory)
+                                finder.checkSat()
+                        } catch {
+                                case e: Throwable => e.printStackTrace()
+                        }
+
+                        val interpretation: Interpretation = finder.viewModel()
+                        val run: Term => Boolean = injectAxiomAndTest(rawTheory, interpretation)
+
+                        test("int elim"){
+                                assertTrue(run(Not(App("notA", IntegerLiteral(0)) intEquals a)))
+                        }
+                }}
         }
 }

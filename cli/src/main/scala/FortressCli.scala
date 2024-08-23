@@ -15,6 +15,8 @@ import scala.collection.JavaConverters._
 import java.io._
 import java.{util => ju}
 import fortress.operations.TheoryOps
+import fortress.operations.InterpretationVerifier
+import fortress.interpretation.Interpretation
 
 class Conf(arguments: Seq[String]) extends ScallopConf(arguments) {
 
@@ -50,7 +52,8 @@ class Conf(arguments: Seq[String]) extends ScallopConf(arguments) {
     mutuallyExclusive(modelfinder, solver)
     mutuallyExclusive(compiler, transformers)
 
-    val generate = opt[Boolean](descr="generate a model if a SAT result") 
+    val generate = opt[Boolean](descr="generate and print a model if a SAT result")
+    val verifyInterpretation = opt[Boolean](short='V', descr="Verify a model if a SAT result")
     verify()
 }
 
@@ -231,6 +234,27 @@ object FortressCli {
         // this won't redo compiling due to flags in the modelFinder
         val result = modelFinder.checkSat()
         println(result)
+
+        if (result == SatResult){
+            if (conf.generate() || conf.verifyInterpretation()){
+                val model: Interpretation = modelFinder.viewModel()
+                if (conf.generate()){
+                    println("-----model-----")
+                    println(model)
+                    println("---end model---")
+                }
+                if (conf.verifyInterpretation()){
+                    val verifier: InterpretationVerifier = new InterpretationVerifier(theory) // Takes the original theory
+                    val verifyResult = verifier.verifyInterpretation(model)
+                    if (verifyResult){
+                        println("Valid Interpretation")
+                    } else {
+                        println("Invalid Interpretation")
+                    }
+                }
+            }
+        }
+
         if(conf.generate()) {
             result match {
                 case SatResult => println(modelFinder.viewModel())

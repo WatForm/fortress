@@ -551,10 +551,21 @@ case class Signature private (
         def getSortInterp(sort: Sort): Seq[Value] = sort match {
             case BoolSort => Seq(Top, Bottom)
             case IntSort =>
-                val numValues = scopes.get(IntSort).size
-                val bitwidth: Int = math.round(math.ceil(math.log(numValues) / math.log(2))).toInt
-                (IntegerSize.minimumIntValue(bitwidth) to IntegerSize.maximumIntValue(bitwidth))
-                    .map(IntegerLiteral)
+                // If we have added interps, use that
+                sortInterps.get(IntSort) match {
+                    case Some(interps) => interps
+                    case None => {
+                        // otherwise use the bitwidth
+                        val numValues: Int = scopes.get(IntSort) match {
+                            case None => Errors.Internal.solverError("Cannot verify a problem with unbounded integers"); 0
+                            case Some(x) => x.size
+                        }
+                        val bitwidth: Int = math.round(math.ceil(math.log(numValues) / math.log(2))).toInt
+                        (IntegerSize.minimumIntValue(bitwidth) to IntegerSize.maximumIntValue(bitwidth))
+                            .map(IntegerLiteral)
+                    }
+                }
+                
             case BitVectorSort(bvBitwidth) =>
                 (IntegerSize.minimumIntValue(bvBitwidth) to IntegerSize.maximumIntValue(bvBitwidth))
                     .map(BitVectorLiteral(_, bvBitwidth))
@@ -563,7 +574,11 @@ case class Signature private (
 
         val constantInterps: Map[AnnotatedVar, Value] = constantDeclarations.map { constVar =>
             // Just use the first domain element in its sort
-            constVar -> getSortInterp(constVar.sort).head
+            val interps = getSortInterp(constVar.sort)
+            if (interps.size == 0){
+                Errors.Internal.solverError(f"Trivial interpretation cannot get sort interpretation for sort '${constVar.sort}'");
+            }
+            constVar -> interps.head
         }.toMap
 
         val functionInterps: Map[FuncDecl, Map[Seq[Value], Value]] = functionDeclarations.map { funcDecl =>

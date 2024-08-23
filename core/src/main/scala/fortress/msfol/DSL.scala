@@ -14,6 +14,7 @@ object DSL {
         def or(other: Term): Term = OrList(Seq(term, other))
         def ==>(other: Term): Term = Implication(term, other)
         def ===(other: Term): Term = Eq(term, other)
+        def intEquals(other: Term): Term = BuiltinApp(IntEQ, Seq(term, other))
         def <==>(other: Term): Term = Iff(term, other)
         def unary_! : Term = Not(term)
     }
