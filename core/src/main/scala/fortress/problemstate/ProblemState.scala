@@ -58,7 +58,7 @@ case class ProblemState private (
         
     }
 
-    def withUnapplyInterp(unapp: Interpretation => Interpretation): ProblemState = {
+    def addUnapplyInterp(unapp: Interpretation => Interpretation): ProblemState = {
         copy(unapplyInterp = unapp :: unapplyInterp)
     }
 
@@ -78,10 +78,30 @@ case class ProblemState private (
     }
 
     /**
+      * Unions skolemConstants with `skc`
+      *
+      * @param skc
+      * @return a new `ProblemState`
+      */
+    def addSkolemConstants(skc: Set[AnnotatedVar]): ProblemState = {
+        copy(skolemConstants = skolemConstants union skc)
+    }
+
+    /**
       * Replaces skolem functions with `skf`
       */
     def withSkolemFunctions(skf: Set[FuncDecl]): ProblemState = {
         copy(skolemFunctions = skf)
+    }
+
+    /**
+      * Unions skolemFunctions with `skf`
+      *
+      * @param skf
+      * @return a new `ProblemState`
+      */
+    def addSkolemFunctions(skc: Set[FuncDecl]): ProblemState = {
+        copy(skolemFunctions = skolemFunctions union skc)
     }
 
     /**
@@ -92,6 +112,16 @@ case class ProblemState private (
       */
     def withRangeRestrictions(rangeRestrictions: Set[RangeRestriction]): ProblemState = {
         copy(rangeRestrictions = rangeRestrictions)
+    }
+
+    /**
+      * Adds additional range restrictions to the existing set of range restrictions.
+      *
+      * @param addedRangeRestrictions
+      * @return A new `ProblemState`
+      */
+    def addRangeRestrictions(addedRangeRestrictions: Set[RangeRestriction]): ProblemState = {
+        copy(rangeRestrictions = rangeRestrictions union addedRangeRestrictions)
     }
 }
 
