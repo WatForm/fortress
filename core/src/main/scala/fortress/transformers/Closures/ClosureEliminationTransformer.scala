@@ -126,7 +126,7 @@ trait ClosureEliminationTransformer extends ProblemStateTransformer {
         
         problemState
         .withTheory(resultTheory)
-        .withUnapplyInterp(unapply)
+        .addUnapplyInterp(unapply)
         .withScopes(newScopes)
     }
     

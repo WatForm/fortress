@@ -30,7 +30,7 @@ object SortInferenceTransformer extends ProblemStateTransformer {
         .withScopes(newScopes.toMap)
         .withSkolemConstants(problemState.skolemConstants map (sortSubstitution(_)))
         .withSkolemFunctions(problemState.skolemFunctions map (sortSubstitution(_)))
-        .withUnapplyInterp(unapply)
+        .addUnapplyInterp(unapply)
     }
     
 

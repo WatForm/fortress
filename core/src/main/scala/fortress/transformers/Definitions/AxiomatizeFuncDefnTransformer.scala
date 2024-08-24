@@ -33,7 +33,7 @@ object AxiomatizeFuncDefnTransformer extends ProblemStateTransformer {
 
         problemState
         .withTheory(resultTheory)
-        .withUnapplyInterp(unapply)
+        .addUnapplyInterp(unapply)
     }
 
 
