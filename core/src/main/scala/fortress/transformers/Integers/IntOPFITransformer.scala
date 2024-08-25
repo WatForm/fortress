@@ -536,7 +536,7 @@ object IntOPFITransformer extends ProblemStateTransformer {
         // could this be done with domain elements? Yes. Should it... probably? TODO
         val newTheory = Theory(newSignature, allNewAxioms)
         problemState.withScopes(newScopes).withTheory(newTheory)
-            .withUnapplyInterp(unapplyInterp)
+            .addUnapplyInterp(unapplyInterp)
     }
 
     // Info passed down through transform

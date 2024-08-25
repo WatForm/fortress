@@ -31,7 +31,9 @@ object AxiomatizeFuncDefnTransformer extends ProblemStateTransformer {
             }
         }
 
-        problemState.copy(theory = resultTheory, unapplyInterp = unapply :: problemState.unapplyInterp)        
+        problemState
+        .withTheory(resultTheory)
+        .addUnapplyInterp(unapply)
     }
 
 

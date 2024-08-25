@@ -58,8 +58,8 @@ case class ProblemState private (
         
     }
 
-    def withUnapplyInterp(unapp: Interpretation => Interpretation): ProblemState = {
-        copy(unapplyInterp = unapplyInterp :+ unapp)
+    def addUnapplyInterp(unapp: Interpretation => Interpretation): ProblemState = {
+        copy(unapplyInterp = unapp :: unapplyInterp)
     }
 
     def withoutUnapplyInterps(): ProblemState = {
@@ -68,6 +68,60 @@ case class ProblemState private (
 
     def withFlags(fl:Flags):ProblemState = {
         copy(flags = fl)
+    }
+
+    /**
+      * Replaces skolem constants with `sk`
+      */
+    def withSkolemConstants(skc: Set[AnnotatedVar]): ProblemState = {
+        copy(skolemConstants = skc)
+    }
+
+    /**
+      * Unions skolemConstants with `skc`
+      *
+      * @param skc
+      * @return a new `ProblemState`
+      */
+    def addSkolemConstants(skc: Set[AnnotatedVar]): ProblemState = {
+        copy(skolemConstants = skolemConstants union skc)
+    }
+
+    /**
+      * Replaces skolem functions with `skf`
+      */
+    def withSkolemFunctions(skf: Set[FuncDecl]): ProblemState = {
+        copy(skolemFunctions = skf)
+    }
+
+    /**
+      * Unions skolemFunctions with `skf`
+      *
+      * @param skf
+      * @return a new `ProblemState`
+      */
+    def addSkolemFunctions(skc: Set[FuncDecl]): ProblemState = {
+        copy(skolemFunctions = skolemFunctions union skc)
+    }
+
+    /**
+      * Replaces range restrictions with argument.
+      *
+      * @param rangeRestrictions
+      * @return A new `ProblemState`
+      */
+    def withRangeRestrictions(rangeRestrictions: Set[RangeRestriction]): ProblemState = {
+        copy(rangeRestrictions = rangeRestrictions)
+    }
+
+    /**
+      * Adds additional range restrictions to the existing set of range restrictions.
+      *
+      * @param addedRangeRestrictions
+      * @return A new `ProblemState`
+      */
+    def addRangeRestrictions(addedRangeRestrictions: Set[RangeRestriction]): ProblemState = {
+        copy(rangeRestrictions = rangeRestrictions union addedRangeRestrictions)
     }
 }
 
@@ -85,17 +139,20 @@ object ProblemState {
     //TODO: why does this apply function do much more than the withScopes function above??    
 
     def apply(theory: Theory, scopes: Map[Sort, Scope], verbose: Boolean = false): ProblemState = {
-        // Compute the scopes for enum sorts
-        // Copy whether the scope is fixed and its exactness from the regular scope if applicable for compatibility
-        def isFixed(sort: Sort) =
-            if (scopes contains sort) scopes(sort).isUnchanging
-            else true
-        def makeScopeWithExactness(sort: Sort, size: Int, isUnchanging: Boolean) =
-            if ((scopes contains sort) && scopes(sort).isExact) ExactScope(size, isUnchanging)
-            else NonExactScope(size, isUnchanging)
-        val enumScopes = theory.signature.enumConstants.map {
-            case (sort, enumValues) => sort -> makeScopeWithExactness(sort, enumValues.size, isFixed(sort))
-        }.toMap
+        // Compute the scopes for enum sorts without one provided
+        // Error if provided scope does not match number of elements
+        val enumScopes = theory.signature.enumConstants
+            .map({case (sort, enumValues) => {
+                if (scopes contains sort){
+                    val scope = scopes(sort)
+                    Errors.Internal.precondition(scope.size == enumValues.size,
+                        f"Sort ${sort} was provided ${enumValues.size} enum values, but given a scope of ${scope.size}")
+                    sort -> scope
+                } else {
+                    sort -> ExactScope(enumValues.length, true)
+                }
+            }})
+            .toMap
 
         val containsNonExactScopes = scopes.values.exists(sc => sc.isExact == false)
         // Check there is no conflict between the enum scopes and the provided scopes

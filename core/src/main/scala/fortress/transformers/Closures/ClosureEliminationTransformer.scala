@@ -124,11 +124,10 @@ trait ClosureEliminationTransformer extends ProblemStateTransformer {
         }).toMap
         
         
-        problemState.copy(
-            theory=resultTheory,
-            unapplyInterp = problemState.unapplyInterp :+ unapply,
-            scopes = newScopes,
-        )
+        problemState
+        .withTheory(resultTheory)
+        .addUnapplyInterp(unapply)
+        .withScopes(newScopes)
     }
     
     

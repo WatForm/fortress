@@ -43,9 +43,7 @@ object SimplifyLearnedLiteralsTransformer extends ProblemStateTransformer {
 
 
         // Theory(theory.signature, newAxioms)
-        problemState.copy(
-            theory = Theory(theory.signature, newAxioms),
-        )
+        problemState.withTheory(Theory(theory.signature, newAxioms))
     }
 
 

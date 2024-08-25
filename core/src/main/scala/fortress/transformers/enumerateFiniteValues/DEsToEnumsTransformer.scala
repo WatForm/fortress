@@ -50,10 +50,9 @@ object DEsToEnumsTransformer extends ProblemStateTransformer {
 
 
         //ProblemState(newTheory, scopes, skc, skf, rangeRestricts, unapplyInterp, distinctConstants = false)
-        problemState.copy(
-            theory = newTheory,
-            flags = problemState.flags.copy(distinctConstants = false)
-        )
+        problemState
+        .withTheory(newTheory)
+        .withFlags(problemState.flags.copy(distinctConstants = false))
     }
 
 

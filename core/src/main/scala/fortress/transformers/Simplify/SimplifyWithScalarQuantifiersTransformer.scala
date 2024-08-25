@@ -27,9 +27,7 @@ object SimplifyWithScalarQuantifiersTransformer extends ProblemStateTransformer 
             .mapAllTerms(ScalarQuantifierSimplifier.simplify)
             .mapAllTerms(_.simplify)  // clean up anything introduced
 
-        problemState.copy(
-            theory = newTheory
-        )
+        problemState.withTheory(newTheory)
     }
 
 
