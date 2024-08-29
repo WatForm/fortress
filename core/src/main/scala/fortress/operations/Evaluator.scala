@@ -26,7 +26,12 @@ class Evaluator(private var theory: Theory) {
         case de @ DomainElement(_, _) => Some(de)
 
         // Special cases
-        case Var(_) => None // it must be a constant; TODO handle cDefs?
+        case Var(name) => theory.constantDefinitions find (_.name == name) match {
+            // We can only evaluate Vars if they're constant definitions
+            case None => None
+            // Evaluate the constant definition
+            case Some(cDef) => jit.evaluate(cDef)
+        }
         case App(name, args) => theory.functionDefinitions find (_.name == name) match {
             // We can only evaluate calls to definitions
             case None => None
