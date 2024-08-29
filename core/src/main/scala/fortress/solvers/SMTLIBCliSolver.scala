@@ -105,6 +105,21 @@ class SMTLIBCliSolver extends Solver {
             raw
         }
 
+        // If a domain element isn't mentioned anywhere in the axioms, Z3 might fail to generate it.
+        // Hack around this by patching any such cases back in.
+        val currentDEs = smtValue2DomainElement.values.toSet
+        for (constant <- theory.get.constantDeclarations) {
+            DomainElement.interpretName(constant.name) match {
+                case None => // do nothing
+                case Some(de) =>
+                    if (!(currentDEs contains de)) {
+                        // fake an SMT name for it... H!val!N
+                        val fakeSmtName = s"${de.sort.name}!val!${de.index}"
+                        fortressName2SmtValue.put(constant.name, fakeSmtName)
+                        smtValue2DomainElement.put(fakeSmtName, de)
+                    }
+            }
+        }
 
 //        println("rawFunctionDefinitions: \n" + rawFunctionDefinitions + "\n")
 //
