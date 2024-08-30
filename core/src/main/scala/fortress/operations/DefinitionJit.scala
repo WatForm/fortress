@@ -12,7 +12,8 @@ class DefinitionJit(theory: Theory) {
 
     private type JitFunc = Seq[Option[Value]] => Option[Value]
 
-    private val jitCache = mutable.Map[String, JitFunc]()
+    private val jitFuncDefCache = mutable.Map[String, JitFunc]()
+    private val jitConstDefCache = mutable.Map[String, JitFunc]()
     private val resultCache = mutable.Map[(String, Seq[Option[Value]]), Option[Value]]()
 
     /**
@@ -22,10 +23,21 @@ class DefinitionJit(theory: Theory) {
     def evaluate(defn: FunctionDefinition, args: Seq[Option[Value]]): Option[Value] =
         resultCache.getOrElseUpdate((defn.name, args), compile(defn)(args))
 
+    /**
+      * Evaluate a constant definition and return the value reuslt, or None if the result is interpretation-dependent.
+      */
+    def evaluate(defn: ConstantDefinition): Option[Value] =
+        resultCache.getOrElseUpdate((defn.name, Seq()), compile(defn)(Seq()))
+
     // Compile the definition and return the corresponding JIT function.
-    private def compile(defn: FunctionDefinition): JitFunc = jitCache.getOrElseUpdate(defn.name, {
+    private def compile(defn: FunctionDefinition): JitFunc = jitFuncDefCache.getOrElseUpdate(defn.name, {
         val varIdxs = defn.argSortedVar.map(_.variable).zipWithIndex.toMap
         compileTerm(defn.body, varIdxs)
+    })
+
+    // Compile a constant definition and return the corresponding JIT function.
+    private def compile(defn: ConstantDefinition): JitFunc = jitConstDefCache.getOrElseUpdate(defn.name, {
+        compileTerm(defn.body, Map.empty)
     })
 
     // JIT the term to a function. varIdxs is the mapping from variable names to indices in the argument list.
@@ -34,9 +46,12 @@ class DefinitionJit(theory: Theory) {
         case Bottom => _ => Some(Bottom)
         case de @ DomainElement(_, _) => _ => Some(de)
 
-        case v @ Var(_) => varIdxs.get(v) match {
-            // If not in varIdxs, it must be a constant; TODO handle cDefs?
-            case None => _ => None
+        case v @ Var(name) => varIdxs.get(v) match {
+            // If not in varIdxs, it must be a constant; handle a constant definition, otherwise interp-dependent
+            case None => theory.constantDefinitions find (_.name == name) match {
+                case None => _ => None
+                case Some(cDef) => _ => evaluate(cDef)
+            }
             // It's in varIdxs: return the idx'th argument
             case Some(idx) => args => args(idx)
         }
