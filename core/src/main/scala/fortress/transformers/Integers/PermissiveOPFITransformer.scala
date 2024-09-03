@@ -492,6 +492,34 @@ object PermissiveOPFITransformer extends ProblemStateTransformer {
                 (newTerm, anyArgOverflows union outOfBoundsChecks)
             }
 
+            // Closures are unknown if any argument is unknown
+            case Closure(func, start, end, fixedArgs) => {
+                // Transform all of the arguments
+                val newDown = down.unknownPolarity()
+                val (newStart, startChecks) = transform(start, newDown)
+                val (newEnd, endChecks) = transform(end, newDown)
+                val (newFixedArgs: Seq[Term], fixedArgChecks: Seq[Set[Term]]) = fixedArgs.map(transform(_, down.unknownPolarity)).unzip
+
+
+                val newTerm = Closure(func, newStart, newEnd, newFixedArgs)
+                val newChecks = startChecks union endChecks union unionAll(fixedArgChecks)
+                (newTerm, newChecks)
+            }
+
+            // Same as Closure, just with ReflexiveClosure!
+            case ReflexiveClosure(func, start, end, fixedArgs) => {
+                // Transform all of the arguments
+                val newDown = down.unknownPolarity()
+                val (newStart, startChecks) = transform(start, newDown)
+                val (newEnd, endChecks) = transform(end, newDown)
+                val (newFixedArgs: Seq[Term], fixedArgChecks: Seq[Set[Term]]) = fixedArgs.map(transform(_, down.unknownPolarity)).unzip
+
+
+                val newTerm = ReflexiveClosure(func, newStart, newEnd, newFixedArgs)
+                val newChecks = startChecks union endChecks union unionAll(fixedArgChecks)
+                (newTerm, newChecks)
+            }
+
             case Eq(left, right) => {
                 val (newLeft, overLeft) = transform(left, down.unknownPolarity)
                 val (newRight, overRight) = transform(right, down.unknownPolarity)
@@ -570,7 +598,6 @@ object PermissiveOPFITransformer extends ProblemStateTransformer {
 
 
         
-        // TODO unapply
         val newTheory = Theory(
             Signature(newSorts,
                 newFuncDecls,
