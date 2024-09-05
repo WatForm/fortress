@@ -69,6 +69,7 @@ public class SmtModelVisitor extends SmtLibVisitor{
     public Map<String, String> getFortressName2SmtValue() { return fortressName2SmtValue; }
     public Map<String, DomainElement> getSmtValue2DomainElement() { return smtValue2DomainElement; }
 
+    // NAD: is this used?  Are there declared functions in a returned instances from an SMT solver?
     @Override
     public Void visitDeclare_fun(SmtLibSubsetParser.Declare_funContext ctx) {
         // '(' 'declare-fun' ID '(' sort* ')' sort ')'    # declare_fun
@@ -169,6 +170,9 @@ public class SmtModelVisitor extends SmtLibVisitor{
     }
 
     public Void visitAs_domain_element(SmtLibSubsetParser.Define_funContext ctx) {
+
+        Sort sort = (Sort)visit(ctx.sort(0));
+
         return null;
     }
 }
