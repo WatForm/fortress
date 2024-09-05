@@ -168,6 +168,9 @@ public class SmtModelVisitor extends SmtLibVisitor{
         return null;
     }
 
+    public Void visitAs_domain_element(SmtLibSubsetParser.Define_funContext ctx) {
+        return null;
+    }
 }
 
 
