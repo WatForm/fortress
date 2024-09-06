@@ -23,6 +23,11 @@ import java.lang.Void;
 import java.util.Optional;
 import static scala.jdk.javaapi.OptionConverters.toJava;
 
+/* 
+    These are the parts of SMT-LIB that appear in an
+    model/instance return for a satisfiable problem
+*/
+
 /*
   (define-fun faa ((x!0 P)) H
     (ite (= x!0 P!val!0) H!val!1
@@ -50,18 +55,15 @@ public class SmtModelVisitor extends SmtLibVisitor{
     // H!val!0 -> _@1Haa
     private Map<String, DomainElement> smtValue2DomainElement = new HashMap<>();
 
-
     private Map<String, String> fortressName2SmtValue = new HashMap<>();
 
+    // This is the pattern of a DE from Z3
     String patternDE = ".+!val![0-9]*$";
-
-
 
     public SmtModelVisitor(Signature signature) {
         this.signature = signature;
         this.functionDefinitions = new HashSet<>();
     }
-
 
     public Set<FunctionDefinition> getFunctionDefinitions() {
         return functionDefinitions;
@@ -169,11 +171,37 @@ public class SmtModelVisitor extends SmtLibVisitor{
         return null;
     }
 
-    public Void visitAs_domain_element(SmtLibSubsetParser.Define_funContext ctx) {
+    public Term visitAs_domain_element(SmtLibSubsetParser.Define_funContext ctx) {
 
-        Sort sort = (Sort)visit(ctx.sort(0));
+        // (as @Sort_this/Train_0_0 Sort_this/Train_0) for a domain element in CVC5
 
-        return null;
+        String name = ctx.ID().getText();
+        if (name.startsWith("@")) { // @Sort_this/Train_0_0
+
+            // NAD: is NameConverter needed in here at all?
+            Sort sort = (Sort)visit(ctx.sort());
+
+            // figure out where the last "_" is in the name
+            // NAD: there's probably a regular expression way to do this
+            int locn = 0;
+            for (int i=name.length()-1; i==0; i--) {
+                if (name.charAt(i) == '_') {
+                    locn = i;
+                    break;
+                }
+            }
+            assert(locn!=0);
+            Integer digit = Integer.valueOf(name.substring(locn));
+            // NAD: there are probably error checks that are needed here
+            DomainElement de = Term.mkDomainElement(digit,sort);
+            return de;            
+        } else {
+            // NAD: this seems like it should be an error
+            return null;
+        }
+
+
+
     }
 }
 
