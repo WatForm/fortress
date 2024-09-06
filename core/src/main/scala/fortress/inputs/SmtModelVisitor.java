@@ -181,12 +181,14 @@ public class SmtModelVisitor extends SmtLibVisitor{
 
             
             Sort sort = (Sort)visit(ctx.sort());
-            if(smtValue2DomainElement.containsKey(name)) {
-                String varName = this.smtValue2DomainElement.get(name).toString();
-                return DomainElement.interpretName(name).get();
+            String key = ctx.getText();
+            if (smtValue2DomainElement.containsKey(key)) {
+                String varName = this.smtValue2DomainElement.get(key).toString();
+                return DomainElement.interpretName(varName).get();
             } else {
-                assert false : "Case should be unreachable";
-                return null;
+                throw new IllegalStateException("visitAs_domain_element: case should be unreachable");
+//                assert false : "Case should be unreachable";
+//                return null;
             }
             /*
             // Parse the digit after the last _ as the DE number
