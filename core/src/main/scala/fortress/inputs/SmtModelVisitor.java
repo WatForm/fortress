@@ -171,7 +171,8 @@ public class SmtModelVisitor extends SmtLibVisitor{
         return null;
     }
 
-    public Term visitAs_domain_element(SmtLibSubsetParser.Define_funContext ctx) {
+    @Override
+    public Term visitAs_domain_element(SmtLibSubsetParser.As_domain_elementContext ctx) {
 
         // (as @Sort_this/Train_0_0 Sort_this/Train_0) for a domain element in CVC5
 
@@ -181,10 +182,12 @@ public class SmtModelVisitor extends SmtLibVisitor{
             // NAD: is NameConverter needed in here at all?
             Sort sort = (Sort)visit(ctx.sort());
 
-            Integer digit = Integer.valueOf(name.substring(name.lastIndexOf('_')));
+            // Parse the digit after the last _ as the DE number
+            int digit = Integer.parseInt(name.substring(name.lastIndexOf('_') + 1));
+            // Convert DE number from 0-indexed to 1-indexed
             // NAD: there are probably error checks that are needed here
-            DomainElement de = Term.mkDomainElement(digit,sort);
-            return de;            
+            DomainElement de = Term.mkDomainElement(digit + 1, sort);
+            return de;
         } else {
             // NAD: this seems like it should be an error
             return null;
