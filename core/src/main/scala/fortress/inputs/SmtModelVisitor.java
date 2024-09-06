@@ -173,39 +173,12 @@ public class SmtModelVisitor extends SmtLibVisitor{
 
     @Override
     public Term visitAs_domain_element(SmtLibSubsetParser.As_domain_elementContext ctx) {
-
         // (as @Sort_this/Train_0_0 Sort_this/Train_0) for a domain element in CVC5
 
-        String name = ctx.ID().getText();
-        if (name.startsWith("@")) { // @Sort_this/Train_0_0
-
-            
-            Sort sort = (Sort)visit(ctx.sort());
-            String key = ctx.getText();
-            if (smtValue2DomainElement.containsKey(key)) {
-                String varName = this.smtValue2DomainElement.get(key).toString();
-                return DomainElement.interpretName(varName).get();
-            } else {
-                throw new IllegalStateException("visitAs_domain_element: case should be unreachable");
-//                assert false : "Case should be unreachable";
-//                return null;
-            }
-            /*
-            // Parse the digit after the last _ as the DE number
-            // NAD: is NameConverter needed in here at all?
-            int digit = Integer.parseInt(name.substring(name.lastIndexOf('_') + 1));
-            // Convert DE number from 0-indexed to 1-indexed
-            // NAD: there are probably error checks that are needed here
-            DomainElement de = Term.mkDomainElement(digit + 1, sort);
-            return de;
-            */
-        } else {
-            // NAD: this seems like it should be an error
-            return null;
-        }
-
-
-
+        // HACK: The smt-value system is quite generic and can handle any kind of term that the smt solver uses to
+        // represent an atom by converting it to string by getText(). However, references to smt-values are expected to
+        // be Vars containing the getText(), so just generate a Var of that form.
+        return Term.mkVar(ctx.getText());
     }
 }
 
