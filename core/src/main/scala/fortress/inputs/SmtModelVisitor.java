@@ -89,8 +89,8 @@ public class SmtModelVisitor extends SmtLibVisitor{
         } else {
 
         }
-        System.out.println("Name: " + name);
-        System.out.println("Temp: " + temp.length);
+        //System.out.println("Name: " + name);
+        //System.out.println("Temp: " + temp.length);
 //        this.fortressName2SmtValue.put(domainElement.toString(), name);
         return null;
     }
@@ -181,17 +181,7 @@ public class SmtModelVisitor extends SmtLibVisitor{
             // NAD: is NameConverter needed in here at all?
             Sort sort = (Sort)visit(ctx.sort());
 
-            // figure out where the last "_" is in the name
-            // NAD: there's probably a regular expression way to do this
-            int locn = 0;
-            for (int i=name.length()-1; i==0; i--) {
-                if (name.charAt(i) == '_') {
-                    locn = i;
-                    break;
-                }
-            }
-            assert(locn!=0);
-            Integer digit = Integer.valueOf(name.substring(locn));
+            Integer digit = Integer.valueOf(name.substring(name.lastIndexOf('_')));
             // NAD: there are probably error checks that are needed here
             DomainElement de = Term.mkDomainElement(digit,sort);
             return de;            
