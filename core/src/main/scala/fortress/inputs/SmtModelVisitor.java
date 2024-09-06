@@ -179,15 +179,24 @@ public class SmtModelVisitor extends SmtLibVisitor{
         String name = ctx.ID().getText();
         if (name.startsWith("@")) { // @Sort_this/Train_0_0
 
-            // NAD: is NameConverter needed in here at all?
+            
             Sort sort = (Sort)visit(ctx.sort());
-
+            if(smtValue2DomainElement.containsKey(name)) {
+                String varName = this.smtValue2DomainElement.get(name).toString();
+                return DomainElement.interpretName(name).get();
+            } else {
+                assert false : "Case should be unreachable";
+                return null;
+            }
+            /*
             // Parse the digit after the last _ as the DE number
+            // NAD: is NameConverter needed in here at all?
             int digit = Integer.parseInt(name.substring(name.lastIndexOf('_') + 1));
             // Convert DE number from 0-indexed to 1-indexed
             // NAD: there are probably error checks that are needed here
             DomainElement de = Term.mkDomainElement(digit + 1, sort);
             return de;
+            */
         } else {
             // NAD: this seems like it should be an error
             return null;
