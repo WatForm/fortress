@@ -11,6 +11,8 @@ import scala.jdk.CollectionConverters._
 
 class ClosureEliminatorVakili(topLevelTerm: Term, allowedRelations: Set[String], signature: Signature, scopes: Map[Sort, Scope], nameGen: NameGenerator) extends ClosureEliminator(topLevelTerm, signature, scopes, nameGen) {
     override val visitor = new ClosureVisitorVakili
+    // Reminder that this is meant to define closure and reflexive closure more loosely
+    // They only need to be a superset of the actual closures.
 
     class ClosureVisitorVakili extends ClosureVisitor {
 
@@ -37,6 +39,9 @@ class ClosureEliminatorVakili(topLevelTerm: Term, allowedRelations: Set[String],
             val fixedVars = getFixedVars(fixedSorts.length)
             val fixedArgVars = getFixedAVars(functionName)
             
+            // all x,y: T, fixed...: Fixed... .  R^(x, y, fixed...) <=> R(x,y, fixed...) | (R(x, z, fixed...) & R^(z, y, fixed...))
+            // For all points x, y. (x,y) is in the transitive closure if (x,y) is in the original or there is some edge (x,z) in
+            //   the original R and (z, y) is in the transitive closure of R
             closureAxioms += Forall(axy ++ fixedArgVars,
                 Iff(
                     App(closureName, x +: y +: fixedVars),
@@ -55,6 +60,7 @@ class ClosureEliminatorVakili(topLevelTerm: Term, allowedRelations: Set[String],
 
         def createReflexiveClosure(functionName: String): Unit = {
             val closureName = getClosureName(functionName)
+            // If we have not defined the transitive closure, do so now
             if (!queryFunction(closureName)){
                 createClosure(functionName)
             }
@@ -76,6 +82,7 @@ class ClosureEliminatorVakili(topLevelTerm: Term, allowedRelations: Set[String],
             val fixedArgVars = getFixedAVars(functionName)
 
             // R* = R^ union {(x,x) | x in sort }
+            // A pair is in the reflexive transitive closure iff it  is reflexive or in the transitive closure
             closureAxioms += Forall(axy,
                 Iff(
                     App(reflexiveClosureName, x +: y +: fixedVars),
