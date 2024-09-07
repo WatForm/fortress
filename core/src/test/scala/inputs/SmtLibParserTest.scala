@@ -20,6 +20,9 @@ class SmtLibParserTest extends UnitSuite {
         an [fortress.inputs.ParserException] should be thrownBy {parser.parse(fileStream)}
     }
     
+    // this .smt2 file has a hidden delete character in it
+    // it will generate a line 1:0 lexing error in
+    // the test outputs!
     test("lexer throws on error") {
         val classLoader = getClass.getClassLoader
         val file = new File(classLoader.getResource("badLexical.smt2").getFile)

@@ -178,7 +178,7 @@ class ClosureEliminatorVakiliTransformerTests extends UnitSuite {
         }}
         */
         val scopes: Map[Sort, Scope] = Map(A -> ExactScope(3, false))
-        quickOutput(ProblemState(badTheory, scopes))
+        //quickOutput(ProblemState(badTheory, scopes))
 
         Using.resource(new ConfigurableModelFinder(transformers)){ finder => {
             finder.setTheory(badTheory)
@@ -189,7 +189,7 @@ class ClosureEliminatorVakiliTransformerTests extends UnitSuite {
             // for debugging
             if (result == ModelFinderResult.Sat) {
                 val modelstring = finder.viewModel().toString()
-                print(modelstring)
+                //print(modelstring)
             }
             assert(result == ModelFinderResult.Unsat) 
         }}
@@ -202,7 +202,7 @@ class ClosureEliminatorVakiliTransformerTests extends UnitSuite {
             val result = finder.checkSat()
             if (result == ModelFinderResult.Sat) {
                 val modelstring = finder.viewModel().toString()
-                print(modelstring)
+                //print(modelstring)
             }
             assert(result == ModelFinderResult.Unsat) 
         }}

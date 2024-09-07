@@ -46,7 +46,7 @@ class IntNOBVTransformerTests extends UnitSuite with CommonSymbols {
 
           if (result == ModelFinderResult.Sat) {
                     val modelstring = finder.viewModel().toString()
-                    println(modelstring)
+                    //println(modelstring)
           }
           result shouldBe (ModelFinderResult.Unsat)
           //assert(result == ModelFinderResult.Unsat)

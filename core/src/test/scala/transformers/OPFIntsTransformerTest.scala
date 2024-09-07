@@ -2,7 +2,7 @@ import org.scalatest._
 import fortress.msfol._
 import fortress.problemstate._
 import fortress.transformers._
-import fortress.config._
+//import fortress.config._
 import scala.util.Using
 import fortress.util.Seconds
 import fortress.modelfind.ModelFinderResult
