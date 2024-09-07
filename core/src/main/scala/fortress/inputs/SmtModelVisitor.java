@@ -23,6 +23,11 @@ import java.lang.Void;
 import java.util.Optional;
 import static scala.jdk.javaapi.OptionConverters.toJava;
 
+/* 
+    These are the parts of SMT-LIB that appear in an
+    model/instance return for a satisfiable problem
+*/
+
 /*
   (define-fun faa ((x!0 P)) H
     (ite (= x!0 P!val!0) H!val!1
@@ -50,18 +55,15 @@ public class SmtModelVisitor extends SmtLibVisitor{
     // H!val!0 -> _@1Haa
     private Map<String, DomainElement> smtValue2DomainElement = new HashMap<>();
 
-
     private Map<String, String> fortressName2SmtValue = new HashMap<>();
 
+    // This is the pattern of a DE from Z3
     String patternDE = ".+!val![0-9]*$";
-
-
 
     public SmtModelVisitor(Signature signature) {
         this.signature = signature;
         this.functionDefinitions = new HashSet<>();
     }
-
 
     public Set<FunctionDefinition> getFunctionDefinitions() {
         return functionDefinitions;
@@ -69,6 +71,7 @@ public class SmtModelVisitor extends SmtLibVisitor{
     public Map<String, String> getFortressName2SmtValue() { return fortressName2SmtValue; }
     public Map<String, DomainElement> getSmtValue2DomainElement() { return smtValue2DomainElement; }
 
+    // NAD: is this used?  Are there declared functions in a returned instances from an SMT solver?
     @Override
     public Void visitDeclare_fun(SmtLibSubsetParser.Declare_funContext ctx) {
         // '(' 'declare-fun' ID '(' sort* ')' sort ')'    # declare_fun
@@ -86,8 +89,8 @@ public class SmtModelVisitor extends SmtLibVisitor{
         } else {
 
         }
-        System.out.println("Name: " + name);
-        System.out.println("Temp: " + temp.length);
+        //System.out.println("Name: " + name);
+        //System.out.println("Temp: " + temp.length);
 //        this.fortressName2SmtValue.put(domainElement.toString(), name);
         return null;
     }
@@ -168,6 +171,15 @@ public class SmtModelVisitor extends SmtLibVisitor{
         return null;
     }
 
+    @Override
+    public Term visitAs_domain_element(SmtLibSubsetParser.As_domain_elementContext ctx) {
+        // (as @Sort_this/Train_0_0 Sort_this/Train_0) for a domain element in CVC5
+
+        // HACK: The smt-value system is quite generic and can handle any kind of term that the smt solver uses to
+        // represent an atom by converting it to string by getText(). However, references to smt-values are expected to
+        // be Vars containing the getText(), so just generate a Var of that form.
+        return Term.mkVar(ctx.getText());
+    }
 }
 
 

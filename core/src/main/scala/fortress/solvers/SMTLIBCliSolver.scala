@@ -89,21 +89,7 @@ class SMTLIBCliSolver extends Solver {
 
         val fortressName2SmtValue: mutable.Map[String, String] = visitor.getFortressName2SmtValue.asScala
 
-        val smtValue2DomainElement: mutable.Map[String, DomainElement] = { // H!val!0 -> _@1H
-            val pattern = ".+!val![0-9]*$"
-            val raw: mutable.Map[String, DomainElement] = visitor.getSmtValue2DomainElement.asScala
-            for( (s, d) <- raw ) {
-                if( d == null && s.matches(pattern) ) {
-//                    assert(s.matches(pattern), "Parse error, exit code: 1")
-                    val temp = s.split("!val!") // "H!val!0" => "H" "0"
-                    assert(temp.length == 2, "Parse error, exit code: 2")
-                    val sort: Sort = Sort.mkSortConst(temp(0))
-                    val de: DomainElement = Term.mkDomainElement(Integer.parseInt(temp(1)) + 1, sort);
-                    raw.put(s, de)
-                }
-            }
-            raw
-        }
+        val smtValue2DomainElement: mutable.Map[String, DomainElement] = visitor.getSmtValue2DomainElement.asScala
 
         // If a domain element isn't mentioned anywhere in the axioms, Z3 might fail to generate it.
         // Hack around this by patching any such cases back in.
