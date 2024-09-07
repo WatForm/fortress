@@ -37,23 +37,26 @@ class SmtModelParserTest extends UnitSuite {
 
 /*
 for readability, this is the second test:
-(declare-sort |univ| 0)
-(declare-fun |inthis/Univ_0| (|univ|) Bool)
-(declare-const |_@1univ| |univ|)
-(declare-const |_@2univ| |univ|)
-(declare-const |_@3univ| |univ|)
-(assert (= (as |_@2univ| |inthis/Univ_0|) (as |_@2univ| |inthis/Univ_0|))) 
+(declare-sort univ 0)
+(declare-fun inthis/Univ_0 (univ) Bool)
+(declare-const _@1univ univ)
+(declare-const _@2univ univ)
+(declare-const _@3univ univ)
+(assert (= (as _@2univ inthis/Univ_0) (as _@2univ inthis/Univ_0))) 
+
+Note that the (as x y) parts of CVC5 are turned directly into variables
+that are evaluated to get their match to a domain element.
 */
 
     test("parse with domain element cvc5"){
-        val testString = "(declare-sort |univ| 0)(declare-fun |inthis/Univ_0| (|univ|) Bool)(declare-const |_@1univ| |univ|)(declare-const |_@2univ| |univ|)(declare-const |_@3univ| |univ|) (assert (= (as |_@2univ| |inthis/Univ_0|) (as |_@2univ| |inthis/Univ_0|))) "
+        val testString = "(declare-sort univ 0)(declare-fun inthis/Univ_0 (univ) Bool)(declare-const _@1univ univ)(declare-const _@2univ univ)(declare-const _@3univ univ) (assert (= (as _@2univ inthis/Univ_0) (as _@2univ inthis/Univ_0))) "
         val univ = SortConst("univ")
         val inThis = FuncDecl("inThis/Univ_0", univ, BoolSort)
         val sig = Signature.empty
             .withSort(univ)
         val visit = SmtModelParser.parse(testString, sig)
         val theory = visit.getTheory()
-        theory.axioms should contain
-            (Term.mkEq(DomainElement(2,univ), (DomainElement(3,univ))))
+        //System.out.println(theory.axioms);
+        theory.axioms should contain (Eq(Var("(as_@2univinthis/Univ_0)"),Var("(as_@2univinthis/Univ_0)") ))
     }
 }
