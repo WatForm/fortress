@@ -236,7 +236,7 @@ trait CETransfomerBehaviors{ this: AnyFlatSpec =>
                 // for debugging
                 if (result == ModelFinderResult.Sat) {
                     val modelstring = finder.viewModel().toString()
-                    print(modelstring)
+                    //print(modelstring)
                 }
                 assert(result == ModelFinderResult.Unsat) 
             }}
@@ -249,7 +249,7 @@ trait CETransfomerBehaviors{ this: AnyFlatSpec =>
                 val result = finder.checkSat()
                 if (result == ModelFinderResult.Sat) {
                     val modelstring = finder.viewModel().toString()
-                    print(modelstring)
+                    //print(modelstring)
                 }
                 assert(result == ModelFinderResult.Unsat) 
             }}
@@ -378,7 +378,7 @@ trait CETransfomerBehaviors{ this: AnyFlatSpec =>
                 // for debugging
                 if (result == ModelFinderResult.Sat) {
                     val modelstring = finder.viewModel().toString()
-                    print(modelstring)
+                    //print(modelstring)
                 }
                 assert(result == ModelFinderResult.Unsat) 
             }}
@@ -391,7 +391,7 @@ trait CETransfomerBehaviors{ this: AnyFlatSpec =>
                 val result = finder.checkSat()
                 if (result == ModelFinderResult.Sat) {
                     val modelstring = finder.viewModel().toString()
-                    print(modelstring)
+                    //print(modelstring)
                 }
                 assert(result == ModelFinderResult.Unsat) 
             }}  
@@ -475,7 +475,7 @@ trait CETransfomerBehaviors{ this: AnyFlatSpec =>
                 // for debugging
                 if (result == ModelFinderResult.Sat) {
                     val modelstring = finder.viewModel().toString()
-                    print(modelstring)
+                    //print(modelstring)
                 }
                 assert(result == ModelFinderResult.Unsat) 
             }}
@@ -489,7 +489,7 @@ trait CETransfomerBehaviors{ this: AnyFlatSpec =>
                 
                 if (result == ModelFinderResult.Sat) {
                     val modelstring = finder.viewModel().toString()
-                    print(modelstring)
+                    //print(modelstring)
                 }
                 assert(result == ModelFinderResult.Unsat) 
             }}
@@ -611,7 +611,7 @@ trait CETransfomerBehaviors{ this: AnyFlatSpec =>
                 // for debugging
                 if (result == ModelFinderResult.Sat) {
                     val modelstring = finder.viewModel().toString()
-                    print(modelstring)
+                    //print(modelstring)
                 }
                 assert(result == ModelFinderResult.Unsat) 
             }}
@@ -624,7 +624,7 @@ trait CETransfomerBehaviors{ this: AnyFlatSpec =>
                 val result = finder.checkSat()
                 if (result == ModelFinderResult.Sat) {
                     val modelstring = finder.viewModel().toString()
-                    print(modelstring)
+                    //print(modelstring)
                 }
                 assert(result == ModelFinderResult.Unsat) 
             }}  

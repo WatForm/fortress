@@ -3,8 +3,6 @@ package fortress.operations
 import fortress.data.IntSuffixNameGenerator
 import fortress.msfol._
 
-import scala.collection.mutable
-
 /**
   * Alpha-rename all quantified variables in a theory such that they do not conflict with each other
   * (even in unrelated parts of the theory) or any elements of the signature.
@@ -22,29 +20,32 @@ object MaxAlphaRenaming {
             for (enumConst <- enumConstList)
                 nameGenerator.forbidName(enumConst.name)
 
-        val nameMap = mutable.Map[String, String]()
-
-        def mapName(name: String) = nameMap.getOrElse(name, name)
-        def freshName(name: String) = {
-            val newName = nameGenerator.freshName(name)
-            nameMap(name) = newName
-            newName
+        def freshVars(vars: Seq[AnnotatedVar], nameMap: Map[String, String]): (Seq[AnnotatedVar], Map[String, String]) = {
+            var newNameMap = nameMap
+            val newVars = vars map { case AnnotatedVar(Var(name), sort) =>
+                val newName = nameGenerator.freshName(name)
+                newNameMap = newNameMap + (name -> newName) // overwrite in the sub-context for shadowing
+                AnnotatedVar(Var(newName), sort)
+            }
+            (newVars, newNameMap)
         }
 
-        def freshVars(vars: Seq[AnnotatedVar]) = vars map {
-            case AnnotatedVar(Var(name), sort) => AnnotatedVar(Var(freshName(name)), sort)
-        }
+        class RenameTerm(nameMap: Map[String, String]) extends NaturalTermRecursion {
+            private def mapName(name: String) = nameMap.getOrElse(name, name)
 
-        object RenameTerm extends NaturalTermRecursion {
             override val exceptionalMappings: PartialFunction[Term, Term] = {
                 case Var(name) => Var(mapName(name))
                 case EnumValue(name) => EnumValue(mapName(name))
 
-                case Forall(vars, body) => Forall(freshVars(vars), naturalRecur(body))
-                case Exists(vars, body) => Exists(freshVars(vars), naturalRecur(body))
+                case Forall(vars, body) =>
+                    val (newVars, newNameMap) = freshVars(vars, nameMap)
+                    Forall(newVars, new RenameTerm(newNameMap).naturalRecur(body))
+                case Exists(vars, body) =>
+                    val (newVars, newNameMap) = freshVars(vars, nameMap)
+                    Exists(newVars, new RenameTerm(newNameMap).naturalRecur(body))
             }
         }
-        def renameTerm(term: Term) = RenameTerm.naturalRecur(term)
+        def renameTerm(term: Term) = new RenameTerm(Map()).naturalRecur(term)
 
         var newSig = theory.signature
         // these must be done one at a time to avoid our aggressive checking for dependence
@@ -55,8 +56,9 @@ object MaxAlphaRenaming {
         for (fDef <- theory.signature.functionDefinitions) {
             // Also rename the arguments to avoid getting out of sync with the body
             newSig = newSig withoutFunctionDefinition fDef
+            val (newArgs, newNameMap) = freshVars(fDef.argSortedVar, Map())
             newSig = newSig withFunctionDefinition FunctionDefinition(
-                fDef.name, freshVars(fDef.argSortedVar), fDef.resultSort, renameTerm(fDef.body))
+                fDef.name, newArgs, fDef.resultSort, new RenameTerm(newNameMap).naturalRecur(fDef.body))
         }
 
         val newAxioms = theory.axioms map renameTerm

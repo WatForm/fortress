@@ -48,9 +48,10 @@ object TypecheckSanitizeTransformer extends ProblemStateTransformer {
                         fDef.resultSort)))
         }
 
-        problemState.copy(
-            theory = newTheory,
-            flags = problemState.flags.copy(
+        problemState
+        .withTheory(newTheory)
+        .withFlags(
+            problemState.flags.copy(
                 containsItes = containsItes,
                 containsExists = containsExists
             )

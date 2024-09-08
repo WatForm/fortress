@@ -54,6 +54,7 @@ class StandardCompiler extends BaseCompiler {
 
     def simplifiers: ListBuffer[ProblemStateTransformer] = {
         val ts = CompilersRegistry.NullTransformerList
+        ts += EvaluateTransformer
         ts += SimplifyTransformer
         ts += EliminateUnusedTransformer
         ts 
@@ -210,8 +211,17 @@ class EvaluateCompiler extends StandardCompiler {
     }
 }
 
-class EvaluateQDefCompiler extends StandardCompiler {
-    // uses standard quantifierHandler, which includes QuantifiersToDefnsTransformer
+class DatatypeWithRangeEUFEvaluateCompiler extends DatatypeWithRangeEUFCompiler {
+    override def simplifiers: ListBuffer[ProblemStateTransformer] = {
+        val ts = CompilersRegistry.NullTransformerList
+        ts += EvaluateTransformer
+        ts += SimplifyTransformer
+        ts += EliminateUnusedTransformer
+        ts
+    }
+}
+
+class DatatypeNoRangeEUFEvaluateCompiler extends DatatypeNoRangeEUFCompiler {
     override def simplifiers: ListBuffer[ProblemStateTransformer] = {
         val ts = CompilersRegistry.NullTransformerList
         ts += EvaluateTransformer

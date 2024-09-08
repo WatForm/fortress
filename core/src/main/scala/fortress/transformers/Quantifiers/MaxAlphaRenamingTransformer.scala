@@ -9,11 +9,8 @@ import fortress.problemstate.ProblemState
   */
 object MaxAlphaRenamingTransformer extends ProblemStateTransformer {
 
-    override def apply(problemState: ProblemState): ProblemState = problemState.copy(
-        theory = problemState.theory.maxAlphaRenaming,
-        flags = problemState.flags.copy(haveRunMaxAlphaRenaming = true),
-    )
-
-
-
+    override def apply(problemState: ProblemState): ProblemState = 
+      problemState
+      .withTheory(problemState.theory.maxAlphaRenaming)
+      .withFlags(problemState.flags.copy(haveRunMaxAlphaRenaming = true))
 }

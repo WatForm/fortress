@@ -2,15 +2,17 @@ import org.scalatest._
 import fortress.msfol._
 import fortress.problemstate._
 import fortress.transformers._
+//import fortress.config._
 import scala.util.Using
 import fortress.util.Seconds
-import fortress.modelfinders._
+import fortress.modelfinders.ModelFinderResult
+import fortress.modelfinders.StandardModelFinder
 import fortress.operations.TermOps._
 import fortress.operations.TheoryOps._
 import fortress.util.Milliseconds
 
 
-class IntOPFITransformerTests extends UnitSuite {
+class OPFIntsTransformerTest extends UnitSuite {
     val transformer = IntOPFITransformer
     val intSize = 8
     val min = -4
@@ -18,20 +20,26 @@ class IntOPFITransformerTests extends UnitSuite {
     val intScope = ExactScope(intSize, true)
     val simpleIntScopes = Map[Sort, Scope](IntSort -> intScope)
 
-    val transformers = Seq(
-        TypecheckSanitizeTransformer,
-        EnumsToDEsTransformer,
-        IntOPFITransformer,
-        RangeFormulaUseConstantsTransformer,
-        SimplifyTransformer,
-        DEsToDistinctConstantsTransformer
-    )
+    /*
+    val manager = Manager.makeEmpty()
+    manager.addOption(TypecheckSanitizeOption, 1)
+    manager.addOption(EnumEliminationOption, 2)
 
+
+    // Add in this closure eliminator
+    manager.addOption(new ToggleOption("OAFInts", _.addTransformer(transformer)), 102)
+    */
     val isInBoundsName = "isInBoundsOAF_0"
     val toInt = "toInt_0"
     val fromInt = "fromInt_0"
 
-    
+    /*
+    //manager.addOption(QuantifierExpansionOption, 5001)
+    manager.addOption(RangeFormulaOption, 5002)
+    manager.addOption(SimplifyOption, 5003)
+    //manager.addOption(DatatypeOption, 5004)
+    manager.addOption(new ToggleOption("DomainElimination", _.addTransformer(DomainEliminationTransformer)), 5005)
+    */
     val aSort = SortConst("A")
     val x = Var("x")
     val y = Var("y")
@@ -213,7 +221,7 @@ class IntOPFITransformerTests extends UnitSuite {
         }
         */
 
-        Using.resource(new ConfigurableModelFinder(transformers)){finder =>{
+        Using.resource(new StandardModelFinder()){finder =>{
             finder.setTheory(theory)
             finder.setExactScope(IntSort, intSize)
             finder.setTimeout(Seconds(10))
@@ -221,12 +229,16 @@ class IntOPFITransformerTests extends UnitSuite {
             val result = finder.checkSat()
             if (result == ModelFinderResult.Sat){
                 val modelstring = finder.viewModel().toString()
+                /* This does not compile anymore 
+                   but it is for print statements
+                   so I'll just comment it out - NAD 2024-09-07
                 println(modelstring)
-                println(finder.compile(false) match {
+                println(finder.compile(theory, Map(IntSort->ExactScope(intSize)), Seconds(10).toMilli, Seq.empty) match {
                     case Right(value) => value.theory.smtlib
                     case _ => ""
                 })
                 fail("Should be UNSAT")
+                */
             }
             assert(result == ModelFinderResult.Unsat)
         }}
@@ -250,7 +262,8 @@ class IntOPFITransformerTests extends UnitSuite {
             .withConstantDeclaration(x of IntSort)
             .withAxiom(axiom)
 
-        Using.resource(new ConfigurableModelFinder(transformers)){finder =>{
+        //Using.resource(manager.setupModelFinder()){finder =>{
+        Using.resource(new StandardModelFinder()){finder  => {
             finder.setTheory(theory)
             finder.setExactScope(IntSort, 4) // This ensures the only possible answer should be -1
             finder.setTimeout(Seconds(20))

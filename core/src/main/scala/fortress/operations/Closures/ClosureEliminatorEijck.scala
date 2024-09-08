@@ -55,6 +55,8 @@ class ClosureEliminatorEijck(topLevelTerm: Term, signature: Signature, scopes: M
 
             val closenessArgs: List[Sort] = List(sort, sort, sort)
 
+
+            // C: TxTxTxFixed... -> Bool
             auxilaryFunctions += FuncDecl.mkFuncDecl(closenessName, (Seq(sort, sort, sort) ++ fixedSorts).asJava, Sort.Bool)
             
             val x = Var(nameGen.freshName("x"))
@@ -66,16 +68,35 @@ class ClosureEliminatorEijck(topLevelTerm: Term, signature: Signature, scopes: M
             val axyz = List(x.of(sort), y.of(sort), z.of(sort))
             val au = u.of(sort)
 
+            // For these comments we will use C for the closeness relation.
+            // We want to define C such that C(a,x,z) is true iff x is closer to z than a is 
+            // along the shortest path from a to z
+
             // Moved first to NNF
+            // forall a,x,y,z,u: T, fixed...:Fixed... . ~C(x,y,u, fixed...) | ~C(y,z,u,fixed...) | C(x,z,u, fixed...)
+            // ALT: forall a,x,y,z,u: T, fixed...:Fixed... . C(x,y,u, fixed...) & C(y,z,u,fixed...) => C(x,z,u, fixed...)
+
+            // If y is along the shortest path from x to u (and not x), and z is along the shortest path from y to u (and not y)
+            // then, z is along the shortest path from x to u (and not x)
             closureAxioms += Forall((axyz :+ au) ++ fixedArgVars,
                 Or(
                     Not(App(closenessName, List(x,y,u) ++ fixedVars)),
                     Not(App(closenessName, List(y,z,u) ++ fixedVars)),
                     App(closenessName, List(x,z,u) ++ fixedVars))
             )
-            // No zero-distance
+
+            // all x,y:T,fixed...:Fixed... . ~C(x,x,y,fixed...)
+            // No point is closer than itself along the shortest path to any point
             closureAxioms += Forall(axy ++ fixedArgVars, Not(App(closenessName, List(x,x,y) ++ fixedVars)))
+
+
             // Single step NNF
+            // Note that C(a,b,b) essentially means that there is a path from a to B in R as b will always be closer
+            // to iself than a if a path between them exists.
+            //all x,y,z:T,fixed...:Fixed... . ~C(x,y,y,fixed...) | ~C(y,z,z,fixed...) | x=z | C(x,z,z,fixed...)
+            // ALT: all x,y,z:T,fixed...:Fixed... . C(x,y,y,fixed...) & C(y,z,z,fixed...) & ~(x=z) => C(x,z,z,fixed...)
+            // If a path from x to y exists, and a path from y to z exists, then a path from x to z exists, BUT
+            // Do not include that if x and z are the same, because a point cannot be closer than itself to anything
             closureAxioms += Forall(axyz ++ fixedArgVars,
                 Or(
                     Not(App(closenessName, List(x,y,y) ++ fixedVars)),
@@ -84,7 +105,11 @@ class ClosureEliminatorEijck(topLevelTerm: Term, signature: Signature, scopes: M
                     App(closenessName, List(x,z,z) ++ fixedVars)
                 )
             )
+
             // idk but NNF
+            // all x,y,z:T,fixed...:Fixed... . ~(C(x,y,z,fixed...)) | y=z | C(y,z,z,fixed...)
+            // ALT: all x,y,z:T,fixed...:Fixed... . C(x,y,z,fixed...) & ~(y=z) => C(y,z,z, fixed...)
+            // If y is along the path from x to z, but not z itself, then there is a path from y to z.
             closureAxioms += Forall(axyz ++ fixedArgVars,
                 Or(
                     Not(App(closenessName, List(x,y,z) ++ fixedVars)),
@@ -92,8 +117,12 @@ class ClosureEliminatorEijck(topLevelTerm: Term, signature: Signature, scopes: M
                     App(closenessName, List(y,z,z) ++ fixedVars)
                 )
             )
-            // Functions using the actual relation
-            // NNF
+
+            // all x,y:T,fixed...:Fixed... . ~R(x,y,fixed...) | x=y => C(x,y,y,fixed...)
+            // ALT: all x,y:T,fixed...:Fixed... . R(x,y,fixed...) & ~(x=y) => C(x,y,y,fixed...)
+            // If there is an edge from x to y in R and x !=y, then y is closer to itself than x.
+            // ALT: If there is an edge from x to y in R and x != y then there is a path from x to y.
+            // This is part of the statement C(a,b,b) means there is a path from a to b.
             closureAxioms += Forall(axy ++ fixedArgVars,
                 Or(
                     Not(funcContains(functionName, x, y, fixedVars)),
@@ -101,7 +130,10 @@ class ClosureEliminatorEijck(topLevelTerm: Term, signature: Signature, scopes: M
                     App(closenessName, List(x,y,y) ++ fixedVars)
                 )
             )
-            // Closest unless something is closer NNF
+            // all x,y:T,fixed...:Fixed... . ~C(x,y,y,fixed...) | exists z:T. R(x,z,fixed...) & C(x,z,y, fixed...)
+            // ALT: all x,y:T,fixed...:Fixed... . C(x,y,y, fixed...) => exists z:T. R(x,z,fixed...) & C(x,z,y, fixed...)
+            // If there is a path from x to y (that is not just x back to itself), then there is an edge from x to z
+            //    and z is along the shortest path from x to y. 
             closureAxioms += Forall(axy ++ fixedArgVars,
                 Or(
                     Not(App(closenessName, List(x,y,y) ++ fixedVars)),
@@ -117,7 +149,7 @@ class ClosureEliminatorEijck(topLevelTerm: Term, signature: Signature, scopes: M
         }
 
         
-        // TODO support more arguments
+        
         override def visitClosure(c: Closure): Term = {
             // Iff is allowed here it seems
             val functionName = c.functionName
@@ -125,7 +157,7 @@ class ClosureEliminatorEijck(topLevelTerm: Term, signature: Signature, scopes: M
             val reflexiveClosureName = getReflexiveClosureName(functionName)
             val closureName = getClosureName(functionName)
 
-            // Skip if we already did it
+            // If we have not defined the closure, define it.
             if (!queryFunction(closureName)){
                 // use index to find sort
                 // Find the sort we are closing over
@@ -150,9 +182,13 @@ class ClosureEliminatorEijck(topLevelTerm: Term, signature: Signature, scopes: M
 
                 // define reflexive closure if we haven't already
                 if(!queryFunction(reflexiveClosureName)){
-                    // declare the function
+                    // declare the function R*: TxTxFixed...->Bool
                     closureFunctions += FuncDecl.mkFuncDecl(reflexiveClosureName, (Seq(sort, sort) ++ fixedSorts).asJava, Sort.Bool)
                     // Defined with closeness and one additional axiom
+                    // all x,y:T,fixed...:Fixed... . R*(x,y,fixed...) <=> C(x,y,y,fixed...) | x=y
+                    // For any two points, they are in the reflexive closure iff 
+                    // (they are distinct and) there is a path between them OR they are the same point
+                    // If you change this, be sure to change it for reflexive tc as well
                     closureAxioms += Forall(axy ++ fixedArgVars,
                         Iff(
                             App(reflexiveClosureName, List(x,y) ++ fixedVars),
@@ -164,7 +200,11 @@ class ClosureEliminatorEijck(topLevelTerm: Term, signature: Signature, scopes: M
                     )
                 }
 
-                // Add an axiom to define how we use closeness to define closure
+                // Define the normal transitive closure in terms of the reflexive
+                // You must take a step to ensure its not just the added every point is related to itself
+                // all x,y:T,fixed...:Fixed... . R^(x,y,fixed...) <=> exists z: T. R(x,z) & (C(z,y,y,fixed...), z=y)
+                // For any two points x,y they are in R^ iff there is an edge from x to some z in the original R such that
+                //   there is a path from z to y (and z != y) OR z = y
                 closureAxioms += Forall(axy ++ fixedArgVars,
                     Iff(
                         App(closureName, List(x,y) ++ fixedVars),
@@ -181,10 +221,10 @@ class ClosureEliminatorEijck(topLevelTerm: Term, signature: Signature, scopes: M
                 )
 
             }
-            // println(closureFunctions)
+            
             App(closureName, Seq(c.arg1, c.arg2) ++ c.fixedArgs).mapArguments(visit)
         }
-        // TODO support more arguments
+
         override def visitReflexiveClosure(rc: ReflexiveClosure): Term = {
             // Iff is allowed here it seems
             val functionName = rc.functionName
@@ -210,7 +250,13 @@ class ClosureEliminatorEijck(topLevelTerm: Term, signature: Signature, scopes: M
                 val axy = List(x.of(sort), y.of(sort))
 
                 val closenessName = this.addClosenessAxioms(sort, functionName)
-                
+
+
+                // Defined with closeness and one additional axiom
+                // all x,y:T,fixed...:Fixed... . R*(x,y,fixed...) <=> C(x,y,y,fixed...) | x=y
+                // For any two points, they are in the reflexive closure iff 
+                // (they are distinct and) there is a path between them OR they are the same point
+                // If you change this, be sure to change it for normal tc as well
                 closureAxioms += Forall(axy ++ fixedArgVars,
                     Iff(
                         App(reflexiveClosureName, List(x,y) ++ fixedVars),

@@ -1,27 +1,21 @@
 package fortress.inputs;
 
-import java.io.*;
-
 import fortress.msfol.*;
-import fortress.operations.TermOps;
-import fortress.interpretation.*;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
-import fortress.util.Errors;
 import fortress.util.NameConverter;
-import org.antlr.v4.runtime.tree.ParseTree;
-import scala.collection.JavaConverters.*;
-
-import org.antlr.v4.runtime.misc.Interval;
-import scala.collection.Seq;
 
 import java.lang.Void;
 
 
 import java.util.Optional;
 import static scala.jdk.javaapi.OptionConverters.toJava;
+
+/* 
+    These are the parts of SMT-LIB that appear in a
+    model/instance return for a satisfiable problem
+*/
 
 /*
   (define-fun faa ((x!0 P)) H
@@ -50,18 +44,18 @@ public class SmtModelVisitor extends SmtLibVisitor{
     // H!val!0 -> _@1Haa
     private Map<String, DomainElement> smtValue2DomainElement = new HashMap<>();
 
-
     private Map<String, String> fortressName2SmtValue = new HashMap<>();
 
-    String patternDE = ".+!val![0-9]*$";
+    // This is the pattern of a DE from Z3
+    String z3PatternDE = ".+!val![0-9]*$";
 
-
+    // This is the pattern of a DE from CVC5
+    String cvc5PatternDE = "^\\(as ?@\\S+ ?\\S+\\)$";
 
     public SmtModelVisitor(Signature signature) {
         this.signature = signature;
         this.functionDefinitions = new HashSet<>();
     }
-
 
     public Set<FunctionDefinition> getFunctionDefinitions() {
         return functionDefinitions;
@@ -69,13 +63,14 @@ public class SmtModelVisitor extends SmtLibVisitor{
     public Map<String, String> getFortressName2SmtValue() { return fortressName2SmtValue; }
     public Map<String, DomainElement> getSmtValue2DomainElement() { return smtValue2DomainElement; }
 
+    // NAD: is this used?  Are there declared functions in a returned instances from an SMT solver?
     @Override
     public Void visitDeclare_fun(SmtLibSubsetParser.Declare_funContext ctx) {
         // '(' 'declare-fun' ID '(' sort* ')' sort ')'    # declare_fun
         assert ctx.sort().size()==1 : "There shouldn't be more than one sort in the declare-fun of return smt model.";
         Sort sort = (Sort)visit(ctx.sort(0));
         String name = NameConverter.nameWithoutQuote(ctx.ID().getText());   //     H!val!0 (If function is quoted, the entire val thing is too)
-        assert name.matches(patternDE): "Parse error, exit code: 1";
+        assert name.matches(z3PatternDE): "Parse error, exit code: 1"; // declare-fun is not used in CVC5 output
         String[] temp = name.split("!val!");   // "H!val!0" => "H" "0"
         //assert temp.length == 2: "Parse error, exit code: 2";
         //assert temp[0].equals(sort.name()): "Parse error, exit code: 3"; // "H"
@@ -86,8 +81,8 @@ public class SmtModelVisitor extends SmtLibVisitor{
         } else {
 
         }
-        System.out.println("Name: " + name);
-        System.out.println("Temp: " + temp.length);
+        //System.out.println("Name: " + name);
+        //System.out.println("Temp: " + temp.length);
 //        this.fortressName2SmtValue.put(domainElement.toString(), name);
         return null;
     }
@@ -133,9 +128,14 @@ public class SmtModelVisitor extends SmtLibVisitor{
 
         String funcBody = ctx.term().getText();
         
-        // If function body is a |-quoted var, drop the quotes
-        if (funcBody.matches(patternDE)){
+        // For Z3: if function body is a |-quoted var, drop the quotes
+        if (funcBody.matches(z3PatternDE)){
             funcBody = NameConverter.nameWithoutQuote(funcBody);
+        }
+
+        // For CVC5: function body is an as-term, so remove any quotes from variables in it
+        if (funcBody.matches(cvc5PatternDE)) {
+            funcBody = NameConverter.removeAllQuotes(funcBody);
         }
 
 //        System.out.println("funcbody: " + funcBody);
@@ -168,6 +168,15 @@ public class SmtModelVisitor extends SmtLibVisitor{
         return null;
     }
 
+    @Override
+    public Term visitAs_domain_element(SmtLibSubsetParser.As_domain_elementContext ctx) {
+        // (as @Sort_this/Train_0_0 Sort_this/Train_0) for a domain element in CVC5
+
+        // HACK: The smt-value system is quite generic and can handle any kind of term that the smt solver uses to
+        // represent an atom by converting it to string by getText(). However, references to smt-values are expected to
+        // be Vars containing the getText(), so just generate a Var of that form.
+        return Term.mkVar(NameConverter.removeAllQuotes(ctx.getText()));
+    }
 }
 
 

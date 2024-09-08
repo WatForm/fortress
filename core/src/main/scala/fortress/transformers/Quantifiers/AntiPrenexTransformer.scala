@@ -17,10 +17,8 @@ object AntiPrenexTransformer extends ProblemStateTransformer {
         val theory = problemState.theory
         val newTheory = theory.mapAllTerms(_.antiPrenex)
 
-        problemState.copy(
-            theory = newTheory,
-            flags = problemState.flags,
-        )
+        problemState
+        .withTheory(newTheory)
     }
 
 

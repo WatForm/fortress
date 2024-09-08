@@ -25,11 +25,10 @@ object NnfTransformer extends ProblemStateTransformer {
             newTheory = newTheory.withoutFunctionDefinition(fDef)
             newTheory = newTheory.withFunctionDefinition(fDef.mapBody(_.nnf))
         }
-        
-        problemState.copy(
-            theory = newTheory,
-            flags = problemState.flags.copy(haveRunNNF = true)
-        )
+
+        problemState
+        .withTheory(newTheory)
+        .withFlags(problemState.flags.copy(haveRunNNF = true))
     }
     
 

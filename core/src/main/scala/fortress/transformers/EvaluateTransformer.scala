@@ -26,10 +26,10 @@ object EvaluateTransformer extends ProblemStateTransformer {
         }
         val newAxioms = theory.axioms.map(inliner.naturalRecur)
         val newTheory = theory.copy(axioms = newAxioms)
-        problemState.copy(
-            theory = newTheory,
-            flags = problemState.flags.copy(trivialResult = newTheory.checkTrivial),
-        )
+
+        problemState
+        .withTheory(newTheory)
+        .withFlags(problemState.flags.copy(trivialResult = newTheory.checkTrivial))
     }
 
 }

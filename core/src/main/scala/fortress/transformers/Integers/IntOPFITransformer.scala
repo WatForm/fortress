@@ -28,7 +28,7 @@ object IntOPFITransformer extends ProblemStateTransformer {
         // We don't want to replicate existing functions or variables or constants
         val forbiddenNames: Set[String] = (
             problemState.theory.constantDeclarations.map(_.name) union problemState.theory.functionDeclarations.map(_.name) union
-            problemState.theory.functionDefinitions.map(_.name)
+            problemState.theory.functionDefinitions.map(_.name) union problemState.theory.constantDefinitions.map(_.name)
         ).toSet
         val varNameGenerator: NameGenerator = new IntSuffixNameGenerator(forbiddenNames, 0)
         // sorts have their own exclusive names
@@ -202,7 +202,7 @@ object IntOPFITransformer extends ProblemStateTransformer {
                     .withOtherVars(otherVars)
 
                 val (newBody, upInfo) = transform(body, newDown)
-                (Exists(newVars ++ otherVars, newBody), upInfo.excludingVars(newVars.map(_.variable)))
+                (Exists(newVars ++ otherVars, newBody), upInfo.excludingVars((newVars ++ otherVars).map(_.variable)))
             }
             case Forall(vars, body) => {
                 // Change integers to oaf ints
@@ -217,7 +217,7 @@ object IntOPFITransformer extends ProblemStateTransformer {
                     .withOtherVars(otherVars)
 
                 val (newBody, upInfo) = transform(body, newDown)
-                (Forall(newVars ++ otherVars, newBody), upInfo.excludingVars(newVars.map(_.variable)))
+                (Forall(newVars ++ otherVars, newBody), upInfo.excludingVars((newVars ++ otherVars).map(_.variable)))
             }
 
             case Var(varName) => {
@@ -536,7 +536,7 @@ object IntOPFITransformer extends ProblemStateTransformer {
         // could this be done with domain elements? Yes. Should it... probably? TODO
         val newTheory = Theory(newSignature, allNewAxioms)
         problemState.withScopes(newScopes).withTheory(newTheory)
-            .withUnapplyInterp(unapplyInterp)
+            .addUnapplyInterp(unapplyInterp)
     }
 
     // Info passed down through transform

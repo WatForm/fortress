@@ -56,8 +56,11 @@ class ClosureEliminatorSquare(private val useDefns: Boolean = true, topLevelTerm
 
             // iteratively square the relation
             for (iter <- 1 to max_count(sort)){
-                // Make the next squared level
+                // Make the next squared level auxN
+                // Each relation contains a pair if the previous relation contained the pair or
+                //   the previous relation contained two pairs x z and z y which we can connect
                 val iterationName = functionName + "^" + iter.toString()
+                // prev(x, y) | exists z. prev(x, z) & prev(z, y) 
                 val body = Or(
                     // At least the previous
                     funcContains(previousRelation, x, y, fixedVars),
@@ -69,6 +72,8 @@ class ClosureEliminatorSquare(private val useDefns: Boolean = true, topLevelTerm
                         )
                     )
                 )
+
+                // Either make a function definition or axiomatize the definition
                 if (useDefns) {
                     auxilaryDefns += FunctionDefinition(iterationName, axy ++ fixedArgVars, Sort.Bool, body)
                 } else {
@@ -80,7 +85,7 @@ class ClosureEliminatorSquare(private val useDefns: Boolean = true, topLevelTerm
 
                 previousRelation = iterationName
             }
-            // Define the closure itself
+            // Define the closure itself as the highest level of the squarings
             val body = Or(
                 // At least the previous
                 funcContains(previousRelation, x, y, fixedVars),
@@ -92,6 +97,8 @@ class ClosureEliminatorSquare(private val useDefns: Boolean = true, topLevelTerm
                     )
                 )
             )
+            
+            // Define or axiomatize
             if (useDefns) {
                 closureDefns += FunctionDefinition(closureName, axy ++ fixedArgVars, Sort.Bool, body)
             } else {
@@ -117,8 +124,9 @@ class ClosureEliminatorSquare(private val useDefns: Boolean = true, topLevelTerm
             val reflexiveClosureName = "*" + functionName
             val closureName = "^" + functionName
 
-            // Skip if we already did it
+            // Skip if we already defined the reflexive closure
             if (!queryFunction(reflexiveClosureName)){
+                // If we haven't done the transitive closure do so now
                 if (!queryFunction(closureName)) {
                     expandClosure(functionName)
                 }
@@ -139,6 +147,9 @@ class ClosureEliminatorSquare(private val useDefns: Boolean = true, topLevelTerm
                 val y = Var(nameGen.freshName("y"))
                 val axy = List(x.of(sort), y.of(sort))
 
+
+                // [R*(x,y) <=>] R^(x,y) | x=y
+                // The a pair is in the reflexive transitive closure if it is in the transitive closure or it is reflexive (x=y)
                 val body = Or(
                     App(closureName, Seq(x, y) ++ fixedVars),
                     Eq(x, y),

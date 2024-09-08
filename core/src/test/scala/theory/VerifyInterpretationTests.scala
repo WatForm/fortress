@@ -4,6 +4,8 @@ import fortress.msfol._
 import fortress.modelfinders._
 import fortress.interpretation._
 import fortress.operations.TheoryOps._
+import fortress.problemstate.ExactScope
+
 import scala.util.Using
 
 class VerifyInterpretationTests extends UnitSuite {
@@ -363,6 +365,7 @@ class VerifyInterpretationTests extends UnitSuite {
 
             Using.resource(new StandardModelFinder()) { finder => {
                 try {
+                        finder.setScope(Sort.Int, ExactScope(16))
                         finder.setTheory(theory)
                         finder.checkSat()
                 } catch {
