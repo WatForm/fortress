@@ -59,4 +59,14 @@ that are evaluated to get their match to a domain element.
         //System.out.println(theory.axioms);
         theory.axioms should contain (Eq(Var("(as_@2univinthis/Univ_0)"),Var("(as_@2univinthis/Univ_0)") ))
     }
+
+    test("parse with domain element cvc5 with quotes") {
+        val testString = "(declare-sort |univ| 0)(declare-fun |inthis/Univ_0| (|univ|) Bool)(declare-const |_@1univ| |univ|)(declare-const |_@2univ| |univ|)(declare-const |_@3univ| |univ|) (assert (= (as |_@2univ| |inthis/Univ_0|) (as |_@2univ| |inthis/Univ_0|))) ";
+        val univ = SortConst("univ")
+        val sig = Signature.empty
+            .withSort(univ)
+        val visit = SmtModelParser.parse(testString, sig)
+        val theory = visit.getTheory
+        theory.axioms should contain (Eq(Var("(as_@2univinthis/Univ_0)"), Var("(as_@2univinthis/Univ_0)") ))
+    }
 }

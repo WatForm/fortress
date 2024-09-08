@@ -1,21 +1,10 @@
 package fortress.inputs;
 
-import java.io.*;
-
 import fortress.msfol.*;
-import fortress.operations.TermOps;
-import fortress.interpretation.*;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
-import fortress.util.Errors;
 import fortress.util.NameConverter;
-import org.antlr.v4.runtime.tree.ParseTree;
-import scala.collection.JavaConverters.*;
-
-import org.antlr.v4.runtime.misc.Interval;
-import scala.collection.Seq;
 
 import java.lang.Void;
 
@@ -24,7 +13,7 @@ import java.util.Optional;
 import static scala.jdk.javaapi.OptionConverters.toJava;
 
 /* 
-    These are the parts of SMT-LIB that appear in an
+    These are the parts of SMT-LIB that appear in a
     model/instance return for a satisfiable problem
 */
 
@@ -58,7 +47,10 @@ public class SmtModelVisitor extends SmtLibVisitor{
     private Map<String, String> fortressName2SmtValue = new HashMap<>();
 
     // This is the pattern of a DE from Z3
-    String patternDE = ".+!val![0-9]*$";
+    String z3PatternDE = ".+!val![0-9]*$";
+
+    // This is the pattern of a DE from CVC5
+    String cvc5PatternDE = "^\\(as ?@\\S+ ?\\S+\\)$";
 
     public SmtModelVisitor(Signature signature) {
         this.signature = signature;
@@ -78,7 +70,7 @@ public class SmtModelVisitor extends SmtLibVisitor{
         assert ctx.sort().size()==1 : "There shouldn't be more than one sort in the declare-fun of return smt model.";
         Sort sort = (Sort)visit(ctx.sort(0));
         String name = NameConverter.nameWithoutQuote(ctx.ID().getText());   //     H!val!0 (If function is quoted, the entire val thing is too)
-        assert name.matches(patternDE): "Parse error, exit code: 1";
+        assert name.matches(z3PatternDE): "Parse error, exit code: 1"; // declare-fun is not used in CVC5 output
         String[] temp = name.split("!val!");   // "H!val!0" => "H" "0"
         //assert temp.length == 2: "Parse error, exit code: 2";
         //assert temp[0].equals(sort.name()): "Parse error, exit code: 3"; // "H"
@@ -136,9 +128,14 @@ public class SmtModelVisitor extends SmtLibVisitor{
 
         String funcBody = ctx.term().getText();
         
-        // If function body is a |-quoted var, drop the quotes
-        if (funcBody.matches(patternDE)){
+        // For Z3: if function body is a |-quoted var, drop the quotes
+        if (funcBody.matches(z3PatternDE)){
             funcBody = NameConverter.nameWithoutQuote(funcBody);
+        }
+
+        // For CVC5: function body is an as-term, so remove any quotes from variables in it
+        if (funcBody.matches(cvc5PatternDE)) {
+            funcBody = NameConverter.removeAllQuotes(funcBody);
         }
 
 //        System.out.println("funcbody: " + funcBody);
@@ -178,7 +175,7 @@ public class SmtModelVisitor extends SmtLibVisitor{
         // HACK: The smt-value system is quite generic and can handle any kind of term that the smt solver uses to
         // represent an atom by converting it to string by getText(). However, references to smt-values are expected to
         // be Vars containing the getText(), so just generate a Var of that form.
-        return Term.mkVar(ctx.getText());
+        return Term.mkVar(NameConverter.removeAllQuotes(ctx.getText()));
     }
 }
 
