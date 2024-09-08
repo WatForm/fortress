@@ -24,6 +24,7 @@ object CompilersRegistry {
             case "MaxUnboundedScopes" => new MaxUnboundedScopesCompiler()
 
             case "Evaluate" => new EvaluateCompiler()
+            case "EvaluateQDef" => new EvaluateQDefCompiler()
 
             case "Eijck" => new EijckCompiler()
 
