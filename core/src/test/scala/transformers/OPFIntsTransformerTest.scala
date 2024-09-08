@@ -245,12 +245,15 @@ class OPFIntsTransformerTest extends UnitSuite {
     }
 
     test("multiply in range"){
-        // exists x: 2x < 0 | !(2x < 0)
+        // exists x: x != 0 & (2x < 0 | !(2x < 0))
         // Should only give values that when doubled are still in range
-        val axiom = Or(
+        val axiom = And(
+            Not(Eq(x, IntegerLiteral(0))),
+            Or(
                 Term.mkLT(Term.mkMult(IntegerLiteral(2), x), IntegerLiteral(0)), // 2x < 0
                 Not(Term.mkLT(Term.mkMult(IntegerLiteral(2), x), IntegerLiteral(0)))
-            )
+            ),
+        )
 
 
         val scopes: Map[Sort, Scope] = Map(IntSort -> ExactScope(4, true))
