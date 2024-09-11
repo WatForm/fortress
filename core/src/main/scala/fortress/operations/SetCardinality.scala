@@ -5,7 +5,7 @@ import fortress.msfol._
 object SetCardinality {
 
     def cardinality(term: Term): Term = term match {
-        case SetCardinality(p) => term
+        // case SetCardinality(p) => term
         // here we make definitions based on p
         // we because we found a set cardinality, we know we definitions for inP and cardP
         // bc cardP = Findp(all elements in A)
@@ -26,7 +26,7 @@ object SetCardinality {
         // is that true?? I kind of don't think so
         // note PLUS not AND
 
-        case Not(AndList(args)) =>
+        case Not(AndList(args)) => term
 
         case OrList(args) => AndList(args.map(cardinality))
         // #(x| x > 3 v y | y < 2) == #(x | x > 3) + #(y | y < 2)
@@ -104,4 +104,4 @@ object SetCardinality {
 
 //     //     }
 //     // }
-// }
+}
