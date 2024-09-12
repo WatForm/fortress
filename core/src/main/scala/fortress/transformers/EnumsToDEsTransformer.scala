@@ -52,7 +52,7 @@ object EnumsToDEsTransformer extends ProblemStateTransformer {
         //ProblemState(newTheory, scopes, skc, skf, rangeRestricts, unapply :: unapplyInterp, distinctConstants)
         problemState
         .withTheory(newTheory)
-        .withUnapplyInterp(unapply)
+        .addUnapplyInterp(unapply)
         .withScopes(newScopes)
     }
     

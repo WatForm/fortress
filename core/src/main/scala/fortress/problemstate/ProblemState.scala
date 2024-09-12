@@ -58,7 +58,7 @@ case class ProblemState private (
         
     }
 
-    def withUnapplyInterp(unapp: Interpretation => Interpretation): ProblemState = {
+    def addUnapplyInterp(unapp: Interpretation => Interpretation): ProblemState = {
         copy(unapplyInterp = unapp :: unapplyInterp)
     }
 
@@ -78,10 +78,30 @@ case class ProblemState private (
     }
 
     /**
+      * Unions skolemConstants with `skc`
+      *
+      * @param skc
+      * @return a new `ProblemState`
+      */
+    def addSkolemConstants(skc: Set[AnnotatedVar]): ProblemState = {
+        copy(skolemConstants = skolemConstants union skc)
+    }
+
+    /**
       * Replaces skolem functions with `skf`
       */
     def withSkolemFunctions(skf: Set[FuncDecl]): ProblemState = {
         copy(skolemFunctions = skf)
+    }
+
+    /**
+      * Unions skolemFunctions with `skf`
+      *
+      * @param skf
+      * @return a new `ProblemState`
+      */
+    def addSkolemFunctions(skc: Set[FuncDecl]): ProblemState = {
+        copy(skolemFunctions = skolemFunctions union skc)
     }
 
     /**
@@ -92,6 +112,16 @@ case class ProblemState private (
       */
     def withRangeRestrictions(rangeRestrictions: Set[RangeRestriction]): ProblemState = {
         copy(rangeRestrictions = rangeRestrictions)
+    }
+
+    /**
+      * Adds additional range restrictions to the existing set of range restrictions.
+      *
+      * @param addedRangeRestrictions
+      * @return A new `ProblemState`
+      */
+    def addRangeRestrictions(addedRangeRestrictions: Set[RangeRestriction]): ProblemState = {
+        copy(rangeRestrictions = rangeRestrictions union addedRangeRestrictions)
     }
 }
 
@@ -110,9 +140,18 @@ object ProblemState {
 
     def apply(theory: Theory, scopes: Map[Sort, Scope], verbose: Boolean = false): ProblemState = {
         // Compute the scopes for enum sorts without one provided
+        // Error if provided scope does not match number of elements
         val enumScopes = theory.signature.enumConstants
-            .withFilter({case (sort, _) => !scopes.contains(sort)})
-            .map({case (sort, enumValues) => sort -> ExactScope(enumValues.length, true)})
+            .map({case (sort, enumValues) => {
+                if (scopes contains sort){
+                    val scope = scopes(sort)
+                    Errors.Internal.precondition(scope.size == enumValues.size,
+                        f"Sort ${sort} was provided ${enumValues.size} enum values, but given a scope of ${scope.size}")
+                    sort -> scope
+                } else {
+                    sort -> ExactScope(enumValues.length, true)
+                }
+            }})
             .toMap
 
         val containsNonExactScopes = scopes.values.exists(sc => sc.isExact == false)

@@ -75,7 +75,7 @@ object EliminateUnusedTransformer extends ProblemStateTransformer {
 
         problemState
         .withTheory(newTheory)
-        .withUnapplyInterp(unapply)
+        .addUnapplyInterp(unapply)
     }
 
 }

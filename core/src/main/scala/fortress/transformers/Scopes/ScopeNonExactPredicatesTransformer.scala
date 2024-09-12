@@ -83,7 +83,7 @@ object  ScopeNonExactPredicatesTransformer extends ProblemStateTransformer {
         }              
     
         problemState.withTheory(resultTheory)
-        .withUnapplyInterp(unapply)
+        .addUnapplyInterp(unapply)
         /*
         } else {
             return problemState

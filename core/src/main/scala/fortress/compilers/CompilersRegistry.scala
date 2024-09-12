@@ -24,7 +24,6 @@ object CompilersRegistry {
             case "MaxUnboundedScopes" => new MaxUnboundedScopesCompiler()
 
             case "Evaluate" => new EvaluateCompiler()
-            case "EvaluateQDef" => new EvaluateQDefCompiler()
             case "DatatypeNoRangeEUFEvaluate" => new DatatypeNoRangeEUFEvaluateCompiler()
             case "DatatypeWithRangeEUFEvaluate" => new DatatypeWithRangeEUFEvaluateCompiler()
 

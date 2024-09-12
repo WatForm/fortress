@@ -94,7 +94,7 @@ class SymmetryBreakingTransformer(
             val newTheory = theory.withFunctionDeclarations(newDecls).withAxioms(newConstraints)
             problemState
             .withTheory(newTheory)
-            .withRangeRestrictions(rangeRestricts union newRangeRestrictions)
+            .addRangeRestrictions(newRangeRestrictions)
         }
     }
 

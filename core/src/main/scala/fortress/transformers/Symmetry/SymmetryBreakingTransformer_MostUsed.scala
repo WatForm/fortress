@@ -75,7 +75,7 @@ class SymmetryBreakingTransformer_MostUsed(
         // ProblemState(newTheory, scopes, skc, skf, rangeRestricts union breaker.rangeRestrictions.toSet, unapplyInterp, distinctConstants)
         problemState
         .withTheory(newTheory)
-        .withRangeRestrictions(problemState.rangeRestrictions union breaker.rangeRestrictions.toSet)
+        .addRangeRestrictions(breaker.rangeRestrictions.toSet)
     }
     /*
     val name: String = s"Symmetry Breaking Transformer Most Used (${selectionHeuristicFactory.name})"

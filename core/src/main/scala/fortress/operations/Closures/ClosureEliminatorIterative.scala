@@ -32,11 +32,12 @@ class ClosureEliminatorIterative(topLevelTerm: Term, signature: Signature, scope
             // Function that checks if the function already exists or we have generated it
             def queryFunction(name: String): Boolean = signature.hasFuncDeclWithName(name) || closureFunctions.exists(f => f.name == name)
 
-            // If we have not generated the function yet
+            // If we have not generated the transitive closure yet, define it
             if (!queryFunction(closureName)) {
                 // Look at original function to make declaration for the closure function
                 // Find the sort we are closing over
                 val sort = getClosingSortOfFunction(functionName)
+                // Precondition check that we need a scope for this method
                 Errors.Internal.precondition(scopes.contains(sort), "sort in closure must be bounded when using iterative eliminator.")
                 // Record the sort as no longer being able change scope
                 unchangingSorts += sort
@@ -61,8 +62,13 @@ class ClosureEliminatorIterative(topLevelTerm: Term, signature: Signature, scope
                         // Make a new function with a similar name
                         val newFunctionName = nameGen.freshName(functionName);
                         // It uses the same arguments
+                        // auxFunctionN: TxTxFixed...->Bool
                         auxilaryFunctions += FuncDecl(newFunctionName, Seq(sort, sort) ++ fixedSorts, Sort.Bool)
-                        // For every input,
+
+                        // We build the closures, defining them in terms of the previous
+                        // AuxN+1(x,y,fixed...) is true iff one of two things is true
+                        // 1. AuxN(x,y,fixed...)    --- The previous aux function already connected them
+                        // 2. exists z: T. AuxN(x,z,fixed...) & AuxN(z,y,fixed...) --- There is some point z st we can reach z from x and y from z
                         closureAxioms += Forall(avars ++ fixedArgVars, Iff(App(newFunctionName, Seq(x, y) ++ fixedVars), // For every inputs R_n+1(x,y) <=>
                             Or( // 1 of 2 things
                                 funcContains(functionName, x, y, fixedVars), // R_n(x,y) already existed in the original
@@ -76,15 +82,21 @@ class ClosureEliminatorIterative(topLevelTerm: Term, signature: Signature, scope
                     }
                     closureAxioms += Forall(avars ++ fixedArgVars, Iff(App(closureName, Seq(x, y) ++ fixedVars), Or(funcContains(functionName, x, y, fixedVars), Exists(az, And(funcContains(functionName, x, z, fixedVars), funcContains(functionName, z, y, fixedVars))))))
                 } else if (queryFunction(reflexiveClosureName)) {
-                    // If we have the reflexive closure, just use that
-                    // Reflexive closure R(x,y) <=> exists z: R(x,z) and R(z,y)
+                    // If we have the reflexive closure, we do not need to redefine it
+                    // R^(x,y) <=> exists z: R(x,z) and R*(z,y)
+                    // Two points x,y are in the normal tc if there is an edge from x to some point z and z and
+                    //   y and z are connected in the reflexive transitive closure.
                     closureAxioms += Forall(avars ++ fixedArgVars,
                         Iff(App(closureName, Seq(x, y) ++ fixedVars), Exists(az, And(funcContains(functionName, x, z, fixedVars), App(reflexiveClosureName, Seq(z, y) ++ fixedVars)))))
                 } else {
+                    // Create a helper function H
                     val helperName = nameGen.freshName(functionName);
+                    // R*:TxTxFixed...->Bool
                     closureFunctions += FuncDecl(reflexiveClosureName, Seq(sort, sort) ++ fixedSorts, Sort.Bool);
+                    // H: TxTxTxFixed... -> Bool
                     auxilaryFunctions += FuncDecl(helperName, Seq(sort, sort, sort) ++ fixedSorts, Sort.Bool);
                     val u = Var(nameGen.freshName("u"));
+                    // all x,y: T, fixed...:Fixed... . ~H(x,x,y)
                     closureAxioms += Forall(avars ++ fixedArgVars, Not(App(helperName, Seq(x, x, y) ++ fixedVars)))
                     closureAxioms += Forall((avars :+ az :+ u.of(sort)) ++ fixedArgVars,
                         Implication(And(App(helperName, Seq(x, y, u) ++ fixedVars), App(helperName, Seq(y, z, u) ++ fixedVars)), App(helperName, Seq(x, z, u) ++ fixedVars)))

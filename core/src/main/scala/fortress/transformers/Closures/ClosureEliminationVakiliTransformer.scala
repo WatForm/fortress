@@ -108,7 +108,7 @@ object ClosureEliminationVakiliTransformer extends ProblemStateTransformer {
         //ProblemState(resultTheory, scopes, skc, skf, rangeRestricts, unapplyInterp :+ unapply, distinctConstants)
         problemState
         .withTheory(resultTheory)
-        .withUnapplyInterp(unapply)
+        .addUnapplyInterp(unapply)
     }
 
 }
