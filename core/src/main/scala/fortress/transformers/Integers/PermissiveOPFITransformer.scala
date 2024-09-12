@@ -627,7 +627,7 @@ object PermissiveOPFITransformer extends ProblemStateTransformer {
         problemState
             .withScopes(newScopes)
             .withTheory(newTheory)
-            .withUnapplyInterp(unapplyInterp)
+            .addUnapplyInterp(unapplyInterp)
             .withFlags(problemState.flags.copy(haveRunNNF=false))
     }
     
