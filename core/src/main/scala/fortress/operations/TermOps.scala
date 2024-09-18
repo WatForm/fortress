@@ -51,7 +51,7 @@ case class TermOps private (term: Term) {
     /** Removes all ites from the term by iflifting
       * The term must be sanitized to call this method.
       */
-    def iflift(s:Sort): Term = IfLifter.iflift(term,s)
+    def iflift(s:Sort): Term = IfLifter.iflift(term,s) //bookmark
 
     /** Does not account for variable capture.
       * If in doubt do not use this function.

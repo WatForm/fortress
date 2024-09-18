@@ -34,7 +34,7 @@ object Skolemization {
             case BuiltinApp(fn, args) => term
             case IfThenElse(c, t, f) => term
 
-            case Forall(avars, body) => {
+            case Forall(avars, body) => { /*!!*/
                 context = context.stackPush(avars)
                 val r = Forall(avars, recur(body))
                 context = context.stackPop(avars.size)
@@ -90,6 +90,6 @@ object Skolemization {
         }
 
         val skolemTerm = recur(axiom)
-        SkolemResult(skolemTerm, skolemConstants.toSet, skolemFunctions.toSet)
+        SkolemResult(skolemTerm, skolemConstants.toSet, skolemFunctions.toSet) /* follow this pattern */
     }
 }
