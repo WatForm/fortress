@@ -1,5 +1,3 @@
-// Go through iflifting
-
 package fortress.transformers
 
 import fortress.msfol._
@@ -33,6 +31,6 @@ object IfLiftingTransformer extends ProblemStateTransformer {
         .withTheory(newTheory)
         .withFlags(problemState.flags.copy(haveRunIfLifting = true))
     }
-
+    
 
 }

@@ -17,7 +17,7 @@ class IntegerToSortConverter(min: Int, max: Int, newSort: Sort, nameGenerator: N
     val constantsToInts: Map[Term, Int] = intToConstants.map(mapping => mapping._2 -> mapping._1)
 
     // TODO name generator
-    // If any
+    // If any 
     var convertedFunctions: scala.collection.mutable.Map[BuiltinFunction, FunctionDefinition] = scala.collection.mutable.Map()
 
     private val x = Var("x")
@@ -41,10 +41,10 @@ class IntegerToSortConverter(min: Int, max: Int, newSort: Sort, nameGenerator: N
     private def inRange(x: Int): Boolean = {
         return (x >= min && x <= max)
     }
-
+    
     // A map from a builtin to a definition for it
     var convertableFunctions: Map[BuiltinFunction, (FunctionDefinition)] = {
-
+        
         // x is left value, y is right value, z is result value
         // Looks through all cases, with default
         def generateFunctionBody2(op: (Int, Int) => Int, checkDivZero: Boolean = false): Term = {
@@ -240,6 +240,6 @@ class IntegerToSortConverter(min: Int, max: Int, newSort: Sort, nameGenerator: N
             (Term.mkClosure(term.functionName, newArguments), didSub)
         }
 
-
+        
     }
 }

@@ -8,18 +8,17 @@ object IfLifter {
     /** Returns a Term with no ites
       * Cannot assume the term argument is of sort Boolean
       * so removal of ites is not always possible
-      *
+      * 
       * if term is Boolean, then all ites are removed
-      *
+      * 
       * Side Effect: distinct is also removed
       */
 
-    // bookmark
     def iflift(term:Term, s:Sort): Term = {
         //println("enter iflift: "+term+" "+s)
         if (s == BoolSort) return removeItesForBoolTerm(liftItes(term))
         else return liftItes(term)
-    }
+}
 
     // pull all ites up as much as possible
     // functions have to be relifted through args
@@ -30,17 +29,16 @@ object IfLifter {
             | IntegerLiteral(_) | BitVectorLiteral(_, _) | EnumValue(_)
              => term
 
-        // for all the terms we know take Boolean args
+        // for all the terms we know take Boolean args 
         // push iflifting down
         // and immediately removeItes
-        // moving in the iflifting part to then remove it
         case AndList(args) => AndList(args.map(t => removeItesForBoolTerm(liftItes(t))))
-        case OrList(args) => OrList(args.map(t => removeItesForBoolTerm(liftItes(t))))
+        case OrList(args) => OrList(args.map(t => removeItesForBoolTerm(liftItes(t)))) 
         case Implication(p, q) => Implication(removeItesForBoolTerm(liftItes(p)), removeItesForBoolTerm(liftItes(q)))
         case Iff(p, q) => Iff(removeItesForBoolTerm(liftItes(p)), removeItesForBoolTerm(liftItes(q)))
         case Forall(vars, body) => Forall(vars, removeItesForBoolTerm(liftItes(body)))
         case Exists(vars, body) => Exists(vars, removeItesForBoolTerm(liftItes(body)))
-        case Not(p) => Not(removeItesForBoolTerm(liftItes(p)))
+        case Not(p) => Not(removeItesForBoolTerm(liftItes(p))) 
         case Eq(a,b) => removeItesForBoolTerm(reLiftItes(Eq(liftItes(a),liftItes(b))))
 
         // distinct can be over terms so turns them in not equals
@@ -50,14 +48,14 @@ object IfLifter {
         // if there is an ite in these args
         // these might return an ite (possibly with a stack of ites)
         // they might not be of Boolean value
-        case IfThenElse(condition, ifTrue, ifFalse) =>
+        case IfThenElse(condition, ifTrue, ifFalse) => 
             IfThenElse(removeItesForBoolTerm(liftItes(condition)),liftItes(ifTrue),liftItes(ifFalse))
 
         case App(fname, args) => reLiftItes(App(fname,args.map(liftItes)))
         case BuiltinApp(fname,args) => reLiftItes(BuiltinApp(fname,args.map(liftItes)))
-        case Closure(fname, arg1, arg2, args) =>
+        case Closure(fname, arg1, arg2, args) => 
             reLiftItes(Closure(fname, liftItes(arg1), liftItes(arg2),args.map(liftItes)))
-        case ReflexiveClosure(fname, arg1, arg2, args) =>
+        case ReflexiveClosure(fname, arg1, arg2, args) => 
             reLiftItes(ReflexiveClosure(fname, liftItes(arg1), liftItes(arg2), args.map(liftItes)))
         }
         //println("liftItes out: "+x)
@@ -78,18 +76,18 @@ object IfLifter {
         // for all the logical operators just push iflifting down
         case AndList(_) | OrList(_) | Implication(_,_) |
             Iff(_,_) | Forall(_,_) | Exists(_,_) | Not(_) => term
-        case IfThenElse(_, _, _) => term
+        case IfThenElse(_, _, _) => term 
         case (distinct: Distinct) => Errors.Internal.preconditionFailed(s"Should not reach this 'distinct' case in reLiftItes: ${term}")
         case Eq(a,b) => reLiftOverArgs((args: Seq[Term]) => Eq(args(0),args(1)), Seq(a,b))
         case App(fname, args) => reLiftOverArgs((args: Seq[Term]) => App(fname,args), args)
         case BuiltinApp(fname,args) => reLiftOverArgs((args:Seq[Term]) => BuiltinApp(fname,args), args)
-        case Closure(fname, arg1, arg2, args) =>
+        case Closure(fname, arg1, arg2, args) => 
             reLiftOverArgs(
-                (args:Seq[Term]) => Closure(fname, args(0), args(1), args.slice(2, args.size -1)),
+                (args:Seq[Term]) => Closure(fname, args(0), args(1), args.slice(2, args.size -1)), 
                 Seq(arg1,arg2) ++ args)
-        case ReflexiveClosure(fname, arg1, arg2, args) =>
+        case ReflexiveClosure(fname, arg1, arg2, args) => 
             reLiftOverArgs(
-                (args:Seq[Term]) => ReflexiveClosure(fname, args(0), args(1), args.slice(2, args.size -1)),
+                (args:Seq[Term]) => ReflexiveClosure(fname, args(0), args(1), args.slice(2, args.size -1)), 
                 Seq(arg1,arg2) ++ args)
         }
         //println("reLiftItes out: "+x)
@@ -124,9 +122,9 @@ object IfLifter {
                     // if not an ite, don't need to relift it
                     newargs = newargs ++ List(x)
                 }
-                case None =>
+                case None => 
                     Errors.Internal.preconditionFailed(s"Should not reach this case in IfLifting: ${a}")
-            }
+            }     
         }
         // only reaches here if there was no ite in an argument
         // all of newargs have been relifted
@@ -142,9 +140,7 @@ object IfLifter {
         term match {
 
         // only interesting case
-        // bookmark - this is the type of logic I want to implement
-        // this is kind of like the base case, they all eventually get to this point
-        case IfThenElse(condition, ifTrue, ifFalse) =>
+        case IfThenElse(condition, ifTrue, ifFalse) => 
             OrList(
                 AndList(removeItesForBoolTerm(condition), removeItesForBoolTerm(ifTrue)),
                 AndList(Not(removeItesForBoolTerm(condition)),removeItesForBoolTerm(ifFalse))
