@@ -289,6 +289,11 @@ object Forall {
   * For example, DomainElement(2, A) represents the domain element at index 2
   * for sort A, written as 2A.
   * DomainElements are indexed starting with 1.*/
+  // bookmark, want to use this with sort f
+  // need to find the scope of f, which is in the problem state
+  // 0 or 1? Question tbd
+  // DomainElement(0, f), DomainElement(1, f), DomainElement(2, f), .. , DomainElement(scope, f)
+  // scope is just a number
 case class DomainElement private (index: Int, sort: Sort) extends Term with LeafTerm with Value {
     Errors.Internal.precondition(index >= 1)
 
