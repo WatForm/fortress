@@ -1,4 +1,5 @@
 package fortress.operations
+import fortress.data.NameGenerator
 
 import fortress.msfol._
 
@@ -6,18 +7,48 @@ object SetCardinality {
 
     case class cardinalityResult(cardinalityTerm: Term, cardinalityFunctions: Set[FuncDecl])
 
+    // how to pass needed names from axiom to axiom? Sets or pass in pass out
     def cardinality(term: Term): cardinalityResult = {
-        
-        val cardinalityFunctions = scala.collection.mutable.Set[FuncDecl]()
+        val inApp_function_names: mutable.Map[String, String] = mutable.Map()
+        val cardApp_function_names: mutable.Map[String, String] = mutable.Map()
 
         def recur(term: Term){
-            
+            case Top | Bottom => term
+            case Not(Top) => Bottom
+            case Not(Bottom) => Top
+            case Not(Not(p)) => recur(p)
+            case AndList(args) => AndList(args.map(recur))
+            case Not(AndList(args)) => OrList(args.map(arg => recur(Not(arg))))
+            case OrList(args) => OrList(args.map(recur))
+            case Not(OrList(args)) => AndList(args.map(arg => recur(Not(arg))))
+            case Implication(p, q) => OrList(recur(Not(p)), recur(q))
+            case Not(Implication(p, q)) => AndList(recur(p), recur(Not(q)))
+            case Iff(p, q) => OrList(
+                AndList(recur(p), recur(q)),
+                AndList(recur(Not(p)), recur(Not(q)))
+            )
+            case Not(Iff(p, q)) => OrList(
+                AndList(recur(p), recur(Not(q))),
+                AndList(recur((Not(p))), recur(q))
+            )
+            case Forall(vars, body) => Forall(vars, recur(body))
+            case Not(Forall(vars, body)) => Exists(vars, recur(Not(body)))
+            case Exists(vars, body) => Exists(vars, recur(body))
+            case Not(Exists(vars, body)) => Forall(vars, recur(Not(body)))
+            case (distinct: Distinct) => recur(distinct.asPairwiseNotEquals)
+            case Not(distinct @ Distinct(_)) => recur(Not(distinct.asPairwiseNotEquals))
+            case IfThenElse(condition, ifTrue, ifFalse) =>
+                IfThenElse(recur(condition), recur(ifTrue), recur(ifFalse))
+            case Not(IfThenElse(condition, ifTrue, ifFalse)) =>
+                IfThenElse(recur(condition), recur(Not(ifTrue)), recur(Not(ifFalse)))
+
             // if I did SetCardinality right, p MUST be a predicate, so p can be used in our first function
             // p( ) **!!! how you do it <<
             // p is a predicate from f to bool, so our scope we care about is f
             case SetCardinality(p) => makeCardinalityFunctions(p)
-            case _ => term // this may not be enough, may need to traverse the tree by calling recur on the inner terms
-            // this was in fact not enough, traverese down!!!
+            
+            /* recur makes no changes other term types  */
+            case _ => term
             
             
             // here we make definitions based on p
@@ -34,12 +65,49 @@ object SetCardinality {
             // scope is just a number         
         }
         
-        def makeCardinalityFunctions(p : App): cardinalityResult {
-            // KIND OF SEPERATE IDEA - we may have multiple instances of the same term, so we don't want to create a new function every time (ex. cardP1, cardP2, etc.) insetad we want to see P and replace with cardP every time.
-            // Aka we probably want to just replace with the appropriate function name
-            // Maybe want to do a dictionary type thing? If p has been encounetered use the name names[p], otherwise we generate a new name and add it to the dictionary
+        def makeCardinalityFunctions(p : App): Term {
+            if (!cardApp_function_names.contains(p.name)) {
+                // generate functions if need be
+                // replace current term with appropriate cardinality name
+                 name = /* NAME GENERATOR HERE, uses name of predicate ideally */
+                inApp_function_names.put(p.name, "in" + name)
+                cardApp_function_names.put(p.name, "card" + name) // replace string use with string generator. Don't want to hardcode the strings
+            }
             
-            // potentially useful - Seq(x,y).map(_.of(sort))
+            return Var(cardApp_function_names.get(term)) 
+        }
+        
+        var cardinalityTerm = recur(term)
+        cardinalityResult(cardinalityTerm, inApp_function_names, cardApp_function_names)
+    }
+}
+//     // we potentially want something like this?
+//     // def getFixedSorts(fname: String): Seq[Sort] = signature.queryFunction(fname) match {
+//     //     case None => Errors.Internal.impossibleState("Function " + fname + " does not exist in signature when closing over it!")
+//     //     case Some(Left(FuncDecl(_, sorts, _))) => sorts.drop(2).toList
+//     //     case Some(Right(FunctionDefinition(_, params, _, _))) => params.map(_.sort).drop(2).toList
+//     // }
+
+//     // def ite(term: Term): Term {
+//     //     return IfThenElse(term, 1, 0)
+//     // }
+
+//     // def removeCardinality(term: Term): Term{
+//     //     term match {
+//     //         case SetCardinality(term) => SumList (
+//     //             ite(term) for term in something
+//     //         )
+//     //         case _ => term
+
+//     //     }
+//     // }
+
+// KIND OF SEPERATE IDEA - we may have multiple instances of the same term, so we don't want to create a new function every time (ex. cardP1, cardP2, etc.) insetad we want to see P and replace with cardP every time.
+// Aka we probably want to just replace with the appropriate function name
+// Maybe want to do a dictionary type thing? If p has been encounetered use the name names[p], otherwise we generate a new name and add it to the dictionary
+
+/*
+// potentially useful - Seq(x,y).map(_.of(sort))
             
             // we need to DECLARE the function (funcdecl) and DEFINE the function seperately
             val body1 = IfThenElse(p(x), 1, 0)
@@ -64,29 +132,4 @@ object SetCardinality {
             // where does ina come from? comes from portus, not gauranteed to exist in fortress
             // how do I know what to enumerate ina over? all the domain elements in the sort f
                 // class called domainElement
-        }
-        
-        var cardinalityTerm = recur(term)
-        cardinalityResult(cardinalityTerm, cardinalityFunctions)
-    }
-}
-//     // we potentially want something like this?
-//     // def getFixedSorts(fname: String): Seq[Sort] = signature.queryFunction(fname) match {
-//     //     case None => Errors.Internal.impossibleState("Function " + fname + " does not exist in signature when closing over it!")
-//     //     case Some(Left(FuncDecl(_, sorts, _))) => sorts.drop(2).toList
-//     //     case Some(Right(FunctionDefinition(_, params, _, _))) => params.map(_.sort).drop(2).toList
-//     // }
-
-//     // def ite(term: Term): Term {
-//     //     return IfThenElse(term, 1, 0)
-//     // }
-
-//     // def removeCardinality(term: Term): Term{
-//     //     term match {
-//     //         case SetCardinality(term) => SumList (
-//     //             ite(term) for term in something
-//     //         )
-//     //         case _ => term
-
-//     //     }
-//     // }
+*/

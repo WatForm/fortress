@@ -63,7 +63,7 @@ object SkolemizeTransformer extends ProblemStateTransformer {
         
         val nameGenerator = new IntSuffixNameGenerator(forbiddenNames.toSet, 0)
         
-        var resultTheory = theory.withoutAxioms
+        var resultTheory = theory.withoutAxioms // start with a blank theory
         val newSkolemConstants = scala.collection.mutable.Set.empty[AnnotatedVar]
         val newSkolemFunctions = scala.collection.mutable.Set.empty[FuncDecl]
         def updateWithResult(skolemResult: Skolemization.SkolemResult): Unit = {
@@ -73,7 +73,7 @@ object SkolemizeTransformer extends ProblemStateTransformer {
             resultTheory = resultTheory.withConstantDeclarations(skolemResult.skolemConstants.toList)
         }
 
-        for(axiom <- theory.axioms) {
+        for(axiom <- theory.axioms) { // iterating through axioms and update with new axiom
             val skolemResult = Skolemization.skolemize(axiom, resultTheory.signature, nameGenerator)
             val newAxiom = skolemResult.skolemizedTerm
             updateWithResult(skolemResult)
