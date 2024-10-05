@@ -1,15 +1,23 @@
 package fortress.transformers
 import fortress.problemstate.ProblemState
+import fortress.operations.TermOps._
+import fortress.operations.TheoryOps._
+import fortress.interpretation.Interpretation
+import fortress.msfol._
+import fortress.data.IntSuffixNameGenerator
+import fortress.operations.SetCardinality
+
+
 
 object SetCardinalityTransformer extends ProblemStateTransformer {
     println("test in set cardinality")
 
-    def generateInPDefinition(name: String, p: App): FunctionDefinition = {
-        val body = IfThenElse(p(x), 1, 0)
-        FunctionDefinition(name, /*todo, x?*/, IntSort, body)
+    def generateInAppDefinition(name: String, p: App): FunctionDefinition = {
+        // val body = IfThenElse(p(x), 1, 0)
+        // FunctionDefinition(name, /*todo, x?*/, IntSort, body)
     }
     
-    def generateCardPDefinition(nameBase: String, /*a A*/ ): FunctionDefinition = {
+    def generateCardAppDefinition(name: String, p: App): FunctionDefinition = {
         // for a in A, call inP(a)
     }
     
@@ -18,61 +26,83 @@ object SetCardinalityTransformer extends ProblemStateTransformer {
 
         val theory = problemState.theory
         val newCardinalityFunctions = scala.collection.mutable.Set.empty[FuncDecl]
-
-
-        def updateWithResult(cardinalityResult: Skolemization.SkolemResult): Unit = {
-            newCardinalityFunctions ++= cardinalityResult.cardinalityFunctions
-            theory = theory.withFunctionDeclarations(cardinalityResult.cardinalityFunctions.toList) // note we are NOT using declarations
+        
+        var inApp_function_names: scala.collection.mutable.Map[App, String] = scala.collection.mutable.Map()
+        var cardApp_function_names: scala.collection.mutable.Map[App, String] = scala.collection.mutable.Map()
+        
+        // gathering forbiden names - using the logic from SkolemizeTransformer
+        val forbiddenNames = scala.collection.mutable.Set[String]()
+        
+        for(sort <- theory.sorts) {
+            forbiddenNames += sort.name
         }
+        
+        for(fdecl <- theory.functionDeclarations) {
+            forbiddenNames += fdecl.name
+        }
+        
+        for(constant <- theory.constantDeclarations) {
+            forbiddenNames += constant.name
+        }
+
+        for(cDef <- theory.constantDefinitions){
+            forbiddenNames += cDef.name
+        }
+
+        for(fDef <- theory.functionDefinitions){
+            forbiddenNames += fDef.name
+        }
+        
+        // TODO: do we need this restriction if Substituter already restricts these inside one term?
+        for(axiom <- theory.axioms) {
+            forbiddenNames ++= axiom.allSymbols
+        }
+
+        val nameGenerator = new IntSuffixNameGenerator(forbiddenNames.toSet, 0)
+
+        var resultTheory = theory.withoutAxioms // start with a blank theory
         
         // get needed functions from operation
-        for(axiom <- theory.axioms) { // on a per axiom basis?
-            val cardinalityResult = SetCardinality.cardinality(axiom)
+        for(axiom <- theory.axioms) {
+            val cardinalityResult = SetCardinality.cardinality(axiom, inApp_function_names, cardApp_function_names, nameGenerator)
+            // passing the generated names back and forth
+            inApp_function_names = cardinalityResult.inApp_function_names
+            cardApp_function_names = cardinalityResult.cardApp_function_names
             
-            // keep track of kept names somehow
+            // updating axiom
+            val newAxiom = cardinalityResult.cardinalityTerm
+            resultTheory = resultTheory.withAxiom(newAxiom)
         }
+        
+        // todo - may not need to be it's own function
+        def updateWithResult(funcDefs: Iterable[FunctionDefinition]): Unit = {
+            resultTheory = resultTheory.withFunctionDefinitions(funcDefs)
+        }
+        
         // generate funciton definitions
+        // at this point inApp_function_names and cardApp_function_names has all the names of definitions we need to make
+        val inAppDefns = scala.collection.mutable.Set[FunctionDefinition]()
+        val cardAppDefns = scala.collection.mutable.Set[FunctionDefinition]()
         
-        // update theory
-        val newAxiom = cardinalityResult.cardinalityTerm
-        updateWithResult(cardinalityResult)
-        theory = theory.withAxiom(newAxiom)
-            
+        // generate function definitions for inApp
+        for ((app, name) <- inApp_function_names){
+            inAppDefns += generateInAppDefinition(name, app)
+        }
+        updateWithResult(inAppDefns)
+        
+        // generate function definitions for cardApp
+        for ((app, name) <- cardApp_function_names){
+            cardAppDefns += generateCardAppDefinition(name, app)
+        }
+        updateWithResult(cardAppDefns)
+        
+        def unapply: Interpretation => Interpretation = {
+            interp => interp.withoutFunctionDefinitions(inAppDefns.toSet).withoutFunctionDefinitions(cardAppDefns.toSet)
+        }
+
         //update problem states with theory
-        
-        // need to be careful/do some research here to ADD not REPLACE function definitions
-        // double check with verus add - does with replace all function definitions? If not might want to add an addFunctionDefinitions
         problemState
-        .withTheory(theory)
-        .withFunctionDefinition(generateFunctionDefinition("a"))
-        .addUnapplyInterp(unapply)// todo
+        .withTheory(resultTheory) // function definitions are in the theory, so we only need to add the theory
+        .addUnapplyInterp(unapply)
     }
 }
-
-/*
-// potentially useful - Seq(x,y).map(_.of(sort))
-            
-            // we need to DECLARE the function (funcdecl) and DEFINE the function seperately
-            val body1 = IfThenElse(p(x), 1, 0)
-            FunctionDefinition(name, variable, body) // todo, need to get the scope of f (p: f->Bool) and pass that to the function
-            val function1= FuncDecl(...) // inP: ite(inA(a), 1, 0) 1 argument, a
-            cardinalityFunctions += function1
-            
-            val body2 = y(DomainElement(0, f)) + y(DomainElement(0, f)) + .... 
-            // where y = function we just defined, we will know the namne of y based on p #(p) -> this function
-            
-            val function2 = FuncDecl(...) // cardP: inp(a1) SUM inp(a2) SUM inp(a3) etc (for all ax in A) // does not take any arguments, applies the first function to all domain elements
-            ardinalityFunctions += function2
-            function2 // this is the term we want to replace #(p) with
-            
-            // #
-            
-            
-            // Type - type of argument to the cardinality operator
-            // #(P) - p has a sort f-> bool
-            // sort I want for ina -> f
-            // inA is an application, inA is an app for the argument a
-            // where does ina come from? comes from portus, not gauranteed to exist in fortress
-            // how do I know what to enumerate ina over? all the domain elements in the sort f
-                // class called domainElement
-*/
