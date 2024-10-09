@@ -54,6 +54,7 @@ object SetCardinality {
             if (!cardApp_function_names.contains(p)) {
                 // generate functions if need be
                 // replace current term with appropriate cardinality name
+                // could also use p.getFunctionName() if we wanted the names to be based on predicate name, might not matter though
                 val inP_name = nameGenerator.freshName("inP") // will generate inP_1, inP_2, etc.
                 val cardP_name = nameGenerator.freshName("cardP")
                 inApp_function_names.put(p, inP_name)

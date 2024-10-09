@@ -207,7 +207,7 @@ case class Eq private (left: Term, right: Term) extends Term {
     override def toString: String = left.toString + " = " + right.toString
 }
 
-/** Represents a function or predicate application. */
+/** Represents a function or predicate application. */ // bookmark
 case class App private (functionName: String, arguments: Seq[Term]) extends Term {
     Errors.Internal.precondition(functionName.length >= 1, "Empty function name")
     Errors.Internal.precondition(arguments.size >= 1, "Nullary function application " + functionName + " should be a Var")
