@@ -55,44 +55,46 @@ object SetCardinalityTransformer extends ProblemStateTransformer {
         val nameGenerator = new IntSuffixNameGenerator(forbiddenNames.toSet, 0)
         
         // defining helper functions
-        // it is possible you can just do some sort of variation of .sort on predicates
-        def getSort(fname: String): Seq[Sort] = signature.queryFunction(fname) match {
-            // need to edit this to match set cardinality, I think getting rid of the drop(2) perhaps?
+        def getSort(fname: String): Sort = signature.queryFunction(fname) match {
             case None => Errors.Internal.impossibleState("Function " + fname + " does not exist in signature when getting set cardinatity of it!")
-            case Some(Left(FuncDecl(_, sorts, _))) => sorts.drop(2).toList
-            case Some(Right(FunctionDefinition(_, params, _, _))) => params.map(_.sort).drop(2).toList
+            case Some(Left(FuncDecl(_, sorts, _))) => sorts.at(0) // we are assuming the function is a unary predicate, in which we want the first element of sorts (there should only be one)
+            case Some(Right(FunctionDefinition(_, params, _, _))) => params.map(_.sort).at(0) // we are assuming the function is a unary predicate, in which we want the first element of params (there should only be one)
         }
 
-        def generateInAppDefinition(name: String, p: App): FunctionDefinition = {
-            val body = IfThenElse(p(x), 1, 0)
-            FunctionDefinition(name, /*todo, x?*/ term.arguments, IntSort, body)
+        // TODO I want p to be the name, not the App itself
+        def generateInAppDefinition(name: String, p: String, sort: Sort): FunctionDefinition = {
+            // replace 1 & 0 with number terms. IntegerLiteral
+            // generate a name for x
+            // App(p, Var(x)) == p(x) basically
+            val x = nameGenerator.freshName("x")
+            val args = Seq[AnnotatedVar]
+            args += AnnotatedVar(Var(x), sort) // do we need to add the var to the theory?
+            
+            val xVar = Var(x)
+            val body = IfThenElse(App(p, Seq[xVar]), IntegerLiteral(1), IntegerLiteral(0))
+            
+            // use the same name for Var(x) and AnnotatedVar(x)
+            // arguments to a function definition are a sequence of annotated vars (var + sort)
+            // choose some name, sort = sort p takes p: [sort] -> bool
+            FunctionDefinition(name, args, IntSort, body)
         }
         
-        def generateCardAppDefinition(name: String, sort: Sort, inP: Var, scope: Int): FunctionDefinition = {
+        def generateCardAppDefinition(name: String, sort: Sort, inP: String, scope: Int, p: String): FunctionDefinition = {
+            // where p is the predicate the cardinality is about and inP is the helper function
             if (inP == ""){
                 // if there is no inP function name, something is wrong
                 // throw error here
             }
-            
-            // what type is the function USE (not definition, usage)
-            // for a in A, call inP(a)
-            
-            //val body2 = y(DomainElement(0, f)) + y(DomainElement(0, f)) + .... 
-            // where y = function we just defined, we will know the namne of y based on p #(p) -> this function
-            
-            //val function2 = FuncDecl(...) // cardP: inp(a1) SUM inp(a2) SUM inp(a3) etc (for all ax in A) // does not take any arguments, applies the first function to all domain elements
-            
-            // do the SUM thing with a for loop
-            // term = first one
-            // then loop through the rest with term SUM next
-            // return term
-            
-            val arguments: Seq[Term] = for (num <- scope) yield inP(DomainElement(num, p))
+        
+            val arguments: Seq[Term] = for (num <- scope) yield App(inP, DomainElement(num, p))
             val body = AndList(arguments)
             
+            val args = Seq[AnnotatedVar]
+            args += AnnotatedVar(Var(p), sort)
+            args += AnnotatedVar(Var(inP), sort)
             // need to figure out how to pass in the arguments for this function
             // or what the arguments actually are, I think its p, inP, and scope
-            FunctionDefinition(name, /*todo, x?*/ term.arguments, Int, body)
+            FunctionDefinition(name, args, IntSort, body)
         }
 
         var resultTheory = theory.withoutAxioms // start with a blank theory
@@ -121,14 +123,15 @@ object SetCardinalityTransformer extends ProblemStateTransformer {
         
         // generate function definitions for inApp
         for ((app, name) <- inApp_function_names){
-            inAppDefns += generateInAppDefinition(name, app)
+            val sort = getSort(scopes(getSort(name).head))
+            inAppDefns += generateInAppDefinition(name, app, sort)
         }
         updateWithResult(inAppDefns)
         
         // generate function definitions for cardApp
         for ((app, name) <- cardApp_function_names){
             val scope = scopes(getSort(name).head)
-            cardAppDefns += generateCardAppDefinition(name, getSort(name), inApp_function_names.get(app), scope.size)
+            cardAppDefns += generateCardAppDefinition(name, getSort(name), inApp_function_names(app), scope.size)
         }
         updateWithResult(cardAppDefns)
         

@@ -324,6 +324,7 @@ with Caching[DomainElement, (Int, Sort)] {
     implicit val ordering: math.Ordering[DomainElement] = math.Ordering.fromLessThan(_.index < _.index)
 }
 
+//bookmark
 case class IntegerLiteral private (value: Int) extends Term with LeafTerm with Value {
     override def accept[T](visitor: TermVisitor[T]): T = visitor.visitIntegerLiteral(this)
 }
