@@ -1,10 +1,15 @@
 package fortress.operations
+import fortress.msfol._
+
 import fortress.data.IntSuffixNameGenerator
 import scala.collection.mutable.Map
 
-import fortress.msfol._
+import fortress.operations.TermOps._
 
-object SetCardinality {
+import fortress.operations.TermOps._
+import fortress.util.Errors
+
+object SetCardinalityOperation {
 
     case class cardinalityResult(cardinalityTerm: Term, inApp_function_names: Map[App, String], cardApp_function_names: Map[App, String])
 
@@ -39,15 +44,10 @@ object SetCardinality {
                 IfThenElse(recur(condition), recur(ifTrue), recur(ifFalse))
             case Not(IfThenElse(condition, ifTrue, ifFalse)) =>
                 IfThenElse(recur(condition), recur(Not(ifTrue)), recur(Not(ifFalse)))
-
-            // if I did SetCardinality right, p MUST be a predicate, so p can be used in our first function
-            // p( ) **!!! how you do it <<
-            // p is a predicate from f to bool, so our scope we care about is f
             case SetCardinality(p) => makeCardinalityFunctions(p)
             
             /* recur makes no changes other term types  */
             case _ => term
-
         }
         
         def makeCardinalityFunctions(p : App): Term = {

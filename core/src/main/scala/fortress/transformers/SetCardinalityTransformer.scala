@@ -5,7 +5,7 @@ import fortress.operations.TheoryOps._
 import fortress.interpretation.Interpretation
 import fortress.msfol._
 import fortress.data.IntSuffixNameGenerator
-import fortress.operations.SetCardinality
+import fortress.operations.SetCardinalityOperation
 import fortress.util.Errors
 
 
@@ -101,7 +101,7 @@ object SetCardinalityTransformer extends ProblemStateTransformer {
         
         // get needed functions from operation
         for(axiom <- theory.axioms) {
-            val cardinalityResult = SetCardinality.cardinality(axiom, inApp_function_names, cardApp_function_names, nameGenerator)
+            val cardinalityResult = SetCardinalityOperation.cardinality(axiom, inApp_function_names, cardApp_function_names, nameGenerator)
             // passing the generated names back and forth
             inApp_function_names = cardinalityResult.inApp_function_names
             cardApp_function_names = cardinalityResult.cardApp_function_names
