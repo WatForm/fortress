@@ -361,12 +361,12 @@ object BitVectorLiteral {
 // BOOKMARK, UNFINISHED
 // uses a visitor pattern
 // when we hit a setCardinality node, the visitSetCardinality function gets called on it
-case class SetCardinality private (predicate : App) extends Term {
+case class SetCardinality private (predicate : String) extends Term {
     // t(x) x describes a set
 
     override def accept[T](visitor: TermVisitor[T]): T = visitor.visitSetCardinality(this)
 
-    override def toString: String = "#(" + predicate.toString + ")"
+    override def toString: String = "#(" + predicate + ")"
 }
 
 
@@ -560,7 +560,7 @@ object Term {
     def mkIff(t1: Term, t2: Term): Term = Iff(t1, t2)
 
     // bookmark
-    def mkSetCardinality(t: App): Term =
+    def mkSetCardinality(t: String): Term =
         SetCardinality(t)
 
     def mkIfThenElse(condition: Term, ifTrue: Term, ifFalse: Term): Term = IfThenElse(condition, ifTrue, ifFalse)

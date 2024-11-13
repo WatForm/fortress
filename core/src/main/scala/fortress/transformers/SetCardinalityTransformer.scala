@@ -21,8 +21,8 @@ object SetCardinalityTransformer extends ProblemStateTransformer {
         
         val newCardinalityFunctions = scala.collection.mutable.Set.empty[FuncDecl]
         
-        var inApp_function_names: scala.collection.mutable.Map[App, String] = scala.collection.mutable.Map()
-        var cardApp_function_names: scala.collection.mutable.Map[App, String] = scala.collection.mutable.Map()
+        var inApp_function_names: scala.collection.mutable.Map[String, String] = scala.collection.mutable.Map()
+        var cardApp_function_names: scala.collection.mutable.Map[String, String] = scala.collection.mutable.Map()
         
         // gathering forbiden names - using the logic from SkolemizeTransformer
         val forbiddenNames = scala.collection.mutable.Set[String]()
@@ -122,16 +122,16 @@ object SetCardinalityTransformer extends ProblemStateTransformer {
         val cardAppDefns = scala.collection.mutable.Set[FunctionDefinition]()
         
         // generate function definitions for inApp
-        for ((app, name) <- inApp_function_names){
-            val sort: Sort = getSort(name)
-            inAppDefns += generateInAppDefinition(name, app.getFunctionName, sort)
+        for ((p, pname) <- inApp_function_names){
+            val sort: Sort = getSort(pname)
+            inAppDefns += generateInAppDefinition(pname, p, sort)
         }
         updateWithResult(inAppDefns)
         
         // generate function definitions for cardApp
-        for ((app, name) <- cardApp_function_names){
-            val scope = scopes(getSort(name))
-            cardAppDefns += generateCardAppDefinition(name, getSort(name), inApp_function_names(app), scope.size)
+        for ((p, pname) <- cardApp_function_names){
+            val scope = scopes(getSort(pname))
+            cardAppDefns += generateCardAppDefinition(pname, getSort(pname), inApp_function_names(p), scope.size)
         }
         updateWithResult(cardAppDefns)
         

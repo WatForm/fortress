@@ -205,7 +205,7 @@ class TypeChecker(signature: Signature) extends TermVisitorWithTypeContext[TypeC
     }
 
     override def visitSetCardinality(c: SetCardinality): TypeCheckResult = {
-        val result = visit(c.predicate)
+        val result = visit(c)
 
         // check if the sort of the predicate is a bool
         if (result.sort != BoolSort){

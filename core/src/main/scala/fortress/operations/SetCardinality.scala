@@ -11,9 +11,9 @@ import fortress.util.Errors
 
 object SetCardinalityOperation {
 
-    case class cardinalityResult(cardinalityTerm: Term, inApp_function_names: Map[App, String], cardApp_function_names: Map[App, String])
+    case class cardinalityResult(cardinalityTerm: Term, inApp_function_names: Map[String, String], cardApp_function_names: Map[String, String])
 
-    def cardinality(term: Term, inApp_function_names: Map[App, String], cardApp_function_names: Map[App, String], nameGenerator: IntSuffixNameGenerator): cardinalityResult = {
+    def cardinality(term: Term, inApp_function_names: Map[String, String], cardApp_function_names: Map[String, String], nameGenerator: IntSuffixNameGenerator): cardinalityResult = {
 
         def recur(term: Term): Term = term match {
             case Top | Bottom => term
@@ -50,7 +50,7 @@ object SetCardinalityOperation {
             case _ => term
         }
         
-        def makeCardinalityFunctions(p : App): Term = {
+        def makeCardinalityFunctions(p : String): Term = {
             if (!cardApp_function_names.contains(p)) {
                 // generate functions if need be
                 // replace current term with appropriate cardinality name
