@@ -47,11 +47,9 @@ object EliminateUnusedTransformer extends ProblemStateTransformer {
         val cDefs = problemState.theory.constantDefinitions.filter(usedNames contains _.name)
 
         val unapply: Interpretation => Interpretation = interp => {
-            // Use trivial interpretations for the function/constant declarations we filtered out
-            val trivialInterp = problemState.theory.signature.trivialInterpretation(problemState.scopes)
             val newFuncInterps = (
                 for (fDecl <- problemState.theory.functionDeclarations)
-                    yield fDecl -> interp.functionInterpretations.getOrElse(fDecl, trivialInterp.functionInterpretations(fDecl))
+                    yield fDecl -> interp.functionInterpretations.getOrElse(fDecl, fDecl.arbitraryInterp())
             ).toMap
 
             def getArbitraryValue(sort: Sort): Value = sort match {
@@ -62,7 +60,7 @@ object EliminateUnusedTransformer extends ProblemStateTransformer {
             }
             val newConstInterps = (
                 for (cDecl <- problemState.theory.constantDeclarations)
-                    yield cDecl -> interp.constantInterpretations.getOrElse(cDecl, trivialInterp.constantInterpretations(cDecl))
+                    yield cDecl -> interp.constantInterpretations.getOrElse(cDecl, getArbitraryValue(cDecl.sort))
             ).toMap
             BasicInterpretation(
                 interp.sortInterpretations,
