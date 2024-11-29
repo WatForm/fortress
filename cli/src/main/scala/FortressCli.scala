@@ -239,9 +239,7 @@ object FortressCli {
             if (conf.generate() || conf.verifyInterpretation()){
                 val model: Interpretation = modelFinder.viewModel()
                 if (conf.generate()){
-                    println("-----model-----")
                     println(model)
-                    println("---end model---")
                 }
                 if (conf.verifyInterpretation()){
                     val verifier: InterpretationVerifier = new InterpretationVerifier(theory) // Takes the original theory
@@ -255,11 +253,5 @@ object FortressCli {
             }
         }
 
-        if(conf.generate()) {
-            result match {
-                case SatResult => println(modelFinder.viewModel())
-                case _ => { }
-            }
-        }
     }
 }
