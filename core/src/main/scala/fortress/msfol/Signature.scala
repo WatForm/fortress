@@ -12,7 +12,7 @@ import fortress.interpretation.BasicInterpretation
 import fortress.operations.TermOps._
 import fortress.problemstate.Scope
 import fortress.util.Extensions.IntExtension
-
+import fortress.interpretation._
 // Persistent and Immutable
 // Internally consistent
 // The constructor is private -- the only way to make signatures outside of this class
@@ -449,9 +449,9 @@ case class Signature private (
                     }
                 })
             
-            val newFunctionInterps: Map[FuncDecl, Map[Seq[Value], Value]] = interp.functionInterpretations
+            val newFunctionInterps: Map[FuncDecl, FunctionInterpretation] = interp.functionInterpretations
                 .map({
-                    case (fDec, valueMap) if replacedFunctionDeclarations.isDefinedAt(fDec) => {
+                    case (fDec, fInterp) if replacedFunctionDeclarations.isDefinedAt(fDec) => {
                         val newDec = replacedFunctionDeclarations(fDec)
 
                         // find indices of args that were cast
@@ -467,10 +467,15 @@ case class Signature private (
                             }
                             newArgs
                         }
-                        val newValueMap = valueMap.map({
+
+                        val castResult = fDec.resultSort != newDec.resultSort
+
+                        val newInterp: FunctionInterpretation = fInterp.unapplyIntToBv(uncastArgs, castResult, bvToInt)
+
+                        /*val newValueMap = valueMap.map({
                             case (args, result) => (uncastArgs(args), bvToInt(result))
-                        })
-                        (newDec, newValueMap)
+                        })*/
+                        (newDec, newInterp)
                     }
                     case x => x
                 })
@@ -548,47 +553,22 @@ case class Signature private (
             sort -> (1 to scope).map(DomainElement(_, sort))
         }.toMap
 
-        def getSortInterp(sort: Sort): Seq[Value] = sort match {
-            case BoolSort => Seq(Top, Bottom)
-            case IntSort =>
-                // If we have added interps, use that
-                sortInterps.get(IntSort) match {
-                    case Some(interps) => interps
-                    case None => {
-                        // otherwise use the bitwidth
-                        val numValues: Int = scopes.get(IntSort) match {
-                            case None => Errors.Internal.solverError("Cannot verify a problem with unbounded integers"); 0
-                            case Some(x) => x.size
-                        }
-                        val bitwidth: Int = math.round(math.ceil(math.log(numValues) / math.log(2))).toInt
-                        (IntegerSize.minimumIntValue(bitwidth) to IntegerSize.maximumIntValue(bitwidth))
-                            .map(IntegerLiteral)
-                    }
-                }
-                
-            case BitVectorSort(bvBitwidth) =>
-                (IntegerSize.minimumIntValue(bvBitwidth) to IntegerSize.maximumIntValue(bvBitwidth))
-                    .map(BitVectorLiteral(_, bvBitwidth))
-            case _ => sortInterps(sort)
+        def getArbitraryValue(sort: Sort): Value = sort match {
+            case BoolSort => Bottom
+            case IntSort => IntegerLiteral(0)
+            case BitVectorSort(bitwidth) => BitVectorLiteral(0, bitwidth)
+            case _ => DomainElement(1, sort)
         }
 
+        
+
         val constantInterps: Map[AnnotatedVar, Value] = constantDeclarations.map { constVar =>
-            // Just use the first domain element in its sort
-            val interps = getSortInterp(constVar.sort)
-            if (interps.size == 0){
-                Errors.Internal.solverError(f"Trivial interpretation cannot get sort interpretation for sort '${constVar.sort}'");
-            }
-            constVar -> interps.head
+            constVar -> getArbitraryValue(constVar.sort)
         }.toMap
 
-        val functionInterps: Map[FuncDecl, Map[Seq[Value], Value]] = functionDeclarations.map { funcDecl =>
-            // For each tuple in the cartesian product of the domain, choose the first domain element in the range
-            val rangeElement = getSortInterp(funcDecl.resultSort).head
-            val domainProduct = new CartesianSeqProduct(funcDecl.argSorts.map(getSortInterp).map(_.toIndexedSeq).toIndexedSeq)
-            funcDecl -> {
-                for (domainTuple <- domainProduct)
-                    yield domainTuple.asInstanceOf[Seq[Value]] -> rangeElement
-            }.toMap
+        val functionInterps: Map[FuncDecl, FunctionInterpretation] = functionDeclarations.map { funcDecl =>
+            // For each tuple in the cartesian product of the domain, choose an arbitrary domain element (default to 0 for builtins)
+            funcDecl -> funcDecl.arbitraryInterp()
         }.toMap
 
         BasicInterpretation(sortInterps, constantInterps, functionInterps, Set())

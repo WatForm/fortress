@@ -191,8 +191,8 @@ class SMTLIBCliSolver extends Solver {
 
             override def functionDefinitions: Set[FunctionDefinition] = getFunctionDefinitions
 
-            override def functionInterpretations: Map[FuncDecl, Map[Seq[Value], Value]] = {
-                for( f <- theory.get.signature.functionDeclarations ) yield (f -> getFunctionValues(f, scopes))
+            override def functionInterpretations: Map[FuncDecl, FunctionInterpretation] = {
+                for( f <- theory.get.signature.functionDeclarations ) yield (f -> new MapFunctionInterpretation(getFunctionValues(f, scopes)))
             }.toMap
 
         }

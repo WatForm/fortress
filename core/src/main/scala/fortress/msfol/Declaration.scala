@@ -4,6 +4,9 @@ import fortress.util.Errors
 import scala.jdk.CollectionConverters._
 import scala.annotation.varargs // So we can call Scala varargs methods from Java
 import fortress.util.NameConverter
+import fortress.interpretation.FunctionInterpretation
+import fortress.problemstate.Scope
+import fortress.interpretation.ConstantFunctionInterpretation
 
 /** A constant or function declaration, with sorts */
 sealed trait Declaration
@@ -31,6 +34,22 @@ case class FuncDecl private (name: String, argSorts: Seq[Sort], resultSort: Sort
     def isRainbowSorted: Boolean = isRDI && (argSorts.distinct == argSorts)
     
     override def toString: String = name + ": (" + argSorts.mkString(", ") + ") -> " + resultSort.toString
+
+    /**
+      * Produces an arbitrary interpretation for this function declaration
+      * 
+      * Note if the result sort is empty this still returns DomainElement1 for that sort
+      * @return
+      */
+    def arbitraryInterp(): FunctionInterpretation = {
+        val arbitraryResultValue = resultSort match {
+            case BoolSort => Bottom
+            case IntSort => IntegerLiteral(0)
+            case BitVectorSort(bitwidth) => BitVectorLiteral(0, bitwidth)
+            case _ => DomainElement(1, resultSort)
+        }
+        new ConstantFunctionInterpretation(arbitraryResultValue)
+    }
 }
 
 /** Factory for [[fortress.msfol.FuncDecl]] instances. */

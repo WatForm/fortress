@@ -7,6 +7,7 @@ import fortress.util.Errors2
 import fortress.util.Maps
 
 import scala.collection.mutable
+import fortress.interpretation.FunctionInterpretation
 
 /**
  * Trait that extends a function from Sort to Sort by applying it to all Sorts appearing 
@@ -19,6 +20,7 @@ trait GeneralSortSubstitution {
     
     // Apply the Sort function to every appearence of a Sort in a Term.
     def apply(term: Term): Term = term match {
+        // Function Interpretations assume if the input is a Value the output is also a Value
         case Top | Bottom | Var(_) | EnumValue(_) | IntegerLiteral(_) | BitVectorLiteral(_, _) => term
         case Not(p) => Not(apply(p))
         case AndList(args) => AndList(args map apply)
@@ -86,6 +88,16 @@ trait GeneralSortSubstitution {
     def applyValue(value: Value): Value = value match {
         case Top | Bottom => value
         case EnumValue(_) | BitVectorLiteral(_, _) | IntegerLiteral(_) => ???
+        case DomainElement(index, sort) => DomainElement(index, apply(sort))
+    }
+
+    // Apply the Sort function to every appearence of a Sort in a Value.
+    // We keep integers the same for FunctionInterpretations. 
+    // We assume Ints are not really used in sort substitutions and enums are not present
+    def applyValueKeepInts(value: Value): Value = value match {
+        case Top | Bottom => value
+        case EnumValue(_) => ???
+        case BitVectorLiteral(_, _) | IntegerLiteral(_) => value
         case DomainElement(index, sort) => DomainElement(index, apply(sort))
     }
 

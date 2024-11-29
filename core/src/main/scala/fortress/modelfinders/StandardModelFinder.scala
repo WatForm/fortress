@@ -259,12 +259,12 @@ class StandardModelFinder extends ModelFinder {
 
             def scopes: Map[Sort, Int] = for((sort, seq) <- instance.sortInterpretations) yield (sort -> seq.size)
 
-            val newFunctionInterpretations: Map[FuncDecl, Map[Seq[Value], Value]] = {
+            val newFunctionInterpretations: Map[FuncDecl, FunctionInterpretation] = {
                 for(f <- theory.signature.functionDeclarations)
-                    yield f -> {
+                    yield f -> new MapFunctionInterpretation({
                         for (argList <- ArgumentListGenerator.generate(f, scopes, Some(instance.sortInterpretations)))
                             yield argList -> instance.getFunctionValue(f.name, argList)
-                        }.toMap
+                        }.toMap)
 
             }.toMap
 

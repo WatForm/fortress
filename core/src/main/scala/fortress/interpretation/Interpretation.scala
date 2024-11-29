@@ -21,7 +21,7 @@ trait Interpretation {
     /** Maps a function symbol to a mathematical function.
       * The function is represented as a Map itself.
       */
-    def functionInterpretations: Map[FuncDecl, Map[Seq[Value], Value]] = Map.empty
+    def functionInterpretations: Map[FuncDecl, FunctionInterpretation] = Map.empty
 
     def functionDefinitions: Set[FunctionDefinition]
 
@@ -165,9 +165,7 @@ trait Interpretation {
         new BasicInterpretation(
             sortInterpretations.map{ case(sort, values) => sort -> (values map applyMapping) }, 
             constantInterpretations.map{ case(av, value) => av -> applyMapping(value) },
-            functionInterpretations.map{ case(fdecl, values) => fdecl -> (values.map{
-                case(args, value) => (args map applyMapping) -> applyMapping(value) }
-            )},
+            functionInterpretations.map{ case(fdecl, interp) => fdecl -> interp.replaceValuesWithEnums(enumMapping)},
             functionDefinitions.map{ case functionDefinition: FunctionDefinition => {
                 // visit the funcBody term, replace the values with enum
                 val name: String = functionDefinition.name
@@ -192,9 +190,7 @@ trait Interpretation {
         }
         val newFunctionInterps = functionInterpretations map {
             case(fdecl, mapping) => sub(fdecl) -> {
-                mapping map {
-                    case(args, value) => (args map apply) -> apply(value)
-                }
+                mapping.applySortSubstitution(sub)
             }
         }
         val newFunctionDefinitions = functionDefinitions map sub.apply
@@ -303,18 +299,9 @@ trait Interpretation {
         }
         
         for {
-            (fdecl, map) <- functionInterpretations
-            (arguments, value) <- map
+            (fdecl, finterp) <- functionInterpretations
         } {
-            fdecl.resultSort match {
-                case BoolSort => { // Predicate
-                    if(value == Top) constraints += App(fdecl.name, arguments)
-                    else constraints += Not(App(fdecl.name, arguments))
-                }
-                case _ =>  { // Function
-                    constraints += (App(fdecl.name, arguments) === value)
-                }
-            }
+            constraints ++= finterp generateConstraints fdecl
         }
         constraints.toSet
     }
@@ -368,10 +355,8 @@ trait Interpretation {
     
     // Java methods
     
-    def functionInterpretationsJava: java.util.Map[FuncDecl, java.util.Map[java.util.List[Value], Value]] = functionInterpretations.map {
-        case (fdecl, values) => fdecl -> (values.map {
-            case (args, ret) => args.asJava -> ret
-        }).asJava
+    def functionInterpretationsJava: java.util.Map[FuncDecl, FunctionInterpretation] = functionInterpretations.map {
+        case (fdecl, interp) => fdecl -> interp
     }.asJava
     
     def constantInterpretationsJava: java.util.Map[AnnotatedVar, Value] = constantInterpretations.asJava

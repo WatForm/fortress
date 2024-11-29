@@ -53,6 +53,13 @@ object EliminateUnusedTransformer extends ProblemStateTransformer {
                 for (fDecl <- problemState.theory.functionDeclarations)
                     yield fDecl -> interp.functionInterpretations.getOrElse(fDecl, trivialInterp.functionInterpretations(fDecl))
             ).toMap
+
+            def getArbitraryValue(sort: Sort): Value = sort match {
+                case BoolSort => Bottom
+                case IntSort => IntegerLiteral(0)
+                case BitVectorSort(bitwidth) => BitVectorLiteral(0, bitwidth)
+                case _ => DomainElement(1, sort)
+            }
             val newConstInterps = (
                 for (cDecl <- problemState.theory.constantDeclarations)
                     yield cDecl -> interp.constantInterpretations.getOrElse(cDecl, trivialInterp.constantInterpretations(cDecl))
