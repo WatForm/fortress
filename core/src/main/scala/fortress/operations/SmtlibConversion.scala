@@ -5,11 +5,17 @@ import fortress.util.Errors
 import fortress.util.NameConverter._
 import java.sql.Ref
 
-class SmtlibConverter(writer: java.io.Writer) {
+class SmtlibConverter(writer: java.io.Writer, allowDE: Boolean=false) {
 
     def write(term: Term): Unit = term match {
         case DomainElement(_, _) =>
-            Errors.Internal.preconditionFailed("Domain elements cannot be converted to SMTLIB2 "+term)
+            if (allowDE){
+                writer.write('|')
+                writer.write(term.toString())
+                writer.write('|')
+            } else {
+                Errors.Internal.preconditionFailed("Domain elements cannot be converted to SMTLIB2 "+term)
+            }
         // case d @ DomainElement(index, sort) => writer.write(d.asSmtConstant.name)
         case EnumValue(name) => writer.write(nameWithQuote(name))
         case Top => writer.write("true")

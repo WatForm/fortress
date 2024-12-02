@@ -17,6 +17,7 @@ import java.{util => ju}
 import fortress.operations.TheoryOps
 import fortress.operations.InterpretationVerifier
 import fortress.interpretation.Interpretation
+import fortress.operations.TermOps
 
 class Conf(arguments: Seq[String]) extends ScallopConf(arguments) {
 
@@ -54,7 +55,12 @@ class Conf(arguments: Seq[String]) extends ScallopConf(arguments) {
 
     val generate = opt[Boolean](descr="generate and print a model if a SAT result")
     val verifyInterpretation = opt[Boolean](short='V', descr="Verify a model if a SAT result")
+
+    val constraints = opt[Boolean](short='C', descr="generate and print a model as SMTLib assertions if a SAT result")
+
+
     verify()
+    
 }
 
 object FortressCli {
@@ -236,7 +242,7 @@ object FortressCli {
         println(result)
 
         if (result == SatResult){
-            if (conf.generate() || conf.verifyInterpretation()){
+            if (conf.generate() || conf.verifyInterpretation() || conf.constraints()){
                 val model: Interpretation = modelFinder.viewModel()
                 if (conf.generate()){
                     println(model)
@@ -249,6 +255,16 @@ object FortressCli {
                     } else {
                         println("Invalid Interpretation")
                     }
+                }
+                if (conf.constraints()){
+                    val constraints: Set[Term] = model.toConstraints
+
+                    println("====Constraints====")
+                    for (axiom <- constraints){
+                        println(TermOps(axiom).smtlibAssertionWithDEs)
+                    }
+                    println("==End Constraints==")
+
                 }
             }
         }

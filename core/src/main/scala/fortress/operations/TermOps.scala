@@ -114,10 +114,24 @@ case class TermOps private (term: Term) {
         converter.write(term)
         writer.toString
     }
+
+    def smtlibWithDEs: String = {
+        val writer = new java.io.StringWriter
+        val converter = new SmtlibConverter(writer, true)
+        converter.write(term)
+        writer.toString
+    }
     
     def smtlibAssertion: String = {
         val writer = new java.io.StringWriter
         val converter = new SmtlibConverter(writer)
+        converter.writeAssertion(term)
+        writer.toString
+    }
+
+    def smtlibAssertionWithDEs: String = {
+        val writer = new java.io.StringWriter
+        val converter = new SmtlibConverter(writer, true)
         converter.writeAssertion(term)
         writer.toString
     }

@@ -2,7 +2,9 @@ package fortress.interpretation
 
 import fortress.msfol._
 import fortress.util.Errors
+import fortress.util.SmartEq
 import fortress.sortinference.SortSubstitution
+
 /**
   * Represents a solved interpretation of a function declaration
   */
@@ -60,16 +62,6 @@ trait FunctionInterpretation {
       * @return
       */
     def unapplyIntToBv(uncastArgs: Seq[Value] => Seq[Value], castResult: Boolean, bvToInt: Value => IntegerLiteral): FunctionInterpretation
-
-
-    // Helper for Equality Generation
-    protected def mkEq(sort: Sort, left: Term, right: Term): Term = {
-        sort match {
-            case IntSort => BuiltinApp(IntEQ, Seq(left, right))
-            case BitVectorSort(bitwidth) => BuiltinApp(BvEQ, Seq(left, right))
-            case _ => Eq(left, right)
-        }
-    }
 }
 
 
@@ -106,7 +98,7 @@ class ConstantFunctionInterpretation(value: Value) extends FunctionInterpretatio
         // Annotated arguments
         val annotatedArgs = sorts.zip(args).map({case (sort, arg) => AnnotatedVar(arg, sort)})
 
-        val term = Forall(annotatedArgs, mkEq(fdecl.resultSort, App(fdecl.name, args.toSeq), value))
+        val term = Forall(annotatedArgs, SmartEq.smartEq(fdecl.resultSort, App(fdecl.name, args.toSeq), value))
 
         Set(term)
     }
@@ -159,7 +151,7 @@ class MapFunctionInterpretation(mapping: Map[Seq[Value], Value]) extends Functio
         val sort = fdecl.resultSort
 
         mapping.map({case (args, result) =>
-            mkEq(sort, App(name, args), result)
+            SmartEq.smartEq(sort, App(name, args), result)
         }).toSet
     }
 
@@ -227,7 +219,7 @@ class MapDefaultFunctionInterpretation(mapping: Map[Seq[Value], Value], default:
 
         // Forall args. args = an input and we get the corresponding result or it is not equal to any of these and we get the default
         val matchesMapping = mapping.map({case (args, result) =>
-            mkEq(fdecl.resultSort, App(fdecl.name, args), result)
+            SmartEq.smartEq(fdecl.resultSort, App(fdecl.name, args), result)
         }).toSet
         
         // The arguments match no mapping
@@ -235,13 +227,13 @@ class MapDefaultFunctionInterpretation(mapping: Map[Seq[Value], Value], default:
             mapping.keys.map(argValues =>
                 // And each arg = the matching value
                 And.smart(annotatedArgs.zip(argValues).map({
-                    case (AnnotatedVar(paramVar, sort), argValue) => mkEq(sort, paramVar, argValue)
+                    case (AnnotatedVar(paramVar, sort), argValue) => SmartEq.smartEq(sort, paramVar, argValue)
                 }).toSeq)
             ).toSeq
         ))
 
         val takeDefault = Forall(annotatedArgs,
-                Implication(matchesNoMapping, mkEq(fdecl.resultSort, App(fdecl.name, args), default))
+                Implication(matchesNoMapping, SmartEq.smartEq(fdecl.resultSort, App(fdecl.name, args), default))
         )
                 
         // Either we get the value from a match or we take the default value

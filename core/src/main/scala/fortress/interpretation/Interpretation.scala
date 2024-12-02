@@ -7,7 +7,7 @@ import fortress.operations._
 import fortress.sortinference._
 import fortress.msfol.DSL._
 import fortress.solvers.Z3NonIncCliSolver
-import fortress.util.{ArgumentListGenerator, Errors, Milliseconds}
+import fortress.util.{ArgumentListGenerator, Errors, Milliseconds, SmartEq}
 
 /** An interpretation of a first-order logic signature. */
 trait Interpretation {
@@ -294,16 +294,38 @@ trait Interpretation {
     def toConstraints: Set[Term] = {
         val constraints: mutable.Set[Term] = mutable.Set.empty
         
+        // Constant Interpretations
         for((const, v) <- constantInterpretations) {
             constraints += (const.variable === v)
         }
         
+        // Function Interpretations
         for {
             (fdecl, finterp) <- functionInterpretations
         } {
             constraints ++= finterp generateConstraints fdecl
         }
+
+        // Function Definitions
+        for {(fDef) <- functionDefinitions} {
+            // Axiomatize each function
+            constraints += Forall(fDef.argSortedVar, Eq(
+                App(fDef.name, fDef.argSortedVar.map(_.variable)), fDef.body)
+            )
+        }
+
         constraints.toSet
+    }
+
+    def universeConstraints: Set[Term] = {
+        val elem = Var("elem")
+        sortInterpretations.map({
+            case (sort, values) =>
+                // forall elem: Sort. sort=value1 || sort=value2 ...
+                Forall(elem.of(sort), Or.smart(
+                    values.map(value=> SmartEq.smartEq(sort, elem, value))
+                ))
+        }).toSet
     }
 
     override def toString: String = {
