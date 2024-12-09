@@ -186,7 +186,7 @@ class PositiveTypeCheckTest extends UnitSuite {
             .withConstantDeclarations(x of A, y of A)
             .withFunctionDeclarations(P)
             
-        val t = SetCardinality(App("P", x))
+        val t = SetCardinality(P.functionName)
         t.typeCheck(sig).sort should be (Sort.Bool)
     }
 

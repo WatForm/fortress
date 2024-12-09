@@ -205,21 +205,47 @@ class TypeChecker(signature: Signature) extends TermVisitorWithTypeContext[TypeC
     }
 
     override def visitSetCardinality(c: SetCardinality): TypeCheckResult = {
-        val result = visit(c)
+        // grab the string from the SetCardinality
+        val funcName = c.getFunctionName
 
-        // check if the sort of the predicate is a bool
-        if (result.sort != BoolSort){
-            throw new TypeCheckException.WrongSort("Expected sort Bool but was " + result.sort.name + " in " + c.toString)
+        // checking if predicate exists
+        if(! ( (signature hasFuncDeclWithName funcName) || (signature hasFuncDefWithName funcName) ) ) {
+            throw new TypeCheckException.UnknownFunction("Could not find function: " + funcName)
         }
-
-        // not entirely sure what should go here
+        
+        // result sort must be a bool
+        val resultSort: Sort = signature.queryFunction(funcName) match {
+            case None => throw new TypeCheckException.UnknownFunction("Could not find function: " + funcName)
+            case Some(Left(fdecl)) => fdecl.resultSort
+            case Some(Right(fdefn)) => fdefn.resultSort
+        }
+        
+        if( resultSort != BoolSort){
+            throw new TypeCheckException.WrongSort("Function: " + funcName + " does not return a Bool")
+        }
+        
+        // function must only take one input argument
+        // potentially in the future we might want to support cardinality for predicates with multiple arguments 
+        // ex. isCompatible(carPart, carType), card(isCompatible) == number of combinations of compatible parts and cars
+        // doesn't seem that useful but there might be a use case
+        val arity: Int = signature.queryFunction(funcName) match {
+            case None => throw new TypeCheckException.UnknownFunction("Could not find function: " + funcName)
+            case Some(Left(fdecl)) => fdecl.argSorts.size
+            case Some(Right(fdefn)) => fdefn.argSorts.size
+        }
+        
+        if( arity != 1){
+            throw new TypeCheckException.WrongArity("Function: " + funcName + " must have 1 argument to use with set cardinality. It has: " + arity)
+        }
+        
+        Console.println("At type check result")
         TypeCheckResult(
             sanitizedTerm = c,
-            sort = BoolSort,
-            containsConnectives = result.containsConnectives,
-            containsQuantifiers = result.containsQuantifiers,
-            containsItes = result.containsItes,
-            containsExists = result.containsExists
+            sort = IntSort,
+            containsConnectives = false,
+            containsQuantifiers = false,
+            containsItes = false,
+            containsExists = false
         )
     }
 

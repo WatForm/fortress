@@ -357,14 +357,14 @@ object BitVectorLiteral {
     }
 }
 
-// need to make a class that captures cardinality, as well as nmodify the language
-// BOOKMARK, UNFINISHED
-// uses a visitor pattern
-// when we hit a setCardinality node, the visitSetCardinality function gets called on it
 case class SetCardinality private (predicate : String) extends Term {
-    // t(x) x describes a set
+    Errors.Internal.precondition(predicate.length >= 1, "Empty function name")
 
-    override def accept[T](visitor: TermVisitor[T]): T = visitor.visitSetCardinality(this)
+    def getFunctionName: String = predicate
+    override def accept[T](visitor: TermVisitor[T]): T = {
+        Console.println("in set cardinality class accept function")
+        visitor.visitSetCardinality(this)
+    }
 
     override def toString: String = "#(" + predicate + ")"
 }
