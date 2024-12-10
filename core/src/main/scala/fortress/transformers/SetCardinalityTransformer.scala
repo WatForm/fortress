@@ -11,10 +11,10 @@ import fortress.util.Errors
 
 
 object SetCardinalityTransformer extends ProblemStateTransformer {
-    println("test in set cardinality")
+    println("test in set cardinality transformer")
 
     override def apply(problemState: ProblemState): ProblemState = {
-
+        Console.println("Set Cardinality apply function called")
         val theory = problemState.theory
         val scopes = problemState.scopes
         val signature = theory.signature
@@ -28,6 +28,7 @@ object SetCardinalityTransformer extends ProblemStateTransformer {
         val forbiddenNames = scala.collection.mutable.Set[String]()
         
         for(sort <- theory.sorts) {
+            Console.println("epic sort loop")
             forbiddenNames += sort.name
         }
         
@@ -48,12 +49,14 @@ object SetCardinalityTransformer extends ProblemStateTransformer {
         }
         
         // TODO: do we need this restriction if Substituter already restricts these inside one term?
+        Console.println("allSymbols seems to be problematic")
         for(axiom <- theory.axioms) {
             forbiddenNames ++= axiom.allSymbols
         }
 
         val nameGenerator = new IntSuffixNameGenerator(forbiddenNames.toSet, 0)
         
+        Console.println("created name generator")
         // defining helper functions
         def getSort(fname: String): Sort = signature.queryFunction(fname) match {
             case None => Errors.Internal.impossibleState("Function " + fname + " does not exist in signature when getting set cardinatity of it!")
@@ -79,6 +82,7 @@ object SetCardinalityTransformer extends ProblemStateTransformer {
         }
         
         def generateCardAppDefinition(name: String, pSort: Sort, inP: String, scope: Int): FunctionDefinition = {
+            Console.println("generateCardAppDefinition called")
             // where p is the predicate the cardinality is about and inP is the helper function
             if (inP == ""){
                 // if there is no inP function name, something is wrong
@@ -89,9 +93,13 @@ object SetCardinalityTransformer extends ProblemStateTransformer {
             // * DomainElements are indexed starting with 1. <- taken from DomainElement term
             // to is inclusive
             val arguments: Seq[Term] = for (num <- 1 to scope) yield App(inP, DomainElement(num, pSort))
-            val body = AndList(arguments)
+            var body : Term = IntegerLiteral(0)
             
-            val args: Seq[AnnotatedVar] = Seq(/*AnnotatedVar(Var(p), sort),*/ AnnotatedVar(Var(inP), pSort))
+            for (arg <- arguments) {
+                body = Term.mkPlus(body, arg)
+            }
+            
+            val args: Seq[AnnotatedVar] = Seq(/*AnnotatedVar(Var(p), sort) AnnotatedVar(Var(inP), pSort)*/)
             // need to figure out how to pass in the arguments for this function
             // or what the arguments actually are, I think its p, inP, and scope
             FunctionDefinition(name, args, IntSort, body)
@@ -101,6 +109,9 @@ object SetCardinalityTransformer extends ProblemStateTransformer {
         
         // get needed functions from operation
         for(axiom <- theory.axioms) {
+            Console.println("main suspicious axiom loop")
+            Console.println(resultTheory)
+            Console.println(axiom)
             val cardinalityResult = SetCardinalityOperation.cardinality(axiom, inApp_function_names, cardApp_function_names, nameGenerator)
             // passing the generated names back and forth
             inApp_function_names = cardinalityResult.inApp_function_names
@@ -109,6 +120,8 @@ object SetCardinalityTransformer extends ProblemStateTransformer {
             // updating axiom
             val newAxiom = cardinalityResult.cardinalityTerm
             resultTheory = resultTheory.withAxiom(newAxiom)
+            Console.println(resultTheory)
+
         }
         
         // todo - may not need to be it's own function
@@ -123,21 +136,28 @@ object SetCardinalityTransformer extends ProblemStateTransformer {
         
         // generate function definitions for inApp
         for ((p, pname) <- inApp_function_names){
-            val sort: Sort = getSort(pname)
+            val sort: Sort = getSort(p)
             inAppDefns += generateInAppDefinition(pname, p, sort)
         }
         updateWithResult(inAppDefns)
+        Console.println(resultTheory)
+
         
         // generate function definitions for cardApp
         for ((p, pname) <- cardApp_function_names){
-            val scope = scopes(getSort(pname))
-            cardAppDefns += generateCardAppDefinition(pname, getSort(pname), inApp_function_names(p), scope.size)
+            val scope = scopes(getSort(p))
+            cardAppDefns += generateCardAppDefinition(pname, getSort(p), inApp_function_names(p), scope.size)
         }
         updateWithResult(cardAppDefns)
+        Console.println(resultTheory)
+
         
         def unapply: Interpretation => Interpretation = {
             interp => interp.withoutFunctionDefinitions(inAppDefns.toSet).withoutFunctionDefinitions(cardAppDefns.toSet)
         }
+
+        Console.println("returning epic problem state wahoo")
+        Console.println(resultTheory)
 
         //update problem states with theory
         problemState

@@ -181,8 +181,10 @@ class TypeChecker(signature: Signature) extends TermVisitorWithTypeContext[TypeC
     }
     
     override def visitEq(eq: Eq): TypeCheckResult = {
+        Console.println("Visiting equality")
         val leftResult = visit(eq.left)
         val rightResult = visit(eq.right)
+        Console.println("Done visiting equality")
         
         if(leftResult.sort != rightResult.sort) {
             throw new TypeCheckException.WrongSort("Mismatched argument sorts " + leftResult.sort.toString + " and "
@@ -194,6 +196,7 @@ class TypeChecker(signature: Signature) extends TermVisitorWithTypeContext[TypeC
             if (leftResult.sort == BoolSort) Iff(leftResult.sanitizedTerm, rightResult.sanitizedTerm)
             else Eq(leftResult.sanitizedTerm, rightResult.sanitizedTerm)
         
+        Console.println("For realsies done visiting equality")
         TypeCheckResult(
             sanitizedTerm = sanTerm, 
             sort = BoolSort,

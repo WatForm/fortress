@@ -26,6 +26,7 @@ object RecursiveAccumulator {
         case Forall(vars, body) => allSymbolsIn(body) union (vars map (_.variable.name)).toSet union (vars map (_.sort.name)).toSet
         case Exists(vars, body) => allSymbolsIn(body) union (vars map (_.variable.name)).toSet union (vars map (_.sort.name)).toSet
         case IfThenElse(condition, ifTrue, ifFalse) => allSymbolsIn(condition) union allSymbolsIn(ifTrue) union allSymbolsIn(ifFalse)
+        case SetCardinality(pname) => Set(pname) //TODO
     }
     
     /** Returns the set of all domain elements that appear within a term.

@@ -20,6 +20,8 @@ import fortress.problemstate.ProblemState
 class DEsToConstantsTransformer(constantsDistinct:Boolean = true) extends ProblemStateTransformer {
     
     override def apply(problemState: ProblemState): ProblemState = {
+        
+        Console.println("made it to DEs transformer")
         val theory = problemState.theory
         val scopes = problemState.scopes
 
@@ -50,6 +52,7 @@ class DEsToConstantsTransformer(constantsDistinct:Boolean = true) extends Proble
             newSig = newSig.withFunctionDefinition(fDef.mapBody(_.eliminateDomainElementsConstants))
         }
 
+        Console.println("made it out of DEs transformer")
         val newTheory:Theory =
             if (constantsDistinct) {
                 // Assert the constants are distinct

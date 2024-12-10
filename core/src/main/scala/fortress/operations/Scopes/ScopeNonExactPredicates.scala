@@ -20,6 +20,7 @@ object ScopeNonExactPredicates {
         case App(f, args) => App(f, args.map(addBoundsPredicates(_, helpMap)))
         case BuiltinApp(function, arguments) => BuiltinApp(function, arguments.map(addBoundsPredicates(_, helpMap)))
         case IfThenElse(condition, ifTrue, ifFalse) => IfThenElse(addBoundsPredicates(condition, helpMap), addBoundsPredicates(ifTrue, helpMap), addBoundsPredicates(ifFalse, helpMap))
+        case SetCardinality(p) => SetCardinality(p) //TODO
         case Exists(vars, body) => {
             val predApps = for {
                 av <- vars

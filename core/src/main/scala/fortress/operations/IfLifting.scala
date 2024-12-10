@@ -58,6 +58,7 @@ object IfLifter {
             reLiftItes(Closure(fname, liftItes(arg1), liftItes(arg2),args.map(liftItes)))
         case ReflexiveClosure(fname, arg1, arg2, args) => 
             reLiftItes(ReflexiveClosure(fname, liftItes(arg1), liftItes(arg2), args.map(liftItes)))
+        case SetCardinality(pname) => SetCardinality(pname)
         }
         //println("liftItes out: "+x)
         return x

@@ -436,6 +436,7 @@ public class SmtLibVisitor extends SmtLibSubsetBaseVisitor {
 
     @Override
     public Term visitApplication(SmtLibSubsetParser.ApplicationContext ctx) {
+        System.out.println("Test should catch cardinality");
         String function = NameConverter.nameWithoutQuote(ctx.ID().getText());
 
         List<Term> arguments = ctx.term().stream().map(
@@ -482,9 +483,11 @@ public class SmtLibVisitor extends SmtLibSubsetBaseVisitor {
                 throw new ParserException("Trying to make cardinality, but function name could not be found.");
             }
             
+            System.out.println("Returning cardinality");
             return Term.mkSetCardinality(functionName);
         } 
         // Otherwise just treat as a function application
+        System.out.println("Returning app");
         return Term.mkApp(function, arguments);
     }
 

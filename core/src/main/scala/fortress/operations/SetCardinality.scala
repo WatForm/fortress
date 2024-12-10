@@ -14,8 +14,12 @@ object SetCardinalityOperation {
     case class cardinalityResult(cardinalityTerm: Term, inApp_function_names: Map[String, String], cardApp_function_names: Map[String, String])
 
     def cardinality(term: Term, inApp_function_names: Map[String, String], cardApp_function_names: Map[String, String], nameGenerator: IntSuffixNameGenerator): cardinalityResult = {
+        
+        Console.println("In set cardinality operation.")
 
-        def recur(term: Term): Term = term match {
+        def recur(term: Term): Term = {
+            Console.println(term)
+            term match {
             case Top | Bottom => term
             case Not(Top) => Bottom
             case Not(Bottom) => Top
@@ -26,6 +30,7 @@ object SetCardinalityOperation {
             case Not(OrList(args)) => AndList(args.map(arg => recur(Not(arg))))
             case Implication(p, q) => OrList(recur(Not(p)), recur(q))
             case Not(Implication(p, q)) => AndList(recur(p), recur(Not(q)))
+            case Eq(left, right) => Eq(recur(left), recur(right))
             case Iff(p, q) => OrList(
                 AndList(recur(p), recur(q)),
                 AndList(recur(Not(p)), recur(Not(q)))
@@ -49,9 +54,12 @@ object SetCardinalityOperation {
             /* recur makes no changes other term types  */
             case _ => term
         }
-        
+        }
         def makeCardinalityFunctions(p : String): Term = {
+            Console.println("test")
+            Console.println(cardApp_function_names)
             if (!cardApp_function_names.contains(p)) {
+                Console.println("swapping out cardinality")
                 // generate functions if need be
                 // replace current term with appropriate cardinality name
                 // could also use p.getFunctionName() if we wanted the names to be based on predicate name, might not matter though
@@ -64,6 +72,7 @@ object SetCardinalityOperation {
             return Var(cardApp_function_names(p)) 
         }
         
+        Console.println(term)
         var cardinalityTerm = recur(term)
         cardinalityResult(cardinalityTerm, inApp_function_names, cardApp_function_names)
     }
