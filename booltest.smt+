@@ -1,5 +1,0 @@
-; Basic Boolean example
-(declare-const p Bool)
-(assert (and p (not p))) 
-(check-sat) ; returns 'unsat'
-(exit)

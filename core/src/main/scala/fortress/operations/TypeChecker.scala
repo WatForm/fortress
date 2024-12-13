@@ -181,10 +181,8 @@ class TypeChecker(signature: Signature) extends TermVisitorWithTypeContext[TypeC
     }
     
     override def visitEq(eq: Eq): TypeCheckResult = {
-        Console.println("Visiting equality")
         val leftResult = visit(eq.left)
         val rightResult = visit(eq.right)
-        Console.println("Done visiting equality")
         
         if(leftResult.sort != rightResult.sort) {
             throw new TypeCheckException.WrongSort("Mismatched argument sorts " + leftResult.sort.toString + " and "
@@ -196,7 +194,6 @@ class TypeChecker(signature: Signature) extends TermVisitorWithTypeContext[TypeC
             if (leftResult.sort == BoolSort) Iff(leftResult.sanitizedTerm, rightResult.sanitizedTerm)
             else Eq(leftResult.sanitizedTerm, rightResult.sanitizedTerm)
         
-        Console.println("For realsies done visiting equality")
         TypeCheckResult(
             sanitizedTerm = sanTerm, 
             sort = BoolSort,
@@ -228,7 +225,7 @@ class TypeChecker(signature: Signature) extends TermVisitorWithTypeContext[TypeC
         }
         
         // function must only take one input argument
-        // potentially in the future we might want to support cardinality for predicates with multiple arguments 
+        // TODO: potentially in the future we might want to support cardinality for predicates with multiple arguments 
         // ex. isCompatible(carPart, carType), card(isCompatible) == number of combinations of compatible parts and cars
         // doesn't seem that useful but there might be a use case
         val arity: Int = signature.queryFunction(funcName) match {
@@ -241,7 +238,6 @@ class TypeChecker(signature: Signature) extends TermVisitorWithTypeContext[TypeC
             throw new TypeCheckException.WrongArity("Function: " + funcName + " must have 1 argument to use with set cardinality. It has: " + arity)
         }
         
-        Console.println("At type check result")
         TypeCheckResult(
             sanitizedTerm = c,
             sort = IntSort,

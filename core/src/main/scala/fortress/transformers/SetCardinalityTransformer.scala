@@ -11,10 +11,8 @@ import fortress.util.Errors
 
 
 object SetCardinalityTransformer extends ProblemStateTransformer {
-    println("test in set cardinality transformer")
 
     override def apply(problemState: ProblemState): ProblemState = {
-        Console.println("Set Cardinality apply function called")
         val theory = problemState.theory
         val scopes = problemState.scopes
         val signature = theory.signature
@@ -54,7 +52,6 @@ object SetCardinalityTransformer extends ProblemStateTransformer {
 
         val nameGenerator = new IntSuffixNameGenerator(forbiddenNames.toSet, 0)
         
-        Console.println("created name generator")
         // defining helper functions
         def getSort(fname: String): Sort = signature.queryFunction(fname) match {
             case None => Errors.Internal.impossibleState("Function " + fname + " does not exist in signature when getting set cardinatity of it!")
@@ -63,42 +60,34 @@ object SetCardinalityTransformer extends ProblemStateTransformer {
         }
 
         def generateInAppDefinition(name: String, p: String, sort: Sort): FunctionDefinition = {
-            // replace 1 & 0 with number terms. IntegerLiteral
-            // generate a name for x
-            // App(p, Var(x)) == p(x) basically
+            // generate a name for inP argument
             val x = nameGenerator.freshName("x")
-            val args: Seq[AnnotatedVar] = Seq(AnnotatedVar(Var(x), sort)) // do we need to add the var to the theory?
-            
+            val args: Seq[AnnotatedVar] = Seq(AnnotatedVar(Var(x), sort))
             val xVar = Var(x)
+            
+            // body = ite(p(x), 1, 0)
             val body = IfThenElse(App(p, Seq(xVar)), IntegerLiteral(1), IntegerLiteral(0))
             
-            // use the same name for Var(x) and AnnotatedVar(x)
-            // arguments to a function definition are a sequence of annotated vars (var + sort)
-            // choose some name, sort = sort p takes p: [sort] -> bool
             FunctionDefinition(name, args, IntSort, body)
         }
         
         def generateCardAppDefinition(name: String, pSort: Sort, inP: String, scope: Int): FunctionDefinition = {
-            Console.println("generateCardAppDefinition called")
-            // where p is the predicate the cardinality is about and inP is the helper function
+            // where inP is the name of the helper function holing ite
             if (inP == ""){
                 // if there is no inP function name, something is wrong
-                // throw error here
+                throw Errors.Internal.impossibleState(inP + " has not been defined.")
             }
-        
-            // does Domain element index from 0 or 1?
-            // * DomainElements are indexed starting with 1. <- taken from DomainElement term
-            // to is inclusive
+            // call inP for each element in the relevant domain 
+            // ex: P: A-> Bool, call inP for each a:A
             val arguments: Seq[Term] = for (num <- 1 to scope) yield App(inP, DomainElement(num, pSort))
             var body : Term = IntegerLiteral(0)
             
+            // add the seperate calls to inP together
             for (arg <- arguments) {
                 body = Term.mkPlus(body, arg)
             }
             
-            val args: Seq[AnnotatedVar] = Seq(/*AnnotatedVar(Var(p), sort) AnnotatedVar(Var(inP), pSort)*/)
-            // need to figure out how to pass in the arguments for this function
-            // or what the arguments actually are, I think its p, inP, and scope
+            val args: Seq[AnnotatedVar] = Seq()
             FunctionDefinition(name, args, IntSort, body)
         }
 
@@ -106,10 +95,8 @@ object SetCardinalityTransformer extends ProblemStateTransformer {
         
         // get needed functions from operation
         for(axiom <- theory.axioms) {
-            Console.println("main suspicious axiom loop")
-            Console.println(resultTheory)
-            Console.println(axiom)
             val cardinalityResult = SetCardinalityOperation.cardinality(axiom, inApp_function_names, cardApp_function_names, nameGenerator)
+
             // passing the generated names back and forth
             inApp_function_names = cardinalityResult.inApp_function_names
             cardApp_function_names = cardinalityResult.cardApp_function_names
@@ -117,17 +104,14 @@ object SetCardinalityTransformer extends ProblemStateTransformer {
             // updating axiom
             val newAxiom = cardinalityResult.cardinalityTerm
             resultTheory = resultTheory.withAxiom(newAxiom)
-            Console.println(resultTheory)
-
         }
         
-        // todo - may not need to be it's own function
         def updateWithResult(funcDefs: Iterable[FunctionDefinition]): Unit = {
             resultTheory = resultTheory.withFunctionDefinitions(funcDefs)
         }
         
         // generate funciton definitions
-        // at this point inApp_function_names and cardApp_function_names has all the names of definitions we need to make
+        // at this point inApp_function_names and cardApp_function_names has the names of all definitions we need to make
         val inAppDefns = scala.collection.mutable.Set[FunctionDefinition]()
         val cardAppDefns = scala.collection.mutable.Set[FunctionDefinition]()
         
@@ -137,8 +121,6 @@ object SetCardinalityTransformer extends ProblemStateTransformer {
             inAppDefns += generateInAppDefinition(pname, p, sort)
         }
         updateWithResult(inAppDefns)
-        Console.println(resultTheory)
-
         
         // generate function definitions for cardApp
         for ((p, pname) <- cardApp_function_names){
@@ -146,19 +128,14 @@ object SetCardinalityTransformer extends ProblemStateTransformer {
             cardAppDefns += generateCardAppDefinition(pname, getSort(p), inApp_function_names(p), scope.size)
         }
         updateWithResult(cardAppDefns)
-        Console.println(resultTheory)
-
         
         def unapply: Interpretation => Interpretation = {
             interp => interp.withoutFunctionDefinitions(inAppDefns.toSet).withoutFunctionDefinitions(cardAppDefns.toSet)
         }
 
-        Console.println("returning epic problem state wahoo")
-        Console.println(resultTheory)
-
         //update problem states with theory
         problemState
-        .withTheory(resultTheory) // function definitions are in the theory, so we only need to add the theory
+        .withTheory(resultTheory)
         .addUnapplyInterp(unapply)
     }
 }

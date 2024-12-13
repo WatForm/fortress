@@ -35,7 +35,7 @@ object Skolemization {
             case IfThenElse(c, t, f) => term
             case SetCardinality(p) => term
 
-            case Forall(avars, body) => { /*!!*/
+            case Forall(avars, body) => {
                 context = context.stackPush(avars)
                 val r = Forall(avars, recur(body))
                 context = context.stackPop(avars.size)
@@ -91,6 +91,6 @@ object Skolemization {
         }
 
         val skolemTerm = recur(axiom)
-        SkolemResult(skolemTerm, skolemConstants.toSet, skolemFunctions.toSet) /* follow this pattern */
+        SkolemResult(skolemTerm, skolemConstants.toSet, skolemFunctions.toSet)
     }
 }

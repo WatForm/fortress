@@ -13,7 +13,6 @@ import fortress.problemstate.ExactScope
   */
 object EnumsToDEsTransformer extends ProblemStateTransformer {
     override def apply(problemState: ProblemState): ProblemState = {
-        Console.println("finding where things get messy")
         val theory = problemState.theory
         val scopes = problemState.scopes
         
@@ -22,9 +21,7 @@ object EnumsToDEsTransformer extends ProblemStateTransformer {
         // Since we are replacing with domain elements, which cannot be in
         // quantifiers, we do not need to worry about variable capture in
         // substitution and can use the faster substituter.
-        Console.println("looks like this is the issue")
         val newAxioms = theory.axioms.map(_.eliminateEnumValues(mapping))
-        Console.println("won't reach here")
         var newSig = theory.signature
                         .withoutEnums
         

@@ -53,7 +53,7 @@ class ClosureEliminatorClaessen(topLevelTerm: Term, signature: Signature, scopes
                     And(App(C, Seq(x, y, u) ++ fixedVars), App(C, Seq(y, z, u) ++ fixedVars)),
                     App(C, Seq(x, z, u) ++ fixedVars)
                 )
-            ) //bookmark
+            )
 
             // all x,y: T, fixed...: Fixed... . ~C(x,x,y, fixed...)
             // for all x. x is not closer than itself to y

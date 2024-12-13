@@ -207,7 +207,7 @@ case class Eq private (left: Term, right: Term) extends Term {
     override def toString: String = left.toString + " = " + right.toString
 }
 
-/** Represents a function or predicate application. */ // bookmark
+/** Represents a function or predicate application. */
 case class App private (functionName: String, arguments: Seq[Term]) extends Term {
     Errors.Internal.precondition(functionName.length >= 1, "Empty function name")
     Errors.Internal.precondition(arguments.size >= 1, "Nullary function application " + functionName + " should be a Var")
@@ -324,7 +324,6 @@ with Caching[DomainElement, (Int, Sort)] {
     implicit val ordering: math.Ordering[DomainElement] = math.Ordering.fromLessThan(_.index < _.index)
 }
 
-//bookmark
 case class IntegerLiteral private (value: Int) extends Term with LeafTerm with Value {
     override def accept[T](visitor: TermVisitor[T]): T = visitor.visitIntegerLiteral(this)
 }
@@ -362,7 +361,6 @@ case class SetCardinality private (predicate : String) extends Term with LeafTer
 
     def getFunctionName: String = predicate
     override def accept[T](visitor: TermVisitor[T]): T = {
-        Console.println("in set cardinality class accept function")
         visitor.visitSetCardinality(this)
     }
 
@@ -559,7 +557,6 @@ object Term {
     /** Returns a term representing the bi-implication "t1 iff t2". */
     def mkIff(t1: Term, t2: Term): Term = Iff(t1, t2)
 
-    // bookmark
     def mkSetCardinality(t: String): Term =
         SetCardinality(t)
 

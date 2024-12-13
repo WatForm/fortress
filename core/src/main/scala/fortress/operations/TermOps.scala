@@ -6,7 +6,6 @@ import scala.language.implicitConversions
 import fortress.msfol.DSL._
 
 case class TermOps private (term: Term) {
-    // when I add an operation for cardinatlity, that needs to be added here as well
     /** Given a signature, typechecks the term with respect to the signature.
       * Returns a TypeCheckResult containing the sort of the term, AND a new term
       * that is equal to the old term but with instances of Eq replaced with Iff

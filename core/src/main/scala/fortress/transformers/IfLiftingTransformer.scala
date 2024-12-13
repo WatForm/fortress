@@ -9,7 +9,6 @@ import fortress.problemstate.ProblemState
 /** Changes each axiom of the theory into negation normal form. */
 object IfLiftingTransformer extends ProblemStateTransformer {
     override def apply(problemState: ProblemState): ProblemState = {
-        Console.println("iflifting transformer start yippee")
         val theory = problemState.theory
 
         // axioms are of Boolean type so we can remove all ites from them
