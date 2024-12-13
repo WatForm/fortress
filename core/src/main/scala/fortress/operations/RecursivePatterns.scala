@@ -24,7 +24,6 @@ trait NaturalTermRecursion {
             case Forall(vars, body) => Forall(vars, naturalRecur(body))
             case IfThenElse(condition, ifTrue, ifFalse) =>
                 IfThenElse(naturalRecur(condition), naturalRecur(ifTrue), naturalRecur(ifFalse))
-            case SetCardinality(p) => SetCardinality(p) //TODO: do we need to do anything here
         }
 }
 

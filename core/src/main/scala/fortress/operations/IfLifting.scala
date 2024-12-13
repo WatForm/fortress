@@ -27,7 +27,7 @@ object IfLifter {
         //should not have set cardinality by here - how to enforce?
         val x:Term = term match {
         case Top | Bottom | Var(_) |  DomainElement(_, _)
-            | IntegerLiteral(_) | BitVectorLiteral(_, _) | EnumValue(_)
+            | IntegerLiteral(_) | BitVectorLiteral(_, _) | EnumValue(_) | SetCardinality(_)
              => term
 
         // for all the terms we know take Boolean args 
@@ -58,7 +58,6 @@ object IfLifter {
             reLiftItes(Closure(fname, liftItes(arg1), liftItes(arg2),args.map(liftItes)))
         case ReflexiveClosure(fname, arg1, arg2, args) => 
             reLiftItes(ReflexiveClosure(fname, liftItes(arg1), liftItes(arg2), args.map(liftItes)))
-        case SetCardinality(pname) => SetCardinality(pname)
         }
         //println("liftItes out: "+x)
         return x

@@ -24,11 +24,10 @@ object SetCardinalityTransformer extends ProblemStateTransformer {
         var inApp_function_names: scala.collection.mutable.Map[String, String] = scala.collection.mutable.Map()
         var cardApp_function_names: scala.collection.mutable.Map[String, String] = scala.collection.mutable.Map()
         
-        // gathering forbiden names - using the logic from SkolemizeTransformer
+        // gathering forbidden names - using the logic from SkolemizeTransformer
         val forbiddenNames = scala.collection.mutable.Set[String]()
         
         for(sort <- theory.sorts) {
-            Console.println("epic sort loop")
             forbiddenNames += sort.name
         }
         
@@ -49,7 +48,6 @@ object SetCardinalityTransformer extends ProblemStateTransformer {
         }
         
         // TODO: do we need this restriction if Substituter already restricts these inside one term?
-        Console.println("allSymbols seems to be problematic")
         for(axiom <- theory.axioms) {
             forbiddenNames ++= axiom.allSymbols
         }
@@ -64,7 +62,6 @@ object SetCardinalityTransformer extends ProblemStateTransformer {
             case Some(Right(FunctionDefinition(_, params, _, _))) => params.map(_.sort)(0) // we are assuming the function is a unary predicate, in which we want the first element of params (there should only be one)
         }
 
-        // TODO I want p to be the name, not the App itself
         def generateInAppDefinition(name: String, p: String, sort: Sort): FunctionDefinition = {
             // replace 1 & 0 with number terms. IntegerLiteral
             // generate a name for x

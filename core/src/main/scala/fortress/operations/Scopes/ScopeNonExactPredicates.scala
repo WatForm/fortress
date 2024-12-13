@@ -9,7 +9,7 @@ object ScopeNonExactPredicates {
     def nonExactScopePred(sort: Sort): String = s"__@Pred_${sort}"
 
     def addBoundsPredicates(term: Term, helpMap: Map[Sort, Scope]): Term = (term match {
-        case Top | Bottom | Var(_) | EnumValue(_) | DomainElement(_, _) | IntegerLiteral(_) | BitVectorLiteral(_, _) => term
+        case Top | Bottom | Var(_) | EnumValue(_) | DomainElement(_, _) | IntegerLiteral(_) | BitVectorLiteral(_, _) | SetCardinality(_) => term
         case Not(p) => Not(addBoundsPredicates(p, helpMap))
         case AndList(args) => AndList(args.map(addBoundsPredicates(_, helpMap)))
         case OrList(args) => OrList(args.map(addBoundsPredicates(_, helpMap)))
@@ -20,7 +20,6 @@ object ScopeNonExactPredicates {
         case App(f, args) => App(f, args.map(addBoundsPredicates(_, helpMap)))
         case BuiltinApp(function, arguments) => BuiltinApp(function, arguments.map(addBoundsPredicates(_, helpMap)))
         case IfThenElse(condition, ifTrue, ifFalse) => IfThenElse(addBoundsPredicates(condition, helpMap), addBoundsPredicates(ifTrue, helpMap), addBoundsPredicates(ifFalse, helpMap))
-        case SetCardinality(p) => SetCardinality(p) //TODO
         case Exists(vars, body) => {
             val predApps = for {
                 av <- vars

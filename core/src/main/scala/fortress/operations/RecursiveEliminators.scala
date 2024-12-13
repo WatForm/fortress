@@ -29,9 +29,8 @@ object DomainElementEliminatorConstants {
             case Forall(vars, body) => Forall(vars, eliminateDomainElements(body))
             case IfThenElse(condition, ifTrue, ifFalse) =>
                 IfThenElse(eliminateDomainElements(condition), eliminateDomainElements(ifTrue), eliminateDomainElements(ifFalse))
-            case SetCardinality(p) => SetCardinality(p) //TODO: do we need to do anything here
             case Top | Bottom | Var(_) | EnumValue(_)
-                | IntegerLiteral(_) | BitVectorLiteral(_, _) => term
+                | IntegerLiteral(_) | BitVectorLiteral(_, _) | SetCardinality(_) => term
         }
         eliminateDomainElements(term)
     }
@@ -56,9 +55,8 @@ object DomainElementEliminatorEnums {
             case Forall(vars, body) => Forall(vars, eliminateDomainElements(body))
             case IfThenElse(condition, ifTrue, ifFalse) =>
                 IfThenElse(eliminateDomainElements(condition), eliminateDomainElements(ifTrue), eliminateDomainElements(ifFalse))
-            case SetCardinality(p) => SetCardinality(p) //TODO: do we need to do anything here
             case Top | Bottom | Var(_) | EnumValue(_)
-                 | IntegerLiteral(_) | BitVectorLiteral(_, _) => term
+                 | IntegerLiteral(_) | BitVectorLiteral(_, _) | SetCardinality(_) => term
         }
         eliminateDomainElements(term)
     }

@@ -357,7 +357,7 @@ object BitVectorLiteral {
     }
 }
 
-case class SetCardinality private (predicate : String) extends Term {
+case class SetCardinality private (predicate : String) extends Term with LeafTerm with Value {
     Errors.Internal.precondition(predicate.length >= 1, "Empty function name")
 
     def getFunctionName: String = predicate
