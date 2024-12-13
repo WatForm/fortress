@@ -46,6 +46,7 @@ object SetCardinalityOperation {
                     IfThenElse(recur(condition), recur(ifTrue), recur(ifFalse))
                 case Not(IfThenElse(condition, ifTrue, ifFalse)) =>
                     IfThenElse(recur(condition), recur(Not(ifTrue)), recur(Not(ifFalse)))
+                case Not(p) => Not(recur(p))
                 case SetCardinality(p) => makeCardinalityFunctions(p)
                 
                 /* recur makes no changes other term types  */

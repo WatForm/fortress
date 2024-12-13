@@ -198,6 +198,9 @@ class Evaluator(private var theory: Theory) {
         // TODO: Evaluate closures. (Currently, run this after closure elimination).
         case Closure(_, _, _, _) => None
         case ReflexiveClosure(_, _, _, _) => None
+        
+        // TODO (possibly): evaluate cardinality?
+        case SetCardinality(_) => None
     }
 
     // Short-circuit: if left is unknown, don't evaluate right

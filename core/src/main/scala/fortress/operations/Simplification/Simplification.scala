@@ -22,7 +22,7 @@ object Simplifier {
             case ReflexiveClosure(name, arg1, arg2, fixedArgs) =>
                 simplifyStep(ReflexiveClosure(name, simplifyFull(arg1), simplifyFull(arg2), fixedArgs.map(simplifyFull)))
             case Top | Bottom | Var(_) | EnumValue(_) | DomainElement(_, _)
-                 | IntegerLiteral(_) | BitVectorLiteral(_, _) => term
+                 | IntegerLiteral(_) | BitVectorLiteral(_, _) | SetCardinality(_) => term
             case IfThenElse(condition, ifTrue, ifFalse) => simplifyStep(
                 IfThenElse(simplifyFull(condition), simplifyFull(ifTrue), simplifyFull(ifFalse))
             )
