@@ -63,10 +63,9 @@ object SetCardinalityTransformer extends ProblemStateTransformer {
             // generate a name for inP argument
             val x = nameGenerator.freshName("x")
             val args: Seq[AnnotatedVar] = Seq(AnnotatedVar(Var(x), sort))
-            val xVar = Var(x)
             
             // body = ite(p(x), 1, 0)
-            val body = IfThenElse(App(p, Seq(xVar)), IntegerLiteral(1), IntegerLiteral(0))
+            val body = IfThenElse(App(p, Seq(Var(x))), IntegerLiteral(1), IntegerLiteral(0))
             
             FunctionDefinition(name, args, IntSort, body)
         }
@@ -124,7 +123,9 @@ object SetCardinalityTransformer extends ProblemStateTransformer {
         
         // generate function definitions for cardApp
         for ((p, pname) <- cardApp_function_names){
-            val scope = scopes(getSort(p))
+            // Precondition check that we have a scope for this method
+            Errors.Internal.precondition(scopes.contains(getSort(p)), s"sort in predicate ${p} must be bounded when using set cardinality.")
+            val scope = scopes.get(getSort(p))
             cardAppDefns += generateCardAppDefinition(pname, getSort(p), inApp_function_names(p), scope.size)
         }
         updateWithResult(cardAppDefns)

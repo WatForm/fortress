@@ -17,42 +17,29 @@ object SetCardinalityOperation {
 
         def recur(term: Term): Term = {
             term match {
-                case Top | Bottom => term
-                case Not(Top) => Bottom
-                case Not(Bottom) => Top
-                case Not(Not(p)) => recur(p)
-                case AndList(args) => AndList(args.map(recur))
-                case Not(AndList(args)) => OrList(args.map(arg => recur(Not(arg))))
-                case OrList(args) => OrList(args.map(recur))
-                case Not(OrList(args)) => AndList(args.map(arg => recur(Not(arg))))
-                case Implication(p, q) => OrList(recur(Not(p)), recur(q))
-                case Not(Implication(p, q)) => AndList(recur(p), recur(Not(q)))
-                case Eq(left, right) => Eq(recur(left), recur(right))
-                case Iff(p, q) => OrList(
-                    AndList(recur(p), recur(q)),
-                    AndList(recur(Not(p)), recur(Not(q)))
-                )
-                case Not(Iff(p, q)) => OrList(
-                    AndList(recur(p), recur(Not(q))),
-                    AndList(recur((Not(p))), recur(q))
-                )
-                case Forall(vars, body) => Forall(vars, recur(body))
-                case Not(Forall(vars, body)) => Exists(vars, recur(Not(body)))
-                case Exists(vars, body) => Exists(vars, recur(body))
-                case Not(Exists(vars, body)) => Forall(vars, recur(Not(body)))
-                case (distinct: Distinct) => recur(distinct.asPairwiseNotEquals)
-                case Not(distinct @ Distinct(_)) => recur(Not(distinct.asPairwiseNotEquals))
-                case IfThenElse(condition, ifTrue, ifFalse) =>
-                    IfThenElse(recur(condition), recur(ifTrue), recur(ifFalse))
-                case Not(IfThenElse(condition, ifTrue, ifFalse)) =>
-                    IfThenElse(recur(condition), recur(Not(ifTrue)), recur(Not(ifFalse)))
+                case Top | Bottom | Var(_) | DomainElement(_, _) | IntegerLiteral(_)
+                | BitVectorLiteral(_, _) | EnumValue(_) => term
                 case Not(p) => Not(recur(p))
-                case SetCardinality(p) => makeCardinalityFunctions(p)
+                case AndList(args) => AndList(args map recur)
+                case OrList(args) => OrList(args map recur)
+                case Distinct(args) => Distinct(args map recur)
+                case Iff(left, right) => Iff(recur(left), recur(right))
+                case Implication(left, right) => Implication(recur(left), recur(right))
+                case Eq(left, right) => Eq(recur(left), recur(right))
+                case App(fn, args) => App(fn, args map recur)
+                case BuiltinApp(fn, args) => BuiltinApp(fn, args map recur)
+                case IfThenElse(c, t, f) => IfThenElse(recur(c), recur(t), recur(f))
+                case Forall(vars, body) => Forall(vars, recur(body))
+                case Exists(vars, body) => Exists(vars, recur(body))
                 
-                /* recur makes no changes other term types  */
-                case _ => term
+                // addressing warnings, shouldn't have closures by this point
+                case Closure(_, _, _, _) => ???
+                case ReflexiveClosure(_, _, _, _) => ???
+
+                case SetCardinality(p) => makeCardinalityFunctions(p)
+            }
         }
-        }
+    
         def makeCardinalityFunctions(p : String): Term = {
             if (!cardApp_function_names.contains(p)) {
                 // generate functions if need be
