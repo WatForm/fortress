@@ -125,7 +125,7 @@ object SetCardinalityTransformer extends ProblemStateTransformer {
         for ((p, pname) <- cardApp_function_names){
             // Precondition check that we have a scope for this method
             Errors.Internal.precondition(scopes.contains(getSort(p)), s"sort in predicate ${p} must be bounded when using set cardinality.")
-            val scope = scopes.get(getSort(p))
+            val scope = scopes(getSort(p))
             cardAppDefns += generateCardAppDefinition(pname, getSort(p), inApp_function_names(p), scope.size)
         }
         updateWithResult(cardAppDefns)
