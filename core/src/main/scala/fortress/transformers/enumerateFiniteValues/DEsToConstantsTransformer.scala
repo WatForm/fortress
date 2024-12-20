@@ -19,7 +19,7 @@ import fortress.problemstate.ProblemState
   */
 class DEsToConstantsTransformer(constantsDistinct:Boolean = true) extends ProblemStateTransformer {
     
-    override def apply(problemState: ProblemState): ProblemState = {        
+    override def apply(problemState: ProblemState): ProblemState = {
         val theory = problemState.theory
         val scopes = problemState.scopes
 
