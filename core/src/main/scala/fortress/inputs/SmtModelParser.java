@@ -38,7 +38,14 @@ public class SmtModelParser{
         // Use the "give up" error handler for parser
         parser.setErrorHandler(new StopAtFirstErrorStrategy());
 
-        ParseTree tree = parser.commands(); // get syntax tree
+        ParseTree tree;
+        try{
+            tree = parser.commands(); // get syntax tree
+        } catch (Exception e) {
+            System.out.println("Failed to parse input:"); 
+            System.out.println(str);
+            throw e;
+        }
 
         if (parser.getNumberOfSyntaxErrors() >= 1)
             return null;
