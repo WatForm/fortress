@@ -294,6 +294,9 @@ trait Interpretation {
     def toConstraints: Set[Term] = {
         val constraints: mutable.Set[Term] = mutable.Set.empty
         
+        // Add constraints for scopes of sorts
+        constraints ++= universeConstraints
+
         // Constant Interpretations
         for((const, v) <- constantInterpretations) {
             constraints += (const.variable === v)
