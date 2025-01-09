@@ -47,35 +47,33 @@ class Evaluator(private var theory: Theory) {
             case Top => Bottom
             case Bottom => Top
         }
-        case AndList(args) =>
-            // TODO: This can be simplified since tryCastToValue is cheap
-            def reduceAnd(args: Seq[Term]): Option[Value] = args match {
-                // Reduce with short-circuiting: don't even evaluate if we've short-circuited
-                case Seq() => Some(Top)
-                case head +: tail => tryCastToValue(head) match {
-                    case Some(Bottom) => Some(Bottom) // short-circuit: false && x == false for all x
-                    case Some(Top) => reduceAnd(tail) // true && x == x for all x
-                    case None => reduceAnd(tail) flatMap {
-                        case Bottom => Some(Bottom) // unknown && false == false
-                        case Top => None // unknown && true == unknown
-                    }
+        case AndList(args) => {
+                // unknown && true == unknown
+                // unknown && false == false
+                var trueResult: Option[Value] = Some(Top)
+                
+
+                for (arg <- args) tryCastToValue(arg) match {
+                    case Some(Bottom) => return Some(Bottom)
+                    case Some(Top) => ()
+                    case None => trueResult = None
                 }
+
+                return trueResult
             }
-            reduceAnd(args)
-        case OrList(args) =>
-            def reduceOr(args: Seq[Term]): Option[Value] = args match {
-                // Reduce with short-circuiting: don't even evaluate if we've short-circuited
-                case Seq() => Some(Bottom)
-                case head +: tail => tryCastToValue(head) match {
-                    case Some(Top) => Some(Top) // short-circuit: true || x == true for all x
-                    case Some(Bottom) => reduceOr(tail) // false || x == x for all x
-                    case None => reduceOr(tail) flatMap {
-                        case Top => Some(Top) // unknown || true == true
-                        case Bottom => None // unknown || false == unknown
-                    }
+        case OrList(args) => {
+                // unknown || true == true
+                // unknown || false == unknown
+                var falseResult: Option[Value] = Some(Bottom)
+                
+                for (arg <- args) tryCastToValue(arg) match {
+                    case Some(Bottom) => ()
+                    case Some(Top) => return Some(Top)
+                    case None => falseResult = None
                 }
+
+                return falseResult
             }
-            reduceOr(args)
         case Distinct(args) =>
             def reduceDistinct(args: Seq[Term], seen: Set[Value]): Option[Value] = args match {
                 // Reduce with short-circuiting again: short-circuit if the evaluated value is already seen
