@@ -3,6 +3,9 @@ import org.scalatest._
 import fortress.msfol._
 import fortress.transformers._
 import fortress.problemstate._
+import fortress.modelfinders._
+import scala.util.Using
+import fortress.util.Seconds
 
 class SetCardinalityTransformerTests extends UnitSuite {
     val cardinality = SetCardinalityTransformer
@@ -50,7 +53,9 @@ class SetCardinalityTransformerTests extends UnitSuite {
         .withSorts(A,B)
         .withConstantDeclarations(a1 of A, a2 of A, a3 of A, a4 of A, b of B)
         .withFunctionDeclarations(P1, P2, F, G)
-        
+    
+    // -- Unit tests --
+    
     test("no effect") {
         val theory = baseTheory
             .withAxiom(Eq(fa1,fa2))
@@ -197,5 +202,190 @@ class SetCardinalityTransformerTests extends UnitSuite {
         
         cardinality(ps)
             .theory should be(expected)   
+    }
+    
+    // -- Integration tests --
+    
+    val transformers = Seq(
+        TypecheckSanitizeTransformer,
+        EnumsToDEsTransformer,
+        SetCardinalityTransformer,
+        IfLiftingTransformer,
+        NnfTransformer,
+        ClosureEliminationVakiliTransformer,
+        QuantifierExpansionTransformer,
+        RangeFormulaUseConstantsTransformer,
+        SimplifyTransformer,
+        DEsToEnumsTransformer,
+    )
+    
+    test("simple cardinality smt") {
+        val theory = baseTheory
+            .withAxiom(Eq(SetCardinality("p1"),IntegerLiteral(4)))
+        
+        Using.resource(new ConfigurableModelFinder(transformers)){ finder => {
+            finder.setTheory(theory)
+            finder.setExactScope(A, 3)
+            finder.setTimeout(Seconds(10))
+            val result = finder.checkSat()
+            assert(result == (ModelFinderResult.Unsat)) 
+        }}
+        
+        Using.resource(new ConfigurableModelFinder(transformers)){ finder => {
+            finder.setTheory(theory)
+            finder.setExactScope(A, 5)
+            finder.setTimeout(Seconds(10))
+            val result = finder.checkSat()
+            assert(result == (ModelFinderResult.Sat)) 
+        }}
+    }
+    
+    test("two cardinalities smt") {
+        val theory = baseTheory
+            .withAxiom(Eq(SetCardinality("p1"),IntegerLiteral(4)))
+            .withAxiom(Eq(SetCardinality("p2"),IntegerLiteral(2)))
+        
+        // p1: A -> Bool, p2: B->Bool
+        
+        Using.resource(new ConfigurableModelFinder(transformers)){ finder => {
+            finder.setTheory(theory)
+            finder.setExactScope(A, 4)
+            finder.setExactScope(B, 1)
+            finder.setTimeout(Seconds(10))
+            val result = finder.checkSat()
+            assert(result == (ModelFinderResult.Unsat)) 
+        }}
+        
+        Using.resource(new ConfigurableModelFinder(transformers)){ finder => {
+            finder.setTheory(theory)
+            finder.setExactScope(A, 5)
+            finder.setExactScope(B, 3)
+            finder.setTimeout(Seconds(10))
+            val result = finder.checkSat()
+            assert(result == (ModelFinderResult.Sat)) 
+        }}
+    }
+    
+    test("equal cardinalities smt") {
+        val theory = baseTheory
+            .withAxiom(Eq(SetCardinality("p1"),IntegerLiteral(2)))
+            .withAxiom(Eq(SetCardinality("p2"),IntegerLiteral(2)))
+            .withAxiom(Eq(SetCardinality("p1"),SetCardinality("p2")))
+        
+        // p1: A -> Bool, p2: B->Bool
+        
+        Using.resource(new ConfigurableModelFinder(transformers)){ finder => {
+            finder.setTheory(theory)
+            finder.setExactScope(A, 4)
+            finder.setExactScope(B, 3)
+            finder.setTimeout(Seconds(10))
+            val result = finder.checkSat()
+            assert(result == (ModelFinderResult.Sat)) 
+        }}
+    }
+    
+    test("nonequal cardinalities smt") {
+        val theory = baseTheory
+            .withAxiom(Eq(SetCardinality("p1"),IntegerLiteral(4)))
+            .withAxiom(Eq(SetCardinality("p2"),IntegerLiteral(2)))
+            .withAxiom(Eq(SetCardinality("p1"),SetCardinality("p2")))
+        
+        // p1: A -> Bool, p2: B->Bool
+        
+        Using.resource(new ConfigurableModelFinder(transformers)){ finder => {
+            finder.setTheory(theory)
+            finder.setExactScope(A, 4)
+            finder.setExactScope(B, 3)
+            finder.setTimeout(Seconds(10))
+            val result = finder.checkSat()
+            assert(result == (ModelFinderResult.Unsat)) 
+        }}
+    }
+    
+    test("addition cardinality smt") {    
+        var theory = baseTheory
+            .withAxiom(Eq(SetCardinality("p1"),IntegerLiteral(2)))
+            .withAxiom(Eq(SetCardinality("p2"),IntegerLiteral(4)))
+            .withAxiom(Eq(Term.mkPlus(SetCardinality("p1"),SetCardinality("p2")), SetCardinality("p1")))
+        
+        Using.resource(new ConfigurableModelFinder(transformers)){ finder => {
+            finder.setTheory(theory)
+            finder.setExactScope(A, 4)
+            finder.setExactScope(B, 4)
+            finder.setTimeout(Seconds(10))
+            val result = finder.checkSat()
+            assert(result == (ModelFinderResult.Unsat)) 
+        }}
+        
+        theory = baseTheory
+            .withAxiom(Eq(SetCardinality("p1"),IntegerLiteral(2)))
+            .withAxiom(Eq(SetCardinality("p2"),IntegerLiteral(4)))
+            .withAxiom(Eq(Term.mkPlus(SetCardinality("p1"),SetCardinality("p1")), SetCardinality("p2")))  
+        
+        Using.resource(new ConfigurableModelFinder(transformers)){ finder => {
+            finder.setTheory(theory)
+            finder.setExactScope(A, 4)
+            finder.setExactScope(B, 4)
+            finder.setTimeout(Seconds(10))
+            val result = finder.checkSat()
+            assert(result == (ModelFinderResult.Sat)) 
+        }}   
+    }
+    
+    test("subtraction cardinality smt") {   
+        var theory = baseTheory
+            .withAxiom(Eq(Term.mkSub(SetCardinality("p1"),SetCardinality("p2")), SetCardinality("p1")))
+            
+        Using.resource(new ConfigurableModelFinder(transformers)){ finder => {
+            finder.setTheory(theory)
+            finder.setExactScope(A, 4)
+            finder.setExactScope(B, 4)
+            finder.setTimeout(Seconds(10))
+            val result = finder.checkSat()
+            assert(result == (ModelFinderResult.Sat)) 
+        }}
+        
+        theory = baseTheory
+            .withAxiom(Eq(SetCardinality("p1"),IntegerLiteral(2)))
+            .withAxiom(Eq(SetCardinality("p2"),IntegerLiteral(4)))
+            .withAxiom(Eq(Term.mkSub(SetCardinality("p1"),SetCardinality("p2")), SetCardinality("p1")))
+        
+        Using.resource(new ConfigurableModelFinder(transformers)){ finder => {
+            finder.setTheory(theory)
+            finder.setExactScope(A, 4)
+            finder.setExactScope(B, 4)
+            finder.setTimeout(Seconds(10))
+            val result = finder.checkSat()
+            assert(result == (ModelFinderResult.Unsat)) 
+        }}
+        
+        theory = baseTheory
+            .withAxiom(Eq(SetCardinality("p1"),IntegerLiteral(2)))
+            .withAxiom(Eq(SetCardinality("p2"),IntegerLiteral(4)))
+            .withAxiom(Eq(Term.mkSub(SetCardinality("p2"),SetCardinality("p1")), SetCardinality("p1")))
+        
+        Using.resource(new ConfigurableModelFinder(transformers)){ finder => {
+            finder.setTheory(theory)
+            finder.setExactScope(A, 4)
+            finder.setExactScope(B, 4)
+            finder.setTimeout(Seconds(10))
+            val result = finder.checkSat()
+            assert(result == (ModelFinderResult.Sat)) 
+        }}
+    }
+    
+    test("implies cardinality smt"){
+        val theory = baseTheory
+            .withAxiom(Implication(Eq(SetCardinality("p1"), IntegerLiteral(2)), Eq(SetCardinality("p2"), IntegerLiteral(4))))
+            .withAxiom(Iff(Eq(SetCardinality("p1"), IntegerLiteral(5)), Eq(SetCardinality("p2"), IntegerLiteral(5))))
+        
+        Using.resource(new ConfigurableModelFinder(transformers)){ finder => {
+            finder.setTheory(theory)
+            finder.setExactScope(A, 4)
+            finder.setExactScope(B, 4)
+            finder.setTimeout(Seconds(10))
+            val result = finder.checkSat()
+            assert(result == (ModelFinderResult.Sat)) 
+        }}
     }
 }

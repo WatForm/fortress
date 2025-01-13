@@ -17,6 +17,7 @@ class IntegerToSortConverter(min: Int, max: Int, newSort: Sort, nameGenerator: N
     val constantsToInts: Map[Term, Int] = intToConstants.map(mapping => mapping._2 -> mapping._1)
 
     // TODO name generator
+    // If any 
     var convertedFunctions: scala.collection.mutable.Map[BuiltinFunction, FunctionDefinition] = scala.collection.mutable.Map()
 
     private val x = Var("x")

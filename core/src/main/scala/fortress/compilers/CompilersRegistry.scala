@@ -16,9 +16,6 @@ object CompilersRegistry {
         // in checkName, but otherwise we have to wrap the return entry
         // in Some and deal with the option type in checkName
         val c:Compiler = str match {
-            // dummy compiler to test with
-            case "SetCardinality" => new SetCardinalityCompiler()
-
             // StandardCompilers - use constants 
             case "Standard"  => new StandardCompiler()
             case "StandardSI"  => new StandardSICompiler()
@@ -47,6 +44,9 @@ object CompilersRegistry {
             case "JoeTHREE_SI"  => new JoeTHREE_SICompiler()
             case "JoeFOUR"  => new JoeFOURCompiler()
             case "JoeFOUR_SI"  => new JoeFOUR_SICompiler()
+            
+            // Cardinality compiler to test with
+            case "SetCardinality" => new SetCardinalityCompiler()
 
             case _ => {
                 throw Errors.API.compilerDoesNotExist(str)

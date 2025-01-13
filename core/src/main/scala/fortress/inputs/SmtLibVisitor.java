@@ -465,7 +465,7 @@ public class SmtLibVisitor extends SmtLibSubsetBaseVisitor {
             } else{
                 return Term.mkReflexiveClosure(functionName, start, end, fixedArguments);
             }
-        }
+        } 
 
         // if we see 'cardinality', deal with it accordingly
         else if (usingSmtPlus && function.equals("cardinality")){
