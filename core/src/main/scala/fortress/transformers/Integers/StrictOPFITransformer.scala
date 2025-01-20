@@ -9,7 +9,11 @@ import fortress.problemstate.ExactScope
 import fortress.interpretation.Interpretation
 import fortress.sortinference.ValuedSortSubstitution
 
-object PermissiveOPFITransformer extends OPFITransformer {
+// From permissive OPFI
+import Polarity._
+import _root_.fortress.msfol.OrList
+
+object StrictOPFITransformer extends OPFITransformer {
 
     def handleForall(quants: Seq[AnnotatedVar], body: Term,
         down: DownInfo,
@@ -27,17 +31,25 @@ object PermissiveOPFITransformer extends OPFITransformer {
         val intQuants = intQuantNames map (name => AnnotatedVar(Var(name), opfiSort))
         // The non-integer variables remain the same
         val newQuants = intQuants ++ nonintQuants
+        // Add the quantified variables to the context
         val newDown = down.quantified(intQuantNames.toSet, nonintQuants.map(_.name).toSet)
         
-        val (transformedBody, bodyUnknown) = transform(body, newDown)
-
-        // Unknown if every value is unknown (This is permissive)
-        val upTerms: Set[Term] = Set(Forall(newQuants, unknown(bodyUnknown)))
-
+        // Transform the body recursively
+        val (transformedBody, bodyUnknownTerms) = transform(body, newDown)
+        val bodyIsUnknown = Or.smart(bodyUnknownTerms.toSeq)
+        
         // If the body is unknown, ignore it by making it true
-        val newBody = knownOrTrue(transformedBody, bodyUnknown)
+        val newBody = Forall(newQuants, transformedBody)
 
-        polaritySimplify(Forall(newQuants, newBody), upTerms, down)
+        // If there is an assignment that is unknown
+        // AND no known false assignment, the value is unknown
+        // STRICT
+        val isUnknown: Term = AndList(
+            Exists(newQuants, bodyIsUnknown),
+            Not(Exists(newQuants, And(Not(transformedBody), Not(bodyIsUnknown))))
+        )
+
+        polaritySimplify(newBody, Set(isUnknown), down)
     }
 
     def handleExists(quants: Seq[AnnotatedVar], body: Term,
@@ -53,19 +65,33 @@ object PermissiveOPFITransformer extends OPFITransformer {
                 Right(AnnotatedVar(variable, sort))
         })
         // Integer variables become opfi variables
-        val intQuants = intQuantNames map (name => AnnotatedVar(Var(name),opfiSort))
+        val intQuants = intQuantNames map (name => AnnotatedVar(Var(name), opfiSort))
         // The non-integer variables remain the same
         val newQuants = intQuants ++ nonintQuants
+        // Add the quantified variables to the context
         val newDown = down.quantified(intQuantNames.toSet, nonintQuants.map(_.name).toSet)
         
-        val (transformedBody, bodyUnknown) = transform(body, newDown)
+        // Transform the body recursively
+        val (transformedBody, bodyUnknownTerms) = transform(body, newDown)
+        val bodyIsUnknown = Or.smart(bodyUnknownTerms.toSeq)
+        
+        // We don't need to neutralize the body
+        // Either the entire term overflows, or there is a valid true
+        // In either case, this value is irrelevant.
+        // Result is invalid if any substitutions are invalid
+        // and no valid substitution is true.
+        // Essentially the same as disjunction
+        val newBody = Exists(newQuants, transformedBody)
 
-        // Unknown if every value is unknown (This is permissive)
-        val upTerms: Set[Term] = Set(Forall(newQuants, unknown(bodyUnknown)))
+        // If there is an assignment that is unknown
+        // AND no known false assignment, the value is unknown
+        // STRICT
+        val isUnknown: Term = AndList(
+            Exists(newQuants, bodyIsUnknown),
+            Not(Exists(newQuants, And(transformedBody, Not(bodyIsUnknown))))
+        )
 
-        // If the body is unknown, ignore it by making it false
-        val newBody = knownOrFalse(transformedBody, bodyUnknown)
-
-        polaritySimplify(Exists(newQuants, newBody), upTerms, down)
+        polaritySimplify(newBody, Set(isUnknown), down)
     }
+    
 }
