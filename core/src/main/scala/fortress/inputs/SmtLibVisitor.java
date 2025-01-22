@@ -29,7 +29,7 @@ public class SmtLibVisitor extends SmtLibSubsetBaseVisitor {
     private Map<String, String> info;
     private Optional<String> logic;
 
-    // Used to determine if we treat functions named `closure` as transitive closure or not
+    // Used to determine if we treat functions named `closure` as transitive closure and 'cardinality' as set cardinality or not
     private boolean usingSmtPlus = false;
 
     protected int numAxioms;
@@ -467,6 +467,21 @@ public class SmtLibVisitor extends SmtLibSubsetBaseVisitor {
             }
         } 
 
+        // if we see 'cardinality', deal with it accordingly
+        else if (usingSmtPlus && function.equals("cardinality")){
+            // Check that we have only 1 arg
+            if (arguments.size() != 1){
+                throw new ParserException("Error at " + ctx.start.toString() + " cardinality must have at exacrly 1 argument. Got " + arguments.size()+".");
+            }
+            String functionName;
+            try{
+                functionName = ((Var)arguments.get(0)).getName();
+            } catch (ClassCastException e){
+                throw new ParserException("Trying to make cardinality, but function name could not be found.");
+            }
+            
+            return Term.mkSetCardinality(functionName);
+        } 
         // Otherwise just treat as a function application
         return Term.mkApp(function, arguments);
     }

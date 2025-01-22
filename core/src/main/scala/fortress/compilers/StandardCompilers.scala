@@ -28,6 +28,9 @@ class StandardCompiler extends BaseCompiler {
     def integerHandler:ListBuffer[ProblemStateTransformer] =
         CompilersRegistry.ListOfOne(IntOPFITransformer)
 
+    def setCardinalityOrNot:ListBuffer[ProblemStateTransformer] =
+        CompilersRegistry.ListOfOne(NullTransformer)
+
     def ifLiftOrNot:ListBuffer[ProblemStateTransformer] =
         CompilersRegistry.ListOfOne(IfLiftingTransformer)
 
@@ -77,6 +80,9 @@ class StandardCompiler extends BaseCompiler {
 
         // defined above
         transformerSequence ++= integerHandler
+
+        // defined above (set to null as default)
+        transformerSequence ++= setCardinalityOrNot
 
         // defined above
         transformerSequence ++= ifLiftOrNot

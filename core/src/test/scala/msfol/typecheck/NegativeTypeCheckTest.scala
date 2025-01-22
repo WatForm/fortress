@@ -328,6 +328,44 @@ class NegativeTypeCheckTest extends UnitSuite {
             t.typeCheck(sig)
         }
     }
+    
+    
+    test ("cardinality unknown function"){
+        val sig = Signature.empty 
+            .withSort(A)
+            .withConstantDeclarations(x of A, y of A)
+            .withFunctionDeclarations(P)
+            
+        val t = SetCardinality("notafunctionname")
+        an [fortress.data.TypeCheckException.UnknownFunction] should be thrownBy {
+            t.typeCheck(sig)
+        }
+    }
+    
+    
+    test ("cardinality non-bool sort"){
+        val sig = Signature.empty 
+            .withSorts(A, B)
+            .withConstantDeclarations(x of A, y of A)
+            .withFunctionDeclarations(f)
+            
+        val t = SetCardinality("f")
+        an [fortress.data.TypeCheckException.WrongSort] should be thrownBy {
+            t.typeCheck(sig)
+        }
+    }
+    
+    test ("cardinality wrong arity"){
+        val sig = Signature.empty 
+            .withSort(A)
+            .withConstantDeclarations(x of A, y of A)
+            .withFunctionDeclarations(R)
+            
+        val t = SetCardinality("R")
+        an [fortress.data.TypeCheckException] should be thrownBy {
+            t.typeCheck(sig)
+        }
+    }
 
 
     test("closure mismatch arg sort 1") {

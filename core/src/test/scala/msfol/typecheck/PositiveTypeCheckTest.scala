@@ -179,6 +179,16 @@ class PositiveTypeCheckTest extends UnitSuite {
         val t = IfThenElse(x === y, x, y)
         t.typeCheck(sig).sort should be (A)
     }
+    
+    test("setcardinality"){
+        val sig = Signature.empty 
+            .withSort(A)
+            .withConstantDeclarations(x of A, y of A)
+            .withFunctionDeclarations(P)
+            
+        val t = SetCardinality(P.name)
+        t.typeCheck(sig).sort should be (Sort.Int)
+    }
 
 
     test("closure") {

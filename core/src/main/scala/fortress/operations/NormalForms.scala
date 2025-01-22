@@ -69,6 +69,8 @@ object NormalForms {
 
         case ReflexiveClosure(fname, arg1, arg2, args) => term
         case Not(ReflexiveClosure(fname, arg1, arg2, args)) => term
+        
+        case SetCardinality(fname) => term
 
         case Eq(l, r) => term
         case Not(Eq(l, r)) => term // Note that Eq does not compare booleans

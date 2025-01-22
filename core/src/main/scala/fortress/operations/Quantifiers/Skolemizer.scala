@@ -33,6 +33,7 @@ object Skolemization {
             case App(fn, args) => term
             case BuiltinApp(fn, args) => term
             case IfThenElse(c, t, f) => term
+            case SetCardinality(p) => term
 
             case Forall(avars, body) => {
                 context = context.stackPush(avars)

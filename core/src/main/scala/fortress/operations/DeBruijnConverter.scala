@@ -98,6 +98,8 @@ class DeBruijnConverter {
         
         override def visitEnumValue(e: EnumValue): Term = ???
         
+        override def visitSetCardinality(term: SetCardinality): Term = ???
+        
         override def visitIfThenElse(ite: IfThenElse): Term = ???
         
     }

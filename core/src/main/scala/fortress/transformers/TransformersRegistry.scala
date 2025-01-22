@@ -16,6 +16,7 @@ object TransformersRegistry {
 
             // string name must match the object name + 'Transformer'
             case "EnumsToDEsElimination" => EnumsToDEsTransformer
+            case "SetCardinality" => SetCardinalityTransformer
             case "IfLifting" => IfLiftingTransformer
             case "Nnf" => NnfTransformer
             case "Null" => NullTransformer

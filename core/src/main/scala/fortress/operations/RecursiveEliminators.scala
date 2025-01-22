@@ -30,7 +30,7 @@ object DomainElementEliminatorConstants {
             case IfThenElse(condition, ifTrue, ifFalse) =>
                 IfThenElse(eliminateDomainElements(condition), eliminateDomainElements(ifTrue), eliminateDomainElements(ifFalse))
             case Top | Bottom | Var(_) | EnumValue(_)
-                | IntegerLiteral(_) | BitVectorLiteral(_, _) => term
+                | IntegerLiteral(_) | BitVectorLiteral(_, _) | SetCardinality(_) => term
         }
         eliminateDomainElements(term)
     }
@@ -56,7 +56,7 @@ object DomainElementEliminatorEnums {
             case IfThenElse(condition, ifTrue, ifFalse) =>
                 IfThenElse(eliminateDomainElements(condition), eliminateDomainElements(ifTrue), eliminateDomainElements(ifFalse))
             case Top | Bottom | Var(_) | EnumValue(_)
-                 | IntegerLiteral(_) | BitVectorLiteral(_, _) => term
+                 | IntegerLiteral(_) | BitVectorLiteral(_, _) | SetCardinality(_) => term
         }
         eliminateDomainElements(term)
     }

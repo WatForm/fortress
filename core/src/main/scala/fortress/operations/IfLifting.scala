@@ -24,9 +24,10 @@ object IfLifter {
     // functions have to be relifted through args
     def liftItes(term: Term): Term = {
         //println("liftItes in: "+term)
+        //TODO: should not have set cardinality by here - how to enforce? Gives a warning without.
         val x:Term = term match {
         case Top | Bottom | Var(_) |  DomainElement(_, _)
-            | IntegerLiteral(_) | BitVectorLiteral(_, _) | EnumValue(_)
+            | IntegerLiteral(_) | BitVectorLiteral(_, _) | EnumValue(_) | SetCardinality(_)
              => term
 
         // for all the terms we know take Boolean args 

@@ -214,6 +214,8 @@ class IntegerToSortConverter(min: Int, max: Int, newSort: Sort, nameGenerator: N
 
         override def visitBitVectorLiteral(term: BitVectorLiteral): (Term, Boolean) = (term, false)
 
+        override def visitSetCardinality(term: SetCardinality): (Term, Boolean) = ???
+        
         override def visitIfThenElse(term: IfThenElse): (Term, Boolean) = {
             val (newConditional, substitutedConditional) = visit(term.condition)
             val (newIfTrue, substitutedTrue) = visit(term.ifTrue)

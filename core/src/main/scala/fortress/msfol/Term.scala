@@ -32,7 +32,7 @@ case object Top extends Term with LeafTerm with Value {
     override def accept[T](visitor: TermVisitor[T]): T = visitor.visitTop()
 }
 
-/** Term that represents Bottom. */
+/** Term that represents False. */
 case object Bottom extends Term with LeafTerm with Value {
     override def toString: String = "false"
     override def accept[T](visitor: TermVisitor[T]): T = visitor.visitBottom()
@@ -356,6 +356,18 @@ object BitVectorLiteral {
     }
 }
 
+case class SetCardinality private (predicate : String) extends Term with LeafTerm with Value {
+    Errors.Internal.precondition(predicate.length >= 1, "Empty function name")
+
+    def getFunctionName: String = predicate
+    override def accept[T](visitor: TermVisitor[T]): T = {
+        visitor.visitSetCardinality(this)
+    }
+
+    override def toString: String = "#(" + predicate + ")"
+}
+
+
 case class IfThenElse private (condition: Term, ifTrue: Term, ifFalse: Term) extends Term {
     override def accept[T](visitor: TermVisitor[T]): T = visitor.visitIfThenElse(this)
 
@@ -544,7 +556,10 @@ object Term {
     
     /** Returns a term representing the bi-implication "t1 iff t2". */
     def mkIff(t1: Term, t2: Term): Term = Iff(t1, t2)
-    
+
+    def mkSetCardinality(t: String): Term =
+        SetCardinality(t)
+
     def mkIfThenElse(condition: Term, ifTrue: Term, ifFalse: Term): Term = IfThenElse(condition, ifTrue, ifFalse)
 
     def mkClosure(functionName: String, arg1: Term, arg2: Term): Term =

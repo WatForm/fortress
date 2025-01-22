@@ -22,7 +22,7 @@ object EnumsToDEsTransformer extends ProblemStateTransformer {
         // quantifiers, we do not need to worry about variable capture in
         // substitution and can use the faster substituter.
         val newAxioms = theory.axioms.map(_.eliminateEnumValues(mapping))
-        
+       
         var newSig = theory.signature
                         .withoutEnums
         

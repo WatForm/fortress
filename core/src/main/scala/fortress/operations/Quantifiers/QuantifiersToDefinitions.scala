@@ -23,7 +23,7 @@ object QuantifiersToDefinitions {
 
         def recur(term: Term): Term = term match {
             case Top | Bottom | Var(_) | DomainElement(_, _) | IntegerLiteral(_)
-                 | BitVectorLiteral(_, _) | EnumValue(_) => term
+                 | BitVectorLiteral(_, _) | EnumValue(_) | SetCardinality(_) => term
             case Not(p) => Not(recur(p))
             case AndList(args) => AndList(args map recur)
             case OrList(args) => OrList(args map recur)

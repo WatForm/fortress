@@ -26,6 +26,7 @@ object RecursiveAccumulator {
         case Forall(vars, body) => allSymbolsIn(body) union (vars map (_.variable.name)).toSet union (vars map (_.sort.name)).toSet
         case Exists(vars, body) => allSymbolsIn(body) union (vars map (_.variable.name)).toSet union (vars map (_.sort.name)).toSet
         case IfThenElse(condition, ifTrue, ifFalse) => allSymbolsIn(condition) union allSymbolsIn(ifTrue) union allSymbolsIn(ifFalse)
+        case SetCardinality(pname) => Set(pname)
     }
     
     /** Returns the set of all domain elements that appear within a term.
@@ -34,7 +35,7 @@ object RecursiveAccumulator {
     which domain elements exist. */
     def domainElementsIn(term: Term): Set[DomainElement] = term match {
         case Top | Bottom | Var(_) 
-            | IntegerLiteral(_) | BitVectorLiteral(_, _) => Set()
+            | IntegerLiteral(_) | BitVectorLiteral(_, _) | SetCardinality(_) => Set()
         case de @ DomainElement(_, _) => Set(de)
         case EnumValue(_) => ???
         case Not(p) => domainElementsIn(p)
@@ -82,12 +83,13 @@ object RecursiveAccumulator {
         case Forall(vars, body) => functionsIn(body)
         case Exists(vars, body) => functionsIn(body)
         case IfThenElse(condition, ifTrue, ifFalse) => functionsIn(condition) union functionsIn(ifTrue) union functionsIn(ifFalse)
+        case SetCardinality(pname) => Set(pname)
     }
     
     def constantsIn(term: Term): Set[String] = {
         def recur(t: Term, variables: Set[String]): Set[String] = t match {
             case Top | Bottom | DomainElement(_, _) | EnumValue(_)
-                | IntegerLiteral(_) | BitVectorLiteral(_, _) => Set.empty
+                | IntegerLiteral(_) | BitVectorLiteral(_, _) | SetCardinality(_) => Set.empty
             case Var(x) if (! (variables contains x)) => Set(x)
             case Var(x) => Set.empty
             case Not(p) => recur(p, variables)
@@ -138,7 +140,7 @@ object RecursiveAccumulator {
       * here may be bound as a constant of a theory. */
     def freeVariablesIn(term: Term): Set[Var] = term match {
         case Top | Bottom | DomainElement(_, _) | EnumValue(_)
-            | IntegerLiteral(_) | BitVectorLiteral(_, _) => Set()
+            | IntegerLiteral(_) | BitVectorLiteral(_, _) | SetCardinality(_) => Set()
         case v @ Var(x) => Set(v)
         case Not(p) => freeVariablesIn(p)
         case AndList(args) => (args map freeVariablesIn) reduce (_ union _)
