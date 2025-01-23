@@ -4,6 +4,7 @@ package fortress.compilers
 import fortress.operations._
 import fortress.transformers.Definitions.EliminateUnusedTransformer
 import fortress.transformers._
+import fortress.transformers.PermissiveOPFITransformer
 import fortress.transformers.TheoryTransformer._ // for implicit conversion to ProblemStateTransformer
 //import fortress.modelfind._
 import fortress.symmetry._
@@ -26,7 +27,7 @@ class StandardCompiler extends BaseCompiler {
         CompilersRegistry.ListOfOne(ScopeNonExactPredicatesTransformer)
 
     def integerHandler:ListBuffer[ProblemStateTransformer] =
-        CompilersRegistry.ListOfOne(IntOPFITransformer)
+        CompilersRegistry.ListOfOne(PermissiveOPFITransformer)
 
     def ifLiftOrNot:ListBuffer[ProblemStateTransformer] =
         CompilersRegistry.ListOfOne(IfLiftingTransformer)
@@ -124,6 +125,11 @@ class UncheckedBVCompiler extends StandardCompiler {
 class NOBVCompiler extends StandardCompiler {
     override def integerHandler: ListBuffer[ProblemStateTransformer] =
         ListBuffer[ProblemStateTransformer](IntToBVTransformer, IntNOBVTransformer)
+}
+
+class StrictOPFICompiler extends StandardCompiler {
+    override def integerHandler: ListBuffer[ProblemStateTransformer] =
+        CompilersRegistry.ListOfOne(StrictOPFITransformer)
 }
 
 class EijckCompiler() extends StandardCompiler {

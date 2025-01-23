@@ -1,4 +1,4 @@
-package fortress.transformers.Integers
+package fortress.transformers
 
 import fortress.transformers.ProblemStateTransformer
 import fortress.problemstate.ProblemState

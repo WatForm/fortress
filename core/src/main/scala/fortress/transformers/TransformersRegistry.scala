@@ -51,6 +51,8 @@ object TransformersRegistry {
             case "IntToBV" => IntToBVTransformer
             case "IntNOBV" => IntNOBVTransformer
             case "IntOPFI" => IntOPFITransformer
+            case "PermissiveOPFI" => PermissiveOPFITransformer
+            case "StrictOPFI" => StrictOPFITransformer
             // case "LiaCheck" => LiaCheckTransformer
 
             // Quantifiers

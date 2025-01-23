@@ -30,6 +30,7 @@ object CompilersRegistry {
             // Bitvector
             case "UncheckedBV" => new UncheckedBVCompiler()
             case "NOBV" => new NOBVCompiler()
+            case "StrictOPFI" => new StrictOPFICompiler()
 
             case "Eijck" => new EijckCompiler()
 
