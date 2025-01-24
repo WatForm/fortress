@@ -140,7 +140,15 @@ class SMTLIBCliSolver extends Solver {
                 case Forall(vars, body) => Forall(vars, updateFunc(body))
                 case Exists(vars, body) => Exists(vars, updateFunc(body))
                 case Not(body) => Not(updateFunc(body))
-                case App(name, args) => App(name, args.map(updateFunc))
+                case App(name, args) => {
+                    // We separate nullary functions
+                    if (args.size == 0){
+                        Var(name)
+                    } else {
+                        App(name, args.map(updateFunc))
+                    }
+                }
+
                 case Closure(name, arg1, arg2, fixedArgs) => Closure(name, updateFunc(arg1), updateFunc(arg2), fixedArgs.map(updateFunc))
                 case ReflexiveClosure(name, arg1, arg2, fixedArgs) => ReflexiveClosure(name, updateFunc(arg1), updateFunc(arg2), fixedArgs.map(updateFunc))
                 case Eq(p, q) => Eq(updateFunc(p), updateFunc(q))
@@ -152,22 +160,23 @@ class SMTLIBCliSolver extends Solver {
             }
 
             override protected def getFunctionDefinitions: Set[FunctionDefinition] = {
-                val functionDefinitions = rawFunctionDefinitions.filter(item => {
-                    var flag: Boolean = false
-                    for (f <- theory.get.signature.functionDeclarations) {
-                        if (f.name == item.name) flag = true
-                    }
-                    flag
-                })
-                functionDefinitions.map(fd => {
+                // Previously we filtered the raw function defintions.
+                // This fails when a helper function is created by the solver
+                // So we keep all functions.
+                // Notably we also keep nullary functions because I don't have time to refactor everything
+                // Non-value constant interpretations would be required.
+                // Instead, We need to check apps of these functions here.
+                rawFunctionDefinitions
+                .map(fd => {
+                    // Just update the body
                     new FunctionDefinition(
                         fd.name,
                         fd.argSortedVar,
                         fd.resultSort,
-                        updateFunc(fd.body)
+                        updateFunc(fd.body) // Notably changes App on nullary functions to Var
                     )
-                })
-            }.toSet
+                }).toSet // Make immutable
+            }
 
             override protected def getFunctionValues(f: FuncDecl, scopes: Map[Sort, Int]): Map[Seq[Value], Value] = {
                 if( theory.get.signature.sorts.size == scopes.size ) {

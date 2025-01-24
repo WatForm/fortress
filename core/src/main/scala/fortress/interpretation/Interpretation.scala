@@ -291,8 +291,9 @@ trait Interpretation {
     /** Generates a set of constraints which says that an interpretation must agree
       * with this interpretation on all of the constants and functions present.
       */
-    def toConstraints: Set[Term] = {
-        val constraints: mutable.Set[Term] = mutable.Set.empty
+    def toConstraints: Seq[Term] = {
+        // Order is important because values must be declared before use
+        val constraints: mutable.Buffer[Term] = mutable.Buffer.empty
         
         // Add constraints for scopes of sorts
         constraints ++= universeConstraints
@@ -311,24 +312,38 @@ trait Interpretation {
 
         // Function Definitions
         for {(fDef) <- functionDefinitions} {
-            // Axiomatize each function
-            constraints += Forall(fDef.argSortedVar, Eq(
-                App(fDef.name, fDef.argSortedVar.map(_.variable)), fDef.body)
-            )
+            // Function may be nullary so we add this check
+            if (fDef.argSortedVar.size == 0){
+                Eq(Var(fDef.name), fDef.body)
+            } else {
+                // Axiomatize the function
+                constraints += Forall(fDef.argSortedVar, Eq(
+                    App(fDef.name, fDef.argSortedVar.map(_.variable)), fDef.body
+                    )
+                )
+            }
+            
         }
 
-        constraints.toSet
+        constraints.toSeq
     }
 
-    def universeConstraints: Set[Term] = {
+    def universeConstraints: Seq[Term] = {
         val elem = Var("elem")
-        sortInterpretations.map({
+        val constraints: mutable.Buffer[Term] = mutable.Buffer.empty
+        sortInterpretations.foreach({
             case (sort, values) =>
-                // forall elem: Sort. sort=value1 || sort=value2 ...
-                Forall(elem.of(sort), Or.smart(
+                
+            sort match {
+                case IntSort | BitVectorSort(_) | BoolSort => ()
+                case _ => // forall elem: Sort. sort=value1 || sort=value2 ...
+                constraints :+ (Forall(elem.of(sort), Or.smart(
                     values.map(value=> SmartEq.smartEq(sort, elem, value))
-                ))
-        }).toSet
+                )))
+            }   
+        })
+
+        constraints.toSeq
     }
 
     override def toString: String = {
