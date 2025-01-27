@@ -258,7 +258,7 @@ object FortressCli {
                 }
                 if (conf.constraints()){
                     println("====Constraints====")
-                    model.SMTConstraints(theory)
+                    println(model.SMTConstraints(theory))
                     println("==End Constraints==")
 
                 }

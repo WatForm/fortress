@@ -8,6 +8,7 @@ import fortress.sortinference._
 import fortress.msfol.DSL._
 import fortress.solvers.Z3NonIncCliSolver
 import fortress.util.{ArgumentListGenerator, Errors, Milliseconds, SmartEq}
+import fortress.util.NameConverter.nameWithQuote
 
 /** An interpretation of a first-order logic signature. */
 trait Interpretation {
@@ -335,7 +336,7 @@ trait Interpretation {
     def SMTConstraints(initialTheory: Theory): String = {
         val output = new StringBuilder()
 
-        sortInterpretations.foreach({case (sort, values) => {
+            sortInterpretations.foreach({case (sort, values) => {
             if (!sort.isBuiltin) { // Don't declare constants for builtins
                 values.foreach(value => value match {
                     case de: DomainElement => {
@@ -351,16 +352,33 @@ trait Interpretation {
                 output.append('\n')
             }
         }})
+        val sig = initialTheory.signature
         // Declare functions that do not appear in the theory
-        for {(fDef) <- functionDefinitions.filter(f => !initialTheory.signature.hasFuncWithName(f.name))} {
-            output.append(fDef.asDeclWithoutBody)
+        for {(fDef) <- functionDefinitions.filter(f => !sig.hasFuncWithName(f.name))} {
+            // Constants can be in here due to weird parsing stuff
+            if (fDef.argSorts.size == 0){
+                // Only declare them if they haven't already been declared
+                if (!sig.hasConstDeclWithName(fDef.name)){
+                    output.append(f"(declare-const ${nameWithQuote(fDef.name)}  ${nameWithQuote(fDef.resultSort.name)})\n")
+                }
+            } else {
+                output.append("(declare-func ")
+                output.append(nameWithQuote(fDef.name))
+                // Args
+                output.append("(")
+                output.append(fDef.argSorts.map(f => nameWithQuote(f.name)).mkString(" "))
+                output.append(") ")
+
+                output.append(nameWithQuote(fDef.resultSort.name))
+                output.append(")\n")
+            }
         }
 
         // Print the constraints
         for (axiom <- constraintAxioms){
             output.append(TermOps(axiom).smtlibAssertionWithDEs)
         }
-
+        
         output.result()
     }
 

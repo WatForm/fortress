@@ -312,6 +312,8 @@ case class Signature private (
 
     def hasFuncWithName(name: String): Boolean = hasFuncDeclWithName(name) || hasFuncDefWithName(name)
     
+    def hasConstDeclWithName(name: String): Boolean = constantDeclarations.exists(_.name == name)
+
     def functionWithName(name: String): Option[FuncDecl] = functionDeclarations.find(_.name == name)
 
     // Includes an unapply function
