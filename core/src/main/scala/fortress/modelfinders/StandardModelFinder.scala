@@ -278,7 +278,7 @@ class StandardModelFinder extends ModelFinder {
 
 //        println("instance:\n " + newInstance)
 
-        val newAxiom = Not(And.smart(newInstance.toConstraints.toList map (compilerResult.right.get.eliminateDomainElements(_))))
+        val newAxiom = Not(And.smart(newInstance.constraintAxioms.toList map (compilerResult.right.get.eliminateDomainElements(_))))
 
 //        println("newAxiom: " + newAxiom)
 

@@ -257,27 +257,8 @@ object FortressCli {
                     }
                 }
                 if (conf.constraints()){
-                    val constraints: Seq[Term] = model.toConstraints
-
                     println("====Constraints====")
-                    // Declare any constants that need to be declared
-                    model.sortInterpretations.foreach({case (sort, values) => {
-                        if (sort.isBuiltin) () else { // don't declare builtins
-                            values.foreach(value => value match {
-                                case de: DomainElement => {
-                                    println(f"(declare-const ${de.asSmtConstant} ${sort.name})")
-                                }
-                                case ev: EnumValue => () // Enum Values should be already included (probably)
-                                // Not sure why BVLiteral can't be used as a type here, but it seems fine on the left
-                                case  BitVectorLiteral(_,_) => Errors.Internal.impossibleState(f"Should not be trying to declare smtlib builtin: ${value}")
-                                case _ : IntegerLiteral | Top | Bottom => Errors.Internal.impossibleState(f"Should not be trying to declare smtlib builtin: ${value}")
-                            })
-                        }
-                    }})
-                    // Print the constraints
-                    for (axiom <- constraints){
-                        println(TermOps(axiom).smtlibAssertionWithDEs)
-                    }
+                    model.SMTConstraints(theory)
                     println("==End Constraints==")
 
                 }

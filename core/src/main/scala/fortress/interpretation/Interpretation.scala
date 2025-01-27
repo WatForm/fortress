@@ -290,8 +290,12 @@ trait Interpretation {
 
     /** Generates a set of constraints which says that an interpretation must agree
       * with this interpretation on all of the constants and functions present.
+      * 
+      * When fixing "nextInterpretation", we should only include constraints for
+      * functions in the theory.
+      * Not even universe constraints (?) 
       */
-    def toConstraints: Seq[Term] = {
+    def constraintAxioms: Seq[Term] = {
         // Order is important because values must be declared before use
         val constraints: mutable.Buffer[Term] = mutable.Buffer.empty
         
@@ -326,6 +330,38 @@ trait Interpretation {
         }
 
         constraints.toSeq
+    }
+
+    def SMTConstraints(initialTheory: Theory): String = {
+        val output = new StringBuilder()
+
+        sortInterpretations.foreach({case (sort, values) => {
+            if (!sort.isBuiltin) { // Don't declare constants for builtins
+                values.foreach(value => value match {
+                    case de: DomainElement => {
+                        output.append(f"(declare-const ${de.asSmtConstant} ${sort.name})\n")
+                    }
+                    case ev: EnumValue => () // Enum Values should be already included (probably)
+                    // Not sure why BVLiteral can't be used as a type here, but it seems fine on the left
+                    case  BitVectorLiteral(_,_) => Errors.Internal.impossibleState(f"Should not be trying to declare smtlib builtin: ${value}")
+                    case _ : IntegerLiteral | Top | Bottom => Errors.Internal.impossibleState(f"Should not be trying to declare smtlib builtin: ${value}")
+                })
+                // Range restrictions are below
+
+                output.append('\n')
+            }
+        }})
+        // Declare functions that do not appear in the theory
+        for {(fDef) <- functionDefinitions.filter(f => !initialTheory.signature.hasFuncWithName(f.name))} {
+            output.append(fDef.asDeclWithoutBody)
+        }
+
+        // Print the constraints
+        for (axiom <- constraintAxioms){
+            output.append(TermOps(axiom).smtlibAssertionWithDEs)
+        }
+
+        output.result()
     }
 
     def universeConstraints: Seq[Term] = {
