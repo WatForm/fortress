@@ -365,7 +365,7 @@ trait Interpretation {
                 output.append("(declare-func ")
                 output.append(nameWithQuote(fDef.name))
                 // Args
-                output.append("(")
+                output.append(" (")
                 output.append(fDef.argSorts.map(f => nameWithQuote(f.name)).mkString(" "))
                 output.append(") ")
 
