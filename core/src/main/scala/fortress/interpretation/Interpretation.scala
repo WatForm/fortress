@@ -362,7 +362,7 @@ trait Interpretation {
                     output.append(f"(declare-const ${nameWithQuote(fDef.name)}  ${nameWithQuote(fDef.resultSort.name)})\n")
                 }
             } else {
-                output.append("(declare-func ")
+                output.append("(declare-fun ")
                 output.append(nameWithQuote(fDef.name))
                 // Args
                 output.append(" (")
