@@ -1,5 +1,5 @@
 ThisBuild / version      := "0.1.0"
-ThisBuild / scalaVersion := "2.13.2"
+ThisBuild / scalaVersion := "2.13.3"
 ThisBuild / organization := "ca.uwaterloo.watform"
 
 
@@ -36,15 +36,15 @@ lazy val fortressCore = (project in file("core"))
         javacOptions ++= Seq("-source", "10", "-target", "10"),
         scalacOptions += "-target:jvm-10",
         // Antlr
-        antlr4Version in Antlr4 := "4.7.2",
-        antlr4PackageName in Antlr4 := Some("fortress.inputs"),
-        antlr4GenListener in Antlr4 := false, // default: true
-        antlr4GenVisitor in Antlr4 := true, // default: false
-        antlr4TreatWarningsAsErrors in Antlr4 := true, // default: false
+        Antlr4 / antlr4Version := "4.7.2",
+        Antlr4 / antlr4PackageName := Some("fortress.inputs"),
+        Antlr4 / antlr4GenListener := false, // default: true
+        Antlr4 / antlr4GenVisitor := true, // default: false
+        Antlr4 / antlr4TreatWarningsAsErrors := true, // default: false
         // Dependencies
         libraryDependencies += "org.scalatest" %% "scalatest" % "3.1.0" % Test, // Scala test
         libraryDependencies += "org.scala-lang.modules" %% "scala-parallel-collections" % "1.0.0", // Parallel collections
         // Disable documentation generation
-        sources in (Compile,doc) := Seq.empty,
-        publishArtifact in (Compile, packageDoc) := false
+        Compile / doc / sources := Seq.empty,
+        Compile / packageDoc / publishArtifact := false
     )
