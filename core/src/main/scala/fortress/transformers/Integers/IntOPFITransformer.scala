@@ -401,7 +401,7 @@ object IntOPFITransformer extends ProblemStateTransformer {
                 val transformedITE = IfThenElse(transformedCondition, transformedIfTrue, transformedIfFalse)
 
                 // predicate needs to be wrapped with the conditional's ability to overflow (the branches should already be handled)
-                val resultSort = ifTrue.typeCheck(down.typeCheckSig(newSignature, newSort)).sort
+                val resultSort = transformedIfTrue.typeCheck(down.typeCheckSig(newSignature, newSort)).sort
                 if (resultSort == BoolSort){
                     val guardedITE = newUp.overflowPredicate(transformedITE, down.polarity, isInBounds.name)
                     (guardedITE, newUp)
