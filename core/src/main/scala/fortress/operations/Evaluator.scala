@@ -191,6 +191,8 @@ class Evaluator(private var theory: Theory) {
             case (BitVectorLiteral(i, bw1), BitVectorLiteral(j, bw2)) => BitVectorLiteral((i << bw2) | j, bw1 + bw2)
         }
 
+        case BuiltinApp(CustomPred(_), _) => None
+
         // TODO: Evaluate quantifiers by expanding?
         case Forall(_, _) => None
         case Exists(_, _) => None

@@ -616,6 +616,9 @@ object Term {
     def mkBvSignedGE(t1: Term, t2: Term): Term = BuiltinApp(BvSignedGE, Seq(t1, t2))
     def mkBvSignedGT(t1: Term, t2: Term): Term = BuiltinApp(BvSignedGT, Seq(t1, t2))
 
+    def mkCustomPred(smtlib: String, args: java.util.List[Term]): Term =
+        BuiltinApp(CustomPred(smtlib), Seq.from(args.asScala))
+
     /** Internal method for creating Domain Elements. */
     def mkDomainElement(index: Int, sort: Sort) = DomainElement(index, sort)
 }

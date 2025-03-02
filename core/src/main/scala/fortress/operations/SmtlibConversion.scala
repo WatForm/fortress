@@ -112,6 +112,7 @@ class SmtlibConverter(writer: java.io.Writer) {
         case BuiltinApp(BvConcat, args) => writeGeneralApp("concat", args)
         case BuiltinApp(CastBVToInt, args) => writeGeneralApp("bv2int", args)
         case BuiltinApp(CastIntToBV(bitwidth), args) => writeGeneralApp(s"(_ int2bv $bitwidth)", args)
+        case BuiltinApp(CustomPred(smtlib), args) => writeGeneralApp(smtlib, args)
 
 
         case Closure(fname, arg1, arg2, fixedArgs) => {

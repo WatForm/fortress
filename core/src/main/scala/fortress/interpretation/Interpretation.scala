@@ -110,6 +110,7 @@ trait Interpretation {
                 evalResult of Sort.Int
             }
             case CastIntToBV(bitwidth) => evalResult of BitVectorSort(bitwidth)
+            case CustomPred(_) => evalResult of Sort.Bool
             case _ => throw new scala.NotImplementedError("Builtin function not accounted for")
         }
 

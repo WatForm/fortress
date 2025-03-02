@@ -4,6 +4,12 @@ import fortress.msfol._
 object PortusPatternAccumulator {
 
     private def obeysPattern(term: Term): Boolean = {
+        // TODO: For testing only: ignore CustomPred terms for validating at-least based scope axioms
+        term match {
+            case BuiltinApp(CustomPred(_), _) => return true
+            case _ =>
+        }
+
         // TODO: in the future:
         //   Recognize sums of definitions called with all possible combinations of domain elements in some positions
         //   and possibly with non-domain-elements in others.

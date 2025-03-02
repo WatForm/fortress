@@ -109,6 +109,16 @@ case object BvSignedGT extends BinaryBitVectorRelation
 case object BvConcat extends BitVectorConcatFunction
 
 
+sealed trait NAryBooleanPredicate extends BuiltinFunction {
+    override def resultSortFromArgSorts(sorts: Seq[Sort]): Option[Sort] =
+        if (sorts.forall(_ == BoolSort)) Some(BoolSort)
+        else None
+}
+
+// Custom SMTLIB predicates passed directly through to the SMT solver for testing
+case class CustomPred(smtlib: String) extends NAryBooleanPredicate
+
+
 /*
  * Casting between Int and Bitvector
  */
