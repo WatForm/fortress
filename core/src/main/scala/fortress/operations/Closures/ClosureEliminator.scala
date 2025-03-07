@@ -148,6 +148,10 @@ abstract class ClosureEliminator(topLevelTerm: Term, signature: Signature, scope
         def visitForallInner(term: Forall): Term = term.mapBody(visit)
         
         def visitExistsInner(term: Exists): Term = term.mapBody(visit)
+
+        def visitForall2ndOrderInner(term: Forall2ndOrder): Term = term.mapBody(visit)
+        
+        def visitExists2ndOrderInner(term: Exists2ndOrder): Term = term.mapBody(visit)
         
         def visitDomainElement(d: DomainElement): Term = d
         

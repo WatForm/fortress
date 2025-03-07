@@ -14,6 +14,9 @@ class PositiveTypeCheckTest extends UnitSuite {
     val z = Var("z")
     val p = Var("p")
     val q = Var("q")
+
+    val c = Var("c")
+    val d = Var("d")
     
     val P = FuncDecl.mkFuncDecl("P", A, Sort.Bool)
     val Q = FuncDecl.mkFuncDecl("Q", B, Sort.Bool)
@@ -209,6 +212,33 @@ class PositiveTypeCheckTest extends UnitSuite {
 
         val t = Term.mkReflexiveClosure("R", x, y)
         t.typeCheck(sig).sort should be (Sort.Bool)
+    }
+
+    test("2nd order quantifiers") {
+        val sig = Signature.empty
+            .withSorts(A, B)
+            .withConstantDeclarations(c.of(A), d.of(B))
+        val forall = Forall2ndOrder(FuncDecl("P", A, BoolSort), App("P", c))
+        val exists = Exists2ndOrder(FuncDecl("f", B, A), Eq(App("f", d), c))
+        forall.typeCheck(sig).sort should be (Sort.Bool)
+        exists.typeCheck(sig).sort should be (Sort.Bool)
+    }
+
+    test("2nd order quantifier shadow") {
+        val sig = Signature.empty
+            .withSorts(A, B)
+            .withConstantDeclarations(c.of(A), d.of(B))
+            .withFunctionDeclarations(f)
+        val term1 = And(
+            Forall2ndOrder(FuncDecl("f", B, A), Eq(c, App("f", d))),
+            Eq(d, App("f", c))
+        )
+        val term2 = And(
+            Exists2ndOrder(FuncDecl("f", B, A), Eq(c, App("f", d))),
+            Eq(d, App("f", c))
+        )
+        term1.typeCheck(sig).sort should be (Sort.Bool)
+        term2.typeCheck(sig).sort should be (Sort.Bool)
     }
         
 }

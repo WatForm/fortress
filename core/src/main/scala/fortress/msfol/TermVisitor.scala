@@ -22,6 +22,8 @@ trait TermVisitor[T] {
     def visitBuiltinApp(term: BuiltinApp): T
     def visitExists(term: Exists): T
     def visitForall(term: Forall): T
+    def visitExists2ndOrder(term: Exists2ndOrder): T
+    def visitForall2ndOrder(term: Forall2ndOrder): T
     def visitIntegerLiteral(term: IntegerLiteral): T
     def visitBitVectorLiteral(term: BitVectorLiteral): T
     def visitSetCardinality(term: SetCardinality): T

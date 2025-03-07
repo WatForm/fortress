@@ -14,6 +14,9 @@ class NegativeTypeCheckTest extends UnitSuite {
     val z = Var("z")
     val p = Var("p")
     val q = Var("q")
+
+    val c = Var("c")
+    val d = Var("d")
     
     val P = FuncDecl.mkFuncDecl("P", A, Sort.Bool)
     val Q = FuncDecl.mkFuncDecl("Q", B, Sort.Bool)
@@ -533,6 +536,21 @@ class NegativeTypeCheckTest extends UnitSuite {
         val t = Term.mkReflexiveClosure("R", x, y)
         an [fortress.data.TypeCheckException.WrongSort] should be thrownBy {
             t.typeCheck(sig)
+        }
+    }
+
+    test("2nd order quantifier wrong types") {
+        val sig = Signature.empty
+            .withSorts(A, B)
+            .withConstantDeclarations(c.of(A), d.of(B))
+        val forall = Forall2ndOrder(FuncDecl("P", A, BoolSort), App("P", d))
+        val exists = Exists2ndOrder(FuncDecl("f", B, A), Eq(App("f", d, d), c))
+        
+        an [fortress.data.TypeCheckException.WrongSort] should be thrownBy {
+            forall.typeCheck(sig)
+        }
+        an [fortress.data.TypeCheckException.WrongSort] should be thrownBy {
+            exists.typeCheck(sig)
         }
     }
     

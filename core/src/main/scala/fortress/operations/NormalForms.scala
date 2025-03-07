@@ -44,6 +44,12 @@ object NormalForms {
         case Exists(vars, body) => Exists(vars, nnf(body))
         case Not(Exists(vars, body)) => Forall(vars, nnf(Not(body)))
 
+        case Forall2ndOrder(declarations, body) => Forall2ndOrder(declarations, nnf(body))
+        case Not(Forall2ndOrder(declarations, body)) => Exists2ndOrder(declarations, nnf(Not(body)))
+
+        case Exists2ndOrder(declarations, body) => Exists2ndOrder(declarations, nnf(body))
+        case Not(Exists2ndOrder(declarations, body)) => Forall2ndOrder(declarations, nnf(Not(body)))
+
         case (distinct: Distinct) => nnf(distinct.asPairwiseNotEquals)
         case Not(distinct @ Distinct(_)) => nnf(Not(distinct.asPairwiseNotEquals))
 
