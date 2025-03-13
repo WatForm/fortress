@@ -3,6 +3,7 @@ import org.scalatest._
 import fortress.msfol._
 import fortress.transformers._
 import fortress.problemstate._
+import fortress.msfol.Sort.Bool
 
 class SkolemizeTransformerTests extends UnitSuite with CommonSymbols {
    
@@ -24,6 +25,8 @@ class SkolemizeTransformerTests extends UnitSuite with CommonSymbols {
     val sk_4 = FunctionSymbol("sk_4")
     val sk_5 = FunctionSymbol("sk_5")
     val sk_6 = FunctionSymbol("sk_6")
+
+    val x_0 = Var("x_0")
     
     test("simple skolem constant") {
         val sk_0 = Var("sk_0")
@@ -466,8 +469,28 @@ class SkolemizeTransformerTests extends UnitSuite with CommonSymbols {
     }
     */
 
+    test("shadowing forall exists forall") {
+        val ax1 = Forall(x of A, Exists(y of A, Q(x) and Q(y) and Forall(x of B, P(x, y))))
+
+        val theory = Theory.empty
+            .withSorts(A, B)
+            .withFunctionDeclaration(Q from A to BoolSort)
+            .withFunctionDeclaration(P from (B, A) to BoolSort)
+            .withAxiom(ax1)
+        
+        val ax2 = Forall(x of A, Q(x) and Q(sk_0(x)) and Forall(x_0 of B, P(x_0, sk_0(x))))
+        val expected = Theory.empty
+            .withSorts(A, B)
+            .withFunctionDeclaration(Q from A to BoolSort)
+            .withFunctionDeclaration(P from (B, A) to BoolSort)
+            .withFunctionDeclaration(sk_0 from A to A)
+            .withAxiom(ax2)
+
+        (skolemizer(theory).theory) should be (expected)
+    }
+
     test("Exists2ndOrder basic") {
-         val theory = Theory.empty
+        val theory = Theory.empty
             .withSorts(A, B)
             .withFunctionDeclaration(P from A to B)
             .withConstantDeclaration(y of A)
@@ -485,7 +508,7 @@ class SkolemizeTransformerTests extends UnitSuite with CommonSymbols {
 
     test("Forall Exists2ndOrder ") {
         val ax1 = Forall(y of A, Exists2ndOrder(R from B to BoolSort, R(P(y))))
-         val theory = Theory.empty
+        val theory = Theory.empty
             .withSorts(A, B)
             .withFunctionDeclaration(P from A to B)
             .withAxiom(ax1)
@@ -495,6 +518,58 @@ class SkolemizeTransformerTests extends UnitSuite with CommonSymbols {
             .withSorts(A, B)
             .withFunctionDeclaration(P from A to B)
             .withFunctionDeclaration(sk_0 from (A, B) to BoolSort)
+            .withAxiom(ax2)
+
+        (skolemizer(theory).theory) should be (expected)
+    }
+
+    test("nested Exists2ndOrder and forall") {
+        val ax1 = Forall(x of A, Exists2ndOrder(R from B to BoolSort, Forall(y of B, Exists2ndOrder(f from (B, A) to B, R(f(y, x))))))
+        val theory = Theory.empty
+            .withSorts(A, B)
+            .withAxiom(ax1)
+        
+        val ax2 = Forall(x of A, Forall(y of B, sk_0(x, sk_1(x, y, y, x))))
+        val expected = Theory.empty
+            .withSorts(A, B)
+            .withFunctionDeclaration(sk_0 from (A, B) to BoolSort)
+            .withFunctionDeclaration(sk_1 from (A, B, B, A) to B)
+            .withAxiom(ax2)
+        
+        (skolemizer(theory).theory) should be (expected)
+    }
+
+    test("multivariable Exists2ndOrder") {
+        val ax1 = Forall(Seq(x of A, y of B), Exists2ndOrder(Seq(R from B to BoolSort, f from A to B), R(f(x))))
+        val theory = Theory.empty
+            .withSorts(A, B)
+            .withAxiom(ax1)
+        
+        val ax2 = Forall(Seq(x of A, y of B), sk_0(x, sk_1(x, x)))
+        val expected = Theory.empty
+            .withSorts(A, B)
+            .withFunctionDeclaration(sk_0 from (A, B) to BoolSort)
+            .withFunctionDeclaration(sk_1 from (A, A) to B)
+            .withAxiom(ax2)
+        
+        (skolemizer(theory).theory) should be (expected)
+    }
+
+    test("shadowing forall exists2ndOrder forall") {
+        val ax1 = Forall(x of A, Exists2ndOrder(f from A to A, Q(x) and Q(f(x)) and Forall(x of B, P(x, f(x)))))
+
+        val theory = Theory.empty
+            .withSorts(A, B)
+            .withFunctionDeclaration(Q from A to BoolSort)
+            .withFunctionDeclaration(P from (B, A) to BoolSort)
+            .withAxiom(ax1)
+        
+        val ax2 = Forall(x of A, Q(x) and Q(sk_0(x, x)) and Forall(x_0 of B, P(x_0, sk_0(x, x_0))))
+        val expected = Theory.empty
+            .withSorts(A, B)
+            .withFunctionDeclaration(Q from A to BoolSort)
+            .withFunctionDeclaration(P from (B, A) to BoolSort)
+            .withFunctionDeclaration(sk_0 from (A, A) to A)
             .withAxiom(ax2)
 
         (skolemizer(theory).theory) should be (expected)
