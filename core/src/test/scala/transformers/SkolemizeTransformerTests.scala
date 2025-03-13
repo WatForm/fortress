@@ -465,4 +465,38 @@ class SkolemizeTransformerTests extends UnitSuite with CommonSymbols {
 
     }
     */
+
+    test("Exists2ndOrder basic") {
+         val theory = Theory.empty
+            .withSorts(A, B)
+            .withFunctionDeclaration(P from A to B)
+            .withConstantDeclaration(y of A)
+            .withAxiom(Exists2ndOrder(R from B to BoolSort, R(P(y))))
+
+        val expected = Theory.empty
+            .withSorts(A, B)
+            .withFunctionDeclaration(P from A to B)
+            .withConstantDeclaration(y of A)
+            .withFunctionDeclaration(sk_0 from B to BoolSort)
+            .withAxiom(sk_0(P(y)))
+
+        (skolemizer(theory).theory) should be (expected)
+    }
+
+    test("Forall Exists2ndOrder ") {
+        val ax1 = Forall(y of A, Exists2ndOrder(R from B to BoolSort, R(P(y))))
+         val theory = Theory.empty
+            .withSorts(A, B)
+            .withFunctionDeclaration(P from A to B)
+            .withAxiom(ax1)
+
+        val ax2 = Forall(y of A, sk_0(y, P(y)))
+        val expected = Theory.empty
+            .withSorts(A, B)
+            .withFunctionDeclaration(P from A to B)
+            .withFunctionDeclaration(sk_0 from (A, B) to BoolSort)
+            .withAxiom(ax2)
+
+        (skolemizer(theory).theory) should be (expected)
+    }
 }

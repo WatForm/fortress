@@ -27,6 +27,8 @@ object RecursiveAccumulator {
         case Exists(vars, body) => allSymbolsIn(body) union (vars map (_.variable.name)).toSet union (vars map (_.sort.name)).toSet
         case IfThenElse(condition, ifTrue, ifFalse) => allSymbolsIn(condition) union allSymbolsIn(ifTrue) union allSymbolsIn(ifFalse)
         case SetCardinality(pname) => Set(pname)
+        case Exists2ndOrder(declarations, body) => allSymbolsIn(body) union (declarations map (_.name)).toSet union (declarations.map(_.allSorts).flatten.map(_.name)).toSet
+        case Forall2ndOrder(declarations, body) => allSymbolsIn(body) union (declarations map (_.name)).toSet union (declarations.map(_.allSorts).flatten.map(_.name)).toSet
     }
     
     /** Returns the set of all domain elements that appear within a term.
@@ -156,6 +158,8 @@ object RecursiveAccumulator {
         case Exists(vars, body) => freeVariablesIn(body) diff (vars map (_.variable)).toSet
         case Forall(vars, body) => freeVariablesIn(body) diff (vars map (_.variable)).toSet
         case IfThenElse(condition, ifTrue, ifFalse) => freeVariablesIn(condition) union freeVariablesIn(ifTrue) union freeVariablesIn(ifFalse)
+        case Exists2ndOrder(declarations, body) => freeVariablesIn(body)
+        case Forall2ndOrder(declarations, body) => freeVariablesIn(body)
     }
 
     /** Accumulates the names of relations that appear in [Reflexive]Closure(...), ignoring those inside a Not

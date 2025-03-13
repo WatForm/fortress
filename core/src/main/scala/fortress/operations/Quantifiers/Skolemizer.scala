@@ -6,9 +6,11 @@ import fortress.operations.TermOps._
 import java.lang.IllegalArgumentException
 import fortress.util.Errors
 
-// Skolemizes a given term, which must be in negation normal form.
-// Free variables in the given term are ignored, so the top level term must be
-// closed with respect to the signature in question for this operation to be valid.
+/**
+  * Skolemizes a term. The term must be in negation normal form.
+  * Free variables in the term are ignored, so the top level term must be closed
+  * with respect to the signature in question for this operation to be valid.
+  */
 
 object Skolemization {
 
@@ -20,6 +22,7 @@ object Skolemization {
         val skolemConstants = scala.collection.mutable.Set[AnnotatedVar]()
         var context = Context.empty(sig)
 
+        // Eliminates existential quantifiers from the top down.
         def recur(term: Term): Term = term match {
             case Top | Bottom | Var(_) | DomainElement(_, _) | IntegerLiteral(_) | BitVectorLiteral(_, _) | EnumValue(_) => term
             case Not(p) => Not(recur(p))
@@ -84,6 +87,37 @@ object Skolemization {
                     }
                 }
                 recur(temporaryBody)
+            }
+            case Forall2ndOrder(declarations, body) => {
+                throw new fortress.util.Errors.UnsupportedFeature("2nd Order Forall could not be eliminated - feature is unsupported.")
+            }
+            case Exists2ndOrder(declarations, body) => {
+                if(declarations.size > 1) {
+                    recur(Exists2ndOrder(declarations.head, Exists2ndOrder(declarations.tail, body)))
+                } else {
+                    val decl = declarations.head
+
+                    // Determine what arguments the skolem function needs
+                    // These are the free variables of the term that were universally quantified higher up.
+                    // We can just read these off the context stack.
+                    // Note that we don't have to worry about universally quantified relations since we explicitly do not support this (see error above).
+                    val skolemArguments: Seq[AnnotatedVar] = for {
+                        variable <- term.freeVarConstSymbols.toList
+                        annotatedVar <- context.mostRecentStackAppearence(variable)
+                    } yield annotatedVar
+
+                    val skolemFunctionName = nameGen.freshName("sk") 
+                    val skolemFunction = FuncDecl(skolemFunctionName, skolemArguments.map(_.sort) ++ decl.argSorts, decl.resultSort)
+
+                    skolemFunctions += skolemFunction
+
+                    // Perform substitution
+                    val newBody = body.renameApplications(decl.name, skolemFunction.name).prependToApplications(skolemFunction.name, skolemArguments.map(_.variable))
+
+                    context = context.updateSignature(context.signature.withFunctionDeclaration(skolemFunction))
+
+                    recur(newBody)
+                }
             }
             // Arguments with unknown polarity cannot be skolemized
             case Closure(functionName, arg1, arg2, fixedArgs) => term
