@@ -26,6 +26,7 @@ trait CommonFunctionalSymbols extends UnitSuite {
 trait CommonVariableSymbols extends UnitSuite {
     val p = Var("p")
     val q = Var("q")
+    val w = Var("w")
     val x = Var("x")
     val y = Var("y")
     val z = Var("z")

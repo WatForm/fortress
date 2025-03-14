@@ -182,7 +182,7 @@ object AuxSubstituter {
         recur(term)
     }
 
-    def prependToApplications(term: Term, fnName: String, argsToPrepend: Seq[Term]): Term = {
+    def appendToApplications(term: Term, fnName: String, argsToAppend: Seq[Term]): Term = {
         // todo fix variable capture
         def recur(term: Term): Term = term match {
             case Top | Bottom | Var(_) | DomainElement(_, _) | EnumValue(_) | IntegerLiteral(_) | BitVectorLiteral(_, _) => term
@@ -206,15 +206,15 @@ object AuxSubstituter {
             case Forall2ndOrder(declarations, body) => Forall2ndOrder(declarations, recur(body))
                 
             case ReflexiveClosure(functionName, arg1, arg2, fixedArgs) => {
-                if(functionName == fnName) ???
+                if(functionName == fnName) ReflexiveClosure(functionName, recur(arg1), recur(arg2), fixedArgs.map(recur) ++ argsToAppend)
                 else ReflexiveClosure(functionName, recur(arg1), recur(arg2), fixedArgs.map(recur))
             }
             case Closure(functionName, arg1, arg2, fixedArgs) => {
-                if(functionName == fnName) ???
+                if(functionName == fnName) Closure(functionName, recur(arg1), recur(arg2), fixedArgs.map(recur) ++ argsToAppend)
                 else Closure(functionName, recur(arg1), recur(arg2), fixedArgs.map(recur))
             }
             case App(functionName, arguments) => {
-                if(functionName == fnName) App(functionName, argsToPrepend ++ arguments.map(recur))
+                if(functionName == fnName) App(functionName, arguments.map(recur) ++ argsToAppend)
                 else App(functionName, arguments.map(recur))
             }
 

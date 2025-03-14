@@ -110,7 +110,7 @@ case class TermOps private (term: Term) {
 
     def renameApplications(original: String, replacement: String): Term = AuxSubstituter.renameApplications(term, original, replacement)
 
-    def prependToApplications(fnName: String, argsToPrepend: Seq[Term]): Term = AuxSubstituter.prependToApplications(term, fnName, argsToPrepend)
+    def appendToApplications(fnName: String, argsToAppend: Seq[Term]): Term = AuxSubstituter.appendToApplications(term, fnName, argsToAppend)
     
     def smtlib: String = {
         val writer = new java.io.StringWriter

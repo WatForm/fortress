@@ -107,12 +107,12 @@ object Skolemization {
                     } yield annotatedVar
 
                     val skolemFunctionName = nameGen.freshName("sk") 
-                    val skolemFunction = FuncDecl(skolemFunctionName, skolemArguments.map(_.sort) ++ decl.argSorts, decl.resultSort)
+                    val skolemFunction = FuncDecl(skolemFunctionName, decl.argSorts ++ skolemArguments.map(_.sort), decl.resultSort)
 
                     skolemFunctions += skolemFunction
 
                     // Perform substitution
-                    val newBody = body.renameApplications(decl.name, skolemFunction.name).prependToApplications(skolemFunction.name, skolemArguments.map(_.variable))
+                    val newBody = body.renameApplications(decl.name, skolemFunction.name).appendToApplications(skolemFunction.name, skolemArguments.map(_.variable))
 
                     context = context.updateSignature(context.signature.withFunctionDeclaration(skolemFunction))
 

@@ -513,11 +513,11 @@ class SkolemizeTransformerTests extends UnitSuite with CommonSymbols {
             .withFunctionDeclaration(P from A to B)
             .withAxiom(ax1)
 
-        val ax2 = Forall(y of A, sk_0(y, P(y)))
+        val ax2 = Forall(y of A, sk_0(P(y), y))
         val expected = Theory.empty
             .withSorts(A, B)
             .withFunctionDeclaration(P from A to B)
-            .withFunctionDeclaration(sk_0 from (A, B) to BoolSort)
+            .withFunctionDeclaration(sk_0 from (B, A) to BoolSort)
             .withAxiom(ax2)
 
         (skolemizer(theory).theory) should be (expected)
@@ -529,11 +529,11 @@ class SkolemizeTransformerTests extends UnitSuite with CommonSymbols {
             .withSorts(A, B)
             .withAxiom(ax1)
         
-        val ax2 = Forall(x of A, Forall(y of B, sk_0(x, sk_1(x, y, y, x))))
+        val ax2 = Forall(x of A, Forall(y of B, sk_0(sk_1(y, x, y, x), x)))
         val expected = Theory.empty
             .withSorts(A, B)
-            .withFunctionDeclaration(sk_0 from (A, B) to BoolSort)
-            .withFunctionDeclaration(sk_1 from (A, B, B, A) to B)
+            .withFunctionDeclaration(sk_0 from (B, A) to BoolSort)
+            .withFunctionDeclaration(sk_1 from (B, A, B, A) to B)
             .withAxiom(ax2)
         
         (skolemizer(theory).theory) should be (expected)
@@ -545,10 +545,10 @@ class SkolemizeTransformerTests extends UnitSuite with CommonSymbols {
             .withSorts(A, B)
             .withAxiom(ax1)
         
-        val ax2 = Forall(Seq(x of A, y of B), sk_0(x, sk_1(x, x)))
+        val ax2 = Forall(Seq(x of A, y of B), sk_0(sk_1(x, x), x))
         val expected = Theory.empty
             .withSorts(A, B)
-            .withFunctionDeclaration(sk_0 from (A, B) to BoolSort)
+            .withFunctionDeclaration(sk_0 from (B, A) to BoolSort)
             .withFunctionDeclaration(sk_1 from (A, A) to B)
             .withAxiom(ax2)
         
@@ -564,12 +564,31 @@ class SkolemizeTransformerTests extends UnitSuite with CommonSymbols {
             .withFunctionDeclaration(P from (B, A) to BoolSort)
             .withAxiom(ax1)
         
-        val ax2 = Forall(x of A, Q(x) and Q(sk_0(x, x)) and Forall(x_0 of B, P(x_0, sk_0(x, x_0))))
+        val ax2 = Forall(x of A, Q(x) and Q(sk_0(x, x)) and Forall(x_0 of B, P(x_0, sk_0(x_0, x))))
         val expected = Theory.empty
             .withSorts(A, B)
             .withFunctionDeclaration(Q from A to BoolSort)
             .withFunctionDeclaration(P from (B, A) to BoolSort)
             .withFunctionDeclaration(sk_0 from (A, A) to A)
+            .withAxiom(ax2)
+
+        (skolemizer(theory).theory) should be (expected)
+    }
+
+    test("exists2ndorder with Closure") {
+        val ax1 = Forall(x of C, Exists2ndOrder(P from (A, A, C, B) to BoolSort, Closure(P.name, y, z, Seq(x, w)) and ReflexiveClosure(P.name, z, y, Seq(x, w))))
+
+        val theory = Theory.empty
+            .withSorts(A, B, C)
+            .withConstantDeclarations(y of A, z of A, w of B)
+            .withAxiom(ax1)
+
+        val ax2 = Forall(x of C, Closure(sk_0.name, y, z, Seq(x, w, x)) and ReflexiveClosure(sk_0.name, z, y, Seq(x, w, x)))
+
+        val expected = Theory.empty
+            .withSorts(A, B, C)
+            .withConstantDeclarations(y of A, z of A, w of B)
+            .withFunctionDeclaration(sk_0 from (A, A, C, B, C) to BoolSort)
             .withAxiom(ax2)
 
         (skolemizer(theory).theory) should be (expected)
