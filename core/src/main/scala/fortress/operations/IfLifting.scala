@@ -39,6 +39,8 @@ object IfLifter {
         case Iff(p, q) => Iff(removeItesForBoolTerm(liftItes(p)), removeItesForBoolTerm(liftItes(q)))
         case Forall(vars, body) => Forall(vars, removeItesForBoolTerm(liftItes(body)))
         case Exists(vars, body) => Exists(vars, removeItesForBoolTerm(liftItes(body)))
+        case Forall2ndOrder(declarations, body) => Forall2ndOrder(declarations, removeItesForBoolTerm(liftItes(body)))
+        case Exists2ndOrder(declarations, body) => Exists2ndOrder(declarations, removeItesForBoolTerm(liftItes(body)))
         case Not(p) => Not(removeItesForBoolTerm(liftItes(p))) 
         case Eq(a,b) => removeItesForBoolTerm(reLiftItes(Eq(liftItes(a),liftItes(b))))
 
@@ -76,7 +78,7 @@ object IfLifter {
              => term
         // for all the logical operators just push iflifting down
         case AndList(_) | OrList(_) | Implication(_,_) |
-            Iff(_,_) | Forall(_,_) | Exists(_,_) | Not(_) => term
+            Iff(_,_) | Forall(_,_) | Exists(_,_) | Not(_) | Forall2ndOrder(_,_) | Exists2ndOrder(_, _) => term
         case IfThenElse(_, _, _) => term 
         case (distinct: Distinct) => Errors.Internal.preconditionFailed(s"Should not reach this 'distinct' case in reLiftItes: ${term}")
         case Eq(a,b) => reLiftOverArgs((args: Seq[Term]) => Eq(args(0),args(1)), Seq(a,b))

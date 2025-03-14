@@ -22,6 +22,8 @@ trait NaturalTermRecursion {
             case ReflexiveClosure(f, arg1, arg2, args) => ReflexiveClosure(f, naturalRecur(arg1), naturalRecur(arg2), args map naturalRecur)
             case Exists(vars, body) => Exists(vars, naturalRecur(body))
             case Forall(vars, body) => Forall(vars, naturalRecur(body))
+            case Exists2ndOrder(declarations, body) => Exists2ndOrder(declarations, naturalRecur(body))
+            case Forall2ndOrder(declarations, body) => Forall2ndOrder(declarations, naturalRecur(body))
             case IfThenElse(condition, ifTrue, ifFalse) =>
                 IfThenElse(naturalRecur(condition), naturalRecur(ifTrue), naturalRecur(ifFalse))
         }
@@ -61,6 +63,8 @@ trait NaturalSetAccumulation[A] {
             case ReflexiveClosure(_, arg1, arg2, args) => naturalRecur(arg1) union naturalRecur(arg2) union (args map naturalRecur reduce (_ union _))
             case Exists(vars, body) => naturalRecur(body)
             case Forall(vars, body) => naturalRecur(body)
+            case Exists2ndOrder(declarations, body) => naturalRecur(body)
+            case Forall2ndOrder(declarations, body) => naturalRecur(body)
             case IfThenElse(condition, ifTrue, ifFalse) => naturalRecur(condition) union naturalRecur(ifTrue) union naturalRecur(ifFalse)
         }
 }
@@ -88,6 +92,8 @@ abstract class NaturalReduction[R](val identity: R, val op: (R, R) => R) {
             case ReflexiveClosure(_, arg1, arg2, args) => op(op(naturalRecur(arg1), naturalRecur(arg2)), args map naturalRecur reduce (op(_, _)))
             case Exists(vars, body) => naturalRecur(body)
             case Forall(vars, body) => naturalRecur(body)
+            case Exists2ndOrder(declarations, body) => naturalRecur(body)
+            case Forall2ndOrder(declarations, body) => naturalRecur(body)
             case IfThenElse(condition, ifTrue, ifFalse) => op(op(naturalRecur(condition), naturalRecur(ifTrue)), naturalRecur(ifFalse))
         }
 }

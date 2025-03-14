@@ -149,9 +149,13 @@ abstract class ClosureEliminator(topLevelTerm: Term, signature: Signature, scope
         
         def visitExistsInner(term: Exists): Term = term.mapBody(visit)
 
-        def visitForall2ndOrderInner(term: Forall2ndOrder): Term = term.mapBody(visit)
+        def visitForall2ndOrderInner(term: Forall2ndOrder): Term = {
+            Errors.Internal.preconditionFailed("There should be no 2nd order quantifiers at this stage.")
+        }
         
-        def visitExists2ndOrderInner(term: Exists2ndOrder): Term = term.mapBody(visit)
+        def visitExists2ndOrderInner(term: Exists2ndOrder): Term = {
+            Errors.Internal.preconditionFailed("There should be no 2nd order quantifiers at this stage.")
+        }
         
         def visitDomainElement(d: DomainElement): Term = d
         

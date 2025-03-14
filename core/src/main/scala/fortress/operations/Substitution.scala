@@ -196,8 +196,12 @@ object AuxSubstituter {
             case BuiltinApp(function, arguments) => BuiltinApp(function, arguments.map(recur))
             case IfThenElse(condition, ifTrue, ifFalse) => IfThenElse(recur(condition), recur(ifTrue), recur(ifFalse))
 
-            case Exists(vars, body) => Exists(vars, recur(body))
-            case Forall(vars, body) => Forall(vars, recur(body))
+            case Exists(vars, body) => {
+                Exists(vars, recur(body))
+            }
+            case Forall(vars, body) => {
+                Forall(vars, recur(body))
+            }
             case Exists2ndOrder(declarations, body) => Exists2ndOrder(declarations, recur(body))
             case Forall2ndOrder(declarations, body) => Forall2ndOrder(declarations, recur(body))
                 
