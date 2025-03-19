@@ -31,7 +31,7 @@ object CompilersRegistry {
             case "AlmostNothing" => new AlmostNothingCompiler()
 
             // compilers for Portus testing
-            case "IntNOBVCompiler" => new IntNOBVCompiler()
+            case "IntNOBV" => new IntNOBVCompiler()
     
             // use datatypes to make it finite
             case "DatatypeNoRangeEUF" => new DatatypeNoRangeEUFCompiler()
