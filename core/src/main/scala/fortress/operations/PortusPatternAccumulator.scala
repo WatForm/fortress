@@ -23,6 +23,8 @@ object PortusPatternAccumulator {
 
         def isSumDef(t: Term) = t match {
             case App(fname, _) => fname.startsWith("sum_def")
+            // TODO: TESTING ONLY! UNSOUND!
+            case IfThenElse(_, IntegerLiteral(1), IntegerLiteral(0)) => true
             case _ => false
         }
         addends.forall(isSumDef)

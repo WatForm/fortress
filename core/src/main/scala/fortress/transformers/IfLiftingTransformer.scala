@@ -9,6 +9,7 @@ import fortress.problemstate.ProblemState
 /** Changes each axiom of the theory into negation normal form. */
 object IfLiftingTransformer extends ProblemStateTransformer {
     override def apply(problemState: ProblemState): ProblemState = {
+        return problemState.withFlags(problemState.flags.copy(haveRunIfLifting = true))
 
         val theory = problemState.theory
 

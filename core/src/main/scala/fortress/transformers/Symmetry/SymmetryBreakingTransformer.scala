@@ -212,6 +212,8 @@ class SymmetryBreakingTransformer(
         }
 
         loop(Set.empty)
+        println(s"SYMMETRY BREAKING CONSTRAINTS (${newConstraints.size}): $newConstraints")
+        println(s"SYMMETRY BREAKING RANGE RESTRICTIONS (${newRangeRestrictions.size}): $newRangeRestrictions")
         (newDeclarations.toList, newConstraints.toList, newRangeRestrictions.toSet)
     }
     /*
