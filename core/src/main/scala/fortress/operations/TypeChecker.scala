@@ -368,8 +368,9 @@ class TypeChecker(signature: Signature) extends TermVisitorWithTypeContext[TypeC
         val funcName = c.functionName
 
         // Check function we are closing over exists
-        if(! (signature hasFuncWithName  funcName) ) {
-            throw new TypeCheckException.UnknownFunction("Could not find function: " + funcName)
+        val decl: FuncDecl = lookupFuncDecl(funcName) match {
+            case None => throw new TypeCheckException.UnknownFunction("Could not find function: " + funcName)
+            case Some(decl) => decl
         }
         
         val results = c.allArguments.map(visit)
@@ -434,8 +435,10 @@ class TypeChecker(signature: Signature) extends TermVisitorWithTypeContext[TypeC
         // 2. arguments contain no connectives or quantifiers
         val funcName = rc.functionName
 
-        if(! (signature hasFuncWithName  funcName) ) {
-            throw new TypeCheckException.UnknownFunction("Could not find function: " + funcName)
+        // First check if context has the name
+        val decl: FuncDecl = lookupFuncDecl(funcName) match {
+            case None => throw new TypeCheckException.UnknownFunction("Could not find function: " + funcName)
+            case Some(decl) => decl
         }
         
         val results = rc.allArguments.map(visit)

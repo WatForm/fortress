@@ -18,10 +18,12 @@ object TypecheckSanitizeTransformer extends ProblemStateTransformer {
         val theory = problemState.theory
         var containsItes = false
         var containsExists = false
+        var contains2ndOrder = false
 
-        def checkResult(result:TypeCheckResult, s:Sort):Term = {
+        def checkResult(result: TypeCheckResult, s: Sort): Term = {
             containsItes = containsItes || result.containsItes
             containsExists = containsExists || result.containsExists
+            contains2ndOrder = contains2ndOrder || result.containsQuantifiers2ndOrder
             // System.out.println(axiom.toString + (result.sort).toString) ;
             if (result.sort != s) 
                 // This error message isn't great because typechecking does change
@@ -53,7 +55,8 @@ object TypecheckSanitizeTransformer extends ProblemStateTransformer {
         .withFlags(
             problemState.flags.copy(
                 containsItes = containsItes,
-                containsExists = containsExists
+                containsExists = containsExists,
+                constains2ndOrderQuantifiers = contains2ndOrder
             )
         )
     }

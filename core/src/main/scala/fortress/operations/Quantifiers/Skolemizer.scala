@@ -30,13 +30,14 @@ object Skolemization {
             case OrList(args) => OrList(args map recur)
             case Distinct(_) | Iff (_, _) | Implication(_, _) => Errors.Internal.preconditionFailed(s"Term not in negation normal form: ${term}")
 
-
-            // Arguments to fcn/builtinapp with unknown polarity cannot be skolemized
+            // Arguments to function/builtinapp with unknown polarity cannot be skolemized
             case Eq(l, r) => term
             case App(fn, args) => term
             case BuiltinApp(fn, args) => term
             case IfThenElse(c, t, f) => term
             case SetCardinality(p) => term
+            case Closure(functionName, arg1, arg2, fixedArgs) => term
+            case ReflexiveClosure(functionName, arg1, arg2, fixedArgs) => term
 
             case Forall(avars, body) => {
                 context = context.stackPush(avars)
@@ -89,6 +90,43 @@ object Skolemization {
                 recur(temporaryBody)
             }
             case Forall2ndOrder(declarations, body) => {
+                Errors.Internal.preconditionFailed("There should be no 2nd order quantifiers at this stage.")
+            }
+            case Exists2ndOrder(declarations, body) => {
+                Errors.Internal.preconditionFailed("There should be no 2nd order quantifiers at this stage.")
+            }
+        }
+        val skolemTerm = recur(axiom)
+        SkolemResult(skolemTerm, skolemConstants.toSet, skolemFunctions.toSet)
+    }
+
+    // Mutates the name generator
+    def skolemize2ndOrderOnly(axiom: Term, sig: Signature, nameGen: NameGenerator): SkolemResult = {
+        val skolemFunctions = scala.collection.mutable.Set[FuncDecl]()
+        val skolemConstants = scala.collection.mutable.Set[AnnotatedVar]()
+        var context = Context.empty(sig)
+
+        def recur(term: Term): Term = term match {
+            case Top | Bottom | Var(_) | DomainElement(_, _) | IntegerLiteral(_) | BitVectorLiteral(_, _) | EnumValue(_) => term
+            case Not(p) => Not(recur(p))
+            case AndList(args) => AndList(args map recur)
+            case OrList(args) => OrList(args map recur)
+            case Distinct(_) | Iff (_, _) | Implication(_, _) => Errors.Internal.preconditionFailed(s"Term not in negation normal form: ${term}")
+
+            // Arguments to function/builtinapp with unknown polarity cannot be skolemized
+            case Eq(_, _) | App(_, _) | BuiltinApp(_, _) | IfThenElse(_, _, _) | SetCardinality(_) | Closure(_, _, _, _) | ReflexiveClosure(_, _, _, _) => term
+
+            case Exists(avars, body) => {
+                // Intentionally do not push these onto the context stack
+                Exists(avars, recur(body))
+            }
+            case Forall(avars, body) => {
+                context = context.stackPush(avars)
+                val r = Forall(avars, recur(body))
+                context = context.stackPop(avars.size)
+                r
+            }
+            case Forall2ndOrder(declarations, body) => {
                 throw new fortress.util.Errors.UnsupportedFeature("2nd Order Forall could not be eliminated - feature is unsupported.")
             }
             case Exists2ndOrder(declarations, body) => {
@@ -119,11 +157,7 @@ object Skolemization {
                     recur(newBody)
                 }
             }
-            // Arguments with unknown polarity cannot be skolemized
-            case Closure(functionName, arg1, arg2, fixedArgs) => term
-            case ReflexiveClosure(functionName, arg1, arg2, fixedArgs) => term
         }
-
         val skolemTerm = recur(axiom)
         SkolemResult(skolemTerm, skolemConstants.toSet, skolemFunctions.toSet)
     }
