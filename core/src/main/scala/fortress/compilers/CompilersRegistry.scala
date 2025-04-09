@@ -51,6 +51,10 @@ object CompilersRegistry {
             // Cardinality compiler to test with
             case "SetCardinality" => new SetCardinalityCompiler()
 
+            // some compilers that use disjunction limits in symmetry breaking
+            case "SymmetryDisjLimitCompilerThree" => new SymmetryDisjLimitCompilerThree()
+            case "SymmetryDisjLimitCompilerFive" => new SymmetryDisjLimitCompilerFive()
+
             case _ => {
                 throw Errors.API.compilerDoesNotExist(str)
                 null
