@@ -11,26 +11,49 @@ import scala.collection.mutable
 object Symmetry {
     private[this] type ArgList = Seq[Value]
 
-    /** Produces constant range restrictions for one sort like the following:
-      *
-      * c1 = stale values + a1
-      * c2 ∈ stale values + {a1,a2}
-      * c3 ∈ stale values + {a1,a2,a3}
-      * ...
-      */
+
+    private def calcDisjLimit(
+        sort: Sort,
+        size: Int,   // number of constants
+        state: StalenessState,  // determine stale/fresh
+        disjLimit: Option[Int] = None): Int = {
+
+        var m = state.numFreshValues(sort)
+        if (disjLimit.isDefined) 
+            if (state.staleValues(sort).size >= disjLimit.get) {
+                return 0  
+            }
+            else {
+                m = scala.math.min(m, disjLimit.get - state.staleValues(sort).size)
+            }
+        return scala.math.min(size, m)        
+    }
+
+
     def csConstantRangeRestrictions(
         sort: Sort,
         constants: IndexedSeq[AnnotatedVar],
-        state: StalenessState
-    ): Set[RangeRestriction] = {
-        
+        state: StalenessState,
+        disjLimit: Option[Int] = None): Set[RangeRestriction] = {
+        /** Produces constant range restrictions for one sort like the following:
+          *
+          * c1 = stale values + a1
+          * c2 ∈ stale values + {a1,a2}
+          * c3 ∈ stale values + {a1,a2,a3}
+          * ...
+          */        
         Errors.Internal.precondition(!sort.isBuiltin)
         Errors.Internal.precondition(constants.forall(_.sort == sort))
-        
-        val n = constants.size
-        val m = state.numFreshValues(sort)
-        val r = scala.math.min(n, m)
-        
+
+        val r = calcDisjLimit(
+                   sort,constants.size,state,disjLimit)
+        if (r == 0) return Set.empty 
+
+        // old method w/o disjLimit
+        //val n = constants.size
+        //val m = state.numFreshValues(sort)
+        //val r = scala.math.min(n, m)
+
         val constraints: Seq[RangeRestriction] =
             for (k <- 0 to (r - 1)) // Enumerate constants
             yield {
@@ -46,31 +69,310 @@ object Symmetry {
         constraints.toSet
     }
 
-    /** Produces matching output to csConstantRangeRestrictions - meant to be
-      * used at same time with same input. Sample constant implications are like
-      * the following:
-      *
-      * c2 = a2 ==> a1 = c1
-      *
-      * c3 = a3 ==> a2 ∈ {c1,c2}
-      * c3 = a2 ==> a1 ∈ {c1,c2}
-      *
-      * c4 = a4 ==> a3 ∈ {c1,c2,c3}
-      * c4 = a3 ==> a2 ∈ {c1,c2,c3}
-      * c4 = a2 ==> a1 ∈ {c1,c2,c3}
-      * ...
-      */
-    def csConstantImplications(
+    def csConstantImplicationsSimplified(
         sort: Sort,
         constants: IndexedSeq[AnnotatedVar],
         state: StalenessState,
-    ): Set[Term] = {
+        disjLimit: Option[Int] = None): Set[Term] = {
+        /** Produces matching output to csConstantRangeRestrictions - meant to be
+          * used at same time with same input. Sample simplified constant
+          * implications are like the following:
+          *
+          * c2 = a2 ==> a1 = c1
+          *
+          * c3 = a3 ==> a2 = c2
+          * c3 = a2 ==> a1 ∈ {c1,c2}
+          *
+          * c4 = a4 ==> a3 = c3
+          * c4 = a3 ==> a2 ∈ {c2,c3}
+          * c4 = a2 ==> a1 ∈ {c1,c2,c3}
+          * ...
+          */        
+        Errors.Internal.precondition(!sort.isBuiltin)
+        Errors.Internal.precondition(constants.forall(_.sort == sort))
         
+        val freshValues = state.freshValues(sort)
+
+        val r = calcDisjLimit(
+                   sort,constants.size,state,disjLimit)
+        if (r == 0) return Set.empty 
+
+        // old method w/o disjLimit
+        //val n = constants.size
+        //val m = state.numFreshValues(sort)
+        //val r = scala.math.min(n, m)
+        
+        val implications = for {
+            i <- 0 to (r - 1) // Enumerates constants
+            j <- 1 to i // Enumerates values, starting with the second
+        } yield {
+            val c_i = constants(i).variable
+            
+            val possiblePrecedingConstants = constants.rangeSlice((j - 1) to (i - 1)).map(_.variable)
+            
+            (c_i === freshValues(j)) ==> (freshValues(j - 1) equalsOneOfFlip possiblePrecedingConstants)
+        }
+        
+        implications.toSet
+    }
+
+
+    def rdiFunctionRangeRestrictions(
+        f: FuncDecl,
+        state: StalenessState,
+        disjLimit: Option[Int] = None): Set[RangeRestriction] = {
+        /** Produces range restrictions for range-domain independent function.
+          * Sample rdi range restrictions are like the following:
+          *
+          * f(t1) = stale values + a1
+          * f(t2) ∈ stale values + {a1,a2}
+          * f(t3) ∈ stale values + {a1,a2,a3}
+          * ...
+          */        
+        Errors.Internal.precondition(f.argSorts.forall(!_.isBuiltin))
+        Errors.Internal.precondition(!f.resultSort.isBuiltin)
+        Errors.Internal.precondition(f.isRDI)
+        
+        val freshResultValues: IndexedSeq[DomainElement] = state.freshValues(f.resultSort)
+        val staleResultValues = state.staleValues(f.resultSort)
+        
+        val m = freshResultValues.size
+        
+        val argumentListsIterable: Iterable[ArgList] =
+            new fortress.util.ArgumentListGenerator(state.scope(_).size)
+            .allArgumentListsOfFunction(f)
+            .take(m) // Take up to m of them, for efficiency since we won't need more than this - the argument list generator does not generate arguments
+            // until they are needed
+        
+        val argumentLists = argumentListsIterable.toIndexedSeq
+        
+        //val n = argumentLists.size
+        //val r = scala.math.min(m, n)
+        val r = calcDisjLimit(f.resultSort, argumentLists.size, state,disjLimit)
+
+        val constraints: Seq[RangeRestriction] =
+            for (k <- 0 to (r - 1)) // Enumerate argument vectors
+            yield {
+                val argList = argumentLists(k)
+                val possibleResultValues: Seq[DomainElement] = 
+                    staleResultValues ++ // Could be any of the stale values
+                    freshResultValues.take(k + 1) // One of the first k + 1 unused values (recall, k starts at 0)
+                RangeRestriction(App(f.name, argList), possibleResultValues)
+            }
+        
+        constraints.toSet
+    }
+
+    def rdiFunctionImplicationsSimplified(
+        f: FuncDecl,
+        state: StalenessState,
+        disjLimit:Option[Int]): Set[Term] = {
+        /** Produces matching output to rdiFunctionRangeRestrictions - meant to be
+          * used at same time with same input. Sample simplified rdi function
+          * implications are like the following:
+          *
+          * f(t2) = a2 ==> a1 = f(t1)
+          *
+          * f(t3) = a3 ==> a2 = f(t2)
+          * f(t3) = a2 ==> a1 ∈ {f(t1),f(t2)}
+          *
+          * f(t4) = a4 ==> a3 = f(t3)
+          * f(t4) = a3 ==> a2 ∈ {f(t2),f(t3)}
+          * f(t4) = a2 ==> a1 ∈ {f(t1),f(t2),f(t3)}
+          */        
+        Errors.Internal.precondition(f.argSorts.forall(!_.isBuiltin))
+        Errors.Internal.precondition(!f.resultSort.isBuiltin)
+        Errors.Internal.precondition(!(f.argSorts contains f.resultSort))
+        Errors.Internal.precondition(f.isRDI)
+        
+        val freshResultValues: IndexedSeq[DomainElement] = state.freshValues(f.resultSort)
+        
+        val m = freshResultValues.size
+        
+        val argumentListsIterable: Iterable[ArgList] =
+            new fortress.util.ArgumentListGenerator(state.scope(_).size)
+            .allArgumentListsOfFunction(f)
+            .take(m) // Take up to m of them, for efficiency since we won't need more than this - the argument list generator does not generate arguments
+            // until they are needed
+        
+        val argumentLists = argumentListsIterable.toIndexedSeq
+        val applications: IndexedSeq[Term] = argumentLists map (App(f.name, _))
+        
+        val n = applications.size
+        
+        //val r = scala.math.min(m, n)
+        val r = calcDisjLimit(f.resultSort, applications.size, state,disjLimit)
+
+        val implications = for {
+            i <- 0 to (r - 1) // Enumerates argVectors
+            j <- 1 to i // Enumerates result values, starting with the second
+        } yield {
+            val app_i = applications(i)
+            val possiblePrecedingApps = applications.rangeSlice((j - 1) to (i - 1))
+            (app_i === freshResultValues(j)) ==> (freshResultValues(j - 1) equalsOneOfFlip possiblePrecedingApps)
+        }
+        
+        implications.toSet
+    }
+
+    
+    private[this] def predicateImplicationChain(
+        P: FuncDecl,
+        argLists: IndexedSeq[ArgList]): Seq[Term] = {
+        
+        for(i <- 1 to (argLists.size - 1)) yield {
+            App(P.name, argLists(i)) ==> App(P.name, argLists(i - 1))
+        }
+    }
+    
+    def predicateImplications(
+        P: FuncDecl,
+        state: StalenessState): Set[Term] = {
+        /** Produces predicate implications, which known as ladder implications:
+          *
+          * Q(a2) ==> Q(a1)
+          * Q(a3) ==> Q(a2)
+          * ···
+          * Q(am) ==> Q(am−1)
+          */            
+            Errors.Internal.precondition(P.resultSort == BoolSort)
+            Errors.Internal.precondition(P.argSorts forall (!_.isBuiltin))
+            Errors.Internal.precondition(P.argSorts exists (state.numFreshValues(_) >= 2))
+            
+            val tracker = state.createTrackerWithState
+            
+            def fillArgList(sort: Sort, d: DomainElement): ArgList = {
+                Errors.Internal.precondition(d.sort == sort)
+                for(s <- P.argSorts) yield {
+                    if(s == sort) d
+                    else DomainElement(1, s) // TODO can we make a smarter selection for the other elements?
+                }
+            }
+            
+            val constraints = new mutable.ListBuffer[Term]
+            
+            while(P.argSorts exists (tracker.state.numFreshValues(_) >= 2)) {
+                val sort = (P.argSorts find (tracker.state.numFreshValues(_) >= 2)).get
+                val r = tracker.state.numFreshValues(sort)
+                val argLists: IndexedSeq[ArgList] = for(i <- 0 to (r - 1)) yield {
+                    fillArgList(sort, tracker.state.freshValues(sort)(i))
+                }
+                val implications = predicateImplicationChain(P, argLists)
+                constraints ++= implications
+                for (implication <- implications) tracker.markDomainElementsStale(implication)
+            }
+            
+            constraints.toSet
+        }
+
+
+    private def rddFunctionRangeRestrictionsGeneral(
+        f: FuncDecl,
+        state: StalenessState,
+        argumentOrder: IndexedSeq[DomainElement],
+        disjLimit: Option[Int] = None): Set[RangeRestriction] = {
+        /** Produces range restrictions for range-domain dependent function as the
+          * following iteratively:
+          *
+          * f(a) ∈ Stale(A) ∪ {a, a∗}
+          * where a∗ is an arbitrary representative of Fresh(A) \ {a}
+          */
+        Errors.Internal.precondition(f.argSorts.forall(!_.isBuiltin))
+        Errors.Internal.precondition(!f.resultSort.isBuiltin)
+        Errors.Internal.precondition(f.argSorts contains f.resultSort)
+        Errors.Internal.precondition(!f.isRDI)
+
+        // We fix particular values for the sorts not in the output
+        // These stay the same for all argument lists we symmetry break using
+        // (you don't have to fix particular values, but you can)
+        
+        // Construct an argument list given the result value we are using
+        // e.g. if f: A x B x A x D -> A,
+        // given a2 it will yield: (a2, b1, a2, d1)
+        // given a3 it will yield: (a3, b1, a3, d1)
+        def constructArgList(resVal: DomainElement): Seq[DomainElement] = {
+            Errors.Internal.precondition(resVal.sort == f.resultSort)
+            f.argSorts map (sort => {
+                if(sort == f.resultSort) resVal
+                else DomainElement(1, sort) // for other sorts, doesn't matter what values we choose
+            })
+        }
+
+        def constraintForInput(
+            input: DomainElement,
+            unusedResultValues: IndexedSeq[DomainElement],
+            usedResultValues: IndexedSeq[DomainElement]
+        ): (RangeRestriction, IndexedSeq[DomainElement]) = {
+            val argList = constructArgList(input)
+
+            val possibleResultValues: IndexedSeq[DomainElement] =
+                (usedResultValues :+ // Could be any of the used values
+                input) ++ // Or itself
+                Seq(unusedResultValues.find(_ != input)).flatten // Or the first unused value that is not itself
+            
+            val rangeRestriction = RangeRestriction(App(f.name, argList), possibleResultValues.distinct)
+            val newlyUsed = possibleResultValues diff usedResultValues
+            (rangeRestriction, newlyUsed)
+        }
+
+        val rangeRestrictions = mutable.Set[RangeRestriction]()
+
+        @scala.annotation.tailrec
+        def loop(index: Int, unused: IndexedSeq[DomainElement], used: IndexedSeq[DomainElement]): Unit = {
+            if(unused.nonEmpty) {
+                val input = argumentOrder(index)
+                val (rangeRestriction, newlyUsed) = constraintForInput(input, unused, used)
+                rangeRestrictions += rangeRestriction
+                loop(index + 1, unused diff newlyUsed, used ++ newlyUsed)
+            }
+        }
+        loop(0, state.freshValues(f.resultSort), state.staleValues(f.resultSort))
+
+        rangeRestrictions.toSet
+    }
+
+    def rddFunctionRangeRestrictions_UsedFirst(
+        f: FuncDecl,
+        state: StalenessState,
+        disjLimit: Option[Int] = None): Set[RangeRestriction] = {
+        rddFunctionRangeRestrictionsGeneral(
+            f,
+            state,
+            state.staleValues(f.resultSort) ++ state.freshValues(f.resultSort),
+            disjLimit
+        )
+    }
+    
+
+    // functions below this are no longer used
+    // but they appear in tests
+    // disjLimits have not been added below
+    def csConstantImplications(
+        sort: Sort,
+        constants: IndexedSeq[AnnotatedVar],
+        state: StalenessState): Set[Term] = {
+        // This function is no longer used; rather csConstantImplicationsSimplified below is used
+        
+        /** Produces matching output to csConstantRangeRestrictions - meant to be
+          * used at same time with same input. Sample constant implications are like
+          * the following:
+          *
+          * c2 = a2 ==> a1 = c1
+          *
+          * c3 = a3 ==> a2 ∈ {c1,c2}
+          * c3 = a2 ==> a1 ∈ {c1,c2}
+          *
+          * c4 = a4 ==> a3 ∈ {c1,c2,c3}
+          * c4 = a3 ==> a2 ∈ {c1,c2,c3}
+          * c4 = a2 ==> a1 ∈ {c1,c2,c3}
+          * ...
+          */        
         Errors.Internal.precondition(!sort.isBuiltin)
         Errors.Internal.precondition(constants.forall(_.sort == sort))
         
         val freshValues = state.freshValues(sort)
         
+        // not updated for disjLimit
         val n = constants.size
         val m = state.numFreshValues(sort)
         val r = scala.math.min(n, m)
@@ -89,113 +391,22 @@ object Symmetry {
         implications.toSet
     }
 
-    /** Produces matching output to csConstantRangeRestrictions - meant to be
-      * used at same time with same input. Sample simplified constant
-      * implications are like the following:
-      *
-      * c2 = a2 ==> a1 = c1
-      *
-      * c3 = a3 ==> a2 = c2
-      * c3 = a2 ==> a1 ∈ {c1,c2}
-      *
-      * c4 = a4 ==> a3 = c3
-      * c4 = a3 ==> a2 ∈ {c2,c3}
-      * c4 = a2 ==> a1 ∈ {c1,c2,c3}
-      * ...
-      */
-    def csConstantImplicationsSimplified(
-        sort: Sort,
-        constants: IndexedSeq[AnnotatedVar],
-        state: StalenessState
-    ): Set[Term] = {
-        
-        Errors.Internal.precondition(!sort.isBuiltin)
-        Errors.Internal.precondition(constants.forall(_.sort == sort))
-        
-        val freshValues = state.freshValues(sort)
-        
-        val n = constants.size
-        val m = state.numFreshValues(sort)
-        val r = scala.math.min(n, m)
-        
-        val implications = for {
-            i <- 0 to (r - 1) // Enumerates constants
-            j <- 1 to i // Enumerates values, starting with the second
-        } yield {
-            val c_i = constants(i).variable
-            
-            val possiblePrecedingConstants = constants.rangeSlice((j - 1) to (i - 1)).map(_.variable)
-            
-            (c_i === freshValues(j)) ==> (freshValues(j - 1) equalsOneOfFlip possiblePrecedingConstants)
-        }
-        
-        implications.toSet
-    }
-
-    /** Produces range restrictions for range-domain independent function.
-      * Sample rdi range restrictions are like the following:
-      *
-      * f(t1) = stale values + a1
-      * f(t2) ∈ stale values + {a1,a2}
-      * f(t3) ∈ stale values + {a1,a2,a3}
-      * ...
-      */
-    def rdiFunctionRangeRestrictions(
-        f: FuncDecl,
-        state: StalenessState
-    ): Set[RangeRestriction] = {
-        
-        Errors.Internal.precondition(f.argSorts.forall(!_.isBuiltin))
-        Errors.Internal.precondition(!f.resultSort.isBuiltin)
-        Errors.Internal.precondition(f.isRDI)
-        
-        val freshResultValues: IndexedSeq[DomainElement] = state.freshValues(f.resultSort)
-        val staleResultValues = state.staleValues(f.resultSort)
-        
-        val m = freshResultValues.size
-        
-        val argumentListsIterable: Iterable[ArgList] =
-            new fortress.util.ArgumentListGenerator(state.scope(_).size)
-            .allArgumentListsOfFunction(f)
-            .take(m) // Take up to m of them, for efficiency since we won't need more than this - the argument list generator does not generate arguments
-            // until they are needed
-        
-        val argumentLists = argumentListsIterable.toIndexedSeq
-        
-        val n = argumentLists.size
-        val r = scala.math.min(m, n)
-        
-        val constraints: Seq[RangeRestriction] =
-            for (k <- 0 to (r - 1)) // Enumerate argument vectors
-            yield {
-                val argList = argumentLists(k)
-                val possibleResultValues: Seq[DomainElement] = 
-                    staleResultValues ++ // Could be any of the stale values
-                    freshResultValues.take(k + 1) // One of the first k + 1 unused values (recall, k starts at 0)
-                RangeRestriction(App(f.name, argList), possibleResultValues)
-            }
-        
-        constraints.toSet
-    }
-
-    /** Produces matching output to rdiFunctionRangeRestrictions - meant to be
-      * used at same time with same input. Sample rdi function implications are
-      * like the following:
-      *
-      * f(t2) = a2 ==> a1 = f(t1)
-      *
-      * f(t3) = a3 ==> a2 ∈ {f(t1),f(t2)}
-      * f(t3) = a2 ==> a1 ∈ {f(t1),f(t2)}
-      *
-      * f(t4) = a4 ==> a3 ∈ {f(t1),f(t2),f(t3)}
-      * f(t4) = a3 ==> a2 ∈ {f(t1),f(t2),f(t3)}
-      * f(t4) = a2 ==> a1 ∈ {f(t1),f(t2),f(t3)}
-      */
     def rdiFunctionImplications(
         f: FuncDecl,
-        state: StalenessState
-    ): Set[Term] = {
-        
+        state: StalenessState): Set[Term] = {
+        /** Produces matching output to rdiFunctionRangeRestrictions - meant to be
+          * used at same time with same input. Sample rdi function implications are
+          * like the following:
+          *
+          * f(t2) = a2 ==> a1 = f(t1)
+          *
+          * f(t3) = a3 ==> a2 ∈ {f(t1),f(t2)}
+          * f(t3) = a2 ==> a1 ∈ {f(t1),f(t2)}
+          *
+          * f(t4) = a4 ==> a3 ∈ {f(t1),f(t2),f(t3)}
+          * f(t4) = a3 ==> a2 ∈ {f(t1),f(t2),f(t3)}
+          * f(t4) = a2 ==> a1 ∈ {f(t1),f(t2),f(t3)}
+          */        
         Errors.Internal.precondition(f.argSorts.forall(!_.isBuiltin))
         Errors.Internal.precondition(!f.resultSort.isBuiltin)
         Errors.Internal.precondition(!(f.argSorts contains f.resultSort))
@@ -231,60 +442,40 @@ object Symmetry {
         implications.toSet
     }
 
-    /** Produces matching output to rdiFunctionRangeRestrictions - meant to be
-      * used at same time with same input. Sample simplified rdi function
-      * implications are like the following:
-      *
-      * f(t2) = a2 ==> a1 = f(t1)
-      *
-      * f(t3) = a3 ==> a2 = f(t2)
-      * f(t3) = a2 ==> a1 ∈ {f(t1),f(t2)}
-      *
-      * f(t4) = a4 ==> a3 = f(t3)
-      * f(t4) = a3 ==> a2 ∈ {f(t2),f(t3)}
-      * f(t4) = a2 ==> a1 ∈ {f(t1),f(t2),f(t3)}
-      */
-    def rdiFunctionImplicationsSimplified(
-        f: FuncDecl,
-        state: StalenessState
-    ): Set[Term] = {
+    def predicateImplications_OLD(
+        P: FuncDecl,
+        state: StalenessState): Set[Term] = {
+        // I think better symmetry breaking can be done on predicates.
+        // This is about as good as we can do for predicates of the form P: A -> Bool
+        // Or P: A x A -> Bool, but I think more can be done for e.g. P: A x B x A -> Bool
+        // The issue is the smallest element comment below.        
+        Errors.Internal.precondition(P.resultSort == BoolSort)
+        Errors.Internal.precondition(P.argSorts.forall(!_.isBuiltin))
         
-        Errors.Internal.precondition(f.argSorts.forall(!_.isBuiltin))
-        Errors.Internal.precondition(!f.resultSort.isBuiltin)
-        Errors.Internal.precondition(!(f.argSorts contains f.resultSort))
-        Errors.Internal.precondition(f.isRDI)
+        Errors.Internal.precondition(P.argSorts forall (state.numFreshValues(_) >= 2))
         
-        val freshResultValues: IndexedSeq[DomainElement] = state.freshValues(f.resultSort)
+        val r = (P.argSorts map (state.numFreshValues(_))).min // Smallest number of unused values
         
-        val m = freshResultValues.size
+        // Generate lists of arguments in the order we will use them for symmetry breaking
+        // e.g. If P: A x B x A -> Bool, gives Seq[(a1, b1, a1), (a2, b2, a2), ...]
         
-        val argumentListsIterable: Iterable[ArgList] =
-            new fortress.util.ArgumentListGenerator(state.scope(_).size)
-            .allArgumentListsOfFunction(f)
-            .take(m) // Take up to m of them, for efficiency since we won't need more than this - the argument list generator does not generate arguments
-            // until they are needed
-        
-        val argumentLists = argumentListsIterable.toIndexedSeq
-        val applications: IndexedSeq[Term] = argumentLists map (App(f.name, _))
-        
-        val n = applications.size
-        
-        val r = scala.math.min(m, n)
-        
-        val implications = for {
-            i <- 0 to (r - 1) // Enumerates argVectors
-            j <- 1 to i // Enumerates result values, starting with the second
-        } yield {
-            val app_i = applications(i)
-            val possiblePrecedingApps = applications.rangeSlice((j - 1) to (i - 1))
-            (app_i === freshResultValues(j)) ==> (freshResultValues(j - 1) equalsOneOfFlip possiblePrecedingApps)
+        val argLists: IndexedSeq[ArgList] = for(i <- 0 to (r - 1)) yield {
+            P.argSorts map (sort => state.freshValues(sort)(i))
         }
         
-        implications.toSet
+        predicateImplicationChain(P, argLists).toSet
     }
 
-    // Helper method used by method rainbowFunctionLT
+    def rddFunctionRangeRestrictions_UnusedFirst(
+        f: FuncDecl,
+        state: StalenessState,
+        disjLimit: Option[Int] = None): Set[RangeRestriction] = {
+        // this function is tested but not used
+        rddFunctionRangeRestrictionsGeneral(f, state, state.freshValues(f.resultSort))
+    }
+
     def sortLtDefinition(sort: Sort, scope: Int): (FuncDecl, Seq[Term])  = {
+        // Helper method used by method rainbowFunctionLT
         val LT = "_LT" + sort.name
         val assertions = for {
             i <- 1 to scope
@@ -297,14 +488,13 @@ object Symmetry {
         (FuncDecl(LT, sort, sort, BoolSort), assertions)
     }
 
-    // Function used in experimental symmetry breakers
-    // I don't think that I can say the constants are ordered
-    // No input elements to shuffle
+
     def rainbowFunctionLT(
         f: FuncDecl,
-        state: StalenessState
-    ): (FuncDecl, Seq[Term], Seq[RangeRestriction]) = {
-        
+        state: StalenessState): (FuncDecl, Seq[Term], Seq[RangeRestriction]) = {
+        // Function used in experimental symmetry breakers
+        // I don't think that I can say the constants are ordered
+        // No input elements to shuffle        
         Errors.Internal.precondition(f.argSorts.forall(!_.isBuiltin))
         Errors.Internal.precondition(!f.resultSort.isBuiltin)
         
@@ -330,8 +520,8 @@ object Symmetry {
                     )
                 }
                 
-                val rdiRangeRestrictions: Seq[RangeRestriction] = rdiFunctionRangeRestrictions(f, state).toSeq
-                val rdiImplicationsSimplified: Seq[Term] = rdiFunctionImplicationsSimplified(f, state).toSeq
+                val rdiRangeRestrictions: Seq[RangeRestriction] = rdiFunctionRangeRestrictions(f, state,None).toSeq
+                val rdiImplicationsSimplified: Seq[Term] = rdiFunctionImplicationsSimplified(f, state,None).toSeq
                 
                 (ltConstraints ++ rdiImplicationsSimplified, rdiRangeRestrictions)
             }
@@ -387,167 +577,4 @@ object Symmetry {
         
         (ltDecl, ltDefn ++ constraints, rangeRestrictions)
     }
-    
-    private[this] def predicateImplicationChain(
-        P: FuncDecl,
-        argLists: IndexedSeq[ArgList]
-    ): Seq[Term] = {
-        
-        for(i <- 1 to (argLists.size - 1)) yield {
-            App(P.name, argLists(i)) ==> App(P.name, argLists(i - 1))
-        }
-    }
-    
-    // I think better symmetry breaking can be done on predicates.
-    // This is about as good as we can do for predicates of the form P: A -> Bool
-    // Or P: A x A -> Bool, but I think more can be done for e.g. P: A x B x A -> Bool
-    // The issue is the smallest element comment below.
-    def predicateImplications_OLD(
-        P: FuncDecl,
-        state: StalenessState
-    ): Set[Term] = {
-        
-        Errors.Internal.precondition(P.resultSort == BoolSort)
-        Errors.Internal.precondition(P.argSorts.forall(!_.isBuiltin))
-        
-        Errors.Internal.precondition(P.argSorts forall (state.numFreshValues(_) >= 2))
-        
-        val r = (P.argSorts map (state.numFreshValues(_))).min // Smallest number of unused values
-        
-        // Generate lists of arguments in the order we will use them for symmetry breaking
-        // e.g. If P: A x B x A -> Bool, gives Seq[(a1, b1, a1), (a2, b2, a2), ...]
-        
-        val argLists: IndexedSeq[ArgList] = for(i <- 0 to (r - 1)) yield {
-            P.argSorts map (sort => state.freshValues(sort)(i))
-        }
-        
-        predicateImplicationChain(P, argLists).toSet
-    }
-
-    /** Produces predicate implications, which known as ladder implications:
-      *
-      * Q(a2) ==> Q(a1)
-      * Q(a3) ==> Q(a2)
-      * ···
-      * Q(am) ==> Q(am−1)
-      */
-    def predicateImplications(
-        P: FuncDecl,
-        state: StalenessState
-    ): Set[Term] = {
-            
-            Errors.Internal.precondition(P.resultSort == BoolSort)
-            Errors.Internal.precondition(P.argSorts forall (!_.isBuiltin))
-            Errors.Internal.precondition(P.argSorts exists (state.numFreshValues(_) >= 2))
-            
-            val tracker = state.createTrackerWithState
-            
-            def fillArgList(sort: Sort, d: DomainElement): ArgList = {
-                Errors.Internal.precondition(d.sort == sort)
-                for(s <- P.argSorts) yield {
-                    if(s == sort) d
-                    else DomainElement(1, s) // TODO can we make a smarter selection for the other elements?
-                }
-            }
-            
-            val constraints = new mutable.ListBuffer[Term]
-            
-            while(P.argSorts exists (tracker.state.numFreshValues(_) >= 2)) {
-                val sort = (P.argSorts find (tracker.state.numFreshValues(_) >= 2)).get
-                val r = tracker.state.numFreshValues(sort)
-                val argLists: IndexedSeq[ArgList] = for(i <- 0 to (r - 1)) yield {
-                    fillArgList(sort, tracker.state.freshValues(sort)(i))
-                }
-                val implications = predicateImplicationChain(P, argLists)
-                constraints ++= implications
-                for (implication <- implications) tracker.markDomainElementsStale(implication)
-            }
-            
-            constraints.toSet
-        }
-
-    /** Produces range restrictions for range-domain dependent function as the
-      * following iteratively:
-      *
-      * f(a) ∈ Stale(A) ∪ {a, a∗}
-      * where a∗ is an arbitrary representative of Fresh(A) \ {a}
-      */
-    private def rddFunctionRangeRestrictionsGeneral(
-        f: FuncDecl,
-        state: StalenessState,
-        argumentOrder: IndexedSeq[DomainElement]
-    ): Set[RangeRestriction] = {
-
-        Errors.Internal.precondition(f.argSorts.forall(!_.isBuiltin))
-        Errors.Internal.precondition(!f.resultSort.isBuiltin)
-        Errors.Internal.precondition(f.argSorts contains f.resultSort)
-        Errors.Internal.precondition(!f.isRDI)
-
-        // We fix particular values for the sorts not in the output
-        // These stay the same for all argument lists we symmetry break using
-        // (you don't have to fix particular values, but you can)
-        
-        // Construct an argument list given the result value we are using
-        // e.g. if f: A x B x A x D -> A,
-        // given a2 it will yield: (a2, b1, a2, d1)
-        // given a3 it will yield: (a3, b1, a3, d1)
-        def constructArgList(resVal: DomainElement): Seq[DomainElement] = {
-            Errors.Internal.precondition(resVal.sort == f.resultSort)
-            f.argSorts map (sort => {
-                if(sort == f.resultSort) resVal
-                else DomainElement(1, sort) // for other sorts, doesn't matter what values we choose
-            })
-        }
-
-        def constraintForInput(
-            input: DomainElement,
-            unusedResultValues: IndexedSeq[DomainElement],
-            usedResultValues: IndexedSeq[DomainElement]
-        ): (RangeRestriction, IndexedSeq[DomainElement]) = {
-            val argList = constructArgList(input)
-
-            val possibleResultValues: IndexedSeq[DomainElement] =
-                (usedResultValues :+ // Could be any of the used values
-                input) ++ // Or itself
-                Seq(unusedResultValues.find(_ != input)).flatten // Or the first unused value that is not itself
-            
-            val rangeRestriction = RangeRestriction(App(f.name, argList), possibleResultValues.distinct)
-            val newlyUsed = possibleResultValues diff usedResultValues
-            (rangeRestriction, newlyUsed)
-        }
-
-        val rangeRestrictions = mutable.Set[RangeRestriction]()
-
-        @scala.annotation.tailrec
-        def loop(index: Int, unused: IndexedSeq[DomainElement], used: IndexedSeq[DomainElement]): Unit = {
-            if(unused.nonEmpty) {
-                val input = argumentOrder(index)
-                val (rangeRestriction, newlyUsed) = constraintForInput(input, unused, used)
-                rangeRestrictions += rangeRestriction
-                loop(index + 1, unused diff newlyUsed, used ++ newlyUsed)
-            }
-        }
-        loop(0, state.freshValues(f.resultSort), state.staleValues(f.resultSort))
-
-        rangeRestrictions.toSet
-    }
-
-    def rddFunctionRangeRestrictions_UnusedFirst(
-        f: FuncDecl,
-        state: StalenessState
-    ): Set[RangeRestriction] = {
-        rddFunctionRangeRestrictionsGeneral(f, state, state.freshValues(f.resultSort))
-    }
-
-    def rddFunctionRangeRestrictions_UsedFirst(
-        f: FuncDecl,
-        state: StalenessState
-    ): Set[RangeRestriction] = {
-        rddFunctionRangeRestrictionsGeneral(
-            f,
-            state,
-            state.staleValues(f.resultSort) ++ state.freshValues(f.resultSort)
-        )
-    }
-    
 }

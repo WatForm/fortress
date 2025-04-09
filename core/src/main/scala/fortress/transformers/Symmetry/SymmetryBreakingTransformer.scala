@@ -19,7 +19,8 @@ case class SymmetryBreakingOptions(
     selectionHeuristic: SelectionHeuristic, // Heuristic for selecting order of functions
     breakSkolem: Boolean, // If true, breaks skolem functions and constants
     sortInference: Boolean, // If true, perform sort inference before symmetry breaking, then casts back to original sorts. Not necessary if symmetry breaking is performed previously
-    patternOptimization: Boolean // If true, look for Portus patterns to optimize symmetry breaking
+    patternOptimization: Boolean, // If true, look for Portus patterns to optimize symmetry breaking
+    disjLimit: Option[Int] // Limit on number of disjunctions to create in a symmetry breaking constraints
 ) {
     // def this(selectionHeuristic: SelectionHeuristic, breakSkolem: Boolean, sortInference: Boolean) {
     //     this(selectionHeuristic, breakSkolem, sortInference, patternOptimization = false)
@@ -42,7 +43,8 @@ object SymmetryBreakingOptionsDefaults extends
             selectionHeuristic = MonoFirstThenFunctionsFirstAnyOrder,
             breakSkolem = true,
             sortInference = false,
-            patternOptimization = true
+            patternOptimization = true,
+            disjLimit = None
         ) {}
 
 object SymmetryBreakingWithDefaultsTransformer 
@@ -57,7 +59,8 @@ class SymmetryBreakingTransformer(
             selectionHeuristic,
             breakSkolem = true,
             sortInference = false,
-            patternOptimization = false
+            patternOptimization = false,
+            disjLimit = None
         ))
     }
 
@@ -131,8 +134,8 @@ class SymmetryBreakingTransformer(
         }
 
         def breakConstantsOfSort(sort: Sort, constants: IndexedSeq[AnnotatedVar]): Unit = {
-            val constantRangeRestrictions = Symmetry.csConstantRangeRestrictions(sort, constants, tracker.state)
-            val constantImplications = Symmetry.csConstantImplicationsSimplified(sort, constants, tracker.state)
+            val constantRangeRestrictions = Symmetry.csConstantRangeRestrictions(sort, constants, tracker.state,options.disjLimit)
+            val constantImplications = Symmetry.csConstantImplicationsSimplified(sort, constants, tracker.state, options.disjLimit)
 
             addRangeRestrictions(constantRangeRestrictions)
             addGeneralConstraints(constantImplications)
@@ -145,13 +148,13 @@ class SymmetryBreakingTransformer(
         }
 
         def breakRDDFunction(f: FuncDecl): Unit = {
-            val fRangeRestrictions = Symmetry.rddFunctionRangeRestrictions_UsedFirst(f, tracker.state)
+            val fRangeRestrictions = Symmetry.rddFunctionRangeRestrictions_UsedFirst(f, tracker.state,options.disjLimit)
             addRangeRestrictions(fRangeRestrictions)
         }
 
         def breakRDIFunction(f: FuncDecl): Unit = {
-            val fRangeRestrictions = Symmetry.rdiFunctionRangeRestrictions(f, tracker.state)
-            val fImplications = Symmetry.rdiFunctionImplicationsSimplified(f, tracker.state)
+            val fRangeRestrictions = Symmetry.rdiFunctionRangeRestrictions(f, tracker.state,options.disjLimit)
+            val fImplications = Symmetry.rdiFunctionImplicationsSimplified(f, tracker.state,options.disjLimit)
             addRangeRestrictions(fRangeRestrictions)
             addGeneralConstraints(fImplications)
         }

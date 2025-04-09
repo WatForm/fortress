@@ -167,7 +167,7 @@ class SymmetryBreakTests_RDI extends UnitSuite {
         val f3A = App("f", DE(3, A))
         val f4A = App("f", DE(4, A))
         
-        val constraints = Symmetry.rdiFunctionImplicationsSimplified(f, state)
+        val constraints = Symmetry.rdiFunctionImplicationsSimplified(f, state,None)
         
         constraints should have size 6
         
@@ -201,7 +201,7 @@ class SymmetryBreakTests_RDI extends UnitSuite {
         val f112 = App("f", DE(1, A), DE(1, D), DE(2, A))
         val f212 = App("f", DE(2, A), DE(1, D), DE(2, A))
         
-        val constraints = Symmetry.rdiFunctionImplicationsSimplified(f, state)
+        val constraints = Symmetry.rdiFunctionImplicationsSimplified(f, state,None)
         constraints should have size 15
         constraints should contain { (f211 === DE(4, B)) ==> (DE(1, B) equalsOneOfFlip Seq(f111)) }
         

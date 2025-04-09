@@ -43,6 +43,7 @@ class StandardCompiler extends BaseCompiler {
             breakSkolem = true,
             sortInference = false,
             patternOptimization = true,
+            disjLimit = None
         )))
 
     def quantifierHandler: ListBuffer[ProblemStateTransformer] = { 
