@@ -60,7 +60,8 @@ object CompilersRegistry {
                 null
             }
         }
-        checkName(str,c)
+//        checkName(str,c)
+        c
     }
 
     def doesSortInference(str: String): Boolean = {
