@@ -135,7 +135,7 @@ class SymmetryBreakingTransformer(
 
         def breakConstantsOfSort(sort: Sort, constants: IndexedSeq[AnnotatedVar]): Unit = {
             val constantRangeRestrictions = Symmetry.csConstantRangeRestrictions(sort, constants, tracker.state,options.disjLimit)
-            val constantImplications = Symmetry.csConstantImplicationsSimplified(sort, constants, tracker.state, options.disjLimit)
+            val constantImplications = Symmetry.csConstantImplicationsSimplified(sort, constants, tracker.state, constantRangeRestrictions.size)
 
             addRangeRestrictions(constantRangeRestrictions)
             addGeneralConstraints(constantImplications)
@@ -154,7 +154,7 @@ class SymmetryBreakingTransformer(
 
         def breakRDIFunction(f: FuncDecl): Unit = {
             val fRangeRestrictions = Symmetry.rdiFunctionRangeRestrictions(f, tracker.state,options.disjLimit)
-            val fImplications = Symmetry.rdiFunctionImplicationsSimplified(f, tracker.state,options.disjLimit)
+            val fImplications = Symmetry.rdiFunctionImplicationsSimplified(f, tracker.state,fRangeRestrictions.size)
             addRangeRestrictions(fRangeRestrictions)
             addGeneralConstraints(fImplications)
         }
@@ -173,7 +173,7 @@ class SymmetryBreakingTransformer(
 
         def breakPredicate(P: FuncDecl): Unit = {
             if(P.argSorts forall (tracker.state.numFreshValues(_) >= 2)) { // Need at least 2 unused values to do any symmetry breaking
-                val pImplications = Symmetry.predicateImplications(P, tracker.state)
+                val pImplications = Symmetry.predicateImplications(P, tracker.state,options.disjLimit)
                 addGeneralConstraints(pImplications)
             }
         }

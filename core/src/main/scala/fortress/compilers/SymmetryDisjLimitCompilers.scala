@@ -33,3 +33,27 @@ class SymmetryDisjLimitCompilerFive extends StandardCompiler {
             disjLimit = Option(5)
         )))
 }
+
+class SymmetryDisjLimitCompilerEight extends StandardCompiler {
+
+    override def symmetryBreaker:ListBuffer[ProblemStateTransformer] =
+        CompilersRegistry.ListOfOne(new SymmetryBreakingTransformer(SymmetryBreakingOptions(
+            selectionHeuristic = MonoFirstThenFunctionsFirstAnyOrder,
+            breakSkolem = true,
+            sortInference = false,
+            patternOptimization = true,
+            disjLimit = Option(8)
+        )))
+}
+
+class SymmetryDisjLimitCompilerTen extends StandardCompiler {
+
+    override def symmetryBreaker:ListBuffer[ProblemStateTransformer] =
+        CompilersRegistry.ListOfOne(new SymmetryBreakingTransformer(SymmetryBreakingOptions(
+            selectionHeuristic = MonoFirstThenFunctionsFirstAnyOrder,
+            breakSkolem = true,
+            sortInference = false,
+            patternOptimization = true,
+            disjLimit = Option(10)
+        )))
+}

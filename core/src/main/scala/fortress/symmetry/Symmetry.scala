@@ -14,7 +14,7 @@ object Symmetry {
 
     private def calcDisjLimit(
         sort: Sort,
-        size: Int,   // number of constants
+        size: Int,   // number of elements left that we can break on
         state: StalenessState,  // determine stale/fresh
         disjLimit: Option[Int] = None): Int = {
 
@@ -73,7 +73,8 @@ object Symmetry {
         sort: Sort,
         constants: IndexedSeq[AnnotatedVar],
         state: StalenessState,
-        disjLimit: Option[Int] = None): Set[Term] = {
+        numRangeFormulaAdded: Int = Int.MaxValue): Set[Term] = {
+        // numRangeFormulas keeps it in sync with disjLimit
         /** Produces matching output to csConstantRangeRestrictions - meant to be
           * used at same time with same input. Sample simplified constant
           * implications are like the following:
@@ -92,10 +93,9 @@ object Symmetry {
         Errors.Internal.precondition(constants.forall(_.sort == sort))
         
         val freshValues = state.freshValues(sort)
-
-        val r = calcDisjLimit(
-                   sort,constants.size,state,disjLimit)
-        if (r == 0) return Set.empty 
+        val n = constants.size
+        val m = scala.math.min(state.numFreshValues(sort), numRangeFormulaAdded)
+        val r = scala.math.min(n, m)
 
         // old method w/o disjLimit
         //val n = constants.size
@@ -166,7 +166,9 @@ object Symmetry {
     def rdiFunctionImplicationsSimplified(
         f: FuncDecl,
         state: StalenessState,
-        disjLimit:Option[Int]): Set[Term] = {
+        numRangeFormulaAdded: Int = Int.MaxValue): Set[Term] = {
+        // numRangeFormulaAdded keeps this in sync with disjLimit 
+        // from rdiFunctionRangeRestritions
         /** Produces matching output to rdiFunctionRangeRestrictions - meant to be
           * used at same time with same input. Sample simplified rdi function
           * implications are like the following:
@@ -187,7 +189,7 @@ object Symmetry {
         
         val freshResultValues: IndexedSeq[DomainElement] = state.freshValues(f.resultSort)
         
-        val m = freshResultValues.size
+        val m = scala.math.min(freshResultValues.size, numRangeFormulaAdded)
         
         val argumentListsIterable: Iterable[ArgList] =
             new fortress.util.ArgumentListGenerator(state.scope(_).size)
@@ -200,8 +202,8 @@ object Symmetry {
         
         val n = applications.size
         
-        //val r = scala.math.min(m, n)
-        val r = calcDisjLimit(f.resultSort, applications.size, state,disjLimit)
+        val r = scala.math.min(m, n)
+
 
         val implications = for {
             i <- 0 to (r - 1) // Enumerates argVectors
@@ -227,7 +229,8 @@ object Symmetry {
     
     def predicateImplications(
         P: FuncDecl,
-        state: StalenessState): Set[Term] = {
+        state: StalenessState,
+        numFormulasToAdd: Option[Int] = None): Set[Term] = {
         /** Produces predicate implications, which known as ladder implications:
           *
           * Q(a2) ==> Q(a1)
@@ -253,13 +256,18 @@ object Symmetry {
             
             while(P.argSorts exists (tracker.state.numFreshValues(_) >= 2)) {
                 val sort = (P.argSorts find (tracker.state.numFreshValues(_) >= 2)).get
-                val r = tracker.state.numFreshValues(sort)
+                var r = tracker.state.numFreshValues(sort)
+                if (numFormulasToAdd.isDefined) 
+                    r = scala.math.min(tracker.state.numFreshValues(sort), numFormulasToAdd.get + 1)
                 val argLists: IndexedSeq[ArgList] = for(i <- 0 to (r - 1)) yield {
-                    fillArgList(sort, tracker.state.freshValues(sort)(i))
-                }
+                        fillArgList(sort, tracker.state.freshValues(sort)(i))
+                    }
                 val implications = predicateImplicationChain(P, argLists)
                 constraints ++= implications
                 for (implication <- implications) tracker.markDomainElementsStale(implication)
+                // @Joe - why was this line dropped in symmmetry reorg?
+                // it still exists in Ruomei's SymmetryDL.scala
+                // argSorts = argSorts.filterNot(_ == sort)
             }
             
             constraints.toSet
@@ -322,8 +330,10 @@ object Symmetry {
             if(unused.nonEmpty) {
                 val input = argumentOrder(index)
                 val (rangeRestriction, newlyUsed) = constraintForInput(input, unused, used)
-                rangeRestrictions += rangeRestriction
-                loop(index + 1, unused diff newlyUsed, used ++ newlyUsed)
+                if (disjLimit.isEmpty || rangeRestriction.values.size <= disjLimit.get) {
+                    rangeRestrictions += rangeRestriction
+                    loop(index + 1, unused diff newlyUsed, used ++ newlyUsed)
+                }
             }
         }
         loop(0, state.freshValues(f.resultSort), state.staleValues(f.resultSort))
@@ -343,10 +353,10 @@ object Symmetry {
         )
     }
     
-
+    // -------------------------------------------------------
     // functions below this are no longer used
     // but they appear in tests
-    // disjLimits have not been added below
+    // disjLimits have NOT been added below
     def csConstantImplications(
         sort: Sort,
         constants: IndexedSeq[AnnotatedVar],
@@ -521,7 +531,7 @@ object Symmetry {
                 }
                 
                 val rdiRangeRestrictions: Seq[RangeRestriction] = rdiFunctionRangeRestrictions(f, state,None).toSeq
-                val rdiImplicationsSimplified: Seq[Term] = rdiFunctionImplicationsSimplified(f, state,None).toSeq
+                val rdiImplicationsSimplified: Seq[Term] = rdiFunctionImplicationsSimplified(f, state,0).toSeq
                 
                 (ltConstraints ++ rdiImplicationsSimplified, rdiRangeRestrictions)
             }
