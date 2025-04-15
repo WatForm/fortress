@@ -230,7 +230,7 @@ object Symmetry {
     def predicateImplications(
         P: FuncDecl,
         state: StalenessState,
-        numFormulasToAdd: Option[Int] = None): Set[Term] = {
+        disjLimit: Option[Int] = None): Set[Term] = {
         /** Produces predicate implications, which known as ladder implications:
           *
           * Q(a2) ==> Q(a1)
@@ -257,8 +257,8 @@ object Symmetry {
             while(P.argSorts exists (tracker.state.numFreshValues(_) >= 2)) {
                 val sort = (P.argSorts find (tracker.state.numFreshValues(_) >= 2)).get
                 var r = tracker.state.numFreshValues(sort)
-                if (numFormulasToAdd.isDefined) 
-                    r = scala.math.min(tracker.state.numFreshValues(sort), numFormulasToAdd.get + 1)
+                if (disjLimit.isDefined) 
+                    r = scala.math.min(tracker.state.numFreshValues(sort), disjLimit.get + 1)
                 val argLists: IndexedSeq[ArgList] = for(i <- 0 to (r - 1)) yield {
                         fillArgList(sort, tracker.state.freshValues(sort)(i))
                     }
