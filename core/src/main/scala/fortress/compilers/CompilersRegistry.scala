@@ -54,6 +54,8 @@ object CompilersRegistry {
             // some compilers that use disjunction limits in symmetry breaking
             case "SymmetryDisjLimitCompilerThree" => new SymmetryDisjLimitCompilerThree()
             case "SymmetryDisjLimitCompilerFive" => new SymmetryDisjLimitCompilerFive()
+            case "SymmetryDisjLimitCompilerEight" => new SymmetryDisjLimitCompilerEight()
+            case "SymmetryDisjLimitCompilerTen" => new SymmetryDisjLimitCompilerTen()
 
             case _ => {
                 throw Errors.API.compilerDoesNotExist(str)
