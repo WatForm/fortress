@@ -37,12 +37,15 @@ class StandardCompiler extends BaseCompiler {
     def skolemizeOrNot: ListBuffer[ProblemStateTransformer] =
         CompilersRegistry.ListOfOne(SkolemizeTransformer)
 
+    // disjLimit of 3 seemed for perform the best on the Portus
+    // benchmark suite
     def symmetryBreaker:ListBuffer[ProblemStateTransformer] =
         CompilersRegistry.ListOfOne(new SymmetryBreakingTransformer(SymmetryBreakingOptions(
             selectionHeuristic = MonoFirstThenFunctionsFirstAnyOrder,
             breakSkolem = true,
             sortInference = false,
             patternOptimization = true,
+            disjLimit = Option(3)
         )))
 
     def quantifierHandler: ListBuffer[ProblemStateTransformer] = { 
