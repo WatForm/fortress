@@ -10,7 +10,7 @@ import fortress.symmetry._
 import scala.collection.mutable.ListBuffer
 
 
-class SymmetryDisjLimitCompilerThree extends StandardCompiler {
+class SymmetryDisjLimitThreeCompiler extends StandardCompiler {
 
     override def symmetryBreaker:ListBuffer[ProblemStateTransformer] =
         CompilersRegistry.ListOfOne(new SymmetryBreakingTransformer(SymmetryBreakingOptions(
@@ -22,7 +22,7 @@ class SymmetryDisjLimitCompilerThree extends StandardCompiler {
         )))
 }
 
-class SymmetryDisjLimitCompilerFive extends StandardCompiler {
+class SymmetryDisjLimitFiveCompiler extends StandardCompiler {
 
     override def symmetryBreaker:ListBuffer[ProblemStateTransformer] =
         CompilersRegistry.ListOfOne(new SymmetryBreakingTransformer(SymmetryBreakingOptions(
@@ -34,7 +34,7 @@ class SymmetryDisjLimitCompilerFive extends StandardCompiler {
         )))
 }
 
-class SymmetryDisjLimitCompilerEight extends StandardCompiler {
+class SymmetryDisjLimitEightCompiler extends StandardCompiler {
 
     override def symmetryBreaker:ListBuffer[ProblemStateTransformer] =
         CompilersRegistry.ListOfOne(new SymmetryBreakingTransformer(SymmetryBreakingOptions(
@@ -46,7 +46,7 @@ class SymmetryDisjLimitCompilerEight extends StandardCompiler {
         )))
 }
 
-class SymmetryDisjLimitCompilerTen extends StandardCompiler {
+class SymmetryDisjLimitTenCompiler extends StandardCompiler {
 
     override def symmetryBreaker:ListBuffer[ProblemStateTransformer] =
         CompilersRegistry.ListOfOne(new SymmetryBreakingTransformer(SymmetryBreakingOptions(

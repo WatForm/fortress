@@ -52,17 +52,17 @@ object CompilersRegistry {
             case "SetCardinality" => new SetCardinalityCompiler()
 
             // some compilers that use disjunction limits in symmetry breaking
-            case "SymmetryDisjLimitCompilerThree" => new SymmetryDisjLimitCompilerThree()
-            case "SymmetryDisjLimitCompilerFive" => new SymmetryDisjLimitCompilerFive()
-            case "SymmetryDisjLimitCompilerEight" => new SymmetryDisjLimitCompilerEight()
-            case "SymmetryDisjLimitCompilerTen" => new SymmetryDisjLimitCompilerTen()
+            case "SymmetryDisjLimitThree" => new SymmetryDisjLimitThreeCompiler()
+            case "SymmetryDisjLimitFive" => new SymmetryDisjLimitFiveCompiler()
+            case "SymmetryDisjLimitEight" => new SymmetryDisjLimitEightCompiler()
+            case "SymmetryDisjLimitTen" => new SymmetryDisjLimitTenCompiler()
 
             case _ => {
                 throw Errors.API.compilerDoesNotExist(str)
                 null
             }
         }
-//        checkName(str,c)
+        checkName(str,c)
         c
     }
 
