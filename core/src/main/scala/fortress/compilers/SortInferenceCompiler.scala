@@ -17,6 +17,7 @@ class StandardSICompiler() extends StandardCompiler {
                 breakSkolem = true,
                 sortInference = true,
                 patternOptimization = true,
+                disjLimit= None
             )))
 
 }

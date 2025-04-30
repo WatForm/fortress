@@ -30,6 +30,9 @@ object CompilersRegistry {
 
             case "AlmostNothing" => new AlmostNothingCompiler()
 
+            // compilers for Portus testing
+            case "IntNOBV" => new IntNOBVCompiler()
+    
             // use datatypes to make it finite
             case "DatatypeNoRangeEUF" => new DatatypeNoRangeEUFCompiler()
             case "DatatypeWithRangeEUF" => new DatatypeWithRangeEUFCompiler()
@@ -48,12 +51,19 @@ object CompilersRegistry {
             // Cardinality compiler to test with
             case "SetCardinality" => new SetCardinalityCompiler()
 
+            // some compilers that use disjunction limits in symmetry breaking
+            case "SymmetryDisjLimitThree" => new SymmetryDisjLimitThreeCompiler()
+            case "SymmetryDisjLimitFive" => new SymmetryDisjLimitFiveCompiler()
+            case "SymmetryDisjLimitEight" => new SymmetryDisjLimitEightCompiler()
+            case "SymmetryDisjLimitTen" => new SymmetryDisjLimitTenCompiler()
+
             case _ => {
                 throw Errors.API.compilerDoesNotExist(str)
                 null
             }
         }
         checkName(str,c)
+        c
     }
 
     def doesSortInference(str: String): Boolean = {

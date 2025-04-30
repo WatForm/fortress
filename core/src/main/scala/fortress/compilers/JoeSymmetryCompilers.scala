@@ -81,7 +81,8 @@ class JoeTHREECompiler() extends BaseJoeSymmetryCompiler() {
 
 class JoeTHREE_SICompiler() extends BaseJoeSymmetryCompiler() {
     override def symmetryBreakingTransformers: Seq[ProblemStateTransformer] = Seq(
-        new SymmetryBreakingTransformer(SymmetryBreakingOptions(MonoFirstThenFunctionsFirstAnyOrder, breakSkolem = true, sortInference = true, patternOptimization = false))
+        new SymmetryBreakingTransformer(SymmetryBreakingOptions(MonoFirstThenFunctionsFirstAnyOrder, breakSkolem = true, sortInference = true, patternOptimization = false, 
+            disjLimit= None))
     )
 }
 

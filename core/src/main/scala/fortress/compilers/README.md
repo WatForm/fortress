@@ -26,4 +26,4 @@ trait Compiler
 
 CompilerResult/CompilerError - return values from the compile phase.
 
-**CompilerRegistry.scala must be kept up-to-date as a mapping from strings to class names for compilerss that the user can choose.**
+**CompilerRegistry.scala must be kept up-to-date as a mapping from strings to class names for compilers that the user can choose.**
