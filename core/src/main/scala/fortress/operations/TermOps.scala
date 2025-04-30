@@ -108,9 +108,11 @@ case class TermOps private (term: Term) {
     
     def equalsOneOfFlip(terms: Seq[Term]): Term = Or.smart(terms map (_ === term))
 
-    def renameApplications(original: String, replacement: String): Term = AuxSubstituter.renameApplications(term, original, replacement)
+    def renameApplications(original: String, replacement: String): Term = Substituter.renameApplications(term, original, replacement)
 
-    def appendToApplications(fnName: String, argsToAppend: Seq[Term]): Term = AuxSubstituter.appendToApplications(term, fnName, argsToAppend)
+    def appendToApplications(fnName: String, argsToAppend: Seq[Term]): Term = Substituter.appendToApplications(term, fnName, argsToAppend, new IntSuffixNameGenerator(Set.empty[String], 0))
+
+    def appendToApplications(fnName: String, argsToAppend: Seq[Term], nameGen: NameGenerator): Term = Substituter.appendToApplications(term, fnName, argsToAppend, nameGen)
     
     def smtlib: String = {
         val writer = new java.io.StringWriter

@@ -42,17 +42,20 @@ object Substituter {
             case Exists(vars, _) if (vars.map(_.variable).contains(x)) => t
             case Forall(vars, _) if (vars.map(_.variable).contains(x)) => t
             case Exists(vars, body) => {
-                val (newVariables, newBody) = avoidCapture(vars, body)
+                val (newVariables, newBody) = avoidCapture(vars, body, freeVarsOfS, nameGen)
                 Exists(newVariables, sub(newBody))
             }
             case Forall(vars, body) => {
-                val (newVariables, newBody) = avoidCapture(vars, body)
+                val (newVariables, newBody) = avoidCapture(vars, body, freeVarsOfS, nameGen)
                 Forall(newVariables, sub(newBody))
             }
             case IfThenElse(condition, ifTrue, ifFalse) => IfThenElse(sub(condition), sub(ifTrue), sub(ifFalse))
         }
         
-        def avoidCapture(vars: Seq[AnnotatedVar], body: Term) = {
+        sub(t)
+    }
+
+    def avoidCapture(vars: Seq[AnnotatedVar], body: Term, precomputedFreeVars: Set[Var], nameGen: NameGenerator) = {
             // Must avoid variable capture
             // If substituting [y -> s] in (forall x . t) where s contains x
             // as a free variable, we must alpha rename (forall x . t) to
@@ -63,7 +66,7 @@ object Substituter {
             val newVariables = new scala.collection.mutable.ListBuffer[AnnotatedVar]
             val substitutions = scala.collection.mutable.Map[Var, Term]()
             for (av <- vars) {
-                if (freeVarsOfS contains av.variable) {
+                if (precomputedFreeVars contains av.variable) {
                     val freshVar = Var(nameGen.freshName(av.variable.name))
                     substitutions += (av.variable -> freshVar)
                     newVariables += freshVar of av.sort
@@ -78,8 +81,99 @@ object Substituter {
                 (vars, body)
             }
         }
-        
-        sub(t)
+
+    def renameApplications(term: Term, original: String, replacement: String): Term = {
+        def recur(term: Term): Term = term match {
+            case Top | Bottom | Var(_) | EnumValue(_) | BitVectorLiteral(_, _) | IntegerLiteral(_) | DomainElement(_, _) | EnumValue(_) => term
+            case AndList(arguments) => AndList(arguments.map(recur))
+            case OrList(arguments) => OrList(arguments.map(recur))
+            case Distinct(arguments) => Distinct(arguments.map(recur))
+            case Implication(left, right) => Implication(recur(left), recur(right))
+            case Iff(left, right) => Iff(recur(left), recur(right))
+            case Eq(left, right) => Eq(recur(left), recur(right))
+            case BuiltinApp(function, arguments) => BuiltinApp(function, arguments.map(recur))
+            case IfThenElse(condition, ifTrue, ifFalse) => IfThenElse(recur(condition), recur(ifTrue), recur(ifFalse))
+            case Not(body) => Not(recur(body))
+
+            case Exists(vars, body) => Exists(vars, recur(body))
+            case Forall(vars, body) => Forall(vars, recur(body))
+            case Exists2ndOrder(declarations, body) => {
+                if(declarations.map(_.name).contains(original)) term
+                else Exists2ndOrder(declarations, recur(body))
+            }
+            case Forall2ndOrder(declarations, body) => {
+                if(declarations.map(_.name).contains(original)) term
+                else Forall2ndOrder(declarations, recur(body))
+            }
+            
+            case SetCardinality(predicate) => {
+                if(predicate == original) SetCardinality(replacement)
+                else term
+            }
+            case Closure(functionName, arg1, arg2, fixedArgs) => {
+                val newName = if(functionName == original) replacement else functionName
+                Closure(newName, recur(arg1), recur(arg2), fixedArgs.map(recur))
+            }
+            case ReflexiveClosure(functionName, arg1, arg2, fixedArgs) => {
+                val newName = if(functionName == original) replacement else functionName
+                ReflexiveClosure(newName, recur(arg1), recur(arg2), fixedArgs.map(recur))
+            }
+            case App(functionName, arguments) => {
+                val newName = if(functionName == original) replacement else functionName
+                App(newName, arguments.map(recur))
+            }
+        }
+        recur(term)
+    }
+
+    def appendToApplications(term: Term, fnName: String, argsToAppend: Seq[Term], nameGen: NameGenerator): Term = {
+        // Forbid all names used in term
+        for(name <- term.allSymbols) {
+            nameGen.forbidName(name)
+        }
+
+        val freeVarsOfAppendedArgs = argsToAppend.map(t => t.freeVarConstSymbols).flatten.toSet
+
+        // todo fix variable capture
+        def recur(term: Term): Term = term match {
+            case Top | Bottom | Var(_) | DomainElement(_, _) | EnumValue(_) | IntegerLiteral(_) | BitVectorLiteral(_, _) => term
+            case Distinct(arguments) => Distinct(arguments.map(recur))
+            case Iff(left, right) => Iff(recur(left), recur(right))
+            case Not(body) => Not(recur(body))
+            case Eq(left, right) => Eq(recur(left), recur(right))
+            case AndList(arguments) => AndList(arguments.map(recur))
+            case OrList(arguments) => OrList(arguments.map(recur))
+            case Implication(left, right) => Implication(recur(left), recur(right))
+            case BuiltinApp(function, arguments) => BuiltinApp(function, arguments.map(recur))
+            case IfThenElse(condition, ifTrue, ifFalse) => IfThenElse(recur(condition), recur(ifTrue), recur(ifFalse))
+
+            case Exists(vars, body) => {
+                val (newVariables, newBody) = avoidCapture(vars, body, freeVarsOfAppendedArgs, nameGen)
+                Exists(newVariables, recur(newBody))
+            }
+            case Forall(vars, body) => {
+                val (newVariables, newBody) = avoidCapture(vars, body, freeVarsOfAppendedArgs, nameGen)
+                Forall(newVariables, recur(newBody))
+            }
+            case Exists2ndOrder(declarations, body) => Exists2ndOrder(declarations, recur(body))
+            case Forall2ndOrder(declarations, body) => Forall2ndOrder(declarations, recur(body))
+                
+            case ReflexiveClosure(functionName, arg1, arg2, fixedArgs) => {
+                if(functionName == fnName) ReflexiveClosure(functionName, recur(arg1), recur(arg2), fixedArgs.map(recur) ++ argsToAppend)
+                else ReflexiveClosure(functionName, recur(arg1), recur(arg2), fixedArgs.map(recur))
+            }
+            case Closure(functionName, arg1, arg2, fixedArgs) => {
+                if(functionName == fnName) Closure(functionName, recur(arg1), recur(arg2), fixedArgs.map(recur) ++ argsToAppend)
+                else Closure(functionName, recur(arg1), recur(arg2), fixedArgs.map(recur))
+            }
+            case App(functionName, arguments) => {
+                if(functionName == fnName) App(functionName, arguments.map(recur) ++ argsToAppend)
+                else App(functionName, arguments.map(recur))
+            }
+
+            case SetCardinality(predicate) => term
+        }
+        recur(term)
     }
 }
 
@@ -133,93 +227,5 @@ object FastSubstituter {
             }
         
         sub(substitutions, t)
-    }
-}
-
-object AuxSubstituter {
-
-    def renameApplications(term: Term, original: String, replacement: String): Term = {
-        def recur(term: Term): Term = term match {
-            case Top | Bottom | Var(_) | EnumValue(_) | BitVectorLiteral(_, _) | IntegerLiteral(_) | DomainElement(_, _) | EnumValue(_) => term
-            case AndList(arguments) => AndList(arguments.map(recur))
-            case OrList(arguments) => OrList(arguments.map(recur))
-            case Distinct(arguments) => Distinct(arguments.map(recur))
-            case Implication(left, right) => Implication(recur(left), recur(right))
-            case Iff(left, right) => Iff(recur(left), recur(right))
-            case Eq(left, right) => Eq(recur(left), recur(right))
-            case BuiltinApp(function, arguments) => BuiltinApp(function, arguments.map(recur))
-            case IfThenElse(condition, ifTrue, ifFalse) => IfThenElse(recur(condition), recur(ifTrue), recur(ifFalse))
-            case Not(body) => Not(recur(body))
-
-            case Exists(vars, body) => Exists(vars, recur(body))
-            case Forall(vars, body) => Forall(vars, recur(body))
-            case Exists2ndOrder(declarations, body) => {
-                if(declarations.map(_.name).contains(original)) term
-                else Exists2ndOrder(declarations, recur(body))
-            }
-            case Forall2ndOrder(declarations, body) => {
-                if(declarations.map(_.name).contains(original)) term
-                else Forall2ndOrder(declarations, recur(body))
-            }
-            
-            case SetCardinality(predicate) => {
-                if(predicate == original) SetCardinality(replacement)
-                else term
-            }
-            case Closure(functionName, arg1, arg2, fixedArgs) => {
-                val newName = if(functionName == original) replacement else functionName
-                Closure(newName, recur(arg1), recur(arg2), fixedArgs.map(recur))
-            }
-            case ReflexiveClosure(functionName, arg1, arg2, fixedArgs) => {
-                val newName = if(functionName == original) replacement else functionName
-                ReflexiveClosure(newName, recur(arg1), recur(arg2), fixedArgs.map(recur))
-            }
-            case App(functionName, arguments) => {
-                val newName = if(functionName == original) replacement else functionName
-                App(newName, arguments.map(recur))
-            }
-        }
-        recur(term)
-    }
-
-    def appendToApplications(term: Term, fnName: String, argsToAppend: Seq[Term]): Term = {
-        // todo fix variable capture
-        def recur(term: Term): Term = term match {
-            case Top | Bottom | Var(_) | DomainElement(_, _) | EnumValue(_) | IntegerLiteral(_) | BitVectorLiteral(_, _) => term
-            case Distinct(arguments) => Distinct(arguments.map(recur))
-            case Iff(left, right) => Iff(recur(left), recur(right))
-            case Not(body) => Not(recur(body))
-            case Eq(left, right) => Eq(recur(left), recur(right))
-            case AndList(arguments) => AndList(arguments.map(recur))
-            case OrList(arguments) => OrList(arguments.map(recur))
-            case Implication(left, right) => Implication(recur(left), recur(right))
-            case BuiltinApp(function, arguments) => BuiltinApp(function, arguments.map(recur))
-            case IfThenElse(condition, ifTrue, ifFalse) => IfThenElse(recur(condition), recur(ifTrue), recur(ifFalse))
-
-            case Exists(vars, body) => {
-                Exists(vars, recur(body))
-            }
-            case Forall(vars, body) => {
-                Forall(vars, recur(body))
-            }
-            case Exists2ndOrder(declarations, body) => Exists2ndOrder(declarations, recur(body))
-            case Forall2ndOrder(declarations, body) => Forall2ndOrder(declarations, recur(body))
-                
-            case ReflexiveClosure(functionName, arg1, arg2, fixedArgs) => {
-                if(functionName == fnName) ReflexiveClosure(functionName, recur(arg1), recur(arg2), fixedArgs.map(recur) ++ argsToAppend)
-                else ReflexiveClosure(functionName, recur(arg1), recur(arg2), fixedArgs.map(recur))
-            }
-            case Closure(functionName, arg1, arg2, fixedArgs) => {
-                if(functionName == fnName) Closure(functionName, recur(arg1), recur(arg2), fixedArgs.map(recur) ++ argsToAppend)
-                else Closure(functionName, recur(arg1), recur(arg2), fixedArgs.map(recur))
-            }
-            case App(functionName, arguments) => {
-                if(functionName == fnName) App(functionName, arguments.map(recur) ++ argsToAppend)
-                else App(functionName, arguments.map(recur))
-            }
-
-            case SetCardinality(predicate) => term
-        }
-        recur(term)
     }
 }
