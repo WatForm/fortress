@@ -86,11 +86,11 @@ object IfLifter {
         case BuiltinApp(fname,args) => reLiftOverArgs((args:Seq[Term]) => BuiltinApp(fname,args), args)
         case Closure(fname, arg1, arg2, args) => 
             reLiftOverArgs(
-                (args:Seq[Term]) => Closure(fname, args(0), args(1), args.slice(2, args.size -1)), 
+                (args:Seq[Term]) => Closure(fname, args(0), args(1), args.slice(2, args.size)), 
                 Seq(arg1,arg2) ++ args)
         case ReflexiveClosure(fname, arg1, arg2, args) => 
             reLiftOverArgs(
-                (args:Seq[Term]) => ReflexiveClosure(fname, args(0), args(1), args.slice(2, args.size -1)), 
+                (args:Seq[Term]) => ReflexiveClosure(fname, args(0), args(1), args.slice(2, args.size)), 
                 Seq(arg1,arg2) ++ args)
         }
         //println("reLiftItes out: "+x)

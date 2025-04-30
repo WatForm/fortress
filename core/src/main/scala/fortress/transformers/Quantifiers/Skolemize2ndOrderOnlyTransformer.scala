@@ -48,7 +48,7 @@ object Skolemize2ndOrderOnlyTransformer extends ProblemStateTransformer {
                 .addSkolemConstants(newSkolemConstants.toSet)
                 .addSkolemFunctions(newSkolemFunctions.toSet)
                 .addUnapplyInterp(unapply)
-                .withFlags(problemState.flags.copy(haveRunSkolemizer = true))
+                // .withFlags(problemState.flags.copy(haveRunSkolemizer = true))
 
             // Check we were able to actually get rid of all 2nd order quantifiers
             val newState2Typechecked = TypecheckSanitizeTransformer(newState2)
@@ -56,7 +56,7 @@ object Skolemize2ndOrderOnlyTransformer extends ProblemStateTransformer {
                 println(newState2Typechecked.theory)
                 throw new fortress.util.Errors.UnsupportedFeature("2nd order quantifiers could not all be eliminated - feature is unsupported.")
             } else {
-                newState2
+                newState2.withFlags(problemState.flags.copy(constains2ndOrderQuantifiers = false))
             }
         }
     }

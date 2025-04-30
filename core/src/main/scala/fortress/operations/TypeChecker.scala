@@ -4,7 +4,6 @@ import fortress.util.Errors
 import fortress.msfol._
 import fortress.data._
 import fortress.msfol.DSL._
-import java.awt.Window.Type
 
 case class TypeCheckResult(
     sanitizedTerm: Term,
@@ -398,11 +397,7 @@ class TypeChecker(signature: Signature) extends TermVisitorWithTypeContext[TypeC
         val closingSort = argSorts(0)
 
         // Get sorts of the function/relation being closed over
-        val (paramSorts, resultSort) = signature.queryFunction(funcName) match {
-            case None => throw new TypeCheckException.UnknownFunction("Function " + funcName + " does not exist in signature when closing over it!")
-            case Some(Left(FuncDecl(_, sorts, resultSort))) => (sorts.toList, resultSort)
-            case Some(Right(FunctionDefinition(_, params, resultSort, _))) => (params.map(_.sort).toList, resultSort)
-        }
+        val (paramSorts, resultSort) = (decl.argSorts, decl.resultSort)
 
         if (argSorts.length == 2) {
             // relation must be A->A or AxA-> Bool
@@ -411,8 +406,11 @@ class TypeChecker(signature: Signature) extends TermVisitorWithTypeContext[TypeC
             }
         } else {
             // Check that arguments match the function declaration
-            if (!(paramSorts == argSorts && resultSort == BoolSort)) {
-                throw new TypeCheckException.WrongSort("Attempting to close over a relation that does not end in a BoolSort or with the wrong argument sorts in " + c.toString())
+            if(paramSorts != argSorts) {
+                throw new TypeCheckException.WrongSort(s"Attempting to close over relation with wrong sorts: ${funcName} expects ${paramSorts} but gets ${argSorts} in ${c}")
+            }
+            if(resultSort != BoolSort) {
+                throw new TypeCheckException.WrongSort(s"Attempting to close over a relation that does not output BoolSort: ${decl} in ${c}")
             }
         }
 
@@ -465,11 +463,7 @@ class TypeChecker(signature: Signature) extends TermVisitorWithTypeContext[TypeC
         val closingSort = argSorts(0)
 
         // Get sorts of the function/relation being closed over
-        val (paramSorts, resultSort) = signature.queryFunction(funcName) match {
-            case None => throw new TypeCheckException.UnknownFunction("Function " + funcName + " does not exist in signature when closing over it!")
-            case Some(Left(FuncDecl(_, sorts, resultSort))) => (sorts.toList, resultSort)
-            case Some(Right(FunctionDefinition(_, params, resultSort, _))) => (params.map(_.sort).toList, resultSort)
-        }
+        val (paramSorts, resultSort) = (decl.argSorts, decl.resultSort)
 
         if (argSorts.length == 2) {
             // relation must be A->A or AxA-> Bool
@@ -478,8 +472,11 @@ class TypeChecker(signature: Signature) extends TermVisitorWithTypeContext[TypeC
             }
         } else {
             // Check that arguments match the function declaration
-            if (!(paramSorts == argSorts && resultSort == BoolSort)) {
-                throw new TypeCheckException.WrongSort("Attempting to close over a relation that does not end in a BoolSort or with the wrong argument sorts in " + rc.toString())
+            if(paramSorts != argSorts) {
+                throw new TypeCheckException.WrongSort(s"Attempting to close over relation with wrong sorts: ${funcName} expects ${paramSorts} but gets ${argSorts} in ${rc}")
+            }
+            if(resultSort != BoolSort) {
+                throw new TypeCheckException.WrongSort(s"Attempting to close over a relation that does not output BoolSort: ${decl} in ${rc}")
             }
         }
 
