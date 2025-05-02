@@ -46,6 +46,7 @@ trait SMTLIBCliSolver extends Solver {
 
     override def addAxiom(axiom: Term): Unit = {
         Errors.Internal.assertion(processSession.nonEmpty, "Cannot add axiom without a live process")
+        // println("Adding axiom: " + axiom)
         val converter = new SmtlibConverter(convertedBytes)
         converter.writeAssertion(axiom)
     }
@@ -54,6 +55,8 @@ trait SMTLIBCliSolver extends Solver {
         processSession.foreach(_.close())
         // println("Opening new process session")
         processSession = Some(new ProcessSession( { processArgs :+ timeoutArg(timeoutMillis) }.asJava))
+        // println("Sending to Z3:")
+        // println(convertedBytes)
         convertedBytes.writeTo(processSession.get.inputWriter)
         processSession.get.write("(check-sat)\n")
         processSession.get.flush()

@@ -12,7 +12,7 @@ import fortress.util.{ArgumentListGenerator, Errors, Milliseconds}
 /** An interpretation of a first-order logic signature. */
 trait Interpretation {
 
-    import fortress.interpretation.Interpretation._
+    import Interpretation._
 
     /** Maps a sort to a sequence of values. */
     def sortInterpretations: Map[Sort, Seq[Value]]
@@ -154,7 +154,7 @@ trait Interpretation {
             case _ => term
         }
         
-        new BasicInterpretation(
+        BasicInterpretation(
             sortInterpretations.map{ case(sort, values) => sort -> (values map applyMapping) }, 
             constantInterpretations.map{ case(av, value) => av -> applyMapping(value) },
             functionInterpretations.map{ case(fdecl, values) => fdecl -> (values.map{
@@ -191,7 +191,7 @@ trait Interpretation {
         }
         val newFunctionDefinitions = functionDefinitions map sub.apply
         // TODO: what to do on functionDefinitions
-        new BasicInterpretation(newSortInterps, newConstInterps, newFunctionInterps, newFunctionDefinitions)
+        BasicInterpretation(newSortInterps, newConstInterps, newFunctionInterps, newFunctionDefinitions)
     }
     
     /** Shows only the parts of the interpretation which are in the given signature. */
@@ -205,7 +205,7 @@ trait Interpretation {
             }
             false
         } }
-        new BasicInterpretation(newSortInterps, newConstInterps, newFunctionInterps, newFunctionDefinitions)
+        BasicInterpretation(newSortInterps, newConstInterps, newFunctionInterps, newFunctionDefinitions)
     }
 
     /** Removes the given declarations from the interpretation. */
@@ -228,7 +228,7 @@ trait Interpretation {
     
     /** Removes the given constants from the interpretation. */
     def withoutConstants(constants: Set[AnnotatedVar]): Interpretation = {
-        new BasicInterpretation(
+        BasicInterpretation(
             sortInterpretations,
             constantInterpretations -- constants,
             functionInterpretations,
@@ -238,7 +238,7 @@ trait Interpretation {
 
     /** Removes the given definitions from the interpretation */
     def withoutFunctionDefinitions(definitions: Set[FunctionDefinition]): Interpretation = {
-        new BasicInterpretation(
+        BasicInterpretation(
             sortInterpretations,
             constantInterpretations,
             functionInterpretations,
@@ -256,7 +256,7 @@ trait Interpretation {
             flag
         })
 
-        new BasicInterpretation(
+        BasicInterpretation(
             sortInterpretations,
             constantInterpretations,
             functionInterpretations -- funcDecls,
@@ -266,7 +266,7 @@ trait Interpretation {
 
     /** Updates the Interpretation to drop the specified sort */
     def withoutSorts(sorts:Set[Sort]): Interpretation = {
-        new BasicInterpretation(
+        BasicInterpretation(
             sortInterpretations -- sorts,
             constantInterpretations,
             functionInterpretations,
@@ -276,7 +276,7 @@ trait Interpretation {
 
     /** Updates thr domain elements associated with specified sort. */
     def updateSortInterpretations(sort: Sort, values: Seq[Value]): Interpretation = {
-        new BasicInterpretation(
+        BasicInterpretation(
             sortInterpretations + (sort -> values),
             constantInterpretations,
             functionInterpretations,
@@ -357,6 +357,7 @@ trait Interpretation {
                    fdecl.name + "(" + arguments.mkString(", ") + ") = " + value.toString
                }
                buffer ++= argLines.mkString("\n")
+               buffer ++= "\n"
            }
     //    }
 

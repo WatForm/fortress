@@ -10,7 +10,7 @@ import scala.util.Using
 /** An interpretation constructed by directly supplying the sort, constant, and function interpretations
   * to the constructor.
   */
-class BasicInterpretation(
+class BasicInterpretation private (
     val sortInterpretations: Map[Sort, Seq[Value]],
     val constantInterpretations: Map[AnnotatedVar, Value],
     override val functionInterpretations: Map[FuncDecl, Map[Seq[Value], Value]],
@@ -22,8 +22,9 @@ object BasicInterpretation {
               constantInterpretations: Map[AnnotatedVar, Value],
               functionInterpretations: Map[FuncDecl, Map[Seq[Value], Value]],
               functionDefinitions: Set[FunctionDefinition]
-              ): Interpretation =
-        new BasicInterpretation(sortInterpretations, constantInterpretations, functionInterpretations, functionDefinitions)
+              ): Interpretation = {
+                new BasicInterpretation(sortInterpretations, constantInterpretations, functionInterpretations, functionDefinitions)
+              }
 
     def empty: Interpretation = BasicInterpretation(Map.empty, Map.empty, Map.empty, Set.empty)
 

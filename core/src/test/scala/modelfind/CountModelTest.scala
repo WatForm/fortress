@@ -6,6 +6,7 @@ import scala.util.Using
 class CountModelTest extends UnitSuite {
     
     test("basic count") {
+        // pending
         val p = Var("p")
         val q = Var("q")
 
@@ -44,6 +45,7 @@ class CountModelTest extends UnitSuite {
     }
 
     test("basic count 2") {
+        // pending
         val p = Var("p")
         val q = Var("q")
         val r = Var("r")
@@ -61,7 +63,30 @@ class CountModelTest extends UnitSuite {
         }
     }
 
+    test("function count easy") {
+        val Colour = Sort.mkSortConst("Colour")
+
+        val red = EnumValue("red")
+        val green = EnumValue("green")
+
+        val f = FuncDecl("f", Colour, Colour)
+
+        val c = Var("c")
+
+        val theory = Theory.empty
+          .withEnumSort(Colour, red, green)
+          .withFunctionDeclaration(f)
+          .withConstantDeclaration(c of Colour)
+          .withAxiom(Not(App("f", green) === green))
+          .withAxiom(c === App("f", red))
+
+        Using.resource(new JoeZEROModelFinder) { finder =>
+            finder.countValidModels(theory) should be (2)
+        }
+    }
+
     test("function count") {
+        // pending
         val Colour = Sort.mkSortConst("Colour")
 
         val red = EnumValue("red")
@@ -87,6 +112,7 @@ class CountModelTest extends UnitSuite {
     }
     
     test("relational bijection count") {
+        // pending
         // Create Sorts
         val Row = Sort.mkSortConst("Row") // Rows
         val Col = Sort.mkSortConst("Col") // Columns
@@ -139,6 +165,7 @@ class CountModelTest extends UnitSuite {
     }
     
     test("skolem witnesses not added to count") {
+        // pending
         val A = Sort.mkSortConst("A")
         
         val x = Var("x")

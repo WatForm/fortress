@@ -268,7 +268,7 @@ class StandardModelFinder extends ModelFinder {
 
             }.toMap
 
-            new BasicInterpretation(
+            BasicInterpretation(
                 instance.sortInterpretations,
                 instance.constantInterpretations,
                 newFunctionInterpretations,
@@ -276,11 +276,11 @@ class StandardModelFinder extends ModelFinder {
             )
         }
 
-//        println("instance:\n " + newInstance)
+    //    println("instance:\n " + newInstance)
 
         val newAxiom = Not(And.smart(newInstance.toConstraints.toList map (compilerResult.right.get.eliminateDomainElements(_))))
 
-//        println("newAxiom: " + newAxiom)
+    //    println("newAxiom: " + newAxiom)
 
         solver.addAxiom(newAxiom)
 

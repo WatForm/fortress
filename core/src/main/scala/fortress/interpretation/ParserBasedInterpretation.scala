@@ -54,8 +54,7 @@ class ParserBasedInterpretation(model: String, theory: Theory) extends Interpret
     private def lookupConstant(c: AnnotatedVar): Value = {
         smtValueToFortressValue(
             fortressName2SmtValue(c.name), // H!val!0
-            c.sort, // H
-            smtValue2DomainElement
+            c.sort // H
         )
     }
 
@@ -69,7 +68,7 @@ class ParserBasedInterpretation(model: String, theory: Theory) extends Interpret
 
     // replace smt-value in function definition with fortress domainElements
     // eg: H!val!0 -> _@1H
-    def updateFunc(func: Term): Term = func match {
+    private def updateFunc(func: Term): Term = func match {
         case IfThenElse(a, b, c) => IfThenElse(updateFunc(a), updateFunc(b), updateFunc(c))
         case AndList(args) => AndList(args.map(updateFunc))
         case OrList(args) => OrList(args.map(updateFunc))
@@ -108,78 +107,69 @@ class ParserBasedInterpretation(model: String, theory: Theory) extends Interpret
         })
     }.toSet
 
-    def getFunctionValues(f: FuncDecl, scopes: Map[Sort, Int]): Map[Seq[Value], Value] = {
-        if( theory.signature.sorts.size == scopes.size ) {
-            Map.empty
-        }
-        else Map.empty
-    }
-
     override val functionInterpretations: Map[FuncDecl, Map[Seq[Value], Value]] = {
-        for( f <- theory.signature.functionDeclarations ) yield (f -> getFunctionValues(f, scopes))
+        for( f <- theory.signature.functionDeclarations ) yield {
+            val mapping: FunctionMapping = Map.empty
+            (f -> mapping)
+        }
     }.toMap
 
     def smtValueToFortressValue(
          value: String, // H!val!0
          sort: Sort,   // H
-         smtValueToDomainElement: mutable.Map[String, DomainElement]
-    ): Value = {
-
-        object ProcessBuilderSolver {
-            val smt2Model: Regex = """^\(\((\S+|\(.+\)) (\S+|\(.+\))\)\)$""".r
-            val bitVecType: Regex = """\(_ BitVec (\d+)\)""".r
-            val bitVecLiteral: Regex = """^#(.)(.+)$""".r
-            val bitVecExpr: Regex = """\(_ bv(\d+) (\d+)\)""".r
-            val bitVecExprCondensed: Regex = """(\d+)aaBitVecExpraa(\d+)""".r
-            val negativeInteger: Regex = """\(- ?(\d+)\)""".r
-            val negativeIntegerCondensed: Regex = """aaNegativeIntaa(\d+)""".r
-
-            val  BitVectorLiteral: Regex = """BitVectorLiteral.+""".r
+    ): Value = sort match {
+        case SortConst(_) => {
+            if (smtValue2DomainElement.keySet.contains(value))
+                smtValue2DomainElement(value)
+            else
+                DomainElement.interpretName(NameConverter.nameWithoutQuote(value)).get
         }
-
-
-        sort match {
-            case SortConst(_) => {
-                if (smtValueToDomainElement.keySet.contains(value))
-                    smtValueToDomainElement(value)
-                else
-                    DomainElement.interpretName(NameConverter.nameWithoutQuote(value)).get
-            }
-            case BoolSort => value match {
-                case "true" => Top
-                case "false" => Bottom
-                case _ => Errors.Internal.impossibleState
-            }
-            case IntSort => value match {
-                case ProcessBuilderSolver.negativeInteger(digits) => IntegerLiteral(-(digits.toInt))
-                case ProcessBuilderSolver.negativeIntegerCondensed(digits) => IntegerLiteral(-(digits.toInt))
-                case _ => IntegerLiteral(value.toInt)
-            }
-            /*
-            case UnBoundedIntSort => value match {
-                case ProcessBuilderSolver.negativeInteger(digits) => IntegerLiteral(-(digits.toInt))
-                case ProcessBuilderSolver.negativeIntegerCondensed(digits) => IntegerLiteral(-(digits.toInt))
-                case _ => IntegerLiteral(value.toInt)
-            }
-            */
-            case BitVectorSort(bitwidth) => value match {
-                case ProcessBuilderSolver.bitVecLiteral(radix, digits) => radix match {
-                    case "x" => BitVectorLiteral.ensureSignedValue(Integer.parseInt(digits, 16), bitwidth)
-                    case "b" => {
-                        BitVectorLiteral.ensureSignedValue(Integer.parseInt(digits, 2),  bitwidth)
-                    }
-                    case _ => Errors.Internal.impossibleState
-                }
-                case ProcessBuilderSolver.bitVecExpr(digits, bitw) => {
-                    Errors.Internal.assertion(bitw.toInt == bitwidth)
-                    BitVectorLiteral(digits.toInt, bitwidth)
-                }
-                case ProcessBuilderSolver.bitVecExprCondensed(digits, bitw) => {
-                    Errors.Internal.assertion(bitw.toInt == bitwidth)
-                    BitVectorLiteral(digits.toInt, bitwidth)
+        case BoolSort => value match {
+            case "true" => Top
+            case "false" => Bottom
+            case _ => Errors.Internal.impossibleState
+        }
+        case IntSort => value match {
+            case ParserBasedInterpretation.negativeInteger(digits) => IntegerLiteral(-(digits.toInt))
+            case ParserBasedInterpretation.negativeIntegerCondensed(digits) => IntegerLiteral(-(digits.toInt))
+            case _ => IntegerLiteral(value.toInt)
+        }
+        /*
+        case UnBoundedIntSort => value match {
+            case ParserBasedInterpretation.negativeInteger(digits) => IntegerLiteral(-(digits.toInt))
+            case ParserBasedInterpretation.negativeIntegerCondensed(digits) => IntegerLiteral(-(digits.toInt))
+            case _ => IntegerLiteral(value.toInt)
+        }
+        */
+        case BitVectorSort(bitwidth) => value match {
+            case ParserBasedInterpretation.bitVecLiteral(radix, digits) => radix match {
+                case "x" => BitVectorLiteral.ensureSignedValue(Integer.parseInt(digits, 16), bitwidth)
+                case "b" => {
+                    BitVectorLiteral.ensureSignedValue(Integer.parseInt(digits, 2),  bitwidth)
                 }
                 case _ => Errors.Internal.impossibleState
             }
+            case ParserBasedInterpretation.bitVecExpr(digits, bitw) => {
+                Errors.Internal.assertion(bitw.toInt == bitwidth)
+                BitVectorLiteral(digits.toInt, bitwidth)
+            }
+            case ParserBasedInterpretation.bitVecExprCondensed(digits, bitw) => {
+                Errors.Internal.assertion(bitw.toInt == bitwidth)
+                BitVectorLiteral(digits.toInt, bitwidth)
+            }
+            case _ => Errors.Internal.impossibleState
         }
     }
+}
+
+object ParserBasedInterpretation {
+    val smt2Model: Regex = """^\(\((\S+|\(.+\)) (\S+|\(.+\))\)\)$""".r
+    val bitVecType: Regex = """\(_ BitVec (\d+)\)""".r
+    val bitVecLiteral: Regex = """^#(.)(.+)$""".r
+    val bitVecExpr: Regex = """\(_ bv(\d+) (\d+)\)""".r
+    val bitVecExprCondensed: Regex = """(\d+)aaBitVecExpraa(\d+)""".r
+    val negativeInteger: Regex = """\(- ?(\d+)\)""".r
+    val negativeIntegerCondensed: Regex = """aaNegativeIntaa(\d+)""".r
+
+    val  BitVectorLiteral: Regex = """BitVectorLiteral.+""".r
 }
