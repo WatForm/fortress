@@ -12,6 +12,8 @@ import fortress.util.{ArgumentListGenerator, Errors, Milliseconds}
 /** An interpretation of a first-order logic signature. */
 trait Interpretation {
 
+    import fortress.interpretation.Interpretation._
+
     /** Maps a sort to a sequence of values. */
     def sortInterpretations: Map[Sort, Seq[Value]]
 
@@ -21,20 +23,10 @@ trait Interpretation {
     /** Maps a function symbol to a mathematical function.
       * The function is represented as a Map itself.
       */
-    def functionInterpretations: Map[FuncDecl, Map[Seq[Value], Value]] = Map.empty
+    type FunctionMapping = Map[Seq[Value], Value]
+    def functionInterpretations: Map[FuncDecl, FunctionMapping] = Map.empty
 
     def functionDefinitions: Set[FunctionDefinition]
-
-
-
-    def forceValueToBool(term: Value): Boolean = term match{
-        case Top => true
-        case Bottom => false
-        case _ => Errors.Internal.impossibleState("Tried to cast non-Top/Bottom Term to Boolean")
-    }
-
-    def boolToValue(b: Boolean): Value = if(b) Top else Bottom
-
 
     def getFunctionValue(fnName: String, evaluatedArgs: Seq[Value]): Value = {
         val funcDef = functionDefinitions.filter(fd => fd.name == fnName).head
@@ -316,6 +308,11 @@ trait Interpretation {
                 }
             }
         }
+
+        // for(fdefn <- functionDefinitions) {
+        //     constraints += fdefn.asAxiom
+        // }
+
         constraints.toSet
     }
 
@@ -324,42 +321,44 @@ trait Interpretation {
 
         buffer ++= "+------------------------------View Model------------------------------+\n"
 
-        if(sortInterpretations.nonEmpty) {
+        // if(sortInterpretations.nonEmpty) {
             buffer ++= "\nSorts:\n"
             val sortLines = for((sort, values) <- sortInterpretations) yield {
                 sort.toString + ": " + values.mkString(", ")
             }
             buffer ++= sortLines.mkString("\n")
-        }
+            buffer ++= "\n"
+        // }
 
-        if(constantInterpretations.nonEmpty) {
-            buffer ++= "\n\nConstants: \n"
+        // if(constantInterpretations.nonEmpty) {
+            buffer ++= "\nConstants: \n"
             val constLines = for((const, value) <- constantInterpretations) yield {
                 const.toString + " = " + value.toString
             }
             buffer ++= constLines.mkString("\n")
             buffer ++= "\n"
-        }
+        // }
 
-        if(functionDefinitions.nonEmpty) {
+        // if(functionDefinitions.nonEmpty) {
             buffer ++= "\nFunction Definitions:\n"
             for( item <- functionDefinitions) {
                 buffer ++= item.toString
             }
-        }
+        // }
 
-//        if(functionInterpretations.nonEmpty) {
-//            buffer ++= "\nFunctions values: "
-//            for {
-//                (fdecl, map) <- functionInterpretations
-//            } {
-//                buffer ++= "\n" + fdecl.toString + "\n"
-//                val argLines = for((arguments, value) <- map) yield {
-//                    fdecl.name + "(" + arguments.mkString(", ") + ") = " + value.toString
-//                }
-//                buffer ++= argLines.mkString("\n")
-//            }
-//        }
+    //    if(functionInterpretations.nonEmpty) {
+           buffer ++= "\nFunctions Values: "
+           println(functionInterpretations)
+           for {
+               (fdecl, map) <- functionInterpretations
+           } {
+               buffer ++= "\n" + fdecl.toString + "\n"
+               val argLines = for((arguments, value) <- map) yield {
+                   fdecl.name + "(" + arguments.mkString(", ") + ") = " + value.toString
+               }
+               buffer ++= argLines.mkString("\n")
+           }
+    //    }
 
         buffer ++= "+----------------------------------------------------------------------+\n"
 
@@ -379,4 +378,15 @@ trait Interpretation {
     def sortInterpretationsJava: java.util.Map[Sort, java.util.List[Value]] = sortInterpretations.map {
         case (sort, values) => sort -> values.asJava
     }.asJava
+}
+
+object Interpretation {
+
+    def forceValueToBool(term: Value): Boolean = term match {
+        case Top => true
+        case Bottom => false
+        case _ => Errors.Internal.impossibleState("Tried to cast non-Top/Bottom Term to Boolean")
+    }
+
+    def boolToValue(b: Boolean): Value = if(b) Top else Bottom
 }

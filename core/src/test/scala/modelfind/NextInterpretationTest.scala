@@ -1,0 +1,5 @@
+package modelfind
+
+class NextInterpretationTest {
+  
+}
