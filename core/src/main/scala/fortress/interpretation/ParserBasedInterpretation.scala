@@ -107,8 +107,6 @@ class ParserBasedInterpretation(model: String, theory: Theory) extends Interpret
         })
     }.toSet
 
-    override val functionInterpretations: Map[FuncDecl, Map[Seq[Value], Value]] = Map.empty
-
     def smtValueToFortressValue(
          value: String, // H!val!0
          sort: Sort,   // H

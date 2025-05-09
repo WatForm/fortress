@@ -1,5 +1,0 @@
-package modelfind
-
-class NextInterpretationTest {
-  
-}
