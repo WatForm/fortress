@@ -107,12 +107,7 @@ class ParserBasedInterpretation(model: String, theory: Theory) extends Interpret
         })
     }.toSet
 
-    override val functionInterpretations: Map[FuncDecl, Map[Seq[Value], Value]] = {
-        for( f <- theory.signature.functionDeclarations ) yield {
-            val mapping: FunctionMapping = Map.empty
-            (f -> mapping)
-        }
-    }.toMap
+    override val functionInterpretations: Map[FuncDecl, Map[Seq[Value], Value]] = Map.empty
 
     def smtValueToFortressValue(
          value: String, // H!val!0

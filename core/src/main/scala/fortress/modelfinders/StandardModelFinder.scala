@@ -8,6 +8,7 @@ import fortress.compilers._
 import fortress.solvers._
 import fortress.logging._
 import fortress.problemstate._
+import fortress.operations.TermOps._
 
 import scala.collection.mutable.ListBuffer
 
@@ -255,30 +256,14 @@ class StandardModelFinder extends ModelFinder {
         val instance = solver.solution
             .withoutDeclarations(compilerResult.right.get.skipForNextInterpretation)
 
-        val newInstance: Interpretation = {
-
-            def scopes: Map[Sort, Int] = for((sort, seq) <- instance.sortInterpretations) yield (sort -> seq.size)
-
-            val newFunctionInterpretations: Map[FuncDecl, Map[Seq[Value], Value]] = {
-                for(f <- theory.signature.functionDeclarations)
-                    yield f -> {
-                        for (argList <- ArgumentListGenerator.generate(f, scopes, Some(instance.sortInterpretations)))
-                            yield argList -> instance.getFunctionValue(f.name, argList)
-                        }.toMap
-
-            }.toMap
-
-            BasicInterpretation(
-                instance.sortInterpretations,
-                instance.constantInterpretations,
-                newFunctionInterpretations,
-                instance.functionDefinitions
-            )
-        }
+        def scopes: Map[Sort, Int] = for((sort, seq) <- instance.sortInterpretations) yield (sort -> seq.size)
 
     //    println("instance:\n " + newInstance)
+        val domainElemsMap: Map[Sort, Seq[Term]] = scopes.map {
+            case (sort, scope) => (sort, for(i <- 1 to scope) yield DomainElement(i, sort))
+        }
 
-        val newAxiom = Not(And.smart(newInstance.toConstraints.toList map (compilerResult.right.get.eliminateDomainElements(_))))
+        val newAxiom = Not(And.smart(instance.toConstraints.map(_.expandQuantifiers(domainElemsMap)).toList map (compilerResult.right.get.eliminateDomainElements(_))))
 
     //    println("newAxiom: " + newAxiom)
 

@@ -15,7 +15,11 @@ class BasicInterpretation private (
     val constantInterpretations: Map[AnnotatedVar, Value],
     override val functionInterpretations: Map[FuncDecl, Map[Seq[Value], Value]],
     val functionDefinitions: Set[FunctionDefinition]
-) extends Interpretation
+) extends Interpretation {
+  if (!functionInterpretations.isEmpty) {
+    fortress.util.Errors.Internal.impossibleState
+  }
+}
 
 object BasicInterpretation {
     def apply(sortInterpretations: Map[Sort, Seq[Value]],
@@ -28,14 +32,5 @@ object BasicInterpretation {
 
     def empty: Interpretation = BasicInterpretation(Map.empty, Map.empty, Map.empty, Set.empty)
 
-
-    def mkBasicInterpretation(
-         sortInterpretation: java.util.Map[Sort, Seq[Value]],
-         constantInterpretations: java.util.Map[AnnotatedVar, Value],
-         functionInterpretations: java.util.Map[FuncDecl, Map[Seq[Value], Value]],
-         functionDefinitions: java.util.Set[FunctionDefinition]
-    ): BasicInterpretation = {
-        new BasicInterpretation(sortInterpretation.asScala.toMap, constantInterpretations.asScala.toMap, Map.empty, functionDefinitions.asScala.toSet)
-    }
 }
 

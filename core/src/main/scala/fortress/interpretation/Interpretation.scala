@@ -24,7 +24,7 @@ trait Interpretation {
       * The function is represented as a Map itself.
       */
     type FunctionMapping = Map[Seq[Value], Value]
-    def functionInterpretations: Map[FuncDecl, FunctionMapping] = Map.empty
+    def functionInterpretations: Map[FuncDecl, FunctionMapping]
 
     def functionDefinitions: Set[FunctionDefinition]
 
@@ -293,25 +293,14 @@ trait Interpretation {
         for((const, v) <- constantInterpretations) {
             constraints += (const.variable === v)
         }
-        
-        for {
-            (fdecl, map) <- functionInterpretations
-            (arguments, value) <- map
-        } {
-            fdecl.resultSort match {
-                case BoolSort => { // Predicate
-                    if(value == Top) constraints += App(fdecl.name, arguments)
-                    else constraints += Not(App(fdecl.name, arguments))
-                }
-                case _ =>  { // Function
-                    constraints += (App(fdecl.name, arguments) === value)
-                }
-            }
+
+        if (!functionInterpretations.isEmpty) {
+            fortress.util.Errors.Internal.impossibleState
         }
 
-        // for(fdefn <- functionDefinitions) {
-        //     constraints += fdefn.asAxiom
-        // }
+        for(fdefn <- functionDefinitions) {
+            constraints += fdefn.asAxiom
+        }
 
         constraints.toSet
     }
