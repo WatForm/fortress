@@ -64,6 +64,7 @@ class CountModelTest extends UnitSuite {
     }
 
     test("function count easy") {
+        // pending
         val Colour = Sort.mkSortConst("Colour")
 
         val red = EnumValue("red")
