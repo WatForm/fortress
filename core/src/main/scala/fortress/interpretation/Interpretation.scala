@@ -12,29 +12,15 @@ import fortress.util.{ArgumentListGenerator, Errors, Milliseconds}
 /** An interpretation of a first-order logic signature. */
 trait Interpretation {
 
+    import Interpretation._
+
     /** Maps a sort to a sequence of values. */
     def sortInterpretations: Map[Sort, Seq[Value]]
 
     /** Maps a constant symbol to a value. */
     def constantInterpretations: Map[AnnotatedVar, Value]
 
-    /** Maps a function symbol to a mathematical function.
-      * The function is represented as a Map itself.
-      */
-    def functionInterpretations: Map[FuncDecl, Map[Seq[Value], Value]] = Map.empty
-
     def functionDefinitions: Set[FunctionDefinition]
-
-
-
-    def forceValueToBool(term: Value): Boolean = term match{
-        case Top => true
-        case Bottom => false
-        case _ => Errors.Internal.impossibleState("Tried to cast non-Top/Bottom Term to Boolean")
-    }
-
-    def boolToValue(b: Boolean): Value = if(b) Top else Bottom
-
 
     def getFunctionValue(fnName: String, evaluatedArgs: Seq[Value]): Value = {
         val funcDef = functionDefinitions.filter(fd => fd.name == fnName).head
@@ -162,12 +148,9 @@ trait Interpretation {
             case _ => term
         }
         
-        new BasicInterpretation(
+        BasicInterpretation(
             sortInterpretations.map{ case(sort, values) => sort -> (values map applyMapping) }, 
             constantInterpretations.map{ case(av, value) => av -> applyMapping(value) },
-            functionInterpretations.map{ case(fdecl, values) => fdecl -> (values.map{
-                case(args, value) => (args map applyMapping) -> applyMapping(value) }
-            )},
             functionDefinitions.map{ case functionDefinition: FunctionDefinition => {
                 // visit the funcBody term, replace the values with enum
                 val name: String = functionDefinition.name
@@ -190,30 +173,22 @@ trait Interpretation {
         val newConstInterps = constantInterpretations map {
             case(const, value) => sub(const) -> apply(value)
         }
-        val newFunctionInterps = functionInterpretations map {
-            case(fdecl, mapping) => sub(fdecl) -> {
-                mapping map {
-                    case(args, value) => (args map apply) -> apply(value)
-                }
-            }
-        }
         val newFunctionDefinitions = functionDefinitions map sub.apply
         // TODO: what to do on functionDefinitions
-        new BasicInterpretation(newSortInterps, newConstInterps, newFunctionInterps, newFunctionDefinitions)
+        BasicInterpretation(newSortInterps, newConstInterps, newFunctionDefinitions)
     }
     
     /** Shows only the parts of the interpretation which are in the given signature. */
     def filterBySignature(signature: Signature): Interpretation = {
         val newSortInterps = sortInterpretations filter { case(sort, values) => signature hasSort sort }
         val newConstInterps = constantInterpretations filter { case(const, value) => signature.constantDeclarations contains const }
-        val newFunctionInterps = functionInterpretations filter {case(fdecl, mapping) => signature.functionDeclarations contains fdecl }
         val newFunctionDefinitions = functionDefinitions filter { fd => {
             for( item <- signature.functionDeclarations ) {
                 if( item.name == fd.name ) true
             }
             false
         } }
-        new BasicInterpretation(newSortInterps, newConstInterps, newFunctionInterps, newFunctionDefinitions)
+        BasicInterpretation(newSortInterps, newConstInterps, newFunctionDefinitions)
     }
 
     /** Removes the given declarations from the interpretation. */
@@ -236,20 +211,18 @@ trait Interpretation {
     
     /** Removes the given constants from the interpretation. */
     def withoutConstants(constants: Set[AnnotatedVar]): Interpretation = {
-        new BasicInterpretation(
+        BasicInterpretation(
             sortInterpretations,
             constantInterpretations -- constants,
-            functionInterpretations,
             functionDefinitions
         )
     }
 
     /** Removes the given definitions from the interpretation */
     def withoutFunctionDefinitions(definitions: Set[FunctionDefinition]): Interpretation = {
-        new BasicInterpretation(
+        BasicInterpretation(
             sortInterpretations,
             constantInterpretations,
-            functionInterpretations,
             functionDefinitions -- definitions
         )
     }
@@ -264,30 +237,27 @@ trait Interpretation {
             flag
         })
 
-        new BasicInterpretation(
+        BasicInterpretation(
             sortInterpretations,
             constantInterpretations,
-            functionInterpretations -- funcDecls,
             newFunctionDefinitions
         )
     }
 
     /** Updates the Interpretation to drop the specified sort */
     def withoutSorts(sorts:Set[Sort]): Interpretation = {
-        new BasicInterpretation(
+        BasicInterpretation(
             sortInterpretations -- sorts,
             constantInterpretations,
-            functionInterpretations,
             functionDefinitions
         )
     }
 
     /** Updates thr domain elements associated with specified sort. */
     def updateSortInterpretations(sort: Sort, values: Seq[Value]): Interpretation = {
-        new BasicInterpretation(
+        BasicInterpretation(
             sortInterpretations + (sort -> values),
             constantInterpretations,
-            functionInterpretations,
             functionDefinitions
         )
     }
@@ -301,21 +271,11 @@ trait Interpretation {
         for((const, v) <- constantInterpretations) {
             constraints += (const.variable === v)
         }
-        
-        for {
-            (fdecl, map) <- functionInterpretations
-            (arguments, value) <- map
-        } {
-            fdecl.resultSort match {
-                case BoolSort => { // Predicate
-                    if(value == Top) constraints += App(fdecl.name, arguments)
-                    else constraints += Not(App(fdecl.name, arguments))
-                }
-                case _ =>  { // Function
-                    constraints += (App(fdecl.name, arguments) === value)
-                }
-            }
+
+        for(fdefn <- functionDefinitions) {
+            constraints += fdefn.asAxiom
         }
+
         constraints.toSet
     }
 
@@ -324,42 +284,30 @@ trait Interpretation {
 
         buffer ++= "+------------------------------View Model------------------------------+\n"
 
-        if(sortInterpretations.nonEmpty) {
+        // if(sortInterpretations.nonEmpty) {
             buffer ++= "\nSorts:\n"
             val sortLines = for((sort, values) <- sortInterpretations) yield {
                 sort.toString + ": " + values.mkString(", ")
             }
             buffer ++= sortLines.mkString("\n")
-        }
+            buffer ++= "\n"
+        // }
 
-        if(constantInterpretations.nonEmpty) {
-            buffer ++= "\n\nConstants: \n"
+        // if(constantInterpretations.nonEmpty) {
+            buffer ++= "\nConstants: \n"
             val constLines = for((const, value) <- constantInterpretations) yield {
                 const.toString + " = " + value.toString
             }
             buffer ++= constLines.mkString("\n")
             buffer ++= "\n"
-        }
+        // }
 
-        if(functionDefinitions.nonEmpty) {
+        // if(functionDefinitions.nonEmpty) {
             buffer ++= "\nFunction Definitions:\n"
             for( item <- functionDefinitions) {
                 buffer ++= item.toString
             }
-        }
-
-//        if(functionInterpretations.nonEmpty) {
-//            buffer ++= "\nFunctions values: "
-//            for {
-//                (fdecl, map) <- functionInterpretations
-//            } {
-//                buffer ++= "\n" + fdecl.toString + "\n"
-//                val argLines = for((arguments, value) <- map) yield {
-//                    fdecl.name + "(" + arguments.mkString(", ") + ") = " + value.toString
-//                }
-//                buffer ++= argLines.mkString("\n")
-//            }
-//        }
+        // }
 
         buffer ++= "+----------------------------------------------------------------------+\n"
 
@@ -368,15 +316,40 @@ trait Interpretation {
     
     // Java methods
     
-    def functionInterpretationsJava: java.util.Map[FuncDecl, java.util.Map[java.util.List[Value], Value]] = functionInterpretations.map {
-        case (fdecl, values) => fdecl -> (values.map {
-            case (args, ret) => args.asJava -> ret
-        }).asJava
-    }.asJava
-    
     def constantInterpretationsJava: java.util.Map[AnnotatedVar, Value] = constantInterpretations.asJava
     
     def sortInterpretationsJava: java.util.Map[Sort, java.util.List[Value]] = sortInterpretations.map {
         case (sort, values) => sort -> values.asJava
     }.asJava
+}
+
+object Interpretation {
+
+    def forceValueToBool(term: Value): Boolean = term match {
+        case Top => true
+        case Bottom => false
+        case _ => Errors.Internal.impossibleState("Tried to cast non-Top/Bottom Term to Boolean")
+    }
+
+    def boolToValue(b: Boolean): Value = if(b) Top else Bottom
+
+    def convertFunctionMappingsToDefinitions(functionInterpretations: Map[FuncDecl, Map[Seq[Value], Value]]): Set[FunctionDefinition] = {
+        val conversion = for((fdecl, mapping) <- functionInterpretations) yield convertFunctionMappingToDefinition(fdecl, mapping)
+        conversion.toSet
+    }
+
+    def convertFunctionMappingToDefinition(fdecl: FuncDecl, mapping: Map[Seq[Value], Value]): FunctionDefinition = {
+        val argSortedVar = for((argSort, i) <- fdecl.argSorts.zipWithIndex) yield AnnotatedVar(Var(s"x!${i}"), argSort)
+        val body: Term = {
+            val conjunctionOutputPairs = for((inputSeq, output) <- mapping.toList) yield {
+            fortress.util.Errors.Internal.assertion(argSortedVar.size == inputSeq.size)
+            val componentwiseEquals = for( (av, inputComponent) <- argSortedVar.zip(inputSeq) ) yield Eq(av.variable, inputComponent)
+            val conjunction = And.smart(componentwiseEquals)
+            (conjunction, output)
+            }
+            conjunctionOutputPairs.tail.foldRight[Term](conjunctionOutputPairs.head._2)((pair, prev) => IfThenElse(pair._1, pair._2, prev))
+        }
+        val defn: FunctionDefinition = FunctionDefinition(fdecl.name, argSortedVar, fdecl.resultSort, body)
+        defn
+    }
 }

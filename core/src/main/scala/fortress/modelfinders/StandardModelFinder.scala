@@ -8,6 +8,7 @@ import fortress.compilers._
 import fortress.solvers._
 import fortress.logging._
 import fortress.problemstate._
+import fortress.operations.TermOps._
 
 import scala.collection.mutable.ListBuffer
 
@@ -32,15 +33,12 @@ import scala.collection.mutable.ListBuffer
 
 
   */
-class StandardModelFinder extends ModelFinder {
-
-
-
+class StandardModelFinder extends ModelFinder with NextInterpretationRobustStrategy {
 
     protected var theory: Theory = Theory.empty
     // good defaults for compiler and solver 
-    protected var compiler:Compiler = new StandardCompiler
-    protected var solver:Solver = new Z3NonIncCliSolver
+    protected var compiler: Compiler = new StandardCompiler
+    protected var solver: Solver = new Z3NonIncCliSolver
 
     // can be set by user (see functions below)
     protected var timeoutMilliseconds: Milliseconds = Milliseconds(60000)
@@ -52,15 +50,15 @@ class StandardModelFinder extends ModelFinder {
     private val totalTimer: StopWatch = new StopWatch()
 
     // phases of model finding
-    private var theorySet:Boolean = false
-    private var haveCompiled:Boolean = false
-    private var haveSolved:Boolean = false
+    private var theorySet: Boolean = false
+    private var haveCompiled: Boolean = false
+    protected var haveSolved: Boolean = false
     // only contains a valid value if haveCompiled is true
-    private var compilerResult: Either[CompilerError, CompilerResult] = null
+    protected var compilerResult: Either[CompilerError, CompilerResult] = null
     // only useful to viewModels if it has a SatSolution
-    private var hasSatSolution:Boolean = false
+    protected var hasSatSolution: Boolean = false
     // if the model is trivially SAT, here's its interpretation
-    private var trivialSolution: Option[Interpretation] = None
+    protected var trivialSolution: Option[Interpretation] = None
 
 
     def resetPhases() = {
@@ -75,9 +73,11 @@ class StandardModelFinder extends ModelFinder {
         resetPhases()
     }
     def setSolver(newSolver: Solver): Unit = {
+        solver.close()
         solver = newSolver
     }
     def setSolver(newSolver: String): Unit = {
+        solver.close()
         // exception raised if solver does not exist
         solver = SolversRegistry.fromString(newSolver)
     }
@@ -87,7 +87,6 @@ class StandardModelFinder extends ModelFinder {
      def setCompiler(newCompiler: String): Unit = {
         // exception raised if compiler does not exist
         compiler = CompilersRegistry.fromString(newCompiler)
-
     }    
 
     /** Set the timeout in milliseconds. */
@@ -145,7 +144,7 @@ class StandardModelFinder extends ModelFinder {
     protected def notifyLoggers(notifyFn: EventLogger => Unit): Unit = 
         for(logger <- eventLoggers) notifyFn(logger)
 
-    def compile(verbose: Boolean = false, forceFull: Boolean = false): Either[CompilerError, CompilerResult] = {
+    override def compile(verbose: Boolean = false, forceFull: Boolean = false): Either[CompilerError, CompilerResult] = {
         if (!theorySet) 
             Errors.Internal.impossibleState("Called model finder compile or checkSat with no set theory")
         if (!haveCompiled) {
@@ -239,57 +238,6 @@ class StandardModelFinder extends ModelFinder {
         compilerResult.right.get.decompileInterpretation(instance)
     }
 
-    /** Return the next satisfying interpretation. */
-    def nextInterpretation(): ModelFinderResult = {
-
-        // have to have solved first, although if this is called directly, then
-        // user would never see first interpretation
-        if (!haveSolved) checkSat(alwaysSolve = true)
-        if (!hasSatSolution) Errors.Internal.impossibleState("can only view models if the problem is SAT")
-        // We can only get the next interpretation if we have gone to the solver
-        // This is why we pass alwaysSolve above
-        if (trivialSolution.isDefined) Errors.Internal.preconditionFailed("Can only get the next interpretation if not trivial")
-
-        // Negate the current interpretation, but leave out the skolem functions
-        // Different witnesses are not useful for counting interpretations
-        val instance = solver.solution
-            .withoutDeclarations(compilerResult.right.get.skipForNextInterpretation)
-
-        val newInstance: Interpretation = {
-
-            def scopes: Map[Sort, Int] = for((sort, seq) <- instance.sortInterpretations) yield (sort -> seq.size)
-
-            val newFunctionInterpretations: Map[FuncDecl, Map[Seq[Value], Value]] = {
-                for(f <- theory.signature.functionDeclarations)
-                    yield f -> {
-                        for (argList <- ArgumentListGenerator.generate(f, scopes, Some(instance.sortInterpretations)))
-                            yield argList -> instance.getFunctionValue(f.name, argList)
-                        }.toMap
-
-            }.toMap
-
-            new BasicInterpretation(
-                instance.sortInterpretations,
-                instance.constantInterpretations,
-                newFunctionInterpretations,
-                instance.functionDefinitions
-            )
-        }
-
-//        println("instance:\n " + newInstance)
-
-        val newAxiom = Not(And.smart(newInstance.toConstraints.toList map (compilerResult.right.get.eliminateDomainElements(_))))
-
-//        println("newAxiom: " + newAxiom)
-
-        solver.addAxiom(newAxiom)
-
-        // this will reset whether the problem has a sat solution or not
-        solver.solve(timeoutMilliseconds)
-    }
-
-
-
     /** Count the total number of satisfying interpretations. */
 
     def countValidModels(newTheory: Theory): Int = {
@@ -309,6 +257,7 @@ class StandardModelFinder extends ModelFinder {
         }
 
         var count: Int = 1
+        clearNextInterpretation()
 
         var sat: Boolean = true
         while (sat) {

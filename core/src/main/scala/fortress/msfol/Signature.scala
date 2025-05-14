@@ -448,38 +448,10 @@ case class Signature private (
                         fDef
                     }
                 })
-            
-            val newFunctionInterps: Map[FuncDecl, Map[Seq[Value], Value]] = interp.functionInterpretations
-                .map({
-                    case (fDec, valueMap) if replacedFunctionDeclarations.isDefinedAt(fDec) => {
-                        val newDec = replacedFunctionDeclarations(fDec)
-
-                        // find indices of args that were cast
-                        val differentIndices: Seq[Int] = for {
-                            i <- newDec.argSorts.indices
-                            if newDec.argSorts(i) != fDec.argSorts(i)
-                        } yield i
-                        // replace args that got cast
-                        def uncastArgs(args: Seq[Value]): Seq[Value] = {
-                            var newArgs = args
-                            for (i <- differentIndices){
-                                newArgs = newArgs.updated(i, bvToInt(newArgs(i)))
-                            }
-                            newArgs
-                        }
-                        val newValueMap = valueMap.map({
-                            case (args, result) => (uncastArgs(args), bvToInt(result))
-                        })
-                        (newDec, newValueMap)
-                    }
-                    case x => x
-                })
-
 
             BasicInterpretation(
                 interp.sortInterpretations,
                 newConsts,
-                newFunctionInterps,
                 newFunctionDefinitions)
         }
 
