@@ -32,8 +32,25 @@ object TermConverter {
                    )
                    Forall(newVars, naturalRecur(body))
                }
+               case Exists2ndOrder(declarations, body) => {
+                    val newDecls = declarations.map(
+                        decl => FuncDecl(decl.name, decl.argSorts.map(sort => convertSort(sort)), convertSort(decl.resultSort))
+                    ) 
+                    Exists2ndOrder(newDecls, naturalRecur(body))
+               }
+               case Forall2ndOrder(declarations, body) => {
+                    val newDecls = declarations.map(
+                        decl => FuncDecl(decl.name, decl.argSorts.map(sort => convertSort(sort)), convertSort(decl.resultSort))
+                    ) 
+                    Forall2ndOrder(newDecls, naturalRecur(body))
+               }
            }
            
+           private def convertSort(sort: Sort): Sort = sort match {
+                case IntSort => BitVectorSort(bitwidth)
+                case _ => sort
+           }
+
            def apply(term: Term): Term = naturalRecur(term)
        }
        IntToSignedBitVector.apply(term)

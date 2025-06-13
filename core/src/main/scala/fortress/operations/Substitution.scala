@@ -4,16 +4,17 @@ import fortress.msfol._
 import fortress.data.NameGenerator
 import fortress.operations.TermOps._
 
-/** Applies the substitution [x -> s] in term t. Will perform alpha-renaming to
-  * avoid variable capture when necessary.
-  * When creating new variables for alpha-renaming, it will use the given name
-  * generator.
-  * This for example can be used to make sure when introducing new variables
-  * that the substituter avoids a certain set of symbols (e.g. function names
-  * that are used in some signature).
-  * Note that this will mutate the name generator object.
-  * The substituter may also forbid other names inside the name generator
-  * to help avoid variable capture.*/
+/** Applies the substitution [x -> s] in term t.
+ * This substitution is safe with respect to variable capture.
+ * An example of variable capture is substituting [x -> s] in Forall s, f(s, x), which 
+ * if done naively becomes Forall s, f(s, s).
+ * The substituter performs alpha-renaming to avoid this variable capture when necessary.
+ * When creating new variables for alpha-renaming, it will use the given name generator.
+ * This for example can be used to make sure when introducing new variables that the substituter
+ * avoids a certain set of symbols (e.g. function names that are used in some signature).
+ * Note that this mutates the name generator object.
+ * The substituter may also forbid other names inside the name generator to help avoid variable capture.
+ */
 object Substituter {
     def apply(x: Var, s: Term, t: Term, nameGen: NameGenerator): Term = {
         // Forbid all names used in term
@@ -41,19 +42,22 @@ object Substituter {
             case Exists(vars, _) if (vars.map(_.variable).contains(x)) => t
             case Forall(vars, _) if (vars.map(_.variable).contains(x)) => t
             case Exists(vars, body) => {
-                val (newVariables, newBody) = avoidCapture(vars, body)
+                val (newVariables, newBody) = avoidCapture(vars, body, freeVarsOfS, nameGen)
                 Exists(newVariables, sub(newBody))
             }
             case Forall(vars, body) => {
-                val (newVariables, newBody) = avoidCapture(vars, body)
+                val (newVariables, newBody) = avoidCapture(vars, body, freeVarsOfS, nameGen)
                 Forall(newVariables, sub(newBody))
             }
             case IfThenElse(condition, ifTrue, ifFalse) => IfThenElse(sub(condition), sub(ifTrue), sub(ifFalse))
         }
         
-        def avoidCapture(vars: Seq[AnnotatedVar], body: Term) = {
+        sub(t)
+    }
+
+    def avoidCapture(vars: Seq[AnnotatedVar], body: Term, precomputedFreeVars: Set[Var], nameGen: NameGenerator) = {
             // Must avoid variable capture
-            // If substituting [y -> s] in (forall x . t) where s contains y
+            // If substituting [y -> s] in (forall x . t) where s contains x
             // as a free variable, we must alpha rename (forall x . t) to
             // (forall z . t[x -> z]) where z is a fresh variable
             // Note that since z is fresh, when making the substitution [x -> z]
@@ -62,7 +66,7 @@ object Substituter {
             val newVariables = new scala.collection.mutable.ListBuffer[AnnotatedVar]
             val substitutions = scala.collection.mutable.Map[Var, Term]()
             for (av <- vars) {
-                if (freeVarsOfS contains av.variable) {
+                if (precomputedFreeVars contains av.variable) {
                     val freshVar = Var(nameGen.freshName(av.variable.name))
                     substitutions += (av.variable -> freshVar)
                     newVariables += freshVar of av.sort
@@ -77,19 +81,113 @@ object Substituter {
                 (vars, body)
             }
         }
-        
-        sub(t)
+
+    def renameApplications(term: Term, original: String, replacement: String): Term = {
+        def recur(term: Term): Term = term match {
+            case Top | Bottom | Var(_) | EnumValue(_) | BitVectorLiteral(_, _) | IntegerLiteral(_) | DomainElement(_, _) | EnumValue(_) => term
+            case AndList(arguments) => AndList(arguments.map(recur))
+            case OrList(arguments) => OrList(arguments.map(recur))
+            case Distinct(arguments) => Distinct(arguments.map(recur))
+            case Implication(left, right) => Implication(recur(left), recur(right))
+            case Iff(left, right) => Iff(recur(left), recur(right))
+            case Eq(left, right) => Eq(recur(left), recur(right))
+            case BuiltinApp(function, arguments) => BuiltinApp(function, arguments.map(recur))
+            case IfThenElse(condition, ifTrue, ifFalse) => IfThenElse(recur(condition), recur(ifTrue), recur(ifFalse))
+            case Not(body) => Not(recur(body))
+
+            case Exists(vars, body) => Exists(vars, recur(body))
+            case Forall(vars, body) => Forall(vars, recur(body))
+            case Exists2ndOrder(declarations, body) => {
+                if(declarations.map(_.name).contains(original)) term
+                else Exists2ndOrder(declarations, recur(body))
+            }
+            case Forall2ndOrder(declarations, body) => {
+                if(declarations.map(_.name).contains(original)) term
+                else Forall2ndOrder(declarations, recur(body))
+            }
+            
+            case SetCardinality(predicate) => {
+                if(predicate == original) SetCardinality(replacement)
+                else term
+            }
+            case Closure(functionName, arg1, arg2, fixedArgs) => {
+                val newName = if(functionName == original) replacement else functionName
+                Closure(newName, recur(arg1), recur(arg2), fixedArgs.map(recur))
+            }
+            case ReflexiveClosure(functionName, arg1, arg2, fixedArgs) => {
+                val newName = if(functionName == original) replacement else functionName
+                ReflexiveClosure(newName, recur(arg1), recur(arg2), fixedArgs.map(recur))
+            }
+            case App(functionName, arguments) => {
+                val newName = if(functionName == original) replacement else functionName
+                App(newName, arguments.map(recur))
+            }
+        }
+        recur(term)
+    }
+
+    def appendToApplications(term: Term, fnName: String, argsToAppend: Seq[Term], nameGen: NameGenerator): Term = {
+        // Forbid all names used in term
+        for(name <- term.allSymbols) {
+            nameGen.forbidName(name)
+        }
+
+        val freeVarsOfAppendedArgs = argsToAppend.map(t => t.freeVarConstSymbols).flatten.toSet
+
+        // todo fix variable capture
+        def recur(term: Term): Term = term match {
+            case Top | Bottom | Var(_) | DomainElement(_, _) | EnumValue(_) | IntegerLiteral(_) | BitVectorLiteral(_, _) => term
+            case Distinct(arguments) => Distinct(arguments.map(recur))
+            case Iff(left, right) => Iff(recur(left), recur(right))
+            case Not(body) => Not(recur(body))
+            case Eq(left, right) => Eq(recur(left), recur(right))
+            case AndList(arguments) => AndList(arguments.map(recur))
+            case OrList(arguments) => OrList(arguments.map(recur))
+            case Implication(left, right) => Implication(recur(left), recur(right))
+            case BuiltinApp(function, arguments) => BuiltinApp(function, arguments.map(recur))
+            case IfThenElse(condition, ifTrue, ifFalse) => IfThenElse(recur(condition), recur(ifTrue), recur(ifFalse))
+
+            case Exists(vars, body) => {
+                val (newVariables, newBody) = avoidCapture(vars, body, freeVarsOfAppendedArgs, nameGen)
+                Exists(newVariables, recur(newBody))
+            }
+            case Forall(vars, body) => {
+                val (newVariables, newBody) = avoidCapture(vars, body, freeVarsOfAppendedArgs, nameGen)
+                Forall(newVariables, recur(newBody))
+            }
+            case Exists2ndOrder(declarations, body) => Exists2ndOrder(declarations, recur(body))
+            case Forall2ndOrder(declarations, body) => Forall2ndOrder(declarations, recur(body))
+                
+            case ReflexiveClosure(functionName, arg1, arg2, fixedArgs) => {
+                if(functionName == fnName) ReflexiveClosure(functionName, recur(arg1), recur(arg2), fixedArgs.map(recur) ++ argsToAppend)
+                else ReflexiveClosure(functionName, recur(arg1), recur(arg2), fixedArgs.map(recur))
+            }
+            case Closure(functionName, arg1, arg2, fixedArgs) => {
+                if(functionName == fnName) Closure(functionName, recur(arg1), recur(arg2), fixedArgs.map(recur) ++ argsToAppend)
+                else Closure(functionName, recur(arg1), recur(arg2), fixedArgs.map(recur))
+            }
+            case App(functionName, arguments) => {
+                if(functionName == fnName) App(functionName, arguments.map(recur) ++ argsToAppend)
+                else App(functionName, arguments.map(recur))
+            }
+
+            case SetCardinality(predicate) => term
+        }
+        recur(term)
     }
 }
 
-/** Applies the substitutions [x_1 |-> t_1, ..., x_n |-> t_n], given by the map,
-  * to term t.
-  * The substituter will NOT avoid variable capture; it is the responsibility
-  * of the caller to make sure the substitution terms do not contain free
-  * variables that could be captured.
-  * For example, it would be okay to substitute with domain elements or fresh
-  * constants that do not share the same name as any quantified variable.
-  * If in doubt, do not use this class. */
+/** Applies the substitutions [x_1 |-> t_1, ..., x_n |-> t_n], given by the map, to term t.
+ * These substitutions are done simultaneously, not in sequence.
+ * The substituter will NOT avoid variable capture.
+ * An example of variable capture is substituting [x -> s] in Forall s, f(s, x), which 
+ * if done naively becomes Forall s, f(s, s).
+ * It is the responsibility of the caller to make sure the substitution replacements do not contain free
+ * variables that could be captured.
+ * For example, it would be okay to substitute with domain elements or fresh constants that do not share
+ * the same name as any quantified variable.
+ * If in doubt, do not use this class.
+ */
 object FastSubstituter {
     def apply(substitutions: Map[Var, Term], t: Term): Term = {
         // sigma is the substitution, it can change during recursive calls

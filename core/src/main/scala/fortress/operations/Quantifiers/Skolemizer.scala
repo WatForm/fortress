@@ -6,9 +6,11 @@ import fortress.operations.TermOps._
 import java.lang.IllegalArgumentException
 import fortress.util.Errors
 
-// Skolemizes a given term, which must be in negation normal form.
-// Free variables in the given term are ignored, so the top level term must be
-// closed with respect to the signature in question for this operation to be valid.
+/**
+  * Skolemizes a term. The term must be in negation normal form.
+  * Free variables in the term are ignored, so the top level term must be closed
+  * with respect to the signature in question for this operation to be valid.
+  */
 
 object Skolemization {
 
@@ -20,6 +22,7 @@ object Skolemization {
         val skolemConstants = scala.collection.mutable.Set[AnnotatedVar]()
         var context = Context.empty(sig)
 
+        // Eliminates existential quantifiers from the top down.
         def recur(term: Term): Term = term match {
             case Top | Bottom | Var(_) | DomainElement(_, _) | IntegerLiteral(_) | BitVectorLiteral(_, _) | EnumValue(_) => term
             case Not(p) => Not(recur(p))
@@ -27,13 +30,14 @@ object Skolemization {
             case OrList(args) => OrList(args map recur)
             case Distinct(_) | Iff (_, _) | Implication(_, _) => Errors.Internal.preconditionFailed(s"Term not in negation normal form: ${term}")
 
-
-            // Arguments to fcn/builtinapp with unknown polarity cannot be skolemized
+            // Arguments to function/builtinapp with unknown polarity cannot be skolemized
             case Eq(l, r) => term
             case App(fn, args) => term
             case BuiltinApp(fn, args) => term
             case IfThenElse(c, t, f) => term
             case SetCardinality(p) => term
+            case Closure(functionName, arg1, arg2, fixedArgs) => term
+            case ReflexiveClosure(functionName, arg1, arg2, fixedArgs) => term
 
             case Forall(avars, body) => {
                 context = context.stackPush(avars)
@@ -85,11 +89,75 @@ object Skolemization {
                 }
                 recur(temporaryBody)
             }
-            // Arguments with unknown polarity cannot be skolemized
-            case Closure(functionName, arg1, arg2, fixedArgs) => term
-            case ReflexiveClosure(functionName, arg1, arg2, fixedArgs) => term
+            case Forall2ndOrder(declarations, body) => {
+                Errors.Internal.preconditionFailed("There should be no 2nd order quantifiers at this stage.")
+            }
+            case Exists2ndOrder(declarations, body) => {
+                Errors.Internal.preconditionFailed("There should be no 2nd order quantifiers at this stage.")
+            }
         }
+        val skolemTerm = recur(axiom)
+        SkolemResult(skolemTerm, skolemConstants.toSet, skolemFunctions.toSet)
+    }
 
+    // Mutates the name generator
+    def skolemize2ndOrderOnly(axiom: Term, sig: Signature, nameGen: NameGenerator): SkolemResult = {
+        val skolemFunctions = scala.collection.mutable.Set[FuncDecl]()
+        val skolemConstants = scala.collection.mutable.Set[AnnotatedVar]()
+        var context = Context.empty(sig)
+
+        def recur(term: Term): Term = term match {
+            case Top | Bottom | Var(_) | DomainElement(_, _) | IntegerLiteral(_) | BitVectorLiteral(_, _) | EnumValue(_) => term
+            case Not(p) => Not(recur(p))
+            case AndList(args) => AndList(args map recur)
+            case OrList(args) => OrList(args map recur)
+            case Distinct(_) | Iff (_, _) | Implication(_, _) => Errors.Internal.preconditionFailed(s"Term not in negation normal form: ${term}")
+
+            // Arguments to function/builtinapp with unknown polarity cannot be skolemized
+            case Eq(_, _) | App(_, _) | BuiltinApp(_, _) | IfThenElse(_, _, _) | SetCardinality(_) | Closure(_, _, _, _) | ReflexiveClosure(_, _, _, _) => term
+
+            case Exists(avars, body) => {
+                // Intentionally do not push these onto the context stack
+                Exists(avars, recur(body))
+            }
+            case Forall(avars, body) => {
+                context = context.stackPush(avars)
+                val r = Forall(avars, recur(body))
+                context = context.stackPop(avars.size)
+                r
+            }
+            case Forall2ndOrder(declarations, body) => {
+                throw new fortress.util.Errors.UnsupportedFeature("2nd Order Forall could not be eliminated - feature is unsupported.")
+            }
+            case Exists2ndOrder(declarations, body) => {
+                if(declarations.size > 1) {
+                    recur(Exists2ndOrder(declarations.head, Exists2ndOrder(declarations.tail, body)))
+                } else {
+                    val decl = declarations.head
+
+                    // Determine what arguments the skolem function needs
+                    // These are the free variables of the term that were universally quantified higher up.
+                    // We can just read these off the context stack.
+                    // Note that we don't have to worry about universally quantified relations since we explicitly do not support this (see error above).
+                    val skolemArguments: Seq[AnnotatedVar] = for {
+                        variable <- term.freeVarConstSymbols.toList
+                        annotatedVar <- context.mostRecentStackAppearence(variable)
+                    } yield annotatedVar
+
+                    val skolemFunctionName = nameGen.freshName("sk") 
+                    val skolemFunction = FuncDecl(skolemFunctionName, decl.argSorts ++ skolemArguments.map(_.sort), decl.resultSort)
+
+                    skolemFunctions += skolemFunction
+
+                    // Perform substitution
+                    val newBody = body.renameApplications(decl.name, skolemFunction.name).appendToApplications(skolemFunction.name, skolemArguments.map(_.variable))
+
+                    context = context.updateSignature(context.signature.withFunctionDeclaration(skolemFunction))
+
+                    recur(newBody)
+                }
+            }
+        }
         val skolemTerm = recur(axiom)
         SkolemResult(skolemTerm, skolemConstants.toSet, skolemFunctions.toSet)
     }

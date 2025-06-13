@@ -6,7 +6,9 @@ import scala.annotation.varargs // So we can call Scala varargs methods from Jav
 import fortress.util.NameConverter
 
 /** A constant or function declaration, with sorts */
-sealed trait Declaration
+sealed trait Declaration {
+    def name: String
+}
 
 
 /** A function declaration, including name, argument sorts, and result sort. */
@@ -29,6 +31,8 @@ case class FuncDecl private (name: String, argSorts: Seq[Sort], resultSort: Sort
     
     /** Whether all sorts, both argument and result, of the function are distinct. */
     def isRainbowSorted: Boolean = isRDI && (argSorts.distinct == argSorts)
+
+    def allSorts: Seq[Sort] = argSorts :+ resultSort
     
     override def toString: String = name + ": (" + argSorts.mkString(", ") + ") -> " + resultSort.toString
 }

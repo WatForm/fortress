@@ -3,12 +3,13 @@ import org.scalatest._
 import fortress.msfol._
 import fortress.transformers._
 import fortress.problemstate._
+import fortress.msfol.Sort.Bool
 
 class SkolemizeTransformerTests extends UnitSuite with CommonSymbols {
    
     // typechecking not included because it will remove a boolean ite
     // and one of the tests checks that skolemize does not enter ites 
-    def skolemizer(th:Theory) = 
+    def skolemizer(th:Theory): ProblemState = 
         SkolemizeTransformer(
             NnfTransformer(
                 ProblemState(th).withFlags(Flags(haveRunIfLifting=true)))) 
@@ -24,6 +25,8 @@ class SkolemizeTransformerTests extends UnitSuite with CommonSymbols {
     val sk_4 = FunctionSymbol("sk_4")
     val sk_5 = FunctionSymbol("sk_5")
     val sk_6 = FunctionSymbol("sk_6")
+
+    val x_0 = Var("x_0")
     
     test("simple skolem constant") {
         val sk_0 = Var("sk_0")
@@ -465,4 +468,26 @@ class SkolemizeTransformerTests extends UnitSuite with CommonSymbols {
 
     }
     */
+
+    test("shadowing forall exists forall") {
+        val ax1 = Forall(x of A, Exists(y of A, Q(x) and Q(y) and Forall(x of B, P(x, y))))
+
+        val theory = Theory.empty
+            .withSorts(A, B)
+            .withFunctionDeclaration(Q from A to BoolSort)
+            .withFunctionDeclaration(P from (B, A) to BoolSort)
+            .withAxiom(ax1)
+        
+        val ax2 = Forall(x of A, Q(x) and Q(sk_0(x)) and Forall(x_0 of B, P(x_0, sk_0(x))))
+        val expected = Theory.empty
+            .withSorts(A, B)
+            .withFunctionDeclaration(Q from A to BoolSort)
+            .withFunctionDeclaration(P from (B, A) to BoolSort)
+            .withFunctionDeclaration(sk_0 from A to A)
+            .withAxiom(ax2)
+
+        (skolemizer(theory).theory) should be (expected)
+    }
+
+    
 }

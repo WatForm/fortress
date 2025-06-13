@@ -89,6 +89,10 @@ class DeBruijnConverter {
             
             Forall(newVars, body)
         }
+
+        override def visitExists2ndOrder(term: Exists2ndOrder): Term = ???
+
+        override def visitForall2ndOrder(term: Forall2ndOrder): Term = ???
         
         override def visitDomainElement(d: DomainElement): Term = ???
         

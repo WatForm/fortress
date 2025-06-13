@@ -10,6 +10,7 @@ case class TypeCheckResult(
     sort: Sort,
     containsConnectives: Boolean,
     containsQuantifiers: Boolean,
+    containsQuantifiers2ndOrder: Boolean,
     containsItes: Boolean,
     containsExists: Boolean,
 )
@@ -24,7 +25,8 @@ class TypeChecker(signature: Signature) extends TermVisitorWithTypeContext[TypeC
             sanitizedTerm = Top, 
             sort = BoolSort,
             containsConnectives = false, 
-            containsQuantifiers = false, 
+            containsQuantifiers = false,
+            containsQuantifiers2ndOrder = false,
             containsItes = false,
             containsExists = false
         )
@@ -34,7 +36,8 @@ class TypeChecker(signature: Signature) extends TermVisitorWithTypeContext[TypeC
             sanitizedTerm = Bottom, 
             sort = BoolSort, 
             containsConnectives = false, 
-            containsQuantifiers = false, 
+            containsQuantifiers = false,
+            containsQuantifiers2ndOrder = false,
             containsItes = false,
             containsExists = false
         )
@@ -66,7 +69,8 @@ class TypeChecker(signature: Signature) extends TermVisitorWithTypeContext[TypeC
             sanitizedTerm = variable, 
             sort = sortMaybe.get,
             containsConnectives = false, 
-            containsQuantifiers = false , 
+            containsQuantifiers = false,
+            containsQuantifiers2ndOrder = false, 
             containsItes = false,
             containsExists = false,
         )
@@ -82,6 +86,7 @@ class TypeChecker(signature: Signature) extends TermVisitorWithTypeContext[TypeC
             sort = BoolSort,
             containsConnectives = true, 
             containsQuantifiers = bodyResult.containsQuantifiers,
+            containsQuantifiers2ndOrder = bodyResult.containsQuantifiers2ndOrder,
             containsItes = bodyResult.containsItes,
             containsExists = bodyResult.containsExists
         )
@@ -99,6 +104,7 @@ class TypeChecker(signature: Signature) extends TermVisitorWithTypeContext[TypeC
             sort = BoolSort,
             containsConnectives = true,
             containsQuantifiers = results.exists(_.containsQuantifiers),
+            containsQuantifiers2ndOrder = results.exists(_.containsQuantifiers2ndOrder),
             containsItes = results.exists(_.containsItes),
             containsExists = results.exists(_.containsExists)
         )
@@ -116,6 +122,7 @@ class TypeChecker(signature: Signature) extends TermVisitorWithTypeContext[TypeC
             sort = BoolSort,
             containsConnectives = true,
             containsQuantifiers = results.exists(_.containsQuantifiers),
+            containsQuantifiers2ndOrder = results.exists(_.containsQuantifiers2ndOrder),
             containsItes = results.exists(_.containsItes),
             containsExists = results.exists(_.containsExists)
         )
@@ -135,6 +142,7 @@ class TypeChecker(signature: Signature) extends TermVisitorWithTypeContext[TypeC
             sort = BoolSort,
             containsConnectives = true,
             containsQuantifiers = results.exists(_.containsQuantifiers),
+            containsQuantifiers2ndOrder = results.exists(_.containsQuantifiers2ndOrder),
             containsItes = results.exists(_.containsItes),
             containsExists = results.exists(_.containsExists)
         )
@@ -155,6 +163,7 @@ class TypeChecker(signature: Signature) extends TermVisitorWithTypeContext[TypeC
             sort = BoolSort,
             containsConnectives = true, 
             containsQuantifiers = leftResult.containsQuantifiers || rightResult.containsQuantifiers,
+            containsQuantifiers2ndOrder = leftResult.containsQuantifiers2ndOrder || rightResult.containsQuantifiers2ndOrder,
             containsItes = leftResult.containsItes || rightResult.containsItes,
             containsExists = leftResult.containsExists || rightResult.containsExists,
         )
@@ -175,6 +184,7 @@ class TypeChecker(signature: Signature) extends TermVisitorWithTypeContext[TypeC
             sort = BoolSort,
             containsConnectives = true, 
             containsQuantifiers = leftResult.containsQuantifiers || rightResult.containsQuantifiers,
+            containsQuantifiers2ndOrder = leftResult.containsQuantifiers2ndOrder || rightResult.containsQuantifiers2ndOrder,
             containsItes = leftResult.containsItes || rightResult.containsItes,
             containsExists = leftResult.containsExists || rightResult.containsExists,
         )
@@ -199,6 +209,7 @@ class TypeChecker(signature: Signature) extends TermVisitorWithTypeContext[TypeC
             sort = BoolSort,
             containsConnectives = true, 
             containsQuantifiers = leftResult.containsQuantifiers || rightResult.containsQuantifiers,
+            containsQuantifiers2ndOrder = leftResult.containsQuantifiers2ndOrder || rightResult.containsQuantifiers2ndOrder,
             containsItes = leftResult.containsItes || rightResult.containsItes,
             containsExists = leftResult.containsExists || rightResult.containsExists,
         )
@@ -243,6 +254,7 @@ class TypeChecker(signature: Signature) extends TermVisitorWithTypeContext[TypeC
             sort = IntSort,
             containsConnectives = false,
             containsQuantifiers = false,
+            containsQuantifiers2ndOrder = false,
             containsItes = false,
             containsExists = false
         )
@@ -274,6 +286,7 @@ class TypeChecker(signature: Signature) extends TermVisitorWithTypeContext[TypeC
             sort = tResult.sort,
             containsConnectives = condResult.containsConnectives || tResult.containsConnectives || fResult.containsConnectives,
             containsQuantifiers = condResult.containsQuantifiers || tResult.containsQuantifiers || fResult.containsQuantifiers,
+            containsQuantifiers2ndOrder = condResult.containsQuantifiers2ndOrder || tResult.containsQuantifiers2ndOrder || fResult.containsQuantifiers2ndOrder,
             containsItes = true,
             containsExists = condResult.containsExists || tResult.containsExists || fResult.containsExists
         )
@@ -285,8 +298,10 @@ class TypeChecker(signature: Signature) extends TermVisitorWithTypeContext[TypeC
         // 2. arguments contain no connectives or quantifiers
         val funcName = app.functionName
 
-        if(! ( (signature hasFuncDeclWithName funcName) || (signature hasFuncDefWithName funcName) ) ) {
-            throw new TypeCheckException.UnknownFunction("Could not find function: " + funcName)
+        // First check if context has the name
+        val decl: FuncDecl = lookupFuncDecl(funcName) match {
+            case None => throw new TypeCheckException.UnknownFunction("Could not find function: " + funcName)
+            case Some(decl) => decl
         }
         
         // The typecheck results for each of the arguments
@@ -302,18 +317,18 @@ class TypeChecker(signature: Signature) extends TermVisitorWithTypeContext[TypeC
         // Sorts of the arguments
         val argSorts = results.map(_.sort)
         
-
-        val resultSort: Sort = signature.queryFunction(funcName, argSorts) match {
-            case None => throw new TypeCheckException.WrongSort(funcName + " cannot accept argument sorts " + argSorts.toString + " in " + app.toString)
-            case Some(Left(fdecl)) => fdecl.resultSort
-            case Some(Right(fdefn)) => fdefn.resultSort
+        if(argSorts != decl.argSorts) {
+            throw new TypeCheckException.WrongSort(funcName + " cannot accept argument sorts " + argSorts.toString + " in " + app.toString)
         }
+
+        val resultSort: Sort = decl.resultSort
         
         TypeCheckResult(
             sanitizedTerm = App(funcName, results map (_.sanitizedTerm)),
             sort = resultSort,
             containsConnectives = results exists (_.containsConnectives),
             containsQuantifiers = false,
+            containsQuantifiers2ndOrder = false,
             containsItes = results exists (_.containsItes),
             containsExists = results exists (_.containsExists)
         )
@@ -336,6 +351,7 @@ class TypeChecker(signature: Signature) extends TermVisitorWithTypeContext[TypeC
                 sanitizedTerm = BuiltinApp(bapp.function, results.map(_.sanitizedTerm)), sort = resultSort,
                 containsConnectives = false, 
                 containsQuantifiers = false,
+                containsQuantifiers2ndOrder = false,
                 containsItes = results exists (_.containsItes),
                 containsExists = results exists (_.containsExists)
             )
@@ -351,8 +367,9 @@ class TypeChecker(signature: Signature) extends TermVisitorWithTypeContext[TypeC
         val funcName = c.functionName
 
         // Check function we are closing over exists
-        if(! (signature hasFuncWithName  funcName) ) {
-            throw new TypeCheckException.UnknownFunction("Could not find function: " + funcName)
+        val decl: FuncDecl = lookupFuncDecl(funcName) match {
+            case None => throw new TypeCheckException.UnknownFunction("Could not find function: " + funcName)
+            case Some(decl) => decl
         }
         
         val results = c.allArguments.map(visit)
@@ -380,11 +397,7 @@ class TypeChecker(signature: Signature) extends TermVisitorWithTypeContext[TypeC
         val closingSort = argSorts(0)
 
         // Get sorts of the function/relation being closed over
-        val (paramSorts, resultSort) = signature.queryFunction(funcName) match {
-            case None => throw new TypeCheckException.UnknownFunction("Function " + funcName + " does not exist in signature when closing over it!")
-            case Some(Left(FuncDecl(_, sorts, resultSort))) => (sorts.toList, resultSort)
-            case Some(Right(FunctionDefinition(_, params, resultSort, _))) => (params.map(_.sort).toList, resultSort)
-        }
+        val (paramSorts, resultSort) = (decl.argSorts, decl.resultSort)
 
         if (argSorts.length == 2) {
             // relation must be A->A or AxA-> Bool
@@ -393,8 +406,11 @@ class TypeChecker(signature: Signature) extends TermVisitorWithTypeContext[TypeC
             }
         } else {
             // Check that arguments match the function declaration
-            if (!(paramSorts == argSorts && resultSort == BoolSort)) {
-                throw new TypeCheckException.WrongSort("Attempting to close over a relation that does not end in a BoolSort or with the wrong argument sorts in " + c.toString())
+            if(paramSorts != argSorts) {
+                throw new TypeCheckException.WrongSort(s"Attempting to close over relation with wrong sorts: ${funcName} expects ${paramSorts} but gets ${argSorts} in ${c}")
+            }
+            if(resultSort != BoolSort) {
+                throw new TypeCheckException.WrongSort(s"Attempting to close over a relation that does not output BoolSort: ${decl} in ${c}")
             }
         }
 
@@ -405,6 +421,7 @@ class TypeChecker(signature: Signature) extends TermVisitorWithTypeContext[TypeC
             sort = BoolSort, 
             containsConnectives = results exists (_.containsConnectives), 
             containsQuantifiers = results exists (_.containsQuantifiers),
+            containsQuantifiers2ndOrder = results exists (_.containsQuantifiers2ndOrder),
             containsItes = results exists (_.containsItes),
             containsExists = results exists (_.containsExists) 
         )
@@ -416,8 +433,10 @@ class TypeChecker(signature: Signature) extends TermVisitorWithTypeContext[TypeC
         // 2. arguments contain no connectives or quantifiers
         val funcName = rc.functionName
 
-        if(! (signature hasFuncWithName  funcName) ) {
-            throw new TypeCheckException.UnknownFunction("Could not find function: " + funcName)
+        // First check if context has the name
+        val decl: FuncDecl = lookupFuncDecl(funcName) match {
+            case None => throw new TypeCheckException.UnknownFunction("Could not find function: " + funcName)
+            case Some(decl) => decl
         }
         
         val results = rc.allArguments.map(visit)
@@ -444,11 +463,7 @@ class TypeChecker(signature: Signature) extends TermVisitorWithTypeContext[TypeC
         val closingSort = argSorts(0)
 
         // Get sorts of the function/relation being closed over
-        val (paramSorts, resultSort) = signature.queryFunction(funcName) match {
-            case None => throw new TypeCheckException.UnknownFunction("Function " + funcName + " does not exist in signature when closing over it!")
-            case Some(Left(FuncDecl(_, sorts, resultSort))) => (sorts.toList, resultSort)
-            case Some(Right(FunctionDefinition(_, params, resultSort, _))) => (params.map(_.sort).toList, resultSort)
-        }
+        val (paramSorts, resultSort) = (decl.argSorts, decl.resultSort)
 
         if (argSorts.length == 2) {
             // relation must be A->A or AxA-> Bool
@@ -457,8 +472,11 @@ class TypeChecker(signature: Signature) extends TermVisitorWithTypeContext[TypeC
             }
         } else {
             // Check that arguments match the function declaration
-            if (!(paramSorts == argSorts && resultSort == BoolSort)) {
-                throw new TypeCheckException.WrongSort("Attempting to close over a relation that does not end in a BoolSort or with the wrong argument sorts in " + rc.toString())
+            if(paramSorts != argSorts) {
+                throw new TypeCheckException.WrongSort(s"Attempting to close over relation with wrong sorts: ${funcName} expects ${paramSorts} but gets ${argSorts} in ${rc}")
+            }
+            if(resultSort != BoolSort) {
+                throw new TypeCheckException.WrongSort(s"Attempting to close over a relation that does not output BoolSort: ${decl} in ${rc}")
             }
         }
 
@@ -467,6 +485,7 @@ class TypeChecker(signature: Signature) extends TermVisitorWithTypeContext[TypeC
             sort = BoolSort, 
             containsConnectives = results exists (_.containsConnectives), 
             containsQuantifiers = results exists (_.containsQuantifiers),
+            containsQuantifiers2ndOrder = results exists (_.containsQuantifiers2ndOrder),
             containsItes = results exists (_.containsItes),
             containsExists = results exists (_.containsExists) 
         )
@@ -475,10 +494,11 @@ class TypeChecker(signature: Signature) extends TermVisitorWithTypeContext[TypeC
     def visitDefnBody(t: Term): TypeCheckResult = {
         return visit(t)
     }
-    override def visitExistsInner(exists: Exists): TypeCheckResult = {
+
+    private def processQuantifier(q: Quantifier): TypeCheckResult = {
         // Check variables don't clash with function names
         // and that their sort exists
-        for(av <- exists.vars) {
+        for(av <- q.vars) {
             if(signature hasFuncDeclWithName  av.name) {
                 throw new TypeCheckException.NameConflict("Variable name " + av.name + " conflicts with existing function symbol")
             }
@@ -488,50 +508,82 @@ class TypeChecker(signature: Signature) extends TermVisitorWithTypeContext[TypeC
             }
 
             if(!av.sort.isBuiltin && !(signature hasSort av.sort) ) {
-                throw new TypeCheckException.UndeclaredSort("Undeclared sort " + av.sort.name + " in " + exists.toString)
+                throw new TypeCheckException.UndeclaredSort("Undeclared sort " + av.sort.name + " in " + q.toString)
             }
         }
-        val bodyResult = visit(exists.body)
+        val bodyResult: TypeCheckResult = visit(q.body)
         if(bodyResult.sort != BoolSort) {
-            throw new TypeCheckException.WrongSort("Expected Bool but was " + bodyResult.sort.name + " in " + exists.toString)
+            throw new TypeCheckException.WrongSort("Expected Bool but was " + bodyResult.sort.name + " in " + q.toString)
         }
+        bodyResult
+    }
+
+    override def visitExistsInner(exists: Exists): TypeCheckResult = {
+        val bodyResult = processQuantifier(exists)
         TypeCheckResult(
             sanitizedTerm = Exists(exists.vars, bodyResult.sanitizedTerm), 
             sort = BoolSort,
-            containsConnectives = bodyResult.containsConnectives, 
+            containsConnectives = bodyResult.containsConnectives,
             containsQuantifiers = true,
+            containsQuantifiers2ndOrder = bodyResult.containsQuantifiers2ndOrder,
             containsItes = bodyResult.containsItes,
             containsExists = true,
         )
     }
     
     override def visitForallInner(forall: Forall): TypeCheckResult = {
-        // Check variables don't clash with function names
-        // and that their sort exists
-        for(av <- forall.vars) {
-            if(signature hasFuncDeclWithName  av.name) {
-                throw new TypeCheckException.NameConflict("Variable name " + av.name + " conflicts with existing function symbol")
-            }
-
-            if(signature hasFuncDefWithName   av.name) {
-                throw new TypeCheckException.NameConflict("Variable name " + av.name + " conflicts with existing function symbol")
-            }
-
-            if(!av.sort.isBuiltin && !(signature hasSort av.sort) ) {
-                throw new TypeCheckException.UndeclaredSort("Undeclared sort " + av.sort.name + " in " + forall.toString)
-            }
-        }
-        val bodyResult = visit(forall.body)
-        if(bodyResult.sort != BoolSort) {
-            throw new TypeCheckException.WrongSort("Expected Bool but was " + bodyResult.sort.name + " in " + forall.toString)
-        }
+        val bodyResult = processQuantifier(forall)
         TypeCheckResult(
             sanitizedTerm = Forall(forall.vars, bodyResult.sanitizedTerm), 
             sort = BoolSort,
             containsConnectives = bodyResult.containsConnectives, 
             containsQuantifiers = true,
+            containsQuantifiers2ndOrder = bodyResult.containsQuantifiers2ndOrder,
             containsItes = bodyResult.containsItes,
             containsExists = bodyResult.containsExists
+        )
+    }
+
+    private def processQuantifier2ndOrder(q: Quantifier2ndOrder): TypeCheckResult = {
+        // and that their sort exists
+        for(decl <- q.declarations) {
+            // We allow shadowing, so don't check for naming conflicts
+            for(sort <- decl.allSorts) {
+                if(!sort.isBuiltin && !(signature hasSort sort)) {
+                    throw new TypeCheckException.UndeclaredSort("Undeclared sort " + sort.name + " in " + q.toString)
+                }
+            }
+        }
+        val bodyResult: TypeCheckResult = visit(q.body)
+        if(bodyResult.sort != BoolSort) {
+            throw new TypeCheckException.WrongSort("Expected Bool but was " + bodyResult.sort.name + " in " + q.toString)
+        }
+        bodyResult
+    }
+
+    override def visitExists2ndOrderInner(exists: Exists2ndOrder): TypeCheckResult = {
+        val bodyResult = processQuantifier2ndOrder(exists)
+        TypeCheckResult(
+            sanitizedTerm = Exists2ndOrder(exists.declarations, bodyResult.sanitizedTerm), 
+            sort = BoolSort,
+            containsConnectives = bodyResult.containsConnectives, 
+            containsQuantifiers = true,
+            containsQuantifiers2ndOrder = true,
+            containsItes = bodyResult.containsItes,
+            containsExists = true,
+        )
+    }
+    
+    override def visitForall2ndOrderInner(forall: Forall2ndOrder): TypeCheckResult = {
+        val bodyResult = processQuantifier2ndOrder(forall)
+        TypeCheckResult(
+            sanitizedTerm = Forall2ndOrder(forall.declarations, bodyResult.sanitizedTerm), 
+            sort = BoolSort,
+            containsConnectives = bodyResult.containsConnectives, 
+            containsQuantifiers = true,
+            containsQuantifiers2ndOrder = true,
+            containsItes = bodyResult.containsItes,
+            containsExists = true,
         )
     }
     
@@ -547,6 +599,7 @@ class TypeChecker(signature: Signature) extends TermVisitorWithTypeContext[TypeC
             sort = d.sort, 
             containsConnectives = false, 
             containsQuantifiers = false,
+            containsQuantifiers2ndOrder = false,
             containsItes = false,
             containsExists = false,
         )
@@ -558,6 +611,7 @@ class TypeChecker(signature: Signature) extends TermVisitorWithTypeContext[TypeC
             sort = IntSort,
             containsConnectives = false, 
             containsQuantifiers = false,
+            containsQuantifiers2ndOrder = false,
             containsItes = false,
             containsExists = false,
         )
@@ -568,6 +622,7 @@ class TypeChecker(signature: Signature) extends TermVisitorWithTypeContext[TypeC
             sort = BitVectorSort(literal.bitwidth),
             containsConnectives = false, 
             containsQuantifiers = false,
+            containsQuantifiers2ndOrder = false,
             containsItes = false,
             containsExists = false,
         )
@@ -579,6 +634,7 @@ class TypeChecker(signature: Signature) extends TermVisitorWithTypeContext[TypeC
                 sort = eSort, 
                 containsConnectives = false, 
                 containsQuantifiers = false,
+                containsQuantifiers2ndOrder = false,
                 containsItes = false,
                 containsExists = false,
             )

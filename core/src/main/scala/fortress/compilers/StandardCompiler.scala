@@ -75,6 +75,8 @@ class StandardCompiler extends BaseCompiler {
         transformerSequence += TypecheckSanitizeTransformer
         transformerSequence += EnumsToDEsTransformer
 
+        transformerSequence += Skolemize2ndOrderOnlyTransformer
+
         // defined above
         transformerSequence ++= closureEliminator
         

@@ -34,34 +34,7 @@ object SkolemizeTransformer extends ProblemStateTransformer {
 
         val theory = problemState.theory
         
-        val forbiddenNames = scala.collection.mutable.Set[String]()
-        
-        for(sort <- theory.sorts) {
-            forbiddenNames += sort.name
-        }
-        
-        for(fdecl <- theory.functionDeclarations) {
-            forbiddenNames += fdecl.name
-        }
-        
-        for(constant <- theory.constantDeclarations) {
-            forbiddenNames += constant.name
-        }
-
-        for(cDef <- theory.constantDefinitions){
-            forbiddenNames += cDef.name
-        }
-
-        for(fDef <- theory.functionDefinitions){
-            forbiddenNames += fDef.name
-        }
-        
-        // TODO: do we need this restriction if Substituter already restricts these inside one term?
-        for(axiom <- theory.axioms) {
-            forbiddenNames ++= axiom.allSymbols
-        }
-        
-        val nameGenerator = new IntSuffixNameGenerator(forbiddenNames.toSet, 0)
+        val nameGenerator = IntSuffixNameGenerator.restrictAllNamesInTheory(theory)
         
         var resultTheory = theory.withoutAxioms
         val newSkolemConstants = scala.collection.mutable.Set.empty[AnnotatedVar]

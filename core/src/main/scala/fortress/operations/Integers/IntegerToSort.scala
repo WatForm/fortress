@@ -210,6 +210,10 @@ class IntegerToSortConverter(min: Int, max: Int, newSort: Sort, nameGenerator: N
             (Forall(newVars, newBody), changedTypes || substitutedBody)
         }
 
+        override def visitExists2ndOrder(term: Exists2ndOrder): (Term, Boolean) = ???
+
+        override def visitForall2ndOrder(term: Forall2ndOrder): (Term, Boolean) = ???
+
         override def visitIntegerLiteral(term: IntegerLiteral): (Term, Boolean) = (intToConstants(term.value), true)
 
         override def visitBitVectorLiteral(term: BitVectorLiteral): (Term, Boolean) = (term, false)

@@ -29,6 +29,7 @@ case class Flags (
     containsItes: Boolean = false,
     containsExists: Boolean = false,
     containsNonExactScopes: Boolean = false,
+    constains2ndOrderQuantifiers: Boolean = false,
 
     // This should be set if a transformer determines that the model is trivial.
     trivialResult: Option[TrivialResult] = None,

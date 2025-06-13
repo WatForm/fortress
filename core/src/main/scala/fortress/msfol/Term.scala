@@ -284,6 +284,43 @@ object Forall {
     def apply(variable: AnnotatedVar, body: Term): Forall = Forall(Seq(variable), body)
 }
 
+
+sealed trait Quantifier2ndOrder extends Term {
+    def declarations: Seq[FuncDecl]
+    def body: Term
+    def mapBody(mapping: Term => Term): Term
+}
+
+case class Exists2ndOrder private (declarations: Seq[FuncDecl], body: Term) extends Quantifier2ndOrder {
+    Errors.Internal.precondition(declarations.size >= 1, "Quantifier2ndOrder must bind at least one declaration")
+    // Check declarations distinct
+    Errors.Internal.precondition(declarations.map(decl => decl.name).toSet.size == declarations.size, "Duplicate declaration name in quantifier")
+
+    override def accept[T](visitor: TermVisitor[T]): T = visitor.visitExists2ndOrder(this)
+    def mapBody(mapping: Term => Term): Term = Exists2ndOrder(declarations, mapping(body))
+
+    override def toString: String = "exists2ndOrder " + declarations.mkString(", ") + " . " + body.toString
+}
+
+object Exists2ndOrder {
+    def apply(declaration: FuncDecl, body: Term): Exists2ndOrder = Exists2ndOrder(Seq(declaration), body)
+}
+
+case class Forall2ndOrder private (declarations: Seq[FuncDecl], body: Term) extends Quantifier2ndOrder {
+    Errors.Internal.precondition(declarations.size >= 1, "Quantifier2ndOrder must bind at least one declaration")
+    // Check declarations distinct
+    Errors.Internal.precondition(declarations.map(decl => decl.name).toSet.size == declarations.size, "Duplicate declaration name in quantifier")
+
+    override def accept[T](visitor: TermVisitor[T]): T = visitor.visitForall2ndOrder(this)
+    def mapBody(mapping: Term => Term): Term = Forall2ndOrder(declarations, mapping(body))
+
+    override def toString: String = "forall2ndOrder " + declarations.mkString(", ") + " . " + body.toString
+}
+
+object Forall2ndOrder {
+    def apply(declaration: FuncDecl, body: Term): Forall2ndOrder = Forall2ndOrder(Seq(declaration), body)
+}
+
 /** Represents an indexed domain element.
   * For example, DomainElement(2, A) represents the domain element at index 2
   * for sort A, written as 2A.

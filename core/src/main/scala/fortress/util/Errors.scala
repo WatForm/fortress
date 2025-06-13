@@ -82,4 +82,8 @@ object Errors {
 
     // Internal error used in parser java code
     class ParserError(message: String) extends Error(message)
+
+    // Unsupported
+
+    class UnsupportedFeature(message: String) extends Error(message)
 }
