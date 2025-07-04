@@ -69,6 +69,7 @@ object MJUnknownsTransformer extends ProblemStateTransformer {
 
       case _: LeafTerm => Result(term, UpInfo.empty, Set.empty)
 
+      // We don't need a special case for binary integer because the ints should be gone at this point
       case BuiltinApp(function: BinaryBitVectorRelation, arguments) => {
         val originalLeft = arguments(0)
         val originalRight = arguments(1)
@@ -187,16 +188,23 @@ object MJUnknownsTransformer extends ProblemStateTransformer {
         val res2 = fixOverflow(arg2, sig, newStore)
         val fixedResults = fixedArgs.map(fixOverflow(_, sig, newStore))
 
-        val newTerm =
+        val uncheckedTerm =
           Closure(fname, res1.term, res2.term, fixedResults.map(_.term))
+
+        val (checkedTerm, declaredVar) = ensureDefn(uncheckedTerm, store,
+          (Seq(res1.info, res2.info) ++ fixedResults.map(_.info)):_*
+        )
+        
+        // Do not include checks
         val newInfo =
           UpInfo.merge(Seq(res1.info, res2.info) ++ fixedResults.map(_.info))
+          .withoutChecks()
 
         val newDeclared = res1.declaredVars ++ res2.declaredVars ++ fixedResults
           .map(_.declaredVars)
-          .fold(Set.empty)(_ union _)
+          .fold(declaredVar.toSet)(_ union _)
 
-        Result(newTerm, newInfo, newDeclared)
+        Result(checkedTerm, newInfo, newDeclared)
       }
 
       case ReflexiveClosure(fname, arg1, arg2, fixedArgs) => {
@@ -205,54 +213,42 @@ object MJUnknownsTransformer extends ProblemStateTransformer {
         val res2 = fixOverflow(arg2, sig, newStore)
         val fixedResults = fixedArgs.map(fixOverflow(_, sig, newStore))
 
-        val newTerm = ReflexiveClosure(
-          fname,
-          res1.term,
-          res2.term,
-          fixedResults.map(_.term)
+        val uncheckedTerm =
+          ReflexiveClosure(fname, res1.term, res2.term, fixedResults.map(_.term))
+
+        val (checkedTerm, declaredVar) = ensureDefn(uncheckedTerm, store,
+          (Seq(res1.info, res2.info) ++ fixedResults.map(_.info)):_*
         )
+        
+        // Do not include checks
         val newInfo =
           UpInfo.merge(Seq(res1.info, res2.info) ++ fixedResults.map(_.info))
+          .withoutChecks()
 
         val newDeclared = res1.declaredVars ++ res2.declaredVars ++ fixedResults
           .map(_.declaredVars)
-          .fold(Set.empty)(_ union _)
+          .fold(declaredVar.toSet)(_ union _)
 
-        Result(newTerm, newInfo, newDeclared)
+        Result(checkedTerm, newInfo, newDeclared)
       }
 
       case Eq(left, right) => {
         val sort = left.typeCheck(sig).sort
 
         sort match {
-          case BoolSort => {
-            // Turn into l <==> r
-            fixOverflow(Iff(left, right), sig, store)
-          }
-          case BitVectorSort(bitwidth) => {
+          case BoolSort => fixOverflow(Iff(left, right), sig, store)
+          case _ => {
             val resLeft = fixOverflow(left, sig, store)
             val resRight = fixOverflow(right, sig, store)
-            val (checkedTerm, declaredVars) =
+            val (checkedTerm, declaredVar) =
               ensureDefn(Eq(left, right), store, resLeft.info, resRight.info)
+            
+            // No checks
+            val newInfo = UpInfo.merge(Seq(resLeft.info, resRight.info)).withoutChecks()
 
-            val newInfo = UpInfo.merge(Seq(resLeft.info, resRight.info))
-            val newDeclared =
-              resLeft.declaredVars ++ resRight.declaredVars ++ declaredVars
-            // No checks up from here
+            val newDeclared = resLeft.declaredVars ++ resRight.declaredVars ++ declaredVar
+
             Result(checkedTerm, newInfo.withoutChecks(), newDeclared)
-          }
-
-          case _ => {
-            // Non-integer predicate
-            // TODO what if it contains integer overflows?
-            // I think not. The problem with not knowing polarity is here
-            // Just treat as uninterpreted function
-
-            val newStore = store.withPolarity(Polarity.Indeterminate)
-            val resLeft = fixOverflow(left, sig, newStore)
-            val resRight = fixOverflow(right, sig, newStore)
-
-            Result.merge((i) => Eq(i.head, i.tail.head), resLeft, resRight)
           }
         }
       }
@@ -296,32 +292,19 @@ object MJUnknownsTransformer extends ProblemStateTransformer {
                 Result(Bottom, UpInfo.empty, Set.empty) // 3 cannot be distinct
             }
           }
-          case BitVectorSort(bitwidth) => {
+          case _ => {
             val newStore = store.withPolarity(Polarity.Indeterminate)
             val results = arguments.map(fixOverflow(_, sig, newStore))
-
             val unchecked = Distinct(results.map(_.term))
-            val (checkedTerm, declaredVars) =
+            val (checkedTerm, declaredVar) =
               ensureDefn(unchecked, store, results.map(_.info): _*)
 
-            val initialDeclared = Set.from(declaredVars)
+            // Do not propagate checks
+            val newInfo = UpInfo.merge(results.map(_.info)).withoutChecks()
 
-            // We know what the checkedTerm will be
-            val newInfo = UpInfo.merge(results.map(_.info))
-            val newDeclared =
-              results.map(_.declaredVars).fold(initialDeclared)(_ union _)
+            val newDeclared = results.map(_.declaredVars).fold(declaredVar.toSet)(_ union _)
 
             Result(checkedTerm, newInfo, newDeclared)
-          }
-          case _ => {
-            // Non-integer predicate
-            // TODO what if it contains integer overflows?
-            // I think not. The problem with not knowing polarity is here
-            // Just treat as uninterpreted function
-            val newStore = store.withPolarity(Polarity.Indeterminate)
-            val results = arguments.map(fixOverflow(_, sig, newStore))
-
-            Result.merge((i) => Distinct(i.toSeq), results: _*)
           }
         }
       }
@@ -457,7 +440,6 @@ object MJUnknownsTransformer extends ProblemStateTransformer {
 
     (checkedTerm, declaredVar)
   }
-
 }
 
 sealed abstract class Quantification
