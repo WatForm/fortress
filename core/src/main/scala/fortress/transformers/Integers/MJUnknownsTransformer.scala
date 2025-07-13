@@ -440,6 +440,108 @@ object MJUnknownsTransformer extends ProblemStateTransformer {
 
     (checkedTerm, declaredVar)
   }
+
+
+
+  sealed abstract class MJStore {
+    def getPolarity(): Polarity.Polarity
+    def withPolarity(newP: Polarity.Polarity): MJStore
+  }
+  object MJStore {
+    case object Nil extends MJStore {
+      def getPolarity(): Polarity.Polarity = Polarity.Positive
+      // TODO name generator
+      def withPolarity(newP: Polarity.Polarity): MJStore =
+        Some(Var("!!!FAKE!!!"), Quantification.Existential, newP, Nil)
+    }
+    // TODO make sure we start with a some of some kind for the polarity? Fake var?
+    // Seems strange
+    case class Some(
+        x: Var,
+        q: Quantification,
+        p: Polarity.Polarity,
+        tail: MJStore
+    ) extends MJStore {
+      def withPolarity(newP: Polarity.Polarity): MJStore = {
+        Some(x, q, newP, tail)
+      }
+
+      def getPolarity(): Polarity.Polarity = p
+    }
+
+    def getPolarity = (_: MJStore) match {
+      case Nil              => Polarity.Positive
+      case Some(_, _, p, _) => p
+    }
+  }
+
+  case class Result(term: Term, info: UpInfo, declaredVars: Set[Var])
+  object Result {
+    def merge(termMerge: (Iterable[Term]) => Term, results: Result*): Result = {
+      val resultTerms = results.map(_.term)
+
+      val newTerm = termMerge(resultTerms)
+
+      val newInfo = UpInfo.merge(results.map(_.info))
+
+      val newPC = results.map(_.declaredVars).fold(Set.empty)(_ union _)
+
+      Result(newTerm, newInfo, newPC)
+    }
+  }
+
+  case class UpInfo(vars: Set[Var], checks: Set[Term]) {
+    def withVar(v: Var): UpInfo = copy(vars = vars + v)
+
+    def merge(other: UpInfo): UpInfo = {
+      UpInfo(
+        vars = vars.union(other.vars),
+        checks = checks.union(other.checks)
+      )
+    }
+
+    def isUnivQuant(store: MJStore): Boolean = store match {
+      case MJStore.Nil => false
+      case MJStore.Some(x, q, _, tailStore) => {
+        if (vars contains x)
+          (q == Quantification.Universal)
+        else isUnivQuant(tailStore)
+      }
+    }
+
+    def withCheck(check: Term): UpInfo = {
+      copy(checks = checks + check)
+    }
+
+    def withoutVars(vs: Set[Var]): UpInfo = {
+      val newVars = vars diff vs
+      // Should probably not have any checks at this level for MJ?
+      def doesNotContainVs(check: Term): Boolean = {
+        val checkVars = check.freeVarConstSymbolsJava
+        for (v <- vs) {
+          if (checkVars contains v) {
+            return false
+          }
+        }
+        return true
+      }
+
+      val newChecks = checks.filter(doesNotContainVs)
+
+      UpInfo(newVars, newChecks)
+    }
+
+    def withoutChecks(): UpInfo = copy(checks = Set.empty)
+  }
+  object UpInfo {
+    val empty = UpInfo(Set.empty, Set.empty)
+
+    def withVar(v: Var): UpInfo = empty.withVar(v)
+
+    def merge(infos: Seq[UpInfo]): UpInfo = {
+      infos.fold(empty)(_ merge _)
+    }
+  }
 }
 
 sealed abstract class Quantification
@@ -448,102 +550,4 @@ object Quantification {
   case object Existential extends Quantification
 }
 
-sealed abstract class MJStore {
-  def getPolarity(): Polarity.Polarity
-  def withPolarity(newP: Polarity.Polarity): MJStore
-}
-object MJStore {
-  case object Nil extends MJStore {
-    def getPolarity(): Polarity.Polarity = Polarity.Positive
-    // TODO name generator
-    def withPolarity(newP: Polarity.Polarity): MJStore =
-      Some(Var("!!!FAKE!!!"), Quantification.Existential, newP, Nil)
-  }
-  // TODO make sure we start with a some of some kind for the polarity? Fake var?
-  // Seems strange
-  case class Some(
-      x: Var,
-      q: Quantification,
-      p: Polarity.Polarity,
-      tail: MJStore
-  ) extends MJStore {
-    def withPolarity(newP: Polarity.Polarity): MJStore = {
-      Some(x, q, newP, tail)
-    }
 
-    def getPolarity(): Polarity.Polarity = p
-  }
-
-  def getPolarity = (_: MJStore) match {
-    case Nil              => Polarity.Positive
-    case Some(_, _, p, _) => p
-  }
-}
-
-case class Result(term: Term, info: UpInfo, declaredVars: Set[Var])
-object Result {
-  def merge(termMerge: (Iterable[Term]) => Term, results: Result*): Result = {
-    val resultTerms = results.map(_.term)
-
-    val newTerm = termMerge(resultTerms)
-
-    val newInfo = UpInfo.merge(results.map(_.info))
-
-    val newPC = results.map(_.declaredVars).fold(Set.empty)(_ union _)
-
-    Result(newTerm, newInfo, newPC)
-  }
-}
-
-case class UpInfo(vars: Set[Var], checks: Set[Term]) {
-  def withVar(v: Var): UpInfo = copy(vars = vars + v)
-
-  def merge(other: UpInfo): UpInfo = {
-    UpInfo(
-      vars = vars.union(other.vars),
-      checks = checks.union(other.checks)
-    )
-  }
-
-  def isUnivQuant(store: MJStore): Boolean = store match {
-    case MJStore.Nil => false
-    case MJStore.Some(x, q, _, tailStore) => {
-      if (vars contains x)
-        (q == Quantification.Universal)
-      else isUnivQuant(tailStore)
-    }
-  }
-
-  def withCheck(check: Term): UpInfo = {
-    copy(checks = checks + check)
-  }
-
-  def withoutVars(vs: Set[Var]): UpInfo = {
-    val newVars = vars diff vs
-    // Should probably not have any checks at this level for MJ?
-    def doesNotContainVs(check: Term): Boolean = {
-      val checkVars = check.freeVarConstSymbolsJava
-      for (v <- vs) {
-        if (checkVars contains v) {
-          return false
-        }
-      }
-      return true
-    }
-
-    val newChecks = checks.filter(doesNotContainVs)
-
-    UpInfo(newVars, newChecks)
-  }
-
-  def withoutChecks(): UpInfo = copy(checks = Set.empty)
-}
-object UpInfo {
-  val empty = UpInfo(Set.empty, Set.empty)
-
-  def withVar(v: Var): UpInfo = empty.withVar(v)
-
-  def merge(infos: Seq[UpInfo]): UpInfo = {
-    infos.fold(empty)(_ merge _)
-  }
-}
