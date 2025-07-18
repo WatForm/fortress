@@ -71,7 +71,10 @@ object TransformersRegistry {
             case "SimplifyWithRange" => SimplifyWithRangeTransformer
             case "SimplifyWithScalarQuantifiers" => SimplifyWithScalarQuantifiersTransformer
             case "SplitConjunction" => SplitConjunctionTransformer
-
+            // cannot specify this transformer from the command-line
+            // because it is a class and takes an argument
+            // it can only be called internally by the SemCompareIntCompiler
+            //case "Merge" => MergeTransformer
             case _ => {
                 throw Errors.API.transformerDoesNotExist(name)
                 null

@@ -5,6 +5,8 @@ import fortress.interpretation.Interpretation
 import fortress.problemstate.TrivialResult
 
 /** Result from a compiler. */
+// not sure there is enough variation to make this worthy
+// of a separate trait
 trait CompilerResult {
 
     /** The output theory from the compilation process. */

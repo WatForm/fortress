@@ -56,7 +56,7 @@ object CompilersRegistry {
             case "SymmetryDisjLimitFive" => new SymmetryDisjLimitFiveCompiler()
             case "SymmetryDisjLimitEight" => new SymmetryDisjLimitEightCompiler()
             case "SymmetryDisjLimitTen" => new SymmetryDisjLimitTenCompiler()
-            case "SemCompIntCompiler" => new
+            case "SemCompInt" => new
                 SemCompIntCompiler()
             case _ => {
                 throw Errors.API.compilerDoesNotExist(str)
