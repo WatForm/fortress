@@ -179,6 +179,16 @@ object ProblemState {
             List.empty,
             flags
         )
-         
+    // dummy empty ProblemState
+    def empty: ProblemState =
+        new ProblemState(
+            Theory.empty,
+            Map.empty[Sort,Scope],
+            Set.empty,
+            Set.empty,
+            Set.empty,
+            List.empty,
+            Flags()            
+            )   
 
 }
