@@ -23,6 +23,7 @@ trait Compiler
 		+ JoeSymmetryCompilers - compilers testing symmetry breaking and sort inference (IEEE TSE 2023)
 	- ConfigurableCompiler - provides more flexibility in setting the set of transformers for the compiler
 	- trait PervasiveTypeChecking - adds typechecking between all transformers as a check
+	- SemCompareIntCompiler - redefines compile to accomplish a merge operation to find differences
 
 CompilerResult/CompilerError - return values from the compile phase.
 
