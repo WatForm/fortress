@@ -8,7 +8,7 @@ import fortress.operations.TermOps._
 import fortress.problemstate._
 import fortress.util.Control.measureTime
 import fortress.util.Control.withCountdown
-
+import fortress.operations.TheoryOps
 
 // these are definitions that are common for all compilers
 
@@ -34,7 +34,10 @@ abstract class BaseCompiler extends Compiler {
                 val (finalPState, elapsedNano) = measureTime {
                     transformer(pState)
                 }
-
+                if (verbose) {
+                    // not perfect b/c it only prints the theory
+                    println(TheoryOps.wrapTheory(finalPState.theory).smtlib)
+                }
                 loggers.foreach(_.transformerFinished(transformer, elapsedNano))
 
                 if (!forceFullCompile && finalPState.flags.trivialResult.isDefined)

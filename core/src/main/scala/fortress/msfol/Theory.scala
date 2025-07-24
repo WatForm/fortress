@@ -59,6 +59,10 @@ case class Theory private (signature: Signature, axioms: Set[Term]) {
       */
     def withSorts(sorts: java.lang.Iterable[Sort]) = Theory(signature.withSorts(sorts), axioms)
     
+    // TODO: add 
+    // def withSorts(sorts: Iterable[Sort]) 
+    // to avoid need to convert arg use for the above with .asJava
+    
     /** Returns a theory consisting of the current theory but with the given
       * sort declarations added. Note that this does not modify the current Theory object,
       * but rather just returns a new Theory object.

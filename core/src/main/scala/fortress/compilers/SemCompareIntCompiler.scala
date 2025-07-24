@@ -19,7 +19,7 @@ import fortress.problemstate._
 import fortress.transformers._
 import fortress.util.Control.measureTime
 import fortress.util.Control.withCountdown
-
+import fortress.operations.TheoryOps
 
 class SemCompIntCompiler extends Compiler {
 
@@ -34,6 +34,7 @@ class SemCompIntCompiler extends Compiler {
         forceFullCompile: Boolean,
     ): Either[CompilerError, StandardCompilerResult] = {
  
+        // println("in SemCompIntCompiler compile")
         val initialProblemState = ProblemState(theory, scopes, verbose)
 
         // two compilers to compare are hardcoded here
@@ -63,7 +64,11 @@ class SemCompIntCompiler extends Compiler {
                         val (finalPState, elapsedNano) = measureTime {
                             transformer(stdCompResult.finalProblemState)
                         }
-
+                        if (verbose) {
+                            // not perfect b/c it only prints the theory
+                            println("After "+transformer.getClass.getName)
+                            println(TheoryOps.wrapTheory(finalPState.theory).smtlib)
+                        }
                         loggers.foreach(_.transformerFinished(transformer, elapsedNano))
 
                         // trivial result is not a reason to quit early in a comparison
@@ -101,7 +106,10 @@ class SemCompIntCompiler extends Compiler {
                 case Left(x) => return Left(x)
                 case Right(stdCompilerResult) => stdCompilerResult.finalProblemState
             }
-
+        if (verbose) {
+            // not perfect b/c it only prints the theory
+            println(TheoryOps.wrapTheory(mergedFinalProblemState.theory).smtlib)
+        }
         Right(new StandardCompilerResult(mergedFinalProblemState))
     }
 

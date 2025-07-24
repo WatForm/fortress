@@ -205,12 +205,13 @@ object FortressCli {
 
         if (conf.verbose()) println("Compiling ...")
 
-        modelFinder.compile() match {
+        modelFinder.compile(verbose = conf.verbose.getOrElse(false)) match {
             case Left(ce) => { 
                 Errors.cliError("Error compiling" + ce.toString())
             }
             case Right(cr) => {
                 if (conf.compileOnly()) {
+
                     val theoryAfterCompile = cr.theory
 
                     //println("=====original=====")

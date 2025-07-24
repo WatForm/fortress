@@ -51,7 +51,8 @@ class MergeTransformer (
     problemState2: ProblemState
 ) extends ProblemStateTransformer {
 
-    val errorMessage = "problemStates are not disjoint for MergeTransformer"
+    val notDisjointMsg = "problemStates are not disjoint for MergeTransformer"
+    val emptyTheoryMsg = "both theories are empty for MergeTransformer"
 
     override def apply(problemState1: ProblemState): ProblemState = {
 
@@ -69,16 +70,13 @@ class MergeTransformer (
           result match {
             case Some(s2) => 
               if (test(s1,s2))
-                throw new Errors.UnsupportedFeature(errorMessage)
+                throw new Errors.UnsupportedFeature(notDisjointMsg)
             case _ => // if not found, not a problem
           }
         } 
         return (thing(problemState1) ++ thing(problemState2)).toSet
       }
 
-      // set object attribute
-      // to be used in 
-      //problemState1 = ps1
       // theory: signature: sorts 
       // problemState: scopes
       // if same name, scopes must be the same      
@@ -87,7 +85,10 @@ class MergeTransformer (
         (x:Sort) => x.name,
         (x:Sort, y:Sort) => 
             x.isBuiltin != y.isBuiltin |
-            problemState1.scopes(x).size != problemState2.scopes(y).size   // comparing scopes
+            // need this to be a lazy &&
+            ((problemState1.scopes.keySet contains x) &&
+             (problemState2.scopes.keySet contains y) &&
+            problemState1.scopes(x).size != problemState2.scopes(y).size)   // comparing scopes
         )
       // also merge scopes
       val newScopes = problemState1.scopes ++ problemState2.scopes 
@@ -109,7 +110,7 @@ class MergeTransformer (
         ((x:ProblemState) => x.theory.signature.functionDeclarations),
         (x:FuncDecl) => x.name,
         (x:FuncDecl, y:FuncDecl) => 
-            x.argSorts != y.argSorts |
+            x.argSorts != y.argSorts ||
             x.resultSort != y.resultSort
         )
 
@@ -146,11 +147,17 @@ class MergeTransformer (
       // theory: axioms
       // from theory1, just add all of its axioms (this means the conjunction of all of its axioms)
       // from theory2, create one disjunction of the negation of each axiom 
-      val newAxioms2 = 
-        problemState2.theory.axioms.map(Not(_)).toList
-      val newAxiom2 =
-        OrList(newAxioms2)
-      val newAxioms = problemState1.theory.axioms + newAxiom2
+      if (problemState2.theory.axioms.size == 0 &&
+         problemState1.theory.axioms.size == 0) {
+         throw new Errors.UnsupportedFeature(emptyTheoryMsg)
+        }
+      var newAxioms2 =
+        if (problemState2.theory.axioms.size > 1)  
+          List(OrList(problemState2.theory.axioms.map(Not(_)).toSeq))
+        else 
+          // only one axiom
+          problemState2.theory.axioms.map(Not(_))
+      val newAxioms = problemState1.theory.axioms ++ newAxioms2
 
       val newTheory =
         Theory.empty
@@ -176,7 +183,7 @@ class MergeTransformer (
         ((x:ProblemState) => x.skolemFunctions),
         (x:FuncDecl) => x.name,
         (x:FuncDecl, y:FuncDecl) => 
-            x.argSorts != y.argSorts |
+            x.argSorts != y.argSorts ||
             x.resultSort != y.resultSort
         )
 
@@ -203,7 +210,7 @@ class MergeTransformer (
       if (problemState1.flags == problemState2.flags) {
         val newFlags = problemState1.flags.copy()
       } else {
-        throw new Errors.UnsupportedFeature(errorMessage)
+        throw new Errors.UnsupportedFeature(notDisjointMsg)
       }
 
       ProblemState.empty
