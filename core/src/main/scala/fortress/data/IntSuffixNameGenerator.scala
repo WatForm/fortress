@@ -28,40 +28,17 @@ class IntSuffixNameGenerator(
     override def forbidName(name: String): Unit = {
         forbiddenNames = forbiddenNames + name
     }
+
+    override def forbidNames(nameSet: Set[String]): Unit = {
+        forbiddenNames ++= nameSet
+    }
 }
 
 object IntSuffixNameGenerator {
     // Produces a new (mutable) name generator
+
     def restrictAllNamesInTheory(theory: Theory): NameGenerator = {
-        
-        val forbiddenNames = scala.collection.mutable.Set[String]()
-        
-        for(sort <- theory.sorts) {
-            forbiddenNames += sort.name
-        }
-        
-        for(fdecl <- theory.functionDeclarations) {
-            forbiddenNames += fdecl.name
-        }
-        
-        for(constant <- theory.constantDeclarations) {
-            forbiddenNames += constant.name
-        }
-
-        for(cDef <- theory.constantDefinitions){
-            forbiddenNames += cDef.name
-        }
-
-        for(fDef <- theory.functionDefinitions){
-            forbiddenNames += fDef.name
-        }
-        
-        // TODO: do we need this restriction if Substituter already restricts these inside one term?
-        for(axiom <- theory.axioms) {
-            forbiddenNames ++= axiom.allSymbols
-        }
-
-
-        new IntSuffixNameGenerator(forbiddenNames.toSet, 0)
+        new IntSuffixNameGenerator(theory.collectAllNamesInTheory.toSet, 0)
     }
+
 }

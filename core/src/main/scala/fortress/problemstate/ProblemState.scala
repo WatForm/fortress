@@ -30,6 +30,7 @@ case class ProblemState private (
     skolemFunctions: Set[FuncDecl],
     rangeRestrictions: Set[RangeRestriction],
     unapplyInterp: List[Interpretation => Interpretation],
+    finiteInts: List[FiniteInts],
     flags: Flags
 ) {
 //    Errors.Internal.precondition(scopes.values.forall(_. > 0), "Scopes must be positive")
@@ -58,6 +59,11 @@ case class ProblemState private (
         
     }
 
+    // needed for MergeTransformer
+    // but should not be used generally
+    def withUnapplyInterps(unapps:List[Interpretation => Interpretation]):ProblemState = {
+        copy(unapplyInterp = unapps)
+    }
     def addUnapplyInterp(unapp: Interpretation => Interpretation): ProblemState = {
         copy(unapplyInterp = unapp :: unapplyInterp)
     }
@@ -68,6 +74,10 @@ case class ProblemState private (
 
     def withFlags(fl:Flags):ProblemState = {
         copy(flags = fl)
+    }
+
+    def addFiniteInts(fi:FiniteInts):ProblemState = {
+        copy(finiteInts = fi :: finiteInts)
     }
 
     /**
@@ -165,6 +175,7 @@ object ProblemState {
             Set.empty,
             Set.empty,
             List.empty,
+            List.empty,
             flags = Flags(verbose=verbose, containsNonExactScopes=containsNonExactScopes)
         )
     }
@@ -177,6 +188,7 @@ object ProblemState {
             Set.empty,
             Set.empty,
             List.empty,
+            List.empty,
             flags
         )
     // dummy empty ProblemState
@@ -187,6 +199,7 @@ object ProblemState {
             Set.empty,
             Set.empty,
             Set.empty,
+            List.empty,
             List.empty,
             Flags()            
             )   

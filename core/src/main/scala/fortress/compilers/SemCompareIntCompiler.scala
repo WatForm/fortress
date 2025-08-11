@@ -98,7 +98,13 @@ class SemCompIntCompiler extends Compiler {
                 case Right(stdCompilerResult) => stdCompilerResult.finalProblemState
             }
 
-        val tsmerge = CompilersRegistry.ListOfOne(new MergeTransformer(ts1finalProblemState)).toList
+        val tsmerge:Seq[ProblemStateTransformer] = { 
+            val ts = CompilersRegistry.NullTransformerList
+            ts += new MergeFiniteIntTheoriesTransformer(ts1finalProblemState)
+            // for safety, typecheck it again
+            ts += TypecheckSanitizeTransformer
+            ts.toList
+        }
 
         val mergedFinalProblemState = 
            doFold(ts2finalProblemState, tsmerge) match {

@@ -10,6 +10,9 @@ import fortress.msfol._
   */
 object MaxAlphaRenaming {
     def rename(theory: Theory): Theory = {
+        //TODO: refactor to use 
+        // val nameGenerator = IntSuffixNameGenerator.restrictAllNamesInTheory(theory)
+
         val nameGenerator = new IntSuffixNameGenerator(Set(), 0)
         for (sort <- theory.signature.sorts) nameGenerator.forbidName(sort.name)
         for (funcDecl <- theory.signature.functionDeclarations) nameGenerator.forbidName(funcDecl.name)

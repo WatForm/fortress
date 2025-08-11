@@ -22,6 +22,9 @@ trait ClosureEliminationTransformer extends ProblemStateTransformer {
         val forbiddenNames = scala.collection.mutable.Set[String]()
         
         // Collect names we cannot use when making new declarations
+
+        //TODO: refactor to use 
+        // val nameGenerator = IntSuffixNameGenerator.restrictAllNamesInTheory(theory)
         for(sort <- theory.sorts) {
             forbiddenNames += sort.name
         }

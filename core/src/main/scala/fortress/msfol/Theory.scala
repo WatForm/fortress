@@ -170,6 +170,39 @@ case class Theory private (signature: Signature, axioms: Set[Term]) {
     def constantDeclarations: Set[AnnotatedVar] = signature.constantDeclarations
     def enumConstants: Map[Sort, Seq[EnumValue]] = signature.enumConstants
 
+    // moved here from IntSuffixNameGenerator object
+    def collectAllNamesInTheory: Set[String] = {
+        var forbiddenNames = scala.collection.mutable.Set[String]()
+        
+        for(sort <- this.sorts) {
+            forbiddenNames += sort.name
+        }
+        
+        for(fdecl <- this.functionDeclarations) {
+            forbiddenNames += fdecl.name
+        }
+        
+        for(constant <- this.constantDeclarations) {
+            forbiddenNames += constant.name
+        }
+
+        for(cDef <- this.constantDefinitions){
+            forbiddenNames += cDef.name
+        }
+
+        for(fDef <- this.functionDefinitions){
+            forbiddenNames += fDef.name
+        }
+        
+        // TODO: do we need this restriction if Substituter already restricts these inside one term?
+        for(axiom <- this.axioms) {
+            forbiddenNames ++= axiom.allSymbols
+        }
+        // have to make it immutable to return it
+        val retValue = forbiddenNames.toSet
+        retValue
+    }
+
     override def toString: String = "\n" + signature.toString + "\nAxioms\n" + axioms.mkString("\n") + "\n"
     
 }

@@ -12,4 +12,6 @@ trait NameGenerator {
     
     /** Forbids a name from future name generation. */
     def forbidName(name: String): Unit
+
+    def forbidNames(name: Set[String]): Unit
 }
