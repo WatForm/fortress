@@ -29,10 +29,10 @@ abstract class PermissiveTransformer extends ProblemStateTransformer {
 
     // overrides for unknown checks
     // Given a term, return a function that takes the unknown checks for its argumnents and returns
-    // the unknown check for the term
+    // the new term and an unknown check for the term
     var overrides: PartialFunction[Term, (Term, Term)]
     // canOverflow takes a term and the unknown checks for each of its arguments
-    // it returns an unknown check for the term
+    // it returns the new term and an unknown check for the term
     def unknownCheck(term: Term, sig: Signature, pol: Polarity.Polarity): (Term, Term) = {
         if (overrides isDefinedAt term) {
             overrides(term)

@@ -217,15 +217,20 @@ class IntegerToSortConverter(min: Int, max: Int, newSort: Sort, nameGenerator: N
         ps.withTheory(newTheory).addUnapplyInterp(unapplyInterp())
     }
 
+    def overflows(): PartialFunction[Term, (Term, Term)] = {
+    case App(fname, args) if fname == castToInt.name => {
+        Errors.Internal.precondition(args.size == 1, f"Expected only 1 argument to ${castToInt.name}, got ${args.size}")
+        val arg = args(0)
+        val check = Or(
+            BuiltinApp(IntGT, arg, IntegerLiteral(max)),
+            BuiltinApp(IntLT, arg, IntegerLiteral(min))
+        )
+        (App(fname, args), check)
+    }
+    }
+
     def overflows(term: Term): Option[Term] = term match {
-        case App(fname, args) if fname == castToInt.name => {
-            Errors.Internal.precondition(args.size == 1, f"Expected only 1 argument to ${castToInt.name}, got ${args.size}")
-            val arg = args(0)
-            Some(Or(
-                BuiltinApp(IntGT, arg, IntegerLiteral(max)),
-                BuiltinApp(IntLT, arg, IntegerLiteral(min))
-            ))
-        }
+        
         case _ => None
     }
 }
