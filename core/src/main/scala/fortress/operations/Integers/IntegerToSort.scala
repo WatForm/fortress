@@ -3,16 +3,20 @@ package fortress.operations
 import fortress.msfol._
 import fortress.util.Errors
 import fortress.data.NameGenerator
+import fortress.interpretation.Interpretation
+import fortress.sortinference.SortSubstitution
+import fortress.sortinference.ValuedSortSubstitution
+import fortress.problemstate.ProblemState
 
 class IntegerToSortConverter(min: Int, max: Int, newSort: Sort, nameGenerator: NameGenerator) {
-    val intToConstants: Map[Int, Var] = Range(min, max+1).map(value => {
-        val newName = nameGenerator.freshName(f"_${value}_${newSort.name}")
-        (value -> Var(newName))
+    val intToConstants: Map[Int, DomainElement] = Range(min, max+1).map(value => {
+        // Domain elements are indexed starting with 1
+        (value -> DomainElement(1 - min + value, newSort))
     }).toMap
 
     val IntConsts = Seq(intToConstants.values)
 
-    val constantsToInts: Map[Term, Int] = intToConstants.map(mapping => mapping._2 -> mapping._1)
+    val constantsToInts: Map[Value, IntegerLiteral] = intToConstants.map(mapping => mapping._2 -> IntegerLiteral(mapping._1))
 
     // TODO name generator
     // If any 
@@ -29,7 +33,7 @@ class IntegerToSortConverter(min: Int, max: Int, newSort: Sort, nameGenerator: N
 
     var castToInt: FunctionDefinition = FunctionDefinition(nameGenerator.freshName(f"cast${newSort.name}ToInt"), Seq(ax), IntSort,
         // Generate the body by folding to make If(x == v1) then {1} else {If (x == v2) then {2} else {...  else {<any dummy value>}}}
-        constantsToInts.foldLeft(IntegerLiteral(min): Term)({case (prev, (constValue, intValue)) => IfThenElse(Eq(x, constValue), IntegerLiteral(intValue), prev)})
+        constantsToInts.foldLeft(IntegerLiteral(min): Term)({case (prev, (constValue, intValue)) => IfThenElse(Eq(x, constValue), intValue, prev)})
     )
 
     var castFromInt: FunctionDefinition = FunctionDefinition(nameGenerator.freshName(f"castIntTo${newSort.name}"), Seq(ax), newSort,
@@ -54,6 +58,12 @@ class IntegerToSortConverter(min: Int, max: Int, newSort: Sort, nameGenerator: N
 
     // TODO apply to problem state
 
+
+    def replaceSort(s: Sort): Sort = s match {
+        case IntSort => newSort
+        case _ => s
+    }
+
     // Change the sort of annotated vars of sort int to the newSort. other sorts are unchanged
     def replaceAvarSort(av: AnnotatedVar): AnnotatedVar = av.sort match {
         case IntSort => AnnotatedVar(av.variable, newSort)
@@ -65,6 +75,28 @@ class IntegerToSortConverter(min: Int, max: Int, newSort: Sort, nameGenerator: N
             case `newSort` => fromInt(arg)
             case _ => arg
         }})
+    }
+
+    def convertSignature(originalSig: Signature): Signature = {
+        val sorts = originalSig.sorts + newSort
+        val castConstDecls = originalSig.constantDeclarations.map(replaceAvarSort)
+        // Constant definitions shouldn't need to be cast
+        // Not 100% sure though, so if you're looking for bugs check here.
+        val castFuncDecls = originalSig.functionDeclarations.map({case FuncDecl(fname, paramSorts, resultSort) =>
+                val newParamSorts = paramSorts map replaceSort
+                val newResultSort = replaceSort(resultSort)
+                FuncDecl(fname, newParamSorts, newResultSort)
+            })
+        
+        // We don't add overflow checks for definitions here, though maybe we should?
+        Signature(
+            sorts,
+            castFuncDecls,
+            originalSig.functionDefinitions,
+            castConstDecls,
+            originalSig.constantDefinitions,
+            originalSig.enumConstants,
+        )
     }
 
 
@@ -165,4 +197,35 @@ class IntegerToSortConverter(min: Int, max: Int, newSort: Sort, nameGenerator: N
         case _: Forall2ndOrder => Errors.Internal.impossibleState("IntegerToSortConverter does not support 2nd order functions.")
     }
 
+    def unapplyInterp(): Interpretation => Interpretation = {
+        val sortSub: SortSubstitution = new ValuedSortSubstitution(
+            Map(newSort -> IntSort),
+            constantsToInts
+        )
+        def unapply(interp: Interpretation): Interpretation = {
+            interp.withoutFunctionDefinitions(
+                Set(castToInt, castFromInt)
+            ).applySortSubstitution(sortSub)
+        }
+        return unapply
+    }
+
+    def transformProblemState(ps: ProblemState): ProblemState = {
+        val newSig = convertSignature(ps.theory.signature)
+        val newAxioms = ps.theory.axioms.map(replaceInt(_, newSig))
+        val newTheory = Theory(newSig, newAxioms)
+        ps.withTheory(newTheory).addUnapplyInterp(unapplyInterp())
+    }
+
+    def overflows(term: Term): Option[Term] = term match {
+        case App(fname, args) if fname == castToInt.name => {
+            Errors.Internal.precondition(args.size == 1, f"Expected only 1 argument to ${castToInt.name}, got ${args.size}")
+            val arg = args(0)
+            Some(Or(
+                BuiltinApp(IntGT, arg, IntegerLiteral(max)),
+                BuiltinApp(IntLT, arg, IntegerLiteral(min))
+            ))
+        }
+        case _ => None
+    }
 }
