@@ -379,7 +379,7 @@ class MergeFiniteIntTheoriesTransformer (
                rhsArgValuesList += argValues
             } else {
               ???
-              // TODO: fix this for builtin sorts
+              // TODO: how do we expand other built-in sorts or sorts without a scope??
             }
         }
         // creates a list of pairs (x,y)
@@ -472,9 +472,6 @@ class MergeFiniteIntTheoriesTransformer (
       } else {
         throw new Errors.UnsupportedFeature(notDisjointMsg)
       }
-      
-      // TODO: merge finiteInts
-      // make it a Set of finiteInts in the ProblemState
 
       ProblemState.empty
         .withTheory(newTheory)
