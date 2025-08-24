@@ -22,15 +22,19 @@ object PermissiveFiniteIntsTransformer extends ProblemStateTransformer {
 
         
         // Assuming [-scope/2, scope/2)
+        val min = -intScope / 2
+        val max = intScope / 2 - 1
 
         val int2sort = new IntegerToSortConverter(
-            -intScope / 2, intScope / 2 - 1, finiteIntSort, nameGen
+            min, max, finiteIntSort, nameGen
         )
 
         val psWithIntSort = int2sort.transformProblemState(ps)
 
         val permissive = new PermissiveTransformer(int2sort.overflows())
 
-        return permissive.apply(psWithIntSort)
+        val result = permissive.apply(psWithIntSort)
+
+        return result
     }
 }

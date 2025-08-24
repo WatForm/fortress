@@ -6,7 +6,7 @@ import fortress.data.NameGenerator
 import fortress.interpretation.Interpretation
 import fortress.sortinference.SortSubstitution
 import fortress.sortinference.ValuedSortSubstitution
-import fortress.problemstate.ProblemState
+import fortress.problemstate._
 
 class IntegerToSortConverter(min: Int, max: Int, newSort: Sort, nameGenerator: NameGenerator) {
     val intToConstants: Map[Int, DomainElement] = Range(min, max+1).map(value => {
@@ -14,7 +14,7 @@ class IntegerToSortConverter(min: Int, max: Int, newSort: Sort, nameGenerator: N
         (value -> DomainElement(1 - min + value, newSort))
     }).toMap
 
-    val IntConsts = Seq(intToConstants.values)
+    val intConsts = Seq(intToConstants.values)
 
     val constantsToInts: Map[Value, IntegerLiteral] = intToConstants.map(mapping => mapping._2 -> IntegerLiteral(mapping._1))
 
@@ -214,7 +214,12 @@ class IntegerToSortConverter(min: Int, max: Int, newSort: Sort, nameGenerator: N
         val newSig = convertSignature(ps.theory.signature)
         val newAxioms = ps.theory.axioms.map(replaceInt(_, newSig))
         val newTheory = Theory(newSig, newAxioms)
-        ps.withTheory(newTheory).addUnapplyInterp(unapplyInterp())
+        
+        var newPs = ps.withTheory(newTheory).addUnapplyInterp(unapplyInterp())
+        newPs = newPs.withScopes(
+            newPs.scopes + (newSort -> ExactScope(intToConstants.size))
+        )
+        newPs
     }
 
     def overflows(): PartialFunction[Term, (Term, Term)] = {

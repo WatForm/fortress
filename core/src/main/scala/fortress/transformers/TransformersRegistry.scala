@@ -16,7 +16,7 @@ object TransformersRegistry {
         val t:ProblemStateTransformer = name match {
 
             // string name must match the object name + 'Transformer'
-            case "EnumsToDEsElimination" => EnumsToDEsTransformer
+            case "EnumsToDEsElimination" | "EnumsToDEs" | "EnumsToDE" | "EnumToDE" => EnumsToDEsTransformer
             case "SetCardinality" => SetCardinalityTransformer
             case "IfLifting" => IfLiftingTransformer
             case "Nnf" => NnfTransformer
@@ -79,7 +79,9 @@ object TransformersRegistry {
                 null
             }
         }
-        checkName(name,t)
+        // Removed to allow aliasing
+        //checkName(name,t)
+        t
     }
 
     private def checkName(s:String, t:ProblemStateTransformer): ProblemStateTransformer = {
