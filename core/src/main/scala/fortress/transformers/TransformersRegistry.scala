@@ -2,6 +2,7 @@ package fortress.transformers
 
 import fortress.transformers.Definitions.EliminateUnusedTransformer
 import fortress.util.Errors
+import fortress.transformers.Integers.PermissiveFiniteIntsTransformer
 
 // look up transformer associated with a string name
 // raise an exception if not found
@@ -52,6 +53,7 @@ object TransformersRegistry {
             case "IntToBV" => IntToBVTransformer
             case "IntNOBV" => IntNOBVTransformer
             case "IntOPFI" => IntOPFITransformer
+            case "PermissiveFiniteInt" | "PermissiveFiniteInts" | "PFI" => PermissiveFiniteIntsTransformer
             // case "LiaCheck" => LiaCheckTransformer
 
             // Quantifiers

@@ -226,11 +226,5 @@ class IntegerToSortConverter(min: Int, max: Int, newSort: Sort, nameGenerator: N
             BuiltinApp(IntLT, arg, IntegerLiteral(min))
         )
         (App(fname, args), check)
-    }
-    }
-
-    def overflows(term: Term): Option[Term] = term match {
-        
-        case _ => None
-    }
+    }}
 }

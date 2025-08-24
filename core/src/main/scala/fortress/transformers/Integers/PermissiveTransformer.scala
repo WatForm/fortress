@@ -5,7 +5,10 @@ import fortress.msfol._
 import fortress.transformers.Polarity
 import fortress.problemstate.ProblemState
 
-abstract class PermissiveTransformer extends ProblemStateTransformer {
+// overrides for unknown checks
+// Given a term, return a function that takes the unknown checks for its argumnents and returns
+// the new term and an unknown check for the term
+class PermissiveTransformer(overrides: PartialFunction[Term, (Term, Term)]) extends ProblemStateTransformer {
 
     def apply(problemState: ProblemState): ProblemState = {
         val oldTheory = problemState.theory
@@ -27,10 +30,6 @@ abstract class PermissiveTransformer extends ProblemStateTransformer {
         }
     }
 
-    // overrides for unknown checks
-    // Given a term, return a function that takes the unknown checks for its argumnents and returns
-    // the new term and an unknown check for the term
-    var overrides: PartialFunction[Term, (Term, Term)]
     // canOverflow takes a term and the unknown checks for each of its arguments
     // it returns the new term and an unknown check for the term
     def unknownCheck(term: Term, sig: Signature, pol: Polarity.Polarity): (Term, Term) = {
